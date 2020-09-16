@@ -22,6 +22,30 @@
       "revId": "cba6f56d6f556020dfe0a391db74b7a8523b64a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3d922fc_a38162ff",
+        "filename": "golden/modules/changelist-controls-sk/test_data.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-16T21:25:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "33848e5a_dd30f054",
+      "range": {
+        "startLine": 1,
+        "startChar": 42,
+        "endLine": 1,
+        "endChar": 43
+      },
+      "revId": "cba6f56d6f556020dfe0a391db74b7a8523b64a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
