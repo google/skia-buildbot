@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd622fc6_dc388b53",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T11:23:39Z",
+      "side": 1,
+      "message": "If we want to be really sure about only forwarding the devices we want to (and not others by accident), I would suggest combining the vendor_id/device_id into another key (feel free to keep the vendor_id and device_id as well) and we use that combined_id as the only part of the rule. ",
+      "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
