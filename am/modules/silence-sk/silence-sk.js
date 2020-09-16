@@ -231,11 +231,21 @@ define('silence-sk', class extends HTMLElement {
     this._state.duration = e.target.value;
   }
 
+  _validateSilence() {
+    console.log("IN VALIDATE SILENCE");
+    console.log(this._state);
+    return false;
+  }
+
   _save() {
     const detail = {
       silence: this._state,
     };
     if (!this._state.key) {
+      if (!this._validateSilence()) {
+        errorMessage('Silence contains invalid regex');
+        return;
+      }
       const textarea = $$('textarea', this);
       if (!textarea.value) {
         errorMessage('Please enter a description for the silence');
@@ -258,6 +268,10 @@ define('silence-sk', class extends HTMLElement {
   }
 
   _reactivate() {
+    if (!this._validateSilence()) {
+      errorMessage('Silence contains invalid regex');
+      return;
+    }
     const detail = {
       silence: this._state,
     };

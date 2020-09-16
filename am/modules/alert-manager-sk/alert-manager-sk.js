@@ -151,6 +151,7 @@ function numMatchSilence(ele, s) {
   if (!ele._incidents) {
     return '';
   }
+  console.log("HERE HERE");
   return ele._incidents.filter(
     (incident) => paramset.match(s.param_set, incident.params) && incident.active,
   ).length;
@@ -363,6 +364,7 @@ define('alert-manager-sk', class extends HTMLElement {
     if (isChecked) {
       this._last_checked_incident = key;
       this._checked.add(key);
+      console.log("HERE HERE");
       this._incidents.forEach((i) => {
         if (i.key === key) {
           paramset.add(this._current_silence.param_set, i.params, this._ignored);
@@ -631,6 +633,7 @@ define('alert-manager-sk', class extends HTMLElement {
 
   // Fix-up all the incidents and silences, including re-sorting them.
   _rationalize() {
+    console.log("RATIONZLIED");
     this._incidents.forEach((incident) => {
       const silenced = this._silences.reduce((isSilenced, silence) => isSilenced
               || (silence.active && paramset.match(silence.param_set, incident.params)), false);
