@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7931ccbb_7c0c6b43",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-16T17:02:16Z",
+      "side": 1,
+      "message": "Pushed to the rollers",
+      "revId": "dc5fbbeeb1daedb64475c1e85d96a49f10423e01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
