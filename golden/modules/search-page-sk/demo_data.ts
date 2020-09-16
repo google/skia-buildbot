@@ -1,4 +1,4 @@
-import { SearchResponse, StatusResponse, ParamSetResponse } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, ChangeListSummaryResponse } from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-07-20T00:00:00Z');
 
@@ -172,7 +172,32 @@ export const paramSetResponse: ParamSetResponse = {
   "source_type": ["infra"]
 };
 
-// Taken from https://skia-infra-gold.skia.org/json/v1/search on 2020-07-15. Trimmed and names removed.
+// Taken from https://skia-infra-gold.skia.org/json/changelist/gerrit/31719 on 2020-09-15.
+export const changeListSummaryResponse: ChangeListSummaryResponse = {
+  "cl": {
+    "system": "gerrit",
+    "id": "123456",
+    "owner": "alice@example.com",
+    "status": "Open",
+    "subject": "Make some interesting changes here and there",
+    "updated": "2020-09-15T21:04:19.662357Z",
+    "url": "https://skia-review.googlesource.com/123456"
+  },
+  "patch_sets": [{
+    "id": "ba53b08f955bbfbec8da0346c59e6d5c038fd593",
+    "order": 1,
+    "try_jobs": [{
+      "id": "8869059577477321936",
+      "name": "Infra-PerCommit-Puppeteer",
+      "updated": "2020-09-15T20:44:52.491232Z",
+      "system": "buildbucket",
+      "url": "https://cr-buildbucket.appspot.com/build/8869059577477321936"
+    }]
+  }],
+  "num_total_patch_sets": 1
+};
+
+// Taken from https://skia-infra-gold.skia.org/json/v1/search on 2020-07-15. Trimmed and anonymized.
 export const searchResponse: SearchResponse = {
   "digests": [{
       "digest": "fbd3de3fff6b852ae0bb6751b9763d27",
