@@ -16,6 +16,7 @@ import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/tabs-panel-sk';
 import 'elements-sk/tabs-sk';
+import 'elements-sk/toast-sk';
 
 import '../incident-sk';
 import '../email-chooser-sk';

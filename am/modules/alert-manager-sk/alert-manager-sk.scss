@@ -209,4 +209,9 @@ alert-manager-sk {
       border-top: solid 1px black;
     }
   }
+
+  error-toast-sk toast-sk {
+    background-color: var(--error);
+    color: var(--on-error);
+  }
 }
