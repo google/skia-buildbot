@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3bd86f5f_ec75ad7a",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-16T19:14:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a6fd417_fa01076e",
+      "range": {
+        "startLine": 69,
+        "startChar": 30,
+        "endLine": 69,
+        "endChar": 36
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "393c321b_27be88d2",
         "filename": "golden/modules/search-page-sk/search-page-sk.ts",
         "patchSetId": 12
@@ -45,6 +69,30 @@
       "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5208993d_e5927037",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-16T19:14:15Z",
+      "side": 1,
+      "message": "Done, but leaving the URL parameters as-is for now.\n\nI\u0027d rather focus on the lit-html port right now and change the URL parameters after the port is finished. Renaming the URL params might involve changes in other places which link to the search page, and this is best done in a separate step.",
+      "parentUuid": "393c321b_27be88d2",
+      "range": {
+        "startLine": 126,
+        "startChar": 10,
+        "endLine": 126,
+        "endChar": 20
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "b85873e6_61cc171f",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-16T19:14:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "02bd75e2_8a0436aa",
+      "range": {
+        "startLine": 152,
+        "startChar": 27,
+        "endLine": 152,
+        "endChar": 33
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec2561e2_21ec6f62",
         "filename": "golden/modules/search-page-sk/search-page-sk.ts",
         "patchSetId": 12
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "5f949390_e6dedb12",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-16T19:14:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec2561e2_21ec6f62",
+      "range": {
+        "startLine": 153,
+        "startChar": 14,
+        "endLine": 153,
+        "endChar": 20
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "46e2086b_c9d73846",
         "filename": "golden/modules/search-page-sk/search-page-sk.ts",
         "patchSetId": 12
@@ -114,6 +210,30 @@
       "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e41ca163_e5a09bf0",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-16T19:14:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46e2086b_c9d73846",
+      "range": {
+        "startLine": 279,
+        "startChar": 4,
+        "endLine": 279,
+        "endChar": 55
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
