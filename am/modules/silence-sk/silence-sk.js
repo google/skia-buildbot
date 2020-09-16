@@ -96,7 +96,7 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { html, render } from 'lit-html';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 import {
-  abbr, displaySilence, expiresIn, notes,
+  abbr, displaySilence, expiresIn, getDurationTillNextDay, notes,
 } from '../am';
 import * as paramset from '../paramset';
 
@@ -172,7 +172,7 @@ const template = (ele) => html`
     </section>
     <table class=info>
       <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input @change=${ele._durationChange} value=${ele._state.duration}></input></td></th>
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button class="till-next-shift" @click=${ele._tillNextShift}>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(ele._state.created * 1000).toLocaleString()}>${diffDate(ele._state.created * 1000)}</td></tr>
       <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
     </table>
@@ -229,6 +229,12 @@ define('silence-sk', class extends HTMLElement {
 
   _durationChange(e) {
     this._state.duration = e.target.value;
+  }
+
+  // Populates duration till next Monday 9am.
+  _tillNextShift() {
+    this._state.duration = getDurationTillNextDay(1, 9);
+    this._render();
   }
 
   _save() {

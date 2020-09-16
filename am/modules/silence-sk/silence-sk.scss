@@ -52,6 +52,14 @@ silence-sk {
     border: solid var(--gray) 1px;
   }
 
+  input.duration {
+    width: 3em;
+  }
+
+  button.till-next-shift {
+    font-size: x-small;
+  }
+
   section.notes,
   section.addNote {
     max-width: 40em;
