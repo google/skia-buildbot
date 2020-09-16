@@ -97,3 +97,26 @@ export function expiresIn(silence) {
   }
   return '';
 }
+
+/**
+ * Returns the human.diffDate str for the duration from the current date
+ * till the next day of the week at the specified time.
+ *
+ * @param {number} day - Possible values range from 0 to 6 for Sun to Sat.
+ * @param {number} hour - Possible values range from 0 to 23 for the hour.
+ */
+export function getDurationTillNextDay(day, hour) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    let d = now.getDate();
+
+    // Increment d till we reach the target day.
+    let tmp = new Date();
+    do {
+      tmp = new Date(y, m, ++d);
+    } while (tmp.getDay() != day)
+    const target = new Date(y, m, d, hour, 0, 0);
+
+    return diffDate(target);
+  }
