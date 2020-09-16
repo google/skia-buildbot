@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "33848e5a_dd30f054",
+        "filename": "golden/modules/changelist-controls-sk/test_data.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T20:42:31Z",
+      "side": 1,
+      "message": "ubernit: single quotes",
+      "range": {
+        "startLine": 1,
+        "startChar": 42,
+        "endLine": 1,
+        "endChar": 43
+      },
+      "revId": "cba6f56d6f556020dfe0a391db74b7a8523b64a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
