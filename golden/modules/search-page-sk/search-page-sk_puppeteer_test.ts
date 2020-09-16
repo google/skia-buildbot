@@ -44,7 +44,11 @@ describe('search-page-sk', () => {
       await takeScreenshot(page!, 'gold', 'search-page-sk');
     });
 
-    // TODO(lovisolo): Add screenshot test with changelist controls visible.
+    it('shows changelist controls', async () => {
+      await goToPage('?untriaged=true&positive=true&negative=true&crs=gerrit&issue=123456');
+      const page = await testBed.page.$('search-page-sk');
+      await takeScreenshot(page!, 'gold', 'search-page-sk_changelist-controls');
+    });
   });
 
   it('reads search params from the URL', async () => {
