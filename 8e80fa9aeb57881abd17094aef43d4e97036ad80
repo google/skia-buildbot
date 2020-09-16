@@ -1,0 +1,220 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "8a40a2b0_9d83b004",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 9,
+        "startChar": 71,
+        "endLine": 9,
+        "endChar": 77
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "99ae4d60_6dbfcb5e",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 49,
+        "startChar": 2,
+        "endLine": 49,
+        "endChar": 8
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "aadd095d_47b4c9f4",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 153,
+        "startChar": 14,
+        "endLine": 153,
+        "endChar": 20
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "3930cf51_08cdb997",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 165,
+        "startChar": 33,
+        "endLine": 165,
+        "endChar": 39
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b7a5db5c_8999a23c",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 279,
+        "startChar": 36,
+        "endLine": 279,
+        "endChar": 42
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "a99758db_f6e04cc1",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 181,
+        "startChar": 22,
+        "endLine": 181,
+        "endChar": 28
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "588d0482_22f7f693",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 182,
+        "startChar": 23,
+        "endLine": 182,
+        "endChar": 29
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004964575",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317251?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b629c78f_dc96ec40",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T04:40:21Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 185,
+        "startChar": 20,
+        "endLine": 185,
+        "endChar": 26
+      },
+      "revId": "8e80fa9aeb57881abd17094aef43d4e97036ad80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
