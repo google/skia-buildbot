@@ -43,6 +43,8 @@ describe('search-page-sk', () => {
       const page = await testBed.page.$('search-page-sk');
       await takeScreenshot(page!, 'gold', 'search-page-sk');
     });
+
+    // TODO(lovisolo): Add screenshot test with changelist controls visible.
   });
 
   it('reads search params from the URL', async () => {

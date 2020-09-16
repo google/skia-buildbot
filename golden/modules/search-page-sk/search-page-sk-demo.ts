@@ -20,7 +20,7 @@ fetchMock.get('/json/v1/paramset', () => paramSetResponse);
 fetchMock.get('glob:/json/v1/search*', (url: string) => {
   const filteredSearchResponse = deepCopy(searchResponse);
 
-  // Filter only by untriaged/positive/negative
+  // Filter only by untriaged/positive/negative.
   filteredSearchResponse.digests = filteredSearchResponse.digests!.filter(
     (digest) =>
       (digest!.status === 'untriaged' && url.includes('unt=true')) ||
