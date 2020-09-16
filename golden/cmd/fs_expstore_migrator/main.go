@@ -8,189 +8,82 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"go.skia.org/infra/golden/go/fs_utils"
+	"google.golang.org/api/iterator"
+
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	maxOperationTime = 2 * time.Minute
+	maxRetries       = 5
+
+	dryrun = true
 )
 
 func main() {
 	var (
-		fsProjectID = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		fsNamespace = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+		fsProjectID    = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+		oldFSNamespace = flag.String("old_fs_namespace", "", "Typically the instance id. e.g. 'chrome-gpu', 'skia', etc")
+		newFSNamespace = flag.String("new_fs_namespace", "", "Typically the instance id. e.g. 'chrome'")
 	)
 	flag.Parse()
 
-	if *fsNamespace == "" {
-		sklog.Fatalf("You must include namespace")
+	if *oldFSNamespace == "" {
+		sklog.Fatalf("You must include fs_namespace")
 	}
 
-	fsClient, err := ifirestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
+	if *newFSNamespace == "" {
+		sklog.Fatalf("You must include sql_db_name")
+	}
+
+	fsClient, err := ifirestore.NewClient(context.Background(), *fsProjectID, "gold", *oldFSNamespace, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 	ctx := context.Background()
-	v2 := v2Impl{client: fsClient}
-	v3 := v3Impl{client: fsClient}
+	oldNamespace := v3Impl{client: fsClient}
 
-	records, err := v2.loadTriageRecords(ctx)
+	fsClient, err = ifirestore.NewClient(context.Background(), *fsProjectID, "gold", *newFSNamespace, nil)
 	if err != nil {
-		sklog.Fatalf("loading v2 of records : %s", err)
+		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
+	newNamespace := v3Impl{client: fsClient}
 
-	sklog.Infof("%d triage records retrieved - storing them", len(records))
-
-	if err := v3.migrateAndStoreRecords(ctx, records); err != nil {
-		sklog.Fatalf("storing v3 of records", err)
-	}
-
-	sklog.Infof("All %d triage records migrated", len(records))
-
-	changes, err := v2.loadTriageChanges(ctx)
+	// Fetch triage records
+	records, err := oldNamespace.fetchTriageRecords(ctx)
 	if err != nil {
-		sklog.Fatalf("loading v2 of changes: %s", err)
+		sklog.Fatalf("Fetching triage records: %s", err)
+	}
+	sklog.Infof("Should migrate %d records", len(records))
+
+	if err := newNamespace.storeRecords(ctx, records); err != nil {
+		sklog.Fatalf("Storing triage records: %s", err)
 	}
 
-	sklog.Infof("%d triage changes retrieved - storing them", len(changes))
-
-	if err := v3.migrateAndStoreExpectationChanges(ctx, changes, records); err != nil {
-		sklog.Fatalf("migrating changes to v3: %s", err)
-	}
-
-	entries, err := v2.loadExpectationEntries(ctx)
+	// Fetch Deltas
+	deltas, err := oldNamespace.fetchExpectationDeltas(ctx)
 	if err != nil {
-		sklog.Fatalf("loading v2 of expectations : %s", err)
+		sklog.Fatalf("Fetching expectation deltas: %s", err)
 	}
 
-	sklog.Infof("%d expectation entries retrieved - storing them", len(entries))
-
-	if err := v3.migrateAndStoreEntries(ctx, entries); err != nil {
-		sklog.Fatalf("storing v3 of expectations : %s", err)
+	if err := newNamespace.storeExpectationChanges(ctx, deltas); err != nil {
+		sklog.Fatalf("Storing triage records: %s", err)
 	}
-	sklog.Infof("All %d expectation entries migrated", len(entries))
-}
 
-const (
-	v2ExpectationsCollection  = "expstore_expectations_v2"
-	v2TriageRecordsCollection = "expstore_triage_records_v2"
-	v2TriageChangesCollection = "expstore_triage_changes_v2"
-)
-
-type v2Impl struct {
-	client *ifirestore.Client
-}
-
-type v2ExpectationEntry struct {
-	Grouping   types.TestName        `firestore:"grouping"`
-	Digest     types.Digest          `firestore:"digest"`
-	Label      expectations.LabelInt `firestore:"label"`
-	Updated    time.Time             `firestore:"updated"`
-	CRSAndCLID string                `firestore:"crs_cl_id"`
-	LastUsed   time.Time             `firestore:"last_used"`
-}
-
-type v2TriageRecord struct {
-	UserName   string    `firestore:"user"`
-	TS         time.Time `firestore:"ts"`
-	CRSAndCLID string    `firestore:"crs_cl_id"`
-	Changes    int       `firestore:"changes"`
-	Committed  bool      `firestore:"committed"`
-}
-
-type v2TriageChange struct {
-	RecordID    string                `firestore:"record_id"`
-	Grouping    types.TestName        `firestore:"grouping"`
-	Digest      types.Digest          `firestore:"digest"`
-	LabelBefore expectations.LabelInt `firestore:"before"`
-	LabelAfter  expectations.LabelInt `firestore:"after"`
-}
-
-func (v v2Impl) loadExpectationEntries(ctx context.Context) ([]v2ExpectationEntry, error) {
-	const shards = 16
-	const shardField = "digest"
-	q := fs_utils.ShardOnDigest(v.client.Collection(v2ExpectationsCollection), shardField, shards)
-	shardedEntries := make([][]v2ExpectationEntry, shards)
-	err := v.client.IterDocsInParallel(ctx, "v2 expectation entries", "", q, 3, maxOperationTime, func(shard int, doc *firestore.DocumentSnapshot) error {
-		if doc == nil {
-			return nil
-		}
-		entry := v2ExpectationEntry{}
-		if err := doc.DataTo(&entry); err != nil {
-			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
-		}
-		shardedEntries[shard] = append(shardedEntries[shard], entry)
-		return nil
-	})
+	// Fetch entries
+	exp, err := oldNamespace.fetchExpectations(ctx)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		sklog.Fatalf("Fetching expectation entries: %s", err)
 	}
-	rv := make([]v2ExpectationEntry, 0, shards*len(shardedEntries[0]))
-	for _, entries := range shardedEntries {
-		for _, entry := range entries {
-			rv = append(rv, entry)
-		}
+	if err := newNamespace.storeEntries(ctx, exp); err != nil {
+		sklog.Fatalf("Storing triage records: %s", err)
 	}
-	return rv, nil
-}
-
-// The returned map has the id as the key. That way, the triageChanges don't have have their
-// RecordID changed.
-func (v v2Impl) loadTriageRecords(ctx context.Context) (map[string]v2TriageRecord, error) {
-	rv := map[string]v2TriageRecord{}
-
-	q := v.client.Collection(v2TriageRecordsCollection).OrderBy("ts", firestore.Desc)
-	err := v.client.IterDocs(ctx, "getting records", "", q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
-		if doc == nil {
-			return nil
-		}
-		id := doc.Ref.ID
-		tr := v2TriageRecord{}
-		if err := doc.DataTo(&tr); err != nil {
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageRecord with id %s", id)
-		}
-		rv[id] = tr
-		return nil
-	})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return rv, nil
-}
-
-func (v v2Impl) loadTriageChanges(ctx context.Context) ([]v2TriageChange, error) {
-	const shards = 16
-	const shardField = "digest"
-	q := fs_utils.ShardOnDigest(v.client.Collection(v2TriageChangesCollection), shardField, shards)
-	shardedChanges := make([][]v2TriageChange, shards)
-	err := v.client.IterDocsInParallel(ctx, "v2 triage changes", "", q, 3, maxOperationTime, func(shard int, doc *firestore.DocumentSnapshot) error {
-		if doc == nil {
-			return nil
-		}
-		entry := v2TriageChange{}
-		if err := doc.DataTo(&entry); err != nil {
-			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChange with id %s", id)
-		}
-		shardedChanges[shard] = append(shardedChanges[shard], entry)
-		return nil
-	})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	rv := make([]v2TriageChange, 0, shards*len(shardedChanges[0]))
-	for _, entries := range shardedChanges {
-		for _, entry := range entries {
-			rv = append(rv, entry)
-		}
-	}
-	return rv, nil
+	sklog.Infof("Done")
 }
 
 const (
@@ -202,6 +95,8 @@ const (
 	v3MasterPartition = "master"
 	v3BeginningOfTime = 0
 	v3EndOfTime       = math.MaxInt32
+
+	v3DigestField = "digest"
 )
 
 type v3Impl struct {
@@ -230,6 +125,7 @@ type v3TriageRange struct {
 }
 
 type v3TriageRecord struct {
+	ID        string
 	UserName  string    `firestore:"user"`
 	TS        time.Time `firestore:"ts"`
 	Changes   int       `firestore:"changes"`
@@ -245,81 +141,53 @@ type v3ExpectationChange struct {
 	LabelBefore   expectations.LabelInt `firestore:"label_before"`
 }
 
-func (v v3Impl) migrateAndStoreEntries(ctx context.Context, oldEntries []v2ExpectationEntry) error {
-	entriesByPartition := map[string][]v3ExpectationEntry{}
-
-	for _, oldEntry := range oldEntries {
-		partition := oldEntry.CRSAndCLID
-		if partition == "" {
-			partition = v3MasterPartition
-		}
-		entriesByPartition[partition] = append(entriesByPartition[partition], v3ExpectationEntry{
-			Grouping: oldEntry.Grouping,
-			Digest:   oldEntry.Digest,
-			Updated:  oldEntry.Updated,
-			LastUsed: oldEntry.LastUsed,
-			Ranges: []v3TriageRange{
-				{
-					FirstIndex: v3BeginningOfTime,
-					LastIndex:  v3EndOfTime,
-					Label:      oldEntry.Label,
-				},
-			},
-			NeedsGC: false,
-		})
-	}
-
-	for partition, entries := range entriesByPartition {
-		sklog.Infof("Writing %d entries for partition %s", len(entries), partition)
-		entryCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ExpectationEntries)
-
-		err := v.client.BatchWrite(ctx, len(entries), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
-			entry := entries[i]
-			doc := entryCollection.Doc(entry.id())
-			b.Set(doc, entry)
-			return nil
-		})
+func (v v3Impl) fetchTriageRecords(ctx context.Context) (map[string][]v3TriageRecord, error) {
+	// maps partition to records
+	rv := map[string][]v3TriageRecord{}
+	partitionIterator := v.client.Collection(v3Partitions).DocumentRefs(ctx)
+	p, err := partitionIterator.Next()
+	for ; err == nil; p, err = partitionIterator.Next() {
+		var records []v3TriageRecord
+		partition := p.ID
+		sklog.Infof("Partition %s", partition)
+		recordIterator := v.client.Collection(v3Partitions).Doc(partition).Collection(v3RecordEntries).Documents(ctx)
+		docs, err := recordIterator.GetAll()
 		if err != nil {
-			return skerr.Wrapf(err, "storing to partition %s", partition)
+			return nil, skerr.Wrapf(err, "getting records for %s", partition)
 		}
+		for _, doc := range docs {
+			var r v3TriageRecord
+			if err := doc.DataTo(&r); err != nil {
+				if err != nil {
+					sklog.Warning("Corrupt triage record with id %s", doc.Ref.ID)
+					continue
+				}
+			}
+			r.ID = doc.Ref.ID
+			records = append(records, r)
+		}
+		rv[partition] = records
 	}
-	return nil
+	if err != iterator.Done {
+		return nil, skerr.Wrap(err)
+	}
+
+	return rv, nil
 }
 
-func (v v3Impl) migrateAndStoreRecords(ctx context.Context, oldRecords map[string]v2TriageRecord) error {
-	type recordAndID struct {
-		record v3TriageRecord
-		id     string
+func (v v3Impl) storeRecords(ctx context.Context, recordsByPartition map[string][]v3TriageRecord) error {
+	if dryrun {
+		sklog.Infof("Would store %d partition of records", len(recordsByPartition))
+		return nil
 	}
-	recordsByPartition := map[string][]recordAndID{}
-	for id, oldRecord := range oldRecords {
-		partition := oldRecord.CRSAndCLID
-		if partition == "" {
-			partition = v3MasterPartition
-		}
-		newRecord := v3TriageRecord{
-			UserName:  oldRecord.UserName,
-			TS:        oldRecord.TS,
-			Changes:   oldRecord.Changes,
-			Committed: oldRecord.Committed,
-		}
-		if newRecord.UserName == "" {
-			newRecord.UserName = "expectations_migrator"
-		}
-		recordsByPartition[partition] = append(recordsByPartition[partition], recordAndID{
-			record: newRecord,
-			id:     id,
-		})
-	}
-
 	for partition, records := range recordsByPartition {
 		sklog.Infof("Writing %d records for partition %s", len(records), partition)
 		entryCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3RecordEntries)
 
 		err := v.client.BatchWrite(ctx, len(records), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
-			recordAndId := records[i]
-			doc := entryCollection.Doc(recordAndId.id)
-			b.Set(doc, recordAndId.record)
+			record := records[i]
+			doc := entryCollection.Doc(record.ID)
+			b.Set(doc, record)
 			return nil
 		})
 		if err != nil {
@@ -329,27 +197,52 @@ func (v v3Impl) migrateAndStoreRecords(ctx context.Context, oldRecords map[strin
 	return nil
 }
 
-func (v v3Impl) migrateAndStoreExpectationChanges(ctx context.Context, oldChanges []v2TriageChange, records map[string]v2TriageRecord) interface{} {
-	changesByPartition := map[string][]v3ExpectationChange{}
+func (v v3Impl) fetchExpectationDeltas(ctx context.Context) (map[string][]v3ExpectationChange, error) {
+	rv := map[string][]v3ExpectationChange{} // Maps partition -> entries
 
-	for _, oldChange := range oldChanges {
-		partition := records[oldChange.RecordID].CRSAndCLID
-		if partition == "" {
-			partition = v3MasterPartition
-		}
-		changesByPartition[partition] = append(changesByPartition[partition], v3ExpectationChange{
-			RecordID: oldChange.RecordID,
-			Grouping: oldChange.Grouping,
-			Digest:   oldChange.Digest,
-			AffectedRange: v3TriageRange{
-				FirstIndex: v3BeginningOfTime,
-				LastIndex:  v3EndOfTime,
-				Label:      oldChange.LabelAfter,
-			},
-			LabelBefore: oldChange.LabelBefore,
+	partitionIterator := v.client.Collection(v3Partitions).DocumentRefs(ctx)
+	p, err := partitionIterator.Next()
+	for ; err == nil; p, err = partitionIterator.Next() {
+		partition := p.ID
+		const numShards = 16
+		base := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ChangeEntries)
+
+		queries := fs_utils.ShardOnDigest(base, v3DigestField, numShards)
+		shardedEntries := make([][]v3ExpectationChange, numShards)
+
+		err := v.client.IterDocsInParallel(ctx, "loadExpectationDeltas", partition, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+			if doc == nil {
+				return nil
+			}
+			entry := v3ExpectationChange{}
+			if err := doc.DataTo(&entry); err != nil {
+				id := doc.Ref.ID
+				return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationChange with id %s", id)
+			}
+
+			shardedEntries[i] = append(shardedEntries[i], entry)
+			return nil
 		})
-	}
 
+		if err != nil {
+			return nil, skerr.Wrapf(err, "fetching expectation deltas for partition %s", partition)
+		}
+
+		var combinedEntries []v3ExpectationChange
+		for _, shard := range shardedEntries {
+			combinedEntries = append(combinedEntries, shard...)
+		}
+
+		rv[partition] = combinedEntries
+	}
+	return rv, nil
+}
+
+func (v v3Impl) storeExpectationChanges(ctx context.Context, changesByPartition map[string][]v3ExpectationChange) error {
+	if dryrun {
+		sklog.Infof("Would store %d partition of changes", len(changesByPartition))
+		return nil
+	}
 	for partition, changes := range changesByPartition {
 		sklog.Infof("Writing %d changes for partition %s", len(changes), partition)
 		changesCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ChangeEntries)
@@ -358,6 +251,73 @@ func (v v3Impl) migrateAndStoreExpectationChanges(ctx context.Context, oldChange
 			change := changes[i]
 			doc := changesCollection.NewDoc()
 			b.Set(doc, change)
+			return nil
+		})
+		if err != nil {
+			return skerr.Wrapf(err, "storing to partition %s", partition)
+		}
+	}
+	return nil
+}
+
+func (v v3Impl) fetchExpectations(ctx context.Context) (map[string][]v3ExpectationEntry, error) {
+	rv := map[string][]v3ExpectationEntry{} // Maps partition -> entries
+
+	partitionIterator := v.client.Collection(v3Partitions).DocumentRefs(ctx)
+	p, err := partitionIterator.Next()
+	for ; err == nil; p, err = partitionIterator.Next() {
+		partition := p.ID
+
+		const numShards = 16
+		base := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ExpectationEntries)
+		queries := fs_utils.ShardOnDigest(base, v3DigestField, numShards)
+		shardedEntries := make([][]v3ExpectationEntry, numShards)
+
+		err := v.client.IterDocsInParallel(ctx, "loadExpectations", partition, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+			if doc == nil {
+				return nil
+			}
+			entry := v3ExpectationEntry{}
+			if err := doc.DataTo(&entry); err != nil {
+				id := doc.Ref.ID
+				return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
+			}
+			if len(entry.Ranges) == 0 {
+				// This should never happen, but we'll ignore these malformed entries if they do.
+				return nil
+			}
+			shardedEntries[i] = append(shardedEntries[i], entry)
+			return nil
+		})
+
+		if err != nil {
+			return nil, skerr.Wrapf(err, "fetching expectations for partition %s", partition)
+		}
+
+		var combinedEntries []v3ExpectationEntry
+		for _, shard := range shardedEntries {
+			combinedEntries = append(combinedEntries, shard...)
+		}
+
+		rv[partition] = combinedEntries
+		sklog.Infof("Fetched %d entries for partition %s", len(combinedEntries), partition)
+	}
+	return rv, nil
+}
+
+func (v v3Impl) storeEntries(ctx context.Context, entriesByPartition map[string][]v3ExpectationEntry) error {
+	if dryrun {
+		sklog.Infof("Would store %d partition of entries", len(entriesByPartition))
+		return nil
+	}
+	for partition, entries := range entriesByPartition {
+		sklog.Infof("Writing %d entries for partition %s", len(entries), partition)
+		entryCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ExpectationEntries)
+
+		err := v.client.BatchWrite(ctx, len(entries), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
+			entry := entries[i]
+			doc := entryCollection.Doc(entry.id())
+			b.Set(doc, entry)
 			return nil
 		})
 		if err != nil {
