@@ -14,7 +14,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -27,20 +27,29 @@ const CORPUS_KEY = 'source_type';
 /**
  * Counterpart to SearchRespose (declared in rpc_types.ts).
  *
- * Contains the query string arguments to the /json/v1/search RPC. Intended to be used with common-sk's
- * fromObject() function.
+ * Contains the query string arguments to the /json/v1/search RPC. Intended to be used with
+ * common-sk's fromObject() function.
  *
  * This type cannot be generated from Go because there is no counterpart Go struct.
  *
- * TODO(lovisolo): Consider reworking the /json/v1/search RPC to take arguments via POST, so that we're
- *                 able to unmarshal the JSON arguments into a SearchRequest Go struct. That struct
- *                 can then be converted into TypeScript via go2ts and used here, instead of the
- *                 ad-hoc SearchRequest interface defined below.
+ * TODO(lovisolo): Consider reworking the /json/v1/search RPC to take arguments via POST, so that
+ *                 we're able to unmarshal the JSON arguments into a SearchRequest Go struct. That
+ *                 struct can then be converted into TypeScript via go2ts and used here, instead of
+ *                 the ad-hoc SearchRequest interface defined below.
  * TODO(lovisolo): Consider generating the SearchCriteria struct from the above Go struct so we can
  *                 use the same type across the whole stack.
  */
 export interface SearchRequest {
+  // Fields populated via the page's query string.
   blame?: string;
+  crs?: string;
+  issue?: string;
+
+  // Fields populated via the changelist-controls-sk.
+  master?: boolean; // Show all results if true, or exclude results from the master branch if false.
+  patchsets?: number;
+
+  // Fields populated via the search-controls-sk.
   query: string;
   rquery: string;
   pos: boolean;
@@ -54,15 +63,18 @@ export interface SearchRequest {
   sort: 'asc' | 'desc';
 }
 
-// TODO(lovisolo): Add support for searching by CLs / patchsets.
-
 export class SearchPageSk extends ElementSk {
   private static _template = (el: SearchPageSk) => html`
+    <!-- TODO(lovisolo): Add "Bulk Triage" button. -->
+    <!-- TODO(lovisolo): Add "Help" button. -->
+
     <search-controls-sk .corpora=${el._corpora}
                         .searchCriteria=${el._searchCriteria}
                         .paramSet=${el._paramSet}
                         @search-controls-sk-change=${el._onSearchControlsChange}>
     </search-controls-sk>
+
+    <!-- TODO(lovisolo): Show changelist-controls-sk if CRS/ChangeListID are set. -->
 
     <p class=summary>${SearchPageSk._summary(el)}</p>
 
@@ -83,15 +95,16 @@ export class SearchPageSk extends ElementSk {
     return `Showing results ${first} to ${last} (out of ${total}).`;
   }
 
-  // TODO(lovisolo): Populate .changeListID and .crs.
+  // TODO(lovisolo): Add keyboard shortcuts (J, K, W, A, S, D, ?).
   private static _resultTemplate = (el: SearchPageSk, result: SearchResult) => html`
     <digest-details-sk .commits=${el._searchResponse?.commits}
                        .details=${result}
-                       .changeListID=${''}
-                       .crs=${''}>
+                       .changeListID=${el._changelistId}
+                       .crs=${el._crs}}>
     </digest-details-sk>
   `;
 
+  // Reflected to/from the URL and modified by the search-controls-sk.
   private _searchCriteria: SearchCriteria = {
     corpus: defaultCorpus(),
     leftHandTraceFilter: {},
@@ -107,12 +120,24 @@ export class SearchPageSk extends ElementSk {
     sortOrder: 'descending'
   };
 
+  // Fields reflected to/from the URL and modified by the changelist-controls-sk.
+  private _includeDigestsFromPrimary: boolean | null = null;
+  private _patchset: number | null = null;
+
+  // Other fields reflected from the URL.
+  private _blame: string | null = null;
+  private _crs: string | null = null;
+  private _changelistId: string | null = null;
+
+  // stateReflector update function.
+  private _stateChanged: (() => void) | null = null;
+
+  // Fields populated from JSON RPCs.
   private _corpora: string[] = [];
   private _paramSet: ParamSet = {};
-  private _blame: string | null = null;
+  private _changeListSummaryResponse: ChangeListSummaryResponse | null = null;
   private _searchResponse: SearchResponse | null = null;
 
-  private _stateChanged: (() => void) | null = null;
   private _searchResultsFetchController: AbortController | null = null;
 
   constructor() {
@@ -121,7 +146,11 @@ export class SearchPageSk extends ElementSk {
     this._stateChanged = stateReflector(
       /* getState */ () => {
         const state = SearchCriteriaToHintableObject(this._searchCriteria) as HintableObject;
-        state.blame = this._blame ? this._blame : '';
+        state.blame = this._blame || '';
+        state.crs = this._crs || '';
+        state.issue = this._changelistId || '';
+        state.master = this._includeDigestsFromPrimary || '';
+        state.patchsets = this._patchset || '';
         return state;
       },
       /* setState */ (newState) => {
@@ -129,8 +158,13 @@ export class SearchPageSk extends ElementSk {
           return;
         }
         this._searchCriteria = SearchCriteriaFromHintableObject(newState);
-        this._blame = newState.blame ? newState.blame as string : null;
+        this._blame = (newState.blame as string) || null;
+        this._crs = (newState.crs as string) || null;
+        this._changelistId = (newState.issue as string) || null;
+        this._includeDigestsFromPrimary = (newState.master as boolean) || null;
+        this._patchset = (newState.patchsets as number) || null;
         this._render();
+        this._fetchChangeListSummary(); // Called here because the RPC needs the CRS and CL number.
         this._fetchSearchResults();
       },
     );
@@ -186,6 +220,27 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
+  // TODO(lovisolo): Pass the response of this RPC to the changelist-controls-sk.
+  private async _fetchChangeListSummary() {
+    // We can skip this RPC if no CL information has been provided via URL parameters.
+    if (!this._crs || !this._changelistId) return;
+
+    // It suffices to fetch the changelist summary only once because it's not possible to change the
+    // CL or CRS via the UI.
+    if (this._changeListSummaryResponse) return;
+
+    try {
+      sendBeginTask(this);
+      this._changeListSummaryResponse =
+        await fetch(`/json/v1/changelist/${this._crs}/${this._changelistId}`, {method: 'GET'})
+          .then(jsonOrThrow);
+      this._render();
+      sendEndTask(this);
+    } catch(e) {
+      sendFetchError(this, e, 'fetching the changelist summary');
+    }
+  }
+
   private async _fetchSearchResults() {
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this._searchResultsFetchController) {
@@ -193,8 +248,8 @@ export class SearchPageSk extends ElementSk {
     }
     this._searchResultsFetchController = new AbortController();
 
-    // Utility to insert the selected corpus into the left- and right-hand trace filters, as
-    // required by the /json/v1/search RPC.
+    // Utility function to insert the selected corpus into the left- and right-hand trace filters,
+    // as required by the /json/v1/search RPC.
     const insertCorpus = (paramSet: ParamSet) => {
       const copy = deepCopy(paramSet);
       copy[CORPUS_KEY] = [this._searchCriteria.corpus];
@@ -217,10 +272,12 @@ export class SearchPageSk extends ElementSk {
       sort: this._searchCriteria.sortOrder === 'ascending' ? 'asc' : 'desc',
     };
 
-    // Populate optional blame query parameter.
-    if (this._blame) {
-      searchRequest.blame = this._blame;
-    }
+    // Populate optional query parameters.
+    if (this._blame) searchRequest.blame = this._blame;
+    if (this._crs) searchRequest.crs = this._crs;
+    if (this._changelistId) searchRequest.issue = this._changelistId;
+    if (this._includeDigestsFromPrimary) searchRequest.master = this._includeDigestsFromPrimary;
+    if (this._patchset) searchRequest.patchsets = this._patchset;
 
     try {
       sendBeginTask(this);
