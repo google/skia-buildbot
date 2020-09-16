@@ -91,6 +91,11 @@ func TestStore(t *testing.T) {
 	assert.Len(t, reactivated.Notes, 1)
 	assert.Equal(t, "wilma@example.org", reactivated.Notes[0].Author)
 
+	// Reactivate with bad duration.
+	reactivatedBadDuration, err := st.Reactivate(archived[0].Key, "3", "wilma@example.org")
+	assert.Error(t, err)
+	assert.Nil(t, reactivatedBadDuration)
+
 	s, err = st.Archive(s.Key)
 	assert.NoError(t, err)
 	assert.False(t, s.Active)

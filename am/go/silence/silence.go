@@ -177,6 +177,11 @@ func (s *Store) Archive(encodedKey string) (*Silence, error) {
 }
 
 func (s *Store) Reactivate(encodedKey, duration, user string) (*Silence, error) {
+	_, err := human.ParseDuration(duration)
+	if err != nil {
+		return nil, fmt.Errorf("Silence has invalid duration: %s", err)
+	}
+
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		now := time.Now().Unix()
 		silence.Active = true
