@@ -48,6 +48,11 @@ export const describePageObjectElement = (testBed: TestBed) => {
     expect(await poe.className).to.equal('hello world');
   });
 
+  it('supports href', async () => {
+    const poe = await testBed.setUpPageObjectElement('<a href="https://google.com/">Click me!</a>');
+    expect(await poe.href).to.equal('https://google.com/');
+  });
+
   it('supports focus', async () => {
     const poe = await testBed.setUpPageObjectElement(`<button>Hello, world!</button>`);
     const isFocused = () => testBed.evaluate((el) => document.activeElement === el);
