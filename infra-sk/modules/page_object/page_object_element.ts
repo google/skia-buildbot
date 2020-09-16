@@ -55,6 +55,11 @@ export class PageObjectElement {
     return this.applyFnToDOMNode((el) => el.className);
   }
 
+  /** Analogous to HTMLAnchorElement#href. */
+  get href() {
+    return this.applyFnToDOMNode((el) => (el as HTMLAnchorElement).href)
+  }
+
   /** Analogous to HTMLElement#focus(). */
   async focus() {
     await this.element.focus();
