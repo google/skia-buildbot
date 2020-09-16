@@ -1,13 +1,15 @@
 import './index';
 
+import { ChangelistControlsSk, ChangelistControlsSkChangeEventDetail } from './changelist-controls-sk';
 import { $, $$ } from 'common-sk/modules/dom';
 import { twoPatchSets } from './test_data';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { expect } from 'chai';
 
 describe('changelist-controls-sk', () => {
-  const newInstance = setUpElementUnderTest('changelist-controls-sk');
+  const newInstance = setUpElementUnderTest<ChangelistControlsSk>('changelist-controls-sk');
 
-  let changelistControlsSk;
+  let changelistControlsSk: ChangelistControlsSk;
   beforeEach(() => changelistControlsSk = newInstance());
 
   describe('html layout', () => {
@@ -20,9 +22,9 @@ describe('changelist-controls-sk', () => {
       expect(changelistControlsSk.include_master).to.equal(false);
 
       changelistControlsSk.setSummary(twoPatchSets);
-      const psSelector = $$('.inputs select', changelistControlsSk);
+      const psSelector = $$<HTMLSelectElement>('.inputs select', changelistControlsSk);
       expect(psSelector).to.not.be.null;
-      expect(psSelector.value).to.equal('PS 4');
+      expect(psSelector!.value).to.equal('PS 4');
 
       const includeMasterRadios = $('.inputs radio-sk', changelistControlsSk);
       expect(includeMasterRadios.length).to.equal(2);
@@ -34,21 +36,21 @@ describe('changelist-controls-sk', () => {
       expect(tryJobs).to.not.be.null;
       expect(tryJobs.length).to.equal(4);
       // spot check a tryjob
-      expect(tryJobs[0].textContent.trim()).to.equal('android-marshmallow-arm64-rel');
+      expect(tryJobs[0].textContent!.trim()).to.equal('android-marshmallow-arm64-rel');
     });
 
     it('shows other patchsets when ps_order is changed', () => {
       changelistControlsSk.setSummary(twoPatchSets);
       changelistControlsSk.ps_order = 1;
-      const psSelector = $$('.inputs select', changelistControlsSk);
+      const psSelector = $$<HTMLSelectElement>('.inputs select', changelistControlsSk);
       expect(psSelector).to.not.be.null;
-      expect(psSelector.value).to.equal('PS 1');
+      expect(psSelector!.value).to.equal('PS 1');
 
       const tryJobs = $('.tryjob-container .tryjob', changelistControlsSk);
       expect(tryJobs).to.not.be.null;
       expect(tryJobs.length).to.equal(1);
       // spot check a tryjob
-      expect(tryJobs[0].textContent.trim()).to.equal('android-nougat-arm64-rel');
+      expect(tryJobs[0].textContent!.trim()).to.equal('android-nougat-arm64-rel');
     });
 
     it('flips the radio buttons on include_master', () => {
@@ -70,12 +72,13 @@ describe('changelist-controls-sk', () => {
       changelistControlsSk.setSummary(twoPatchSets);
 
       changelistControlsSk.addEventListener('cl-control-change', (e) => {
-        expect(e.detail.include_master).to.equal(true);
-        expect(e.detail.ps_order).to.equal(4);
+        const detail = (e as CustomEvent<ChangelistControlsSkChangeEventDetail>).detail;
+        expect(detail.include_master).to.equal(true);
+        expect(detail.ps_order).to.equal(4);
         done();
       });
 
-      const includeMasterRadios = $('.inputs radio-sk', changelistControlsSk);
+      const includeMasterRadios = $<HTMLElement>('.inputs radio-sk', changelistControlsSk);
       expect(includeMasterRadios.length).to.equal(2);
       includeMasterRadios[1].click();
       expect(changelistControlsSk.include_master).to.equal(true);
@@ -88,19 +91,20 @@ describe('changelist-controls-sk', () => {
       changelistControlsSk.setSummary(twoPatchSets);
 
       changelistControlsSk.addEventListener('cl-control-change', (e) => {
-        expect(e.detail.include_master).to.equal(false);
-        expect(e.detail.ps_order).to.equal(1);
+        const detail = (e as CustomEvent<ChangelistControlsSkChangeEventDetail>).detail;
+        expect(detail.include_master).to.equal(false);
+        expect(detail.ps_order).to.equal(1);
         done();
       });
 
-      const psSelector = $$('.inputs select', changelistControlsSk);
+      const psSelector = $$<HTMLSelectElement>('.inputs select', changelistControlsSk);
       expect(psSelector).to.not.be.null;
-      expect(psSelector.value).to.equal('PS 4');
+      expect(psSelector!.value).to.equal('PS 4');
 
-      psSelector.selectedIndex = 0;
+      psSelector!.selectedIndex = 0;
       // we have to manually send this because just changing selectedIdx isn't enough.
       // https://stackoverflow.com/a/23612498
-      psSelector.dispatchEvent(new Event('input'));
+      psSelector!.dispatchEvent(new Event('input'));
     });
   }); // end describe('events')
 });
