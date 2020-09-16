@@ -1,0 +1,58 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004980424",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317404?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b1bcdd77_98878022",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T19:53:28Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 45,
+        "startChar": 48,
+        "endLine": 45,
+        "endChar": 54
+      },
+      "revId": "ea4026127b7324d4f2ac1b97cdc5a7caba6da359",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004980424",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317404?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "12841596_43238edf",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-16T19:53:28Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 93,
+        "startChar": 47,
+        "endLine": 93,
+        "endChar": 53
+      },
+      "revId": "ea4026127b7324d4f2ac1b97cdc5a7caba6da359",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
