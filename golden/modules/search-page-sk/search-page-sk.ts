@@ -27,20 +27,22 @@ const CORPUS_KEY = 'source_type';
 /**
  * Counterpart to SearchRespose (declared in rpc_types.ts).
  *
- * Contains the query string arguments to the /json/v1/search RPC. Intended to be used with common-sk's
- * fromObject() function.
+ * Contains the query string arguments to the /json/v1/search RPC. Intended to be used with
+ * common-sk's fromObject() function.
  *
  * This type cannot be generated from Go because there is no counterpart Go struct.
  *
- * TODO(lovisolo): Consider reworking the /json/v1/search RPC to take arguments via POST, so that we're
- *                 able to unmarshal the JSON arguments into a SearchRequest Go struct. That struct
- *                 can then be converted into TypeScript via go2ts and used here, instead of the
- *                 ad-hoc SearchRequest interface defined below.
+ * TODO(lovisolo): Consider reworking the /json/v1/search RPC to take arguments via POST, so that
+ *                 we're able to unmarshal the JSON arguments into a SearchRequest Go struct. That
+ *                 struct can then be converted into TypeScript via go2ts and used here, instead of
+ *                 the ad-hoc SearchRequest interface defined below.
  * TODO(lovisolo): Consider generating the SearchCriteria struct from the above Go struct so we can
  *                 use the same type across the whole stack.
  */
 export interface SearchRequest {
   blame?: string;
+  crs?: string;
+  issue?: string;
   query: string;
   rquery: string;
   pos: boolean;
@@ -58,11 +60,17 @@ export interface SearchRequest {
 
 export class SearchPageSk extends ElementSk {
   private static _template = (el: SearchPageSk) => html`
+    <!-- TODO(lovisolo): Add "Bulk Triage" button. -->
+    <!-- TODO(lovisolo): Add "Export" button. -->
+    <!-- TODO(lovisolo): Add "Help" button. -->
+
     <search-controls-sk .corpora=${el._corpora}
                         .searchCriteria=${el._searchCriteria}
                         .paramSet=${el._paramSet}
                         @search-controls-sk-change=${el._onSearchControlsChange}>
     </search-controls-sk>
+
+    <!-- TODO(lovisolo): Show changelist-controls-sk if CRS/ChangeListID are set. -->
 
     <p class=summary>${SearchPageSk._summary(el)}</p>
 
@@ -83,12 +91,12 @@ export class SearchPageSk extends ElementSk {
     return `Showing results ${first} to ${last} (out of ${total}).`;
   }
 
-  // TODO(lovisolo): Populate .changeListID and .crs.
+  // TODO(lovisolo): Add keyboard shortcuts (J, K, W, A, S, D, ?).
   private static _resultTemplate = (el: SearchPageSk, result: SearchResult) => html`
     <digest-details-sk .commits=${el._searchResponse?.commits}
                        .details=${result}
-                       .changeListID=${''}
-                       .crs=${''}>
+                       .changeListID=${el._issue}
+                       .crs=${el._crs}}>
     </digest-details-sk>
   `;
 
@@ -110,6 +118,8 @@ export class SearchPageSk extends ElementSk {
   private _corpora: string[] = [];
   private _paramSet: ParamSet = {};
   private _blame: string | null = null;
+  private _crs: string | null = null;
+  private _issue: string | null = null;
   private _searchResponse: SearchResponse | null = null;
 
   private _stateChanged: (() => void) | null = null;
@@ -121,7 +131,9 @@ export class SearchPageSk extends ElementSk {
     this._stateChanged = stateReflector(
       /* getState */ () => {
         const state = SearchCriteriaToHintableObject(this._searchCriteria) as HintableObject;
-        state.blame = this._blame ? this._blame : '';
+        state.blame = this._blame || '';
+        state.crs = this._crs || '';
+        state.issue = this._issue || '';
         return state;
       },
       /* setState */ (newState) => {
@@ -129,7 +141,9 @@ export class SearchPageSk extends ElementSk {
           return;
         }
         this._searchCriteria = SearchCriteriaFromHintableObject(newState);
-        this._blame = newState.blame ? newState.blame as string : null;
+        this._blame = (newState.blame as string) || null;
+        this._crs = (newState.crs as string) || null;
+        this._issue = (newState.issue as string) || null;
         this._render();
         this._fetchSearchResults();
       },
@@ -217,10 +231,10 @@ export class SearchPageSk extends ElementSk {
       sort: this._searchCriteria.sortOrder === 'ascending' ? 'asc' : 'desc',
     };
 
-    // Populate optional blame query parameter.
-    if (this._blame) {
-      searchRequest.blame = this._blame;
-    }
+    // Populate optional query parameters.
+    if (this._blame) searchRequest.blame = this._blame;
+    if (this._crs) searchRequest.crs = this._crs;
+    if (this._issue) searchRequest.issue = this._issue;
 
     try {
       sendBeginTask(this);
