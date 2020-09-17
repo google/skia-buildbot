@@ -22,6 +22,30 @@
       "revId": "cf9951c38196839f0d89f5ffce5661e95dacc93d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f031c13_a860e6f8",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-17T15:23:13Z",
+      "side": 1,
+      "message": "nvm - it doesn\u0027t reflect it because I intentionally chose that shortcut. Now I see you are fixing that.",
+      "parentUuid": "05310baa_1111404f",
+      "range": {
+        "startLine": 80,
+        "startChar": 28,
+        "endLine": 80,
+        "endChar": 53
+      },
+      "revId": "cf9951c38196839f0d89f5ffce5661e95dacc93d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
