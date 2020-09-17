@@ -65,6 +65,25 @@ export interface SearchRequest {
   sort: 'asc' | 'desc';
 }
 
+/**
+ * Returns the search page's default SearchCriteria. It determines the value of any search
+ * parameters that are absent from the query string.
+ */
+export const defaultSearchCriteria = (): SearchCriteria => ({
+  corpus: defaultCorpus(),
+  leftHandTraceFilter: {},
+  rightHandTraceFilter: {},
+  includePositiveDigests: false,
+  includeNegativeDigests: false,
+  includeUntriagedDigests: true,
+  includeDigestsNotAtHead: false,
+  includeIgnoredDigests: false,
+  minRGBADelta: 0,
+  maxRGBADelta: 255,
+  mustHaveReferenceImage: false,
+  sortOrder: 'descending'
+});
+
 export class SearchPageSk extends ElementSk {
   private static _template = (el: SearchPageSk) => html`
     <!-- TODO(lovisolo): Add "Bulk Triage" button. -->
@@ -112,20 +131,7 @@ export class SearchPageSk extends ElementSk {
   `;
 
   // Reflected to/from the URL and modified by the search-controls-sk.
-  private _searchCriteria: SearchCriteria = {
-    corpus: defaultCorpus(),
-    leftHandTraceFilter: {},
-    rightHandTraceFilter: {},
-    includePositiveDigests: false,
-    includeNegativeDigests: false,
-    includeUntriagedDigests: true,
-    includeDigestsNotAtHead: false,
-    includeIgnoredDigests: false,
-    minRGBADelta: 0,
-    maxRGBADelta: 255,
-    mustHaveReferenceImage: false,
-    sortOrder: 'descending'
-  };
+  private _searchCriteria: SearchCriteria = defaultSearchCriteria();
 
   // Fields reflected to/from the URL and modified by the changelist-controls-sk.
   private _includeDigestsFromPrimary: boolean | null = null;
