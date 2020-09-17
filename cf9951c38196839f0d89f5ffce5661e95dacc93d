@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05310baa_1111404f",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-17T14:10:35Z",
+      "side": 1,
+      "message": "In the current/old version, ps_order just always showed the latest, I\u0027m guessing by exposing this property, you plan to have ps_order be reflectable to the url? (same question for include_master)",
+      "range": {
+        "startLine": 80,
+        "startChar": 28,
+        "endLine": 80,
+        "endChar": 53
+      },
+      "revId": "cf9951c38196839f0d89f5ffce5661e95dacc93d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
