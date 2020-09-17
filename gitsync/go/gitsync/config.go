@@ -27,6 +27,10 @@ type gitSyncConfig struct {
 	BTWriteGoroutines int `json:"bt_write_goroutines"`
 	// HTTP port for the health endpoint.
 	HttpPort string `json:"http_port"`
+	// IncludeBranches specifies which branches of the given repo should be
+	// included; any others are ignored. These are given in the format:
+	// <repo URL>=<branch_name>[,<branch_name>]*
+	IncludeBranches []string `json:"include_branches"`
 	// Indicating whether this is running local.
 	Local bool `json:"local"`
 	// Mirrors indicate that the data obtained for a given repo should come

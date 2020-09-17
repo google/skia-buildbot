@@ -153,6 +153,79 @@ func TestIngestCommits(t *testing.T) {
 	assertNew(5 + 6)
 }
 
+func TestGetFilteredBranches(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+	g := git_testutils.GitInit(t, ctx)
+	urlMock := mockhttpclient.NewURLMock()
+	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
+	ri := &repoImpl{
+		gitiles: gitiles.NewRepo(g.RepoUrl(), urlMock.Client()),
+	}
+
+	// Create two branches.
+	g.CommitGen(ctx, "file")
+	g.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
+	g.CommitGen(ctx, "file")
+
+	// Check that getFilteredBranches returns both branches.
+	mockRepo.MockBranches(ctx)
+	gotBranches, err := ri.getFilteredBranches(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(gotBranches))
+
+	// Now, set includeBranches and ensure that it is respected.
+	mockRepo.MockBranches(ctx)
+	ri.includeBranches = []string{"branch2"}
+	gotBranches, err = ri.getFilteredBranches(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(gotBranches))
+	require.Equal(t, "branch2", gotBranches[0].Name)
+}
+
+func TestRepoImplIncludeBranches(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	g := git_testutils.GitInit(t, ctx)
+	gs := &mocks.GitStore{}
+	urlMock := mockhttpclient.NewURLMock()
+	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
+	ri := &repoImpl{
+		gitiles:          gitiles.NewRepo(g.RepoUrl(), urlMock.Client()),
+		gitstore:         gs,
+		MemCacheRepoImpl: repograph.NewMemCacheRepoImpl(nil, nil),
+	}
+
+	// Create two branches.
+	c0 := g.CommitGen(ctx, "file")
+	g.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
+	c1 := g.CommitGen(ctx, "file")
+
+	// Check that only the included branches are present.
+	mockRepo.MockBranches(ctx)
+	ri.includeBranches = []string{"branch2"}
+	// Start with both branches, to simulate adding includeBranches after a repo
+	// has already been ingested.
+	ri.BranchList = []*git.Branch{
+		{
+			Name: git.DefaultBranch,
+			Head: c0,
+		},
+		{
+			Name: "branch2",
+			Head: c1,
+		},
+	}
+	require.NoError(t, ri.Update(ctx))
+	gotBranches, err := ri.Branches(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(gotBranches))
+	require.Equal(t, "branch2", gotBranches[0].Name)
+	require.Equal(t, c1, gotBranches[0].Head)
+}
+
 // gitsyncRefresher is an implementation of repograph_shared_tests.RepoImplRefresher
 // used for testing gitsync.
 type gitsyncRefresher struct {
@@ -321,7 +394,7 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := mem_gcsclient.New("fake-bucket")
-	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil)
+	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil, nil)
 	require.NoError(t, err)
 	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
