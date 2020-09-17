@@ -8,6 +8,7 @@
 import { define } from 'elements-sk/define';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/alarm-off-icon-sk';
 import 'elements-sk/icon/comment-icon-sk';
 import 'elements-sk/icon/notifications-icon-sk';
 import 'elements-sk/icon/person-icon-sk';
@@ -100,6 +101,10 @@ function hasNotes(o) {
   return (o.notes && o.notes.length > 0) ? '' : 'invisible';
 }
 
+function hasRecentlyExpiredSilence(incident, idsToExpiredRecently) {
+  return (idsToExpiredRecently[incident.id]) ? '' : 'invisible';
+}
+
 function displayIncident(incident) {
   const ret = [incident.params.alertname];
   const abbr = incident.params.abbr;
@@ -137,7 +142,10 @@ function incidentList(ele, incidents) {
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
-    <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
+    <span>
+      <alarm-off-icon-sk title='This incident has a recently expired silence' class=${hasRecentlyExpiredSilence(i, ele._incidentsToRecentlyExpired)}></alarm-off-icon-sk>
+      <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
+    </span>
     </h2>
     `);
 }
@@ -231,6 +239,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
     this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
+    this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences recently expired.
     this._user = 'barney@example.org';
     this._trooper = '';
     this._state = {
@@ -284,7 +293,8 @@ define('alert-manager-sk', class extends HTMLElement {
     const incidents = fetch('/_/incidents', {
       credentials: 'include',
     }).then(jsonOrThrow).then((json) => {
-      this._incidents = json;
+      this._incidents = json.incidents;
+      this._incidentsToRecentlyExpired = json.ids_to_recently_expired_silences;
     });
 
     const silences = fetch('/_/silences', {
