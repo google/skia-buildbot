@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7b63f62_e2a9d7fb",
+        "filename": "task_scheduler/modules/rpc/index.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-17T14:34:21Z",
+      "side": 1,
+      "message": "new TaskSchedulerServiceClient(host, window.fetch.bind(window))\n\ninstead of needing the doFetch function.",
+      "range": {
+        "startLine": 9,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 86
+      },
+      "revId": "5cd59371e96a24e05e7b59db6a10d0d95fd7a96b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d47f488c_cd3634ae",
+        "filename": "task_scheduler/modules/rpc/index.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-17T14:34:21Z",
+      "side": 1,
+      "message": "This works for tests mocking within a module it seems, but I just experienced a lot of wasted time when I tried to inject a mock from a different module\u0027s tests. There are multiple instances of the rpc module / rpcClient and it doesn\u0027t work. If thats a future use case I suggest using (\u003cany\u003ewindow).rpcClient throughout, so as to make it truly global.  Your call, just fyi.",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "5cd59371e96a24e05e7b59db6a10d0d95fd7a96b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
