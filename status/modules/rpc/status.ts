@@ -1,4 +1,4 @@
-import {createTwirpRequest, throwTwirpError, Fetch} from './twirp';
+import { createTwirpRequest, throwTwirpError, Fetch } from './twirp';
 
 export interface GetIncrementalCommitsRequest {
   from?: string;
