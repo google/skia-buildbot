@@ -154,15 +154,22 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 	hour := now.Hour()
 
 	// Assemble a path that looks like this:
-	// <path_prefix>/YYYY/MM/DD/HH/<git_hash>/<build_id>/<time_stamp>/<per_run_file_name>.json
+	// <path_prefix>/YYYY/MM/DD/HH/<git_hash_or_cl>/<job_id>/<per_run_file_name>.json
 	// The first segments up to 'HH' are required so the Gold ingester can scan these prefixes for
 	// new files. The later segments are necessary to make the path unique within the runs of one
 	// hour and increase readability of the paths for troubleshooting.
-	// It is vital that the times segments of the path are based on UTC location.
+	// It is vital that the time segments of the path are based on UTC location.
 	fileName := fmt.Sprintf("dm-%d.json", now.UnixNano())
-	builder := r.SharedConfig.TryJobID
-	if builder == "" {
-		builder = "waterfall"
+	jobID := r.SharedConfig.TryJobID
+	if jobID == "" {
+		jobID = r.SharedConfig.Builder
+		if jobID == "" {
+			jobID = "waterfall"
+		}
+	}
+	gitHashOrCL := r.SharedConfig.GitHash
+	if r.SharedConfig.ChangeListID != "" {
+		gitHashOrCL = fmt.Sprintf("%s_%s_%d", r.SharedConfig.ChangeListID, r.SharedConfig.PatchSetID, r.SharedConfig.PatchSetOrder)
 	}
 	segments := []interface{}{
 		jsonPrefix,
@@ -170,11 +177,10 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 		month,
 		day,
 		hour,
-		r.SharedConfig.GitHash,
-		builder,
-		now.Unix(),
+		gitHashOrCL,
+		jobID,
 		fileName}
-	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%s/%d/%s", segments...)
+	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%s/%s", segments...)
 
 	if r.SharedConfig.ChangeListID != "" {
 		path = "trybot/" + path

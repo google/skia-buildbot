@@ -414,6 +414,7 @@ func TestFinalizeNormal(t *testing.T) {
 		Bucket:          "skia-gold-testing",
 		SharedConfig: &jsonio.GoldResults{
 			GitHash: "cadbed23562",
+			Builder: "Test-Z80-Debug",
 			Key: map[string]string{
 				"os":  "TestOS",
 				"cpu": "z80",
@@ -447,7 +448,7 @@ func TestFinalizeNormal(t *testing.T) {
 	// no calls to httpclient because expectations and baseline should be
 	// loaded from disk.
 
-	expectedJSONPath := "skia-gold-testing/dm-json-v1/2019/04/02/19/cadbed23562/waterfall/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/dm-json-v1/2019/04/02/19/cadbed23562/Test-Z80-Debug/dm-1554234843000000000.json"
 	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
 		assertdeep.Equal(t, j.SharedConfig, gr)
 		return true
@@ -484,8 +485,8 @@ func TestInitAddFinalize(t *testing.T) {
 	defer cleanup()
 
 	imgData := []byte("some bytes")
-	firstHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
-	secondHash := types.Digest("29d0568469d206c1aedf1b71f12f474b")
+	const firstHash = types.Digest("9d0568469d206c1aedf1b71f12f474bc")
+	const secondHash = types.Digest("29d0568469d206c1aedf1b71f12f474b")
 
 	auth, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -553,7 +554,7 @@ func TestInitAddFinalize(t *testing.T) {
 	goldClient, err = loadGoldClient(auth, wd)
 	assert.NoError(t, err)
 
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
 		assert.Len(t, gr.Results, 2)
 		r := gr.Results[0]
@@ -599,7 +600,7 @@ func TestNewReportPassFail(t *testing.T) {
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
 
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
@@ -675,7 +676,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
@@ -752,7 +753,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
@@ -883,7 +884,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	httpClient.On("Post", "https://testing-gold.skia.org/json/v1/triage", "application/json", bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
 	// Mock out uploading the JSON file with the test results to Gold.
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
@@ -966,7 +967,7 @@ func TestNegativePassFail(t *testing.T) {
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
@@ -1021,7 +1022,7 @@ func TestPositivePassFail(t *testing.T) {
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
-	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
@@ -2449,7 +2450,7 @@ func httpResponse(body []byte, status string, statusCode int) *http.Response {
 const (
 	testInstanceID    = "testing"
 	testIssueID       = "867"
-	testPatchsetID    = 5309
+	testPatchsetOrder = 5309
 	testBuildBucketID = "117"
 	testImgPath       = "/path/to/images/fake.png"
 
@@ -2497,7 +2498,7 @@ func makeTestSharedConfig() jsonio.GoldResults {
 			"gpu": "GPUTest",
 		},
 		ChangeListID:                testIssueID,
-		PatchSetOrder:               testPatchsetID,
+		PatchSetOrder:               testPatchsetOrder,
 		CodeReviewSystem:            "gerrit",
 		TryJobID:                    testBuildBucketID,
 		ContinuousIntegrationSystem: "buildbucket",
