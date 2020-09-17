@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017",
+    "types": ["node"],
+  },
+  "include": [
+    "./modules/**/*.ts",
+    "./pages/**/*.ts",
+  ],
+}
