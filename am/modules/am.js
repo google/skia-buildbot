@@ -54,7 +54,7 @@ export function notes(ele) {
     return [];
   }
   return ele._state.notes.map((note, index) => html`<section class=note>
-  <p>${linkify(note.text)}</p>
+  <p class="note-text">${linkify(note.text)}</p>
   <div class=meta>
     <span class=author>${note.author}</span>
     <span class=date>${diffDate(note.ts * 1000)}</span>
