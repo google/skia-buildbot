@@ -239,12 +239,18 @@ func (s *Store) GetAll() ([]Silence, error) {
 	return active, err
 }
 
-// GetRecentlyArchived returns N most recently archived Silences.
-func (s *Store) GetRecentlyArchived() ([]Silence, error) {
+// GetRecentlyArchived returns N most recently archived Silences that were
+// updated within the specified duration. updatedWithin can be 0 if we want
+// all recently archived silences.
+func (s *Store) GetRecentlyArchived(updatedWithin time.Duration) ([]Silence, error) {
 	var archived []Silence
 	ancestor := ds.NewKey(ds.SILENCE_ACTIVE_PARENT_AM)
 	ancestor.Name = SILENCE_PARENT_KEY
-	q := ds.NewQuery(ds.SILENCE_AM).Filter("active=", false).Ancestor(ancestor).Order("-updated").Limit(NUM_RECENTLY_ARCHIVED)
+	modifiedAfter := int64(0)
+	if updatedWithin != 0 {
+		modifiedAfter = time.Now().Add(-updatedWithin).Unix()
+	}
+	q := ds.NewQuery(ds.SILENCE_AM).Filter("active=", false).Filter("updated>", modifiedAfter).Ancestor(ancestor).Order("-updated").Limit(NUM_RECENTLY_ARCHIVED)
 	keys, err := s.ds.GetAll(context.Background(), q, &archived)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to make query: %s", err)
