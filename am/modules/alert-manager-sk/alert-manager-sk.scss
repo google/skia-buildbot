@@ -102,6 +102,11 @@ alert-manager-sk {
   .incidents {
     checkbox-sk {
       display: inline-block;
+
+      /* See skbug.com/10733 */
+      input {
+        display: none;
+      }
     }
 
     h2 {
