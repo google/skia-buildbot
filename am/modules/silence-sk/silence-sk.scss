@@ -110,6 +110,10 @@ silence-sk {
     margin-bottom: 0.5em;
   }
 
+  p.note-text {
+    white-space: pre-wrap;
+  }
+
 }
 
 silence-sk[collapsable][collapsed] .body {
