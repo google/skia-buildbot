@@ -107,8 +107,8 @@ function displayIncident(incident) {
     ret.push(` - ${abbr}`);
   }
   let s = ret.join(' ');
-  if (s.length > 33) {
-    s = `${s.slice(0, 30)}...`;
+  if (s.length > 63) {
+    s = `${s.slice(0, 60)}...`;
   }
   return s;
 }
