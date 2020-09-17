@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "022c149a_b479000f",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-17T14:24:22Z",
+      "side": 1,
+      "message": "I\u0027m not quite sure if this is accurate. I thought it would show up if and only if the JSON RPC returned the right data. Did that get changed?",
+      "range": {
+        "startLine": 303,
+        "startChar": 24,
+        "endLine": 303,
+        "endChar": 67
+      },
+      "revId": "ac96e7574078e4a4cb404d9f44cc02f2825acd3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc83eab1_2c284eda",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-17T14:24:22Z",
+      "side": 1,
+      "message": "Should there be a TODO to make this have a UI component?",
+      "range": {
+        "startLine": 384,
+        "startChar": 2,
+        "endLine": 384,
+        "endChar": 43
+      },
+      "revId": "ac96e7574078e4a4cb404d9f44cc02f2825acd3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
