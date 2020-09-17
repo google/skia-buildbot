@@ -130,7 +130,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	require.Equal(t, c8.Hash, b.Head)
 }
 
-func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *repoImpl, func()) {
+func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *repoImpl, func() *vcsinfo.LongCommit, func(int, int), func()) {
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
 	gs := mocks.GitStore{}
@@ -140,20 +140,12 @@ func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder,
 	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := mem_gcsclient.New("fake-bucket")
-	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion", nil)
+	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion", nil, nil)
 	require.NoError(t, err)
-	return ctx, g, mockRepo, ri.(*repoImpl), g.Cleanup
-}
 
-func TestInitialIngestion(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, gb, mockRepo, ri, cleanup := setupTestInitial(t)
-	defer cleanup()
-
-	gd := git.GitDir(gb.Dir())
-
+	gd := git.GitDir(g.Dir())
 	commit := func() *vcsinfo.LongCommit {
-		h := gb.CommitGen(ctx, uuid.New().String())
+		h := g.CommitGen(ctx, uuid.New().String())
 		c, err := gd.Details(ctx, h)
 		require.NoError(t, err)
 		return c
@@ -161,13 +153,21 @@ func TestInitialIngestion(t *testing.T) {
 
 	test := func(expectBranches, expectCommits int) {
 		// Clear the cache between every attempt.
-		ri.MemCacheRepoImpl = repograph.NewMemCacheRepoImpl(nil, nil)
+		ri.(*repoImpl).MemCacheRepoImpl = repograph.NewMemCacheRepoImpl(nil, nil)
 		mockRepo.MockBranches(ctx)
-		require.NoError(t, ri.initialIngestion(ctx))
-		require.Equal(t, expectBranches, len(ri.BranchList))
-		require.Equal(t, expectCommits, len(ri.Commits))
+		require.NoError(t, ri.(*repoImpl).initialIngestion(ctx))
+		require.Equal(t, expectBranches, len(ri.(*repoImpl).BranchList))
+		require.Equal(t, expectCommits, len(ri.(*repoImpl).Commits))
 		require.True(t, mockRepo.Empty())
 	}
+
+	return ctx, g, mockRepo, ri.(*repoImpl), commit, test, g.Cleanup
+}
+
+func TestInitialIngestion(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, gb, mockRepo, ri, commit, test, cleanup := setupTestInitial(t)
+	defer cleanup()
 
 	// No commits, no branches; nothing to do.
 	test(0, 0)
@@ -218,4 +218,24 @@ func TestInitialIngestion(t *testing.T) {
 	// the new commit.
 	mockRepo.MockLog(ctx, git.LogFromTo(last.Hash, commit().Hash), gitiles.LogBatchSize(batchSize))
 	test(12, 112)
+}
+
+func TestInitialIngestionRespectsIncludeBranches(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, gb, mockRepo, ri, commit, test, cleanup := setupTestInitial(t)
+	defer cleanup()
+
+	// Set includeBranches.
+	ri.includeBranches = []string{"branch2"}
+
+	// "branch2" has two commits, while the main branch has three.
+	commit()
+	gb.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
+	branch2Head := commit()
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
+	commit()
+	commit()
+
+	mockRepo.MockLog(ctx, branch2Head.Hash, gitiles.LogBatchSize(batchSize))
+	test(1, 2)
 }

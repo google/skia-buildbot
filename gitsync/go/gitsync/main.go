@@ -60,6 +60,7 @@ func main() {
 	flag.StringVar(&config.PromPort, "prom_port", defaultConf.PromPort, "Metrics service address (e.g., ':10110')")
 	common.MultiStringFlagVar(&config.RepoURLs, "repo_url", defaultConf.RepoURLs, "Repo url")
 	common.MultiStringFlagVar(&config.Mirrors, "mirror", defaultConf.Mirrors, "Obtain data for the given repo url from the given mirror, eg. --mirror=<repo URL>=<gitiles mirror URL>")
+	common.MultiStringFlagVar(&config.IncludeBranches, "branches", defaultConf.IncludeBranches, "Restrict the given repo URL to the given branches, eg. --branches=<repo URL>=master,my-feature")
 	flag.DurationVar((*time.Duration)(&config.RefreshInterval), "refresh", time.Duration(defaultConf.RefreshInterval), "Interval in which to poll git and refresh the GitStore.")
 
 	common.InitWithMust(
@@ -134,11 +135,30 @@ func main() {
 
 	// Start all repo watchers.
 	ctx := context.Background()
+	includeBranches := make(map[string][]string, len(config.RepoURLs))
+	for _, repo := range config.RepoURLs {
+		includeBranches[repo] = []string{}
+	}
+	for _, branchFlag := range config.IncludeBranches {
+		split := strings.SplitN(branchFlag, "=", 2)
+		if len(split) != 2 {
+			sklog.Fatalf("Invalid value for --branch: %s", branchFlag)
+		}
+		repo := split[0]
+		branches := strings.Split(split[1], ",")
+		if _, ok := includeBranches[repo]; !ok {
+			sklog.Fatalf("Invalid value for --branch; unknown repo %s", repo)
+		}
+		if len(branches) == 0 {
+			sklog.Fatalf("Invalid value for --branch; no branches specified: %s", branchFlag)
+		}
+		includeBranches[repo] = branches
+	}
 	var egroup errgroup.Group
 	for _, repoURL := range config.RepoURLs {
 		repoURL := repoURL
 		egroup.Go(func() error {
-			return watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts)
+			return watcher.Start(ctx, btConfig, repoURL, includeBranches[repoURL], gitilesURLs[repoURL], *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts)
 		})
 	}
 	if err := egroup.Wait(); err != nil {
