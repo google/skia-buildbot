@@ -466,9 +466,9 @@ interface Task_PropertiesEntryJSON {
 export interface Task {
   attempt: number;
   commits?: string[];
-  created?: string;
-  dbModified?: string;
-  finished?: string;
+  createdAt?: string;
+  dbModifiedAt?: string;
+  finishedAt?: string;
   id: string;
   isolatedOutput: string;
   jobs?: string[];
@@ -476,7 +476,7 @@ export interface Task {
   parentTaskIds?: string[];
   properties?: Task_PropertiesEntry;
   retryOf: string;
-  started?: string;
+  startedAt?: string;
   status: TaskStatus;
   swarmingBotId: string;
   swarmingTaskId: string;
@@ -486,9 +486,9 @@ export interface Task {
 interface TaskJSON {
   attempt?: number;
   commits?: string[];
-  created?: string;
-  db_modified?: string;
-  finished?: string;
+  created_at?: string;
+  db_modified_at?: string;
+  finished_at?: string;
   id?: string;
   isolated_output?: string;
   jobs?: string[];
@@ -496,7 +496,7 @@ interface TaskJSON {
   parent_task_ids?: string[];
   properties?: Task_PropertiesEntryJSON;
   retry_of?: string;
-  started?: string;
+  started_at?: string;
   status?: string;
   swarming_bot_id?: string;
   swarming_task_id?: string;
@@ -507,9 +507,9 @@ const JSONToTask = (m: TaskJSON): Task => {
   return {
     attempt: m.attempt || 0,
     commits: m.commits,
-    created: m.created,
-    dbModified: m.db_modified,
-    finished: m.finished,
+    createdAt: m.created_at,
+    dbModifiedAt: m.db_modified_at,
+    finishedAt: m.finished_at,
     id: m.id || "",
     isolatedOutput: m.isolated_output || "",
     jobs: m.jobs,
@@ -517,7 +517,7 @@ const JSONToTask = (m: TaskJSON): Task => {
     parentTaskIds: m.parent_task_ids,
     properties: m.properties,
     retryOf: m.retry_of || "",
-    started: m.started,
+    startedAt: m.started_at,
     status: (m.status || Object.keys(TaskStatus)[0]) as TaskStatus,
     swarmingBotId: m.swarming_bot_id || "",
     swarmingTaskId: m.swarming_task_id || "",
@@ -543,13 +543,28 @@ const JSONToTaskDependencies = (m: TaskDependenciesJSON): TaskDependencies => {
 };
 
 export interface TaskSummary {
+  id: string;
+  attempt: number;
+  maxAttempts: number;
+  status: TaskStatus;
+  swarmingTaskId: string;
 }
 
 interface TaskSummaryJSON {
+  id?: string;
+  attempt?: number;
+  max_attempts?: number;
+  status?: string;
+  swarming_task_id?: string;
 }
 
 const JSONToTaskSummary = (m: TaskSummaryJSON): TaskSummary => {
   return {
+    id: m.id || "",
+    attempt: m.attempt || 0,
+    maxAttempts: m.max_attempts || 0,
+    status: (m.status || Object.keys(TaskStatus)[0]) as TaskStatus,
+    swarmingTaskId: m.swarming_task_id || "",
   };
 };
 

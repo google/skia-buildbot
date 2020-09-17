@@ -242,16 +242,16 @@ message Task {
 	repeated string commits = 2;
 
 	// created is the creation timestamp.
-	google.protobuf.Timestamp created = 3;
+	google.protobuf.Timestamp created_at = 3;
 
 	// db_modified is the time of the last successful call to TaskDB.PutTask/s
 	// for this Task, or zero if the task is new. It is not related to the
 	// ModifiedTs time of the associated Swarming task.
-	google.protobuf.Timestamp db_modified = 4;
+	google.protobuf.Timestamp db_modified_at = 4;
 
 	// finished is the time the task stopped running or expired from the queue, or
 	// zero if the task is pending or running.
-	google.protobuf.Timestamp finished = 5;
+	google.protobuf.Timestamp finished_at = 5;
 
 	// id is a generated unique identifier for this Task instance. Must be
 	// URL-safe.
@@ -281,7 +281,7 @@ message Task {
 
 	// started is the time the task started running, or zero if the task is
 	// pending, or the same as Finished if the task never ran.
-	google.protobuf.Timestamp started = 13;
+	google.protobuf.Timestamp started_at = 13;
 
 	// status is the current task status, default TASK_STATUS_PENDING.
 	TaskStatus status = 14;
@@ -319,7 +319,11 @@ message TaskDependencies {
 
 // TaskSummary provides a subset of the information of a Task.
 message TaskSummary {
-	// TODO
+	string id = 1;
+	int32 attempt = 2;
+	int32 max_attempts = 3;
+	TaskStatus status = 4;
+	string swarming_task_id = 5;
 }
 
 // TaskSummaries groups TaskSummaries which have the same TaskSpec name.
