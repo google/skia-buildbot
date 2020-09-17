@@ -5,7 +5,9 @@ import {
   setUpElementUnderTest
 } from '../../../infra-sk/modules/test_util';
 import { CommitsDataSk } from './commits-data-sk';
-import { branch0, branch1, commentCommit, commentTask, commentTaskSpec } from '../rpc-mock/test_data';
+import {
+  branch0, branch1, commentCommit, commentTask, commentTaskSpec
+} from '../rpc-mock/test_data';
 import { expect } from 'chai';
 import { SetupMocks } from '../rpc-mock';
 
