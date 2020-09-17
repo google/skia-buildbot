@@ -6,27 +6,34 @@ export const fakeNow = Date.parse('2020-07-20T00:00:00Z');
 export const statusResponse: StatusResponse = {
   "ok": false,
   "firstCommit": {
-      "commit_time": 1592422850,
-      "hash": "915a4938104e09e50b0f148220436ee9dfe3148e",
-      "author": "Alice (alice@example.com)",
-      "message": "[gold] Port list-page-sk to lit-html",
-      "cl_url": ""
+    "commit_time": 1592422850,
+    "hash": "915a4938104e09e50b0f148220436ee9dfe3148e",
+    "author": "Alice (alice@example.com)",
+    "message": "[gold] Port list-page-sk to lit-html",
+    "cl_url": ""
   },
   "lastCommit": {
       "commit_time": 1594817699,
-      "hash": "3e53cd963f319a3e3e293bd091e83149eab703f6",
-      "author": "Dan (dan@example.com)",
-      "message": "[autoroll] Fixes",
-      "cl_url": ""
+    "hash": "3e53cd963f319a3e3e293bd091e83149eab703f6",
+    "author": "Dan (dan@example.com)",
+    "message": "[autoroll] Fixes",
+    "cl_url": ""
   },
   "totalCommits": 213,
   "filledCommits": 200,
   "corpStatus": [{
-      "name": "infra",
-      "ok": false,
-      "minCommitHash": "",
-      "untriagedCount": 18,
-      "negativeCount": 0
+    "name": "infra",
+    "ok": false,
+    "minCommitHash": "",
+    "untriagedCount": 18,
+    "negativeCount": 0
+  },
+  {
+    "name": "my-corpus",
+    "ok": false,
+    "minCommitHash": "",
+    "untriagedCount": 5,
+    "negativeCount": 2
   }]
 };
 
