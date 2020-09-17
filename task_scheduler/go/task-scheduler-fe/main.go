@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/rpc"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -601,7 +602,7 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runServer(serverURL string) {
+func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
@@ -620,14 +621,17 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/tasks/search", jsonTaskSearchHandler)
 	r.HandleFunc("/json/trigger", login.RestrictEditorFn(jsonTriggerHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
+	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(srv)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
-	h := httputils.LoggingGzipRequestResponse(r)
-	h = httputils.HealthzAndHTTPS(h)
+	h := httputils.LoggingRequestResponse(r)
+	if !*local {
+		h = httputils.HealthzAndHTTPS(h)
+	}
 	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
@@ -644,12 +648,6 @@ func main() {
 	defer common.Defer()
 
 	reloadTemplates()
-
-	serverURL := "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
-	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
@@ -716,10 +714,24 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	var viewAllow allowed.Allow = nil
+	editAllow := allowed.Googlers()
+	adminAllow := allowed.Googlers()
+	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, viewAllow, editAllow, adminAllow)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
+
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)
 
-	go runServer(serverURL)
+	go runServer(serverURL, srv)
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}
