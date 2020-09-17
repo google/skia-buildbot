@@ -68,7 +68,8 @@ incident-sk {
     color: var(--green);
   }
 
-  .flaky {
+  .flaky,
+  .recently-expired-silence {
     font-size: 0.75em;
     color: var(--black);
   }
@@ -104,6 +105,7 @@ incident-sk[minimized] .params,
 incident-sk[minimized] .addNote,
 incident-sk[minimized] .history,
 incident-sk[minimized] .flaky,
+incident-sk[minimized] .recently-expired-silence,
 incident-sk[minimized] .matchingSilences {
   display: none;
 }

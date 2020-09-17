@@ -191,7 +191,7 @@ func (g *gatherer) update() {
 					Dimensions: b.Dimensions,
 					Status:     STATUS_HOST_MISSING,
 					Since:      time.Unix(alert.Start, 0).UTC(),
-					Silenced:   alert.IsSilenced(silences),
+					Silenced:   alert.IsSilenced(silences, true),
 				})
 			} else if g.decider.ShouldPowercycleDevice(b) {
 				downBots = append(downBots, DownBot{
@@ -200,7 +200,7 @@ func (g *gatherer) update() {
 					Dimensions: b.Dimensions,
 					Status:     STATUS_DEVICE_MISSING,
 					Since:      time.Unix(alert.Start, 0).UTC(),
-					Silenced:   alert.IsSilenced(silences),
+					Silenced:   alert.IsSilenced(silences, true),
 				})
 			}
 			// Avoid reporting the same bot down more than once

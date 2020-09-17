@@ -63,7 +63,7 @@ func TestStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(s.Notes))
 
-	archived, err := st.GetRecentlyArchived()
+	archived, err := st.GetRecentlyArchived(0)
 	assert.NoError(t, err)
 	assert.Len(t, archived, 0)
 
@@ -75,10 +75,14 @@ func TestStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, all, 0)
 
-	archived, err = st.GetRecentlyArchived()
+	archived, err = st.GetRecentlyArchived(0)
 	assert.NoError(t, err)
 	assert.Len(t, archived, 1)
 	assert.Equal(t, "fred@example.org", archived[0].User)
+
+	archivedWithin, err := st.GetRecentlyArchived(-15 * time.Minute)
+	assert.NoError(t, err)
+	assert.Len(t, archivedWithin, 0)
 
 	reactivated, err := st.Reactivate(archived[0].Key, "3h", "wilma@example.org")
 	assert.NoError(t, err)
@@ -93,7 +97,7 @@ func TestStore(t *testing.T) {
 
 	err = st.Delete(s.Key)
 	assert.NoError(t, err)
-	archived, err = st.GetRecentlyArchived()
+	archived, err = st.GetRecentlyArchived(0)
 	assert.NoError(t, err)
 	assert.Len(t, archived, 0)
 }
