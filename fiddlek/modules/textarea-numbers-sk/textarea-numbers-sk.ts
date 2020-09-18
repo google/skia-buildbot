@@ -7,9 +7,9 @@
  */
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from 'elements-sk/define';
+import CodeMirror from 'codemirror';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
-import CodeMirror from 'codemirror';
 
 export class TextareaNumbersSk extends ElementSk {
   /** The CodeMirror control. */
@@ -23,15 +23,16 @@ export class TextareaNumbersSk extends ElementSk {
    * For this to work the associated CSS themes must be loaded. See
    * textarea-numbers-sk.scss.
    */
-  private static themeFromCurrentMode = () =>
-    isDarkMode() ? 'base16-dark' : 'base16-light';
+  private static themeFromCurrentMode = () => (isDarkMode() ? 'base16-dark' : 'base16-light');
 
   constructor() {
     super();
+    console.log('textarea-numbers-sk constructor');
   }
 
   connectedCallback() {
     super.connectedCallback();
+    console.log('textarea-numbers-sk connectedCallback');
 
     // Creates and attaches the CodeMirror control as this elements only child.
     // Note we don't call _render().
@@ -39,6 +40,7 @@ export class TextareaNumbersSk extends ElementSk {
       lineNumbers: true,
       mode: 'text/x-c++src',
       theme: TextareaNumbersSk.themeFromCurrentMode(),
+      viewportMargin: Infinity,
     });
 
     this._upgradeProperty('value');
@@ -47,7 +49,7 @@ export class TextareaNumbersSk extends ElementSk {
     document.addEventListener('theme-chooser-toggle', (e) => {
       this.codeMirror?.setOption(
         'theme',
-        TextareaNumbersSk.themeFromCurrentMode()
+        TextareaNumbersSk.themeFromCurrentMode(),
       );
     });
   }
@@ -64,27 +66,33 @@ export class TextareaNumbersSk extends ElementSk {
     // Set the class of that line to 'cm-error'.
     this.errorLines.push(
       this.codeMirror?.markText(
-        { line: n, ch: 0 },
-        { line: n, ch: 200 }, // Some large number for the character offset.
+        { line: n - 1, ch: 0 },
+        { line: n - 1, ch: 200 }, // Some large number for the character offset.
         {
           className: 'cm-error', // See the base16-dark.css file in CodeMirror for the class name.
-        }
-      )!
+        },
+      )!,
     );
   }
 
   /** Move the cursor to the given row and column. */
   setCursor(row: number, col: number) {
-    this.codeMirror?.setCursor(row, col);
+    this.codeMirror?.focus();
+    this.codeMirror?.setCursor({ line: row - 1, ch: col - 1 });
   }
 
   /** @prop value {string} The text content of the edit box. */
   get value() {
+    if (!this.codeMirror) {
+      return '';
+    }
     return this.codeMirror!.getValue();
   }
 
   set value(val: string) {
-    this.codeMirror!.setValue(val);
+    if (this.codeMirror) {
+      this.codeMirror!.setValue(val);
+    }
     this.clearErrors();
   }
 }
