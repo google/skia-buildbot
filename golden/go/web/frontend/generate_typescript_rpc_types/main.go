@@ -34,18 +34,28 @@ func main() {
 }
 
 func addTypes(generator *go2ts.Go2TS) error {
-	// Response for the /json/changelist/{system}/{id} RPC endpoint.
+	// Response for the /json/v1/changelist/{system}/{id} RPC endpoint.
 	if err := generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse"); err != nil {
 		return skerr.Wrap(err)
 	}
 
-	// Response for the /json/paramset RPC endpoint.
+	// Response for the /json/v1/paramset RPC endpoint.
 	if err := generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse"); err != nil {
 		return skerr.Wrap(err)
 	}
 
-	// Response for the /json/search RPC endpoint.
+	// Response for the /json/v1/search RPC endpoint.
 	if err := generator.AddWithName(search_frontend.SearchResponse{}, "SearchResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Request for the /json/v1/triage RPC endpoint.
+	if err := generator.Add(frontend.TriageRequest{}); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Response for the /json/v1/trstatus RPC endpoint.
+	if err := generator.AddWithName(status.GUIStatus{}, "StatusResponse"); err != nil {
 		return skerr.Wrap(err)
 	}
 
@@ -54,11 +64,6 @@ func addTypes(generator *go2ts.Go2TS) error {
 	}
 
 	if err := generator.AddUnionWithName(common.AllRefClosest, "RefClosest"); err != nil {
-		return skerr.Wrap(err)
-	}
-
-	// Response for the /json/trstatus RPC endpoint.
-	if err := generator.AddWithName(status.GUIStatus{}, "StatusResponse"); err != nil {
 		return skerr.Wrap(err)
 	}
 
