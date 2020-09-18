@@ -43,11 +43,13 @@ export class ChangelistControlsSk extends ElementSk {
         <span class=spacer></span>
         <div class=radiogroup>
           <radio-sk label="exclude results from primary branch"
+                    class="exclude-master"
                     name=include_master
                     ?checked=${!ele.include_master}
                     @change=${() => ele._onIncludeDigestsFromPrimaryChange(false)}>
           </radio-sk>
           <radio-sk label="show all results"
+                    class="include-master"
                     name=include_master
                     ?checked=${ele.include_master}
                     @change=${() => ele._onIncludeDigestsFromPrimaryChange(true)}>
