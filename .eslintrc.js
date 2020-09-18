@@ -69,10 +69,12 @@ module.exports = {
         '@typescript-eslint/no-non-null-assertion': 'off',
 
         // Require a consistent member declaration order
-        '@typescript-eslint/member-ordering': 'warning',
+        '@typescript-eslint/member-ordering': 'warn',
 
         // Don't require the .ts extension for imports.
-        'import/extensions': ['off'],
+        'import/extensions': 'off',
+
+        'import/no-duplicates': 'off',
 
         // a: string = 'foo' might be redundant, but it's not harmful.
         '@typescript-eslint/no-inferrable-types': 'off',
