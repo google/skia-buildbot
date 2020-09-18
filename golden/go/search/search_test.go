@@ -205,7 +205,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				},
 			},
 		},
-		BulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
+		BulkTriageData: web_frontend.TriageRequestData{
 			data.AlphaTest: {
 				data.AlphaUntriagedDigest: expectations.Positive,
 			},
@@ -253,7 +253,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.Label{
+	assert.Equal(t, web_frontend.TriageRequestData{
 		data.AlphaTest: {
 			data.AlphaUntriagedDigest: expectations.Positive,
 		},
@@ -274,7 +274,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.Label{
+	assert.Equal(t, web_frontend.TriageRequestData{
 		data.AlphaTest: {
 			data.AlphaUntriagedDigest: expectations.Positive,
 		},
@@ -921,7 +921,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				},
 			},
 		},
-		BulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
+		BulkTriageData: web_frontend.TriageRequestData{
 			data.BetaTest: {
 				BetaBrandNewDigest: expectations.Positive,
 			},
@@ -2262,7 +2262,7 @@ func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
 	}
 
 	bulkTriageData := collectDigestsForBulkTriage(results)
-	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.Label{
+	assert.Equal(t, web_frontend.TriageRequestData{
 		"apple": {
 			"grannysmith": "positive",
 			"honeycrisp":  "",
