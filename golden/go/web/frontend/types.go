@@ -112,7 +112,7 @@ type TriageRequest struct {
 	// An empty image matching algorithm indicates this is a manual triage operation, in which case
 	// the username that initiated the triage operation via Gold's UI will be used as the author of
 	// the operation.
-	ImageMatchingAlgorithm string `json:"imageMatchingAlgorithm"`
+	ImageMatchingAlgorithm string `json:"imageMatchingAlgorithm,omitempty"`
 }
 
 // TriageDelta represents one changed digest and the label that was
