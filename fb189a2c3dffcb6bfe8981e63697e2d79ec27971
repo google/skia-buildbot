@@ -76,6 +76,29 @@
     },
     {
       "key": {
+        "uuid": "8c02117f_09274e26",
+        "filename": "status/modules/commits-data-sk/commits-data-sk.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-18T14:05:18Z",
+      "side": 1,
+      "message": "Nice!",
+      "range": {
+        "startLine": 81,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 3
+      },
+      "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8e65a517_bbf4b830",
         "filename": "status/modules/commits-data-sk/commits-data-sk.ts",
         "patchSetId": 19
@@ -110,6 +133,29 @@
       "writtenOn": "2020-09-18T12:34:31Z",
       "side": 1,
       "message": "In general, this function is too long for an anonymous function. Please split this into smaller methods; I have a hard time understanding this.",
+      "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "059860fe_62bd43fb",
+        "filename": "status/modules/commits-data-sk/commits-data-sk.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-18T14:05:18Z",
+      "side": 1,
+      "message": "Any reason we\u0027re using snake_case for some members and camelCase for others?",
+      "range": {
+        "startLine": 147,
+        "startChar": 13,
+        "endLine": 147,
+        "endChar": 31
+      },
       "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -247,6 +293,29 @@
         "startChar": 4,
         "endLine": 74,
         "endChar": 12
+      },
+      "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57cdb431_648e6c70",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-18T14:05:18Z",
+      "side": 1,
+      "message": "Why do this here vs in the template?",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 7
       },
       "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -667,6 +736,24 @@
       "writtenOn": "2020-09-18T12:34:31Z",
       "side": 1,
       "message": "For injecting data, I would strongly recommend something like we do for Gold, where we set some   constant values on window and have a way to access them. \nhttps://github.com/google/skia-buildbot/blob/master/golden/modules/settings.js\n\nI think the way Gold does it is more clear \"where the data comes from\" and allows for easier mocking/injection during tests.\n\nOtherwise, you would have to pass repos into status which would have to pass it into commits-table-sk. That seems like a lot of boilerplate for a constant list. This gets even more hectic the more data that is added or if data needs to get injected deep.",
+      "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27f1ccfd_fe73b24e",
+        "filename": "status/pages/status.html",
+        "patchSetId": 19
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-18T14:05:18Z",
+      "side": 1,
+      "message": "Alternative suggestion: just let this all happen in a request performed by commits-data-sk, and the top-level page doesn\u0027t need to concern itself with data at all.",
+      "parentUuid": "86fc74e8_0505a3f3",
       "revId": "fb189a2c3dffcb6bfe8981e63697e2d79ec27971",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
