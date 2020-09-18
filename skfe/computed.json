@@ -457,6 +457,84 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gold-angle-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-angle-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-angle-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-angle-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-angle-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-angle-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-angle-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-angle-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-angle-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-chrome-baselineserver",
           "endpoints": [
             {
@@ -2817,6 +2895,84 @@
                           },
                           "route": {
                             "cluster": "gold-chrome-gpu-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "angle-gold.skia.org",
+                      "name": "angle-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-angle-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations"
+                          },
+                          "route": {
+                            "cluster": "gold-angle-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/hashes"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-angle-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/expectations.*"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-angle-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-angle-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-angle-skiacorrectness",
                             "timeout": {
                               "seconds": 600
                             }
