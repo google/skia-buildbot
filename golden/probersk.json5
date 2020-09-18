@@ -2,10 +2,12 @@
    // The /healthz endpoint is reachable, even for locked down instances.
    "gold_frontend": {
      "urls": [
+       "https://angle-gold.skia.org/healthz",
        "https://chrome-gold.skia.org/healthz",
        "https://chrome-gpu-gold.skia.org/healthz",
-       "https://flutter-gold.skia.org/healthz",
+       "https://chrome-public-gold.skia.org/healthz",
        "https://flutter-engine-gold.skia.org/healthz",
+       "https://flutter-gold.skia.org/healthz",
        "https://gold.skia.org/healthz",
        "https://lottie-gold.skia.org/healthz",
        "https://pdfium-gold.skia.org/healthz",
@@ -29,6 +31,7 @@
    },
    "gold_baselines": {
      "urls": [
+       "https://angle-gold.skia.org/json/v1/expectations",
        "https://chrome-gold.skia.org/json/v1/expectations",
        "https://chrome-gpu-gold.skia.org/json/v1/expectations",
        "https://flutter-engine-gold.skia.org/json/v1/expectations",

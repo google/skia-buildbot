@@ -123,6 +123,8 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Deployments shared among test cases.
+	angleSkiaCorrectness := makeID(goldpushk.Angle, goldpushk.SkiaCorrectness)
+	angleDiffServer := makeID(goldpushk.Angle, goldpushk.DiffServer)
 	chromeBaselineServer := makeID(goldpushk.Chrome, goldpushk.BaselineServer)
 	chromeDiffServer := makeID(goldpushk.Chrome, goldpushk.DiffServer)
 	chromeGpuDiffServer := makeID(goldpushk.ChromeGPU, goldpushk.DiffServer)
@@ -317,7 +319,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			flagInstances:             []string{"all"},
 			flagServices:              []string{"skiacorrectness"},
 			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
+			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
 		},
 
 		{
@@ -325,7 +327,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			flagInstances:                     []string{"all"},
 			flagServices:                      []string{"skiacorrectness"},
 			flagCanaries:                      []string{"skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness},
+			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness},
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness},
 		},
 
@@ -334,7 +336,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			flagInstances:                     []string{"all"},
 			flagServices:                      []string{"skiacorrectness"},
 			flagCanaries:                      []string{"skia-infra:skiacorrectness", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness},
+			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness},
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
 		},
 
@@ -343,7 +345,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			flagInstances:             []string{"all"},
 			flagServices:              []string{"diffserver", "skiacorrectness"},
 			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
+			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
 		},
 
 		{
@@ -351,7 +353,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			flagInstances:                     []string{"all"},
 			flagServices:                      []string{"diffserver", "skiacorrectness"},
 			flagCanaries:                      []string{"skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness},
+			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness},
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness},
 		},
 
@@ -360,7 +362,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 			flagInstances:                     []string{"all"},
 			flagServices:                      []string{"diffserver", "skiacorrectness"},
 			flagCanaries:                      []string{"skia-infra:skiacorrectness", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer},
+			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer},
 			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
 		},
 
@@ -393,8 +395,8 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
 
 		require.NoError(t, err, tc.message)
-		assert.Equal(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
-		assert.Equal(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
+		assert.ElementsMatch(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
+		assert.ElementsMatch(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
 	}
 }
 

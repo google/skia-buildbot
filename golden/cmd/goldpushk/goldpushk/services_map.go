@@ -5,6 +5,7 @@ package goldpushk
 
 const (
 	// Gold instances.
+	Angle         Instance = "angle"
 	Chrome        Instance = "chrome"
 	ChromeGPU     Instance = "chrome-gpu"
 	ChromePublic  Instance = "chrome-public"
@@ -51,6 +52,7 @@ var (
 func ProductionDeployableUnits() DeployableUnitSet {
 	s := DeployableUnitSet{
 		knownInstances: []Instance{
+			Angle,
 			Chrome,
 			ChromeGPU,
 			ChromePublic,
@@ -87,7 +89,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Chrome, ChromeGPU, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
+		Angle, Chrome, ChromeGPU, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)
