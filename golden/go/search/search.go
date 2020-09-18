@@ -206,8 +206,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	return searchRet, nil
 }
 
-func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]expectations.Label {
-	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]expectations.Label{}
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) web_frontend.TriageRequestData {
+	testNameToPrimaryDigest := web_frontend.TriageRequestData{}
 	for _, r := range results {
 		test := r.Test
 		digestToLabel, ok := testNameToPrimaryDigest[test]
