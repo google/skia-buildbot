@@ -17,23 +17,23 @@ export class TestSrcSk extends ElementSk {
   // The URL to retrieve the text from.
   private _src: string = '';
 
-  private static template = (ele: TestSrcSk) =>
-    html`<pre class="output">${ele._text}</pre>`;
-
   constructor() {
     super(TestSrcSk.template);
   }
 
-  connectedCallback() {
+  private static template = (ele: TestSrcSk) => html`<pre class="output">${ele._text}</pre>`;
+
+  connectedCallback() : void {
     super.connectedCallback();
     this._upgradeProperty('src');
   }
 
   /** @prop src - URL to retrieve the text from. */
-  get src() {
+  get src():string {
     return this._src;
   }
-  set src(val) {
+
+  set src(val:string) {
     this._src = val;
     // Property funcs can't be async, thus the IIAAFE (immediately invoked async
     // arrow function expression).
@@ -43,7 +43,7 @@ export class TestSrcSk extends ElementSk {
       }
       const resp = await fetch(val);
       if (!resp.ok) {
-        throw `Failed to retrieve text from ${val}`;
+        throw new Error(`Failed to retrieve text from ${val}`);
       }
       this._text = await resp.text();
       this._render();
