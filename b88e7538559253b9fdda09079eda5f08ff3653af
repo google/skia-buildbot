@@ -1,0 +1,31 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018837",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317478?revision\u003d6",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "7fbca939_f8036a01",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T03:16:16Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 175,
+        "startChar": 22,
+        "endLine": 175,
+        "endChar": 28
+      },
+      "revId": "b88e7538559253b9fdda09079eda5f08ff3653af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
