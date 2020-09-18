@@ -29,7 +29,7 @@ type SearchResponse struct {
 	// an expectations.Label value giving the label of the closest triaged digest to the key digest
 	// or empty string if there is no "closest digest". Note the similarity to the
 	// frontend.TriageRequest type.
-	BulkTriageData map[types.TestName]map[types.Digest]expectations.Label `json:"bulk_triage_data"`
+	BulkTriageData frontend.TriageRequestData `json:"bulk_triage_data"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.

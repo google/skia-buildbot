@@ -88,12 +88,15 @@ func ConvertTryJob(tj ci.TryJob, urlTempl string) TryJob {
 	}
 }
 
-// TriageRequest is the form of the JSON posted by the frontend when triaging
-// (both single and bulk).
+// TriageRequestData contains the digests in a TriageRequest and their desired labels.
+type TriageRequestData map[types.TestName]map[types.Digest]expectations.Label
+
+// TriageRequest is the form of the JSON posted by the frontend when triaging (both single and
+// bulk).
 type TriageRequest struct {
 	// TestDigestStatus maps status to test name and digests. The strings are
 	// expectation.Label.String() values
-	TestDigestStatus map[types.TestName]map[types.Digest]expectations.Label `json:"testDigestStatus"`
+	TestDigestStatus TriageRequestData `json:"testDigestStatus"`
 
 	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
 	ChangeListID string `json:"changelist_id"`
