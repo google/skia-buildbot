@@ -101,11 +101,11 @@ export interface SearchResponse {
 	size: number;
 	commits: Commit[] | null;
 	trace_comments: TraceComment[] | null;
-	bulk_triage_data: { [key: string]: { [key: string]: Label } };
+	bulk_triage_data: TriageRequestData;
 }
 
 export interface TriageRequest {
-	testDigestStatus: { [key: string]: { [key: string]: Label } };
+	testDigestStatus: TriageRequestData;
 	changelist_id: string;
 	crs: string;
 	imageMatchingAlgorithm: string;
@@ -143,3 +143,5 @@ export type TraceID = string;
 export type RefClosest = "pos" | "neg" | "";
 
 export type ID = string;
+
+export type TriageRequestData = { [key: string]: { [key: string]: Label } };
