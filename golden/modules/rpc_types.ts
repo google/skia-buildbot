@@ -104,6 +104,13 @@ export interface SearchResponse {
 	bulk_triage_data: { [key: string]: { [key: string]: Label } };
 }
 
+export interface TriageRequest {
+	testDigestStatus: { [key: string]: { [key: string]: Label } };
+	changelist_id: string;
+	crs: string;
+	imageMatchingAlgorithm: string;
+}
+
 export interface GUICorpusStatus {
 	name: string;
 	ok: boolean;
