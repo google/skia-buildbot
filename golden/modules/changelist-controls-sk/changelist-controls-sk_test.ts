@@ -26,7 +26,7 @@ describe('changelist-controls-sk', () => {
       expect(changelistControlsSk.ps_order).to.equal(0);
       expect(changelistControlsSk.include_master).to.equal(false);
 
-      changelistControlsSk.setSummary(twoPatchSets);
+      changelistControlsSk.summary = twoPatchSets;
       expect(changelistControlsSk.ps_order).to.equal(4);
 
       expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 4');
@@ -41,7 +41,7 @@ describe('changelist-controls-sk', () => {
     });
 
     it('shows other patchsets when ps_order is changed', async () => {
-      changelistControlsSk.setSummary(twoPatchSets);
+      changelistControlsSk.summary = twoPatchSets;
       changelistControlsSk.ps_order = 1;
 
       expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 1');
@@ -49,7 +49,7 @@ describe('changelist-controls-sk', () => {
     });
 
     it('flips the radio buttons on include_master', async () => {
-      changelistControlsSk.setSummary(twoPatchSets);
+      changelistControlsSk.summary = twoPatchSets;
       expect(await changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked()).to.be.true;
       expect(await changelistControlsSkPO.isShowAllResultsRadioChecked()).to.be.false;
 
@@ -63,7 +63,7 @@ describe('changelist-controls-sk', () => {
     it('generates a cl-control-change event on "include results from primary" toggle', async () => {
       changelistControlsSk.include_master = false;
       changelistControlsSk.ps_order = 4;
-      changelistControlsSk.setSummary(twoPatchSets);
+      changelistControlsSk.summary = twoPatchSets;
 
       expect(await changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked()).to.be.true;
       expect(await changelistControlsSkPO.isShowAllResultsRadioChecked()).to.be.false;
@@ -83,7 +83,7 @@ describe('changelist-controls-sk', () => {
 
     it('generates a cl-control-change event on patchset change', async () => {
       changelistControlsSk.ps_order = 0; // Use the latest patchset, i.e. 'PS 4'.
-      changelistControlsSk.setSummary(twoPatchSets);
+      changelistControlsSk.summary = twoPatchSets;
 
       expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 4');
 

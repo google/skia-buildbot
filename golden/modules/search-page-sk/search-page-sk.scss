@@ -1,9 +1,19 @@
 search-page-sk {
   display: block;
 
+  changelist-controls-sk {
+    display: block;
+    margin-left: 16px;
+  }
+
+  p.summary {
+    margin-left: 16px;
+  }
+
   digest-details-sk {
     display: block;
     border: 1px solid black;
-    margin-bottom: 8px;
+    margin-left: 16px;
+    margin-bottom: 16px;
   }
 }

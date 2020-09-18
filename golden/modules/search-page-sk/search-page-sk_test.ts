@@ -80,6 +80,13 @@ describe('search-page-sk', () => {
     fetchMock.reset();
   });
 
+  it('does not show the changelist-controls-sk component if no CL is provided', async () => {
+    await instantiate();
+
+    const changelistControlsSkPO = await searchPageSkPO.getChangelistControlsSkPO();
+    expect(await changelistControlsSkPO.isVisible()).to.be.false;
+  });
+
   it('shows empty search results', async () => {
     await instantiate(defaultSearchRequest, emptySearchResponse);
 
@@ -98,21 +105,26 @@ describe('search-page-sk', () => {
     ]);
   });
 
-  // TODO(lovisolo): Test this more thoroughly (exercise all search parameters, etc.).
-  it('updates the search results when the search controls change', async () => {
-    await instantiate();
+  describe('search controls', () => {
+    // TODO(lovisolo): Test this more thoroughly (exercise all search parameters, etc.).
 
-    // We will pretend that the user unchecked "Include untriaged digests".
-    const searchRequest = deepCopy(defaultSearchRequest);
-    searchRequest.unt = false;
-    fetchMock.get('/json/v1/search?' + fromObject(searchRequest as any), () => emptySearchResponse);
+    it('updates the search results when the search controls change', async () => {
+      await instantiate();
 
-    const event = eventPromise('end-task');
-    const searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
-    await searchControlsSkPO.clickIncludeUntriagedDigestsCheckbox();
-    await event;
+      // We will pretend that the user unchecked "Include untriaged digests".
+      const searchRequest = deepCopy(defaultSearchRequest);
+      searchRequest.unt = false;
+      fetchMock.get(
+        '/json/v1/search?' + fromObject(searchRequest as any), () => emptySearchResponse);
 
-    expect(await searchPageSkPO.getSummary()).to.equal('No results matched your search criteria.');
+      const event = eventPromise('end-task');
+      const searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
+      await searchControlsSkPO.clickIncludeUntriagedDigestsCheckbox();
+      await event;
+
+      expect(await searchPageSkPO.getSummary())
+        .to.equal('No results matched your search criteria.');
+    });
   });
 
   describe('changelist support', () => {
@@ -144,7 +156,33 @@ describe('search-page-sk', () => {
       expect(diffDetailsHrefs[2]).to.contain('changelist_id=123456&crs=gerrit');
     });
 
-    // TODO(lovisolo): Assert that the changelist-controls-sk are visible.
+    it('shows the changelist-controls-sk component', async () => {
+      await instantiateWithCL();
+      const changelistControlsSkPO = await searchPageSkPO.getChangelistControlsSkPO();
+      expect(await changelistControlsSkPO.isVisible()).to.be.true;
+    });
+
+    describe('changelist controls', () => {
+      // TODO(lovisolo): Test this more thoroughly (exercise all search parameters, etc.).
+
+      it('updates the search results when the changelist controls change', async () => {
+        await instantiateWithCL();
+
+        // We will pretend that the user clicked on the "Show all results" radio.
+        const searchRequest = deepCopy(defaultSearchRequest);
+        searchRequest.crs = 'gerrit';
+        searchRequest.issue = '123456';
+        searchRequest.master = true;
+        searchRequest.patchsets = 2;
+        fetchMock.get(
+          '/json/v1/search?' + fromObject(searchRequest as any), () => emptySearchResponse);
+
+        const event = eventPromise('end-task');
+        const changelistControlsSkPO = await searchPageSkPO.getChangelistControlsSkPO();
+        await changelistControlsSkPO.clickShowAllResultsRadio();
+        await event;
+      });
+    });
   });
 
   describe('search RPC reflects any optional URL query parameters', () => {
@@ -152,7 +190,7 @@ describe('search-page-sk', () => {
     // issue) are reflected in the /json/v1/search RPC.
     //
     // No explicit asserts are necessary because if the search RPC is not called with the expected
-    // SearchRequest then the fetchMock.done() call in the afterEach hook above will fail.
+    // SearchRequest then the fetchMock.done() call in the top-level afterEach() hook will fail.
 
     it('reflects the "blame" URL parameter', async () => {
       setQueryString('?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
