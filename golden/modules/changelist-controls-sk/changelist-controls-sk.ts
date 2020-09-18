@@ -84,6 +84,24 @@ export class ChangelistControlsSk extends ElementSk {
     this._render();
   }
 
+  /** Changelist summary for this element to display. */
+  get summary() { return this._summary; }
+
+  set summary(summary: ChangeListSummaryResponse | null) {
+    this._summary = summary;
+    this._render();
+  }
+
+  /**
+   * Deprecated. Equivalent to the summary property setter.
+   *
+   * TODO(lovisolo): Remove after the legacy search page is deleted.
+   */
+  setSummary(summary: ChangeListSummaryResponse) {
+    this._summary = summary;
+    this._render();
+  }
+
   /**
    * The order of the patchset currently being shown. If set to 0, the latest patchset will be used.
    */
@@ -148,12 +166,6 @@ export class ChangelistControlsSk extends ElementSk {
       },
       bubbles: true,
     }));
-  }
-
-  /** Sets the changelist summary for this element to display. */
-  setSummary(summary: ChangeListSummaryResponse) {
-    this._summary = summary;
-    this._render();
   }
 };
 
