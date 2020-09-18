@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fdfb2980_f57dec8b",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-18T03:09:24Z",
+      "side": 1,
+      "message": "You\u0027re right. I\u0027ve renamed the test case to be more specific about the behavior under test, and added comments to make things more explicit.",
+      "parentUuid": "022c149a_b479000f",
+      "range": {
+        "startLine": 303,
+        "startChar": 24,
+        "endLine": 303,
+        "endChar": 67
+      },
+      "revId": "ac96e7574078e4a4cb404d9f44cc02f2825acd3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc83eab1_2c284eda",
         "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "ac96e7574078e4a4cb404d9f44cc02f2825acd3f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf7dd558_3de390be",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-18T03:09:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc83eab1_2c284eda",
+      "range": {
+        "startLine": 384,
+        "startChar": 2,
+        "endLine": 384,
+        "endChar": 43
+      },
+      "revId": "ac96e7574078e4a4cb404d9f44cc02f2825acd3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
