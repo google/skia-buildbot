@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dece4f1_07b226b6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-18T12:45:10Z",
+      "side": 1,
+      "message": "This may cause issues with the icons that show up next to alerts. You can make the comment icon show up by adding a note to the alert. My soon-to-be coming CL adds another icon to show recently expired silences so that may also cause issues here. I can experiment with how it looks like on Monday.",
+      "revId": "97ff141abcf9745ac087c89121d04c73b9001273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
