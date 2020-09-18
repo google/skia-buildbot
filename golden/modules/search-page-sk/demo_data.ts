@@ -184,17 +184,27 @@ export const changeListSummaryResponse: ChangeListSummaryResponse = {
     "url": "https://skia-review.googlesource.com/123456"
   },
   "patch_sets": [{
-    "id": "ba53b08f955bbfbec8da0346c59e6d5c038fd593",
+    "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "order": 1,
     "try_jobs": [{
-      "id": "8869059577477321936",
+      "id": "11111111111111111111",
       "name": "Infra-PerCommit-Puppeteer",
-      "updated": "2020-09-15T20:44:52.491232Z",
+      "updated": "2020-09-15T11:11:11.111111Z",
       "system": "buildbucket",
-      "url": "https://cr-buildbucket.appspot.com/build/8869059577477321936"
+      "url": "https://cr-buildbucket.appspot.com/build/11111111111111111111"
+    }]
+  }, {
+    "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "order": 2,
+    "try_jobs": [{
+      "id": "22222222222222222222",
+      "name": "Infra-PerCommit-Puppeteer",
+      "updated": "2020-09-15T22:22:22.222222Z",
+      "system": "buildbucket",
+      "url": "https://cr-buildbucket.appspot.com/build/22222222222222222222"
     }]
   }],
-  "num_total_patch_sets": 1
+  "num_total_patch_sets": 2
 };
 
 // Taken from https://skia-infra-gold.skia.org/json/v1/search on 2020-07-15. Trimmed and anonymized.
