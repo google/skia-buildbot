@@ -9,7 +9,9 @@
   "author": "",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
+    "@types/chai": "^4.2.11",
     "@types/codemirror": "0.0.98",
+    "chai": "~4.2.0",
     "codemirror": "^5.57.0",
     "common-sk": "^3.4.1",
     "copy-webpack-plugin": "~5.1.1",
@@ -18,14 +20,12 @@
     "lit-html": "^1.2.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.11",
     "@types/copy-webpack-plugin": "^5.0.1",
     "@types/karma": "^5.0.0",
     "@types/mocha": "^7.0.2",
     "@types/puppeteer": "^3.0.0",
     "@types/webpack": "^4.41.13",
     "autoprefixer": "^9.6.1",
-    "chai": "~4.2.0",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^3.5.3",
     "cssnano": "^3.10.0",
