@@ -5,6 +5,7 @@ package goldpushk
 
 const (
 	// Gold instances.
+	Angle         Instance = "angle"
 	Chrome        Instance = "chrome"
 	ChromeGPU     Instance = "chrome-gpu"
 	ChromePublic  Instance = "chrome-public"
@@ -51,6 +52,7 @@ var (
 func ProductionDeployableUnits() DeployableUnitSet {
 	s := DeployableUnitSet{
 		knownInstances: []Instance{
+			Angle,
 			Chrome,
 			ChromeGPU,
 			ChromePublic,
