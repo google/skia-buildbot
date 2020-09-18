@@ -7,7 +7,7 @@ import {
 
 describe('textarea-numbers-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
+    path.join(__dirname, '..', '..', 'webpack.config.ts'),
   );
 
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('textarea-numbers-sk', () => {
       await takeScreenshot(
         testBed.page,
         'fiddle',
-        'textarea-numbers-sk_cleared'
+        'textarea-numbers-sk_cleared',
       );
     });
   });
