@@ -1,0 +1,166 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018151",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317413?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "8376d5ef_7c2de846",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T02:52:18Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 46,
+        "startChar": 35,
+        "endLine": 46,
+        "endChar": 41
+      },
+      "revId": "afc6ba41579fd30ee3386d051fcb10fb578a12f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018151",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317413?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "95a11917_f37aff2e",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T02:52:18Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 52,
+        "startChar": 35,
+        "endLine": 52,
+        "endChar": 41
+      },
+      "revId": "afc6ba41579fd30ee3386d051fcb10fb578a12f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018151",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317413?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "dfacf1c9_10a8f470",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk_po.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T02:52:18Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 21,
+        "startChar": 32,
+        "endLine": 21,
+        "endChar": 38
+      },
+      "revId": "afc6ba41579fd30ee3386d051fcb10fb578a12f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018151",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317413?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b337e2f0_62b7083a",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk_po.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T02:52:18Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 25,
+        "startChar": 65,
+        "endLine": 25,
+        "endChar": 71
+      },
+      "revId": "afc6ba41579fd30ee3386d051fcb10fb578a12f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018151",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317413?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "4bb3807a_ac300708",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk_po.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T02:52:18Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 30,
+        "startChar": 32,
+        "endLine": 30,
+        "endChar": 38
+      },
+      "revId": "afc6ba41579fd30ee3386d051fcb10fb578a12f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005018151",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/317413?revision\u003d5",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "10519aa8_b3783a68",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk_po.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-18T02:52:18Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 34,
+        "startChar": 65,
+        "endLine": 34,
+        "endChar": 71
+      },
+      "revId": "afc6ba41579fd30ee3386d051fcb10fb578a12f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
