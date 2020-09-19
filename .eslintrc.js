@@ -84,6 +84,14 @@ module.exports = {
 
         // a: string = 'foo' might be redundant, but it's not harmful.
         '@typescript-eslint/no-inferrable-types': 'off',
+
+        '@typescript-eslint/type-annotation-spacing': [
+          'warn',
+          {
+            before: false,
+            after: true,
+          },
+        ],
       },
     },
   ],

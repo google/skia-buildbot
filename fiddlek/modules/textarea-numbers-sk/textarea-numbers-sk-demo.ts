@@ -6,9 +6,7 @@ import { TextareaNumbersSk } from './textarea-numbers-sk';
 
 window.localStorage.setItem(DARKMODE_CLASS, 'true');
 
-const textarea = document.querySelector<TextareaNumbersSk>(
-  'textarea-numbers-sk',
-)!;
+const textarea = document.querySelector<TextareaNumbersSk>('textarea-numbers-sk')!;
 
 textarea.value = `  void draw(SkCanvas* canvas) {
   SkPaint p;
