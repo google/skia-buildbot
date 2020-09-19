@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d5f9463_e3258808",
+        "filename": "fiddlek/modules/fiddle-sk/fiddle-sk.ts",
+        "patchSetId": 65
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-19T18:33:29Z",
+      "side": 1,
+      "message": "Nit: single line?",
+      "range": {
+        "startLine": 391,
+        "startChar": 12,
+        "endLine": 393,
+        "endChar": 17
+      },
+      "revId": "95b7fae8863f55b1449aefe8fd30e9b325b837fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee2eb012_2ac5dd6b",
+        "filename": "fiddlek/modules/fiddle-sk/fiddle-sk.ts",
+        "patchSetId": 65
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-19T18:33:29Z",
+      "side": 1,
+      "message": "Nit: These can probably be removed.",
+      "range": {
+        "startLine": 524,
+        "startChar": 6,
+        "endLine": 524,
+        "endChar": 22
+      },
+      "revId": "95b7fae8863f55b1449aefe8fd30e9b325b837fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
