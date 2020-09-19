@@ -1,13 +1,13 @@
 // Force the demo page into darkmode.
 import { DARKMODE_CLASS } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
-window.localStorage.setItem(DARKMODE_CLASS, 'true');
-
 import './index';
 import { TextareaNumbersSk } from './textarea-numbers-sk';
 
+window.localStorage.setItem(DARKMODE_CLASS, 'true');
+
 const textarea = document.querySelector<TextareaNumbersSk>(
-  'textarea-numbers-sk'
+  'textarea-numbers-sk',
 )!;
 
 textarea.value = `  void draw(SkCanvas* canvas) {
