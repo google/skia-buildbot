@@ -69,10 +69,14 @@ module.exports = {
         '@typescript-eslint/no-non-null-assertion': 'off',
 
         // Require a consistent member declaration order
-        '@typescript-eslint/member-ordering': 'warning',
+        '@typescript-eslint/member-ordering': 'warn',
 
         // Don't require the .ts extension for imports.
-        'import/extensions': ['off'],
+        'import/extensions': 'off',
+
+        // Sometimes we need import an interface, but also we need the default
+        // code path to run, i.e. to register an element.
+        'import/no-duplicates': 'off',
 
         // a: string = 'foo' might be redundant, but it's not harmful.
         '@typescript-eslint/no-inferrable-types': 'off',
