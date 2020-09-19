@@ -25,7 +25,7 @@ export class TextareaNumbersSk extends ElementSk {
    */
   private static themeFromCurrentMode = () => (isDarkMode() ? 'base16-dark' : 'base16-light');
 
-  connectedCallback():void {
+  connectedCallback(): void {
     super.connectedCallback();
 
     // Creates and attaches the CodeMirror control as this elements only child.
@@ -49,14 +49,14 @@ export class TextareaNumbersSk extends ElementSk {
   }
 
   /** Removes all error line annotations. */
-  clearErrors() : void{
+  clearErrors(): void{
     this.errorLines.forEach((textMarker) => {
       textMarker.clear();
     });
   }
 
   /** Indicates there is an error on line n. */
-  setErrorLine(n: number) :void {
+  setErrorLine(n: number): void {
     // Set the class of that line to 'cm-error'.
     this.errorLines.push(
       this.codeMirror!.markText(
@@ -70,13 +70,13 @@ export class TextareaNumbersSk extends ElementSk {
   }
 
   /** Move the cursor to the given row and column. */
-  setCursor(row: number, col: number) :void {
+  setCursor(row: number, col: number): void {
     this.codeMirror!.focus();
     this.codeMirror!.setCursor({ line: row - 1, ch: col - 1 });
   }
 
   /** @prop The text content of the edit box. */
-  get value() : string {
+  get value(): string {
     if (!this.codeMirror) {
       return '';
     }

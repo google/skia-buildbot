@@ -8,7 +8,6 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export class TestSrcSk extends ElementSk {
@@ -24,17 +23,17 @@ export class TestSrcSk extends ElementSk {
 
   private static template = (ele: TestSrcSk) => html`<pre class="output">${ele._text}</pre>`;
 
-  connectedCallback() : void {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('src');
   }
 
   /** @prop src - URL to retrieve the text from. */
-  get src():string {
+  get src(): string {
     return this._src;
   }
 
-  set src(val:string) {
+  set src(val: string) {
     this._src = val;
     fetch(val).then((resp) => {
       if (!resp.ok) {
