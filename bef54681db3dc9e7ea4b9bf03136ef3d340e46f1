@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "643d8b09_8243ab33",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-19T18:33:38Z",
+      "side": 1,
+      "message": "Just some formatting ubernits since this CL is about linting.",
+      "revId": "bef54681db3dc9e7ea4b9bf03136ef3d340e46f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3964ca3e_9e7262d5",
+        "filename": "fiddlek/modules/textarea-numbers-sk/textarea-numbers-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-19T18:33:38Z",
+      "side": 1,
+      "message": "Nit: Can probably be a single line.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 3
+      },
+      "revId": "bef54681db3dc9e7ea4b9bf03136ef3d340e46f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04ac024f_00dfdd3a",
+        "filename": "fiddlek/modules/textarea-numbers-sk/textarea-numbers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-19T18:33:38Z",
+      "side": 1,
+      "message": "Nit: space after colon",
+      "range": {
+        "startLine": 28,
+        "startChar": 21,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "bef54681db3dc9e7ea4b9bf03136ef3d340e46f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d25d1f21_aaa8c90c",
+        "filename": "fiddlek/modules/textarea-numbers-sk/textarea-numbers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-19T18:33:38Z",
+      "side": 1,
+      "message": "Nit: extra space",
+      "range": {
+        "startLine": 52,
+        "startChar": 15,
+        "endLine": 52,
+        "endChar": 16
+      },
+      "revId": "bef54681db3dc9e7ea4b9bf03136ef3d340e46f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
