@@ -1,9 +1,7 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import { TestSrcSk } from './test-src-sk';
 import fetchMock from 'fetch-mock';
 import {
-  addEventListenersToPuppeteerPage,
   setUpPuppeteerAndDemoPageServer,
   takeScreenshot,
 } from '../../../puppeteer-tests/util';
@@ -12,7 +10,7 @@ fetchMock.config.overwriteRoutes = true;
 
 describe('test-src-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
+    path.join(__dirname, '..', '..', 'webpack.config.ts'),
   );
 
   beforeEach(async () => {

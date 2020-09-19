@@ -1,11 +1,11 @@
+import fetchMock from 'fetch-mock';
+import { assert } from 'chai';
 import { TestSrcSk } from './test-src-sk';
 import './test-src-sk';
-import fetchMock from 'fetch-mock';
+
 import {
   setUpElementUnderTest,
-  eventPromise,
 } from '../../../infra-sk/modules/test_util';
-import { assert } from 'chai';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -14,6 +14,7 @@ describe('test-src-sk', () => {
 
   let element: TestSrcSk;
   beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     element = newInstance((el: TestSrcSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
