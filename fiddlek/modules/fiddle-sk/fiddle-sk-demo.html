@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>fiddle-sk</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="body-sk darkmode">
+  <theme-chooser-sk></theme-chooser-sk>
+  <h1>fiddle-sk</h1>
+  <fiddle-sk></fiddle-sk>
+
+  <h2>Modes</h2>
+  <p>Each button put the control in a different mode. These modes are also
+    triggered as part of the Puppeteer tests for Gold images.
+  </p>
+  <div>
+    <button id=mode_start>Start</button>
+    <button id=mode_after_run_errors>Run Errors</button>
+    <button id=mode_after_run_success>Run Success</button>
+    <button id=mode_animation>Animation</button>
+    <button id=mode_basic>Basic + Embed</button>
+  </div>
+  <div id=mode_complete>
+    <!-- Puppeteer lacks a wait to wait on events, so we stuff a <pre> tag in
+      here when each mode completes. -->
+  </div>
+</body>
+
+</html>

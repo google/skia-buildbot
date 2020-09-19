@@ -1,0 +1,110 @@
+@import '../themes/themes';
+
+fiddle-sk {
+  details {
+    margin-left: 16px;
+    summary {
+      margin-left: -16px;
+      outline: none;
+      h2 {
+        display: inline-block;
+      }
+    }
+  }
+
+  details[open] {
+    border: solid 1px var(--on-surface);
+    padding: 0 8px 16px 32px;
+    background: var(--surface);
+    margin-left: 0px;
+  }
+
+  #f16,
+  #offscreen_mipmap {
+    margin-left: 16px;
+  }
+
+  .offset {
+    margin: 8px 0 8px 16px;
+  }
+
+  pre.source-select {
+    margin: 8px 0 8px 16px;
+    padding: 8px;
+    color: var(--secondary);
+    background: var(--surface);
+  }
+
+  .imgsrc {
+    border: dotted 1px var(--on-surface);
+  }
+
+  textarea-numbers-sk {
+    margin: 8px;
+    display: inline-block;
+  }
+
+  spinner-sk {
+    width: 10px;
+    height: 10px;
+    border-width: 6px;
+  }
+
+  .compile-error {
+    margin: 0;
+    height: 16px;
+    font-family: Roboto Mono, monospace;
+  }
+
+  .clickable {
+    cursor: pointer;
+    background: var(--surface);
+  }
+
+  #controls > * {
+    margin-bottom: 8px;
+    margin-left: 0;
+  }
+
+  #embed {
+    display: inline-block;
+  }
+
+  #submit {
+    display: flex;
+  }
+
+  #submit > button,
+  #submit > spinner-sk,
+  #submit > a,
+  #submit > details {
+    margin-right: 8px;
+  }
+
+  #results {
+    display: flex;
+    margin-top: 8px;
+  }
+
+  #results > * {
+    margin-right: 8px;
+  }
+
+  #options > checkbox-sk,
+  #options > label {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  #offscreen-options > checkbox-sk,
+  #offscreen-options > div,
+  #offscreen-options > label {
+    display: block;
+    margin: 8px;
+  }
+
+  #offscreen-options,
+  #animated-options {
+    margin-left: 16px;
+  }
+}

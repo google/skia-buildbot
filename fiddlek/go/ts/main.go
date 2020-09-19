@@ -15,7 +15,8 @@ func main() {
 	generator := go2ts.New()
 	if err := generator.AddMultiple(
 		types.Options{},
-		types.Result{},
+		types.RunResults{},
+		types.FiddleContext{},
 	); err != nil {
 		sklog.Fatal(err)
 	}
