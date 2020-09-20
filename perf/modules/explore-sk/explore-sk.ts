@@ -11,6 +11,9 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { toParamSet } from 'common-sk/modules/query';
 import dialogPolyfill from 'dialog-polyfill';
+import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
+import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/checkbox-sk';
@@ -44,19 +47,16 @@ import {
 } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import { JSONSourceSk } from '../json-source-sk/json-source-sk';
-import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
 import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
-import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
 import {
   QuerySk,
   QuerySkQueryChangeEventDetail,
 } from '../../../infra-sk/modules/query-sk/query-sk';
 import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 
 // The trace id of the zero line, a trace of all zeros.
@@ -90,14 +90,23 @@ type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 // State is reflected to the URL via stateReflector.
 class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
+
   end: number = Math.floor(Date.now() / 1000);
+
   formulas: string[] = [];
+
   queries: string[] = [];
+
   keys: string = ''; // The id of the shortcut to a list of trace keys.
+
   xbaroffset: number = -1; // The offset of the commit in the repo.
+
   showZero: boolean = true;
+
   autoRefresh: boolean = false;
+
   numCommits: number = 50;
+
   requestType: RequestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
 
   constructor() {}
@@ -160,11 +169,11 @@ function clampToNonNegative(x: number): number {
 export function calculateRangeChange(
   zoom: [number, number],
   clampedZoom: [number, number],
-  offsets: [number, number]
+  offsets: [number, number],
 ): RangeChange {
   // How much we will change the offset if we zoom beyond an edge.
   const offsetDelta = Math.floor(
-    (offsets[1] - offsets[0]) * RANGE_CHANGE_ON_ZOOM_PERCENT
+    (offsets[1] - offsets[0]) * RANGE_CHANGE_ON_ZOOM_PERCENT,
   );
   const exceedsLeftEdge = zoom[0] != clampedZoom[0];
   const exceedsRightEdge = zoom[1] != clampedZoom[1];
@@ -177,23 +186,22 @@ export function calculateRangeChange(
         offsets[1] + offsetDelta,
       ],
     };
-  } else if (exceedsLeftEdge) {
+  } if (exceedsLeftEdge) {
     // shift left
     return {
       rangeChange: true,
       newOffsets: [clampToNonNegative(offsets[0] - offsetDelta), offsets[1]],
     };
-  } else if (exceedsRightEdge) {
+  } if (exceedsRightEdge) {
     // shift right
     return {
       rangeChange: true,
       newOffsets: [offsets[0], offsets[1] + offsetDelta],
     };
-  } else {
-    return {
-      rangeChange: false,
-    };
   }
+  return {
+    rangeChange: false,
+  };
 }
 
 export class ExploreSk extends ElementSk {
@@ -222,8 +230,8 @@ export class ExploreSk extends ElementSk {
       </button>
 
       <span title='Number of commits skipped between each point displayed.' ?hidden=${ele.isZero(
-        ele._dataframe.skip
-      )} id=skip>${ele._dataframe.skip}</span>
+    ele._dataframe.skip,
+  )} id=skip>${ele._dataframe.skip}</span>
       <checkbox-sk name=zero @change=${ele.zeroChangeHandler} ?checked=${
     ele.state.showZero
   } label='Zero' title='Toggle the presence of the zero line.'>Zero</checkbox-sk>
@@ -395,21 +403,37 @@ export class ExploreSk extends ElementSk {
   private _initialized: boolean = false;
 
   private commits: CommitDetailPanelSk | null = null;
+
   private commitsTab: HTMLButtonElement | null = null;
+
   private detailTab: TabsSk | null = null;
+
   private formula: HTMLTextAreaElement | null = null;
+
   private jsonsource: JSONSourceSk | null = null;
+
   private paramset: ParamSetSk | null = null;
+
   private percent: HTMLSpanElement | null = null;
+
   private plot: PlotSimpleSk | null = null;
+
   private query: QuerySk | null = null;
+
   private queryCount: QueryCountSk | null = null;
+
   private range: DomainPickerSk | null = null;
+
   private simpleParamset: ParamSetSk | null = null;
+
   private summary: ParamSetSk | null = null;
+
   private traceID: HTMLSpanElement | null = null;
+
   private csvDownload: HTMLAnchorElement | null = null;
+
   private queryDialog: HTMLDialogElement | null = null;
+
   private helpDialog: HTMLDialogElement | null = null;
 
   constructor() {
@@ -658,7 +682,7 @@ export class ExploreSk extends ElementSk {
   }
 
   private queryChangeDelayedHandler(
-    e: CustomEvent<QuerySkQueryChangeEventDetail>
+    e: CustomEvent<QuerySkQueryChangeEventDetail>,
   ) {
     this.queryCount!.current_query = e.detail.q;
   }
@@ -759,7 +783,7 @@ export class ExploreSk extends ElementSk {
         this.zeroChanged();
         this.autoRefreshChanged();
         this.rangeChangeImpl();
-      }
+      },
     );
   }
 
@@ -821,9 +845,9 @@ export class ExploreSk extends ElementSk {
       return;
     }
     if (
-      this.state.formulas.length === 0 &&
-      this.state.queries.length === 0 &&
-      this.state.keys === ''
+      this.state.formulas.length === 0
+      && this.state.queries.length === 0
+      && this.state.keys === ''
     ) {
       return;
     }
@@ -832,8 +856,7 @@ export class ExploreSk extends ElementSk {
       this.traceID.textContent = '';
     }
     const body = this.requestFrameBodyFullFromState();
-    const switchToTab =
-      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       if (json == null) {
         errorMessage('Failed to find any matching traces.');
@@ -878,7 +901,7 @@ export class ExploreSk extends ElementSk {
     } else {
       this._refreshId = window.setInterval(
         () => this.autoRefresh(),
-        REFRESH_TIMEOUT
+        REFRESH_TIMEOUT,
       );
     }
   }
@@ -887,8 +910,7 @@ export class ExploreSk extends ElementSk {
     // Update end to be now.
     this.state.end = Math.floor(Date.now() / 1000);
     const body = this.requestFrameBodyFullFromState();
-    const switchToTab =
-      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);

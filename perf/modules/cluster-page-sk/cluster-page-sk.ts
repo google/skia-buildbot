@@ -11,6 +11,7 @@ import { fromObject, toParamSet } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/spinner-sk';
@@ -38,7 +39,6 @@ import {
   FullSummary,
   RegressionDetectionResponse,
 } from '../json';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
@@ -48,13 +48,21 @@ import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel
 // The state that gets reflected to the URL.
 class State {
   begin: number = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
+
   end: number = Math.floor(Date.now() / 1000);
+
   offset: number = -1;
+
   radius: number = window.sk.perf.radius;
+
   query: string = '';
+
   k: number = 0;
+
   algo: ClusterAlgo = 'kmeans';
+
   interesting: number = window.sk.perf.interesting;
+
   sparse: boolean = false;
 
   constructor() {
@@ -179,13 +187,12 @@ export class ClusterPageSk extends ElementSk {
 
   private static _summaryRows = (ele: ClusterPageSk) => {
     const ret = ele.summaries.map(
-      (summary) =>
-        html`
+      (summary) => html`
           <cluster-summary2-sk
             .full_summary=${summary}
             notriage
           ></cluster-summary2-sk>
-        `
+        `,
     );
     if (!ret.length) {
       ret.push(html`<p class="info"> No clusters found. </p>`);
@@ -251,7 +258,7 @@ export class ClusterPageSk extends ElementSk {
         this.state = (state as unknown) as State;
         this._render();
         this.updateCommitSelections();
-      }
+      },
     );
   }
 
@@ -311,7 +318,7 @@ export class ClusterPageSk extends ElementSk {
   }
 
   private commitSelected(
-    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
+    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>,
   ) {
     this.state.offset = ((e.detail.commit as unknown) as Commit).offset;
     this.stateHasChanged();
@@ -319,8 +326,8 @@ export class ClusterPageSk extends ElementSk {
 
   private updateCommitSelections() {
     if (
-      this.lastRange.begin === this.state.begin &&
-      this.lastRange.end === this.state.end
+      this.lastRange.begin === this.state.begin
+      && this.lastRange.end === this.state.end
     ) {
       return;
     }
@@ -381,7 +388,7 @@ export class ClusterPageSk extends ElementSk {
   }
 
   private checkClusterRequestStatus(
-    cb: (summaries: RegressionDetectionResponse) => void
+    cb: (summaries: RegressionDetectionResponse) => void,
   ) {
     fetch(`/_/cluster/status/${this.requestId}`)
       .then(jsonOrThrow)
@@ -463,10 +470,10 @@ export class ClusterPageSk extends ElementSk {
                     message: '',
                   },
                 });
-              }
+              },
             );
             this._render();
-          }
+          },
         );
       })
       .catch((msg) => this.catch(msg));

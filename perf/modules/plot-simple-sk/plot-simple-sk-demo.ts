@@ -37,7 +37,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
           trace.push(1e32);
         }
       }
-      const id = 'trace' + (j + n);
+      const id = `trace${j + n}`;
       traces[id] = trace;
     }
     n += num;
@@ -65,7 +65,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
   });
 
   $$<HTMLButtonElement>('#high')!.addEventListener('click', (e) => {
-    ele.highlight = ['trace' + (n - 1), 'trace' + (n - 2)];
+    ele.highlight = [`trace${n - 1}`, `trace${n - 2}`];
   });
 
   $$<HTMLButtonElement>('#clearhigh')!.addEventListener('click', (e) => {
@@ -86,19 +86,19 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('trace_selected', (e) => {
     $$('#selected')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail
+      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail,
     );
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('trace_focused', (e) => {
     $$('#focused')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail
+      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail,
     );
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('zoom', (e) => {
     $$('#zoom')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkZoomEventDetails>).detail
+      (e as CustomEvent<PlotSimpleSkZoomEventDetails>).detail,
     );
   });
 

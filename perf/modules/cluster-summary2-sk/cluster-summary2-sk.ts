@@ -43,6 +43,7 @@ import '../triage2-sk';
 import '../word-cloud-sk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import {
@@ -59,7 +60,6 @@ import {
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 
 // Handle the sk namespace attached to window.
 //
@@ -117,15 +117,15 @@ export class ClusterSummary2Sk extends ElementSk {
       <triage2-sk
         value=${ele.triageStatus.status}
         @change=${(e: CustomEvent<Status>) => {
-          ele.triageStatus.status = e.detail;
-        }}
+    ele.triageStatus.status = e.detail;
+  }}
       ></triage2-sk>
       <input
         type="text"
         .value=${ele.triageStatus.message}
         @change=${(e: InputEvent) => {
-          ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
-        }}
+    ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
+  }}
         label="Message"
       />
       <button class="action" @click=${ele.update}>Update</button>
@@ -159,13 +159,21 @@ export class ClusterSummary2Sk extends ElementSk {
   };
 
   private summary: ClusterSummary;
+
   private triageStatus: TriageStatus;
+
   private wordCloud: CollapseSk | null = null;
+
   private status: HTMLDivElement | null = null;
+
   private graph: PlotSimpleSk | null = null;
+
   private rangelink: HTMLAnchorElement | null = null;
+
   private commits: CommitDetailPanelSk | null = null;
+
   private frame: FrameResponse | null = null;
+
   private fullSummary: FullSummary | null = null;
 
   constructor() {
@@ -218,7 +226,7 @@ export class ClusterSummary2Sk extends ElementSk {
       new CustomEvent<ClusterSummary2SkTriagedEventDetail>('triaged', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -236,7 +244,7 @@ export class ClusterSummary2Sk extends ElementSk {
       new CustomEvent<ClusterSummary2SkOpenKeysEventDetail>('open-keys', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -323,7 +331,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.dataset.steplse = this.summary!.step_fit!.least_squares.toPrecision(2);
     this.dataset.stepsize = this.summary!.step_fit!.step_size.toPrecision(2);
     this.dataset.stepregression = this.summary!.step_fit!.regression.toPrecision(
-      2
+      2,
     );
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.

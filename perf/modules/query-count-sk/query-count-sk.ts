@@ -22,7 +22,9 @@ import 'elements-sk/spinner-sk';
 
 export class QueryCountSk extends ElementSk {
   private _last_query = '';
+
   private _count = '';
+
   private _requestInProgress = false;
 
   private static template = (ele: QueryCountSk) => html`
@@ -89,7 +91,7 @@ export class QueryCountSk extends ElementSk {
           new CustomEvent<ParamSet>('paramset-changed', {
             detail: json.paramset,
             bubbles: true,
-          })
+          }),
         );
       })
       .catch((msg) => {

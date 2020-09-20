@@ -24,9 +24,13 @@ export interface KDPoint {
 /** @class A single node in the k-d Tree. */
 class Node<Point extends KDPoint> {
   obj: Point;
+
   left: Node<Point> | null = null;
+
   right: Node<Point> | null = null;
+
   parent: Node<Point> | null;
+
   dimension: number;
 
   constructor(obj: Point, dimension: number, parent: Node<Point> | null) {
@@ -43,8 +47,11 @@ type Dimensions = keyof KDPoint;
  */
 export class KDTree<Point extends KDPoint> {
   private dimensions: Dimensions[];
+
   private root: Node<Point> | null;
+
   private metric: (a: KDPoint, b: KDPoint) => number;
+
   /**
    * The constructor.
    *
@@ -58,7 +65,7 @@ export class KDTree<Point extends KDPoint> {
   constructor(
     points: Point[],
     metric: (a: KDPoint, b: KDPoint) => number,
-    dimensions: Dimensions[]
+    dimensions: Dimensions[],
   ) {
     this.dimensions = dimensions;
     this.metric = metric;
@@ -75,7 +82,7 @@ export class KDTree<Point extends KDPoint> {
   private _buildTree(
     points: Point[],
     depth: number,
-    parent: Node<Point> | null
+    parent: Node<Point> | null,
   ): Node<Point> | null {
     // Every step deeper into the tree we switch to using another axis.
     const dim = depth % this.dimensions.length;
@@ -167,8 +174,8 @@ export class KDTree<Point extends KDPoint> {
       // If the hyperplane is closer than the current best point then we
       // need to search down the other side of the tree.
       if (
-        otherChild !== null &&
-        this.metric(pointOnHyperplane, node.obj) < bestNode.distance
+        otherChild !== null
+        && this.metric(pointOnHyperplane, node.obj) < bestNode.distance
       ) {
         nearestSearch(otherChild);
       }

@@ -11,6 +11,7 @@ import { fromObject } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/spinner-sk';
@@ -35,7 +36,6 @@ import {
 } from '../json';
 import { DomainPickerState } from '../domain-picker-sk/domain-picker-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
@@ -164,8 +164,8 @@ export class ClusterLastNPageSk extends ElementSk {
             cluster_type="low"
             .full_summary=${ClusterLastNPageSk.fullSummary(
               reg.regression!.frame!,
-              reg.regression!.low
-            )}
+              reg.regression!.low,
+      )}
             .triage=${reg.regression!.low_status}
           ></triage-status-sk>
         </td>
@@ -186,8 +186,8 @@ export class ClusterLastNPageSk extends ElementSk {
             cluster_type="high"
             .full_summary=${ClusterLastNPageSk.fullSummary(
               reg.regression!.frame!,
-              reg.regression!.high
-            )}
+              reg.regression!.high,
+      )}
             .triage=${reg.regression!.high_status}
           ></triage-status-sk>
         </td>
@@ -203,9 +203,8 @@ export class ClusterLastNPageSk extends ElementSk {
     return html``;
   };
 
-  private static tableRows = (ele: ClusterLastNPageSk) =>
-    ele.regressions.map(
-      (reg) => html`
+  private static tableRows = (ele: ClusterLastNPageSk) => ele.regressions.map(
+    (reg) => html`
         <tr>
           <td class="fixed">
             <commit-detail-sk .cid=${reg!.cid}></commit-detail-sk>
@@ -215,11 +214,10 @@ export class ClusterLastNPageSk extends ElementSk {
           ${ClusterLastNPageSk.high(ele, reg!)}
           ${ClusterLastNPageSk.filler(ele)}
         </tr>
-      `
-    );
+      `,
+  );
 
-  private static configTitle = (ele: ClusterLastNPageSk) =>
-    html`
+  private static configTitle = (ele: ClusterLastNPageSk) => html`
       Algo: ${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
       ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
@@ -274,7 +272,9 @@ export class ClusterLastNPageSk extends ElementSk {
   private regressions: (RegressionAtCommit | null)[] = [];
 
   private alertDialog: HTMLDialogElement | null = null;
+
   private triageDialog: HTMLDialogElement | null = null;
+
   private alertConfig: AlertConfigSk | null = null;
 
   // The state of the cluster-summary2-sk dialog.
@@ -323,7 +323,7 @@ export class ClusterLastNPageSk extends ElementSk {
           (state) => {
             this.state = (state as unknown) as Alert;
             this._render();
-          }
+          },
         );
       })
       .catch(errorMessage);
@@ -434,7 +434,7 @@ export class ClusterLastNPageSk extends ElementSk {
   }
 
   private checkDryRunStatus(
-    cb: (regressions: (RegressionAtCommit | null)[]) => void
+    cb: (regressions: (RegressionAtCommit | null)[]) => void,
   ) {
     fetch(`/_/dryrun/status/${this.requestId}`)
       .then(jsonOrThrow)
