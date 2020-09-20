@@ -388,9 +388,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
             class="result_image cpu"
             ?hidden=${ele._options.animated}
             title="CPU"
-            src="${ele._config.domain}/i/${
-      ele._runResults.fiddleHash
-    }_raster.png"
+            src="${ele._config.domain}/i/${ele._runResults.fiddleHash}_raster.png"
             width=${ele._options.width}
             height=${ele._options.height}
           />
@@ -521,7 +519,7 @@ ${err.text}</pre
 
   // Properties
 
-  /** @prop runResults The results from running a fiddle. */
+  /** The results from running a fiddle. */
   get runResults(): RunResults {
     return this._runResults;
   }
@@ -538,7 +536,7 @@ ${err.text}</pre
     });
   }
 
-  /** @prop options The options for the fiddle. */
+  /** The options for the fiddle. */
   get options(): Options {
     return this._options;
   }
@@ -548,7 +546,7 @@ ${err.text}</pre
     this._render();
   }
 
-  /** @prop config The configuration of the element.  */
+  /** The configuration of the element.  */
   get config(): Config {
     return this._config;
   }

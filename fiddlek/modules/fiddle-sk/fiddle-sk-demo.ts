@@ -222,7 +222,7 @@ void draw(SkCanvas* canvas) {
     };
 
     // Wait for all the result images to load before signalling we are done.
-    const promises : Promise<never>[] = [];
+    const promises: Promise<never>[] = [];
     fiddle.querySelectorAll('img.result_image').forEach((element) => {
       promises.push(new Promise<never>((resolve) => {
         element.addEventListener('load', () => {
@@ -286,7 +286,7 @@ void draw(SkCanvas* canvas) {
   };
 
   // Wait for all the result videos to load before signalling we are done.
-  const promises : Promise<never>[] = [];
+  const promises: Promise<never>[] = [];
   fiddle.querySelectorAll('video').forEach((element) => {
     promises.push(new Promise<never>((resolve) => {
       element.addEventListener('canplay', () => {
