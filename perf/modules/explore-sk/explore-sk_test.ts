@@ -1,5 +1,5 @@
-import { calculateRangeChange } from './explore-sk';
 import { assert } from 'chai';
+import { calculateRangeChange } from './explore-sk';
 
 describe('calculateRangeChange', () => {
   const offsets: [number, number] = [100, 120];

@@ -66,7 +66,9 @@ export class PerfScaffoldSk extends ElementSk {
   </main>
   <error-toast-sk></error-toast-sk>
 `;
+
   private _main: HTMLElement | null = null;
+
   private _help: HTMLElement | null = null;
 
   constructor() {
@@ -109,7 +111,7 @@ export class PerfScaffoldSk extends ElementSk {
     // won't equal 'true', so we will show the sidebar by default.
     this.classList.toggle(
       SIDEBAR_HIDDEN_CLASS,
-      window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true'
+      window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true',
     );
   }
 
@@ -130,7 +132,7 @@ export class PerfScaffoldSk extends ElementSk {
     // Remember the user's preference.
     window.localStorage.setItem(
       SIDEBAR_HIDDEN_CLASS,
-      this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString()
+      this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString(),
     );
   }
 }

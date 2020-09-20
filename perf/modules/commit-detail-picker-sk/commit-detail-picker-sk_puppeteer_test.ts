@@ -7,12 +7,12 @@ import {
 
 describe('commit-detail-picker-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
+    path.join(__dirname, '..', '..', 'webpack.config.ts'),
   );
 
   beforeEach(async () => {
     await testBed.page.goto(
-      `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`
+      `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`,
     );
     await testBed.page.setViewport({ width: 500, height: 500 });
   });

@@ -5,9 +5,7 @@ import 'elements-sk/error-toast-sk';
 
 let count = 11;
 
-fetchMock.post('/', () => {
-  return { count: count };
-});
+fetchMock.post('/', () => ({ count: count }));
 
 window.customElements.whenDefined('query-count-sk').then(() => {
   const qcs = document.querySelectorAll<QueryCountSk>('query-count-sk')!;

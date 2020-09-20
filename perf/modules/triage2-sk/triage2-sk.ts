@@ -77,9 +77,8 @@ export class TriageSk extends ElementSk {
     const v = this.getAttribute('value') || '';
     if (isStatus(v)) {
       return v;
-    } else {
-      return 'untriaged';
     }
+    return 'untriaged';
   }
 
   set value(val: Status) {
@@ -93,7 +92,7 @@ export class TriageSk extends ElementSk {
         new CustomEvent<Status>('change', {
           detail: newValue as Status,
           bubbles: true,
-        })
+        }),
       );
     }
   }

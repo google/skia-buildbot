@@ -38,8 +38,11 @@ export class TriageStatusSk extends ElementSk {
   `;
 
   private _triage: TriageStatus;
+
   private _full_summary: FullSummary | null;
+
   private _alert: Alert | null;
+
   private _cluster_type: ClusterType;
 
   constructor() {
@@ -74,7 +77,7 @@ export class TriageStatusSk extends ElementSk {
       new CustomEvent<TriageStatusSkStartTriageEventDetails>('start-triage', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
