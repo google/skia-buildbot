@@ -355,6 +355,19 @@ The main application element for the Skia Debugger.
       font-family: monospace;
     }
 
+    .outline-on-hover {
+      border: solid;
+      border-color: transparent;
+    }
+
+    .outline-on-hover:hover {
+      border-color: #000;
+    }
+
+    .resource-name {
+      background: white;
+    }
+
   </style>
   <template>
     <paper-dialog id="errorDialog">
@@ -384,7 +397,7 @@ The main application element for the Skia Debugger.
           </div>
           <div class="layout horizontal">
             <paper-input id="fast" on-change="_fastFilter" label="Filter
-              (Leading ! means remove matches)" placeholder="!save restore"
+              (Leading ! means remove matches)" value="!DrawAnnotation"
               class=flex></paper-input>&nbsp;
             <paper-input id="rangeLow" on-change="_applyRangeFilter" label="Range" class=range-input placeholder="0"></paper-input>
             <span style="font-size: 2.5em; margin-top: 0.8em">:</span>
@@ -423,16 +436,14 @@ The main application element for the Skia Debugger.
               </div>
               <div>
                 <p>{{imageCount}} images were stored in this file. Note that image indices here are file indices, which corresponded 1:1 to the gen ids that the images had during recording. If an image appears more than once, that indicates there were multiple copies of it in memory at record time. These indices appear in the `imageIndex` field of commands using them.</p>
-                <paper-dropdown-menu label="Image Resources">
-                  <paper-listbox class="dropdown-content" selected="{{selectedResourceImage}}">
-                    <template id="dropdownTemplate" is="dom-repeat" items="[[resouceNameList]]" as="item">
-                      <paper-item value="[[item.value]]">[[item.displayName]]</paper-item>
-                    </template>
-                  </paper-listbox>
-                </paper-dropdown-menu>
                 <br>
                 <div id="resource" class="light-checkerboard" style="display:inline-block;">
-                  <img id="resource-tab-image"/>
+                  <template is="dom-repeat" items="[[resouceNameList]]" as="item">
+                    <div style="display:inline-block;">
+                      <span class="resource-name">[[item.displayName]]</span><br>
+                      <img src="[[item.src]]" title='[[item.uses_tooltip]]' class="outline-on-hover" on-tap="_jumpToImageCommand"/>
+                    </div>
+                  </template>
                 </div>
               </div>
             </iron-pages>
@@ -530,7 +541,9 @@ The main application element for the Skia Debugger.
                 Layer size = <b>([[item.layerWidth]], [[item.layerHeight]])</b><br>
                 Uses this frame = <b>[[item.usesThisFrame]]</b>
                 Last update (<b>[[item.fullRedrawText]]</b>) on frame <b>[[item.frameOfLastUpdate]]</b><br>
-                <button id=layershowuse on-tap="_ShowLayerUse" title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source.">Show use</button>
+                <button id=layershowuse on-tap="_ShowLayerUse" title="Cycle through drawImageRectLayer commands on this frame which used this surface as a source.">
+                  Show Use
+                </button>
                 <button id=layerinspect on-tap="_InspectLayer" title="Open the SkPicture representing this draw event." class$="[[_InspectorButtonClass(item)]]" disabled$=[[!item.updatedThisFrame]]>[[_InspectorButtonText(item)]]</button>
               </div>
             </template>
@@ -544,12 +557,18 @@ The main application element for the Skia Debugger.
 
 <script>
   (function () {
-    let INDENTERS = {
+    const INDENTERS = {
       'Save':             { icon: 'icons:save',         color: '#B2DF8A', count: 1 },
       'SaveLayer':        { icon: 'icons:content-copy', color: '#FDBF6F', count: 1  },
       'BeginDrawPicture': { icon: 'image:image',        color: '#A6CEE3', count: 1  },
     };
-    let OUTDENTERS = ['Restore', 'EndDrawPicture'];
+    const OUTDENTERS = ['Restore', 'EndDrawPicture'];
+    const IMAGE_COMMANDS = {
+      'DrawImage': 1,
+      'DrawImageRect': 1,
+      'DrawImageLattice': 1,
+      'DrawImageNine': 1,
+    };
 
     Polymer({
       is: 'wasm-debugger-app-sk',
@@ -601,10 +620,10 @@ The main application element for the Skia Debugger.
           type: Number,
           value: 0,
         },
+        // TODO(nifong) Ability to select an image is removed currently, pending lit-html
         selectedResourceImage: {
           type: Number,
           value: 0,
-          observer: "_setTabImage",
         },
         resouceNameList: {
           type: Array,
@@ -686,9 +705,11 @@ The main application element for the Skia Debugger.
         this.drawToEnd = false;
 
         // A map from layer node ids to command indices where they were used this frame, if any.
-        this.layerUseEvents = {}
+        this.layerUseEvents = {};
         // A map from layer node ids to names that were provided in the render node annotations.
-        this.layerNames = {}
+        this.layerNames = {};
+        // A map from image indices to command indices that use them
+        this.imageUseEvents = {};
 
         // debugger.js (a file compiled by emscripten) defines DebuggerInit.
         // It accepts a method to help it locate the .wasm file, and returns a promise
@@ -1024,7 +1045,6 @@ The main application element for the Skia Debugger.
         this._applyRangeFilter();
       },
 
-      // Conveniently, this only gets triggered when the user changes it.
       _fastFilter() {
         let rawFilter = this.$.fast.value.trim().toLowerCase();
         const negative = (rawFilter[0] == '!');
@@ -1044,10 +1064,10 @@ The main application element for the Skia Debugger.
             // This will be obviated by lit-html
             if (this.histogram[i].name.toLowerCase() in excluded) {
               this.set(`histogram.${i}.included`, false);
-              tbody.children[i].classList.add('pinkBackground');
+              tbody.children[i+1].classList.add('pinkBackground');
             } else {
               this.set(`histogram.${i}.included`, true);
-              tbody.children[i].classList.remove('pinkBackground');
+              tbody.children[i+1].classList.remove('pinkBackground');
             }
           }
           this._applyCommandFilter();
@@ -1115,7 +1135,8 @@ The main application element for the Skia Debugger.
         // setting this.histogram cleared the histogram, but the user's selections are still
         // present in fast. Apply them now to this new histogram.
         if (this.$.fast.value) {
-          this._fastFilter();
+          // polymer needs a chance to render the histogram template before running this.
+          window.setTimeout(() => {this._fastFilter()}, 0);
         } else {
           this._applyCommandFilter();
         }
@@ -1151,18 +1172,9 @@ The main application element for the Skia Debugger.
         const json = (self.inspectedLayer === -1 ? this._memoizedJsonCommandList()
                       : this._player.jsonCommandList(this._surface));
         this._cmd = this._processCommands(JSON.parse(json));
-        if (this.$.fast.value) {
-          this._fastFilter();
-        } else {
-          let filtered = {
-            version: 1,
-            commands: this._cmd.commands.slice(),
-          };
-
-          this.$.rangeLow.value = 0;
-          this.$.rangeHigh.value = this._cmd.commands.length-1;
-          this._applyRangeFilter();
-        }
+        this.$.rangeLow.value = 0;
+        this.$.rangeHigh.value = this._cmd.commands.length-1;
+        this._applyRangeFilter();
         this.$.histogram.classList.remove('hidden');
         this._setLayerList();
       },
@@ -1397,6 +1409,7 @@ The main application element for the Skia Debugger.
         let prefixes = []; // A stack of indenting commands
         let matchup = []; // Match up saves and restores.
         let layeruse = {} // A Map from layer ids to command indices.
+        let imageuse = {} // A map from image ids to commands that use them (not exhaustive)
         let renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
         for (let i = 0; i < commands.length; i++) {
           commands[i] = {
@@ -1452,10 +1465,17 @@ The main application element for the Skia Debugger.
               // group 2 is the name of the rendernode.
               this.layerNames[found[1]] = found[2];
             }
+          } else if (name in IMAGE_COMMANDS) {
+            const imageid = commands[i].details.imageIndex;
+            if (!(imageid in imageuse)) {
+              imageuse[imageid] = [];
+            }
+            imageuse[imageid].push(i); // push command index
           }
         }
 
         this.layerUseEvents = layeruse;
+        this.imageUseEvents = imageuse;
         return cmd;
       },
 
@@ -1520,23 +1540,74 @@ The main application element for the Skia Debugger.
         this.framelayerlist = fll;
       },
 
-
-      _setTabImage(index) {
-        if (!this._player) { return; }
-        let pngUri = this._player.getImageResource(index);
-        document.getElementById("resource-tab-image").src = pngUri
-      },
-
+      // Build the array that drives the image resource grid
       _makeResouceNameList() {
-        let list = [];
+        // the DebugCanvas for each frame can produce a list of commands on which an image is used.
+        // collect this for every frame, and re-structure it as
+        // {
+        //   imageId: [
+        //       {frame: 0, command: 59},
+        //   ],
+        //   ...
+        // }
+
+        // Get image usage map for every frame
+        console.log("Build image use map");
+        // key: image id
+        // value: list of {frame: 0, command: 0}
+        totalUseMap = {}
+        for (let fp = 0; fp < this._player.getFrameCount(); fp++) {
+          const oneFrameUseMap = JSON.parse(this._player.imageUseInfoForFrame(0));
+          for (const [imageId, listOfCommands] of Object.entries(oneFrameUseMap)) {
+            for (const command of listOfCommands) {
+              if (!(imageId in totalUseMap)) { totalUseMap[imageId] = []; }
+              totalUseMap[imageId].push({'frame': fp, 'command': command});
+            }
+          }
+        }
+
+        const list = [];
         for (var i = 0; i < this.imageCount; i++) {
-          let info = this._player.getImageInfo(i);
+          const info = this._player.getImageInfo(i);
+          const pngUri = this._player.getImageResource(i);
+          let uses_tooltip = 'Not used in any drawImage* commands, May occur in shaders';
+          let fu = null;
+          if (i in totalUseMap) {
+              // TODO(nifong): this makes a long list that's a bit much for a tooltip.
+            uses_tooltip = 'Used in ' + totalUseMap[i].map(
+              o => `(frame ${o.frame} command ${o.command})`).join(',\n');
+            fu = totalUseMap[i][0];
+          }
           list.push({
-            "value": i,
-            "displayName": `${i} (${info.width}, ${info.height})`
+            'value': i,
+            'displayName': `${i} (${info.width}, ${info.height})`,
+            'src': pngUri,
+            'uses_tooltip': uses_tooltip,
+            // TODO(nifong): provide an interface to jump to any particular use.
+            // Most images are used on every frame too, maybe just provide a way to jump to
+            // use on the current frame?
+            'first_use': fu,
           });
         }
+        console.log("finished");
         return list;
+      },
+
+      // receives an object from the list created by _makeResouceNameList
+      // shows the first use of the given image by jumping to a specific frame and command.
+      _jumpToImageCommand(e) {
+        const item = e.model.item;
+        if (!item.first_use) {
+          return;
+        }
+        this.set('tab_selected', 0);
+        // TODO(nifong): does filter need to be cleared/changed
+        this._moveFrameTo(item.first_use.frame);
+        const command = this._findItemFromIndex(item.first_use.command);
+        if (this._targetItem !== command) {
+          this._targetItem = command;
+          this._moveToTargetItem();
+        }
       },
 
       _checkerboardToggle() {
