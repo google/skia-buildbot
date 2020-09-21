@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7e2f830d_21c78866",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-21T15:06:01Z",
+      "side": 1,
+      "message": "unittest.MediumTest(t) or something like it.",
+      "revId": "28ebd1f93c6e209167e0e1d260743406157e4c38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
