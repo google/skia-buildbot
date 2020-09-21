@@ -1,0 +1,88 @@
+syntax = "proto3";
+package status;
+option go_package = "go.skia.org/infra/status/go/rpc";
+
+import "google/protobuf/timestamp.proto";
+
+// API (non-page, non-resource) endpoints for Status.
+service StatusService {
+  // Method to get updates to the lists of recent commits, their tasks, etc.
+  rpc GetIncrementalCommits(GetIncrementalCommitsRequest) returns (GetIncrementalCommitsResponse);
+}
+
+// Request for updated commit/task/comment/branch/etc data.
+message GetIncrementalCommitsRequest {
+  google.protobuf.Timestamp from = 1;
+  google.protobuf.Timestamp to = 2;
+  int64 n = 3;
+  string pod = 4;
+  string repo_path = 5;
+}
+
+// Response containing recent commit/task/comment/branch/etc data.
+message GetIncrementalCommitsResponse {
+  ResponseMetadata metadata = 1;
+  IncrementalUpdate update = 2;
+}
+
+// The (possible incremental) data comprising Status's table of
+// commits and their tasks.
+message IncrementalUpdate {
+  string swarming_url = 1;
+  string task_scheduler_url = 2;
+  repeated LongCommit commits = 3;
+  repeated Branch branch_heads = 4;
+  repeated Task tasks = 5;
+  repeated Comment comments = 6;
+}
+
+// Branch names and their associated HEAD commit hash.
+message Branch {
+  string name = 1;
+  string head = 2;
+}
+
+// Represents a single task, what commits it covered, its status and results.
+message Task {
+  repeated string commits = 1;
+  string name = 2;
+  string id = 3;
+  string revision = 4;
+  string status = 5;
+  string swarming_task_id = 6;
+}
+
+// Represents a single commit in repo.
+message LongCommit {
+  string hash = 1;
+  string author = 2;
+  string subject = 3;
+  repeated string parents = 4;
+  string body = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+// Represents one of 3 types of human-written comment submitted on Status:
+// 1) Specific task comment
+// 2) Entire commit comment
+// 3) Entire task spec comment
+message Comment {
+  string id = 1;
+  string repo = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string user = 4;
+  string message = 5;
+  bool deleted = 6;
+  bool ignore_failure = 7; // Only for commit and taskSpec comments.
+  bool flaky = 8; // Only for taskSpec comments.
+  string task_spec_name = 9; // Only for task and taskSpec comments
+  string task_id = 10; // Only for task comments
+  string commit = 11; // Only for commit comments.
+}
+
+// Data about the response and how to apply its contents.
+message ResponseMetadata {
+  bool start_over = 1;
+  string pod = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
