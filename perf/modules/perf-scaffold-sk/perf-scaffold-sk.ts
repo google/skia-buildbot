@@ -41,6 +41,14 @@ function move(from: HTMLCollection | NodeList, to: HTMLElement) {
 }
 
 export class PerfScaffoldSk extends ElementSk {
+  private _main: HTMLElement | null = null;
+
+  private _help: HTMLElement | null = null;
+
+  constructor() {
+    super(PerfScaffoldSk.template);
+  }
+
   private static template = (ele: PerfScaffoldSk) => html`
   <nav id=topbar>
     <button id=toggleSidebarButton @click=${() => ele.toggleSidebar()}>
@@ -66,14 +74,8 @@ export class PerfScaffoldSk extends ElementSk {
   </main>
   <error-toast-sk></error-toast-sk>
 `;
-  private _main: HTMLElement | null = null;
-  private _help: HTMLElement | null = null;
 
-  constructor() {
-    super(PerfScaffoldSk.template);
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     // Don't call more than once.
     if (this._main) {
@@ -109,9 +111,10 @@ export class PerfScaffoldSk extends ElementSk {
     // won't equal 'true', so we will show the sidebar by default.
     this.classList.toggle(
       SIDEBAR_HIDDEN_CLASS,
-      window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true'
+      window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true',
     );
   }
+
 
   // Place these newly added nodes in the right place under the perf-scaffold-sk
   // element.
@@ -130,7 +133,7 @@ export class PerfScaffoldSk extends ElementSk {
     // Remember the user's preference.
     window.localStorage.setItem(
       SIDEBAR_HIDDEN_CLASS,
-      this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString()
+      this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString(),
     );
   }
 }

@@ -7,7 +7,7 @@ import {
 
 describe('query-count-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
+    path.join(__dirname, '..', '..', 'webpack.config.ts'),
   );
 
   beforeEach(async () => {

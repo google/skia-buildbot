@@ -16,30 +16,24 @@ import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FullSummary, TriageStatus, Alert } from '../json';
 
+export type ClusterType = 'high' | 'low';
+
 export interface TriageStatusSkStartTriageEventDetails {
   triage: TriageStatus;
   full_summary: FullSummary | null;
   alert: Alert | null;
   cluster_type: ClusterType;
+  // eslint-disable-next-line no-use-before-define
   element: TriageStatusSk;
 }
 
-export type ClusterType = 'high' | 'low';
-
 export class TriageStatusSk extends ElementSk {
-  private static template = (ele: TriageStatusSk) => html`
-    <button
-      title=${ele.triage.message}
-      @click=${ele._start_triage}
-      class=${ele.triage.status}
-    >
-      <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
-    </button>
-  `;
-
   private _triage: TriageStatus;
+
   private _full_summary: FullSummary | null;
+
   private _alert: Alert | null;
+
   private _cluster_type: ClusterType;
 
   constructor() {
@@ -53,7 +47,17 @@ export class TriageStatusSk extends ElementSk {
     this._cluster_type = 'low';
   }
 
-  connectedCallback() {
+  private static template = (ele: TriageStatusSk) => html`
+  <button
+    title=${ele.triage.message}
+    @click=${ele._start_triage}
+    class=${ele.triage.status}
+  >
+    <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
+  </button>
+`;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._upgradeProperty('alert');
@@ -74,43 +78,43 @@ export class TriageStatusSk extends ElementSk {
       new CustomEvent<TriageStatusSkStartTriageEventDetails>('start-triage', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
   /** The config this cluster is associated with. */
-  get alert() {
+  get alert(): Alert | null {
     return this._alert;
   }
 
-  set alert(val) {
+  set alert(val: Alert | null) {
     this._alert = val;
   }
 
   /** The type of cluster. */
-  get cluster_type() {
+  get cluster_type(): ClusterType {
     return this._cluster_type;
   }
 
-  set cluster_type(val) {
+  set cluster_type(val: ClusterType) {
     this._cluster_type = val;
   }
 
   /** A serialized ClusterSummary and FrameResponse. */
-  get full_summary() {
+  get full_summary(): FullSummary | null {
     return this._full_summary;
   }
 
-  set full_summary(val) {
+  set full_summary(val: FullSummary | null) {
     this._full_summary = val;
   }
 
   /** The triage status of the cluster. */
-  get triage() {
+  get triage(): TriageStatus {
     return this._triage;
   }
 
-  set triage(val) {
+  set triage(val: TriageStatus) {
     this._triage = val;
     this._render();
   }

@@ -12,7 +12,7 @@ afterEach(() => {
 
 describe('calendar-input-sk', () => {
   const newInstance = setUpElementUnderTest<CalendarInputSk>(
-    'calendar-input-sk'
+    'calendar-input-sk',
   );
   let calendarInputSk: CalendarInputSk;
   beforeEach(() => {
@@ -21,12 +21,11 @@ describe('calendar-input-sk', () => {
   });
 
   describe('input control', () => {
-    it('displays the date correctly', () =>
-      window.customElements.whenDefined('calendar-input-sk').then(async () => {
-        assert.equal(
+    it('displays the date correctly', () => window.customElements.whenDefined('calendar-input-sk').then(async () => {
+      assert.equal(
           calendarInputSk.querySelector<HTMLInputElement>('input')!.value,
-          '2020-5-21'
-        );
-      }));
+          '2020-5-21',
+      );
+    }));
   });
 });

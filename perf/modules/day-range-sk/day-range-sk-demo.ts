@@ -5,7 +5,7 @@ document.querySelectorAll('day-range-sk').forEach((ele) => {
     document.getElementById('event')!.textContent = JSON.stringify(
       (e as CustomEvent).detail,
       null,
-      ' '
+      ' ',
     );
   });
 });

@@ -81,6 +81,11 @@ function formatterFromDuration(ms: number) {
   return choices[choices.length - 1].formatter;
 }
 
+export interface tick {
+  x: number;
+  text: string;
+}
+
 /**
  * ticks takes a set of times that represent x-axis locations in time
  * and returns an array of points to use to for tick marks along with their
@@ -94,7 +99,7 @@ function formatterFromDuration(ms: number) {
  *       text: 'Mon, 8 AM',
  *     }
  */
-export function ticks(dates: Date[]) {
+export function ticks(dates: Date[]): tick[] {
   if (dates.length === 0) {
     return [];
   }

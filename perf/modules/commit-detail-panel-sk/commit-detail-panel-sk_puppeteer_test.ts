@@ -7,12 +7,12 @@ import {
 
 describe('commit-detail-panel-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
+    path.join(__dirname, '..', '..', 'webpack.config.ts'),
   );
 
   beforeEach(async () => {
     await testBed.page.goto(
-      `${testBed.baseUrl}/dist/commit-detail-panel-sk.html`
+      `${testBed.baseUrl}/dist/commit-detail-panel-sk.html`,
     );
     await testBed.page.setViewport({ width: 400, height: 550 });
   });

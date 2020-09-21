@@ -13,18 +13,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit } from '../json';
 
 export class CommitDetailSk extends ElementSk {
-  private static template = (ele: CommitDetailSk) => html`
-    <div @click=${() => ele._click()} class="linkish">
-      <pre>${ele.cid.message}</pre>
-    </div>
-    <div class="tip hidden">
-      <a href="/g/e/${ele.cid.hash}">Explore</a>
-      <a href="/g/c/${ele.cid.hash}">Cluster</a>
-      <a href="/g/t/${ele.cid.hash}">Triage</a>
-      <a href="${ele.cid.url}">Commit</a>
-    </div>
-  `;
-
   private _cid: Commit;
 
   constructor() {
@@ -39,22 +27,35 @@ export class CommitDetailSk extends ElementSk {
     };
   }
 
-  connectedCallback() {
+  private static template = (ele: CommitDetailSk) => html`
+    <div @click=${() => ele._click()} class="linkish">
+      <pre>${ele.cid.message}</pre>
+    </div>
+    <div class="tip hidden">
+      <a href="/g/e/${ele.cid.hash}">Explore</a>
+      <a href="/g/c/${ele.cid.hash}">Cluster</a>
+      <a href="/g/t/${ele.cid.hash}">Triage</a>
+      <a href="${ele.cid.url}">Commit</a>
+    </div>
+  `;
+
+
+  connectedCallback(): void {
     super.connectedCallback();
     upgradeProperty(this, 'cid');
     this._render();
   }
 
-  _click() {
+  private _click() {
     $$('.tip', this)!.classList.toggle('hidden');
   }
 
-  /** @prop cid - The details about a commit. */
-  get cid() {
+  /** The details about a commit. */
+  get cid(): Commit {
     return this._cid;
   }
 
-  set cid(val) {
+  set cid(val: Commit) {
     this._cid = val;
     this._render();
   }

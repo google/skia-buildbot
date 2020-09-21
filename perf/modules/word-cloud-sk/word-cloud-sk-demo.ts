@@ -1,7 +1,7 @@
 import './index';
 import { WordCloudSk } from './word-cloud-sk';
 
-let items = [
+const items = [
   { value: 'arch=x86', percent: 100 },
   { value: 'config=565', percent: 60 },
   { value: 'config=8888', percent: 50 },

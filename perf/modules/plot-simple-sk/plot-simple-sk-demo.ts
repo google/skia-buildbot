@@ -1,11 +1,12 @@
 import './index';
+import { $, $$ } from 'common-sk/modules/dom';
 import {
   PlotSimpleSk,
   PlotSimpleSkTraceEventDetails,
   PlotSimpleSkZoomEventDetails,
 } from './plot-simple-sk';
 import 'elements-sk/styles/buttons';
-import { $, $$ } from 'common-sk/modules/dom';
+
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 // Create our own random number generator that's deterministic so that we get
@@ -37,7 +38,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
           trace.push(1e32);
         }
       }
-      const id = 'trace' + (j + n);
+      const id = `trace${j + n}`;
       traces[id] = trace;
     }
     n += num;
@@ -64,49 +65,49 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
     ele.zoom = null;
   });
 
-  $$<HTMLButtonElement>('#high')!.addEventListener('click', (e) => {
-    ele.highlight = ['trace' + (n - 1), 'trace' + (n - 2)];
+  $$<HTMLButtonElement>('#high')!.addEventListener('click', () => {
+    ele.highlight = [`trace${n - 1}`, `trace${n - 2}`];
   });
 
-  $$<HTMLButtonElement>('#clearhigh')!.addEventListener('click', (e) => {
+  $$<HTMLButtonElement>('#clearhigh')!.addEventListener('click', () => {
     ele.highlight = [];
   });
 
-  $$<HTMLButtonElement>('#xbar')!.addEventListener('click', (e) => {
+  $$<HTMLButtonElement>('#xbar')!.addEventListener('click', () => {
     ele.xbar = 3;
   });
 
-  $$<HTMLButtonElement>('#clearxbar')!.addEventListener('click', (e) => {
+  $$<HTMLButtonElement>('#clearxbar')!.addEventListener('click', () => {
     ele.xbar = -1;
   });
 
-  $$<HTMLButtonElement>('#zoomAction')!.addEventListener('click', (e) => {
+  $$<HTMLButtonElement>('#zoomAction')!.addEventListener('click', () => {
     ele.zoom = [20, 40];
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('trace_selected', (e) => {
     $$('#selected')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail
+      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail,
     );
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('trace_focused', (e) => {
     $$('#focused')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail
+      (e as CustomEvent<PlotSimpleSkTraceEventDetails>).detail,
     );
   });
 
   $$<PlotSimpleSk>('#plot')!.addEventListener('zoom', (e) => {
     $$('#zoom')!.textContent = JSON.stringify(
-      (e as CustomEvent<PlotSimpleSkZoomEventDetails>).detail
+      (e as CustomEvent<PlotSimpleSkZoomEventDetails>).detail,
     );
   });
 
-  $$<HTMLButtonElement>('#bands')!.addEventListener('click', (e) => {
+  $$<HTMLButtonElement>('#bands')!.addEventListener('click', () => {
     ele.bands = [1, 4, 20, 30];
   });
 
-  $$<HTMLButtonElement>('#special')!.addEventListener('click', (e) => {
+  $$<HTMLButtonElement>('#special')!.addEventListener('click', () => {
     const trace = [];
     for (let i = 0; i < 50; i++) {
       trace.push(0);

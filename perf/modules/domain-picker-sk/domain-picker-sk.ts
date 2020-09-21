@@ -31,11 +31,10 @@ const toDate = (seconds: number) => new Date(seconds * 1000);
 const toForceRequestType = (s: string | null): ForceRequestType => {
   if (s === 'range') {
     return 'range';
-  } else if (s === 'dense') {
+  } if (s === 'dense') {
     return 'dense';
-  } else {
-    return '';
   }
+  return '';
 };
 
 /** The state of the DomainPickerSk control. */
@@ -53,6 +52,19 @@ export interface DomainPickerState {
 }
 
 export class DomainPickerSk extends ElementSk {
+  private _state: DomainPickerState;
+
+  constructor() {
+    super(DomainPickerSk.template);
+    const now = Date.now();
+    this._state = {
+      begin: Math.floor(now / 1000 - 24 * 60 * 60),
+      end: Math.floor(now / 1000),
+      num_commits: 50,
+      request_type: RANGE,
+    };
+  }
+
   private static template = (ele: DomainPickerSk) => html`
     ${DomainPickerSk._showRadio(ele)}
     <div class="ranges">
@@ -123,24 +135,25 @@ export class DomainPickerSk extends ElementSk {
     `;
   };
 
-  private _state: DomainPickerState;
 
-  constructor() {
-    super(DomainPickerSk.template);
-    const now = Date.now();
-    this._state = {
-      begin: Math.floor(now / 1000 - 24 * 60 * 60),
-      end: Math.floor(now / 1000),
-      num_commits: 50,
-      request_type: RANGE,
-    };
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('state');
     this._upgradeProperty('force_request_type');
     this.render();
+  }
+
+  attributeChangedCallback(): void {
+    this.render();
+  }
+
+  render(): void {
+    if (this.force_request_type === 'dense') {
+      this._state.request_type = DENSE;
+    } else if (this.force_request_type === 'range') {
+      this._state.request_type = RANGE;
+    }
+    super._render();
   }
 
   private typeRange() {
@@ -168,16 +181,15 @@ export class DomainPickerSk extends ElementSk {
     this.render();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['force_request_type'];
   }
 
-  /** The UIDomain state. */
-  get state() {
+  get state(): DomainPickerState {
     return this._state;
   }
 
-  set state(val) {
+  set state(val: DomainPickerState) {
     if (!val) {
       return;
     }
@@ -196,21 +208,8 @@ export class DomainPickerSk extends ElementSk {
     return toForceRequestType(this.getAttribute('force_request_type'));
   }
 
-  set force_request_type(val) {
+  set force_request_type(val: ForceRequestType) {
     this.setAttribute('force_request_type', toForceRequestType(val));
-  }
-
-  attributeChangedCallback() {
-    this.render();
-  }
-
-  render() {
-    if (this.force_request_type === 'dense') {
-      this._state.request_type = DENSE;
-    } else if (this.force_request_type === 'range') {
-      this._state.request_type = RANGE;
-    }
-    super._render();
   }
 }
 

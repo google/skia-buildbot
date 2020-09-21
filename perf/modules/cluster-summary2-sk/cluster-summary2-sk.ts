@@ -43,6 +43,7 @@ import '../triage2-sk';
 import '../word-cloud-sk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import {
@@ -59,7 +60,6 @@ import {
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
-import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 
 // Handle the sk namespace attached to window.
 //
@@ -89,6 +89,63 @@ export interface ClusterSummary2SkOpenKeysEventDetail {
 }
 
 export class ClusterSummary2Sk extends ElementSk {
+  private summary: ClusterSummary;
+
+  private triageStatus: TriageStatus;
+
+  private wordCloud: CollapseSk | null = null;
+
+  private status: HTMLDivElement | null = null;
+
+  private graph: PlotSimpleSk | null = null;
+
+  private rangelink: HTMLAnchorElement | null = null;
+
+  private commits: CommitDetailPanelSk | null = null;
+
+  private frame: FrameResponse | null = null;
+
+  private fullSummary: FullSummary | null = null;
+
+  constructor() {
+    super(ClusterSummary2Sk.template);
+    this.summary = {
+      centroid: null,
+      shortcut: '',
+      step_point: null,
+      num: 0,
+      step_fit: {
+        regression: 0,
+        least_squares: 0,
+        step_size: 0,
+        turning_point: 0,
+        status: 'Uninteresting',
+      },
+      param_summaries2: [],
+      ts: new Date().toISOString(),
+    };
+    this.triageStatus = {
+      status: '',
+      message: '',
+    };
+  }
+
+  /**
+   * Look up the commit ids for the given offsets and sources.
+   *
+   * @param An array of CommitNumbers.
+   * @returns A Promise that resolves the cids and returns an Array of serialized perfgit.Commit.
+   */
+  static lookupCids(cids: CommitNumber[]): Promise<Commit[]> {
+    return fetch('/_/cid/', {
+      method: 'POST',
+      body: JSON.stringify(cids),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(jsonOrThrow);
+  }
+
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">
       Regression:
@@ -117,15 +174,15 @@ export class ClusterSummary2Sk extends ElementSk {
       <triage2-sk
         value=${ele.triageStatus.status}
         @change=${(e: CustomEvent<Status>) => {
-          ele.triageStatus.status = e.detail;
-        }}
+    ele.triageStatus.status = e.detail;
+  }}
       ></triage2-sk>
       <input
         type="text"
         .value=${ele.triageStatus.message}
         @change=${(e: InputEvent) => {
-          ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
-        }}
+    ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
+  }}
         label="Message"
       />
       <button class="action" @click=${ele.update}>Update</button>
@@ -158,40 +215,7 @@ export class ClusterSummary2Sk extends ElementSk {
     return html``;
   };
 
-  private summary: ClusterSummary;
-  private triageStatus: TriageStatus;
-  private wordCloud: CollapseSk | null = null;
-  private status: HTMLDivElement | null = null;
-  private graph: PlotSimpleSk | null = null;
-  private rangelink: HTMLAnchorElement | null = null;
-  private commits: CommitDetailPanelSk | null = null;
-  private frame: FrameResponse | null = null;
-  private fullSummary: FullSummary | null = null;
-
-  constructor() {
-    super(ClusterSummary2Sk.template);
-    this.summary = {
-      centroid: null,
-      shortcut: '',
-      step_point: null,
-      num: 0,
-      step_fit: {
-        regression: 0,
-        least_squares: 0,
-        step_size: 0,
-        turning_point: 0,
-        status: 'Uninteresting',
-      },
-      param_summaries2: [],
-      ts: new Date().toISOString(),
-    };
-    this.triageStatus = {
-      status: '',
-      message: '',
-    };
-  }
-
-  connectedCallback() {
+  connectedCallback(): void{
     super.connectedCallback();
     this._upgradeProperty('full_summary');
     this._upgradeProperty('triage');
@@ -204,7 +228,10 @@ export class ClusterSummary2Sk extends ElementSk {
     Login.then((status) => {
       this.status!.classList.toggle('disabled', status.Email === '');
     }).catch(errorMessage);
+
+    // eslint-disable-next-line no-self-assign
     this.full_summary = this.full_summary;
+    // eslint-disable-next-line no-self-assign
     this.triage = this.triage;
   }
 
@@ -218,7 +245,7 @@ export class ClusterSummary2Sk extends ElementSk {
       new CustomEvent<ClusterSummary2SkTriagedEventDetail>('triaged', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -236,25 +263,10 @@ export class ClusterSummary2Sk extends ElementSk {
       new CustomEvent<ClusterSummary2SkOpenKeysEventDetail>('open-keys', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
-  /**
-   * Look up the commit ids for the given offsets and sources.
-   *
-   * @param An array of CommitNumbers.
-   * @returns A Promise that resolves the cids and returns an Array of serialized perfgit.Commit.
-   */
-  static lookupCids(cids: CommitNumber[]): Promise<Commit[]> {
-    return fetch('/_/cid/', {
-      method: 'POST',
-      body: JSON.stringify(cids),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then(jsonOrThrow);
-  }
 
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     const commitNumber = this.frame!.dataframe!.header![e.detail.x]?.offset;
@@ -300,11 +312,11 @@ export class ClusterSummary2Sk extends ElementSk {
    *  }
    *
    */
-  get full_summary() {
+  get full_summary(): FullSummary | null{
     return this.fullSummary;
   }
 
-  set full_summary(val) {
+  set full_summary(val: FullSummary | null) {
     if (!val) {
       return;
     }
@@ -323,7 +335,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.dataset.steplse = this.summary!.step_fit!.least_squares.toPrecision(2);
     this.dataset.stepsize = this.summary!.step_fit!.step_size.toPrecision(2);
     this.dataset.stepregression = this.summary!.step_fit!.regression.toPrecision(
-      2
+      2,
     );
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
@@ -402,11 +414,11 @@ export class ClusterSummary2Sk extends ElementSk {
    *    }
    *
    */
-  get triage() {
+  get triage(): TriageStatus {
     return this.triageStatus;
   }
 
-  set triage(val) {
+  set triage(val: TriageStatus) {
     if (!val) {
       return;
     }

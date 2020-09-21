@@ -21,11 +21,11 @@
  *    |                   MARGIN                           |
  *    |                                                    |
  *    |   +--------------------------------------------+   |
- *    | 2 |          Details                           |   | | x |
- *    |   | | M |                                            | M | | A |
- *    | A | | R |                                            | R | | G |
- *    | G | | I |                                            | I | | N |
- *    | N |
+ *    |   |          Details                           |   |
+ *    |   |                                            |   |
+ *    |   |                                            |   |
+ *    |   |                                            |   |
+ *    |   |                                            |   |
  *    |   |                                            |   |
  *    |   |                                            |   |
  *    |   |                                            |   |
@@ -158,16 +158,20 @@ interface TracePaths {
 class PathBuilder {
   // TODO(jcgregorio) Change to TracePaths.
   private linePath: Path2D;
+
   private dotsPath: Path2D;
+
   // TODO(jcgregorio) Change to Range.
   private xRange: d3Scale.ScaleLinear<number, number>;
+
   private yRange: d3Scale.ScaleLinear<number, number>;
+
   private radius: number;
 
   constructor(
     xRange: d3Scale.ScaleLinear<number, number>,
     yRange: d3Scale.ScaleLinear<number, number>,
-    radius: number
+    radius: number,
   ) {
     this.xRange = xRange;
     this.yRange = yRange;
@@ -232,12 +236,14 @@ interface SearchPoint extends Point {
 class SearchBuilder {
   // TODO(jcgregorio) Change to Range.
   private xRange: d3Scale.ScaleLinear<number, number>;
+
   private yRange: d3Scale.ScaleLinear<number, number>;
+
   private points: SearchPoint[];
 
   constructor(
     xRange: d3Scale.ScaleLinear<number, number>,
-    yRange: d3Scale.ScaleLinear<number, number>
+    yRange: d3Scale.ScaleLinear<number, number>,
   ) {
     this.xRange = xRange;
     this.yRange = yRange;
@@ -292,10 +298,10 @@ class SearchBuilder {
 // Returns true if pt is in rect.
 function inRect(pt: Point, rect: Rect): boolean {
   return (
-    pt.x >= rect.x &&
-    pt.x < rect.x + rect.width &&
-    pt.y >= rect.y &&
-    pt.y < rect.y + rect.height
+    pt.x >= rect.x
+    && pt.x < rect.x + rect.width
+    && pt.y >= rect.y
+    && pt.y < rect.y + rect.height
   );
 }
 
@@ -363,7 +369,7 @@ interface Area {
   range: Range;
 }
 
-interface SummaryArea extends Area {}
+type SummaryArea = Area
 
 interface DetailArea extends Area {
   yaxis: {
@@ -390,28 +396,6 @@ export interface PlotSimpleSkZoomEventDetails {
 }
 
 export class PlotSimpleSk extends ElementSk {
-  // Note that in both of the canvas elements we are setting a CSS transform that
-  // takes into account window.devicePixelRatio, that is, we are drawing to a
-  // scale that matches the displays native resolution and then scaling that back
-  // to fit on the page. Also see _updateScaledMeasurements for how the device
-  // pixel ratio affects all of our pixel calculations.
-  private static template = (ele: PlotSimpleSk) => html`
-    <canvas
-      class="traces"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"
-    ></canvas>
-    <canvas
-      class="overlay"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"
-    ></canvas>
-  `;
-
   // The location of the XBar. See the xbar property..
   private _xbar: number;
 
@@ -716,11 +700,247 @@ export class PlotSimpleSk extends ElementSk {
     this._updateScaledMeasurements();
   }
 
+
+  // Note that in both of the canvas elements we are setting a CSS transform that
+  // takes into account window.devicePixelRatio, that is, we are drawing to a
+  // scale that matches the displays native resolution and then scaling that back
+  // to fit on the page. Also see _updateScaledMeasurements for how the device
+  // pixel ratio affects all of our pixel calculations.
+  private static template = (ele: PlotSimpleSk) => html`
+    <canvas
+      class="traces"
+      width=${ele.width * window.devicePixelRatio}
+      height=${ele.height * window.devicePixelRatio}
+      style="transform-origin: 0 0; transform: scale(${1
+      / window.devicePixelRatio});"
+    ></canvas>
+    <canvas
+      class="overlay"
+      width=${ele.width * window.devicePixelRatio}
+      height=${ele.height * window.devicePixelRatio}
+      style="transform-origin: 0 0; transform: scale(${1
+      / window.devicePixelRatio});"
+    ></canvas>
+  `;
+
+
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    this.render();
+
+    // We need to dynamically resize the canvas elements since they don't do
+    // that themselves.
+    const resizeObserver = new LocalResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        this.width = entry.contentRect.width;
+      });
+    });
+    resizeObserver.observe(this);
+
+    this.addEventListener('mousemove', (e) => {
+      // Do as little as possible here. The _raf() function will periodically
+      // check if the mouse has moved and trigger the appropriate redraws.
+      this._mouseMoveRaw = {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        shiftKey: e.shiftKey,
+      };
+    });
+
+    this.addEventListener('mousedown', (e) => {
+      const pt = this._eventToCanvasPt(e);
+      // If you click in the summary area then begin zooming via drag.
+      if (inRect(pt, this._summary.rect!)) {
+        const zx = this._summary.range.x.invert(pt.x);
+        this._inZoomDrag = true;
+        this._zoomBegin = zx;
+        this.zoom = [zx, zx + 0.01]; // Add a smidge to the second zx to avoid a degenerate detail plot.
+      }
+    });
+
+    this.addEventListener('mouseup', () => {
+      if (this._inZoomDrag) {
+        this._dispatchZoomEvent();
+      }
+      this._inZoomDrag = false;
+    });
+
+    this.addEventListener('mouseleave', () => {
+      if (this._inZoomDrag) {
+        this._dispatchZoomEvent();
+      }
+      this._inZoomDrag = false;
+    });
+
+    this.addEventListener('click', (e) => {
+      const pt = this._eventToCanvasPt(e);
+      if (!inRect(pt, this._detail.rect)) {
+        return;
+      }
+      if (!this._pointSearch) {
+        return;
+      }
+      const closest = this._pointSearch.nearest(pt);
+      const detail = {
+        x: closest.sx,
+        y: closest.sy,
+        name: closest.name,
+      };
+      this.dispatchEvent(
+        new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_selected', {
+          detail,
+          bubbles: true,
+        }),
+      );
+    });
+
+    // If the user toggles the theme to/from darkmode then redraw.
+    document.addEventListener('theme-chooser-toggle', () => {
+      this.render();
+    });
+
+    window.requestAnimationFrame(this._raf.bind(this));
+  }
+
+  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
+    if (oldValue !== newValue) {
+      this.render();
+    }
+  }
+
+  // Call this when the width or height attrs have changed.
+  render(): void {
+    this._render();
+    const canvas = this.querySelector<HTMLCanvasElement>('canvas.traces')!;
+    const overlayCanvas = this.querySelector<HTMLCanvasElement>(
+      'canvas.overlay',
+    )!;
+    if (canvas) {
+      this._ctx = canvas.getContext('2d');
+      this._overlayCtx = overlayCanvas.getContext('2d');
+      this._scale = window.devicePixelRatio;
+      this._updateScaledMeasurements();
+      this._updateScaleRanges();
+      this._recalcDetailPaths();
+      this._recalcSummaryPaths();
+      this._drawTracesCanvas();
+    }
+  }
+
+  /**
+   * Adds lines to be displayed.
+   *
+   * Any line id that begins with 'special' will be treated specially,
+   * i.e. it will be presented as a dashed black line that doesn't
+   * generate events. This may be useful for adding a line at y=0,
+   * or a reference trace.
+   *
+   * @param {Object} lines - A map from trace id to arrays of y values.
+   * @param {Array} labels - An array of Date objects the same length as the values.
+   *
+   */
+  addLines(lines: { [key: string]: number[] | null }, labels: Date[]): void {
+    const keys = Object.keys(lines);
+    if (keys.length === 0) {
+      return;
+    }
+    const startedEmpty = this._zoom === null && this._lineData.length === 0;
+    if (labels) {
+      this._labels = labels;
+    }
+
+    // Convert into the format we will eventually expect.
+    keys.forEach((key) => {
+      // You can't encode NaN in JSON, so convert sentinel values to NaN here so
+      // that dsArray functions will operate correctly.
+      lines[key]!.forEach((x, i) => {
+        if (x === MISSING_DATA_SENTINEL) {
+          lines[key]![i] = NaN;
+        }
+      });
+      const values = lines[key]!;
+      this._lineData.push({
+        name: key,
+        values,
+        color: 'black',
+        detail: {
+          linePath: null,
+          dotsPath: null,
+        },
+        summary: {
+          linePath: null,
+          dotsPath: null,
+        },
+      });
+    });
+
+    // Set the zoom if we just added data for the first time.
+    if (startedEmpty && this._lineData.length > 0) {
+      this._zoom = [0, this._lineData[0].values.length - 1];
+    }
+
+    this._updateCount();
+    this._updateScaleDomains();
+    this._recalcSummaryPaths();
+    this._recalcDetailPaths();
+    this._drawTracesCanvas();
+  }
+
+  /**
+   * Delete all the lines whose ids are in 'ids' from being plotted.
+   *
+   * @param {Array<string>} ids - The trace ids to remove.
+   */
+  deleteLines(ids: string[]): void {
+    this._lineData = this._lineData.filter(
+      (line) => ids.indexOf(line.name) === -1,
+    );
+
+    const onlySpecialLinesRemaining = this._lineData.every((line) => line.name.startsWith(SPECIAL));
+    if (onlySpecialLinesRemaining) {
+      this.removeAll();
+    } else {
+      this._updateCount();
+      this._updateScaleDomains();
+      this._recalcSummaryPaths();
+      this._recalcDetailPaths();
+      this._drawTracesCanvas();
+    }
+  }
+
+  /**
+   * Remove all lines from plot.
+   */
+  removeAll(): void{
+    this._lineData = [];
+    this._labels = [];
+    this._hoverPt = {
+      x: -1,
+      y: -1,
+      name: '',
+    };
+    this._pointSearch = null;
+    this._crosshair = {
+      x: -1,
+      y: -1,
+      shift: false,
+    };
+    this._mouseMoveRaw = null;
+    this._highlighted = {};
+    this._xbar = -1;
+    this._zoom = null;
+    this._inZoomDrag = false;
+    this._numPoints = 0;
+    this._drawTracesCanvas();
+  }
+
+
   /**
    * Update all the things that look like constants, but are really dependent on
    * window.devicePixelRatio or the current CSS styling.
    */
-  _updateScaledMeasurements() {
+  private _updateScaledMeasurements() {
     // The height of the summary area.
     if (this.summary) {
       this.SUMMARY_HEIGHT = 50 * this._scale; // px
@@ -790,86 +1010,7 @@ export class PlotSimpleSk extends ElementSk {
     }
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-
-    this.render();
-
-    // We need to dynamically resize the canvas elements since they don't do
-    // that themselves.
-    const resizeObserver = new LocalResizeObserver((entries) => {
-      entries.forEach((entry) => {
-        this.width = entry.contentRect.width;
-      });
-    });
-    resizeObserver.observe(this);
-
-    this.addEventListener('mousemove', (e) => {
-      // Do as little as possible here. The _raf() function will periodically
-      // check if the mouse has moved and trigger the appropriate redraws.
-      this._mouseMoveRaw = {
-        clientX: e.clientX,
-        clientY: e.clientY,
-        shiftKey: e.shiftKey,
-      };
-    });
-
-    this.addEventListener('mousedown', (e) => {
-      const pt = this._eventToCanvasPt(e);
-      // If you click in the summary area then begin zooming via drag.
-      if (inRect(pt, this._summary.rect!)) {
-        const zx = this._summary.range.x.invert(pt.x);
-        this._inZoomDrag = true;
-        this._zoomBegin = zx;
-        this.zoom = [zx, zx + 0.01]; // Add a smidge to the second zx to avoid a degenerate detail plot.
-      }
-    });
-
-    this.addEventListener('mouseup', () => {
-      if (this._inZoomDrag) {
-        this._dispatchZoomEvent();
-      }
-      this._inZoomDrag = false;
-    });
-
-    this.addEventListener('mouseleave', () => {
-      if (this._inZoomDrag) {
-        this._dispatchZoomEvent();
-      }
-      this._inZoomDrag = false;
-    });
-
-    this.addEventListener('click', (e) => {
-      const pt = this._eventToCanvasPt(e);
-      if (!inRect(pt, this._detail.rect)) {
-        return;
-      }
-      if (!this._pointSearch) {
-        return;
-      }
-      const closest = this._pointSearch.nearest(pt);
-      const detail = {
-        x: closest.sx,
-        y: closest.sy,
-        name: closest.name,
-      };
-      this.dispatchEvent(
-        new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_selected', {
-          detail,
-          bubbles: true,
-        })
-      );
-    });
-
-    // If the user toggles the theme to/from darkmode then redraw.
-    document.addEventListener('theme-chooser-toggle', () => {
-      this.render();
-    });
-
-    window.requestAnimationFrame(this._raf.bind(this));
-  }
-
-  _dispatchZoomEvent() {
+  private _dispatchZoomEvent() {
     if (!this._zoom) {
       return;
     }
@@ -889,7 +1030,7 @@ export class PlotSimpleSk extends ElementSk {
       new CustomEvent<PlotSimpleSkZoomEventDetails>('zoom', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -899,7 +1040,7 @@ export class PlotSimpleSk extends ElementSk {
    * @param {Object} e - A mouse event or an object that has the coords stored
    * in clientX and clientY.
    */
-  _eventToCanvasPt(e: MouseMoveRaw) {
+  private _eventToCanvasPt(e: MouseMoveRaw) {
     const clientRect = this._ctx!.canvas.getBoundingClientRect();
     return {
       x: (e.clientX - clientRect.left) * this._scale,
@@ -908,7 +1049,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Handles requestAnimationFrame callbacks.
-  _raf() {
+  private _raf() {
     // Always queue up our next raf first.
     window.requestAnimationFrame(() => this._raf());
 
@@ -933,7 +1074,7 @@ export class PlotSimpleSk extends ElementSk {
             new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_focused', {
               detail,
               bubbles: true,
-            })
+            }),
           );
         }
       }
@@ -972,6 +1113,7 @@ export class PlotSimpleSk extends ElementSk {
     }
   }
 
+
   /**
    * This is a super simple hash (h = h * 31 + x_i) currently used
    * for things like assigning colors to graphs based on trace ids. It
@@ -980,75 +1122,19 @@ export class PlotSimpleSk extends ElementSk {
    * @param {String} s - A string to hash.
    * @return {Number} A 32 bit hash for the given string.
    */
-  _hashString(s: string) {
+  private _hashString(s: string) {
     let hash = 0;
     for (let i = s.length - 1; i >= 0; i--) {
+      // eslint-disable-next-line no-bitwise
       hash = (hash << 5) - hash + s.charCodeAt(i);
+      // eslint-disable-next-line no-bitwise
       hash |= 0;
     }
     return Math.abs(hash);
   }
 
-  /**
-   * Adds lines to be displayed.
-   *
-   * Any line id that begins with 'special' will be treated specially,
-   * i.e. it will be presented as a dashed black line that doesn't
-   * generate events. This may be useful for adding a line at y=0,
-   * or a reference trace.
-   *
-   * @param {Object} lines - A map from trace id to arrays of y values.
-   * @param {Array} labels - An array of Date objects the same length as the values.
-   *
-   */
-  addLines(lines: { [key: string]: number[] | null }, labels: Date[]) {
-    const keys = Object.keys(lines);
-    if (keys.length === 0) {
-      return;
-    }
-    const startedEmpty = this._zoom === null && this._lineData.length === 0;
-    if (labels) {
-      this._labels = labels;
-    }
 
-    // Convert into the format we will eventually expect.
-    keys.forEach((key) => {
-      // You can't encode NaN in JSON, so convert sentinel values to NaN here so
-      // that dsArray functions will operate correctly.
-      lines[key]!.forEach((x, i) => {
-        if (x === MISSING_DATA_SENTINEL) {
-          lines[key]![i] = NaN;
-        }
-      });
-      const values = lines[key]!;
-      this._lineData.push({
-        name: key,
-        values,
-        color: 'black',
-        detail: {
-          linePath: null,
-          dotsPath: null,
-        },
-        summary: {
-          linePath: null,
-          dotsPath: null,
-        },
-      });
-    });
-
-    // Set the zoom if we just added data for the first time.
-    if (startedEmpty && this._lineData.length > 0) {
-      this._zoom = [0, this._lineData[0].values.length - 1];
-    }
-
-    this._updateCount();
-    this._updateScaleDomains();
-    this._recalcSummaryPaths();
-    this._recalcDetailPaths();
-    this._drawTracesCanvas();
-  }
-
-  _updateCount() {
+  private _updateCount() {
     this._numPoints = 0;
     if (this._lineData.length > 0) {
       this._numPoints = this._lineData.length * this._lineData[0].values.length;
@@ -1056,7 +1142,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Rebuilds our cache of Path2D objects we use for quick rendering.
-  _recalcSummaryPaths() {
+  private _recalcSummaryPaths() {
     this._lineData.forEach((line) => {
       // Need to pass in the x and y ranges, and the dot radius.
       if (line.name.startsWith(SPECIAL)) {
@@ -1068,7 +1154,7 @@ export class PlotSimpleSk extends ElementSk {
       const summaryBuilder = new PathBuilder(
         this._summary.range.x,
         this._summary.range.y,
-        this.SUMMARY_RADIUS
+        this.SUMMARY_RADIUS,
       );
 
       line.values.forEach((y, x) => {
@@ -1085,7 +1171,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Rebuilds our cache of Path2D objects we use for quick rendering.
-  _recalcDetailPaths() {
+  private _recalcDetailPaths() {
     const domain = this._detail.range.x.domain();
     domain[0] = Math.floor(domain[0] - 0.1);
     domain[1] = Math.ceil(domain[1] + 0.1);
@@ -1100,7 +1186,7 @@ export class PlotSimpleSk extends ElementSk {
       const detailBuilder = new PathBuilder(
         this._detail.range.x,
         this._detail.range.y,
-        this.DETAIL_RADIUS
+        this.DETAIL_RADIUS,
       );
 
       line.values.forEach((y, x) => {
@@ -1120,7 +1206,7 @@ export class PlotSimpleSk extends ElementSk {
     const labelOffset = Math.ceil(detailDomain[0]);
     const detailLabels = this._labels.slice(
       Math.ceil(detailDomain[0]),
-      Math.floor(detailDomain[1] + 1)
+      Math.floor(detailDomain[1] + 1),
     );
     this._recalcXAxis(this._detail, detailLabels, labelOffset);
 
@@ -1130,7 +1216,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Recalculates the y-axis info.
-  _recalcYAxis(area: DetailArea) {
+  private _recalcYAxis(area: DetailArea) {
     const yAxisPath = new Path2D();
     const thinX = Math.floor(this._detail.rect.x) + 0.5; // Make sure we get a thin line. https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Applying_styles_and_colors#A_lineWidth_example
     yAxisPath.moveTo(thinX, this._detail.rect.y);
@@ -1150,7 +1236,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Recalculates the x-axis info.
-  _recalcXAxis(area: Area, labels: Date[], labelOffset: number) {
+  private _recalcXAxis(area: Area, labels: Date[], labelOffset: number) {
     const xAxisPath = new Path2D();
     const thinY = Math.floor(area.rect.y) + 0.5; // Make sure we get a thin line.
     xAxisPath.moveTo(area.rect.x + 0.5, thinY);
@@ -1170,20 +1256,18 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Rebuilds the kdTree we use to look up closest points.
-  _recalcSearch() {
+  private _recalcSearch() {
     if (this._recalcSearchTask) {
       return;
     }
     this._recalcSearchTask = window.setTimeout(() => this._recalcSearchImpl());
   }
 
-  _recalcSearchImpl() {
+  private _recalcSearchImpl() {
     if (this._zoomTask) {
       // If there is a pending zoom task then let that complete first since zooming
       // invalidates the search tree and it needs to be built again.
-      this._recalcSearchTask = window.setTimeout(() =>
-        this._recalcSearchImpl()
-      );
+      this._recalcSearchTask = window.setTimeout(() => this._recalcSearchImpl());
       return;
     }
     const domain = this._detail.range.x.domain();
@@ -1191,7 +1275,7 @@ export class PlotSimpleSk extends ElementSk {
     domain[1] = Math.ceil(domain[1] + 0.1);
     const searchBuilder = new SearchBuilder(
       this._detail.range.x,
-      this._detail.range.y
+      this._detail.range.y,
     );
     this._lineData.forEach((line) => {
       line.values.forEach((y, x) => {
@@ -1209,7 +1293,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Updates all of our d3Scale domains.
-  _updateScaleDomains() {
+  private _updateScaleDomains() {
     let domainEnd = 1;
     if (this._lineData && this._lineData.length) {
       domainEnd = this._lineData[0].values.length - 1;
@@ -1233,7 +1317,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Updates all of our d3Scale ranges. Also updates detail and summary rects.
-  _updateScaleRanges() {
+  private _updateScaleRanges() {
     const width = this._ctx!.canvas.width;
     const height = this._ctx!.canvas.height;
 
@@ -1273,7 +1357,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Draw the contents of the overlay canvas.
-  _drawOverlayCanvas() {
+  private _drawOverlayCanvas() {
     // Always start by clearing the overlay.
     const width = this._overlayCtx!.canvas.width;
     const height = this._overlayCtx!.canvas.height;
@@ -1317,13 +1401,13 @@ export class PlotSimpleSk extends ElementSk {
             this._summary.rect.x,
             this._summary.rect.y,
             leftx - this._summary.rect.x,
-            this._summary.rect.height
+            this._summary.rect.height,
           );
           ctx.rect(
             rightx,
             this._summary.rect.y,
             this._summary.rect.x + this._summary.rect.width - rightx,
-            this._summary.rect.height
+            this._summary.rect.height,
           );
 
           ctx.fill();
@@ -1418,7 +1502,7 @@ export class PlotSimpleSk extends ElementSk {
             x - this.LABEL_MARGIN,
             y + this.LABEL_MARGIN,
             labelWidth,
-            -labelHeight
+            -labelHeight,
           );
           ctx.fill();
           ctx.strokeStyle = this.LABEL_COLOR;
@@ -1427,7 +1511,7 @@ export class PlotSimpleSk extends ElementSk {
             x - this.LABEL_MARGIN,
             y + this.LABEL_MARGIN,
             labelWidth,
-            -labelHeight
+            -labelHeight,
           );
           ctx.stroke();
 
@@ -1441,7 +1525,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Draw the xbar in the given area with the given width.
-  _drawXBar(ctx: CanvasRenderingContext2D, area: Area, width: number) {
+  private _drawXBar(ctx: CanvasRenderingContext2D, area: Area, width: number) {
     if (this.xbar === -1) {
       return;
     }
@@ -1455,7 +1539,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Draw the bands in the given area with the given width.
-  _drawBands(ctx: CanvasRenderingContext2D, area: Area, width: number) {
+  private _drawBands(ctx: CanvasRenderingContext2D, area: Area, width: number) {
     ctx.lineWidth = width;
     ctx.strokeStyle = this.BAND_COLOR;
     ctx.setLineDash([width, width]);
@@ -1473,7 +1557,7 @@ export class PlotSimpleSk extends ElementSk {
   //
   // Well, not quite everything, if we are drag zooming then we only redraw the
   // details and not the summary.
-  _drawTracesCanvas() {
+  private _drawTracesCanvas() {
     const width = this._ctx!.canvas.width;
     const height = this._ctx!.canvas.height;
     const ctx = this._ctx!;
@@ -1483,7 +1567,7 @@ export class PlotSimpleSk extends ElementSk {
         this._detail.rect.x - this.MARGIN,
         this._detail.rect.y - this.MARGIN,
         this._detail.rect.width + 2 * this.MARGIN,
-        this._detail.rect.height + 2 * this.MARGIN
+        this._detail.rect.height + 2 * this.MARGIN,
       );
     } else {
       ctx.clearRect(0, 0, width, height);
@@ -1534,7 +1618,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Draw a y-axis using the given context in the given area.
-  _drawYAxis(ctx: CanvasRenderingContext2D, area: DetailArea) {
+  private _drawYAxis(ctx: CanvasRenderingContext2D, area: DetailArea) {
     ctx.strokeStyle = this.LABEL_COLOR;
     ctx.fillStyle = this.LABEL_COLOR;
     ctx.font = this.LABEL_FONT;
@@ -1549,7 +1633,7 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Draw a x-axis using the given context in the given area.
-  _drawXAxis(ctx: CanvasRenderingContext2D, area: Area) {
+  private _drawXAxis(ctx: CanvasRenderingContext2D, area: Area) {
     ctx.strokeStyle = this.LABEL_COLOR;
     ctx.fillStyle = this.LABEL_COLOR;
     ctx.font = this.LABEL_FONT;
@@ -1561,65 +1645,15 @@ export class PlotSimpleSk extends ElementSk {
     });
   }
 
-  /**
-   * Delete all the lines whose ids are in 'ids' from being plotted.
-   *
-   * @param {Array<string>} ids - The trace ids to remove.
-   */
-  deleteLines(ids: string[]) {
-    this._lineData = this._lineData.filter(
-      (line) => ids.indexOf(line.name) === -1
-    );
-
-    const onlySpecialLinesRemaining = this._lineData.every((line) =>
-      line.name.startsWith(SPECIAL)
-    );
-    if (onlySpecialLinesRemaining) {
-      this.removeAll();
-    } else {
-      this._updateCount();
-      this._updateScaleDomains();
-      this._recalcSummaryPaths();
-      this._recalcDetailPaths();
-      this._drawTracesCanvas();
-    }
-  }
 
   /**
-   * Remove all lines from plot.
+   *  An array of trace ids to highlight. Set to [] to remove all highlighting.
    */
-  removeAll() {
-    this._lineData = [];
-    this._labels = [];
-    this._hoverPt = {
-      x: -1,
-      y: -1,
-      name: '',
-    };
-    this._pointSearch = null;
-    this._crosshair = {
-      x: -1,
-      y: -1,
-      shift: false,
-    };
-    this._mouseMoveRaw = null;
-    this._highlighted = {};
-    this._xbar = -1;
-    this._zoom = null;
-    this._inZoomDrag = false;
-    this._numPoints = 0;
-    this._drawTracesCanvas();
-  }
-
-  /**
-   * @prop {Array} ids - An array of trace ids to highlight. Set to [] to remove
-   * all highlighting.
-   */
-  get highlight() {
+  get highlight(): string[] {
     return Object.keys(this._highlighted);
   }
 
-  set highlight(ids) {
+  set highlight(ids: string[]) {
     this._highlighted = {};
     ids.forEach((name) => {
       this._highlighted[name] = true;
@@ -1628,27 +1662,28 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   /**
-   * @prop {Number} xbar - Location to put a vertical marking bar on the graph.
-   * Can be set to -1 to not display any bar.
+   * Location to put a vertical marking bar on the graph. Can be set to -1 to
+   * not display any bar.
    */
-  set xbar(value) {
+  get xbar(): number {
+    return this._xbar;
+  }
+
+  set xbar(value: number) {
     this._xbar = value;
     this._drawOverlayCanvas();
   }
 
-  get xbar() {
-    return this._xbar;
-  }
 
   /**
-   * @prop {Array} bands - A list of x source offsets to place vertical markers.
-   *   into labels. Can be set to [] to remove all bands.
+   * A list of x source offsets to place vertical markers. into labels. Can be
+   *   set to [] to remove all bands.
    */
-  get bands() {
+  get bands(): number[] {
     return this._bands;
   }
 
-  set bands(bands) {
+  set bands(bands: number[]) {
     if (!bands) {
       this._bands = [];
     } else {
@@ -1657,14 +1692,14 @@ export class PlotSimpleSk extends ElementSk {
     this._drawOverlayCanvas();
   }
 
-  /** @prop zoom {Array} The zoom range, an array of two values in source x
-   * units. Can be set to null to have no zoom.
+  /** The zoom range, an array of two values in source x units. Can be set to
+   * null to have no zoom.
    */
-  get zoom() {
+  get zoom(): ZoomRange {
     return this._zoom;
   }
 
-  set zoom(range) {
+  set zoom(range: ZoomRange) {
     this._zoom = range;
     if (this._zoomTask) {
       return;
@@ -1672,70 +1707,45 @@ export class PlotSimpleSk extends ElementSk {
     this._zoomTask = window.setTimeout(() => this._zoomImpl());
   }
 
-  _zoomImpl() {
+  private _zoomImpl() {
     this._updateScaleDomains();
     this._recalcDetailPaths();
     this._drawTracesCanvas();
     this._zoomTask = 0;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['width', 'height', 'summary'];
   }
 
-  /** @prop width {string} Mirrors the width attribute. */
-  get width() {
+  /** Mirrors the width attribute. */
+  get width(): number {
     return +(this.getAttribute('width') || '0');
   }
 
-  set width(val) {
+  set width(val: number) {
     this.setAttribute('width', val.toString());
   }
 
-  /** @prop height {string} Mirrors the height attribute. */
-  get height() {
+  /** Mirrors the height attribute. */
+  get height(): number {
     return +(this.getAttribute('height') || '0');
   }
 
-  set height(val) {
+  set height(val: number) {
     this.setAttribute('height', val.toString());
   }
 
   /** @prop summary {string} Mirrors the summary attribute. */
-  get summary() {
+  get summary(): boolean {
     return this.hasAttribute('summary');
   }
 
-  set summary(val) {
+  set summary(val: boolean) {
     if (val) {
       this.setAttribute('summary', val.toString());
     } else {
       this.removeAttribute('summary');
-    }
-  }
-
-  attributeChangedCallback(_: string, oldValue: string, newValue: string) {
-    if (oldValue !== newValue) {
-      this.render();
-    }
-  }
-
-  // Call this when the width or height attrs have changed.
-  render() {
-    this._render();
-    const canvas = this.querySelector<HTMLCanvasElement>('canvas.traces')!;
-    const overlayCanvas = this.querySelector<HTMLCanvasElement>(
-      'canvas.overlay'
-    )!;
-    if (canvas) {
-      this._ctx = canvas.getContext('2d');
-      this._overlayCtx = overlayCanvas.getContext('2d');
-      this._scale = window.devicePixelRatio;
-      this._updateScaledMeasurements();
-      this._updateScaleRanges();
-      this._recalcDetailPaths();
-      this._recalcSummaryPaths();
-      this._drawTracesCanvas();
     }
   }
 }

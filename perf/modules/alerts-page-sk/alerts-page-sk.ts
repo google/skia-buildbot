@@ -11,17 +11,19 @@ import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
 import dialogPolyfill from 'dialog-polyfill';
-import { validate } from '../alert';
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject, toParamSet } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { Login } from '../../../infra-sk/modules/login';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
-import { FrameResponse, ParamSet, Alert, ConfigState } from '../json';
-import { HintableObject } from 'common-sk/modules/hintable';
+import {
+  FrameResponse, ParamSet, Alert, ConfigState,
+} from '../json';
+import { validate } from '../alert';
 
 const okOrThrow = async (resp: Response) => {
   if (!resp.ok) {
@@ -31,6 +33,30 @@ const okOrThrow = async (resp: Response) => {
 };
 
 class AlertsPageSk extends ElementSk {
+  private _cfg: Alert | null = null;
+
+  private paramset: ParamSet = {};
+
+  private alerts: Alert[] = [];
+
+  private showDeleted: boolean = false;
+
+  private email: string = '';
+
+  private origCfg: Alert | null = null;
+
+  private dialog: HTMLDialogElement | null = null;
+
+  private alertconfig: AlertConfigSk | null = null;
+
+  constructor() {
+    super(AlertsPageSk.template);
+    Login.then((status) => {
+      this.email = status.Email;
+      this._render();
+    });
+  }
+
   private static template = (ele: AlertsPageSk) => html`
     <dialog>
       <alert-config-sk
@@ -77,9 +103,8 @@ class AlertsPageSk extends ElementSk {
     return html`${msg}`;
   }
 
-  private static rows = (ele: AlertsPageSk) =>
-    ele.alerts.map(
-      (item) => html`
+  private static rows = (ele: AlertsPageSk) => ele.alerts.map(
+    (item) => html`
         <tr>
           <td
             ><create-icon-sk
@@ -107,36 +132,16 @@ class AlertsPageSk extends ElementSk {
           <td><a href=${AlertsPageSk.dryrunUrl(item)}> Dry Run </a></td>
           <td>${AlertsPageSk.ifNotActive(item.state)}</td>
         </tr>
-      `
-    );
+      `,
+  );
 
-  private static dryrunUrl = (config: Alert) => {
-    return `/d/?${fromObject((config as unknown) as HintableObject)}`;
-  };
+  private static dryrunUrl = (config: Alert) => `/d/?${fromObject((config as unknown) as HintableObject)}`;
 
   private static ifNotActive(s: ConfigState) {
     return s === 'ACTIVE' ? '' : 'Archived';
   }
 
-  private _cfg: Alert | null = null;
-
-  private paramset: ParamSet = {};
-  private alerts: Alert[] = [];
-  private showDeleted: boolean = false;
-  private email: string = '';
-  private origCfg: Alert | null = null;
-  private dialog: HTMLDialogElement | null = null;
-  private alertconfig: AlertConfigSk | null = null;
-
-  constructor() {
-    super(AlertsPageSk.template);
-    Login.then((status) => {
-      this.email = status.Email;
-      this._render();
-    });
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     const pInit = fetch('/_/initpage/')
       .then(jsonOrThrow)
@@ -193,7 +198,7 @@ class AlertsPageSk extends ElementSk {
     }
     const id = window.location.search.slice(1);
     const matchingAlert = this.alerts.find(
-      (alert) => id === alert.id_as_string
+      (alert) => id === alert.id_as_string,
     );
     if (matchingAlert) {
       this.startEditing(matchingAlert);
@@ -255,7 +260,7 @@ class AlertsPageSk extends ElementSk {
       `/_/alert/delete/${((e.target! as any).__config as Alert).id_as_string}`,
       {
         method: 'POST',
-      }
+      },
     )
       .then(okOrThrow)
       .then(() => {

@@ -39,29 +39,28 @@ export interface CommitDetailPanelSkCommitSelectedDetails {
 }
 
 export class CommitDetailPanelSk extends ElementSk {
-  private static rows = (ele: CommitDetailPanelSk) =>
-    ele._details.map(
-      (item, index) => html`
-        <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
-          <td>${ele._trim(item.author)}</td>
-          <td>
-            <commit-detail-sk .cid=${item}></commit-detail-sk>
-          </td>
-        </tr>
-      `
-    );
-
-  private static template = (ele: CommitDetailPanelSk) => html`
-    <table @click=${ele._click}> ${CommitDetailPanelSk.rows(ele)} </table>
-  `;
-
   private _details: Commit[] = [];
 
   constructor() {
     super(CommitDetailPanelSk.template);
   }
 
-  connectedCallback() {
+  private static rows = (ele: CommitDetailPanelSk) => ele._details.map(
+    (item, index) => html`
+        <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
+          <td>${ele._trim(item.author)}</td>
+          <td>
+            <commit-detail-sk .cid=${item}></commit-detail-sk>
+          </td>
+        </tr>
+      `,
+  );
+
+  private static template = (ele: CommitDetailPanelSk) => html`
+    <table @click=${ele._click}> ${CommitDetailPanelSk.rows(ele)} </table>
+  `;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('details');
     this._upgradeProperty('selected');
@@ -69,12 +68,18 @@ export class CommitDetailPanelSk extends ElementSk {
     this._render();
   }
 
+  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
+    if (oldValue !== newValue) {
+      this._render();
+    }
+  }
+
   /** An array of serialized cid.CommitDetail. */
-  get details() {
+  get details(): Commit[] {
     return this._details;
   }
 
-  set details(val) {
+  set details(val: Commit[]) {
     this._details = val;
     this._render();
   }
@@ -101,8 +106,8 @@ export class CommitDetailPanelSk extends ElementSk {
     this.dispatchEvent(
       new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>(
         'commit-selected',
-        { detail, bubbles: true }
-      )
+        { detail, bubbles: true },
+      ),
     );
   }
 
@@ -111,16 +116,16 @@ export class CommitDetailPanelSk extends ElementSk {
     return s;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['selectable', 'selected'];
   }
 
   /** Mirrors the selectable attribute. */
-  get selectable() {
+  get selectable(): boolean {
     return this.hasAttribute('selectable');
   }
 
-  set selectable(val) {
+  set selectable(val: boolean) {
     if (val) {
       this.setAttribute('selectable', '');
     } else {
@@ -129,21 +134,15 @@ export class CommitDetailPanelSk extends ElementSk {
   }
 
   /** Mirrors the selected attribute. */
-  get selected() {
+  get selected(): number {
     if (this.hasAttribute('selected')) {
       return +this.getAttribute('selected')!;
     }
     return -1;
   }
 
-  set selected(val) {
+  set selected(val: number) {
     this.setAttribute('selected', `${val}`);
-  }
-
-  attributeChangedCallback(_: string, oldValue: string, newValue: string) {
-    if (oldValue !== newValue) {
-      this._render();
-    }
   }
 }
 

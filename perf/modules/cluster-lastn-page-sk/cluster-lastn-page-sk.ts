@@ -11,6 +11,7 @@ import { fromObject } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/spinner-sk';
@@ -35,12 +36,56 @@ import {
 } from '../json';
 import { DomainPickerState } from '../domain-picker-sk/domain-picker-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 
 export class ClusterLastNPageSk extends ElementSk {
+  // The range of commits over which we are clustering.
+  private domain: DomainPickerState = {
+    begin: 0,
+    end: Math.floor(Date.now() / 1000),
+    num_commits: 200,
+    request_type: 1,
+  };
+
+  // True if the Alert is being saved to the database.
+  private writingAlert: boolean = false;
+
+  // The paramsets for the alert config.
+  private paramset: ParamSet = {};
+
+  // The id of the currently running request.
+  private requestId: string = '';
+
+  // The text status of the currently running request.
+  private runningStatus = '';
+
+  // The fetch in connectedCallback will fill this is with the defaults.
+  private state: Alert | null = null;
+
+  // The regressions detected from the dryrun.
+  private regressions: (RegressionAtCommit | null)[] = [];
+
+  private alertDialog: HTMLDialogElement | null = null;
+
+  private triageDialog: HTMLDialogElement | null = null;
+
+  private alertConfig: AlertConfigSk | null = null;
+
+  // The state of the cluster-summary2-sk dialog.
+  private dialogState: Partial<TriageStatusSkStartTriageEventDetails> | null = {
+    full_summary: null,
+    triage: undefined,
+  };
+
+  constructor() {
+    super(ClusterLastNPageSk.template);
+    if (window.sk.perf.demo) {
+      this.domain.end = Math.floor(new Date(2020, 4, 1).valueOf() / 1000);
+    }
+  }
+
   private static template = (ele: ClusterLastNPageSk) => html`
     <dialog id="alert-config-dialog">
       <alert-config-sk
@@ -164,8 +209,8 @@ export class ClusterLastNPageSk extends ElementSk {
             cluster_type="low"
             .full_summary=${ClusterLastNPageSk.fullSummary(
               reg.regression!.frame!,
-              reg.regression!.low
-            )}
+              reg.regression!.low,
+      )}
             .triage=${reg.regression!.low_status}
           ></triage-status-sk>
         </td>
@@ -186,8 +231,8 @@ export class ClusterLastNPageSk extends ElementSk {
             cluster_type="high"
             .full_summary=${ClusterLastNPageSk.fullSummary(
               reg.regression!.frame!,
-              reg.regression!.high
-            )}
+              reg.regression!.high,
+      )}
             .triage=${reg.regression!.high_status}
           ></triage-status-sk>
         </td>
@@ -203,9 +248,8 @@ export class ClusterLastNPageSk extends ElementSk {
     return html``;
   };
 
-  private static tableRows = (ele: ClusterLastNPageSk) =>
-    ele.regressions.map(
-      (reg) => html`
+  private static tableRows = (ele: ClusterLastNPageSk) => ele.regressions.map(
+    (reg) => html`
         <tr>
           <td class="fixed">
             <commit-detail-sk .cid=${reg!.cid}></commit-detail-sk>
@@ -215,11 +259,10 @@ export class ClusterLastNPageSk extends ElementSk {
           ${ClusterLastNPageSk.high(ele, reg!)}
           ${ClusterLastNPageSk.filler(ele)}
         </tr>
-      `
-    );
+      `,
+  );
 
-  private static configTitle = (ele: ClusterLastNPageSk) =>
-    html`
+  private static configTitle = (ele: ClusterLastNPageSk) => html`
       Algo: ${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
       ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
@@ -247,55 +290,7 @@ export class ClusterLastNPageSk extends ElementSk {
     `;
   };
 
-  // The range of commits over which we are clustering.
-  private domain: DomainPickerState = {
-    begin: 0,
-    end: Math.floor(Date.now() / 1000),
-    num_commits: 200,
-    request_type: 1,
-  };
-
-  // True if the Alert is being saved to the database.
-  private writingAlert: boolean = false;
-
-  // The paramsets for the alert config.
-  private paramset: ParamSet = {};
-
-  // The id of the currently running request.
-  private requestId: string = '';
-
-  // The text status of the currently running request.
-  private runningStatus = '';
-
-  // The fetch in connectedCallback will fill this is with the defaults.
-  private state: Alert | null = null;
-
-  // The regressions detected from the dryrun.
-  private regressions: (RegressionAtCommit | null)[] = [];
-
-  private alertDialog: HTMLDialogElement | null = null;
-  private triageDialog: HTMLDialogElement | null = null;
-  private alertConfig: AlertConfigSk | null = null;
-
-  // The state of the cluster-summary2-sk dialog.
-  private dialogState: Partial<TriageStatusSkStartTriageEventDetails> | null = {
-    full_summary: null,
-    triage: undefined,
-  };
-
-  // Call this anytime something in private state is changed. Will be replaced
-  // with the real function once stateReflector has been setup.
-  // tslint:disable-next-line: no-empty
-  private stateHasChanged = () => {};
-
-  constructor() {
-    super(ClusterLastNPageSk.template);
-    if (window.sk.perf.demo) {
-      this.domain.end = Math.floor(new Date(2020, 4, 1).valueOf() / 1000);
-    }
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
 
     const init = fetch('/_/initpage/')
@@ -323,11 +318,16 @@ export class ClusterLastNPageSk extends ElementSk {
           (state) => {
             this.state = (state as unknown) as Alert;
             this._render();
-          }
+          },
         );
       })
       .catch(errorMessage);
   }
+
+  // Call this anytime something in private state is changed. Will be replaced
+  // with the real function once stateReflector has been setup.
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private stateHasChanged = () => {};
 
   private alertEdit() {
     this.alertDialog!.showModal();
@@ -434,7 +434,7 @@ export class ClusterLastNPageSk extends ElementSk {
   }
 
   private checkDryRunStatus(
-    cb: (regressions: (RegressionAtCommit | null)[]) => void
+    cb: (regressions: (RegressionAtCommit | null)[])=> void,
   ) {
     fetch(`/_/dryrun/status/${this.requestId}`)
       .then(jsonOrThrow)

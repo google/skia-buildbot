@@ -92,6 +92,28 @@ module.exports = {
             after: true,
           },
         ],
+
+        // note you must disable the base rule as it can report incorrect errors
+        'lines-between-class-members': 'off',
+        '@typescript-eslint/lines-between-class-members': [
+          'error',
+          'always',
+          { exceptAfterOverload: true },
+        ],
+
+        // note you must disable the base rule as it can report incorrect errors
+        'space-before-function-paren': 'off',
+        '@typescript-eslint/space-before-function-paren': [
+          'error',
+          {
+            anonymous: 'never',
+            named: 'never',
+            asyncArrow: 'always',
+          },
+        ],
+
+        // We already disallow implicit-any, explicit is fine.
+        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
   ],

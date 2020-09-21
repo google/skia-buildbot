@@ -12,8 +12,8 @@ import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber } from '../json';
 
 import 'elements-sk/spinner-sk';
@@ -21,9 +21,18 @@ import 'elements-sk/styles/buttons';
 
 export class JSONSourceSk extends ElementSk {
   private _json: string;
+
   private _cid: CommitNumber = -1;
+
   private _traceid: string;
+
   private _spinner: SpinnerSk | null = null;
+
+  constructor() {
+    super(JSONSourceSk.template);
+    this._json = '';
+    this._traceid = '';
+  }
 
   private static template = (ele: JSONSourceSk) => html`
     <div id="controls">
@@ -36,49 +45,44 @@ export class JSONSourceSk extends ElementSk {
     <pre>${ele._json}</pre>
   `;
 
-  constructor() {
-    super(JSONSourceSk.template);
-    this._json = '';
-    this._traceid = '';
-  }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._spinner = $$('#spinner', this);
   }
 
   /** @prop cid - The Commit ID. */
-  get cid() {
+  get cid(): number {
     return this._cid;
   }
 
-  set cid(val) {
+  set cid(val: number) {
     this._cid = val;
     this._json = '';
     this._render();
   }
 
   /** @prop traceid - The ID of the trace. */
-  get traceid() {
+  get traceid(): string {
     return this._traceid;
   }
 
-  set traceid(val) {
+  set traceid(val: string) {
     this._traceid = val;
     this._json = '';
     this._render();
   }
 
-  _loadSource() {
+  private _loadSource() {
     this._loadSourceImpl(false);
   }
 
-  _loadSourceSmall() {
+  private _loadSourceSmall() {
     this._loadSourceImpl(true);
   }
 
-  _loadSourceImpl(isSmall: boolean) {
+  private _loadSourceImpl(isSmall: boolean) {
     if (this._spinner!.active === true) {
       return;
     }

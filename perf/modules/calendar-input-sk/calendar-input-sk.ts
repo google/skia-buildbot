@@ -10,13 +10,31 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/icon/date-range-icon-sk';
-import dialogPolyfill from 'dialog-polyfill';
 import '../calendar-sk';
 import { CalendarSk } from '../calendar-sk/calendar-sk';
 
 export class CalendarInputSk extends ElementSk {
+  private dialog: HTMLDialogElement | null = null;
+
+  private calendar: CalendarSk | null = null;
+
+  private input: HTMLInputElement | null = null;
+
+  private _displayDate: Date = new Date();
+
+  // These two functions store the callbacks from a Promise, which allows the
+  // openHandler() function to be a nice linear function.
+  private resolve: ((value?: any)=> void) | null = null;
+
+  private reject: ((reason?: any)=> void) | null = null;
+
+  constructor() {
+    super(CalendarInputSk.template);
+  }
+
   private static template = (ele: CalendarInputSk) => html`
     <label>
       <input
@@ -25,8 +43,8 @@ export class CalendarInputSk extends ElementSk {
         pattern="[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}"
         title="Date in YYYY-MM-DD format."
         placeholder="yyyy-mm-dd"
-        .value="${ele._displayDate.getFullYear()}-${ele._displayDate.getMonth() +
-        1}-${ele._displayDate.getDate()}"
+        .value="${ele._displayDate.getFullYear()}-${ele._displayDate.getMonth()
+        + 1}-${ele._displayDate.getDate()}"
       />
       <span class="invalid" aria-live="polite" title="Date is invalid.">
         &cross;
@@ -48,21 +66,7 @@ export class CalendarInputSk extends ElementSk {
     </dialog>
   `;
 
-  private dialog: HTMLDialogElement | null = null;
-  private calendar: CalendarSk | null = null;
-  private input: HTMLInputElement | null = null;
-  private _displayDate: Date = new Date();
-
-  // These two functions store the callbacks from a Promise, which allows the
-  // openHandler() function to be a nice linear function.
-  private resolve: ((value?: any) => void) | null = null;
-  private reject: ((reason?: any) => void) | null = null;
-
-  constructor() {
-    super(CalendarInputSk.template);
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
@@ -97,8 +101,7 @@ export class CalendarInputSk extends ElementSk {
   }
 
   private async openHandler() {
-    const keyboardHandler = (e: KeyboardEvent) =>
-      this.calendar!.keyboardHandler(e);
+    const keyboardHandler = (e: KeyboardEvent) => this.calendar!.keyboardHandler(e);
     try {
       this.dialog!.showModal();
       this.dialog!.addEventListener('keydown', keyboardHandler);
@@ -121,7 +124,7 @@ export class CalendarInputSk extends ElementSk {
       new CustomEvent<Date>('input', {
         detail: this.displayDate,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -136,20 +139,21 @@ export class CalendarInputSk extends ElementSk {
   }
 
   /** The default date, if not set defaults to today. */
-  get displayDate() {
+  get displayDate(): Date {
     return this._displayDate;
   }
-  set displayDate(val) {
+
+  set displayDate(val: Date) {
     this._displayDate = val;
     this._render();
   }
 
   /** @prop locale - The locale, used just for testing. */
-  get locale() {
+  get locale(): string | string[] | undefined {
     return this.calendar!.locale;
   }
 
-  set locale(val) {
+  set locale(val: string | string[] | undefined) {
     this.calendar!.locale = val;
   }
 }

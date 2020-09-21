@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { KDTree, KDPoint } from './kd';
 import { assert } from 'chai';
+import { KDTree, KDPoint } from './kd';
 
 describe('KDTree search', () => {
   const points: KDPoint[] = [
@@ -22,8 +22,7 @@ describe('KDTree search', () => {
     { x: 6, y: 6 },
   ];
 
-  const distance = (a: KDPoint, b: KDPoint) =>
-    (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  const distance = (a: KDPoint, b: KDPoint) => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 
   const tree = new KDTree(points, distance, ['x', 'y']);
 

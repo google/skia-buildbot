@@ -14,20 +14,19 @@ window.Login = Promise.resolve({
   LoginURL: 'https://accounts.google.com/',
 });
 
-ClusterSummary2Sk.lookupCids = () =>
-  new Promise((resolve) => {
-    resolve([
-      {
-        hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
-        offset: 24748,
-        author: 'msarett@google.com',
-        message: '313c463 - Safely handle unsupported color xforms in SkCodec',
-        url:
+ClusterSummary2Sk.lookupCids = () => new Promise((resolve) => {
+  resolve([
+    {
+      hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
+      offset: 24748,
+      author: 'msarett@google.com',
+      message: '313c463 - Safely handle unsupported color xforms in SkCodec',
+      url:
           'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
-        ts: 1476984695,
-      },
-    ]);
-  });
+      ts: 1476984695,
+    },
+  ]);
+});
 
 const summary: ClusterSummary = {
   centroid: [
@@ -107,7 +106,7 @@ const fullSummary: FullSummary = {
 };
 
 const cluster = document.querySelector<ClusterSummary2Sk>(
-  'cluster-summary2-sk.cluster'
+  'cluster-summary2-sk.cluster',
 );
 cluster!.full_summary = fullSummary;
 
@@ -116,7 +115,7 @@ summary2.summary.step_fit!.status = 'High';
 summary2.summary.step_fit!.regression = 201;
 summary2.summary.step_fit!.least_squares = -1; // Should be hidden.
 const nostatus = document.querySelector<ClusterSummary2Sk>(
-  'cluster-summary2-sk.nostatus'
+  'cluster-summary2-sk.nostatus',
 );
 nostatus!.full_summary = summary2;
 nostatus!.triage = triage;
@@ -125,13 +124,13 @@ document.body.addEventListener('triaged', (e) => {
   document.querySelector('code.events')!.textContent = JSON.stringify(
     (e as CustomEvent).detail,
     null,
-    ' '
+    ' ',
   );
 });
 document.body.addEventListener('open-keys', (e) => {
   document.querySelector('code.events')!.textContent = JSON.stringify(
     (e as CustomEvent).detail,
     null,
-    ' '
+    ' ',
   );
 });

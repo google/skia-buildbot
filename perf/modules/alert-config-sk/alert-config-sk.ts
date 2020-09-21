@@ -15,6 +15,9 @@ import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
+import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   ParamSet,
@@ -25,11 +28,8 @@ import {
   TryBugRequest,
   TryBugResponse,
 } from '../json';
-import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
-import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
 
 import '../algo-select-sk';
 import '../query-chooser-sk';
@@ -37,7 +37,7 @@ import '../query-chooser-sk';
 const toDirection = (val: string | null): Direction => {
   if (val === 'UP') {
     return 'UP';
-  } else if (val === 'DOWN') {
+  } if (val === 'DOWN') {
     return 'DOWN';
   }
   return 'BOTH';
@@ -62,6 +62,44 @@ const toConfigState = (s: string | null): ConfigState => {
 };
 
 export class AlertConfigSk extends ElementSk {
+  private _paramset: ParamSet = {};
+
+  private _config: Alert;
+
+  private _key_order: string[] | null = [];
+
+  private paramkeys: string[] = [];
+
+  private bugSpinner: SpinnerSk | null = null;
+
+  private alertSpinner: SpinnerSk | null = null;
+
+  constructor() {
+    super(AlertConfigSk.template);
+    this._paramset = {};
+    this.paramkeys = [];
+    this._config = {
+      id_as_string: '-1',
+      display_name: 'Name',
+      query: '',
+      alert: '',
+      interesting: 0,
+      bug_uri_template: '',
+      algo: 'kmeans',
+      state: 'ACTIVE',
+      owner: '',
+      step_up_only: false,
+      direction: 'BOTH',
+      radius: 10,
+      k: 50,
+      group_by: '',
+      sparse: false,
+      minimum_num: 0,
+      category: 'Experimental',
+      step: '',
+    };
+  }
+
   private static template = (ele: AlertConfigSk) => html`
     <h3>Display Name</h3>
     <label for="display-name">Display Name</label>
@@ -69,8 +107,7 @@ export class AlertConfigSk extends ElementSk {
       id="display-name"
       type="text"
       .value=${ele._config.display_name}
-      @change=${(e: InputEvent) =>
-        (ele._config.display_name = (e.target! as HTMLInputElement).value)}
+      @change=${(e: InputEvent) => (ele._config.display_name = (e.target! as HTMLInputElement).value)}
     />
 
     <h3>Category</h3>
@@ -79,8 +116,7 @@ export class AlertConfigSk extends ElementSk {
       id="category"
       type="text"
       .value=${ele._config.category}
-      @input=${(e: InputEvent) =>
-        (ele._config.category = (e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.category = (e.target! as HTMLInputElement).value)}
     />
 
     <h3>Which traces should be monitored</h3>
@@ -90,8 +126,7 @@ export class AlertConfigSk extends ElementSk {
       .key_order=${ele.key_order}
       current_query=${ele._config.query}
       count_url="/_/count/"
-      @query-change=${(e: CustomEvent<QuerySkQueryChangeEventDetail>) =>
-        (ele._config.query = e.detail.q)}
+      @query-change=${(e: CustomEvent<QuerySkQueryChangeEventDetail>) => (ele._config.query = e.detail.q)}
     ></query-chooser-sk>
 
     <div>
@@ -112,8 +147,7 @@ export class AlertConfigSk extends ElementSk {
     <algo-select-sk
       id="grouping"
       algo=${ele._config.algo}
-      @algo-change=${(e: CustomEvent<AlgoSelectAlgoChangeEventDetail>) =>
-        (ele._config.algo = e.detail.algo)}
+      @algo-change=${(e: CustomEvent<AlgoSelectAlgoChangeEventDetail>) => (ele._config.algo = e.detail.algo)}
     ></algo-select-sk>
 
     <h4>Step Detection</h4>
@@ -126,13 +160,12 @@ export class AlertConfigSk extends ElementSk {
     <select-sk
       id="step"
       @selection-changed=${(
-        e: CustomEvent<SelectSkSelectionChangedEventDetail>
-      ) =>
-        (ele._config.step = toStepDetection(
-          (e.target! as HTMLDivElement).children[
-            e.detail.selection
-          ].getAttribute('value')
-        ))}
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>,
+  ) => (ele._config.step = toStepDetection(
+    (e.target! as HTMLDivElement).children[
+      e.detail.selection
+    ].getAttribute('value'),
+  ))}
     >
       <div value="" ?selected=${ele._config.step === ''}>
         Regression = Step Size/Variance. This is the original regression factor.
@@ -163,8 +196,7 @@ export class AlertConfigSk extends ElementSk {
       min="1"
       max="500"
       .value=${ele._config.interesting}
-      @input=${(e: InputEvent) =>
-        (ele._config.interesting = +(e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.interesting = +(e.target! as HTMLInputElement).value)}
     />
 
     <h4>K</h4>
@@ -177,8 +209,7 @@ export class AlertConfigSk extends ElementSk {
       type="number"
       min="0"
       .value=${ele._config.k}
-      @input=${(e: InputEvent) =>
-        (ele._config.k = +(e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.k = +(e.target! as HTMLInputElement).value)}
     />
 
     <h4>Radius</h4>
@@ -191,20 +222,18 @@ export class AlertConfigSk extends ElementSk {
       type="number"
       min="0"
       .value=${ele._config.radius}
-      @input=${(e: InputEvent) =>
-        (ele._config.radius = +(e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.radius = +(e.target! as HTMLInputElement).value)}
     />
 
     <h4>Step Direction</h4>
     <select-sk
       @selection-changed=${(
-        e: CustomEvent<SelectSkSelectionChangedEventDetail>
-      ) =>
-        (ele._config.direction = toDirection(
-          (e.target! as HTMLDivElement).children[
-            e.detail.selection
-          ].getAttribute('value')
-        ))}
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>,
+  ) => (ele._config.direction = toDirection(
+    (e.target! as HTMLDivElement).children[
+      e.detail.selection
+    ].getAttribute('value'),
+  ))}
     >
       <div value="BOTH" ?selected=${ele._config.direction === 'BOTH'}>
         Either step up or step down trigger an alert.
@@ -225,15 +254,13 @@ export class AlertConfigSk extends ElementSk {
       id="min"
       type="number"
       .value=${ele._config.minimum_num}
-      @input=${(e: InputEvent) =>
-        (ele._config.minimum_num = +(e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.minimum_num = +(e.target! as HTMLInputElement).value)}
     />
 
     <h4>Sparse</h4>
     <checkbox-sk
       ?checked=${ele._config.sparse}
-      @input=${(e: InputEvent) =>
-        (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
+      @input=${(e: InputEvent) => (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
       label="Data is sparse, so only include commits that have data."
     ></checkbox-sk>
 
@@ -244,8 +271,7 @@ export class AlertConfigSk extends ElementSk {
     <input
       id="sent"
       .value=${ele._config.alert}
-      @input=${(e: InputEvent) =>
-        (ele._config.alert = (e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.alert = (e.target! as HTMLInputElement).value)}
     />
     <button @click=${ele.testAlert}>Test</button>
     <spinner-sk id="alertSpinner"></spinner-sk>
@@ -257,8 +283,7 @@ export class AlertConfigSk extends ElementSk {
     <input
       id="template"
       .value=${ele._config.bug_uri_template}
-      @input=${(e: InputEvent) =>
-        (ele._config.bug_uri_template = (e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.bug_uri_template = (e.target! as HTMLInputElement).value)}
     />
     <button @click=${ele.testBugTemplate}>Test</button>
     <spinner-sk id="bugSpinner"></spinner-sk>
@@ -268,8 +293,7 @@ export class AlertConfigSk extends ElementSk {
     <input
       id="owner"
       .value=${ele._config.owner}
-      @input=${(e: InputEvent) =>
-        (ele._config.owner = (e.target! as HTMLInputElement).value)}
+      @input=${(e: InputEvent) => (ele._config.owner = (e.target! as HTMLInputElement).value)}
     />
 
     <h3>Group By</h3>
@@ -278,11 +302,10 @@ export class AlertConfigSk extends ElementSk {
     </label>
     <multi-select-sk
       @selection-changed=${(
-        e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
-      ) =>
-        (ele._config.group_by = e.detail.selection
-          .map((i) => ele.paramkeys[i])
-          .join(','))}
+    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>,
+  ) => (ele._config.group_by = e.detail.selection
+    .map((i) => ele.paramkeys[i])
+    .join(','))}
       id="groupby"
     >
       ${AlertConfigSk._groupByChoices(ele)}
@@ -292,13 +315,12 @@ export class AlertConfigSk extends ElementSk {
     <select-sk
       .selection=${ele._config.state === 'ACTIVE' ? 0 : 1}
       @selection-changed=${(
-        e: CustomEvent<SelectSkSelectionChangedEventDetail>
-      ) =>
-        (ele._config.state = toConfigState(
-          (e.target! as HTMLDivElement).children[
-            e.detail.selection
-          ].getAttribute('value')
-        ))}
+      e: CustomEvent<SelectSkSelectionChangedEventDetail>,
+    ) => (ele._config.state = toConfigState(
+      (e.target! as HTMLDivElement).children[
+        e.detail.selection
+      ].getAttribute('value'),
+    ))}
     >
       <div
         value="ACTIVE"
@@ -313,45 +335,12 @@ export class AlertConfigSk extends ElementSk {
   private static _groupByChoices = (ele: AlertConfigSk) => {
     const groups = ele._config.group_by.split(',');
     return ele.paramkeys.map(
-      (p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`
+      (p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`,
     );
   };
 
-  private _paramset: ParamSet = {};
-  private _config: Alert;
-  private _key_order: string[] | null = [];
 
-  private paramkeys: string[] = [];
-  private bugSpinner: SpinnerSk | null = null;
-  private alertSpinner: SpinnerSk | null = null;
-
-  constructor() {
-    super(AlertConfigSk.template);
-    this._paramset = {};
-    this.paramkeys = [];
-    this._config = {
-      id_as_string: '-1',
-      display_name: 'Name',
-      query: '',
-      alert: '',
-      interesting: 0,
-      bug_uri_template: '',
-      algo: 'kmeans',
-      state: 'ACTIVE',
-      owner: '',
-      step_up_only: false,
-      direction: 'BOTH',
-      radius: 10,
-      k: 50,
-      group_by: '',
-      sparse: false,
-      minimum_num: 0,
-      category: 'Experimental',
-      step: '',
-    };
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('config');
     this._upgradeProperty('paramset');
@@ -409,11 +398,11 @@ export class AlertConfigSk extends ElementSk {
   }
 
   /** @prop paramset {string} A serialized paramtools.ParamSet. */
-  get paramset() {
+  get paramset(): ParamSet {
     return this._paramset;
   }
 
-  set paramset(val) {
+  set paramset(val: ParamSet) {
     if (val === undefined) {
       return;
     }
@@ -424,11 +413,11 @@ export class AlertConfigSk extends ElementSk {
   }
 
   /** @prop config {Object} A serialized alerts.Alert. */
-  get config() {
+  get config(): Alert {
     return this._config;
   }
 
-  set config(val) {
+  set config(val: Alert) {
     if (!val || Object.keys(val).length === 0) {
       return;
     }
@@ -443,11 +432,11 @@ export class AlertConfigSk extends ElementSk {
   }
 
   /** @prop key_order {string} The order of keys, passed to query-sk. */
-  get key_order() {
+  get key_order(): string[] | null {
     return this._key_order;
   }
 
-  set key_order(val) {
+  set key_order(val: string[] | null) {
     if (val === undefined) {
       return;
     }

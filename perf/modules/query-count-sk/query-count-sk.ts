@@ -22,15 +22,10 @@ import 'elements-sk/spinner-sk';
 
 export class QueryCountSk extends ElementSk {
   private _last_query = '';
-  private _count = '';
-  private _requestInProgress = false;
 
-  private static template = (ele: QueryCountSk) => html`
-    <div>
-      <span>${ele._count}</span>
-      <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
-    </div>
-  `;
+  private _count = '';
+
+  private _requestInProgress = false;
 
   constructor() {
     super(QueryCountSk.template);
@@ -39,7 +34,14 @@ export class QueryCountSk extends ElementSk {
     this._requestInProgress = false;
   }
 
-  connectedCallback() {
+  private static template = (ele: QueryCountSk) => html`
+    <div>
+      <span>${ele._count}</span>
+      <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
+    </div>
+  `;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('url');
     this._upgradeProperty('current_query');
@@ -47,11 +49,15 @@ export class QueryCountSk extends ElementSk {
     this._fetch();
   }
 
-  static get observedAttributes() {
+  attributeChangedCallback(): void {
+    this._fetch();
+  }
+
+  static get observedAttributes(): string[] {
     return ['current_query', 'url'];
   }
 
-  _fetch() {
+  private _fetch() {
     if (!this._connected) {
       return;
     }
@@ -89,7 +95,7 @@ export class QueryCountSk extends ElementSk {
           new CustomEvent<ParamSet>('paramset-changed', {
             detail: json.paramset,
             bubbles: true,
-          })
+          }),
         );
       })
       .catch((msg) => {
@@ -99,25 +105,21 @@ export class QueryCountSk extends ElementSk {
       });
   }
 
-  attributeChangedCallback() {
-    this._fetch();
-  }
-
   /** @prop url - The URL to make POST requests to.  */
-  get url() {
+  get url(): string {
     return this.getAttribute('url') || '';
   }
 
-  set url(val) {
+  set url(val: string) {
     this.setAttribute('url', val);
   }
 
   /** @prop current_query - The current trace query. */
-  get current_query() {
+  get current_query(): string {
     return this.getAttribute('current_query') || '';
   }
 
-  set current_query(val) {
+  set current_query(val: string) {
     this.setAttribute('current_query', val);
   }
 }

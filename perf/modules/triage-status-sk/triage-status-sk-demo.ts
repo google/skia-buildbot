@@ -7,7 +7,7 @@ document
     document.querySelector('pre')!.textContent = JSON.stringify(
       (e as CustomEvent).detail,
       null,
-      '  '
+      '  ',
     );
   });
 

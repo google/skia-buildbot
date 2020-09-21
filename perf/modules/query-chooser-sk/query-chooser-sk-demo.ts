@@ -35,9 +35,9 @@ document.querySelectorAll<QueryChooserSk>('query-chooser-sk').forEach((ele) => {
       document.querySelector('#events')!.textContent = JSON.stringify(
         e.detail,
         null,
-        '  '
+        '  ',
       );
-    }
+    },
   );
   ele.paramset = paramset;
   ele.key_order = ['test', 'units'];
