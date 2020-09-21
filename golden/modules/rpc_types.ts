@@ -108,6 +108,13 @@ export interface TriageRequest {
 	testDigestStatus: TriageRequestData;
 	changelist_id: string;
 	crs: string;
+	imageMatchingAlgorithm?: string;
+}
+
+export interface TriageRequest {
+	testDigestStatus: TriageRequestData;
+	changelist_id: string;
+	crs: string;
 	imageMatchingAlgorithm: string;
 }
 
