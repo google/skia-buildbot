@@ -15,13 +15,13 @@ import { fromObject } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   RegressionRangeRequest,
   RegressionRow,
   Subset,
   RegressionRangeResponse,
-  TriageStatus,
   FullSummary,
   Regression,
   FrameResponse,
@@ -39,7 +39,6 @@ import '../cluster-summary2-sk';
 import '../commit-detail-sk';
 import '../day-range-sk';
 import '../triage-status-sk';
-import { HintableObject } from 'common-sk/modules/hintable';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
 import {
   ClusterSummary2SkTriagedEventDetail,
@@ -49,7 +48,7 @@ import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
 
 function _full_summary(
   frame: FrameResponse,
-  summary: ClusterSummary
+  summary: ClusterSummary,
 ): FullSummary {
   return {
     frame,
@@ -69,11 +68,6 @@ interface State {
   alert_filter: string;
 }
 
-interface DialogState {
-  full_summary?: FullSummary;
-  triage: TriageStatus;
-}
-
 interface ValueOptions {
   value: string;
   title: string;
@@ -81,6 +75,61 @@ interface ValueOptions {
 }
 
 export class TriagePageSk extends ElementSk {
+  private state: State;
+
+  private triageInProgress: boolean;
+
+  private refreshRangeInProgress: boolean;
+
+  private statusIntervalID: number;
+
+  private firstConnect: boolean;
+
+  private reg: RegressionRangeResponse;
+
+  private dialogState: Partial<TriageStatusSkStartTriageEventDetails> = {};
+
+  private lastState: Partial<State> = {};
+
+  private dialog: HTMLDialogElement | null = null;
+
+  private allFilterOptions: ValueOptions[] = [];
+
+  private currentClusteringStatus: Current[] = [];
+
+  constructor() {
+    super(TriagePageSk.template);
+    const now = Math.floor(Date.now() / 1000);
+
+    // The state to reflect to the URL, also the body of the POST request
+    // we send to /_/reg/.
+    this.state = {
+      begin: now - 2 * 7 * 24 * 60 * 60, // 2 weeks.
+      end: now,
+      subset: 'untriaged',
+      alert_filter: 'ALL',
+      filter: '',
+    };
+
+    this.reg = {
+      header: [],
+      table: [],
+      categories: [],
+    };
+
+    this.allFilterOptions = [];
+
+    this.triageInProgress = false;
+
+    this.refreshRangeInProgress = false;
+
+    // The ID of the setInterval that is updating _currentClusteringStatus.
+    this.statusIntervalID = 0;
+
+    this.firstConnect = false;
+  }
+
+
   private static template = (ele: TriagePageSk) => html`
     <header>
       <details>
@@ -167,53 +216,51 @@ export class TriagePageSk extends ElementSk {
     </table>
   `;
 
-  private static rows = (ele: TriagePageSk) =>
-    ele.reg!.table!.map(
-      (row, rowIndex) => html`
+  private static rows = (ele: TriagePageSk) => ele.reg!.table!.map(
+    (row, rowIndex) => html`
         <tr>
           <td class="fixed">
             <commit-detail-sk .cid=${row!.cid}></commit-detail-sk>
           </td>
           ${TriagePageSk.columns(ele, row!, rowIndex)}
         </tr>
-      `
-    );
+      `,
+  );
 
   private static columns = (
     ele: TriagePageSk,
     row: RegressionRow,
-    rowIndex: number
-  ) =>
-    row.columns!.map((col, colIndex) => {
-      const ret = [];
+    rowIndex: number,
+  ) => row.columns!.map((col, colIndex) => {
+    const ret = [];
 
-      if (ele.stepDownAt(colIndex)) {
-        ret.push(html`
+    if (ele.stepDownAt(colIndex)) {
+      ret.push(html`
           <td class="cluster">
             ${TriagePageSk.lowCell(ele, rowIndex, col!, colIndex)}
           </td>
         `);
-      }
+    }
 
-      if (ele.stepUpAt(colIndex)) {
-        ret.push(html`
+    if (ele.stepUpAt(colIndex)) {
+      ret.push(html`
           <td class="cluster">
             ${TriagePageSk.highCell(ele, rowIndex, col!, colIndex)}
           </td>
         `);
-      }
+    }
 
-      if (ele.notBoth(colIndex)) {
-        ret.push(html` <td></td> `);
-      }
-      return ret;
-    });
+    if (ele.notBoth(colIndex)) {
+      ret.push(html` <td></td> `);
+    }
+    return ret;
+  });
 
   private static lowCell = (
     ele: TriagePageSk,
     rowIndex: number,
     col: Regression,
-    colIndex: number
+    colIndex: number,
   ) => {
     if (col && col.low) {
       return html`
@@ -229,8 +276,8 @@ export class TriagePageSk extends ElementSk {
       <a
         title="No clusters found."
         href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
-          colIndex
-        )}"
+      colIndex,
+    )}"
       >
         ∅
       </a>
@@ -241,7 +288,7 @@ export class TriagePageSk extends ElementSk {
     ele: TriagePageSk,
     rowIndex: number,
     col: Regression,
-    colIndex: number
+    colIndex: number,
   ) => {
     if (col && col.high) {
       return html`
@@ -257,49 +304,46 @@ export class TriagePageSk extends ElementSk {
       <a
         title="No clusters found."
         href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
-          colIndex
-        )}"
+      colIndex,
+    )}"
       >
         ∅
       </a>
     `;
   };
 
-  private static subHeaders = (ele: TriagePageSk) =>
-    ele.reg.header!.map((_, index) => {
-      const ret = [];
-      if (ele.stepDownAt(index)) {
-        ret.push(html` <th>Low</th> `);
-      }
-      if (ele.stepUpAt(index)) {
-        ret.push(html` <th>High</th> `);
-      }
-      // If we have only one of High or Low we stuff in an empty th to match
-      // colspan=2 above.
-      if (ele.notBoth(index)) {
-        ret.push(html` <th></th> `);
-      }
-      return ret;
-    });
+  private static subHeaders = (ele: TriagePageSk) => ele.reg.header!.map((_, index) => {
+    const ret = [];
+    if (ele.stepDownAt(index)) {
+      ret.push(html` <th>Low</th> `);
+    }
+    if (ele.stepUpAt(index)) {
+      ret.push(html` <th>High</th> `);
+    }
+    // If we have only one of High or Low we stuff in an empty th to match
+    // colspan=2 above.
+    if (ele.notBoth(index)) {
+      ret.push(html` <th></th> `);
+    }
+    return ret;
+  });
 
-  private static headers = (ele: TriagePageSk) =>
-    ele.reg.header!.map((item) => {
-      let displayName = item!.display_name;
-      if (!item!.display_name) {
-        displayName = item!.query.slice(0, 10);
-      }
-      // The colspan=2 is important since we will have two columns under each
-      // header, one for high and one for low.
-      return html`
+  private static headers = (ele: TriagePageSk) => ele.reg.header!.map((item) => {
+    let displayName = item!.display_name;
+    if (!item!.display_name) {
+      displayName = item!.query.slice(0, 10);
+    }
+    // The colspan=2 is important since we will have two columns under each
+    // header, one for high and one for low.
+    return html`
         <th colspan="2">
           <a href="/a/?${item!.id_as_string}">${displayName}</a>
         </th>
       `;
-    });
+  });
 
-  private static statusItems = (ele: TriagePageSk) =>
-    ele.currentClusteringStatus.map(
-      (item) => html`
+  private static statusItems = (ele: TriagePageSk) => ele.currentClusteringStatus.map(
+    (item) => html`
         <table>
           <tr>
             <th>Alert</th>
@@ -318,12 +362,11 @@ export class TriagePageSk extends ElementSk {
             <td>${item.message}</td>
           </tr>
         </table>
-      `
-    );
+      `,
+  );
 
-  private static allFilters = (ele: TriagePageSk) =>
-    ele.allFilterOptions.map(
-      (o) => html`
+  private static allFilters = (ele: TriagePageSk) => ele.allFilterOptions.map(
+    (o) => html`
         <option
           ?selected=${ele.state.alert_filter === o.value}
           value=${o.value}
@@ -331,56 +374,11 @@ export class TriagePageSk extends ElementSk {
         >
           ${o.display}
         </option>
-      `
-    );
+      `,
+  );
 
-  private state: State;
-  private triageInProgress: boolean;
-  private refreshRangeInProgress: boolean;
-  private statusIntervalID: number;
-  private firstConnect: boolean;
-  private reg: RegressionRangeResponse;
-  private dialogState: Partial<TriageStatusSkStartTriageEventDetails> = {};
-  private lastState: Partial<State> = {};
-  private dialog: HTMLDialogElement | null = null;
-  private allFilterOptions: ValueOptions[] = [];
-  // tslint:disable-next-line: no-empty
-  private stateHasChanged: () => void = () => {};
-  private currentClusteringStatus: Current[] = [];
 
-  constructor() {
-    super(TriagePageSk.template);
-    const now = Math.floor(Date.now() / 1000);
-
-    // The state to reflect to the URL, also the body of the POST request
-    // we send to /_/reg/.
-    this.state = {
-      begin: now - 2 * 7 * 24 * 60 * 60, // 2 weeks.
-      end: now,
-      subset: 'untriaged',
-      alert_filter: 'ALL',
-      filter: '',
-    };
-
-    this.reg = {
-      header: [],
-      table: [],
-      categories: [],
-    };
-
-    this.allFilterOptions = [];
-
-    this.triageInProgress = false;
-
-    this.refreshRangeInProgress = false;
-
-    // The ID of the setInterval that is updating _currentClusteringStatus.
-    this.statusIntervalID = 0;
-
-    this.firstConnect = false;
-  }
-
-  connectedCallback() {
+  connectedCallback(): void{
     super.connectedCallback();
     if (this.firstConnect) {
       return;
@@ -400,9 +398,12 @@ export class TriagePageSk extends ElementSk {
         }
         this._render();
         this.updateRange();
-      }
+      },
     );
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private stateHasChanged = () => {};
 
   private commitsChange(e: InputEvent) {
     this.state.subset = (e.target! as HTMLInputElement).value as Subset;
@@ -537,7 +538,7 @@ export class TriagePageSk extends ElementSk {
     if (
       equals(
         (this.lastState! as unknown) as HintableObject,
-        (this.state as unknown) as HintableObject
+        (this.state as unknown) as HintableObject,
       )
     ) {
       return;

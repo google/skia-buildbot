@@ -1,5 +1,5 @@
-import { ticks } from './ticks';
 import { assert } from 'chai';
+import { ticks } from './ticks';
 
 describe('ticks()', () => {
   it('handles months', () => {

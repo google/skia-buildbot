@@ -17,6 +17,10 @@ import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/styles/buttons';
 
 export class TriconSk extends ElementSk {
+  constructor() {
+    super(TriconSk.template);
+  }
+
   private static template = (ele: TriconSk) => {
     switch (ele.value) {
       case 'positive':
@@ -34,22 +38,18 @@ export class TriconSk extends ElementSk {
     }
   };
 
-  constructor() {
-    super(TriconSk.template);
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('value');
     this._render();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['value'];
   }
 
   /** @prop value {string} Mirrors the 'value' attribute. */
-  get value() {
+  get value(): string {
     return this.getAttribute('value') || '';
   }
 
@@ -57,7 +57,7 @@ export class TriconSk extends ElementSk {
     this.setAttribute('value', val);
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(): void {
     this._render();
   }
 }

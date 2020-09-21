@@ -90,7 +90,7 @@ customElements.whenDefined('cluster-lastn-page-sk').then(() => {
     .querySelector('h1')!
     .insertAdjacentElement(
       'afterend',
-      document.createElement('cluster-lastn-page-sk')
+      document.createElement('cluster-lastn-page-sk'),
     );
 });
 
