@@ -12,8 +12,8 @@ import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber } from '../json';
 
 import 'elements-sk/spinner-sk';
@@ -21,8 +21,11 @@ import 'elements-sk/styles/buttons';
 
 export class JSONSourceSk extends ElementSk {
   private _json: string;
+
   private _cid: CommitNumber = -1;
+
   private _traceid: string;
+
   private _spinner: SpinnerSk | null = null;
 
   private static template = (ele: JSONSourceSk) => html`

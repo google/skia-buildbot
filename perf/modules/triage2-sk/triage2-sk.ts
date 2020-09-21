@@ -29,6 +29,10 @@ function isStatus(value: string): value is Status {
 }
 
 export class TriageSk extends ElementSk {
+  constructor() {
+    super(TriageSk.template);
+  }
+
   private static _match = (a: Status, b: Status) => a === b;
 
   private static template = (ele: TriageSk) => html`
@@ -55,11 +59,8 @@ export class TriageSk extends ElementSk {
     </button>
   `;
 
-  constructor() {
-    super(TriageSk.template);
-  }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('value');
     if (!this.value) {
@@ -68,7 +69,7 @@ export class TriageSk extends ElementSk {
     this._render();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['value'];
   }
 
@@ -77,23 +78,22 @@ export class TriageSk extends ElementSk {
     const v = this.getAttribute('value') || '';
     if (isStatus(v)) {
       return v;
-    } else {
-      return 'untriaged';
     }
+    return 'untriaged';
   }
 
   set value(val: Status) {
     this.setAttribute('value', val);
   }
 
-  attributeChangedCallback(_name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback(_name: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this._render();
       this.dispatchEvent(
         new CustomEvent<Status>('change', {
           detail: newValue as Status,
           bubbles: true,
-        })
+        }),
       );
     }
   }

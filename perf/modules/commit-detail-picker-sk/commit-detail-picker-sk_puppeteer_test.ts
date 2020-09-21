@@ -7,23 +7,23 @@ import {
 
 describe('commit-detail-picker-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
+    path.join(__dirname, '..', '..', 'webpack.config.ts'),
   );
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     await testBed.page.goto(
-      `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`
+      `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`,
     );
     await testBed.page.setViewport({ width: 500, height: 500 });
   });
 
-  it('should render the demo page', async () => {
+  it('should render the demo page', async() => {
     // Smoke test.
     expect(await testBed.page.$$('commit-detail-picker-sk')).to.have.length(2);
   });
 
   describe('screenshots', () => {
-    it('shows the default view', async () => {
+    it('shows the default view', async() => {
       await takeScreenshot(testBed.page, 'perf', 'commit-detail-picker-sk');
     });
   });

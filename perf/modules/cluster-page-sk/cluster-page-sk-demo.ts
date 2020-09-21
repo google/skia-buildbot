@@ -109,7 +109,7 @@ customElements.whenDefined('cluster-page-sk').then(() => {
     .querySelector('h1')!
     .insertAdjacentElement(
       'afterend',
-      document.createElement('cluster-page-sk')
+      document.createElement('cluster-page-sk'),
     );
 });
 

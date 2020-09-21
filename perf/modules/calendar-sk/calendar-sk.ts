@@ -41,17 +41,15 @@ import 'elements-sk/icon/navigate-next-icon-sk';
  * [1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
  */
 
-const getNumberOfDaysInMonth = (year: number, monthIndex: number) => {
+const getNumberOfDaysInMonth = (year: number, monthIndex: number) =>
   // Jump forward one month, and back one day to get the last day of the month.
   // Since days are 1-indexed, a value of 0 represents the last day of the
   // previous month.
-  return new Date(year, monthIndex + 1, 0).getDate();
-};
+  new Date(year, monthIndex + 1, 0).getDate()
+;
 
 // Returns a day of the week [0-6]
-const firstDayIndexOfMonth = (year: number, monthIndex: number): number => {
-  return new Date(year, monthIndex).getDay();
-};
+const firstDayIndexOfMonth = (year: number, monthIndex: number): number => new Date(year, monthIndex).getDay();
 
 // Used in templates.
 const sevenDaysInAWeek = [0, 1, 2, 3, 4, 5, 6];
@@ -62,7 +60,9 @@ const sixWeeks = [0, 1, 2, 3, 4, 5];
 // The dates that CalendarSk manipulates, always in local time.
 class CalendarDate {
   year: number;
+
   monthIndex: number;
+
   date: number;
 
   constructor(d: Date) {
@@ -73,9 +73,9 @@ class CalendarDate {
 
   equal(d: CalendarDate) {
     return (
-      this.year === d.year &&
-      this.monthIndex === d.monthIndex &&
-      this.date === d.date
+      this.year === d.year
+      && this.monthIndex === d.monthIndex
+      && this.date === d.date
     );
   }
 }
@@ -97,8 +97,8 @@ export class CalendarSk extends ElementSk {
         <th colspan="5">
           <h2 aria-live="polite" id="calendar-year">
             ${new Intl.DateTimeFormat(ele._locale, { year: 'numeric' }).format(
-              ele._displayDate
-            )}
+    ele._displayDate,
+  )}
           </h2>
         </th>
         <th>
@@ -126,8 +126,8 @@ export class CalendarSk extends ElementSk {
         <th colspan="5">
           <h2 aria-live="polite" id="calendar-month">
             ${new Intl.DateTimeFormat(ele._locale, { month: 'long' }).format(
-              ele._displayDate
-            )}
+    ele._displayDate,
+  )}
           </h2>
         </th>
         <th>
@@ -150,7 +150,7 @@ export class CalendarSk extends ElementSk {
     ele: CalendarSk,
     date: number,
     daysInMonth: number,
-    selected: boolean
+    selected: boolean,
   ) => {
     if (date < 1 || date > daysInMonth) {
       return html``;
@@ -182,10 +182,10 @@ export class CalendarSk extends ElementSk {
     return html`
       <tr>
         ${sevenDaysInAWeek.map((i) => {
-          const date = 7 * weekIndex + i + 1 - firstDayOfTheMonthIndex;
-          currentDate.date = date;
-          const selected = selectedDate === date;
-          return html`
+      const date = 7 * weekIndex + i + 1 - firstDayOfTheMonthIndex;
+      currentDate.date = date;
+      const selected = selectedDate === date;
+      return html`
             <td
               class="
             ${currentDate.equal(today) ? 'today' : ''}
@@ -193,20 +193,22 @@ export class CalendarSk extends ElementSk {
           "
             >
               ${CalendarSk.buttonForDateTemplate(
-                ele,
-                date,
-                daysInMonth,
-                selected
-              )}
+        ele,
+        date,
+        daysInMonth,
+        selected,
+      )}
             </td>
           `;
-        })}
+    })}
       </tr>
     `;
   };
 
   private _displayDate: Date = new Date();
+
   private _weekDayHeader: TemplateResult = html``;
+
   private _locale: string | string[] | undefined = undefined;
 
   constructor() {
@@ -261,7 +263,7 @@ export class CalendarSk extends ElementSk {
       e.stopPropagation();
       e.preventDefault();
       this.querySelector<HTMLButtonElement>(
-        'button[aria-selected="true"]'
+        'button[aria-selected="true"]',
       )!.focus();
     }
   }
@@ -277,15 +279,14 @@ export class CalendarSk extends ElementSk {
     this._weekDayHeader = html`
       <tr class="weekdayHeader">
         ${sevenDaysInAWeek.map(
-          (i) =>
-            html`
+    (i) => html`
               <td>
                 <span abbr="${longFormatter.format(new Date(2020, 2, i + 1))}">
                   ${narrowFormatter.format(new Date(2020, 2, i + 1))}
                 </span>
               </td>
-            `
-        )}
+            `,
+  )}
       </tr>
     `;
   }
@@ -297,7 +298,7 @@ export class CalendarSk extends ElementSk {
       new CustomEvent<Date>('change', {
         detail: d,
         bubbles: true,
-      })
+      }),
     );
     this._displayDate = d;
     this._render();

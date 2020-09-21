@@ -78,7 +78,7 @@ export class DayRangeSk extends ElementSk {
       new CustomEvent<DayRangeSkChangeDetail>('day-range-change', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 

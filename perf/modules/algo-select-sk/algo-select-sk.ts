@@ -13,17 +13,16 @@ import 'elements-sk/select-sk';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { $, $$ } from 'common-sk/modules/dom';
+import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ClusterAlgo } from '../json';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
 
 function toClusterAlgo(s: string): ClusterAlgo {
   const allowed = ['kmeans', 'stepfit'];
   if (allowed.indexOf(s) != -1) {
     return s as ClusterAlgo;
-  } else {
-    return 'kmeans';
   }
+  return 'kmeans';
 }
 
 export interface AlgoSelectAlgoChangeEventDetail {
@@ -70,7 +69,7 @@ export class AlgoSelectSk extends ElementSk {
       index = 0;
     }
     this.algo = toClusterAlgo(
-      $('div', this)[index].getAttribute('value') || ''
+      $('div', this)[index].getAttribute('value') || '',
     );
     const detail = {
       algo: this.algo,
@@ -79,7 +78,7 @@ export class AlgoSelectSk extends ElementSk {
       new CustomEvent<AlgoSelectAlgoChangeEventDetail>('algo-change', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
