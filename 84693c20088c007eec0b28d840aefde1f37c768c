@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54f39513_6cf255aa",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-21T17:19:51Z",
+      "side": 1,
+      "message": "Nit, ignorable: Consider adding return type annotations in a consistent manner across files (e.g. compare the highlighted connectedCallback() method here with the same method in algo-select-sk.ts).",
+      "range": {
+        "startLine": 144,
+        "startChar": 2,
+        "endLine": 144,
+        "endChar": 21
+      },
+      "revId": "84693c20088c007eec0b28d840aefde1f37c768c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68bede99_545bced4",
+        "filename": "perf/modules/explore-sk/explore-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-21T17:19:51Z",
+      "side": 1,
+      "message": "I\u0027m not sure if this is something that can be enforced with eslint, but you\u0027ll probably want to \"git grep \u0027private _\u0027\" and drop the _ prefix from any matching lines.",
+      "range": {
+        "startLine": 205,
+        "startChar": 2,
+        "endLine": 205,
+        "endChar": 11
+      },
+      "revId": "84693c20088c007eec0b28d840aefde1f37c768c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfe7790d_480fca90",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-21T17:19:51Z",
+      "side": 1,
+      "message": "Nit: Space between ) and \u003d.\n\nTangent (feel free to ignore): I wonder if common-sk should define types for the function returned by stateReflector, and for the getState/setState functions it takes as parameters.",
+      "range": {
+        "startLine": 406,
+        "startChar": 27,
+        "endLine": 406,
+        "endChar": 31
+      },
+      "revId": "84693c20088c007eec0b28d840aefde1f37c768c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
