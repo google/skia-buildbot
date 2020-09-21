@@ -18,7 +18,6 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../calendar-input-sk';
-import { CalendarInputSk } from '../calendar-input-sk/calendar-input-sk';
 
 export interface DayRangeSkChangeDetail {
   // Seconds from the Unix epoch.
@@ -34,7 +33,11 @@ function dateFromTimestamp(timestamp: number) {
 }
 
 export class DayRangeSk extends ElementSk {
-  static template = (ele: DayRangeSk) => html`
+  constructor() {
+    super(DayRangeSk.template);
+  }
+
+  private static template = (ele: DayRangeSk) => html`
     <label class="begin">
       Begin
       <calendar-input-sk
@@ -51,11 +54,7 @@ export class DayRangeSk extends ElementSk {
     </label>
   `;
 
-  constructor() {
-    super(DayRangeSk.template);
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('begin');
     this._upgradeProperty('end');
@@ -69,7 +68,11 @@ export class DayRangeSk extends ElementSk {
     this._render();
   }
 
-  _sendEvent() {
+  attributeChangedCallback(): void {
+    this._render();
+  }
+
+  private _sendEvent() {
     const detail = {
       begin: this.begin,
       end: this.end,
@@ -78,44 +81,40 @@ export class DayRangeSk extends ElementSk {
       new CustomEvent<DayRangeSkChangeDetail>('day-range-change', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
-  _beginChanged(e: CustomEvent<Date>) {
+  private _beginChanged(e: CustomEvent<Date>) {
     this.begin = Math.floor(e.detail.valueOf() / 1000);
     this._sendEvent();
   }
 
-  _endChanged(e: CustomEvent<Date>) {
+  private _endChanged(e: CustomEvent<Date>) {
     this.end = Math.floor(e.detail.valueOf() / 1000);
     this._sendEvent();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['begin', 'end'];
   }
 
-  /** @prop begin - Mirrors the 'begin' attribute. */
-  get begin() {
+  /** Mirrors the 'begin' attribute. */
+  get begin(): number {
     return +(this.getAttribute('begin') || '0');
   }
 
-  set begin(val) {
+  set begin(val: number) {
     this.setAttribute('begin', `${val}`);
   }
 
   /** @prop end - Mirrors the 'end' attribute. */
-  get end() {
+  get end(): number {
     return +(this.getAttribute('end') || '0');
   }
 
-  set end(val) {
+  set end(val: number) {
     this.setAttribute('end', `${val}`);
-  }
-
-  attributeChangedCallback() {
-    this._render();
   }
 }
 

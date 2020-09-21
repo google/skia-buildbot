@@ -13,23 +13,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ValuePercent } from '../json';
 
 export class WordCloudSk extends ElementSk {
-  private static rows = (ele: WordCloudSk) =>
-    ele._items.map(
-      (item) => html` <tr>
-        <td class="value">${item.value}</td>
-        <td class="textpercent">${item.percent}%</td>
-        <td class="percent" title="${item.percent}%"
-          ><div style="width: ${item.percent}px"></div
-        ></td>
-      </tr>`
-    );
-
-  private static template = (ele: WordCloudSk) => html`
-    <table>
-      ${WordCloudSk.rows(ele)}
-    </table>
-  `;
-
   private _items: ValuePercent[];
 
   constructor() {
@@ -37,7 +20,23 @@ export class WordCloudSk extends ElementSk {
     this._items = [];
   }
 
-  connectedCallback() {
+  private static rows = (ele: WordCloudSk) => ele._items.map(
+    (item) => html` <tr>
+        <td class="value">${item.value}</td>
+        <td class="textpercent">${item.percent}%</td>
+        <td class="percent" title="${item.percent}%"
+          ><div style="width: ${item.percent}px"></div
+        ></td>
+      </tr>`,
+  );
+
+  private static template = (ele: WordCloudSk) => html`
+    <table>
+      ${WordCloudSk.rows(ele)}
+    </table>
+  `;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('items');
     this._render();
@@ -54,11 +53,11 @@ export class WordCloudSk extends ElementSk {
         {value:"cpu_or_gpu=gpu", percent: 10},
       ]
   */
-  get items() {
+  get items(): ValuePercent[] {
     return this._items;
   }
 
-  set items(val) {
+  set items(val: ValuePercent[]) {
     if (!val) {
       return;
     }
