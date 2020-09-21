@@ -3,9 +3,7 @@ import fetchMock from 'fetch-mock';
 import { JSONSourceSk } from './json-source-sk';
 import 'elements-sk/error-toast-sk';
 
-fetchMock.post('/_/details/', () => {
-  return { Hello: 'world!' };
-});
+fetchMock.post('/_/details/', () => ({ Hello: 'world!' }));
 
 window.customElements.whenDefined('json-source-sk').then(() => {
   const sources = document.querySelectorAll<JSONSourceSk>('json-source-sk')!;
