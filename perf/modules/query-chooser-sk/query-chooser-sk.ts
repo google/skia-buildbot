@@ -26,6 +26,20 @@ import '../query-count-sk';
 import 'elements-sk/styles/buttons';
 
 export class QueryChooserSk extends ElementSk {
+  private _dialog: HTMLDivElement | null;
+
+  private _paramset: ParamSet;
+
+  private _key_order: string[];
+
+  constructor() {
+    super(QueryChooserSk.template);
+    this.current_query = '';
+    this._dialog = null;
+    this._paramset = {};
+    this._key_order = [];
+  }
+
   private static template = (ele: QueryChooserSk) => html`
     <div class="row">
       <button @click=${ele._editClick}>Edit</button>
@@ -52,19 +66,8 @@ export class QueryChooserSk extends ElementSk {
     </div>
   `;
 
-  private _dialog: HTMLDivElement | null;
-  private _paramset: ParamSet;
-  private _key_order: string[];
 
-  constructor() {
-    super(QueryChooserSk.template);
-    this.current_query = '';
-    this._dialog = null;
-    this._paramset = {};
-    this._key_order = [];
-  }
-
-  connectedCallback() {
+  connectedCallback(): any {
     super.connectedCallback();
     this._upgradeProperty('paramset');
     this._upgradeProperty('current_query');
@@ -74,47 +77,51 @@ export class QueryChooserSk extends ElementSk {
     this._dialog = this.querySelector('#dialog');
   }
 
-  _editClick() {
+  attributeChangedCallback(): void {
+    this._render();
+  }
+
+  private _editClick() {
     this._dialog!.classList.add('display');
   }
 
-  _closeClick() {
+  private _closeClick() {
     this._dialog!.classList.remove('display');
   }
 
-  _queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
+  private _queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     this.current_query = e.detail.q;
     this._render();
   }
 
-  /** @prop paramset {string} The paramset to make selections from. */
-  get paramset() {
+  /** @prop The paramset to make selections from. */
+  get paramset(): ParamSet {
     return this._paramset;
   }
 
-  set paramset(val) {
+  set paramset(val: ParamSet) {
     this._paramset = val;
     this._render();
   }
 
-  /** @prop key_order {string} An array of strings, passed down to
+  /** @prop An array of strings, passed down to
    * query-sk.key_order.
    */
-  get key_order() {
+  get key_order(): string[] {
     return this._key_order;
   }
 
-  set key_order(val) {
+  set key_order(val: string[]) {
     this._key_order = val;
     this._render();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['current_query', 'key_order'];
   }
 
-  /** @prop current_query {string} Mirrors the current_query attribute.  */
-  get current_query() {
+  /** @prop Mirrors the current_query attribute.  */
+  get current_query(): string {
     return this.getAttribute('current_query') || '';
   }
 
@@ -122,17 +129,13 @@ export class QueryChooserSk extends ElementSk {
     this.setAttribute('current_query', val);
   }
 
-  /** @prop count_url {string} Mirrors the count_url attribute. */
-  get count_url() {
+  /** @prop Mirrors the count_url attribute. */
+  get count_url(): string {
     return this.getAttribute('count_url') || '';
   }
 
   set count_url(val: string) {
     this.setAttribute('count_url', val);
-  }
-
-  attributeChangedCallback() {
-    this._render();
   }
 }
 

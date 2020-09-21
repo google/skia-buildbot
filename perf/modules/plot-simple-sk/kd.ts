@@ -24,9 +24,13 @@ export interface KDPoint {
 /** @class A single node in the k-d Tree. */
 class Node<Point extends KDPoint> {
   obj: Point;
+
   left: Node<Point> | null = null;
+
   right: Node<Point> | null = null;
+
   parent: Node<Point> | null;
+
   dimension: number;
 
   constructor(obj: Point, dimension: number, parent: Node<Point> | null) {
@@ -43,8 +47,11 @@ type Dimensions = keyof KDPoint;
  */
 export class KDTree<Point extends KDPoint> {
   private dimensions: Dimensions[];
+
   private root: Node<Point> | null;
-  private metric: (a: KDPoint, b: KDPoint) => number;
+
+  private metric: (a: KDPoint, b: KDPoint)=> number;
+
   /**
    * The constructor.
    *
@@ -57,44 +64,12 @@ export class KDTree<Point extends KDPoint> {
    */
   constructor(
     points: Point[],
-    metric: (a: KDPoint, b: KDPoint) => number,
-    dimensions: Dimensions[]
+    metric: (a: KDPoint, b: KDPoint)=> number,
+    dimensions: Dimensions[],
   ) {
     this.dimensions = dimensions;
     this.metric = metric;
     this.root = this._buildTree(points, 0, null);
-  }
-
-  /**
-   * Builds the from parent Node on down.
-   *
-   * @param {Array} points - An array of {x:x, y:y}.
-   * @param {Number} depth - The current depth from the root node.
-   * @param {Node} parent - The parent Node.
-   */
-  private _buildTree(
-    points: Point[],
-    depth: number,
-    parent: Node<Point> | null
-  ): Node<Point> | null {
-    // Every step deeper into the tree we switch to using another axis.
-    const dim = depth % this.dimensions.length;
-
-    if (points.length === 0) {
-      return null;
-    }
-    if (points.length === 1) {
-      return new Node(points[0], dim, parent);
-    }
-
-    points.sort((a, b) => a[this.dimensions[dim]] - b[this.dimensions[dim]]);
-
-    const median = Math.floor(points.length / 2);
-    const node = new Node(points[median], dim, parent);
-    node.left = this._buildTree(points.slice(0, median), depth + 1, node);
-    node.right = this._buildTree(points.slice(median + 1), depth + 1, node);
-
-    return node;
   }
 
   /**
@@ -167,8 +142,8 @@ export class KDTree<Point extends KDPoint> {
       // If the hyperplane is closer than the current best point then we
       // need to search down the other side of the tree.
       if (
-        otherChild !== null &&
-        this.metric(pointOnHyperplane, node.obj) < bestNode.distance
+        otherChild !== null
+        && this.metric(pointOnHyperplane, node.obj) < bestNode.distance
       ) {
         nearestSearch(otherChild);
       }
@@ -179,5 +154,37 @@ export class KDTree<Point extends KDPoint> {
     }
 
     return bestNode.node!.obj;
+  }
+
+  /**
+   * Builds the from parent Node on down.
+   *
+   * @param {Array} points - An array of {x:x, y:y}.
+   * @param {Number} depth - The current depth from the root node.
+   * @param {Node} parent - The parent Node.
+   */
+  private _buildTree(
+    points: Point[],
+    depth: number,
+    parent: Node<Point> | null,
+  ): Node<Point> | null {
+    // Every step deeper into the tree we switch to using another axis.
+    const dim = depth % this.dimensions.length;
+
+    if (points.length === 0) {
+      return null;
+    }
+    if (points.length === 1) {
+      return new Node(points[0], dim, parent);
+    }
+
+    points.sort((a, b) => a[this.dimensions[dim]] - b[this.dimensions[dim]]);
+
+    const median = Math.floor(points.length / 2);
+    const node = new Node(points[median], dim, parent);
+    node.left = this._buildTree(points.slice(0, median), depth + 1, node);
+    node.right = this._buildTree(points.slice(median + 1), depth + 1, node);
+
+    return node;
   }
 }
