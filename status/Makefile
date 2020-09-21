@@ -18,6 +18,7 @@ all: clean_webtools status
 .PHONY: web
 web: webpack touch_elements core_js elements_html
 	ln -sf ../../res res/imp/res
+	npx webpack --mode=production
 
 .PHONY: touch_elements
 touch_elements:
@@ -31,6 +32,10 @@ serve:
 
 testgo:
 	go test ./go/... -v
+
+testjs:
+	npx webpack --mode=development
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 status: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/status
