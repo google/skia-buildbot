@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f255875c_a6140a38",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-21T12:01:20Z",
+      "side": 1,
+      "message": "optional: make this a type called BulkTriageOption",
+      "range": {
+        "startLine": 69,
+        "startChar": 18,
+        "endLine": 69,
+        "endChar": 35
+      },
+      "revId": "ed119a5bbe7a976b4c0d0a4a8e459b3350a30ad8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
