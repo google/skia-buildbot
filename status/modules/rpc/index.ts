@@ -1,24 +1,27 @@
-import { StatusService, StatusServiceClient} from './status';
+import { StatusService, StatusServiceClient } from './status';
 
 export * from './status';
 
-const host = window.location.protocol + "//" + window.location.host;
-let rpcClient: StatusService = new StatusServiceClient(host, window.fetch.bind(window));
-
 /**
- * GetAutoRollService returns an AutoRollService implementation which dispatches
- * events indicating when requests have started and ended.
- *
- * @param ele The parent element, used to dispatch events.
+ * GetStatusService returns a StatusService implementation, either the default production one, or
+ * an injected mock. We use the mock client rather than fetchMock to avoid testing around
+ * implementation details of the Twirp generated client/server protocol.
  */
 export function GetStatusService(): StatusService {
-  return rpcClient;
+  const w = window as any;
+  // We use a lazy window property to keep our client, so it is truly global (to support client
+  // injection), and initialized exactly once, rather than per import of this module.
+  if (!w.rpcClient) {
+    const host = window.location.protocol + '//' + window.location.host;
+    w.rpcClient = new StatusServiceClient(host, window.fetch.bind(window));
+  }
+  return w.rpcClient;
 }
 
 /**
- * MockRPCsForTesting switches this module to use the given AutoRollService for
+ * MockRPCsForTesting switches this module to use the given StatusService for
  * testing purposes.
  */
 export function MockRPCsForTesting(repl: StatusService) {
-  rpcClient = repl;
+  (<any>window).rpcClient = repl;
 }
