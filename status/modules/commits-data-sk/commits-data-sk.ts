@@ -16,7 +16,6 @@ import {
   IncrementalUpdate,
   Branch,
   LongCommit,
-  StatusServiceClient,
   GetStatusService,
   StatusService,
 } from '../rpc';
@@ -53,9 +52,9 @@ const TIME_POINTS = [
   },
 ];
 
-type CommitHash = string;
-type TaskSpec = string;
-type TaskId = string;
+export type CommitHash = string;
+export type TaskSpec = string;
+export type TaskId = string;
 
 export interface Commit extends LongCommit {
   shortAuthor: string;
@@ -80,6 +79,23 @@ export class TaskSpecDetails {
   subcategory: string = '';
   flaky: boolean = false;
   ignoreFailure: boolean = false;
+  // Metadata about the set of tasks in this spec.
+  hasSuccess = false;
+  hasFailure = false;
+  hasTaskComment = false;
+
+  interesting(): boolean {
+    return this.hasSuccess && this.hasFailure && !this.ignoreFailure;
+  }
+  hasFailing(): boolean {
+    return this.hasFailure;
+  }
+  hasFailingNoComment(): boolean {
+    return this.hasFailure && (!this.comments || this.comments.length == 0);
+  }
+  hasComment(): boolean {
+    return this.hasTaskComment || (this.comments && this.comments.length > 0);
+  }
 }
 
 export class CommitsDataSk extends ElementSk {
@@ -87,15 +103,15 @@ export class CommitsDataSk extends ElementSk {
   commits: Array<Commit> = [];
   commitsByHash: Map<CommitHash, Commit> = new Map();
 
-  branch_heads: Array<Branch> = [];
-  swarming_url: string = '';
-  task_scheduler_url: string = '';
+  branchHeads: Array<Branch> = [];
+  swarmingUrl: string = '';
+  taskSchedulerUrl: string = '';
   tasks: Map<TaskId, Task> = new Map();
   tasksBySpec: Map<TaskSpec, Map<TaskId, Task>> = new Map();
   tasksByCommit: Map<CommitHash, Map<TaskSpec, Task>> = new Map();
   comments: Map<CommitHash, Map<TaskSpec, Array<Comment>>> = new Map();
-  reverted_map: Map<CommitHash, Commit> = new Map();
-  relanded_map: Map<CommitHash, Commit> = new Map();
+  revertedMap: Map<CommitHash, Commit> = new Map();
+  relandedMap: Map<CommitHash, Commit> = new Map();
 
   taskSpecs: Map<TaskSpec, TaskSpecDetails> = new Map();
   categories: Map<string, CategorySpec> = new Map();
@@ -104,10 +120,9 @@ export class CommitsDataSk extends ElementSk {
   private client: StatusService = GetStatusService();
 
   // Private members because we decorate their setters to refetch data.
-  private _logged_in: boolean | null = null;
+  private _loggedIn: boolean | null = null;
   private _repo: string = 'skia';
-  private _num_commits: number = 35;
-  // TODO(westont): filter, search, etc. Will likely opt for doing this in the table though.
+  private _numCommits: number = 35;
 
   constructor() {
     super(() => html``);
@@ -126,145 +141,171 @@ export class CommitsDataSk extends ElementSk {
         // and just makes these a string, which the backend chokes on.
         // from: new Date(0).toUTCString(),
         // to: new Date(0).toUTCString(),
-        n: this._num_commits,
+        n: this._numCommits,
         pod: this.serverPodId,
         // TODO(westont): repo picker.
         repoPath: this._repo,
       })
       .then((json: GetIncrementalCommitsResponse) => {
-        const update: IncrementalUpdate = json.update!;
-
         // TODO(westont): Use StartOver to know to clear vs update, and actual implement updating.
         const startOver: boolean = json.metadata!.startOver;
-        this.commits = update.commits as Array<Commit>;
-        this.branch_heads = update.branchHeads || this.branch_heads;
-        this.swarming_url = update.swarmingUrl || this.swarming_url;
-        this.task_scheduler_url = update.taskSchedulerUrl || this.task_scheduler_url;
         this.serverPodId = json.metadata!.pod;
-
-        // Map commits by hash.
-        this.commits.forEach((commit: Commit) => {
-          this.commitsByHash.set(commit.hash, commit);
-        });
-
-        // Map task Id to Task
-        if (update.tasks) {
-          for (let i = 0; i < update.tasks.length; i++) {
-            const task = update.tasks[i];
-            this.tasks.set(task.id, task);
-          }
-        }
-
-        // TODO(westont): Remove old commits.
-
-        // Map commits to tasks
-        for (let [, task] of this.tasks) {
-          if (task.commits) {
-            for (let commit of task.commits) {
-              let tasksForCommit = this.tasksByCommit.get(commit);
-              if (!tasksForCommit) {
-                tasksForCommit = new Map();
-                this.tasksByCommit.set(commit, tasksForCommit);
-              }
-              tasksForCommit.set(task.name, task);
-              // TODO(westont): Remove deleted comments.
-            }
-          }
-        }
-
-        // Map comments.
-        for (let comment of update.comments || []) {
-          comment.taskSpecName = comment.taskSpecName || '';
-          comment.commit = comment.commit || '';
-          const commentsBySpec = lookupOrInsert<string, Map<TaskSpec, Array<Comment>>>(
-            this.comments,
-            comment.commit,
-            Map
-          );
-          const comments = lookupOrInsert<TaskSpec, Array<Comment>>(
-            commentsBySpec,
-            comment.taskSpecName,
-            Array
-          );
-          comments.push(comment);
-          // Keep comments sorted by timestamp, if there are multiple.
-          comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
-        }
-
-        // Process commits.
-        for (let commit of this.commits) {
-          // Metadata for display/links.
-          commit.shortAuthor = shortAuthor(commit.author);
-          commit.shortHash = shortCommit(commit.hash);
-          commit.shortSubject = shortSubject(commit.subject);
-          [commit.issue, commit.patchStorage] = findIssueAndReviewTool(commit);
-
-          // Map reverts and relands.
-          commit.isRevert = false;
-          var reverted = findRevertedCommit(this.commitsByHash, commit);
-          if (reverted) {
-            commit.isRevert = true;
-            this.reverted_map.set(reverted.hash, commit);
-            reverted.ignoreFailure = true;
-          }
-          commit.isReland = false;
-          var relanded = findRelandedCommit(this.commitsByHash, commit);
-          if (relanded) {
-            commit.isReland = true;
-            this.relanded_map.set(relanded.hash, commit);
-          }
-
-          // Check for commit-specific comments with ignoreFailure.
-          const commitComments = this.comments.get(commit.hash)?.get('');
-          if (
-            commitComments &&
-            commitComments.length &&
-            commitComments[commitComments.length - 1].ignoreFailure
-          ) {
-            commit.ignoreFailure = true;
-          }
-
-          const commitTasks = this.tasksByCommit.get(commit.hash);
-          for (const [taskSpec, task] of commitTasks || []) {
-            const details = lookupOrInsert(this.taskSpecs, taskSpec, TaskSpecDetails);
-            // First time seeing the taskSpec, fill in header data.
-            if (!details.name) {
-              details.name = taskSpec;
-              const comments = this.comments.get('')?.get(taskSpec) || [];
-              details.comments = comments;
-
-              const split = taskSpec.split('-');
-              if (split.length >= 2 && VALID_TASK_SPEC_CATEGORIES.indexOf(split[0]) != -1) {
-                details.category = split[0];
-                details.subcategory = split[1];
-              }
-              if (comments.length > 0) {
-                details.flaky = comments[comments.length - 1].flaky;
-                details.ignoreFailure = comments[comments.length - 1].ignoreFailure;
-              }
-
-              // TODO(westont): This was previously under _filterTasks.
-              // Likely because we don't want to delve into category rendering
-              // if they have no matching taskspecs in them, address this.
-              const category = details.category || 'Other';
-              const categoryDetails = lookupOrInsert(this.categories, category, CategorySpec);
-              //this.categoryList.add(category);
-              const subcategory = details.subcategory || 'Other';
-              lookupOrInsert<string, Array<string>>(
-                categoryDetails.taskSpecsBySubCategory,
-                subcategory,
-                Array
-              ).push(taskSpec);
-              categoryDetails.colspan++;
-              // TODO(westont): Track purple tasks.
-            }
-          }
-          // TODO(westont): Branch tags and time offset tags.
-        }
+        this.extractData(json.update!);
+        this.processCommits();
       })
-      .catch(errorMessage);
+      .catch(errorMessage)
+      .finally(() => this.dispatchEvent(new CustomEvent('end-task', { bubbles: true })));
+  }
 
-    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+  /**
+   * extractData takes data from GetIncrementalCommits and adds useful structure, mapping commits
+   * by hash, tasks by Id, commits to tasks, and comments by hash and taskSpec.
+   * @param update Data from the backend.
+   */
+  private extractData(update: IncrementalUpdate) {
+    this.commits = update.commits as Array<Commit>;
+    this.branchHeads = update.branchHeads || this.branchHeads;
+    this.swarmingUrl = update.swarmingUrl || this.swarmingUrl;
+    this.taskSchedulerUrl = update.taskSchedulerUrl || this.taskSchedulerUrl;
+
+    // Map commits by hash.
+    this.commits.forEach((commit: Commit) => {
+      this.commitsByHash.set(commit.hash, commit);
+    });
+
+    // Map task Id to Task
+    for (const task of update.tasks || []) {
+      this.tasks.set(task.id, task);
+    }
+
+    // TODO(westont): Remove old commits.
+
+    // Map commits to tasks
+    for (const [, task] of this.tasks) {
+      if (task.commits) {
+        for (let commit of task.commits) {
+          let tasksForCommit = this.tasksByCommit.get(commit);
+          if (!tasksForCommit) {
+            tasksForCommit = new Map();
+            this.tasksByCommit.set(commit, tasksForCommit);
+          }
+          tasksForCommit.set(task.name, task);
+          // TODO(westont): Remove deleted comments.
+        }
+      }
+    }
+
+    // Map comments.
+    for (let comment of update.comments || []) {
+      comment.taskSpecName = comment.taskSpecName || '';
+      comment.commit = comment.commit || '';
+      const commentsBySpec = lookupOrInsert<string, Map<TaskSpec, Array<Comment>>>(
+        this.comments,
+        comment.commit,
+        Map
+      );
+      const comments = lookupOrInsert<TaskSpec, Array<Comment>>(
+        commentsBySpec,
+        comment.taskSpecName,
+        Array
+      );
+      comments.push(comment);
+      // Keep comments sorted by timestamp, if there are multiple.
+      comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
+    }
+  }
+
+  /**
+   * processCommits adds metadata to commit objects, maps reverts and relands, and gathers
+   * taskspecs references by commits.
+   */
+  private processCommits() {
+    for (let commit of this.commits) {
+      // Metadata for display/links.
+      commit.shortAuthor = shortAuthor(commit.author);
+      commit.shortHash = shortCommit(commit.hash);
+      commit.shortSubject = shortSubject(commit.subject);
+      [commit.issue, commit.patchStorage] = findIssueAndReviewTool(commit);
+
+      this.mapRevertsAndRelands(commit);
+
+      // Check for commit-specific comments with ignoreFailure.
+      const commitComments = this.comments.get(commit.hash)?.get('');
+      if (
+        commitComments &&
+        commitComments.length &&
+        commitComments[commitComments.length - 1].ignoreFailure
+      ) {
+        commit.ignoreFailure = true;
+      }
+
+      const commitTasks = this.tasksByCommit.get(commit.hash) || [];
+      this.processCommitTasks(commitTasks, commit);
+      // TODO(westont): Branch tags and time offset tags.
+    }
+  }
+
+  private processCommitTasks(commitTasks: Map<string, Task> | never[], commit: Commit) {
+    for (const [taskSpec, task] of commitTasks) {
+      const details = lookupOrInsert(this.taskSpecs, taskSpec, TaskSpecDetails);
+      // First time seeing the taskSpec, fill in header data.
+      if (!details.name) {
+        this.fillTaskSpecDetails(details, taskSpec);
+      }
+      // Aggregate data about this spec's tasks.
+      details.hasSuccess = details.hasSuccess || task.status == TASK_STATUS_SUCCESS;
+      // Only count failures we aren't ignoring.
+      details.hasFailure =
+        details.hasFailure ||
+        (!commit.ignoreFailure &&
+          (task.status == TASK_STATUS_FAILURE || task.status == TASK_STATUS_MISHAP));
+      details.hasTaskComment =
+        details.hasTaskComment || (this.comments.get(commit.hash)?.get(taskSpec)?.length || 0) > 0;
+      // TODO(westont): Track purple tasks.
+    }
+  }
+
+  private fillTaskSpecDetails(details: TaskSpecDetails, taskSpec: string) {
+    details.name = taskSpec;
+    const comments = this.comments.get('')?.get(taskSpec) || [];
+    details.comments = comments;
+
+    const split = taskSpec.split('-');
+    if (split.length >= 2 && VALID_TASK_SPEC_CATEGORIES.indexOf(split[0]) != -1) {
+      details.category = split[0];
+      details.subcategory = split[1];
+    }
+    if (comments.length > 0) {
+      details.flaky = comments[comments.length - 1].flaky;
+      details.ignoreFailure = comments[comments.length - 1].ignoreFailure;
+    }
+
+    const category = details.category || 'Other';
+    const categoryDetails = lookupOrInsert(this.categories, category, CategorySpec);
+    //this.categoryList.add(category);
+    const subcategory = details.subcategory || 'Other';
+    lookupOrInsert<string, Array<string>>(
+      categoryDetails.taskSpecsBySubCategory,
+      subcategory,
+      Array
+    ).push(taskSpec);
+    categoryDetails.colspan++;
+  }
+
+  private mapRevertsAndRelands(commit: Commit) {
+    commit.isRevert = false;
+    var reverted = findRevertedCommit(this.commitsByHash, commit);
+    if (reverted) {
+      commit.isRevert = true;
+      this.revertedMap.set(reverted.hash, commit);
+      reverted.ignoreFailure = true;
+    }
+    commit.isReland = false;
+    var relanded = findRelandedCommit(this.commitsByHash, commit);
+    if (relanded) {
+      commit.isReland = true;
+      this.relandedMap.set(relanded.hash, commit);
+    }
   }
 }
 

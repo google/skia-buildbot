@@ -1,0 +1,223 @@
+//@import '../colors.css';
+
+body {
+  // temporary for demoing
+  background-color: var(--background);
+  color: var(--on-background);
+  fill: var(--on-background);
+}
+
+commits-table-sk {
+  background-color: var(--surface);
+  color: var(--on-surface);
+
+  .commitsTableContainer {
+    display: grid;
+    gap: 2px 2px;
+  }
+
+  .rowUnderlay {
+    display: contents;
+
+    div {
+      z-index: -1;
+    }
+
+    div:nth-child(odd) {
+      background-color: #efefef;
+    }
+  }
+
+  .task-spec {
+    background-color: var(--surface-1dp);
+    border-radius: 5px;
+    border: 1px solid;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);
+    cursor: pointer;
+    height: 20px;
+    min-width: 20px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .commit {
+    font-family: monospace;
+    font-size: 0.75em;
+    height: 16px;
+    padding: 2px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .commit.highlight-revert {
+    background-color: var(--error);
+    color: var(--on-error);
+    fill: var(--on-error);
+  }
+  .commit.highlight-reland {
+    background-color: var(--primary);
+    color: var(--on-primary);
+    fill: var(--on-primary);
+  }
+
+  .legend {
+    border-right: 1px solid;
+    font-size: 10px;
+
+    * {
+      padding: 5px;
+    }
+  }
+
+  .tiny svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .icon-right {
+    float: right;
+  }
+
+  .tasksTable {
+    min-height: 780px;
+    grid-column: 2 / 3;
+    grid-row: 1 / -1;
+    border: solid 1px;
+    display: contents;
+  }
+
+  .category {
+    border: solid 1px;
+    padding: 3px;
+  }
+
+  .task {
+    border-radius: 3px;
+    border: solid 1px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .multicommit-task {
+    display: grid;
+    // Lock the rows' height so a comment icon, if present, doesn't skew the individual divs.
+    grid-auto-rows: 1fr;
+
+    .task {
+      border-radius: initial;
+      border: initial;
+      border-left: solid 1px;
+      border-right: solid 1px;
+    }
+
+    .task:first-child {
+      border-top: solid 1px;
+      border-radius: 3px 3px 0px 0px;
+    }
+
+    .task:last-child {
+      border-bottom: solid 1px;
+      border-radius: 0px 0px 3px 3px;
+    }
+
+    .task.dashed-top {
+      border-top: dashed 1px;
+    }
+
+    .task.dashed-bottom {
+      border-bottom: dashed 1px;
+    }
+  }
+
+  .multicommit-task:hover {
+    border-color: red;
+    border-radius: 3px;
+    border: solid 1px;
+    cursor: pointer;
+  }
+
+  .grow {
+    transition: all 0.1s ease-in-out;
+  }
+
+  .grow:hover {
+    transform: scale(1.1);
+    opacity: 1;
+    z-index: 1;
+  }
+
+  .task-success {
+    background-color: rgba(102, 166, 30, 0.3);
+  }
+
+  .task-failure {
+    background-color: rgba(217, 95, 2, 0.3);
+  }
+
+  .task-mishap {
+    background-color: rgba(117, 112, 179, 0.3);
+  }
+
+  .grow:hover.task-success,
+  .grow:hover .task-success {
+    background-color: rgb(102, 166, 30);
+  }
+
+  .grow:hover.task-failure,
+  .grow:hover .task-failure {
+    background-color: rgb(217, 95, 2);
+  }
+
+  .grow:hover.task-mishap,
+  .grow:hover .task-mishap {
+    background-color: rgb(117, 112, 179);
+  }
+
+  .fill-green {
+    fill: rgb(102, 166, 30);
+  }
+
+  .fill-red {
+    fill: #d95f02;
+  }
+}
+
+div.hidden.task {
+  visibility: hidden;
+}
+
+// Darkmode overrides
+.darkmode {
+  .rowUnderlay {
+    div:nth-child(odd) {
+      background-color: var(--surface-2dp);
+    }
+  }
+
+  .task-success {
+    background-color: rgba(102, 166, 30, 0.9);
+  }
+
+  .task-failure {
+    background-color: rgba(217, 95, 2, 0.9);
+  }
+
+  .task-mishap {
+    background-color: rgba(117, 112, 179, 0.9);
+  }
+
+  .grow:hover.task-success,
+  .grow:hover .task-success {
+    background-color: rgb(102, 166, 30);
+  }
+
+  .grow:hover.task-failure,
+  .grow:hover .task-failure {
+    background-color: rgb(217, 95, 2);
+  }
+
+  .grow:hover.task-mishap,
+  .grow:hover .task-mishap {
+    background-color: rgb(117, 112, 179);
+  }
+}
