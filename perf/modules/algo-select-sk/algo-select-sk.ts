@@ -12,18 +12,17 @@
 import 'elements-sk/select-sk';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $ } from 'common-sk/modules/dom';
+import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ClusterAlgo } from '../json';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
 
 function toClusterAlgo(s: string): ClusterAlgo {
   const allowed = ['kmeans', 'stepfit'];
-  if (allowed.indexOf(s) != -1) {
+  if (allowed.indexOf(s) !== -1) {
     return s as ClusterAlgo;
-  } else {
-    return 'kmeans';
   }
+  return 'kmeans';
 }
 
 export interface AlgoSelectAlgoChangeEventDetail {
@@ -31,6 +30,10 @@ export interface AlgoSelectAlgoChangeEventDetail {
 }
 
 export class AlgoSelectSk extends ElementSk {
+  constructor() {
+    super(AlgoSelectSk.template);
+  }
+
   // TODO(jcgregorio) select-sk needs something like attr-for-selected and
   // fallback-selection like iron-selector.
   private static template = (ele: AlgoSelectSk) => html`
@@ -50,27 +53,27 @@ export class AlgoSelectSk extends ElementSk {
     </select-sk>
   `;
 
-  constructor() {
-    super(AlgoSelectSk.template);
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('algo');
     this._render();
   }
 
-  static get observedAttributes() {
+  attributeChangedCallback(): void {
+    this._render();
+  }
+
+  static get observedAttributes(): string[] {
     return ['algo'];
   }
 
-  _selectionChanged(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
+  private _selectionChanged(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
     let index = e.detail.selection;
     if (index < 0) {
       index = 0;
     }
     this.algo = toClusterAlgo(
-      $('div', this)[index].getAttribute('value') || ''
+      $('div', this)[index].getAttribute('value') || '',
     );
     const detail = {
       algo: this.algo,
@@ -79,7 +82,7 @@ export class AlgoSelectSk extends ElementSk {
       new CustomEvent<AlgoSelectAlgoChangeEventDetail>('algo-change', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -90,10 +93,6 @@ export class AlgoSelectSk extends ElementSk {
 
   set algo(val: ClusterAlgo) {
     this.setAttribute('algo', toClusterAlgo(val));
-  }
-
-  attributeChangedCallback() {
-    this._render();
   }
 }
 

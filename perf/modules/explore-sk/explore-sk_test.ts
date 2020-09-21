@@ -1,5 +1,5 @@
-import { calculateRangeChange } from './explore-sk';
 import { assert } from 'chai';
+import { calculateRangeChange } from './explore-sk';
 
 describe('calculateRangeChange', () => {
   const offsets: [number, number] = [100, 120];
@@ -43,9 +43,9 @@ describe('calculateRangeChange', () => {
   it('find an increase in the range in both directions and clamps the offset', () => {
     const zoom: [number, number] = [-1, 11];
     const clampedZoom: [number, number] = [0, 10];
-    const offsets: [number, number] = [0, 100];
+    const widerOffsets: [number, number] = [0, 100];
 
-    const ret = calculateRangeChange(zoom, clampedZoom, offsets);
+    const ret = calculateRangeChange(zoom, clampedZoom, widerOffsets);
     assert.isTrue(ret.rangeChange);
 
     // We shift both the begin and end of the range by

@@ -29,6 +29,15 @@ import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel
 const NO_COMMIT_SELECTED_MSG = 'Choose a commit.';
 
 export class CommitDetailPickerSk extends ElementSk {
+  private _details: Commit[];
+
+  private _dialog: HTMLDialogElement | null = null;
+
+  constructor() {
+    super(CommitDetailPickerSk.template);
+    this._details = [];
+  }
+
   private static _titleFrom = (ele: CommitDetailPickerSk) => {
     const index = ele.selected;
     if (index === -1) {
@@ -54,15 +63,8 @@ export class CommitDetailPickerSk extends ElementSk {
     </dialog>
   `;
 
-  private _details: Commit[];
-  private _dialog: HTMLDialogElement | null = null;
 
-  constructor() {
-    super(CommitDetailPickerSk.template);
-    this._details = [];
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('details');
     this._render();
@@ -70,46 +72,47 @@ export class CommitDetailPickerSk extends ElementSk {
     dialogPolyfill.registerDialog(this._dialog);
   }
 
-  _panelSelect(e: Event) {
+  attributeChangedCallback(): void {
+    this._render();
+  }
+
+  private _panelSelect(e: Event) {
     this.selected = (e as CustomEvent<
       CommitDetailPanelSkCommitSelectedDetails
     >).detail.selected;
     this._render();
   }
 
-  _close() {
+  private _close() {
     this._dialog!.close();
     this._render();
   }
 
-  _open() {
+  private _open() {
     this._dialog!.showModal();
     this._render();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['selected'];
   }
 
   /** Mirrors the selected attribute. */
-  get selected() {
+  get selected(): number {
     return +(this.getAttribute('selected') || '-1');
   }
 
-  set selected(val) {
+  set selected(val: number) {
     this.setAttribute('selected', `${val}`);
   }
 
-  attributeChangedCallback() {
-    this._render();
-  }
 
   /** An array of serialized cid.CommitDetail. */
-  get details() {
+  get details(): Commit[] {
     return this._details;
   }
 
-  set details(val) {
+  set details(val: Commit[]) {
     this._details = val;
     this._render();
   }
