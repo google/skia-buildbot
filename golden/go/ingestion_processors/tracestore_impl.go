@@ -2,8 +2,6 @@ package ingestion_processors
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -176,7 +174,7 @@ func shouldIngest(params, options map[string]string) error {
 	// but implied to be "png". Thus if ext is not provided, it will be ingested.
 	// New entries (created by goldctl) will always have ext set.
 	if ext, ok := options["ext"]; ok && (ext != "png") {
-		return errors.New("ignoring non-png entry")
+		return skerr.Fmt("ignoring non-png entry")
 	}
 
 	// Make sure the test name meets basic requirements.
@@ -185,12 +183,12 @@ func shouldIngest(params, options map[string]string) error {
 	// Ignore results that don't have a test given and log an error since that
 	// should not happen. But we want to keep other results in the same input file.
 	if testName == "" {
-		return errors.New("missing test name")
+		return skerr.Fmt("missing test name")
 	}
 
 	// Make sure the test name does not exceed the allowed length.
 	if len(testName) > types.MaximumNameLength {
-		return fmt.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MaximumNameLength, testName)
+		return skerr.Fmt("Received test name which is longer than the allowed %d bytes: %s", types.MaximumNameLength, testName)
 	}
 
 	return nil
