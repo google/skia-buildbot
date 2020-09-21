@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6990d3af_eda18a84",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-21T17:58:27Z",
+      "side": 1,
+      "message": "That\u0027s so weird, eslint picks up the missing annotation in every other file, but not this one.\n\nFixed.",
+      "parentUuid": "54f39513_6cf255aa",
+      "range": {
+        "startLine": 144,
+        "startChar": 2,
+        "endLine": 144,
+        "endChar": 21
+      },
+      "revId": "84693c20088c007eec0b28d840aefde1f37c768c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "68bede99_545bced4",
         "filename": "perf/modules/explore-sk/explore-sk.ts",
         "patchSetId": 9
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e392020f_c7c4ee74",
+        "filename": "perf/modules/explore-sk/explore-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-21T17:58:27Z",
+      "side": 1,
+      "message": "I will do that in a separate CL because it will require more care, the var needs to be renamed in all places, and there might be conflicts with get/set prop names.",
+      "parentUuid": "68bede99_545bced4",
+      "range": {
+        "startLine": 205,
+        "startChar": 2,
+        "endLine": 205,
+        "endChar": 11
+      },
+      "revId": "84693c20088c007eec0b28d840aefde1f37c768c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dfe7790d_480fca90",
         "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
         "patchSetId": 9
@@ -59,6 +107,30 @@
       "writtenOn": "2020-09-21T17:19:51Z",
       "side": 1,
       "message": "Nit: Space between ) and \u003d.\n\nTangent (feel free to ignore): I wonder if common-sk should define types for the function returned by stateReflector, and for the getState/setState functions it takes as parameters.",
+      "range": {
+        "startLine": 406,
+        "startChar": 27,
+        "endLine": 406,
+        "endChar": 31
+      },
+      "revId": "84693c20088c007eec0b28d840aefde1f37c768c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88011e73_3540a412",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-21T17:58:27Z",
+      "side": 1,
+      "message": "The ()\u003d\u003e void is the type annotation, which is different from the () \u003d\u003e {} which is the actual arrow function. In this case I don\u0027t need the annotation because it can be implied and the member is private, so I removed it.",
+      "parentUuid": "dfe7790d_480fca90",
       "range": {
         "startLine": 406,
         "startChar": 27,
