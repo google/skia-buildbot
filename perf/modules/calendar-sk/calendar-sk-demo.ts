@@ -11,6 +11,4 @@ document.querySelectorAll<CalendarSk>('calendar-sk').forEach((ele, i) => {
   });
 });
 
-document.addEventListener('keydown', (e) =>
-  document.querySelector<CalendarSk>('calendar-sk')!.keyboardHandler(e)
-);
+document.addEventListener('keydown', (e) => document.querySelector<CalendarSk>('calendar-sk')!.keyboardHandler(e));

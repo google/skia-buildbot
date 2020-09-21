@@ -158,16 +158,20 @@ interface TracePaths {
 class PathBuilder {
   // TODO(jcgregorio) Change to TracePaths.
   private linePath: Path2D;
+
   private dotsPath: Path2D;
+
   // TODO(jcgregorio) Change to Range.
   private xRange: d3Scale.ScaleLinear<number, number>;
+
   private yRange: d3Scale.ScaleLinear<number, number>;
+
   private radius: number;
 
   constructor(
     xRange: d3Scale.ScaleLinear<number, number>,
     yRange: d3Scale.ScaleLinear<number, number>,
-    radius: number
+    radius: number,
   ) {
     this.xRange = xRange;
     this.yRange = yRange;
@@ -232,12 +236,14 @@ interface SearchPoint extends Point {
 class SearchBuilder {
   // TODO(jcgregorio) Change to Range.
   private xRange: d3Scale.ScaleLinear<number, number>;
+
   private yRange: d3Scale.ScaleLinear<number, number>;
+
   private points: SearchPoint[];
 
   constructor(
     xRange: d3Scale.ScaleLinear<number, number>,
-    yRange: d3Scale.ScaleLinear<number, number>
+    yRange: d3Scale.ScaleLinear<number, number>,
   ) {
     this.xRange = xRange;
     this.yRange = yRange;
@@ -292,10 +298,10 @@ class SearchBuilder {
 // Returns true if pt is in rect.
 function inRect(pt: Point, rect: Rect): boolean {
   return (
-    pt.x >= rect.x &&
-    pt.x < rect.x + rect.width &&
-    pt.y >= rect.y &&
-    pt.y < rect.y + rect.height
+    pt.x >= rect.x
+    && pt.x < rect.x + rect.width
+    && pt.y >= rect.y
+    && pt.y < rect.y + rect.height
   );
 }
 
@@ -363,7 +369,7 @@ interface Area {
   range: Range;
 }
 
-interface SummaryArea extends Area {}
+type SummaryArea = Area
 
 interface DetailArea extends Area {
   yaxis: {
@@ -400,15 +406,15 @@ export class PlotSimpleSk extends ElementSk {
       class="traces"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"
+      style="transform-origin: 0 0; transform: scale(${1
+      / window.devicePixelRatio});"
     ></canvas>
     <canvas
       class="overlay"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"
+      style="transform-origin: 0 0; transform: scale(${1
+      / window.devicePixelRatio});"
     ></canvas>
   `;
 
@@ -857,7 +863,7 @@ export class PlotSimpleSk extends ElementSk {
         new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_selected', {
           detail,
           bubbles: true,
-        })
+        }),
       );
     });
 
@@ -889,7 +895,7 @@ export class PlotSimpleSk extends ElementSk {
       new CustomEvent<PlotSimpleSkZoomEventDetails>('zoom', {
         detail,
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -933,7 +939,7 @@ export class PlotSimpleSk extends ElementSk {
             new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_focused', {
               detail,
               bubbles: true,
-            })
+            }),
           );
         }
       }
@@ -1068,7 +1074,7 @@ export class PlotSimpleSk extends ElementSk {
       const summaryBuilder = new PathBuilder(
         this._summary.range.x,
         this._summary.range.y,
-        this.SUMMARY_RADIUS
+        this.SUMMARY_RADIUS,
       );
 
       line.values.forEach((y, x) => {
@@ -1100,7 +1106,7 @@ export class PlotSimpleSk extends ElementSk {
       const detailBuilder = new PathBuilder(
         this._detail.range.x,
         this._detail.range.y,
-        this.DETAIL_RADIUS
+        this.DETAIL_RADIUS,
       );
 
       line.values.forEach((y, x) => {
@@ -1120,7 +1126,7 @@ export class PlotSimpleSk extends ElementSk {
     const labelOffset = Math.ceil(detailDomain[0]);
     const detailLabels = this._labels.slice(
       Math.ceil(detailDomain[0]),
-      Math.floor(detailDomain[1] + 1)
+      Math.floor(detailDomain[1] + 1),
     );
     this._recalcXAxis(this._detail, detailLabels, labelOffset);
 
@@ -1181,9 +1187,7 @@ export class PlotSimpleSk extends ElementSk {
     if (this._zoomTask) {
       // If there is a pending zoom task then let that complete first since zooming
       // invalidates the search tree and it needs to be built again.
-      this._recalcSearchTask = window.setTimeout(() =>
-        this._recalcSearchImpl()
-      );
+      this._recalcSearchTask = window.setTimeout(() => this._recalcSearchImpl());
       return;
     }
     const domain = this._detail.range.x.domain();
@@ -1191,7 +1195,7 @@ export class PlotSimpleSk extends ElementSk {
     domain[1] = Math.ceil(domain[1] + 0.1);
     const searchBuilder = new SearchBuilder(
       this._detail.range.x,
-      this._detail.range.y
+      this._detail.range.y,
     );
     this._lineData.forEach((line) => {
       line.values.forEach((y, x) => {
@@ -1317,13 +1321,13 @@ export class PlotSimpleSk extends ElementSk {
             this._summary.rect.x,
             this._summary.rect.y,
             leftx - this._summary.rect.x,
-            this._summary.rect.height
+            this._summary.rect.height,
           );
           ctx.rect(
             rightx,
             this._summary.rect.y,
             this._summary.rect.x + this._summary.rect.width - rightx,
-            this._summary.rect.height
+            this._summary.rect.height,
           );
 
           ctx.fill();
@@ -1418,7 +1422,7 @@ export class PlotSimpleSk extends ElementSk {
             x - this.LABEL_MARGIN,
             y + this.LABEL_MARGIN,
             labelWidth,
-            -labelHeight
+            -labelHeight,
           );
           ctx.fill();
           ctx.strokeStyle = this.LABEL_COLOR;
@@ -1427,7 +1431,7 @@ export class PlotSimpleSk extends ElementSk {
             x - this.LABEL_MARGIN,
             y + this.LABEL_MARGIN,
             labelWidth,
-            -labelHeight
+            -labelHeight,
           );
           ctx.stroke();
 
@@ -1483,7 +1487,7 @@ export class PlotSimpleSk extends ElementSk {
         this._detail.rect.x - this.MARGIN,
         this._detail.rect.y - this.MARGIN,
         this._detail.rect.width + 2 * this.MARGIN,
-        this._detail.rect.height + 2 * this.MARGIN
+        this._detail.rect.height + 2 * this.MARGIN,
       );
     } else {
       ctx.clearRect(0, 0, width, height);
@@ -1568,12 +1572,10 @@ export class PlotSimpleSk extends ElementSk {
    */
   deleteLines(ids: string[]) {
     this._lineData = this._lineData.filter(
-      (line) => ids.indexOf(line.name) === -1
+      (line) => ids.indexOf(line.name) === -1,
     );
 
-    const onlySpecialLinesRemaining = this._lineData.every((line) =>
-      line.name.startsWith(SPECIAL)
-    );
+    const onlySpecialLinesRemaining = this._lineData.every((line) => line.name.startsWith(SPECIAL));
     if (onlySpecialLinesRemaining) {
       this.removeAll();
     } else {
@@ -1725,7 +1727,7 @@ export class PlotSimpleSk extends ElementSk {
     this._render();
     const canvas = this.querySelector<HTMLCanvasElement>('canvas.traces')!;
     const overlayCanvas = this.querySelector<HTMLCanvasElement>(
-      'canvas.overlay'
+      'canvas.overlay',
     )!;
     if (canvas) {
       this._ctx = canvas.getContext('2d');

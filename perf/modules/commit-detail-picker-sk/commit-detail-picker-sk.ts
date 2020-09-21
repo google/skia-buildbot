@@ -55,6 +55,7 @@ export class CommitDetailPickerSk extends ElementSk {
   `;
 
   private _details: Commit[];
+
   private _dialog: HTMLDialogElement | null = null;
 
   constructor() {

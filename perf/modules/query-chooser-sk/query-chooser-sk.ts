@@ -53,7 +53,9 @@ export class QueryChooserSk extends ElementSk {
   `;
 
   private _dialog: HTMLDivElement | null;
+
   private _paramset: ParamSet;
+
   private _key_order: string[];
 
   constructor() {

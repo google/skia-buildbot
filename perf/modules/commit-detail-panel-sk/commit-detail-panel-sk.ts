@@ -39,17 +39,16 @@ export interface CommitDetailPanelSkCommitSelectedDetails {
 }
 
 export class CommitDetailPanelSk extends ElementSk {
-  private static rows = (ele: CommitDetailPanelSk) =>
-    ele._details.map(
-      (item, index) => html`
+  private static rows = (ele: CommitDetailPanelSk) => ele._details.map(
+    (item, index) => html`
         <tr data-id="${index}" ?selected="${ele._isSelected(index)}">
           <td>${ele._trim(item.author)}</td>
           <td>
             <commit-detail-sk .cid=${item}></commit-detail-sk>
           </td>
         </tr>
-      `
-    );
+      `,
+  );
 
   private static template = (ele: CommitDetailPanelSk) => html`
     <table @click=${ele._click}> ${CommitDetailPanelSk.rows(ele)} </table>
@@ -101,8 +100,8 @@ export class CommitDetailPanelSk extends ElementSk {
     this.dispatchEvent(
       new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>(
         'commit-selected',
-        { detail, bubbles: true }
-      )
+        { detail, bubbles: true },
+      ),
     );
   }
 
