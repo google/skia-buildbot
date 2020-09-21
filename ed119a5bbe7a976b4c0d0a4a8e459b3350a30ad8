@@ -22,6 +22,30 @@
       "revId": "ed119a5bbe7a976b4c0d0a4a8e459b3350a30ad8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c744b78d_f53920ce",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-21T19:11:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f255875c_a6140a38",
+      "range": {
+        "startLine": 69,
+        "startChar": 18,
+        "endLine": 69,
+        "endChar": 35
+      },
+      "revId": "ed119a5bbe7a976b4c0d0a4a8e459b3350a30ad8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
