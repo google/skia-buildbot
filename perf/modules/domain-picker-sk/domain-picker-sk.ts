@@ -31,11 +31,10 @@ const toDate = (seconds: number) => new Date(seconds * 1000);
 const toForceRequestType = (s: string | null): ForceRequestType => {
   if (s === 'range') {
     return 'range';
-  } else if (s === 'dense') {
+  } if (s === 'dense') {
     return 'dense';
-  } else {
-    return '';
   }
+  return '';
 };
 
 /** The state of the DomainPickerSk control. */

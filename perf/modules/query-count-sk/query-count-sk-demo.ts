@@ -5,9 +5,7 @@ import 'elements-sk/error-toast-sk';
 
 let count = 11;
 
-fetchMock.post('/', () => {
-  return { count: count };
-});
+fetchMock.post('/', () => ({ count: count }));
 
 window.customElements.whenDefined('query-count-sk').then(() => {
   const qcs = document.querySelectorAll<QueryCountSk>('query-count-sk')!;
@@ -15,7 +13,7 @@ window.customElements.whenDefined('query-count-sk').then(() => {
     qc.url = '/';
     document
       .querySelector<HTMLButtonElement>('#make_query')!
-      .addEventListener('click', (e) => {
+      .addEventListener('click', () => {
         count += 1;
         qc.current_query = 'config=565';
       });
