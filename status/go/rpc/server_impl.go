@@ -45,7 +45,9 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 		}
 	}
 	var update *incremental.Update
-	if (expectPodId != "" && expectPodId != s.podID) || fromTime.IsZero() {
+	// TODO(westont): Fix timestamps, support updates on the client side, and stop always loading
+	// everything.
+	if (true || expectPodId != "" && expectPodId != s.podID) || fromTime.IsZero() {
 		update, err = s.iCache.GetAll(repoURL, numCommits)
 	} else {
 		if !toTime.IsZero() {
