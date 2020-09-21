@@ -1,18 +1,21 @@
 import './index';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import {
-  examplePageData, exampleAllData, expectedPageData, expectedAllData,
-} from './test_data';
+import { BulkTriageSk } from './bulk-triage-sk';
+import { examplePageData, exampleAllData, expectedPageData, expectedAllData } from './test_data';
 import { $$ } from 'common-sk/modules/dom';
+import { expect } from 'chai';
+import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 
 describe('bulk-triage-sk', () => {
-  const newInstance = setUpElementUnderTest('bulk-triage-sk');
+  const newInstance = setUpElementUnderTest<BulkTriageSk>('bulk-triage-sk');
 
-  let bulkTriageSk;
+  let bulkTriageSk: BulkTriageSk;
+
   beforeEach(() => {
     bulkTriageSk = newInstance();
-    bulkTriageSk.setDigests(examplePageData, exampleAllData);
+    bulkTriageSk.currentPageDigests = examplePageData;
+    bulkTriageSk.allDigests = exampleAllData;
   });
 
   it('defaults to bulk-triaging to closest', () => {
@@ -20,19 +23,19 @@ describe('bulk-triage-sk', () => {
   });
 
   it('has value respond to button clicks', () => {
-    $$('button.untriaged', bulkTriageSk).click();
+    $$<HTMLButtonElement>('button.untriaged', bulkTriageSk)!.click();
     expectValueAndToggledButtonToBe(bulkTriageSk, 'untriaged');
-    $$('button.positive', bulkTriageSk).click();
+    $$<HTMLButtonElement>('button.positive', bulkTriageSk)!.click();
     expectValueAndToggledButtonToBe(bulkTriageSk, 'positive');
-    $$('button.negative', bulkTriageSk).click();
+    $$<HTMLButtonElement>('button.negative', bulkTriageSk)!.click();
     expectValueAndToggledButtonToBe(bulkTriageSk, 'negative');
-    $$('button.closest', bulkTriageSk).click();
+    $$<HTMLButtonElement>('button.closest', bulkTriageSk)!.click();
     expectValueAndToggledButtonToBe(bulkTriageSk, 'closest');
   });
 
   it('emits a bulk_triage_cancelled event when the cancel button is clicked', async () => {
     const cancelEvent = eventPromise('bulk_triage_cancelled', 100);
-    $$('button.cancel', bulkTriageSk).click();
+    $$<HTMLButtonElement>('button.cancel', bulkTriageSk)!.click();
     await cancelEvent;
   });
 
@@ -49,27 +52,27 @@ describe('bulk-triage-sk', () => {
         return 200;
       });
 
-      $$('button.triage', bulkTriageSk).click();
+      $$<HTMLButtonElement>('button.triage', bulkTriageSk)!.click();
       await finishedPromise;
     });
 
     it('POSTs for all results', async () => {
       bulkTriageSk.changeListID = 'someCL';
       bulkTriageSk.crs = 'gerrit';
-      $$('checkbox-sk.toggle_all', bulkTriageSk).click();
+      $$<CheckOrRadio>('checkbox-sk.toggle_all', bulkTriageSk)!.click();
       const finishedPromise = eventPromise('bulk_triage_finished');
       fetchMock.post('/json/v1/triage', (url, req) => {
         expect(req.body).to.equal(expectedAllData);
         return 200;
       });
 
-      $$('button.triage', bulkTriageSk).click();
+      $$<HTMLButtonElement>('button.triage', bulkTriageSk)!.click();
       await finishedPromise;
     });
   });
 });
 
-const expectValueAndToggledButtonToBe = (bulkTriageSk, value) => {
+const expectValueAndToggledButtonToBe = (bulkTriageSk: BulkTriageSk, value: string) => {
   expect(bulkTriageSk.value).to.equal(value);
-  expect($$(`button.${value}`, bulkTriageSk).className).to.contain('selected');
+  expect($$<HTMLButtonElement>(`button.${value}`, bulkTriageSk)!.className).to.contain('selected');
 };
