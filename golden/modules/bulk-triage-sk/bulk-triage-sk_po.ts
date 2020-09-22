@@ -3,6 +3,14 @@ import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 
 /** A page object for the BulkTriageSkPO component. */
 export class BulkTriageSkPO extends PageObject {
+  async isAffectedChangelistIdVisible() {
+    return (await this.selectOnePOE('p.cl')) !== null;
+  }
+
+  async getAffectedChangelistId() {
+    return this.selectOnePOEThenApplyFn('p.cl', (el) => el.innerText);
+  }
+
   isUntriagedBtnSelected() {
     return this.selectOnePOEThenApplyFn(
       'button.untriaged', async (el) => (await el.className).includes('selected'));
@@ -39,6 +47,10 @@ export class BulkTriageSkPO extends PageObject {
     await this.selectOnePOEThenApplyFn('button.closest', (el) => el.click());
   }
 
+  async getToggleAllCheckboxLabel() {
+    return this.selectOnePOEThenApplyFn('checkbox-sk.toggle_all', (el) => el.innerText);
+  }
+
   isToggleAllCheckboxChecked() {
     return this.selectOneDOMNodeThenApplyFn(
       'checkbox-sk.toggle_all', (c) => (c as CheckOrRadio).checked);
@@ -46,6 +58,10 @@ export class BulkTriageSkPO extends PageObject {
 
   async clickToggleAllCheckbox() {
     await this.selectOnePOEThenApplyFn('checkbox-sk.toggle_all', (el) => el.click());
+  }
+
+  async getTriageBtnLabel() {
+    return this.selectOnePOEThenApplyFn('button.triage', (el) => el.innerText);
   }
 
   async clickTriageBtn() {
