@@ -135,6 +135,79 @@ function assignedTo(incident, ele) {
   return '';
 }
 
+function botCentricView(ele, incidents) {
+  // Last one should maybe be no bots or something.
+    // Create map of bot name to matching incidents.
+    const botsToIncidents = {};
+    for (let i = 0; i < incidents.length; i++) {
+      const incident = incidents[i];
+      // Only consider active incidents that are not assigned or silenced.
+      if (!incident.active || incident.params.__silence_state === 'silenced' ||
+          incident.params.assigned_to) {
+        continue;
+      }
+      if (incident.params && incident.params['bot']) {
+        // Only consider active bot incidents that are not assigned or silenced.
+        if (!incident.active
+                || incident.params.__silence_state === 'silenced'
+                || incident.params.assigned_to) {
+          continue;
+        }
+
+        const botName = incident.params['bot'];
+        if(botsToIncidents[botName]) {
+          botsToIncidents[botName].push(incident);
+        } else {
+          botsToIncidents[botName] = [incident];
+        }
+      }
+    }
+    console.log(botsToIncidents);
+    const botsHTML = [];
+    for (const botName in botsToIncidents) {
+      // CHECKBOX BOTS OPERATE ON ALL INCIDENTS OF THAT BOT NEED TO PLAY WITH THIS
+      botsHTML.push(html`
+        <h2 class="bot-centric" @click=${() => ele._select(i)}>
+          <span class=noselect>
+            <checkbox-sk class=bot-alert-checkbox ?checked=${ele._bot_checked.has(botName)} @change=${ele._bot_check_selected} @click=${ele._clickHandler} id=${botName}></checkbox-sk>
+            <span class=bot-alert>
+              ${botName}
+              <span class=bot-incident-list>
+                ${incidentListForBot(botName, botsToIncidents[botName])}
+              </span>
+            </span>
+          </span>
+        </h2>
+      `)
+    }
+  return botsHTML;
+}
+
+function displayBotAlerts(botName, incidents) {
+  const ret = [botName];
+  console.log('displayBotNames');
+  if (incidents.length > 0) {
+    ret.push('-');
+    //console.log(incidents);
+    //console.log(incidents[0]);
+    const alertNames = incidents.map((i) => i.params.alertname);
+    console.log(alertNames);
+    ret.push(`${alertNames.join(',')}`);
+  }
+  let s = ret.join(' ');
+  if (s.length > 33) {
+    s = `${s.slice(0, 30)}...`;
+  }
+  return s;
+}
+
+function incidentListForBot(ele, incidents) {
+  const incidentsHTML = incidents.map((i) => html`- ${i.params.alertname}<br/>`);
+  return html`<br/>${incidentsHTML}`;
+  // return html`<ul>${incidentsHTML}</ul>`;
+}
+
+// rmistry
 function incidentList(ele, incidents) {
   return incidents.map((i) => html`
     <h2 class=${classOfH2(ele, i)} @click=${() => ele._select(i)}>
@@ -148,7 +221,7 @@ function incidentList(ele, incidents) {
       <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
     </span>
     </h2>
-    `);
+  `);
 }
 
 function statsList(ele) {
@@ -168,6 +241,16 @@ function assignMultiple(ele) {
   return html`<button ?disabled=${ele._checked.size === 0} @click=${ele._assignMultiple}>Assign ${ele._checked.size} alerts</button>`;
 }
 
+function botCentric(ele) {
+  let buttonText;
+  if (ele._isBotCentricView) {
+    buttonText = 'Normal view'
+  } else {
+    buttonText = 'Bot-centric view'
+  }
+  return html`<button @click=${ele._botCentric}>${buttonText}</button>`;
+}
+
 const template = (ele) => html`
 <header>${trooper(ele)}</header>
 <section class=nav>
@@ -180,11 +263,13 @@ const template = (ele) => html`
   <tabs-panel-sk>
     <section class=mine>
       ${assignMultiple(ele)}
+      ${botCentric(ele)}
       ${incidentList(ele, ele._incidents.filter((i) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._trooper || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))))}
     </section>
     <section class=incidents>
       ${assignMultiple(ele)}
-      ${incidentList(ele, ele._incidents)}
+      ${botCentric(ele)}
+      ${ele._isBotCentricView ? html`${botCentricView(ele, ele._incidents)}` : html`${incidentList(ele, ele._incidents)}`}
     </section>
     <section class=silences>
       ${ele._silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i) => html`
@@ -201,6 +286,9 @@ const template = (ele) => html`
     </section>
     <section class=stats>
       ${statsList(ele)}
+    </section>
+    <section class=bots>
+      Maybe
     </section>
   </tabs-panel-sk>
 </section>
@@ -232,6 +320,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._rhs_state = START; // One of START, INCIDENT, or EDIT_SILENCE.
     this._selected = null; // The selected incident, i.e. you clicked on the name.
     this._checked = new Set(); // Checked incidents, i.e. you clicked the checkbox.
+    this._bot_checked = new Set(); // Checked bot incidents, i.e. you clicked the checkbox.
     this._current_silence = null; // A silence under construction.
     // Params to ignore when constructing silences.
     this._ignored = ['__silence_state', 'description', 'id', 'swarming', 'assigned_to',
@@ -242,6 +331,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
     this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences recently expired.
     this._user = 'barney@example.org';
+    this._isBotCentricView = false;
     this._trooper = '';
     this._state = {
       tab: 0, // The selected tab.
@@ -393,6 +483,12 @@ define('alert-manager-sk', class extends HTMLElement {
     this._render();
   }
 
+  _bot_check_selected(e) {
+    // LEFT HERE HERE HERE
+    // This is going to be interesting..
+    // Or support multiple keys below!!!!! look for some separator??
+  }
+
   _check_selected(e) {
     const checkbox = findParent(e.target, 'CHECKBOX-SK');
     if (!this._checked.size) {
@@ -440,6 +536,7 @@ define('alert-manager-sk', class extends HTMLElement {
     }
   }
 
+  // This also needs a bot specific version.
   _select(incident) {
     this._rhs_state = INCIDENT;
     this._checked = new Set();
@@ -531,6 +628,11 @@ define('alert-manager-sk', class extends HTMLElement {
       };
       this._doImpl('/_/assign', detail);
     });
+  }
+
+  _botCentric() {
+    this._isBotCentricView = !this._isBotCentricView;
+    this._render();
   }
 
   _assignMultiple() {
