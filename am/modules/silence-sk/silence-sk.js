@@ -110,7 +110,7 @@ function table(ele, o) {
       </td>
       <th>${k}</th>
       <td>
-        <input @change=${(e) => ele._modifyRule(e, k)} .value=${o[k].join(', ')} ?disabled=${o[k].length > 1}></input>
+        <input @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
       </td>
     </tr>`);
   rules.push(html`
@@ -127,6 +127,13 @@ function table(ele, o) {
     </tr>
   `);
   return rules;
+}
+
+function displayParamValue(paramValue) {
+  if (paramValue.length > 1) {
+    return `${paramValue.join('|')}`
+  }
+  return paramValue;
 }
 
 function addNote(ele) {
@@ -288,7 +295,7 @@ define('silence-sk', class extends HTMLElement {
 
   _modifyRule(e, key) {
     const silence = JSON.parse(JSON.stringify(this._state));
-    silence.param_set[key][0] = e.target.value;
+    silence.param_set[key] = [e.target.value];
     const detail = {
       silence: silence,
     };
