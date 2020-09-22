@@ -22,6 +22,30 @@
       "revId": "bbd9c77e2fb7aa1f2885b6070ebc08502093e488",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6c979b1_3e27df85",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-22T13:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6a23a6de_96349a01",
+      "range": {
+        "startLine": 247,
+        "startChar": 29,
+        "endLine": 247,
+        "endChar": 34
+      },
+      "revId": "bbd9c77e2fb7aa1f2885b6070ebc08502093e488",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
