@@ -238,9 +238,18 @@ export class CommitsTableSk extends ElementSk {
    * @param revert Use the revert highlight class instead of reland highlight class.
    */
   highlightAssociatedCommit(hash: string, revert: boolean) {
-    $$(`#${hash}`, this)?.classList.toggle(
+    $$(`.${this.attributeStringFromHash(hash)}`, this)?.classList.toggle(
       revert ? REVERT_HIGHLIGHT_CLASS : RELAND_HIGHLIGHT_CLASS
     );
+  }
+
+  /**
+   * attributeStringFromHash pads a hash with the string 'commit-' to avoid confusing JS with
+   * leading digits, which fail querySelector.
+   * @param hash The hash being padded.
+   */
+  attributeStringFromHash(hash: string) {
+    return `commit-${hash}`;
   }
 
   addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
@@ -413,9 +422,8 @@ export class CommitsTableSk extends ElementSk {
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       res.push(
         html`<div
-          class="commit"
+          class="commit ${this.attributeStringFromHash(commit.hash)}"
           style=${this.gridLocation(rowStart, 1)}
-          id=${commit.hash}
           title=${title}
         >
           ${text}${this.commitIcons(commit)}

@@ -58,7 +58,7 @@ describe('commits-data-sk', () => {
   });
 
   it('extracts reverts and relands correctly', async () => {
-    expect(commitsData.revertedMap.get('bad')).to.include({ hash: 'revertbad' });
+    expect(commitsData.revertedMap.get('bad')).to.include({ hash: '1revertbad' });
     expect(commitsData.relandedMap.get('bad')).to.include({ hash: 'relandbad' });
   });
 
