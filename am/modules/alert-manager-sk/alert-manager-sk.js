@@ -245,6 +245,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._trooper = '';
     this._state = {
       tab: 0, // The selected tab.
+      alert_id: '', // The selected alert (if any).
     };
     fetch('https://tree-status.skia.org/current-trooper', { mode: 'cors' }).then(jsonOrThrow).then((json) => {
       this._trooper = json.username;
@@ -295,6 +296,18 @@ define('alert-manager-sk', class extends HTMLElement {
       credentials: 'include',
     }).then(jsonOrThrow).then((json) => {
       this._incidents = json.incidents;
+      // If alert_id is specified and it is in supported rhs_states then display
+      // an incident.
+      if ((this._rhs_state == START || this._rhs_state == INCIDENT) &&
+          this._state.alert_id) {
+        for (let i = 0; i < this._incidents.length; i++) {
+          if (this._incidents[i].id === this._state.alert_id) {
+            this._select(this._incidents[i]);
+            break;
+          }
+        }
+      }
+      this._incidents = json.incidents;
       this._incidentsToRecentlyExpired = json.ids_to_recently_expired_silences;
     });
 
@@ -326,6 +339,8 @@ define('alert-manager-sk', class extends HTMLElement {
 
   _tabSwitch(e) {
     this._state.tab = e.detail.index;
+    // Unset alert_id when switching tabs.
+    this._state.alert_id = '';
     this._stateHasChanged();
 
     // If tab is stats then load stats.
@@ -441,6 +456,9 @@ define('alert-manager-sk', class extends HTMLElement {
   }
 
   _select(incident) {
+    this._state.alert_id = incident.id;
+    this._stateHasChanged();
+
     this._rhs_state = INCIDENT;
     this._checked = new Set();
     this._selected = incident;

@@ -146,13 +146,17 @@ function addNote(ele) {
   return html`<textarea rows=2 cols=80 placeholder="Add description for the silence"></textarea>`;
 }
 
+function gotoIncident(incident) {
+  window.location.href = `/?alert_id=${incident.id}&tab=1`;
+}
+
 function matches(ele) {
   if (!ele._incidents) {
     return '';
   }
   return ele._incidents.filter(
     (incident) => paramset.match(ele._state.param_set, incident.params) && incident.active,
-  ).map((incident) => html`<h2> ${incident.params.alertname} ${abbr(incident)}</h2>`);
+  ).map((incident) => html`<h2 @click=${() => gotoIncident(incident)}> ${incident.params.alertname} ${abbr(incident)}</h2>`);
 }
 
 function classOfH2(silence) {
