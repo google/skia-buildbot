@@ -135,6 +135,51 @@ function assignedTo(incident, ele) {
   return '';
 }
 
+function botCentricView(ele, incidents) {
+  // Last one should maybe be no bots or something.
+    // Create map of bot name to matching incidents.
+    const botsToIncidents = {};
+    for (let i = 0; i < incidents.length; i++) {
+      const incident = incidents[i];
+      // Only consider active incidents that are not assigned or silenced.
+      if (!incident.active || incident.params.__silence_state === 'silenced' ||
+          incident.params.assigned_to) {
+        continue;
+      }
+      if (incident.params && incident.params['bot']) {
+        // Only consider active bot incidents that are not assigned or silenced.
+        if (!incident.active
+                || incident.params.__silence_state === 'silenced'
+                || incident.params.assigned_to) {
+          continue;
+        }
+
+        const botName = incident.params['bot'];
+        if(botsToIncidents[botName]) {
+          botsToIncidents[botName].push(incident);
+        } else {
+          botsToIncidents[botName] = [incident];
+        }
+      }
+    }
+    console.log(botsToIncidents);
+    const botsHTML = [];
+    for (const botName in botsToIncidents) {
+      // CHECKBOX BOTS OPERATE ON ALL INCIDENTS OF THAT BOT
+      // <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._clickHandler} id=${i.key}></checkbox-sk>
+      botsHTML.push(html`
+        <h2 class="bot-centric" @click=${() => ele._select(i)}>
+          <span class=noselect>
+            <span>${botName}</span>
+            ${incidentList(ele, botsToIncidents[botName])}
+          </span>
+        </h2>
+      `)
+    }
+  return botsHTML;
+}
+
+// rmistry
 function incidentList(ele, incidents) {
   return incidents.map((i) => html`
     <h2 class=${classOfH2(ele, i)} @click=${() => ele._select(i)}>
@@ -148,7 +193,7 @@ function incidentList(ele, incidents) {
       <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
     </span>
     </h2>
-    `);
+  `);
 }
 
 function statsList(ele) {
@@ -168,6 +213,16 @@ function assignMultiple(ele) {
   return html`<button ?disabled=${ele._checked.size === 0} @click=${ele._assignMultiple}>Assign ${ele._checked.size} alerts</button>`;
 }
 
+function botCentric(ele) {
+  let buttonText;
+  if (ele._isBotCentricView) {
+    buttonText = 'Normal view'
+  } else {
+    buttonText = 'Bot-centric view'
+  }
+  return html`<button @click=${ele._botCentric}>${buttonText}</button>`;
+}
+
 const template = (ele) => html`
 <header>${trooper(ele)}</header>
 <section class=nav>
@@ -180,11 +235,13 @@ const template = (ele) => html`
   <tabs-panel-sk>
     <section class=mine>
       ${assignMultiple(ele)}
+      ${botCentric(ele)}
       ${incidentList(ele, ele._incidents.filter((i) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._trooper || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))))}
     </section>
     <section class=incidents>
       ${assignMultiple(ele)}
-      ${incidentList(ele, ele._incidents)}
+      ${botCentric(ele)}
+      ${ele._isBotCentricView ? html`${botCentricView(ele, ele._incidents)}` : html`${incidentList(ele, ele._incidents)}`}
     </section>
     <section class=silences>
       ${ele._silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i) => html`
@@ -201,6 +258,9 @@ const template = (ele) => html`
     </section>
     <section class=stats>
       ${statsList(ele)}
+    </section>
+    <section class=bots>
+      Maybe
     </section>
   </tabs-panel-sk>
 </section>
@@ -242,6 +302,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
     this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences recently expired.
     this._user = 'barney@example.org';
+    this._isBotCentricView = false;
     this._trooper = '';
     this._state = {
       tab: 0, // The selected tab.
@@ -531,6 +592,11 @@ define('alert-manager-sk', class extends HTMLElement {
       };
       this._doImpl('/_/assign', detail);
     });
+  }
+
+  _botCentric() {
+    this._isBotCentricView = !this._isBotCentricView;
+    this._render();
   }
 
   _assignMultiple() {
