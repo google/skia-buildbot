@@ -62,33 +62,34 @@ describe('commits-table-sk', () => {
     expect(
       commitDivs
         .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
-        .map((el) => el.id)
-    ).to.deep.equal(incrementalResponse0.update!.commits!.map((c) => c.hash));
+        // Get hash from class list.
+        .map((el) => el.classList.item(1))
+    ).to.deep.equal(incrementalResponse0.update!.commits!.map((c) => `commit-${c.hash}`));
   });
 
   it('displays icons', async () => {
     const table = await setupWithResponse(incrementalResponse0);
     expect($('.tasksTable comment-icon-sk', table)).to.have.length(3);
-    expect($('#parentofabc123.commit comment-icon-sk', table)).to.have.length(1);
-    expect($('#parentofabc123.commit block-icon-sk', table)).to.have.length(1);
+    expect($('.commit-parentofabc123.commit comment-icon-sk', table)).to.have.length(1);
+    expect($('.commit-parentofabc123.commit block-icon-sk', table)).to.have.length(1);
     expect($('.task-spec[title="Build-Some-Stuff"] comment-icon-sk', table)).to.have.length(1);
     expect($('.task[title="Build-Some-Stuff @ abc123"] comment-icon-sk', table)).to.have.length(1);
   });
 
   it('highlights reverts/relands', async () => {
     const table = await setupWithResponse(incrementalResponse0);
-    expect($('#bad.commit undo-icon-sk', table)).to.have.length(1);
+    expect($('.commit-bad.commit undo-icon-sk', table)).to.have.length(1);
 
-    const revertedCommitDiv = $$('#revertbad.commit', table)!;
-    $$('#bad.commit undo-icon-sk', table)!.dispatchEvent(new Event('mouseenter', {}));
+    const revertedCommitDiv = $$('.commit-1revertbad.commit', table)!;
+    $$('.commit-bad.commit undo-icon-sk', table)!.dispatchEvent(new Event('mouseenter', {}));
     expect(revertedCommitDiv.classList.value).to.include('highlight-revert');
-    $$('#bad.commit undo-icon-sk', table)!.dispatchEvent(new Event('mouseleave', {}));
+    $$('.commit-bad.commit undo-icon-sk', table)!.dispatchEvent(new Event('mouseleave', {}));
     expect(revertedCommitDiv.classList.value).to.not.include('highlight-revert');
 
-    const relandCommitDiv = $$('#relandbad.commit', table)!;
-    $$('#bad.commit redo-icon-sk', table)!.dispatchEvent(new Event('mouseenter', {}));
+    const relandCommitDiv = $$('.commit-relandbad.commit', table)!;
+    $$('.commit-bad.commit redo-icon-sk', table)!.dispatchEvent(new Event('mouseenter', {}));
     expect(relandCommitDiv.classList.value).to.include('highlight-reland');
-    $$('#bad.commit redo-icon-sk', table)!.dispatchEvent(new Event('mouseleave', {}));
+    $$('.commit-bad.commit redo-icon-sk', table)!.dispatchEvent(new Event('mouseleave', {}));
     expect(relandCommitDiv.classList.value).to.not.include('highlight-reland');
   });
 

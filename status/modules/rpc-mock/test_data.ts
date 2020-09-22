@@ -126,7 +126,8 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         timestamp: '34611288',
       },
       {
-        hash: 'revertbad',
+        // To test handling of leading digits in the selector.
+        hash: '1revertbad',
         author: 'bob@example.com',
         parents: ['bad'],
         subject: 'is a revert',
