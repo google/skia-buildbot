@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff5657f9_e92ee61e",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-22T14:41:36Z",
+      "side": 1,
+      "message": "I believe this part of the test is redundant and can just be:\n\n   this._state.alert_id",
+      "range": {
+        "startLine": 302,
+        "startChar": 10,
+        "endLine": 302,
+        "endChar": 61
+      },
+      "revId": "024f0fddfe85cbcfd6f43273264d4681ede657cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
