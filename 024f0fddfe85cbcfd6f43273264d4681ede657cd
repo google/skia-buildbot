@@ -22,6 +22,30 @@
       "revId": "024f0fddfe85cbcfd6f43273264d4681ede657cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa7f1fc7_9e09d9cc",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-22T18:26:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff5657f9_e92ee61e",
+      "range": {
+        "startLine": 302,
+        "startChar": 10,
+        "endLine": 302,
+        "endChar": 61
+      },
+      "revId": "024f0fddfe85cbcfd6f43273264d4681ede657cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
