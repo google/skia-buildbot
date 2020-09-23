@@ -16,6 +16,29 @@
       "revId": "83518af216df018c0ad61c8bf61444ab3d030ab3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "479e6dec_f982c5fe",
+        "filename": "task_scheduler/modules/rpc/rpc.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-23T12:47:27Z",
+      "side": 1,
+      "message": "Have you tested if these timestamps work? Shouldn\u0027t this be a field with {seconds:..., nanos:...} as per the google.protobuf.Timestamp definition?",
+      "range": {
+        "startLine": 469,
+        "startChar": 2,
+        "endLine": 471,
+        "endChar": 22
+      },
+      "revId": "83518af216df018c0ad61c8bf61444ab3d030ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
