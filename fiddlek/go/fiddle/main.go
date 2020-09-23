@@ -40,6 +40,7 @@ var (
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	distDir   = flag.String("dist_dir", "./dist", "The directory to find templates, JS, and CSS files as producted by webpack.")
 	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
 )
 
@@ -496,6 +497,15 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func makeDistHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(*distDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
 func basicModeHandler(w http.ResponseWriter, r *http.Request) {
 	// This hash is that of the basic red line that is the starter code.
 	// By linking to that, the result shows up for new users/basic mode.
@@ -538,6 +548,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
 	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)
