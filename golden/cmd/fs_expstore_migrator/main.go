@@ -3,32 +3,53 @@ package main
 import (
 	"context"
 	"flag"
+	"io/ioutil"
 	"math"
+	"os/exec"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/fs_utils"
+	"go.skia.org/infra/golden/go/sql"
+	"google.golang.org/api/iterator"
+
 	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expectations"
-	"go.skia.org/infra/golden/go/fs_utils"
 	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	maxOperationTime = 2 * time.Minute
+	maxRetries       = 5
 )
 
 func main() {
 	var (
 		fsProjectID = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
 		fsNamespace = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
+
+		sqlDBName = flag.String("sql_db_name", "", "The name of the db that this data should be inserted into")
+
+		groupingCSV = flag.String("grouping_csv", "", "A CSV file that has all known pairs of corpus + test name. First column is corpus, second is test name.")
 	)
 	flag.Parse()
 
 	if *fsNamespace == "" {
-		sklog.Fatalf("You must include namespace")
+		sklog.Fatalf("You must include fs_namespace")
+	}
+
+	if *sqlDBName == "" {
+		sklog.Fatalf("You must include sql_db_name")
+	}
+
+	testNameToGrouping, err := parseGroupingCSV(*groupingCSV)
+	if err != nil {
+		sklog.Fatalf("processing groupings from %s: %s", *groupingCSV, err)
 	}
 
 	fsClient, err := ifirestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
@@ -36,159 +57,81 @@ func main() {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 	ctx := context.Background()
-	v2 := v2Impl{client: fsClient}
 	v3 := v3Impl{client: fsClient}
+	sqlDB := sqlDBV1{
+		dbName: *sqlDBName,
+	}
 
-	records, err := v2.loadTriageRecords(ctx)
+	err = sqlDB.initExpectations(ctx)
 	if err != nil {
-		sklog.Fatalf("loading v2 of records : %s", err)
+		sklog.Fatalf("Could not set up sql to %s: %s", *sqlDBName, err)
 	}
 
-	sklog.Infof("%d triage records retrieved - storing them", len(records))
-
-	if err := v3.migrateAndStoreRecords(ctx, records); err != nil {
-		sklog.Fatalf("storing v3 of records", err)
-	}
-
-	sklog.Infof("All %d triage records migrated", len(records))
-
-	changes, err := v2.loadTriageChanges(ctx)
+	// Fetch triage records
+	records, err := v3.fetchTriageRecords(ctx)
 	if err != nil {
-		sklog.Fatalf("loading v2 of changes: %s", err)
+		sklog.Fatalf("Fetching triage records: %s", err)
+	}
+	sklog.Infof("Should migrate %d records", len(records))
+
+	if err := sqlDB.storeTriageRecords(ctx, records); err != nil {
+		sklog.Fatalf("Storing triage records: %s", err)
 	}
 
-	sklog.Infof("%d triage changes retrieved - storing them", len(changes))
+	sklog.Infof("%d Records written", len(sqlDB.oldRecordIDToNewRecordID))
 
-	if err := v3.migrateAndStoreExpectationChanges(ctx, changes, records); err != nil {
-		sklog.Fatalf("migrating changes to v3: %s", err)
-	}
-
-	entries, err := v2.loadExpectationEntries(ctx)
+	// Fetch Deltas
+	deltas, err := v3.fetchExpectationDeltas(ctx)
 	if err != nil {
-		sklog.Fatalf("loading v2 of expectations : %s", err)
+		sklog.Fatalf("Fetching expectation deltas: %s", err)
 	}
 
-	sklog.Infof("%d expectation entries retrieved - storing them", len(entries))
-
-	if err := v3.migrateAndStoreEntries(ctx, entries); err != nil {
-		sklog.Fatalf("storing v3 of expectations : %s", err)
+	if err := sqlDB.storeExpectationDeltas(ctx, deltas); err != nil {
+		sklog.Fatalf("Storing expectation deltas: %s", err)
 	}
-	sklog.Infof("All %d expectation entries migrated", len(entries))
-}
 
-const (
-	v2ExpectationsCollection  = "expstore_expectations_v2"
-	v2TriageRecordsCollection = "expstore_triage_records_v2"
-	v2TriageChangesCollection = "expstore_triage_changes_v2"
-)
-
-type v2Impl struct {
-	client *ifirestore.Client
-}
-
-type v2ExpectationEntry struct {
-	Grouping   types.TestName        `firestore:"grouping"`
-	Digest     types.Digest          `firestore:"digest"`
-	Label      expectations.LabelInt `firestore:"label"`
-	Updated    time.Time             `firestore:"updated"`
-	CRSAndCLID string                `firestore:"crs_cl_id"`
-	LastUsed   time.Time             `firestore:"last_used"`
-}
-
-type v2TriageRecord struct {
-	UserName   string    `firestore:"user"`
-	TS         time.Time `firestore:"ts"`
-	CRSAndCLID string    `firestore:"crs_cl_id"`
-	Changes    int       `firestore:"changes"`
-	Committed  bool      `firestore:"committed"`
-}
-
-type v2TriageChange struct {
-	RecordID    string                `firestore:"record_id"`
-	Grouping    types.TestName        `firestore:"grouping"`
-	Digest      types.Digest          `firestore:"digest"`
-	LabelBefore expectations.LabelInt `firestore:"before"`
-	LabelAfter  expectations.LabelInt `firestore:"after"`
-}
-
-func (v v2Impl) loadExpectationEntries(ctx context.Context) ([]v2ExpectationEntry, error) {
-	const shards = 16
-	const shardField = "digest"
-	q := fs_utils.ShardOnDigest(v.client.Collection(v2ExpectationsCollection), shardField, shards)
-	shardedEntries := make([][]v2ExpectationEntry, shards)
-	err := v.client.IterDocsInParallel(ctx, "v2 expectation entries", "", q, 3, maxOperationTime, func(shard int, doc *firestore.DocumentSnapshot) error {
-		if doc == nil {
-			return nil
-		}
-		entry := v2ExpectationEntry{}
-		if err := doc.DataTo(&entry); err != nil {
-			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
-		}
-		shardedEntries[shard] = append(shardedEntries[shard], entry)
-		return nil
-	})
+	// Fetch entries
+	exp, err := v3.fetchExpectations(ctx)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		sklog.Fatalf("Fetching expectation entries: %s", err)
 	}
-	rv := make([]v2ExpectationEntry, 0, shards*len(shardedEntries[0]))
-	for _, entries := range shardedEntries {
-		for _, entry := range entries {
-			rv = append(rv, entry)
-		}
+
+	if err := sqlDB.storeExpectations(ctx, exp, testNameToGrouping); err != nil {
+		sklog.Fatalf("Storing expectation entries: %s", err)
 	}
-	return rv, nil
 }
 
-// The returned map has the id as the key. That way, the triageChanges don't have have their
-// RecordID changed.
-func (v v2Impl) loadTriageRecords(ctx context.Context) (map[string]v2TriageRecord, error) {
-	rv := map[string]v2TriageRecord{}
+type groupingIDBytes []byte
 
-	q := v.client.Collection(v2TriageRecordsCollection).OrderBy("ts", firestore.Desc)
-	err := v.client.IterDocs(ctx, "getting records", "", q, 3, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
-		if doc == nil {
-			return nil
-		}
-		id := doc.Ref.ID
-		tr := v2TriageRecord{}
-		if err := doc.DataTo(&tr); err != nil {
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageRecord with id %s", id)
-		}
-		rv[id] = tr
-		return nil
-	})
+func parseGroupingCSV(csvFilePath string) (map[string]groupingIDBytes, error) {
+	b, err := ioutil.ReadFile(csvFilePath)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "reading file")
 	}
-	return rv, nil
-}
-
-func (v v2Impl) loadTriageChanges(ctx context.Context) ([]v2TriageChange, error) {
-	const shards = 16
-	const shardField = "digest"
-	q := fs_utils.ShardOnDigest(v.client.Collection(v2TriageChangesCollection), shardField, shards)
-	shardedChanges := make([][]v2TriageChange, shards)
-	err := v.client.IterDocsInParallel(ctx, "v2 triage changes", "", q, 3, maxOperationTime, func(shard int, doc *firestore.DocumentSnapshot) error {
-		if doc == nil {
-			return nil
+	rows := strings.Split(string(b), "\n")
+	rv := make(map[string]groupingIDBytes, len(rows))
+	for _, row := range rows {
+		// Each row is corpus,testName
+		ct := strings.Split(row, ",")
+		if len(ct) != 2 {
+			continue
 		}
-		entry := v2TriageChange{}
-		if err := doc.DataTo(&entry); err != nil {
-			id := doc.Ref.ID
-			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal triageChange with id %s", id)
+		corpus, testName := strings.TrimSpace(ct[0]), strings.TrimSpace(ct[1])
+		if corpus == "corpus" {
+			continue
 		}
-		shardedChanges[shard] = append(shardedChanges[shard], entry)
-		return nil
-	})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	rv := make([]v2TriageChange, 0, shards*len(shardedChanges[0]))
-	for _, entries := range shardedChanges {
-		for _, entry := range entries {
-			rv = append(rv, entry)
+		if _, ok := rv[testName]; ok {
+			sklog.Warningf("Duplicate test name %s, some expectations may be wrong", testName)
 		}
+		groupingMap := map[string]string{
+			types.CorpusField:     corpus,
+			types.PrimaryKeyField: testName,
+		}
+		_, groupingID, err := sql.SerializeMap(groupingMap)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv[testName] = groupingID
 	}
 	return rv, nil
 }
@@ -202,6 +145,8 @@ const (
 	v3MasterPartition = "master"
 	v3BeginningOfTime = 0
 	v3EndOfTime       = math.MaxInt32
+
+	v3DigestField = "digest"
 )
 
 type v3Impl struct {
@@ -230,6 +175,7 @@ type v3TriageRange struct {
 }
 
 type v3TriageRecord struct {
+	ID        string
 	UserName  string    `firestore:"user"`
 	TS        time.Time `firestore:"ts"`
 	Changes   int       `firestore:"changes"`
@@ -245,124 +191,347 @@ type v3ExpectationChange struct {
 	LabelBefore   expectations.LabelInt `firestore:"label_before"`
 }
 
-func (v v3Impl) migrateAndStoreEntries(ctx context.Context, oldEntries []v2ExpectationEntry) error {
-	entriesByPartition := map[string][]v3ExpectationEntry{}
-
-	for _, oldEntry := range oldEntries {
-		partition := oldEntry.CRSAndCLID
-		if partition == "" {
-			partition = v3MasterPartition
-		}
-		entriesByPartition[partition] = append(entriesByPartition[partition], v3ExpectationEntry{
-			Grouping: oldEntry.Grouping,
-			Digest:   oldEntry.Digest,
-			Updated:  oldEntry.Updated,
-			LastUsed: oldEntry.LastUsed,
-			Ranges: []v3TriageRange{
-				{
-					FirstIndex: v3BeginningOfTime,
-					LastIndex:  v3EndOfTime,
-					Label:      oldEntry.Label,
-				},
-			},
-			NeedsGC: false,
-		})
-	}
-
-	for partition, entries := range entriesByPartition {
-		sklog.Infof("Writing %d entries for partition %s", len(entries), partition)
-		entryCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ExpectationEntries)
-
-		err := v.client.BatchWrite(ctx, len(entries), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
-			entry := entries[i]
-			doc := entryCollection.Doc(entry.id())
-			b.Set(doc, entry)
-			return nil
-		})
+func (v v3Impl) fetchTriageRecords(ctx context.Context) (map[string][]v3TriageRecord, error) {
+	rv := map[string][]v3TriageRecord{}
+	partitionIterator := v.client.Collection(v3Partitions).DocumentRefs(ctx)
+	p, err := partitionIterator.Next()
+	for ; err == nil; p, err = partitionIterator.Next() {
+		var records []v3TriageRecord
+		partition := p.ID
+		sklog.Infof("Partition %s", partition)
+		recordIterator := v.client.Collection(v3Partitions).Doc(partition).Collection(v3RecordEntries).Documents(ctx)
+		docs, err := recordIterator.GetAll()
 		if err != nil {
-			return skerr.Wrapf(err, "storing to partition %s", partition)
+			return nil, skerr.Wrapf(err, "getting records for %s", partition)
 		}
+		for _, doc := range docs {
+			var r v3TriageRecord
+			if err := doc.DataTo(&r); err != nil {
+				if err != nil {
+					sklog.Warning("Corrupt triage record with id %s", doc.Ref.ID)
+					continue
+				}
+			}
+			r.ID = doc.Ref.ID
+			records = append(records, r)
+		}
+		rv[partition] = records
 	}
+	if err != iterator.Done {
+		return nil, skerr.Wrap(err)
+	}
+
+	return rv, nil
+}
+
+func (v v3Impl) fetchExpectationDeltas(ctx context.Context) (map[string][]v3ExpectationChange, error) {
+	// TODO(kjlubick) handle CL expectations
+	partition := v3MasterPartition
+
+	const numShards = 16
+	base := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ChangeEntries)
+
+	rv := map[string][]v3ExpectationChange{} // Maps partition -> entries
+	queries := fs_utils.ShardOnDigest(base, v3DigestField, numShards)
+	shardedEntries := make([][]v3ExpectationChange, numShards)
+
+	err := v.client.IterDocsInParallel(ctx, "loadExpectationDeltas", partition, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		entry := v3ExpectationChange{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationChange with id %s", id)
+		}
+		if _, err := sql.DigestToBytes(entry.Digest); err != nil {
+			sklog.Warningf("Invalid digest %s in id %s", entry.Digest, doc.Ref.ID)
+			return nil
+		}
+
+		shardedEntries[i] = append(shardedEntries[i], entry)
+		return nil
+	})
+
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching expectation deltas for partition %s", partition)
+	}
+
+	var combinedEntries []v3ExpectationChange
+	for _, shard := range shardedEntries {
+		combinedEntries = append(combinedEntries, shard...)
+	}
+
+	rv[partition] = combinedEntries
+	return rv, nil
+}
+
+func (v v3Impl) fetchExpectations(ctx context.Context) (map[string][]v3ExpectationEntry, error) {
+	// TODO(kjlubick) handle CL expectations
+	partition := v3MasterPartition
+	rv := map[string][]v3ExpectationEntry{} // Maps partition -> entries
+
+	const numShards = 16
+	base := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ExpectationEntries)
+	queries := fs_utils.ShardOnDigest(base, v3DigestField, numShards)
+	shardedEntries := make([][]v3ExpectationEntry, numShards)
+
+	err := v.client.IterDocsInParallel(ctx, "loadExpectations", partition, queries, maxRetries, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
+		if doc == nil {
+			return nil
+		}
+		entry := v3ExpectationEntry{}
+		if err := doc.DataTo(&entry); err != nil {
+			id := doc.Ref.ID
+			return skerr.Wrapf(err, "corrupt data in firestore, could not unmarshal expectationEntry with id %s", id)
+		}
+		if len(entry.Ranges) == 0 {
+			// This should never happen, but we'll ignore these malformed entries if they do.
+			return nil
+		}
+		shardedEntries[i] = append(shardedEntries[i], entry)
+		return nil
+	})
+
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching expectations for partition %s", partition)
+	}
+
+	var combinedEntries []v3ExpectationEntry
+	for _, shard := range shardedEntries {
+		combinedEntries = append(combinedEntries, shard...)
+	}
+
+	rv[partition] = combinedEntries
+	sklog.Infof("Fetched %d entries for partition %s", len(combinedEntries), partition)
+	return rv, nil
+}
+
+type sqlDBV1 struct {
+	dbName string
+	db     *pgxpool.Pool
+
+	oldRecordIDToNewRecordID map[string]string
+}
+
+func (s *sqlDBV1) initExpectations(ctx context.Context) error {
+	out, err := exec.Command("cockroach", "sql", "--insecure", "--host=localhost:26257",
+		"--database="+s.dbName,
+		`--execute=
+-- Drop these tables because we'll be storing/creating new UUIDs
+DROP TABLE IF EXISTS ExpectationRecords;
+DROP TABLE IF EXISTS ExpectationDeltas;
+
+CREATE TABLE IF NOT EXISTS Expectations (
+  grouping_id BYTES, -- MD5 hash of the grouping JSON
+  digest BYTES NOT NULL, -- MD5 hash of the pixel data
+  label SMALLINT NOT NULL, -- 0 for untriaged, 1 for positive, 2 for negative
+  start_index INT4, -- Reserved for future use with expectation ranges
+  end_index INT4, -- Reserved for future use with expectation ranges
+  expectation_record_id UUID, -- If not null, the record that set this value
+  INDEX label_idx (label),
+  INDEX group_label_idx (grouping_id, label) STORING (expectation_record_id),
+  PRIMARY KEY (digest, grouping_id) -- start_index should be on primary key too eventually.
+);
+
+CREATE TABLE IF NOT EXISTS ChangelistExpectations (
+  changelist_id STRING NOT NULL, -- e.g. "gerrit_12345"
+  grouping_id BYTES, -- MD5 hash of the grouping JSON
+  digest BYTES NOT NULL, -- MD5 hash of the pixel data
+  label SMALLINT NOT NULL, -- 0 for untriaged, 1 for positive, 2 for negative
+  start_index INT4, -- Reserved for future use with expectation ranges
+  end_index INT4, -- Reserved for future use with expectation ranges
+  expectation_record_id UUID, -- If not null, the record that set this value
+  INDEX changelist_label_idx (changelist_id, label),
+  PRIMARY KEY (digest, changelist_id, grouping_id) -- start_index should be on primary key too eventually.
+);
+
+CREATE TABLE IF NOT EXISTS ExpectationDeltas (
+  expectation_delta_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  expectation_record_id UUID,
+  grouping_id BYTES, -- MD5 hash of the grouping JSON
+  digest BYTES NOT NULL, -- MD5 hash of the pixel data
+  label_before SMALLINT, -- 0 for untriaged, 1 for positive, 2 for negative
+  label_after SMALLINT, -- 0 for untriaged, 1 for positive, 2 for negative
+  start_index INT4, -- Reserved for future use with expectation ranges
+  end_index_before INT4, -- Reserved for future use with expectation ranges
+  end_index_after INT4 -- Reserved for future use with expectation ranges
+);
+
+CREATE TABLE IF NOT EXISTS ExpectationRecords (
+  expectation_record_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  changelist_id STRING, -- e.g. CodeReviewSystem and CL ID "gerrit_12345". Can be NULL
+  user_name STRING,
+  time TIMESTAMP WITH TIME ZONE,
+  num_changes INT4
+);
+`,
+	).CombinedOutput()
+	if err != nil {
+		return skerr.Wrapf(err, "creating tables: %s", out)
+	}
+
+	dbConnectionURL := "postgresql://root@localhost:26257/" + s.dbName + "?sslmode=disable"
+	db, err := pgxpool.Connect(ctx, dbConnectionURL)
+	if err != nil {
+		return skerr.Wrapf(err, "connecting to the database")
+	}
+	c, err := db.Acquire(ctx)
+	if err != nil {
+		return skerr.Wrapf(err, "acquiring connection to %s", dbConnectionURL)
+	}
+	defer c.Release()
+	if err = c.Conn().Ping(ctx); err != nil {
+		return skerr.Wrapf(err, "connecting to database via ping %s", dbConnectionURL)
+	}
+	s.db = db
+
+	sklog.Infof("SQL initializized")
 	return nil
 }
 
-func (v v3Impl) migrateAndStoreRecords(ctx context.Context, oldRecords map[string]v2TriageRecord) error {
-	type recordAndID struct {
-		record v3TriageRecord
-		id     string
-	}
-	recordsByPartition := map[string][]recordAndID{}
-	for id, oldRecord := range oldRecords {
-		partition := oldRecord.CRSAndCLID
-		if partition == "" {
-			partition = v3MasterPartition
-		}
-		newRecord := v3TriageRecord{
-			UserName:  oldRecord.UserName,
-			TS:        oldRecord.TS,
-			Changes:   oldRecord.Changes,
-			Committed: oldRecord.Committed,
-		}
-		if newRecord.UserName == "" {
-			newRecord.UserName = "expectations_migrator"
-		}
-		recordsByPartition[partition] = append(recordsByPartition[partition], recordAndID{
-			record: newRecord,
-			id:     id,
-		})
-	}
+func (s *sqlDBV1) storeTriageRecords(ctx context.Context, records map[string][]v3TriageRecord) error {
+	// TODO(kjlubick) migrate CL expectations too
+	mRecords := records[v3MasterPartition]
 
-	for partition, records := range recordsByPartition {
-		sklog.Infof("Writing %d records for partition %s", len(records), partition)
-		entryCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3RecordEntries)
+	sklog.Infof("There are %d expectations on the primary branch", len(mRecords))
+	s.oldRecordIDToNewRecordID = map[string]string{}
 
-		err := v.client.BatchWrite(ctx, len(records), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
-			recordAndId := records[i]
-			doc := entryCollection.Doc(recordAndId.id)
-			b.Set(doc, recordAndId.record)
-			return nil
-		})
+	const chunkSize = 1000
+
+	return util.ChunkIter(len(mRecords), chunkSize, func(startIdx int, endIdx int) error {
+		batch := mRecords[startIdx:endIdx]
+
+		statement := "INSERT INTO ExpectationRecords (user_name, time, num_changes) VALUES "
+		const valuesPerRow = 3
+		vp, err := sql.ValuesPlaceholders(valuesPerRow, len(batch))
 		if err != nil {
-			return skerr.Wrapf(err, "storing to partition %s", partition)
+			return skerr.Wrap(err)
 		}
+		statement += vp
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, record := range batch {
+			arguments = append(arguments, record.UserName, record.TS, record.Changes)
+		}
+		statement += " RETURNING expectation	_record_id"
+
+		rows, err := s.db.Query(ctx, statement, arguments...)
+		if err != nil {
+			return skerr.Wrapf(err, "Inserting %d records [%d:%d]", len(batch), startIdx, endIdx)
+		}
+		defer rows.Close()
+
+		for i := 0; rows.Next(); i++ {
+			recordUUID := ""
+			err := rows.Scan(&recordUUID)
+			if err != nil {
+				return skerr.Wrapf(err, "processing record number %d (%v)", i, batch[i])
+			}
+			s.oldRecordIDToNewRecordID[batch[i].ID] = recordUUID
+		}
+		if rows.Err() != nil {
+			return skerr.Wrap(rows.Err())
+		}
+
+		return nil
+	})
+}
+
+func (s *sqlDBV1) storeExpectationDeltas(ctx context.Context, deltasByPartition map[string][]v3ExpectationChange) error {
+	// TODO(kjlubick) Handle all partitions
+	deltas := deltasByPartition[v3MasterPartition]
+
+	sklog.Infof("Storing %d deltas", len(deltas))
+
+	const batchSize = 1000
+	err := util.ChunkIter(len(deltas), batchSize, func(startIdx int, endIdx int) error {
+		batch := deltas[startIdx:endIdx]
+		if len(batch) == 0 {
+			return nil
+		}
+
+		statement := `INSERT INTO ExpectationDeltas (expectation_record_id, grouping_id, digest, label_before, label_after) VALUES`
+		const valuesPerRow = 5
+
+		grouping := map[string]string{
+			types.CorpusField: "TODO", // probably need to include a map on the input that maps test name -> corpus
+		}
+		vp, err := sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		statement = statement + vp
+
+		arguments := make([]interface{}, 0, len(batch)*valuesPerRow)
+		for _, value := range batch {
+			arguments = append(arguments, s.oldRecordIDToNewRecordID[value.RecordID])
+
+			grouping[types.PrimaryKeyField] = string(value.Grouping)
+			_, groupingHash, err := sql.SerializeMap(grouping)
+			if err != nil {
+				sklog.Fatalf("Invalid JSON: %s", err)
+			}
+			arguments = append(arguments, groupingHash)
+
+			b, err := sql.DigestToBytes(value.Digest)
+			if err != nil {
+				sklog.Fatalf("Invalid Digest: %s", value.Digest)
+			}
+			arguments = append(arguments, b)
+			arguments = append(arguments, value.LabelBefore)
+			arguments = append(arguments, value.AffectedRange.Label)
+		}
+		_, err = s.db.Exec(ctx, statement, arguments...)
+		return err
+	})
+	if err != nil {
+		return skerr.Wrap(err)
 	}
+	sklog.Infof("Stored %d deltas", len(deltas))
 	return nil
 }
 
-func (v v3Impl) migrateAndStoreExpectationChanges(ctx context.Context, oldChanges []v2TriageChange, records map[string]v2TriageRecord) interface{} {
-	changesByPartition := map[string][]v3ExpectationChange{}
+func (s *sqlDBV1) storeExpectations(ctx context.Context, entriesByPartition map[string][]v3ExpectationEntry, groupings map[string]groupingIDBytes) error {
+	// TODO(kjlubick) Handle all partitions
+	entries := entriesByPartition[v3MasterPartition]
 
-	for _, oldChange := range oldChanges {
-		partition := records[oldChange.RecordID].CRSAndCLID
-		if partition == "" {
-			partition = v3MasterPartition
-		}
-		changesByPartition[partition] = append(changesByPartition[partition], v3ExpectationChange{
-			RecordID: oldChange.RecordID,
-			Grouping: oldChange.Grouping,
-			Digest:   oldChange.Digest,
-			AffectedRange: v3TriageRange{
-				FirstIndex: v3BeginningOfTime,
-				LastIndex:  v3EndOfTime,
-				Label:      oldChange.LabelAfter,
-			},
-			LabelBefore: oldChange.LabelBefore,
-		})
-	}
-
-	for partition, changes := range changesByPartition {
-		sklog.Infof("Writing %d changes for partition %s", len(changes), partition)
-		changesCollection := v.client.Collection(v3Partitions).Doc(partition).Collection(v3ChangeEntries)
-
-		err := v.client.BatchWrite(ctx, len(changes), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
-			change := changes[i]
-			doc := changesCollection.NewDoc()
-			b.Set(doc, change)
+	const batchSize = 100
+	err := util.ChunkIter(len(entries), batchSize, func(startIdx int, endIdx int) error {
+		batch := entries[startIdx:endIdx]
+		if len(batch) == 0 {
 			return nil
-		})
-		if err != nil {
-			return skerr.Wrapf(err, "storing to partition %s", partition)
 		}
+
+		//TODO(kjlubick) include writing to ValuesAtHead
+		statement := `UPSERT INTO Expectations (grouping_id, digest, label, expectation_record_id) VALUES`
+		const valuesPerRow = 4
+
+		vp, err := sql.ValuesPlaceholders(valuesPerRow, len(batch))
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		statement += vp
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, value := range batch {
+			groupingHash, ok := groupings[string(value.Grouping)]
+			if !ok {
+				return skerr.Fmt("unknown grouping %s", value.Grouping)
+			}
+			arguments = append(arguments, groupingHash)
+
+			b, err := sql.DigestToBytes(value.Digest)
+			if err != nil {
+				sklog.Fatalf("Invalid Digest: %s", value.Digest)
+			}
+			arguments = append(arguments, b)
+			arguments = append(arguments, value.Ranges[0].Label)
+		}
+		_, err = s.db.Exec(ctx, statement, arguments...)
+		return err
+	})
+	if err != nil {
+		return skerr.Wrap(err)
 	}
+	sklog.Infof("Stored %d entries", len(entries))
 	return nil
 }
