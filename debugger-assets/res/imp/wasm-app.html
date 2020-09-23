@@ -435,7 +435,7 @@ The main application element for the Skia Debugger.
                 <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
               </div>
               <div>
-                <p>{{imageCount}} images were stored in this file. Note that image indices here are file indices, which corresponded 1:1 to the gen ids that the images had during recording. If an image appears more than once, that indicates there were multiple copies of it in memory at record time. These indices appear in the `imageIndex` field of commands using them.</p>
+                <p>{{imageCount}} images were stored in this file. Note that image indices here are file indices, which corresponded 1:1 to the gen ids that the images had during recording. If an image appears more than once, that indicates there were multiple copies of it in memory at record time. These indices appear in the `imageIndex` field of commands using them. This metadata is only recorded for multi frame (mskp) files from android, so nothing is shown here for other skps</p>
                 <br>
                 <div id="resource" class="light-checkerboard" style="display:inline-block;">
                   <template is="dom-repeat" items="[[resouceNameList]]" as="item">
