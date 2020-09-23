@@ -481,7 +481,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
   private static errors = (ele: FiddleSk) => html`
     <div @click=${ele.compilerErrorLineClick} ?hidden=${!ele.hasCompileWarningsOrErrors()}>
       <h2>Compilation Warnings/Errors</h2>
-      ${ele._runResults.compile_errors!.map(
+      ${ele._runResults.compile_errors?.map(
     (err) => html`<pre
             class="compile-error ${err.line > 0 ? 'clickable' : ''}"
             data-line=${err.line}
@@ -528,7 +528,10 @@ ${err.text}</pre
     this.textarea!.clearErrors();
     this._runResults = val;
     this._render();
-    val.compile_errors!.forEach((err) => {
+    if (!val.compile_errors) {
+      return;
+    }
+    val.compile_errors.forEach((err) => {
       if (err.line === 0) {
         return;
       }
@@ -554,6 +557,16 @@ ${err.text}</pre
   set config(val: Config) {
     this._config = val;
     this._render();
+  }
+
+  set context(val: FiddleContext | null) {
+    if (!val) {
+      return;
+    }
+
+    this.options = val.options;
+    this.runResults.text = val.code;
+    this.runResults.fiddleHash = val.fiddlehash;
   }
 
   // Event listeners.
@@ -664,11 +677,11 @@ ${err.text}</pre
   }
 
   private hasCompileErrors() {
-    return this._runResults.compile_errors!.some((e) => e.text.includes('error:'));
+    return !!this._runResults.compile_errors?.some((e) => e.text.includes('error:'));
   }
 
   private hasCompileWarningsOrErrors(): boolean {
-    return this._runResults!.compile_errors!.length > 0;
+    return (this._runResults!.compile_errors?.length || 0) > 0;
   }
 
   private compilerErrorLineClick(e: MouseEvent) {
@@ -744,18 +757,17 @@ ${err.text}</pre
   }
 
   private showCPU(): boolean {
-    return (
-      this._config.cpu_embedded
-      || !this._config.embedded
-      || !this._config.gpu_embedded
-    );
+    if (!this._config.embedded) {
+      return true;
+    }
+    return this._config.cpu_embedded || !this._config.gpu_embedded;
   }
 
   private showGPU(): boolean {
-    return (
-      (!this._config.embedded || this._config.gpu_embedded)
-      && !this._config.basic_mode
-    );
+    if (!this._config.embedded) {
+      return true;
+    }
+    return this._config.gpu_embedded;
   }
 
   private showLinks(): boolean {

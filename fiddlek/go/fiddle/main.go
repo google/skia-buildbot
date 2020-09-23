@@ -35,6 +35,7 @@ import (
 
 // flags
 var (
+	distDir        = flag.String("dist_dir", "./dist", "The directory to find templates, JS, and CSS files as producted by webpack.")
 	fiddleRoot     = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -496,6 +497,15 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func makeDistHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(*distDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
 func basicModeHandler(w http.ResponseWriter, r *http.Request) {
 	// This hash is that of the basic red line that is the starter code.
 	// By linking to that, the result shows up for new users/basic mode.
@@ -538,6 +548,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
 	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)

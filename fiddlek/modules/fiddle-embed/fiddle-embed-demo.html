@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>fiddle-embed</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="body-sk darkmode">
+  <theme-chooser-sk></theme-chooser-sk>
+  <h1>fiddle-embed</h1>
+
+  <fiddle-embed></fiddle-embed>
+
+  <fiddle-embed gpu></fiddle-embed>
+
+  <fiddle-embed gpu cpu></fiddle-embed>
+
+  <h2>Mode</h2>
+  <button id=mode_start>Start</button>
+  <div id=complete>
+    <!-- Puppeteer lacks a wait to wait on events, so we stuff a <pre> tag in
+      here when each mode completes. -->
+  </div>
+</body>
+
+</html>

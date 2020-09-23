@@ -1,5 +1,5 @@
 web: package-lock.json ./modules/json/index.ts
-	npx webpack --mode=development
+	npx webpack --mode=production
 
 testjs:
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
