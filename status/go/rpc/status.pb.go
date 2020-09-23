@@ -679,6 +679,183 @@ func (x *ResponseMetadata) GetTimestamp() *timestamp.Timestamp {
 	return nil
 }
 
+type AddCommentRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message       string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	Flaky         bool   `protobuf:"varint,2,opt,name=flaky,proto3" json:"flaky,omitempty"`
+	IgnoreFailure bool   `protobuf:"varint,3,opt,name=ignore_failure,json=ignoreFailure,proto3" json:"ignore_failure,omitempty"`
+}
+
+func (x *AddCommentRequest) Reset() {
+	*x = AddCommentRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddCommentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddCommentRequest) ProtoMessage() {}
+
+func (x *AddCommentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddCommentRequest.ProtoReflect.Descriptor instead.
+func (*AddCommentRequest) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AddCommentRequest) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *AddCommentRequest) GetFlaky() bool {
+	if x != nil {
+		return x.Flaky
+	}
+	return false
+}
+
+func (x *AddCommentRequest) GetIgnoreFailure() bool {
+	if x != nil {
+		return x.IgnoreFailure
+	}
+	return false
+}
+
+type AddCommentResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *AddCommentResponse) Reset() {
+	*x = AddCommentResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddCommentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddCommentResponse) ProtoMessage() {}
+
+func (x *AddCommentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddCommentResponse.ProtoReflect.Descriptor instead.
+func (*AddCommentResponse) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{9}
+}
+
+type DeleteCommentRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteCommentRequest) Reset() {
+	*x = DeleteCommentRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCommentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCommentRequest) ProtoMessage() {}
+
+func (x *DeleteCommentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCommentRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCommentRequest) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{10}
+}
+
+type DeleteCommentResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteCommentResponse) Reset() {
+	*x = DeleteCommentResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCommentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCommentResponse) ProtoMessage() {}
+
+func (x *DeleteCommentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCommentResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCommentResponse) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{11}
+}
+
 var File_status_proto protoreflect.FileDescriptor
 
 var file_status_proto_rawDesc = []byte{
@@ -776,17 +953,38 @@ var file_status_proto_rawDesc = []byte{
 	0x03, 0x70, 0x6f, 0x64, 0x12, 0x38, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
 	0x70, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
-	0x61, 0x6d, 0x70, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x32, 0x75,
-	0x0a, 0x0d, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12,
-	0x64, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x61,
-	0x6c, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x73, 0x12, 0x24, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75,
-	0x73, 0x2e, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x6c,
-	0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25,
-	0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x63, 0x72, 0x65,
-	0x6d, 0x65, 0x6e, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x6f, 0x2e, 0x73, 0x6b, 0x69, 0x61,
-	0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x2f, 0x73, 0x74, 0x61, 0x74, 0x75,
-	0x73, 0x2f, 0x67, 0x6f, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x6d, 0x70, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x6a,
+	0x0a, 0x11, 0x41, 0x64, 0x64, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x14, 0x0a,
+	0x05, 0x66, 0x6c, 0x61, 0x6b, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x66, 0x6c,
+	0x61, 0x6b, 0x79, 0x12, 0x25, 0x0a, 0x0e, 0x69, 0x67, 0x6e, 0x6f, 0x72, 0x65, 0x5f, 0x66, 0x61,
+	0x69, 0x6c, 0x75, 0x72, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0d, 0x69, 0x67, 0x6e,
+	0x6f, 0x72, 0x65, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x22, 0x14, 0x0a, 0x12, 0x41, 0x64,
+	0x64, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x16, 0x0a, 0x14, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e,
+	0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x17, 0x0a, 0x15, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x32, 0x88, 0x02, 0x0a, 0x0d, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x53, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x12, 0x64, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d,
+	0x65, 0x6e, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x73, 0x12, 0x24, 0x2e, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65,
+	0x6e, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x25, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x49,
+	0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x43, 0x0a, 0x0a, 0x41, 0x64, 0x64,
+	0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x19, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x2e, 0x41, 0x64, 0x64, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x43,
+	0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x4c,
+	0x0a, 0x0d, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x12,
+	0x1c, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43,
+	0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e,
+	0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x6f, 0x6d,
+	0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x21, 0x5a, 0x1f,
+	0x67, 0x6f, 0x2e, 0x73, 0x6b, 0x69, 0x61, 0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x69, 0x6e, 0x66, 0x72,
+	0x61, 0x2f, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2f, 0x67, 0x6f, 0x2f, 0x72, 0x70, 0x63, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -801,7 +999,7 @@ func file_status_proto_rawDescGZIP() []byte {
 	return file_status_proto_rawDescData
 }
 
-var file_status_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_status_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_status_proto_goTypes = []interface{}{
 	(*GetIncrementalCommitsRequest)(nil),  // 0: status.GetIncrementalCommitsRequest
 	(*GetIncrementalCommitsResponse)(nil), // 1: status.GetIncrementalCommitsResponse
@@ -811,24 +1009,32 @@ var file_status_proto_goTypes = []interface{}{
 	(*LongCommit)(nil),                    // 5: status.LongCommit
 	(*Comment)(nil),                       // 6: status.Comment
 	(*ResponseMetadata)(nil),              // 7: status.ResponseMetadata
-	(*timestamp.Timestamp)(nil),           // 8: google.protobuf.Timestamp
+	(*AddCommentRequest)(nil),             // 8: status.AddCommentRequest
+	(*AddCommentResponse)(nil),            // 9: status.AddCommentResponse
+	(*DeleteCommentRequest)(nil),          // 10: status.DeleteCommentRequest
+	(*DeleteCommentResponse)(nil),         // 11: status.DeleteCommentResponse
+	(*timestamp.Timestamp)(nil),           // 12: google.protobuf.Timestamp
 }
 var file_status_proto_depIdxs = []int32{
-	8,  // 0: status.GetIncrementalCommitsRequest.from:type_name -> google.protobuf.Timestamp
-	8,  // 1: status.GetIncrementalCommitsRequest.to:type_name -> google.protobuf.Timestamp
+	12, // 0: status.GetIncrementalCommitsRequest.from:type_name -> google.protobuf.Timestamp
+	12, // 1: status.GetIncrementalCommitsRequest.to:type_name -> google.protobuf.Timestamp
 	7,  // 2: status.GetIncrementalCommitsResponse.metadata:type_name -> status.ResponseMetadata
 	2,  // 3: status.GetIncrementalCommitsResponse.update:type_name -> status.IncrementalUpdate
 	5,  // 4: status.IncrementalUpdate.commits:type_name -> status.LongCommit
 	3,  // 5: status.IncrementalUpdate.branch_heads:type_name -> status.Branch
 	4,  // 6: status.IncrementalUpdate.tasks:type_name -> status.Task
 	6,  // 7: status.IncrementalUpdate.comments:type_name -> status.Comment
-	8,  // 8: status.LongCommit.timestamp:type_name -> google.protobuf.Timestamp
-	8,  // 9: status.Comment.timestamp:type_name -> google.protobuf.Timestamp
-	8,  // 10: status.ResponseMetadata.timestamp:type_name -> google.protobuf.Timestamp
+	12, // 8: status.LongCommit.timestamp:type_name -> google.protobuf.Timestamp
+	12, // 9: status.Comment.timestamp:type_name -> google.protobuf.Timestamp
+	12, // 10: status.ResponseMetadata.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 11: status.StatusService.GetIncrementalCommits:input_type -> status.GetIncrementalCommitsRequest
-	1,  // 12: status.StatusService.GetIncrementalCommits:output_type -> status.GetIncrementalCommitsResponse
-	12, // [12:13] is the sub-list for method output_type
-	11, // [11:12] is the sub-list for method input_type
+	8,  // 12: status.StatusService.AddComment:input_type -> status.AddCommentRequest
+	10, // 13: status.StatusService.DeleteComment:input_type -> status.DeleteCommentRequest
+	1,  // 14: status.StatusService.GetIncrementalCommits:output_type -> status.GetIncrementalCommitsResponse
+	9,  // 15: status.StatusService.AddComment:output_type -> status.AddCommentResponse
+	11, // 16: status.StatusService.DeleteComment:output_type -> status.DeleteCommentResponse
+	14, // [14:17] is the sub-list for method output_type
+	11, // [11:14] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name
@@ -936,6 +1142,54 @@ func file_status_proto_init() {
 				return nil
 			}
 		}
+		file_status_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddCommentRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_status_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddCommentResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_status_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteCommentRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_status_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteCommentResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -943,7 +1197,7 @@ func file_status_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_status_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

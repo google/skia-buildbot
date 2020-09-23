@@ -217,7 +217,7 @@ func getRepo(r *http.Request) (string, string, error) {
 
 // Same as above, for new WIP Twirp server.
 // TODO(westont): Refactor once Twirp server is in use.
-func getRepoTwirp(r *rpc.GetIncrementalCommitsRequest) (string, string, error) {
+func getRepoTwirp(r interface{}) (string, string, error) {
 	repoURL, err := repoNameToUrl(r.RepoPath)
 	if err != nil {
 		return "", "", err

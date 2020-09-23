@@ -2,10 +2,16 @@ package rpc
 
 import (
 	context "context"
+	fmt "fmt"
 	"net/http"
+	strconv "strconv"
+	"time"
 
+	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/status/go/incremental"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -60,6 +66,108 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 		return nil, err
 	}
 	return ConvertUpdate(update, s.podID), nil
+}
+
+func (s *statusServerImpl) AddComment(ctx context.Context,
+	req *AddCommentRequest) (*AddCommentResponse, error) { 
+
+		return &AddCommentResponse{}, nil
+}
+
+func (s *statusServerImpl) DeleteComment(ctx context.Context,
+	req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
+	defer metrics2.FuncTimer().Stop()
+	_, repoUrl, err := getRepo(r)
+	commit := mux.Vars(r)["commit"]
+	taskSpec, ok := mux.Vars(r)["taskSpec"]
+	id, ok := mux.Vars(r)["id"] // taskid
+
+	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
+	//task
+	if !ok {
+		httputils.ReportError(w, fmt.Errorf("No task ID given!"), "No task ID given!", http.StatusInternalServerError)
+		return
+	}
+	task, err := taskDb.GetTaskById(id)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to obtain task details.", http.StatusInternalServerError)
+		return
+	}
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid comment id: %v", err), http.StatusInternalServerError)
+		return
+	}
+	c := &types.TaskComment{
+		Repo:      task.Repo,
+		Revision:  task.Revision,
+		Name:      task.Name,
+		Timestamp: time.Unix(0, timestamp),
+		TaskId:    task.Id,
+	}
+
+	if err := taskDb.DeleteTaskComment(c); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
+		return
+	}
+	if err := iCache.Update(context.Background(), false); err != nil {
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+
+	//taskpec
+	if !ok {
+		httputils.ReportError(w, nil, "No taskSpec provided!", http.StatusInternalServerError)
+		return
+	}
+	if err != nil {
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid timestamp: %v", err), http.StatusInternalServerError)
+		return
+	}
+	c := types.TaskSpecComment{
+		Repo:      repoUrl,
+		Name:      taskSpec,
+		Timestamp: time.Unix(0, timestamp),
+	}
+	if err := taskDb.DeleteTaskSpecComment(&c); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete comment: %v", err), http.StatusInternalServerError)
+		return
+	}
+	if err := iCache.Update(context.Background(), false); err != nil {
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+    //commit
+	_, repoUrl, err := getRepo(r)
+	if err != nil {
+		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	timestamp, err := strconv.ParseInt(mux.Vars(r)["timestamp"], 10, 64)
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Invalid comment id: %v", err), http.StatusInternalServerError)
+		return
+	}
+	c := types.CommitComment{
+		Repo:      repoUrl,
+		Revision:  commit,
+		Timestamp: time.Unix(0, timestamp),
+	}
+	if err := taskDb.DeleteCommitComment(&c); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to delete commit comment: %s", err), http.StatusInternalServerError)
+		return
+	}
+	if err := iCache.Update(context.Background(), false); err != nil {
+		httputils.ReportError(w, nil, fmt.Sprintf("Failed to update cache: %s", err), http.StatusInternalServerError)
+		return
+	}
+		return &DeleteCommentResponse{}, nil
 }
 
 // NewStatusServer creates and returns a Twirp HTTP Server.

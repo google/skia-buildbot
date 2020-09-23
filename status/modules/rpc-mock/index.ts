@@ -7,7 +7,7 @@
 import { MockRPCsForTesting, StatusService } from '../rpc';
 
 import { incrementalResponse0 } from './test_data';
-import { GetIncrementalCommitsRequest, GetIncrementalCommitsResponse } from '../rpc/status';
+import * as status from '../rpc/status';
 
 export * from './test_data';
 export * from './mock_data';
@@ -15,7 +15,7 @@ export * from './mock_data';
 /**
  * SetupMocks changes the rpc module to use the mocked client from this module.
  */
-export function SetupMocks(resp?: GetIncrementalCommitsResponse) {
+export function SetupMocks(resp?: status.GetIncrementalCommitsResponse) {
   MockRPCsForTesting(new MockStatusService(resp || incrementalResponse0));
 }
 
@@ -23,12 +23,20 @@ export function SetupMocks(resp?: GetIncrementalCommitsResponse) {
  * MockStatusService provides a mocked implementation of StatusService.
  */
 class MockStatusService implements StatusService {
-  resp: GetIncrementalCommitsResponse;
+  resp: status.GetIncrementalCommitsResponse;
 
-  constructor(resp: GetIncrementalCommitsResponse) {
+  constructor(resp: status.GetIncrementalCommitsResponse) {
     this.resp = resp;
   }
-  getIncrementalCommits(_: GetIncrementalCommitsRequest): Promise<GetIncrementalCommitsResponse> {
+  getIncrementalCommits(
+    _: status.GetIncrementalCommitsRequest
+  ): Promise<status.GetIncrementalCommitsResponse> {
     return Promise.resolve(this.resp);
+  }
+  addComment(_: status.AddCommentRequest): Promise<status.AddCommentResponse> {
+    return Promise.resolve({});
+  }
+  deleteComment(_: status.DeleteCommentRequest): Promise<status.DeleteCommentRequest> {
+    return Promise.resolve({});
   }
 }
