@@ -40,7 +40,6 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
 )
 
@@ -120,13 +119,10 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").Funcs(funcMap).ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/iframe.html"),
-		filepath.Join(*resourcesDir, "templates/failing.html"),
-		filepath.Join(*resourcesDir, "templates/named.html"),
-		// Sub templates used by other templates.
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/menu.html"),
+		filepath.Join(*distDir, "templates/newindex.html"),
+	//	filepath.Join(*distDir, "templates/iframe.html"),
+	//	filepath.Join(*distDir, "templates/failing.html"),
+	//	filepath.Join(*distDir, "templates/named.html"),
 	))
 }
 
@@ -488,15 +484,6 @@ func templateHandler(name string) http.HandlerFunc {
 	}
 }
 
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
 func makeDistHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*distDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -547,7 +534,6 @@ func main() {
 	names = named.New(fiddleStore)
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
