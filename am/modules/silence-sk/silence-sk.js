@@ -219,6 +219,7 @@ define('silence-sk', class extends HTMLElement {
 
   set state(val) {
     this._state = val;
+    console.log("STATE CHANGED RENDERING");
     this._render();
   }
 
@@ -227,6 +228,7 @@ define('silence-sk', class extends HTMLElement {
 
   set incidents(val) {
     this._incidents = val;
+    console.log("INCIDENTS SET RENDERING");
     this._render();
   }
 
