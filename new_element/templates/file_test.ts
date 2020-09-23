@@ -1,3 +1,4 @@
+import './index';
 import { {{.ClassName }} } from './{{.ElementName}}';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';

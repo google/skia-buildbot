@@ -1,3 +1,4 @@
+import './index';
 import { ExampleControlSk } from './example-control-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
