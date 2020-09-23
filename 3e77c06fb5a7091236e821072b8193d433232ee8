@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3bb0bd75_0fbf50fc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-23T14:01:15Z",
+      "side": 1,
+      "message": "You will need to run \u0027go generate\u0027 in the directory to re-create the sample element.",
+      "revId": "3e77c06fb5a7091236e821072b8193d433232ee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
