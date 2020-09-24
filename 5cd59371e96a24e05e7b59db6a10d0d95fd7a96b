@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4104753d_e460d3da",
+        "filename": "task_scheduler/modules/rpc/index.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-24T14:03:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7b63f62_e2a9d7fb",
+      "range": {
+        "startLine": 9,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 86
+      },
+      "revId": "5cd59371e96a24e05e7b59db6a10d0d95fd7a96b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d47f488c_cd3634ae",
         "filename": "task_scheduler/modules/rpc/index.ts",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "5cd59371e96a24e05e7b59db6a10d0d95fd7a96b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35283074_5557d112",
+        "filename": "task_scheduler/modules/rpc/index.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-24T14:03:42Z",
+      "side": 1,
+      "message": "Probably the thing to do is push the responsibility onto the caller, eg. by passing an optional TaskSchedulerService into GetTaskSchedulerService.  I\u0027ll look into that if it becomes a problem.",
+      "parentUuid": "d47f488c_cd3634ae",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "5cd59371e96a24e05e7b59db6a10d0d95fd7a96b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
