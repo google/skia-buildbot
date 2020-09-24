@@ -1,5 +1,17 @@
+app-sk main {
+  // Prevent the app-sk from stretching horizontally indefinitely (dots-sk can become very long).
+  // See https://css-tricks.com/preventing-a-grid-blowout/.
+  min-width: 0;
+}
+
 search-page-sk {
   display: block;
+
+  .top-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  };
 
   changelist-controls-sk {
     display: block;

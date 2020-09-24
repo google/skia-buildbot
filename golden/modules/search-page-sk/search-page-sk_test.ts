@@ -406,4 +406,17 @@ describe('search-page-sk', () => {
       });
     });
   });
+
+  describe('bulk triage dialog', () => {
+    it('is hidden by default', async () => {
+      await instantiate();
+      expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.false;
+    });
+
+    it('is shown when clicking the "Bulk Triage" button', async () => {
+      await instantiate();
+      await searchPageSkPO.clickBulkTriageBtn();
+      expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.true;
+    });
+  });
 });
