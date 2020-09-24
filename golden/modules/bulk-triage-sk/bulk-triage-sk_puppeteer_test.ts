@@ -54,7 +54,7 @@ describe('bulk-triage-sk', () => {
     });
 
     it('changes views when checkbox clicked', async () => {
-      await bulkTriageSkPO.clickToggleAllCheckbox();
+      await bulkTriageSkPO.clickTriageAllCheckbox();
       await takeScreenshot(bulkTriageSk, 'gold', 'bulk-triage-sk_triage-all');
     });
 
