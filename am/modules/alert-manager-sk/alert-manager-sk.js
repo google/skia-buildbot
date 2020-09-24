@@ -135,6 +135,85 @@ function assignedTo(incident, ele) {
   return '';
 }
 
+function botCentricView(ele, incidents) {
+  // Last one should maybe be no bots or something.
+    // Create map of bot name to matching incidents.
+    // const botsToIncidents = {};
+
+    // Reset
+    ele._bots_to_incidents = {};
+    for (let i = 0; i < incidents.length; i++) {
+      const incident = incidents[i];
+      // Only consider active incidents that are not assigned or silenced.
+      if (!incident.active || incident.params.__silence_state === 'silenced' ||
+          incident.params.assigned_to) {
+        continue;
+      }
+      if (incident.params && incident.params['bot']) {
+        // Only consider active bot incidents that are not assigned or silenced.
+        if (!incident.active
+                || incident.params.__silence_state === 'silenced'
+                || incident.params.assigned_to) {
+          continue;
+        }
+
+        const botName = incident.params['bot'];
+        if(ele._bots_to_incidents[botName]) {
+          ele._bots_to_incidents[botName].push(incident);
+        } else {
+          ele._bots_to_incidents[botName] = [incident];
+        }
+      }
+    }
+    console.log(ele._bots_to_incidents);
+    const botsHTML = [];
+    for (const botName in ele._bots_to_incidents) {
+      // rmistry
+      botsHTML.push(html`
+        <h2 class="bot-centric">
+          <span class=noselect>
+            <checkbox-sk class=bot-alert-checkbox ?checked=${calculateBotChecked(ele, ele._bots_to_incidents[botName])} @change=${ele._check_selected} @click=${ele._clickHandler} id=${botName}></checkbox-sk>
+            <span class=bot-alert>
+              ${botName}
+              <span class=bot-incident-list>
+                ${incidentListForBot(ele, ele._bots_to_incidents[botName])}
+              </span>
+            </span>
+          </span>
+        </h2>
+      `)
+    }
+  return botsHTML;
+}
+
+function calculateBotChecked(ele, incidents) {
+  for (let i = 0; i < incidents.length; i++) {
+    if (!ele._checked.has(incidents[i].key)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function displayBotAlerts(botName, incidents) {
+  const ret = [botName];
+  if (incidents.length > 0) {
+    ret.push('-');
+    const alertNames = incidents.map((i) => i.params.alertname);
+    ret.push(`${alertNames.join(',')}`);
+  }
+  let s = ret.join(' ');
+  if (s.length > 33) {
+    s = `${s.slice(0, 30)}...`;
+  }
+  return s;
+}
+
+function incidentListForBot(ele, incidents) {
+  const incidentsHTML = incidents.map((i) => html`<li @click=${() => ele._select(i)}>${i.params.alertname}</li>`);
+  return html`<ul class=bot-incident-elem>${incidentsHTML}</ul>`;
+}
+
 function incidentList(ele, incidents) {
   return incidents.map((i) => html`
     <h2 class=${classOfH2(ele, i)} @click=${() => ele._select(i)}>
@@ -148,7 +227,7 @@ function incidentList(ele, incidents) {
       <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
     </span>
     </h2>
-    `);
+  `);
 }
 
 function statsList(ele) {
@@ -168,6 +247,16 @@ function assignMultiple(ele) {
   return html`<button ?disabled=${ele._checked.size === 0} @click=${ele._assignMultiple}>Assign ${ele._checked.size} alerts</button>`;
 }
 
+function botCentric(ele) {
+  let buttonText;
+  if (ele._isBotCentricView) {
+    buttonText = 'Normal view'
+  } else {
+    buttonText = 'Bot-centric view'
+  }
+  return html`<button @click=${ele._botCentric}>${buttonText}</button>`;
+}
+
 const template = (ele) => html`
 <header>${trooper(ele)}</header>
 <section class=nav>
@@ -183,8 +272,9 @@ const template = (ele) => html`
       ${incidentList(ele, ele._incidents.filter((i) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._trooper || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))))}
     </section>
     <section class=incidents>
+      ${botCentric(ele)}
       ${assignMultiple(ele)}
-      ${incidentList(ele, ele._incidents)}
+      ${ele._isBotCentricView ? html`${botCentricView(ele, ele._incidents)}` : html`${incidentList(ele, ele._incidents)}`}
     </section>
     <section class=silences>
       ${ele._silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i) => html`
@@ -201,6 +291,9 @@ const template = (ele) => html`
     </section>
     <section class=stats>
       ${statsList(ele)}
+    </section>
+    <section class=bots>
+      Maybe
     </section>
   </tabs-panel-sk>
 </section>
@@ -232,6 +325,8 @@ define('alert-manager-sk', class extends HTMLElement {
     this._rhs_state = START; // One of START, INCIDENT, or EDIT_SILENCE.
     this._selected = null; // The selected incident, i.e. you clicked on the name.
     this._checked = new Set(); // Checked incidents, i.e. you clicked the checkbox.
+    this._bot_checked = new Set(); // Checked bot incidents, i.e. you clicked the checkbox.
+    this._bots_to_incidents = {}; // rmistry
     this._current_silence = null; // A silence under construction.
     // Params to ignore when constructing silences.
     this._ignored = ['__silence_state', 'description', 'id', 'swarming', 'assigned_to',
@@ -242,6 +337,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
     this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences recently expired.
     this._user = 'barney@example.org';
+    this._isBotCentricView = false;
     this._trooper = '';
     this._state = {
       tab: 0, // The selected tab.
@@ -386,6 +482,7 @@ define('alert-manager-sk', class extends HTMLElement {
   // TODO(jcgregorio) Remove this once checkbox-sk is fixed.
   _check_selected_impl(key, isChecked) {
     if (isChecked) {
+      console.log("IN IS CHECKED!!");
       this._last_checked_incident = key;
       this._checked.add(key);
       this._incidents.forEach((i) => {
@@ -404,12 +501,45 @@ define('alert-manager-sk', class extends HTMLElement {
       });
     }
 
+    if (this._isBotCentricView) {
+      this._make_bot_centric_param_set(this._current_silence.param_set);
+    }
     this._rhs_state = EDIT_SILENCE;
     this._render();
   }
 
+  // rmistry
+  _make_bot_centric_param_set(target_paramset) {
+    for (const key in target_paramset) {
+      if (key !== 'alertname' && key !== 'bot') {
+        delete target_paramset[key];
+      }
+    }
+  }
+
+  // rmistry
   _check_selected(e) {
     const checkbox = findParent(e.target, 'CHECKBOX-SK');
+    const incidentsToCheck = [];
+    if (this._isBotCentricView && this._bots_to_incidents &&
+        this._bots_to_incidents[checkbox.id]) {
+      this._bots_to_incidents[checkbox.id].forEach((i) => {
+        incidentsToCheck.push(i.key);
+      });
+    } else {
+        incidentsToCheck.push(checkbox.id);
+    }
+    const checkSelectedImplFunc = () => {
+      incidentsToCheck.forEach((id) => {
+        console.log("ONCE IN HERE IN NEW");
+        this._check_selected_impl(id, checkbox._input.checked);
+      });
+    };
+
+    // rmistry
+    // extract out _check_selected_impl into a function here and then call it.
+    // revisit if you can use isBotCentric to make the detemrinitation.
+
     if (!this._checked.size) {
       // Request a new silence.
       fetch('/_/new_silence', {
@@ -417,14 +547,54 @@ define('alert-manager-sk', class extends HTMLElement {
       }).then(jsonOrThrow).then((json) => {
         this._selected = null;
         this._current_silence = json;
-        this._check_selected_impl(checkbox.id, checkbox._input.checked);
+        console.log("IN NEW SILENCE");
+        checkSelectedImplFunc();
       }).catch(errorMessage);
     } else if (this._shift_pressed_during_click && this._last_checked_incident) {
       let foundStart = false;
       let foundEnd = false;
       const incidents_to_check = [];
+
+      // RMISTRY - WILL NEED BOT CENTRIC VERSION HERE!
+      if (this._isBotCentricView) {
+        console.log('IN NEW BLOCK');
+        console.log(this._last_checked_incident);
+
+        // Now loop through all this._bots_to_incidents to find everything.
+        for (const botName in this._bots_to_incidents) {
+          const incidents = this._bots_to_incidents[botName];
+          for (let i = 0; i < incidents.length; i++) {
+            const incident = incidents[i];
+            if (incident.key === this._last_checked_incident || incidentsToCheck.includes(incident.key)) {
+              if (!foundStart) {
+                // This is the 1st time we have entered this block. This means we
+                // found the first incident.
+                foundStart = true;
+              } else {
+                // This is the 2nd time we have entered this block. This means we
+                // found the last incident.
+                foundEnd = true;
+              }
+            }
+            if (foundStart) {
+              incidents_to_check.push(incident.key);
+            }
+            if (foundEnd) {
+              console.log("IN FOUND END");
+              console.log(foundStart);
+              console.log(foundEnd);
+              console.log(incidents_to_check);
+              break;
+            }
+          }
+          if (foundEnd) {
+            break;
+          }
+        }
+      } else {
+
       this._incidents.some((i) => {
-        if (i.key === this._last_checked_incident || i.key === checkbox.id) {
+        if (i.key === this._last_checked_incident || incidentsToCheck.includes(i.key)) {
           if (!foundStart) {
             // This is the 1st time we have entered this block. This means we
             // found the first incident.
@@ -441,17 +611,24 @@ define('alert-manager-sk', class extends HTMLElement {
         return foundEnd;
       });
 
+      }
+
+
+
+
       if (foundStart && foundEnd) {
         incidents_to_check.forEach((key) => {
+          // RMISTRY - THERE IS A BUG HERE!!!
+          console.log("DOES NOT WORK WHEN WE ARE HERE!");
           this._check_selected_impl(key, true);
         });
       } else {
         // Could not find start and/or end incident. Only check the last
         // clicked.
-        this._check_selected_impl(checkbox.id, checkbox._input.checked);
+        checkSelectedImplFunc();
       }
     } else {
-      this._check_selected_impl(checkbox.id, checkbox._input.checked);
+      checkSelectedImplFunc();
     }
   }
 
@@ -549,6 +726,11 @@ define('alert-manager-sk', class extends HTMLElement {
       };
       this._doImpl('/_/assign', detail);
     });
+  }
+
+  _botCentric() {
+    this._isBotCentricView = !this._isBotCentricView;
+    this._render();
   }
 
   _assignMultiple() {
