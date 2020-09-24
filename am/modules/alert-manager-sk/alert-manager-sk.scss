@@ -22,6 +22,23 @@ alert-manager-sk {
     user-select: none;
   }
 
+  .bot-alert {
+    display: inline-block;
+  }
+
+  .bot-alert-checkbox {
+    vertical-align: top;
+  }
+
+  .bot-incident-list {
+    color: var(--gray);
+  }
+
+  .bot-incident-elem {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
   h2 {
     align-items: center;
     color: var(--red);
@@ -29,6 +46,10 @@ alert-manager-sk {
     padding: 0;
     font-size: 14px;
     cursor: pointer;
+  }
+
+  h2.bot-centric {
+    padding: 15px 0 0 15px;
   }
 
   h2.assigned {
