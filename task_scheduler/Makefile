@@ -12,6 +12,34 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 
 include ../kube/kube.mk
 
+# First create a list of all the modules that ./go/rpc depends upon.
+rpcDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/rpc)
+
+# Then use that list to find all the Go files that make up those dependent modules.
+rpcDependentFiles := ./go/rpc/rpc.proto $(shell echo $(rpcDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}')
+
+rpcOutputFiles := ./go/rpc/rpc.pb.go ./go/rpc/rpc.twirp.go ./modules/rpc/rpc.ts ./modules/rpc/twirp.ts
+
+$(rpcOutputFiles): $(rpcDependentFiles)
+	go generate ./go/rpc
+
+./package-lock.json: package.json
+	npm install
+
+./node_modules/lastupdate-webpack: ./package-lock.json
+	npm ci
+	touch ./node_modules/lastupdate-webpack
+
+pages := $(shell find ./pages -type f)
+modules := $(shell find ./modules -type f)
+frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./node_modules/lastupdate-webpack
+pageBaseNames := $(sort $(basename $(notdir $(pages))))
+distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames))
+dist := $(addprefix ./dist/,$(distNames))
+
+$(dist): $(frontendInputFiles)
+	npx webpack --mode=production
+
 .PHONY: all
 all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db
 
@@ -20,7 +48,7 @@ task-scheduler-be:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-be
 
 .PHONY: task-scheduler-fe
-task-scheduler-fe: core_js elements_html
+task-scheduler-fe: $(dist) core_js elements_html
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
 .PHONY: task-scheduler-jc
@@ -41,6 +69,7 @@ release-be: task-scheduler-be build_base_cipd_release
 
 .PHONY: release-fe
 release-fe: task-scheduler-fe
+	npx webpack --mode=production
 	./build_fe_release
 
 .PHONY: release-jc
