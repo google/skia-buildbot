@@ -1,7 +1,7 @@
 import './index';
 import '../gold-scaffold-sk';
 
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { deepCopy } from 'common-sk/modules/object';
 import { $$ } from 'common-sk/modules/dom';
 import { delay } from '../demo_util';

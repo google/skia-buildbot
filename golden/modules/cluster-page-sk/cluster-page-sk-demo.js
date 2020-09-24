@@ -2,7 +2,7 @@ import './index';
 import '../gold-scaffold-sk';
 
 import { $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';

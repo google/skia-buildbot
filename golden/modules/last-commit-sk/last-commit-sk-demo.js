@@ -1,6 +1,6 @@
 import './index';
 
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { testOnlySetSettings } from '../settings';
 import { $$ } from 'common-sk/modules/dom';
 import { exampleStatusData } from './demo_data';

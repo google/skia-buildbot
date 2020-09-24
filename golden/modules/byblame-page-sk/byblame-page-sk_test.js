@@ -1,7 +1,7 @@
 import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import {
   canvaskit, gm, svg, trstatus,
 } from './demo_data';
