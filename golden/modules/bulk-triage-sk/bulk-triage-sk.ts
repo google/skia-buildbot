@@ -34,7 +34,7 @@ export class BulkTriageSk extends ElementSk {
   private static template = (el: BulkTriageSk) => html`
     <h2>Bulk Triage</h2>
     <p>Assign the status to all images on this page at once.</p>
-    ${el.changeListID ? html`<p>This affects ChangeList ${el.changeListID}.</p>` : ''}
+    ${el.changeListID ? html`<p class=cl>This affects ChangeList ${el.changeListID}.</p>` : ''}
     <div class=status>
       <button class="positive ${el.value === 'positive' ? 'selected' : ''}"
               @click=${() => el._setDesiredLabel('positive')}>
@@ -57,7 +57,7 @@ export class BulkTriageSk extends ElementSk {
     <div>
       <checkbox-sk @change=${el._toggleAll} label="Triage all ${el._allDigestCount} digests"
         title='Choose whether to triage just the digests on this page or all that match the query'
-        ?checked=${el._triageAll} class=toggle_all></checkbox-sk>
+        ?checked=${el._triageAll} class=triage_all></checkbox-sk>
     </div>
 
     <div class=controls>
