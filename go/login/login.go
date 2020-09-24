@@ -567,6 +567,15 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirect, 302)
 }
 
+func AuthorizedEmail(ctx context.Context)  string {
+	if session := GetSession(ctx); session != nil {
+		email := session.Email
+	   if isAuthorized(email) {
+		   return email
+	   }
+	}
+	return ""
+}
 // isAuthorized returns true if the given email address matches either the
 // domain or the user allow list.
 func isAuthorized(email string) bool {
