@@ -7,8 +7,7 @@ import { setImageEndpointsForDemos } from '../common';
 import { $$ } from 'common-sk/modules/dom';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
-
-const fetchMock = require('fetch-mock');
+import fetchMock from 'fetch-mock';
 
 testOnlySetSettings({
   title: 'Skia Public',
