@@ -64,5 +64,6 @@
       }
     }
   ],
+  "supportsManualRolls": true,
   "timeWindow": "M-F 07:00-10:00"
 }
