@@ -38,6 +38,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/google/wuffs",
     "mirrored_from_url": "https://github.com/google/wuffs.git"
   },
+  "external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator": {
+    "name": "external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator",
+    "clone_url": "https://skia.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator",
+    "mirrored_from_url": "https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git"
+  },
   "external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator": {
     "name": "external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
     "clone_url": "https://skia.googlesource.com/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
