@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "83c443c2_eb747540",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 21
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-24T15:48:39Z",
+      "side": 1,
+      "message": "Just minor nits. This looks great!",
+      "revId": "bac71189d70ac04b6629f19d874fdc55b6e98aa6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a485b2c5_e9bb461d",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 21
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-24T15:48:39Z",
+      "side": 1,
+      "message": "I think it would be cleaner to push the conditional logic down into a func, like incidentList(), instead of having it inline here.",
+      "range": {
+        "startLine": 252,
+        "startChar": 6,
+        "endLine": 252,
+        "endChar": 122
+      },
+      "revId": "bac71189d70ac04b6629f19d874fdc55b6e98aa6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fcf6de9_a3962ae9",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 21
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-24T15:48:39Z",
+      "side": 1,
+      "message": "Make a const with the param names to keep that information in an easy to edit place:\n\n  const bot_centric_params \u003d [\u0027alertname\u0027, \u0027bot\u0027]\n\nand then this check becomes\n\n  if (bot_centric_params.indexOf(key) \u003d\u003d\u003d -1)",
+      "range": {
+        "startLine": 485,
+        "startChar": 4,
+        "endLine": 485,
+        "endChar": 49
+      },
+      "revId": "bac71189d70ac04b6629f19d874fdc55b6e98aa6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
