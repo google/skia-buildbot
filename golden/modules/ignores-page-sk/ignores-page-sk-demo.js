@@ -7,8 +7,7 @@ import { ignoreRules_10, fakeNow } from './test_data';
 import { manyParams } from '../shared_demo_data';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
-
-const fetchMock = require('fetch-mock');
+import fetchMock from 'fetch-mock';
 
 Date.now = () => fakeNow;
 testOnlySetSettings({

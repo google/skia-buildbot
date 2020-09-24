@@ -6,14 +6,13 @@ import { manyParams } from '../shared_demo_data';
 import { testOnlySetSettings } from '../settings';
 import { sampleByTestList } from './test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
+import fetchMock from 'fetch-mock';
 
 testOnlySetSettings({
   title: 'Testing Gold',
   defaultCorpus: 'gm',
   baseRepoURL: 'https://github.com/flutter/flutter',
 });
-
-const fetchMock = require('fetch-mock');
 
 fetchMock.get('/json/v1/paramset', delay(manyParams, 100));
 fetchMock.get('glob:/json/v1/list*', delay(sampleByTestList, 100));

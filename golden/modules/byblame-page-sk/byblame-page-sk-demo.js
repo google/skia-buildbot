@@ -1,7 +1,7 @@
 import './index';
 import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import {
   canvaskit,
   fakeNow,

@@ -3,7 +3,7 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { sendBeginTask, sendEndTask } from '../common';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { testOnlySetSettings } from '../settings';
 

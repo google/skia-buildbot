@@ -3,7 +3,7 @@ import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
 import { toObject } from 'common-sk/modules/query';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { delay } from '../demo_util';
 import { triageLogs } from './demo_data';
 import { testOnlySetSettings } from '../settings';
