@@ -39,6 +39,30 @@
       "revId": "83518af216df018c0ad61c8bf61444ab3d030ab3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7962d3fd_4b02a61c",
+        "filename": "task_scheduler/modules/rpc/rpc.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-24T10:55:27Z",
+      "side": 1,
+      "message": "Per discussion in chat, these are encoded to (RFC3339?) string.",
+      "parentUuid": "479e6dec_f982c5fe",
+      "range": {
+        "startLine": 469,
+        "startChar": 2,
+        "endLine": 471,
+        "endChar": 22
+      },
+      "revId": "83518af216df018c0ad61c8bf61444ab3d030ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
