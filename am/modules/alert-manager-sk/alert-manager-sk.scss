@@ -18,6 +18,15 @@ alert-manager-sk {
     height: initial;
   }
 
+  button.selection {
+    width: 100%;
+  }
+
+  span.selection-buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+
   .noselect {
     user-select: none;
   }
