@@ -1,4 +1,4 @@
-import { Label, TriageRequestData } from '../rpc_types';
+import { Label, TriageRequestData, TriageRequest } from '../rpc_types';
 
 export const examplePageData: TriageRequestData = {
   alpha_test: {
@@ -11,7 +11,19 @@ export const examplePageData: TriageRequestData = {
   },
 };
 
-export const expectedPageData = '{"testDigestStatus":{"alpha_test":{"aaaaaaaaaaaaaaaaaaaaaaaaaaa":"positive","bbbbbbbbbbbbbbbbbbbbbbbbbbb":"negative"},"beta_test":{"ccccccccccccccccccccccccccc":"positive"}},"changelist_id":"","crs":""}';
+export const expectedPageDataTriageRequest: TriageRequest = {
+  testDigestStatus: {
+    alpha_test: {
+      aaaaaaaaaaaaaaaaaaaaaaaaaaa: 'positive',
+      bbbbbbbbbbbbbbbbbbbbbbbbbbb: 'negative',
+    },
+    beta_test: {
+      ccccccccccccccccccccccccccc: 'positive',
+    }
+  },
+  changelist_id: '',
+  crs: '',
+};
 
 export const exampleAllData: TriageRequestData = {
   alpha_test: {
@@ -30,4 +42,21 @@ export const exampleAllData: TriageRequestData = {
   },
 };
 
-export const expectedAllData = '{"testDigestStatus":{"alpha_test":{"aaaaaaaaaaaaaaaaaaaaaaaaaaa":"positive","bbbbbbbbbbbbbbbbbbbbbbbbbbb":"negative","ddddddddddddddddddddddddddd":"positive"},"beta_test":{"ccccccccccccccccccccccccccc":"positive","ddddddddddddddddddddddddddd":"negative"},"gamma_test":{"eeeeeeeeeeeeeeeeeeeeeeeeeee":""}},"changelist_id":"someCL","crs":"gerrit"}';
+export const expectedAllDataTriageRequest: TriageRequest = {
+  testDigestStatus: {
+    alpha_test: {
+      aaaaaaaaaaaaaaaaaaaaaaaaaaa: 'positive',
+      bbbbbbbbbbbbbbbbbbbbbbbbbbb: 'negative',
+      ddddddddddddddddddddddddddd: 'positive',
+    },
+    beta_test: {
+      ccccccccccccccccccccccccccc: 'positive',
+      ddddddddddddddddddddddddddd: 'negative',
+    },
+    gamma_test: {
+      eeeeeeeeeeeeeeeeeeeeeeeeeee: '' as Label,
+    }
+  },
+  changelist_id: 'someCL',
+  crs: 'gerrit',
+};
