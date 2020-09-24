@@ -19,6 +19,21 @@ describe('bulk-triage-sk', () => {
     bulkTriageSkPO = new BulkTriageSkPO(bulkTriageSk);
   });
 
+  it('shows the correct digest counts', async () => {
+    expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 3 digests as closest');
+    expect(await bulkTriageSkPO.getToggleAllCheckboxLabel()).to.equal('Triage all 6 digests');
+  });
+
+  it('does not show a changelist ID by default', async () => {
+    expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.false;
+  });
+
+  it('show the changelist ID when provided', async () => {
+    bulkTriageSk.changeListID = '123';
+    expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.true;
+    expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal('This affects ChangeList 123.');
+  });
+
   it('defaults to bulk-triaging to closest', async () => {
     expect(await bulkTriageSkPO.isClosestBtnSelected()).to.be.true;
     expect(bulkTriageSk.value).to.equal('closest');
@@ -55,12 +70,12 @@ describe('bulk-triage-sk', () => {
     });
 
     it('POSTs for just this page of results', async () => {
-      const finishedPromise = eventPromise('bulk_triage_finished');
-      fetchMock.post('/json/v1/triage', (url, req) => {
+      fetchMock.post('/json/v1/triage', (_, req) => {
         expect(req.body).to.equal(expectedPageData);
         return 200;
       });
 
+      const finishedPromise = eventPromise('bulk_triage_finished');
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
@@ -68,13 +83,15 @@ describe('bulk-triage-sk', () => {
     it('POSTs for all results', async () => {
       bulkTriageSk.changeListID = 'someCL';
       bulkTriageSk.crs = 'gerrit';
-      await bulkTriageSkPO.clickToggleAllCheckbox();
-      const finishedPromise = eventPromise('bulk_triage_finished');
-      fetchMock.post('/json/v1/triage', (url, req) => {
+
+      fetchMock.post('/json/v1/triage', (_, req) => {
         expect(req.body).to.equal(expectedAllData);
         return 200;
       });
 
+      await bulkTriageSkPO.clickToggleAllCheckbox();
+
+      const finishedPromise = eventPromise('bulk_triage_finished');
       bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
