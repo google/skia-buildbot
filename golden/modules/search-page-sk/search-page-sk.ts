@@ -9,16 +9,18 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { deepCopy } from 'common-sk/modules/object';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ParamSet, fromParamSet, fromObject } from 'common-sk/modules/query';
+import dialogPolyfill from 'dialog-polyfill';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
 import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse, TriageRequestData, Label } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
+import '../bulk-triage-sk';
 import '../search-controls-sk';
 import '../changelist-controls-sk';
 import '../digest-details-sk';
@@ -67,14 +69,18 @@ export interface SearchRequest {
 
 export class SearchPageSk extends ElementSk {
   private static _template = (el: SearchPageSk) => html`
-    <!-- TODO(lovisolo): Add "Bulk Triage" button. -->
     <!-- TODO(lovisolo): Add "Help" button. -->
 
-    <search-controls-sk .corpora=${el._corpora}
-                        .searchCriteria=${el._searchCriteria}
-                        .paramSet=${el._paramSet}
-                        @search-controls-sk-change=${el._onSearchControlsChange}>
-    </search-controls-sk>
+    <div class="top-controls">
+      <search-controls-sk .corpora=${el._corpora}
+                          .searchCriteria=${el._searchCriteria}
+                          .paramSet=${el._paramSet}
+                          @search-controls-sk-change=${el._onSearchControlsChange}>
+      </search-controls-sk>
+      <button class="bulk-triage" @click=${() => el._bulkTriageDialog?.showModal()}>
+        Bulk Triage
+      </button>
+    </div>
 
     <!-- This is only visible when the summary property is not null. -->
     <changelist-controls-sk .ps_order=${el._patchset}
@@ -85,7 +91,18 @@ export class SearchPageSk extends ElementSk {
 
     <p class=summary>${SearchPageSk._summary(el)}</p>
 
-    ${el._searchResponse?.digests?.map((result) => SearchPageSk._resultTemplate(el, result!))}`;
+    ${el._searchResponse?.digests?.map((result) => SearchPageSk._resultTemplate(el, result!))}
+
+    <dialog class="bulk-triage">
+      <bulk-triage-sk .currentPageDigests=${el._getCurrentPageDigestsTriageRequestData()}
+                      .allDigests=${el._searchResponse?.bulk_triage_data || {}}
+                      .crs=${el._crs || ''}
+                      .changeListID=${el._changelistId || ''}
+                      @bulk_triage_invoked=${() => el._bulkTriageDialog?.close()}
+                      @bulk_triage_finished=${() => el._fetchSearchResults()}
+                      @bulk_triage_cancelled=${() => el._bulkTriageDialog?.close()}>
+      </bulk-triage-sk>
+    </dialog>`;
 
   private static _summary = (el: SearchPageSk) => {
     if (!el._searchResponse) {
@@ -147,6 +164,8 @@ export class SearchPageSk extends ElementSk {
 
   private _searchResultsFetchController: AbortController | null = null;
 
+  private _bulkTriageDialog: HTMLDialogElement | null = null;
+
   constructor() {
     super(SearchPageSk._template);
 
@@ -180,6 +199,9 @@ export class SearchPageSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+
+    this._bulkTriageDialog = this.querySelector('dialog.bulk-triage');
+    dialogPolyfill.registerDialog(this._bulkTriageDialog!);
 
     // It suffices to fetch the corpora and paramset once. We assume they don't change during the
     // lifecycle of the page. Worst case, the user will have to reload to get any new parameters.
@@ -298,6 +320,33 @@ export class SearchPageSk extends ElementSk {
     } catch(e) {
       sendFetchError(this, e, 'fetching the available digest parameters');
     }
+  }
+
+  private _getCurrentPageDigestsTriageRequestData() {
+    const triageRequestData: TriageRequestData = {};
+
+    if (!this._searchResponse) return triageRequestData;
+
+    for (const result of this._searchResponse.digests!) {
+      let byTest = triageRequestData[result!.test];
+      if (!byTest) {
+        byTest = {};
+        triageRequestData[result!.test] = byTest;
+      }
+      let valueToSet: Label | '' = '';
+      if (result!.closestRef === 'pos') {
+        valueToSet = 'positive';
+      } else if (result!.closestRef === 'neg') {
+        valueToSet = 'negative';
+      }
+      // Note: We cast this potentially empty string as a Label due to the legacy behaviors
+      // documented here:
+      // https://github.com/google/skia-buildbot/blob/6dd58fac8d1eac7bbf4e737110605dcdf1b20a56/golden/modules/bulk-triage-sk/bulk-triage-sk.ts#L134
+      // TODO(lovisolo): Clean this up after the legacy search-page-sk is removed.
+      byTest[result!.digest] = valueToSet as Label;
+    }
+
+    return triageRequestData;
   }
 
   private _onSearchControlsChange(event: CustomEvent<SearchCriteria>) {

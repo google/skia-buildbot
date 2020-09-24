@@ -1,9 +1,14 @@
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
 import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-controls-sk_po';
+import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
 
 /** A page object for the SearchPageSkPO component. */
 export class SearchPageSkPO extends PageObject {
+  getBulkTriageSkPO() {
+    return this.selectOnePOEThenApplyFn('bulk-triage-sk', async (el) => new BulkTriageSkPO(el));
+  }
+
   getSearchControlsSkPO() {
     return this.selectOnePOEThenApplyFn(
       'search-controls-sk', async (el) => new SearchControlsSkPO(el));
@@ -12,6 +17,14 @@ export class SearchPageSkPO extends PageObject {
   getChangelistControlsSkPO() {
     return this.selectOnePOEThenApplyFn(
       'changelist-controls-sk', async (el) => new ChangelistControlsSkPO(el));
+  }
+
+  async clickBulkTriageBtn() {
+    await this.selectOnePOEThenApplyFn('button.bulk-triage', (el) => el.click());
+  }
+
+  isBulkTriageDialogOpen() {
+    return this.selectOnePOEThenApplyFn('dialog.bulk-triage', (el) => el.hasAttribute('open'))
   }
 
   getSummary() {
