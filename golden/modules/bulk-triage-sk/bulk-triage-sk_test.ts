@@ -3,7 +3,7 @@ import fetchMock from 'fetch-mock';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { BulkTriageSk } from './bulk-triage-sk';
 import { BulkTriageSkPO } from './bulk-triage-sk_po';
-import { examplePageData, exampleAllData, expectedPageData, expectedAllData } from './test_data';
+import { examplePageData, exampleAllData, expectedPageDataTriageRequest, expectedAllDataTriageRequest } from './test_data';
 import { expect } from 'chai';
 
 describe('bulk-triage-sk', () => {
@@ -17,6 +17,21 @@ describe('bulk-triage-sk', () => {
     bulkTriageSk.currentPageDigests = examplePageData;
     bulkTriageSk.allDigests = exampleAllData;
     bulkTriageSkPO = new BulkTriageSkPO(bulkTriageSk);
+  });
+
+  it('shows the correct digest counts', async () => {
+    expect(await bulkTriageSkPO.getTriageBtnLabel()).to.equal('Triage 3 digests as closest');
+    expect(await bulkTriageSkPO.getTriageAllCheckboxLabel()).to.equal('Triage all 6 digests');
+  });
+
+  it('does not show a changelist ID by default', async () => {
+    expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.false;
+  });
+
+  it('show the changelist ID when provided', async () => {
+    bulkTriageSk.changeListID = '123';
+    expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.true;
+    expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal('This affects ChangeList 123.');
   });
 
   it('defaults to bulk-triaging to closest', async () => {
@@ -55,12 +70,9 @@ describe('bulk-triage-sk', () => {
     });
 
     it('POSTs for just this page of results', async () => {
-      const finishedPromise = eventPromise('bulk_triage_finished');
-      fetchMock.post('/json/v1/triage', (url, req) => {
-        expect(req.body).to.equal(expectedPageData);
-        return 200;
-      });
+      fetchMock.post('/json/v1/triage', 200, {body: expectedPageDataTriageRequest});
 
+      const finishedPromise = eventPromise('bulk_triage_finished');
       await bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
@@ -68,13 +80,12 @@ describe('bulk-triage-sk', () => {
     it('POSTs for all results', async () => {
       bulkTriageSk.changeListID = 'someCL';
       bulkTriageSk.crs = 'gerrit';
-      await bulkTriageSkPO.clickToggleAllCheckbox();
-      const finishedPromise = eventPromise('bulk_triage_finished');
-      fetchMock.post('/json/v1/triage', (url, req) => {
-        expect(req.body).to.equal(expectedAllData);
-        return 200;
-      });
 
+      fetchMock.post('/json/v1/triage', 200, {body: expectedAllDataTriageRequest});
+
+      await bulkTriageSkPO.clickTriageAllCheckbox();
+
+      const finishedPromise = eventPromise('bulk_triage_finished');
       bulkTriageSkPO.clickTriageBtn();
       await finishedPromise;
     });
