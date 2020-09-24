@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e41af510_a36f8444",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-24T17:17:09Z",
+      "side": 1,
+      "message": "FYI: this should now introduce a new versioned RPC call and use \"primary\" or \"primary_branch\"",
+      "revId": "3f46364f04facc7f50599e4b004ef92bf9781547",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
