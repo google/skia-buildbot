@@ -40,6 +40,10 @@ dist := $(addprefix ./dist/,$(distNames))
 $(dist): $(frontendInputFiles)
 	npx webpack --mode=production
 
+.PHONY: serve
+serve: $(dist)
+	npx webpack-dev-server --mode=development --watch-poll
+
 .PHONY: all
 all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db
 

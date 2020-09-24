@@ -10,7 +10,12 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "@types/d3": "^5.7.2",
+    "common-sk": "^3.4.1",
+    "d3": "^6.1.1",
+    "elements-sk": "^4.0.0",
     "graceful-fs": "^4.1.15",
+    "lit-html": "^1.1.2",
     "natives": "^1.1.6"
   },
   "devDependencies": {

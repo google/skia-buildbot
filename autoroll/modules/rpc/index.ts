@@ -6,7 +6,12 @@ import {
 export * from "./rpc";
 
 const host = window.location.protocol + "//" + window.location.host;
-let rpcClient: AutoRollService = new AutoRollServiceClient(host, window.fetch.bind(window));
+let rpcClient: AutoRollService = new AutoRollServiceClient(host, doFetch);
+
+// TODO(borenet): Using "fetch" directly results in an error. I'm not sure why.
+function doFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+  return fetch(input, init);
+}
 
 /**
  * GetAutoRollService returns an AutoRollService implementation which dispatches
