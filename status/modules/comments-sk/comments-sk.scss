@@ -1,0 +1,18 @@
+comments-sk {
+  table {
+    width: 100%;
+  }
+  td {
+    padding: 5px;
+    white-space: nowrap;
+    width: 10px;
+  }
+  td.commentMessage {
+    white-space: normal;
+    width: 100%;
+  }
+  th {
+    text-align: left;
+    white-space: nowrap;
+  }
+}

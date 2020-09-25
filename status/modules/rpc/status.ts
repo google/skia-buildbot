@@ -211,8 +211,93 @@ const JSONToResponseMetadata = (m: ResponseMetadataJSON): ResponseMetadata => {
   };
 };
 
+export interface AddCommentRequest {
+  repo: string;
+  commit: string;
+  taskSpec: string;
+  taskId: string;
+  message: string;
+  flaky: boolean;
+  ignoreFailure: boolean;
+}
+
+interface AddCommentRequestJSON {
+  repo?: string;
+  commit?: string;
+  task_spec?: string;
+  task_id?: string;
+  message?: string;
+  flaky?: boolean;
+  ignore_failure?: boolean;
+}
+
+const AddCommentRequestToJSON = (m: AddCommentRequest): AddCommentRequestJSON => {
+  return {
+    repo: m.repo,
+    commit: m.commit,
+    task_spec: m.taskSpec,
+    task_id: m.taskId,
+    message: m.message,
+    flaky: m.flaky,
+    ignore_failure: m.ignoreFailure,
+  };
+};
+
+export interface AddCommentResponse {
+  timestamp?: string;
+}
+
+interface AddCommentResponseJSON {
+  timestamp?: string;
+}
+
+const JSONToAddCommentResponse = (m: AddCommentResponseJSON): AddCommentResponse => {
+  return {
+    timestamp: m.timestamp,
+  };
+};
+
+export interface DeleteCommentRequest {
+  repo: string;
+  commit: string;
+  taskSpec: string;
+  taskId: string;
+  timestamp?: string;
+}
+
+interface DeleteCommentRequestJSON {
+  repo?: string;
+  commit?: string;
+  task_spec?: string;
+  task_id?: string;
+  timestamp?: string;
+}
+
+const DeleteCommentRequestToJSON = (m: DeleteCommentRequest): DeleteCommentRequestJSON => {
+  return {
+    repo: m.repo,
+    commit: m.commit,
+    task_spec: m.taskSpec,
+    task_id: m.taskId,
+    timestamp: m.timestamp,
+  };
+};
+
+export interface DeleteCommentResponse {
+}
+
+interface DeleteCommentResponseJSON {
+}
+
+const JSONToDeleteCommentResponse = (m: DeleteCommentResponseJSON): DeleteCommentResponse => {
+  return {
+  };
+};
+
 export interface StatusService {
   getIncrementalCommits: (getIncrementalCommitsRequest: GetIncrementalCommitsRequest) => Promise<GetIncrementalCommitsResponse>;
+  addComment: (addCommentRequest: AddCommentRequest) => Promise<AddCommentResponse>;
+  deleteComment: (deleteCommentRequest: DeleteCommentRequest) => Promise<DeleteCommentResponse>;
 }
 
 export class StatusServiceClient implements StatusService {
@@ -241,6 +326,36 @@ export class StatusServiceClient implements StatusService {
       }
 
       return resp.json().then(JSONToGetIncrementalCommitsResponse);
+    });
+  }
+
+  addComment(addCommentRequest: AddCommentRequest): Promise<AddCommentResponse> {
+    const url = this.hostname + this.pathPrefix + "AddComment";
+    let body: AddCommentRequest | AddCommentRequestJSON = addCommentRequest;
+    if (!this.writeCamelCase) {
+      body = AddCommentRequestToJSON(addCommentRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToAddCommentResponse);
+    });
+  }
+
+  deleteComment(deleteCommentRequest: DeleteCommentRequest): Promise<DeleteCommentResponse> {
+    const url = this.hostname + this.pathPrefix + "DeleteComment";
+    let body: DeleteCommentRequest | DeleteCommentRequestJSON = deleteCommentRequest;
+    if (!this.writeCamelCase) {
+      body = DeleteCommentRequestToJSON(deleteCommentRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToDeleteCommentResponse);
     });
   }
 }
