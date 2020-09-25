@@ -60,6 +60,12 @@ describe('search-page-sk', () => {
       await searchPageSkPO.clickBulkTriageBtn();
       await takeScreenshot(testBed.page, 'gold', 'search-page-sk_bulk-triage-with-cl');
     });
+
+    it('shows the help dialog', async () => {
+      await goToPage();
+      await searchPageSkPO.clickHelpBtn();
+      await takeScreenshot(testBed.page, 'gold', 'search-page-sk_help-dialog');
+    });
   });
 
   it('reads search params from the URL', async () => {

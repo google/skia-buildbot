@@ -410,6 +410,26 @@ describe('search-page-sk', () => {
     });
   });
 
+  describe('help dialog', () => {
+    it('is closed by default', async () => {
+      await instantiate();
+      expect(await searchPageSkPO.isHelpDialogOpen()).to.be.false;
+    });
+
+    it('opens when clicking the "Help" button', async () => {
+      await instantiate();
+      await searchPageSkPO.clickHelpBtn();
+      expect(await searchPageSkPO.isHelpDialogOpen()).to.be.true;
+    });
+
+    it('closes when the "Close" button is clicked', async () => {
+      await instantiate();
+      await searchPageSkPO.clickHelpBtn();
+      await searchPageSkPO.clickHelpDialogCancelBtn();
+      expect(await searchPageSkPO.isHelpDialogOpen()).to.be.false;
+    });
+  });
+
   describe('bulk triage dialog', () => {
     describe('opening and closing', () => {
       it('is closed by default', async () => {
@@ -423,14 +443,14 @@ describe('search-page-sk', () => {
         expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.true;
       });
 
-      it('closes when the cancel button is clicked', async () => {
+      it('closes when the "Cancel" button is clicked', async () => {
         await instantiate();
         await searchPageSkPO.clickBulkTriageBtn();
         await bulkTriageSkPO.clickCancelBtn();
         expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.false;
       });
 
-      it('closes when the triage button is clicked', async () => {
+      it('closes when the "Triage ..." button is clicked', async () => {
         fetchMock.post('/json/v1/triage', 200); // We ignore the TriageRequest in this test.
 
         await instantiate();

@@ -27,6 +27,18 @@ export class SearchPageSkPO extends PageObject {
     return this.selectOnePOEThenApplyFn('dialog.bulk-triage', (el) => el.hasAttribute('open'))
   }
 
+  async clickHelpBtn() {
+    await this.selectOnePOEThenApplyFn('button.help', (el) => el.click());
+  }
+
+  async clickHelpDialogCancelBtn() {
+    await this.selectOnePOEThenApplyFn('dialog.help button.cancel', (el) => el.click());
+  }
+
+  isHelpDialogOpen() {
+    return this.selectOnePOEThenApplyFn('dialog.help', (el) => el.hasAttribute('open'))
+  }
+
   getSummary() {
     return this.selectOnePOEThenApplyFn('p.summary', (el) => el.innerText);
   }

@@ -69,17 +69,20 @@ export interface SearchRequest {
 
 export class SearchPageSk extends ElementSk {
   private static _template = (el: SearchPageSk) => html`
-    <!-- TODO(lovisolo): Add "Help" button. -->
-
     <div class="top-controls">
       <search-controls-sk .corpora=${el._corpora}
                           .searchCriteria=${el._searchCriteria}
                           .paramSet=${el._paramSet}
                           @search-controls-sk-change=${el._onSearchControlsChange}>
       </search-controls-sk>
-      <button class="bulk-triage" @click=${() => el._bulkTriageDialog?.showModal()}>
-        Bulk Triage
-      </button>
+      <div class="buttons">
+        <button class="bulk-triage" @click=${() => el._bulkTriageDialog?.showModal()}>
+          Bulk Triage
+        </button>
+        <button class="help" @click=${() => el._helpDialog?.showModal()}>
+          Help
+        </button>
+      </div>
     </div>
 
     <!-- This is only visible when the summary property is not null. -->
@@ -102,6 +105,22 @@ export class SearchPageSk extends ElementSk {
                       @bulk_triage_finished=${() => el._fetchSearchResults()}
                       @bulk_triage_cancelled=${() => el._bulkTriageDialog?.close()}>
       </bulk-triage-sk>
+    </dialog>
+
+    <dialog class="help">
+      <h2>Keyboard shortcuts</h2>
+      <dl>
+        <dt>J</dt> <dd>Next digest</dd>
+        <dt>K</dt> <dd>Previous digest</dd>
+        <dt>W</dt> <dd>Zoom into current digest</dd>
+        <dt>A</dt> <dd>Mark as positive</dd>
+        <dt>S</dt> <dd>Mark as negative</dd>
+        <dt>D</dt> <dd>Mark as untriaged</dd>
+        <dt>?</dt> <dd>Show help dialog</dd>
+      </dl>
+      <div class="buttons">
+        <button class="cancel action" @click=${() => el._helpDialog?.close()}>Close</button>
+      </div>
     </dialog>`;
 
   private static _summary = (el: SearchPageSk) => {
@@ -165,6 +184,7 @@ export class SearchPageSk extends ElementSk {
   private _searchResultsFetchController: AbortController | null = null;
 
   private _bulkTriageDialog: HTMLDialogElement | null = null;
+  private _helpDialog: HTMLDialogElement | null = null;
 
   constructor() {
     super(SearchPageSk._template);
@@ -202,6 +222,9 @@ export class SearchPageSk extends ElementSk {
 
     this._bulkTriageDialog = this.querySelector('dialog.bulk-triage');
     dialogPolyfill.registerDialog(this._bulkTriageDialog!);
+
+    this._helpDialog = this.querySelector('dialog.help');
+    dialogPolyfill.registerDialog(this._helpDialog!);
 
     // It suffices to fetch the corpora and paramset once. We assume they don't change during the
     // lifecycle of the page. Worst case, the user will have to reload to get any new parameters.
