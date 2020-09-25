@@ -802,6 +802,16 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommentingstalled'
 
+  - alert: GoldHeavyTraffic
+    expr: rate(gold_rpc_call_counter[5m]) > 50
+    labels:
+      category: infra
+      severity: critical
+      owner: kjlubick@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} is experiencing high traffic on {{ $labels.route }} https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldheavytraffic'
+
 
 # Velero Backup
   - alert: VeleroBackupFailed
