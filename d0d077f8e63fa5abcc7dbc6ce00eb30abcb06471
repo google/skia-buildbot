@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e16f4b1_986a0cb8",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T11:56:15Z",
+      "side": 1,
+      "message": "This if statement is difficult for me to parse - can you break it up a bit?",
+      "range": {
+        "startLine": 465,
+        "startChar": 8,
+        "endLine": 465,
+        "endChar": 13
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ebde772_45e6a851",
+        "filename": "golden/modules/search-page-sk/search-page-sk_po.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T11:56:15Z",
+      "side": 1,
+      "message": "Why not assert that here? I would prefer this API to return only one element instead an array of length one. If there\u0027s more than one selected - have this API throw or something.",
+      "range": {
+        "startLine": 50,
+        "startChar": 7,
+        "endLine": 50,
+        "endChar": 55
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a57263d_1e4b365b",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T11:56:15Z",
+      "side": 1,
+      "message": "I don\u0027t understand this test - we get all the digest labels (of what? the entire page?) and we make sure that all three labels are being pushed?",
+      "range": {
+        "startLine": 643,
+        "startChar": 36,
+        "endLine": 643,
+        "endChar": 51
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed4da6a1_5826c576",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T11:56:15Z",
+      "side": 1,
+      "message": "Same concern as above, I just don\u0027t get what these assertions are doing.",
+      "range": {
+        "startLine": 740,
+        "startChar": 36,
+        "endLine": 740,
+        "endChar": 51
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
