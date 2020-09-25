@@ -105,6 +105,29 @@ export const describePageObjectElement = (testBed: TestBed) => {
     expect(await wasChangeEventDispatched()).to.be.true;
   });
 
+  it('supports typeKey', async () => {
+    const poe = await testBed.setUpPageObjectElement(`
+      <input type="text"
+             onkeydown="this.setAttribute('keydown-event-key', event.key)"
+             onkeypress="this.setAttribute('keypress-event-key', event.key)"
+             onkeyup="this.setAttribute('keyup-event-key', event.key)"/>`);
+
+    const keydownEventKey =
+      () => testBed.evaluate((el: HTMLElement) => el.getAttribute('keydown-event-key'));
+    const keypressEventKey =
+      () => testBed.evaluate((el: HTMLElement) => el.getAttribute('keypress-event-key'));
+    const keyupEventKey =
+      () => testBed.evaluate((el: HTMLElement) => el.getAttribute('keyup-event-key'));
+
+    expect(await keydownEventKey()).to.be.null;
+    expect(await keypressEventKey()).to.be.null;
+    expect(await keyupEventKey()).to.be.null;
+    await poe.typeKey('a');
+    expect(await keydownEventKey()).to.equal('a');
+    expect(await keypressEventKey()).to.equal('a');
+    expect(await keyupEventKey()).to.equal('a');
+  });
+
   it('supports applyFnToDOMNode', async () => {
     const poe = await testBed.setUpPageObjectElement('<div>Hello, world!</div>');
     const result =
