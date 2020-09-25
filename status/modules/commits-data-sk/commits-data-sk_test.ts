@@ -8,6 +8,7 @@ import {
   commentCommit,
   commentTask,
   commentTaskSpec,
+  incrementalResponse0,
 } from '../rpc-mock/test_data';
 import { expect } from 'chai';
 import { SetupMocks } from '../rpc-mock';
@@ -17,7 +18,7 @@ describe('commits-data-sk', () => {
   let commitsData: CommitsDataSk;
 
   beforeEach(async () => {
-    SetupMocks();
+    SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');
     commitsData = newInstance() as CommitsDataSk;
     await ep;
