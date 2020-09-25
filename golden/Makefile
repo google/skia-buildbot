@@ -94,37 +94,37 @@ k8s-release-goldpushk-crashing-server: build-static-goldpushk-crashing-server
 build-static-skiacorrectness: frontend
 	mkdir -p ./build
 	rm -f ./build/skiacorrectness_k8s
-	$(KGO) -o build/skiacorrectness_k8s -a ./cmd/skiacorrectness/main.go
+	$(KGO) -o build/skiacorrectness_k8s -a ./cmd/skiacorrectness/...
 
 .PHONY: build-static-baseline-server
 build-static-baseline-server:
 	mkdir -p ./build
 	rm -f ./build/baseline_server_k8s
-	$(KGO) -o build/baseline_server_k8s -a ./cmd/baseline_server/main.go
+	$(KGO) -o build/baseline_server_k8s -a ./cmd/baseline_server/...
 
 .PHONY: build-static-diffserver
 build-static-diffserver:
 	mkdir -p ./build
 	rm -f ./build/diff_server_k8s
-	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/main.go
+	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/...
 
 .PHONY: build-static-ingestion
 build-static-ingestion:
 	mkdir -p ./build
 	rm -f ./build/gold_ingestion_k8s
-	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/main.go
+	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/...
 
 .PHONY: build-static-goldpushk-healthy-server
 build-static-goldpushk-healthy-server:
 	mkdir -p ./build
 	rm -f ./build/goldpushk_healthy_server_k8s
-	$(KGO) -o build/goldpushk_healthy_server_k8s -a ./cmd/goldpushk/testing/healthy_server/main.go
+	$(KGO) -o build/goldpushk_healthy_server_k8s -a ./cmd/goldpushk/testing/healthy_server/...
 
 .PHONY: build-static-goldpushk-crashing-server
 build-static-goldpushk-crashing-server:
 	mkdir -p ./build
 	rm -f ./build/goldpushk_crashing_server_k8s
-	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/main.go
+	$(KGO) -o build/goldpushk_crashing_server_k8s -a ./cmd/goldpushk/testing/crashing_server/...
 
 .PHONY: mocks
 mocks:
