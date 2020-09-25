@@ -16,6 +16,24 @@
       "revId": "42da064d4f4bb2bfbc8a2d0ee66fe4a900a458f1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85c70e03_b6229262",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T15:31:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9659241_e3fe6048",
+      "revId": "42da064d4f4bb2bfbc8a2d0ee66fe4a900a458f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
