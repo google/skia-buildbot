@@ -217,8 +217,8 @@ func getRepo(r *http.Request) (string, string, error) {
 
 // Same as above, for new WIP Twirp server.
 // TODO(westont): Refactor once Twirp server is in use.
-func getRepoTwirp(r *rpc.GetIncrementalCommitsRequest) (string, string, error) {
-	repoURL, err := repoNameToUrl(r.RepoPath)
+func getRepoTwirp(repo string) (string, string, error) {
+	repoURL, err := repoNameToUrl(repo)
 	if err != nil {
 		return "", "", err
 	}
@@ -693,6 +693,7 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
 	topLevelRouter.Use(login.RestrictViewer)
+	topLevelRouter.Use(login.SessionMiddleware)
 	// Our 'main' router doesn't include the Twirp server, since it would double gzip responses.
 	topLevelRouter.PathPrefix(rpc.StatusServicePathPrefix).Handler(httputils.LoggingRequestResponse(srv))
 	r := topLevelRouter.NewRoute().Subrouter()
@@ -893,7 +894,7 @@ func main() {
 	}
 
 	// Create Twirp Server.
-	twirpServer := rpc.NewStatusServer(iCache, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
+	twirpServer := rpc.NewStatusServer(iCache, taskDb, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
 
 	// Run the server.
 	runServer(serverURL, twirpServer)
