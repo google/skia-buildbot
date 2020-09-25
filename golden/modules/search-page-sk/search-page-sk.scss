@@ -1,6 +1,12 @@
 search-page-sk {
   display: block;
 
+  .top-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  };
+
   changelist-controls-sk {
     display: block;
     margin-left: 16px;

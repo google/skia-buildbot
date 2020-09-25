@@ -6,11 +6,12 @@ import { deepCopy } from 'common-sk/modules/object';
 import { fromObject } from 'common-sk/modules/query';
 import { SearchPageSk, SearchRequest } from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
-import { SearchResponse } from '../rpc_types';
+import { SearchResponse, TriageRequest } from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
 import { ChangelistControlsSkPO } from '../changelist-controls-sk/changelist-controls-sk_po';
+import { BulkTriageSkPO } from '../bulk-triage-sk/bulk-triage-sk_po';
 
 const expect = chai.expect;
 
@@ -21,6 +22,7 @@ describe('search-page-sk', () => {
   let searchPageSkPO: SearchPageSkPO;
   let searchControlsSkPO: SearchControlsSkPO;
   let changelistControlsSkPO: ChangelistControlsSkPO;
+  let bulkTriageSkPO: BulkTriageSkPO;
 
   // SearchCriteria shown by the search-controls-sk component when the search page loads without any
   // URL parameters.
@@ -121,6 +123,7 @@ describe('search-page-sk', () => {
     searchPageSkPO = new SearchPageSkPO(searchPageSk);
     searchControlsSkPO = await searchPageSkPO.getSearchControlsSkPO();
     changelistControlsSkPO = await searchPageSkPO.getChangelistControlsSkPO();
+    bulkTriageSkPO = await searchPageSkPO.getBulkTriageSkPO();
   }
 
   before(() => {
@@ -403,6 +406,145 @@ describe('search-page-sk', () => {
           ...defaultSearchRequest,
           blame: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
         },
+      });
+    });
+  });
+
+  describe('bulk triage dialog', () => {
+    describe('opening and closing', () => {
+      it('is closed by default', async () => {
+        await instantiate();
+        expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.false;
+      });
+
+      it('opens when clicking the "Bulk Triage" button', async () => {
+        await instantiate();
+        await searchPageSkPO.clickBulkTriageBtn();
+        expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.true;
+      });
+
+      it('closes when the cancel button is clicked', async () => {
+        await instantiate();
+        await searchPageSkPO.clickBulkTriageBtn();
+        await bulkTriageSkPO.clickCancelBtn();
+        expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.false;
+      });
+
+      it('closes when the triage button is clicked', async () => {
+        fetchMock.post('/json/v1/triage', 200); // We ignore the TriageRequest in this test.
+
+        await instantiate();
+        await searchPageSkPO.clickBulkTriageBtn();
+        await bulkTriageSkPO.clickTriageBtn();
+        expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.false;
+      });
+    });
+
+    describe('affected CL', () => {
+      it('does not show an affected CL if none is provided', async () => {
+        await instantiate();
+        await searchPageSkPO.clickBulkTriageBtn();
+        expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.false;
+      });
+
+      it('shows the affected CL if one is provided', async () => {
+        await instantiate(instantiationOptionsWithCL);
+        await searchPageSkPO.clickBulkTriageBtn();
+        expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.true;
+        expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal(
+          'This affects ChangeList 123456.');
+      });
+    });
+
+    describe('RPCs', () => {
+      describe('search results from current page only', () => {
+        const expectedTriageRequest: TriageRequest = {
+          testDigestStatus: {
+            'gold_search-controls-sk_right-hand-trace-filter-editor': {
+              'fbd3de3fff6b852ae0bb6751b9763d27': 'positive',
+            },
+            'perf_alert-config-sk': {
+              '2fa58aa430e9c815755624ca6cca4a72': 'positive',
+              'ed4a8cf9ea9fbb57bf1f302537e07572': 'positive',
+            },
+          },
+          changelist_id: '',
+          crs: '',
+        };
+
+        it('can bulk-triage without a CL', async () => {
+          fetchMock.post('/json/v1/triage', 200, {body: expectedTriageRequest});
+
+          await instantiate();
+          await searchPageSkPO.clickBulkTriageBtn();
+          await bulkTriageSkPO.clickPositiveBtn();
+          await bulkTriageSkPO.clickTriageBtn();
+        });
+
+        it('can bulk-triage with a CL', async () => {
+          fetchMock.post('/json/v1/triage', 200, {
+            body: {
+              ...expectedTriageRequest,
+              changelist_id: '123456',
+              crs: 'gerrit',
+            }
+          });
+
+          await instantiate(instantiationOptionsWithCL);
+          await searchPageSkPO.clickBulkTriageBtn();
+          await bulkTriageSkPO.clickPositiveBtn();
+          await bulkTriageSkPO.clickTriageBtn();
+        });
+      });
+
+      describe('all search results', () => {
+        const expectedTriageRequest: TriageRequest = {
+          testDigestStatus: {
+            'gold_details-page-sk': {
+              '29f31f703510c2091840b5cf2b032f56': 'positive',
+              '7c0a393e57f14b5372ec1590b79bed0f': 'positive',
+              '971fe90fa07ebc2c7d0c1a109a0f697c': 'positive',
+              'e49c92a2cff48531810cc5e863fad0ee': 'positive'
+          },
+          'gold_search-controls-sk_right-hand-trace-filter-editor': {
+              '5d8c80eda80e015d633a4125ab0232dc': 'positive',
+              'd20f37006e436fe17f50ecf49ff2bdb5': 'positive',
+              'fbd3de3fff6b852ae0bb6751b9763d27': 'positive'
+          },
+          'perf_alert-config-sk': {
+              '2fa58aa430e9c815755624ca6cca4a72': 'positive',
+              'ed4a8cf9ea9fbb57bf1f302537e07572': 'positive'
+          },
+          },
+          changelist_id: '',
+          crs: '',
+        }
+
+        it('can bulk-triage without a CL', async () => {
+          fetchMock.post('/json/v1/triage', 200, {body: expectedTriageRequest});
+
+          await instantiate();
+          await searchPageSkPO.clickBulkTriageBtn();
+          await bulkTriageSkPO.clickTriageAllCheckbox();
+          await bulkTriageSkPO.clickPositiveBtn();
+          await bulkTriageSkPO.clickTriageBtn();
+        });
+
+        it('can bulk-triage with a CL', async () => {
+          fetchMock.post('/json/v1/triage', 200, {
+            body: {
+              ...expectedTriageRequest,
+              changelist_id: '123456',
+              crs: 'gerrit',
+            }
+          });
+
+          await instantiate(instantiationOptionsWithCL);
+          await searchPageSkPO.clickBulkTriageBtn();
+          await bulkTriageSkPO.clickTriageAllCheckbox();
+          await bulkTriageSkPO.clickPositiveBtn();
+          await bulkTriageSkPO.clickTriageBtn();
+        });
       });
     });
   });
