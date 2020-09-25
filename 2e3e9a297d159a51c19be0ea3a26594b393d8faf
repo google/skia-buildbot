@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08ea44f9_21210484",
+        "filename": "golden/modules/search-page-sk/search-page-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T11:42:28Z",
+      "side": 1,
+      "message": "suggestion: In the future, I wouldn\u0027t spend as much time making the demo fetchmock actually this complicated. I think it\u0027s better to do a little bit here, manually inspect the RPC request and then actually try it with the server code (maybe with some go-side hacks to not actually apply the changes). Rationale: complex demo code like this is brittle and untested, so it is subject to bitrot.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 9
+      },
+      "revId": "2e3e9a297d159a51c19be0ea3a26594b393d8faf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0373d58d_e4b782da",
+        "filename": "golden/modules/search-page-sk/search-page-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T11:42:28Z",
+      "side": 1,
+      "message": "Should this go in gold-scaffold-sk?",
+      "range": {
+        "startLine": 4,
+        "startChar": 2,
+        "endLine": 4,
+        "endChar": 15
+      },
+      "revId": "2e3e9a297d159a51c19be0ea3a26594b393d8faf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
