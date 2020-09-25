@@ -5,6 +5,16 @@ search-page-sk {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+
+    div.buttons {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+
+      button {
+        white-space: nopwrap;
+      }
+    }
   };
 
   changelist-controls-sk {
@@ -21,5 +31,17 @@ search-page-sk {
     border: 1px solid black;
     margin-left: 16px;
     margin-bottom: 16px;
+  }
+
+  dialog.help {
+    dt {
+      font-weight: bold;
+      float: left;
+    }
+
+    div.buttons {
+      display: flex;
+      justify-content: flex-end;
+    }
   }
 }
