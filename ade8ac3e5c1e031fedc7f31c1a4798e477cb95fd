@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6485e604_6a2bcd49",
+        "filename": "debugger-app/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T14:55:49Z",
+      "side": 1,
+      "message": "Did you want to add the comment about getting permissions for the GCS bucket?",
+      "revId": "ade8ac3e5c1e031fedc7f31c1a4798e477cb95fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
