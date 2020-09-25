@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47047f07_14c2a68d",
+        "filename": "demos/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-25T17:28:26Z",
+      "side": 1,
+      "message": "mention asking the infra team for help if needed.",
+      "range": {
+        "startLine": 13,
+        "startChar": 39,
+        "endLine": 13,
+        "endChar": 50
+      },
+      "revId": "616c217b0a9edfa6c1cd96877c49914b44472a3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
