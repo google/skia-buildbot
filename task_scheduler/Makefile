@@ -40,6 +40,18 @@ dist := $(addprefix ./dist/,$(distNames))
 $(dist): $(frontendInputFiles)
 	npx webpack --mode=production
 
+.PHONY: serve
+serve: $(dist)
+	npx webpack-dev-server --mode=development --watch-poll
+
+.PHONY: test-frontend
+test-frontend: ./node_modules/lastupdate-webpack
+	npx karma start
+
+.PHONY: test-frontend-ci
+test-frontend-ci: ./node_modules/lastupdate-webpack
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
 .PHONY: all
 all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db
 

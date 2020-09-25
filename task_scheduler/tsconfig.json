@@ -7,7 +7,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2017",
-    "types": ["node"],
+    "types": ["mocha", "chai", "node"],
   },
   "include": [
     "./modules/**/*.ts",

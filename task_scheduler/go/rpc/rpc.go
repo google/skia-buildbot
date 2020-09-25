@@ -109,40 +109,40 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 	if err != nil {
 		return nil, nil, err
 	}
-	return rv, dbJob, nil
-}
-
-// GetJob returns the given job.
-func (s *taskSchedulerServiceImpl) GetJob(ctx context.Context, req *GetJobRequest) (*GetJobResponse, error) {
-	job, dbJob, err := s.getJob(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
 
 	// Retrieve the task specs, so that we can include the task dimensions
 	// in the results.
 	cfg, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
 	if err != nil {
 		sklog.Error(err)
-		return nil, twirp.InternalError("Failed to retrieve job dependencies")
+		return nil, nil, twirp.InternalError("Failed to retrieve job dependencies")
 	}
-	taskDimensions := make([]*TaskDimensions, 0, len(job.Dependencies))
-	for _, task := range job.Dependencies {
+	taskDimensions := make([]*TaskDimensions, 0, len(rv.Dependencies))
+	for _, task := range rv.Dependencies {
 		taskSpec, ok := cfg.Tasks[task.Task]
 		if !ok {
-			err := fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", job.Id, job.Name, task.Task, job.RepoState)
+			err := fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", rv.Id, rv.Name, task.Task, rv.RepoState)
 			sklog.Error(err)
-			return nil, twirp.InternalError(err.Error())
+			return nil, nil, twirp.InternalError(err.Error())
 		}
 		taskDimensions = append(taskDimensions, &TaskDimensions{
 			TaskName:   task.Task,
 			Dimensions: taskSpec.Dimensions,
 		})
 	}
+	rv.TaskDimensions = taskDimensions
 
+	return rv, dbJob, nil
+}
+
+// GetJob returns the given job.
+func (s *taskSchedulerServiceImpl) GetJob(ctx context.Context, req *GetJobRequest) (*GetJobResponse, error) {
+	job, _, err := s.getJob(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
 	return &GetJobResponse{
-		Job:            job,
-		TaskDimensions: taskDimensions,
+		Job: job,
 	}, nil
 }
 
