@@ -75,37 +75,17 @@ const GetJobRequestToJSON = (m: GetJobRequest): GetJobRequestJSON => {
   };
 };
 
-export interface TaskDimensions {
-  taskName: string;
-  dimensions?: string[];
-}
-
-interface TaskDimensionsJSON {
-  task_name?: string;
-  dimensions?: string[];
-}
-
-const JSONToTaskDimensions = (m: TaskDimensionsJSON): TaskDimensions => {
-  return {
-    taskName: m.task_name || "",
-    dimensions: m.dimensions,
-  };
-};
-
 export interface GetJobResponse {
   job?: Job;
-  taskDimensions?: TaskDimensions[];
 }
 
 interface GetJobResponseJSON {
   job?: JobJSON;
-  task_dimensions?: TaskDimensionsJSON[];
 }
 
 const JSONToGetJobResponse = (m: GetJobResponseJSON): GetJobResponse => {
   return {
     job: m.job && JSONToJob(m.job),
-    taskDimensions: m.task_dimensions && m.task_dimensions.map(JSONToTaskDimensions),
   };
 };
 
@@ -585,6 +565,23 @@ const JSONToTaskSummaries = (m: TaskSummariesJSON): TaskSummaries => {
   };
 };
 
+export interface TaskDimensions {
+  taskName: string;
+  dimensions?: string[];
+}
+
+interface TaskDimensionsJSON {
+  task_name?: string;
+  dimensions?: string[];
+}
+
+const JSONToTaskDimensions = (m: TaskDimensionsJSON): TaskDimensions => {
+  return {
+    taskName: m.task_name || "",
+    dimensions: m.dimensions,
+  };
+};
+
 export interface Job {
   buildbucketBuildId: number;
   buildbucketLeaseKey: number;
@@ -600,6 +597,7 @@ export interface Job {
   requestedAt?: string;
   status: JobStatus;
   tasks?: TaskSummaries[];
+  taskDimensions?: TaskDimensions[];
 }
 
 interface JobJSON {
@@ -617,6 +615,7 @@ interface JobJSON {
   requested_at?: string;
   status?: string;
   tasks?: TaskSummariesJSON[];
+  task_dimensions?: TaskDimensionsJSON[];
 }
 
 const JSONToJob = (m: JobJSON): Job => {
@@ -635,6 +634,7 @@ const JSONToJob = (m: JobJSON): Job => {
     requestedAt: m.requested_at,
     status: (m.status || Object.keys(JobStatus)[0]) as JobStatus,
     tasks: m.tasks && m.tasks.map(JSONToTaskSummaries),
+    taskDimensions: m.task_dimensions && m.task_dimensions.map(JSONToTaskDimensions),
   };
 };
 
