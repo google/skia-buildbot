@@ -24,18 +24,12 @@ describe('commits-table-sk', () => {
   beforeEach(async () => {});
 
   let setupWithResponse = async (resp: GetIncrementalCommitsResponse) => {
-    SetupMocks(resp);
+    SetupMocks().expectGetIncrementalCommits(resp);
     const ep = eventPromise('end-task');
     newDataInstance() as CommitsDataSk;
     await ep;
     return newTableInstance((el) => ((<CommitsTableSk>el).filter = 'all')) as CommitsTableSk;
   };
-
-  it('displays single commit tasks', async () => {
-    const table = await setupWithResponse(responseSingleCommitTask);
-    expect($('.task', table)).to.have.length(1);
-    expect($$('.task', table)!.classList.value).to.include('task-success');
-  });
 
   it('displays multiple commit tasks', async () => {
     const table = await setupWithResponse(responseMultiCommitTask);
