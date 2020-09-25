@@ -2,11 +2,17 @@
 @import '../colors';
 
 gold-scaffold-sk {
-  font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+  font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
 
   app-sk {
     --header-background-color: var(--gold);
     --background: var(--white);
+
+    main {
+      // Prevent the app-sk from stretching horizontally indefinitely (for example, dots-sk can
+      // become very long). See https://css-tricks.com/preventing-a-grid-blowout/.
+      min-width: 0;
+    }
   }
 
   header {
