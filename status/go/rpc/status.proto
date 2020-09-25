@@ -8,6 +8,8 @@ import "google/protobuf/timestamp.proto";
 service StatusService {
   // Method to get updates to the lists of recent commits, their tasks, etc.
   rpc GetIncrementalCommits(GetIncrementalCommitsRequest) returns (GetIncrementalCommitsResponse);
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse);
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
 }
 
 // Request for updated commit/task/comment/branch/etc data.
@@ -86,3 +88,23 @@ message ResponseMetadata {
   string pod = 2;
   google.protobuf.Timestamp timestamp = 3;
 }
+
+message AddCommentRequest {
+  string repo = 1;
+  string commit = 2;
+  string task_spec = 3;
+  string task_id = 4;
+  string message = 5;
+  bool flaky = 6;
+  bool ignore_failure = 7;
+}
+message AddCommentResponse{}
+message DeleteCommentRequest {
+  string repo = 1;
+  string commit = 2;
+  string task_spec = 3;
+  string task_id = 4;
+  google.protobuf.Timestamp timestamp = 5;
+
+}
+message DeleteCommentResponse{}
