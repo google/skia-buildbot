@@ -22,14 +22,13 @@ Some things to look for:
 
 QPS
 ---
-To determine load of various services, we can use the fact that there are
-`defer metrics2.FuncTimer().Stop()` all around the code base to get a rough idea of QPS/load.
+To investigate the load of Gold's RPCs navigate to https://thanos-query.skia.org and
+try doing the search:
 
-On https://thanos-query.skia.org try doing the search:
+    rate(gold_rpc_call_counter[1m])
 
-    rate(timer_func_timer_ns_count{appgroup=~"gold.+"}[1m])
-
-You can even search by package, e.g. finding QPS of all Firestore related functions:
+You can use the func timers to even search by package, e.g. finding QPS of all
+Firestore related functions:
 
     rate(timer_func_timer_ns_count{package=~".+fs_.+"}[1m])
 
@@ -199,3 +198,13 @@ are receiving a lot of reads/writes. For this, a query like:
 ```
 
 can help identify those and possibly narrow in on the cause.
+
+GoldHeavyTraffic
+----------------
+Gold is seeing over 50 QPS to a specific RPC. As of writing, there are only two RPCs that
+are not throttled from anonymous traffic, so it is likely one of these. See <https://skbug.com/9476>
+and <https://skbug.com/10768> for more context on these.
+
+This is potentially problematic in that the excess load could be causing Gold to act slowly
+or even affect other tenants of the k8s pod. The cause of this load should be identified.
+
