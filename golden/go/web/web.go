@@ -59,6 +59,9 @@ const (
 	maxAnonBurstExpensive = 50
 	maxAnonQPSCheap       = rate.Limit(5.0)
 	maxAnonBurstCheap     = 50
+	// Special settings for RPCs serving the gerrit plugin. See skbug.com/10768 for more.
+	maxAnonQPSGerritPlugin   = rate.Limit(200.0)
+	maxAnonBurstGerritPlugin = 1000
 
 	// RPCCallCounterMetric is the metric that should be used when counting how many times a given
 	// RPC route is called from clients.
@@ -97,6 +100,7 @@ type Handlers struct {
 
 	anonymousExpensiveQuota *rate.Limiter
 	anonymousCheapQuota     *rate.Limiter
+	anonymousGerritQuota    *rate.Limiter
 
 	// These can be set for unit tests to simplify the testing.
 	testingAuthAs string
@@ -146,6 +150,7 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		HandlersConfig:          conf,
 		anonymousExpensiveQuota: rate.NewLimiter(maxAnonQPSExpensive, maxAnonBurstExpensive),
 		anonymousCheapQuota:     rate.NewLimiter(maxAnonQPSCheap, maxAnonBurstCheap),
+		anonymousGerritQuota:    rate.NewLimiter(maxAnonQPSGerritPlugin, maxAnonBurstGerritPlugin),
 		testingAuthAs:           "", // Just to be explicit that we do *not* bypass Auth.
 	}, nil
 }
@@ -164,6 +169,15 @@ func (wh *Handlers) cheapLimitForAnonUsers(r *http.Request) error {
 		return nil
 	}
 	return wh.anonymousCheapQuota.Wait(r.Context())
+}
+
+// cheapLimitForGerritPlugin blocks using the configured rate.Limiter for queries for the
+// Gerrit Plugin.
+func (wh *Handlers) cheapLimitForGerritPlugin(r *http.Request) error {
+	if login.LoggedInAs(r) != "" {
+		return nil
+	}
+	return wh.anonymousGerritQuota.Wait(r.Context())
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -485,7 +499,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSyste
 // are not on master already and are not ignored.
 func (wh *Handlers) ChangeListUntriagedHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
-	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+	if err := wh.cheapLimitForGerritPlugin(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
 		return
 	}
