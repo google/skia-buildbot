@@ -6,8 +6,7 @@
  **/
 import { MockRPCsForTesting, StatusService } from '../rpc';
 
-import { incrementalResponse0 } from './test_data';
-import { GetIncrementalCommitsRequest, GetIncrementalCommitsResponse } from '../rpc/status';
+import * as status from '../rpc/status';
 
 export * from './test_data';
 export * from './mock_data';
@@ -15,20 +14,89 @@ export * from './mock_data';
 /**
  * SetupMocks changes the rpc module to use the mocked client from this module.
  */
-export function SetupMocks(resp?: GetIncrementalCommitsResponse) {
-  MockRPCsForTesting(new MockStatusService(resp || incrementalResponse0));
+export function SetupMocks(): MockStatusService {
+  const mock = new MockStatusService();
+  MockRPCsForTesting(mock);
+  return mock;
 }
 
 /**
  * MockStatusService provides a mocked implementation of StatusService.
  */
-class MockStatusService implements StatusService {
-  resp: GetIncrementalCommitsResponse;
+export class MockStatusService implements StatusService {
+  private processAddComment:
+    | ((req: status.AddCommentRequest) => status.AddCommentResponse)
+    | null = null;
+  private processDeleteComment:
+    | ((req: status.DeleteCommentRequest) => status.DeleteCommentResponse)
+    | null = null;
+  private processGetIncrementalCommits:
+    | ((req: status.GetIncrementalCommitsRequest) => status.GetIncrementalCommitsResponse)
+    | null = null;
 
-  constructor(resp: GetIncrementalCommitsResponse) {
-    this.resp = resp;
+  constructor() {}
+
+  exhausted(): boolean {
+    return !(
+      this.processAddComment ||
+      this.processDeleteComment ||
+      this.processGetIncrementalCommits
+    );
   }
-  getIncrementalCommits(_: GetIncrementalCommitsRequest): Promise<GetIncrementalCommitsResponse> {
-    return Promise.resolve(this.resp);
+
+  // Set the AddComment response.
+  expectAddComment(
+    resp: status.AddCommentResponse,
+    check: (req: status.AddCommentRequest) => void = (req) => {}
+  ): MockStatusService {
+    this.processAddComment = (req) => {
+      check(req);
+      return resp;
+    };
+    return this;
+  }
+
+  // Set the DeleteComment response.
+  expectDeleteComment(
+    resp: status.DeleteCommentResponse,
+    check: (req: status.DeleteCommentRequest) => void = (req) => {}
+  ): MockStatusService {
+    this.processDeleteComment = (req) => {
+      check(req);
+      return resp;
+    };
+    return this;
+  }
+
+  // Set the GetIncrementalCommits response.
+  expectGetIncrementalCommits(
+    resp: status.GetIncrementalCommitsResponse,
+    check: (req: status.GetIncrementalCommitsRequest) => void = (req) => {}
+  ): MockStatusService {
+    this.processGetIncrementalCommits = (req) => {
+      check(req);
+      return resp;
+    };
+    return this;
+  }
+
+  getIncrementalCommits(
+    req: status.GetIncrementalCommitsRequest
+  ): Promise<status.GetIncrementalCommitsResponse> {
+    const process = this.processGetIncrementalCommits;
+    this.processGetIncrementalCommits = null;
+    return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
+  }
+
+  addComment(req: status.AddCommentRequest): Promise<status.AddCommentResponse> {
+    const process = this.processAddComment;
+    this.processAddComment = null;
+    return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
+  }
+
+  deleteComment(req: status.DeleteCommentRequest): Promise<status.DeleteCommentResponse> {
+    const process = this.processDeleteComment;
+    this.processDeleteComment = null;
+    return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
   }
 }

@@ -567,6 +567,20 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirect, 302)
 }
 
+// AuthorizedEmail returns the email from the session cookie if it is present and matches either
+// the domain or the user allow list. The passed-in Context must be from a request whose
+// http.Handler was wrapped using SessionMiddleware. This differs from LoggedInAs in that it
+// doesn't fall back to checking the OAuth 2 Bearer token.
+func AuthorizedEmail(ctx context.Context) string {
+	if session := GetSession(ctx); session != nil {
+		email := session.Email
+		if isAuthorized(email) {
+			return email
+		}
+	}
+	return ""
+}
+
 // isAuthorized returns true if the given email address matches either the
 // domain or the user allow list.
 func isAuthorized(email string) bool {
