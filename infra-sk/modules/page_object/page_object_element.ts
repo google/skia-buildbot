@@ -82,6 +82,23 @@ export class PageObjectElement {
   }
 
   /**
+   * Sends a single key press.
+   *
+   * Sends actual key presses on Puppeteer. Simulates events "keydown", "keypress" y "keyup" on the
+   * browser.
+   *
+   * @param key The "key" attribute of the KeyboardEvent to be dispatched.
+   */
+  async typeKey(key: string) {
+    if (isPptrElement(this.element)) {
+      return this.element.type(key);
+    }
+    this.element.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, key: key}));
+    this.element.dispatchEvent(new KeyboardEvent('keypress', {bubbles: true, key: key}));
+    this.element.dispatchEvent(new KeyboardEvent('keyup', {bubbles: true, key: key}));
+  }
+
+  /**
    * Analogous to the HTMLElement#value property setter (e.g. for text inputs, selects, etc.).
    *
    * Simulates events "input" and "change".
