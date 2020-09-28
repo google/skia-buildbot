@@ -7,6 +7,8 @@
  *
  * This is essentially the entire fiddle UI, but subsets of it can also be used
  * in cases where we embed fiddles on https://skia.org.
+ *
+ * @event fiddle-success is emitted when a run of a fiddle has completed successfully.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -505,7 +507,6 @@ ${err.text}</pre
       ${FiddleSk.actions(ele)} ${FiddleSk.errors(ele)} ${FiddleSk.results(ele)}
     `;
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
@@ -514,8 +515,8 @@ ${err.text}</pre
     this._upgradeProperty('options');
     this._upgradeProperty('config');
     this._upgradeProperty('runResults');
+    this._upgradeProperty('context');
   }
-
 
   // Properties
 
@@ -567,6 +568,7 @@ ${err.text}</pre
     this.options = val.options;
     this.runResults.text = val.code;
     this.runResults.fiddleHash = val.fiddlehash;
+    this._render();
   }
 
   // Event listeners.

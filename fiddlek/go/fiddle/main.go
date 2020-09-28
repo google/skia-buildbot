@@ -35,12 +35,11 @@ import (
 
 // flags
 var (
-	distDir        = flag.String("dist_dir", "./dist", "The directory to find templates, JS, and CSS files as producted by webpack.")
+	distDir        = flag.String("dist_dir", ".", "The directory to find templates, JS, and CSS files as producted by webpack.")
 	fiddleRoot     = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
 )
 
@@ -120,13 +119,9 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").Funcs(funcMap).ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/iframe.html"),
-		filepath.Join(*resourcesDir, "templates/failing.html"),
-		filepath.Join(*resourcesDir, "templates/named.html"),
-		// Sub templates used by other templates.
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/menu.html"),
+		filepath.Join(*distDir, "dist/newindex.html"),
+		//	filepath.Join(*distDir, "dist/iframe.html"),
+		filepath.Join(*distDir, "dist/named.html"),
 	))
 }
 
@@ -142,9 +137,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	cp := *defaultFiddle
 	cp.Sources = src.ListAsJSON()
 	cp.Version = run.Version()
-	if err := templates.ExecuteTemplate(w, "index.html", cp); err != nil {
+	if err := templates.ExecuteTemplate(w, "newindex.html", cp); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
+}
+
+type namedContext struct {
+	Title string
+	Named []store.Named
 }
 
 func failedHandler(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +154,12 @@ func failedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	failingMutex.Lock()
 	defer failingMutex.Unlock()
-	if err := templates.ExecuteTemplate(w, "failing.html", failingNamed); err != nil {
+	templateContext := namedContext{
+		Title: "Failing Named Fiddles",
+		Named: failingNamed,
+	}
+
+	if err := templates.ExecuteTemplate(w, "named.html", templateContext); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -168,7 +173,11 @@ func namedHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve list of named fiddles.", http.StatusInternalServerError)
 	}
-	if err := templates.ExecuteTemplate(w, "named.html", named); err != nil {
+	templateContext := namedContext{
+		Title: "Named Fiddles",
+		Named: named,
+	}
+	if err := templates.ExecuteTemplate(w, "named.html", templateContext); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -248,7 +257,7 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
-	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
+	if err := templates.ExecuteTemplate(w, "newindex.html", context); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -488,15 +497,6 @@ func templateHandler(name string) http.HandlerFunc {
 	}
 }
 
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
 func makeDistHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*distDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -547,12 +547,10 @@ func main() {
 	names = named.New(fiddleStore)
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
 	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)
-	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z_]+}", iframeHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/f/", failedHandler)
 	r.HandleFunc("/named/", namedHandler)
