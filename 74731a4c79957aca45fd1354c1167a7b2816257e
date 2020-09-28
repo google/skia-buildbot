@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2422cf38_865b2ee3",
+        "filename": "go/vfs/shared_tests/shared_tests.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T13:48:17Z",
+      "side": 1,
+      "message": "Nit",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 23
+      },
+      "revId": "74731a4c79957aca45fd1354c1167a7b2816257e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
