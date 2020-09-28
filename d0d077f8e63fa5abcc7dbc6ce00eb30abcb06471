@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "7616e6bc_c0855ef3",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-28T18:02:06Z",
+      "side": 1,
+      "message": "Much nicer, thanks.",
+      "parentUuid": "ba051e8e_849043a3",
+      "range": {
+        "startLine": 643,
+        "startChar": 36,
+        "endLine": 643,
+        "endChar": 51
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed4da6a1_5826c576",
         "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
         "patchSetId": 3
@@ -187,6 +211,30 @@
       "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8671f97b_f9259dc6",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-28T18:02:06Z",
+      "side": 1,
+      "message": "Appreciated!",
+      "parentUuid": "69787e27_21f84a19",
+      "range": {
+        "startLine": 740,
+        "startChar": 36,
+        "endLine": 740,
+        "endChar": 51
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
