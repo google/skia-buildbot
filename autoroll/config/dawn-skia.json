@@ -1,7 +1,7 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childDisplayName": "dawn",
+  "childDisplayName": "Dawn",
   "commitMsg": {
     "bugProject": "skia",
     "childLogURLTmpl": "https://dawn.googlesource.com/dawn.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
@@ -29,7 +29,12 @@
   "rollerName": "dawn-skia-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "cwallez@google.com"
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
+  ],
+  "sheriffBackup": [
+    "cwallez@google.com",
+    "kainino@google.com",
+    "enga@google.com"
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {

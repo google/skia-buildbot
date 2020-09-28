@@ -32,11 +32,14 @@
   "rollerName": "dawn-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "cwallez@google.com"
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
   ],
   "sheriffBackup": [
-    "kainino@google.com"
+    "cwallez@google.com",
+    "kainino@google.com",
+    "enga@google.com"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/dawn",
