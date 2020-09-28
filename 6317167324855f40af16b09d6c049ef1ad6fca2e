@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "52c3001e_073a3cdb",
+        "filename": "go/login/login.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "Agreed, that falls back on the OAuth bearer token, so it requires the request. Added a comment here noting that difference.",
+      "parentUuid": "65a11dca_67d8336c",
+      "range": {
+        "startLine": 573,
+        "startChar": 0,
+        "endLine": 573,
+        "endChar": 50
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c606414d_f7bc1818",
         "filename": "status/go/rpc/server_impl.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e26bd97_94a131f9",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "I think the simpleness would have been nearly a wash, the Go code would no longer have had the branches for \u0027is this a task, taskspec, or commit comment\u0027, but that pattern would then have to have been added on the client side to for \u0027should I send a AddTaskComment, AddTaskSpecComment, or AddCommitComment request\u0027, and fill them in correctly.  Mainly kept them together because they have more alike than the do different, and it reuse code this way.",
+      "parentUuid": "c606414d_f7bc1818",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 58
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "7c2688b3_453f2eea",
+        "filename": "status/go/rpc/status.proto",
+        "patchSetId": 11
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "Done. I was Wary of it since didn\u0027t know how the TS would handle it, but testing on staging and it only effects the Go, and still works, so sgtm.",
+      "parentUuid": "86f26fac_8df6ee48",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 21
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ef86969b_54d4c1ae",
         "filename": "status/modules/comments-sk/comments-sk.ts",
         "patchSetId": 11
@@ -114,6 +186,30 @@
       "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65bc8726_a837a20a",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef86969b_54d4c1ae",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 38
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "e463602f_a8a7dab2",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d79c37a_e67c4265",
+      "range": {
+        "startLine": 153,
+        "startChar": 2,
+        "endLine": 153,
+        "endChar": 10
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dfdb2dfd_8439ceec",
         "filename": "status/modules/comments-sk/comments-sk.ts",
         "patchSetId": 11
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "40425c7c_e8c6ad37",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "This was clearly garbled output leftover from a merge conflict, and certainly should not be construed as a blemish on my character. Done.",
+      "parentUuid": "dfdb2dfd_8439ceec",
+      "range": {
+        "startLine": 235,
+        "startChar": 8,
+        "endLine": 235,
+        "endChar": 21
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e5af8cb8_9bf39c67",
         "filename": "status/modules/rpc-mock/index.ts",
         "patchSetId": 11
@@ -183,6 +327,30 @@
       "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e3652c8_650d6201",
+        "filename": "status/modules/rpc-mock/index.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-28T15:11:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5af8cb8_9bf39c67",
+      "range": {
+        "startLine": 17,
+        "startChar": 27,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
