@@ -44,4 +44,11 @@ search-page-sk {
       justify-content: flex-end;
     }
   }
+
+  digest-details-sk {
+    &.selected {
+      outline: 2px dashed black;
+      outline-offset: 3px;
+    }
+  }
 }

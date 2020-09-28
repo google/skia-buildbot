@@ -94,7 +94,12 @@ export class SearchPageSk extends ElementSk {
 
     <p class=summary>${SearchPageSk._summary(el)}</p>
 
-    ${el._searchResponse?.digests?.map((result) => SearchPageSk._resultTemplate(el, result!))}
+    <div class="results">
+      ${el._searchResponse?.digests?.map(
+        (result, idx) =>
+          SearchPageSk._resultTemplate(
+            el, result!, /* selected= */ idx === el._selectedSearchResultIdx))}
+    </div>
 
     <dialog class="bulk-triage">
       <bulk-triage-sk .currentPageDigests=${el._getCurrentPageDigestsTriageRequestData()}
@@ -138,14 +143,17 @@ export class SearchPageSk extends ElementSk {
     return `Showing results ${first} to ${last} (out of ${total}).`;
   }
 
-  // TODO(lovisolo): Add keyboard shortcuts (J, K, W, A, S, D, ?).
-  private static _resultTemplate = (el: SearchPageSk, result: SearchResult) => html`
-    <digest-details-sk .commits=${el._searchResponse?.commits}
-                       .details=${result}
-                       .changeListID=${el._changelistId}
-                       .crs=${el._crs}}>
-    </digest-details-sk>
-  `;
+  private static _resultTemplate =
+    (el: SearchPageSk, result: SearchResult, selected: boolean) => html`
+      <digest-details-sk .commits=${el._searchResponse?.commits}
+                        .details=${result}
+                        .changeListID=${el._changelistId}
+                        .crs=${el._crs}}
+                        @zoom-dialog-opened=${() => el._isZoomDialogOpen = true}
+                        @zoom-dialog-closed=${() => el._isZoomDialogOpen = false}
+                        class="${selected ? 'selected' : ''}">
+      </digest-details-sk>
+    `;
 
   // Reflected to/from the URL and modified by the search-controls-sk.
   private _searchCriteria: SearchCriteria = {
@@ -186,6 +194,15 @@ export class SearchPageSk extends ElementSk {
   private _bulkTriageDialog: HTMLDialogElement | null = null;
   private _helpDialog: HTMLDialogElement | null = null;
 
+  private _keyDownEventHandlerFn: ((event: KeyboardEvent) => void) | null = null;
+
+  // Search result currently selected (e.g. via the J and K keyboard shortcuts). A negative value
+  // represents an empty selection.
+  private _selectedSearchResultIdx: number = -1;
+
+  // Whether the zoom dialog is open for any of the search results.
+  private _isZoomDialogOpen = false;
+
   constructor() {
     super(SearchPageSk._template);
 
@@ -220,6 +237,9 @@ export class SearchPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
+    this._keyDownEventHandlerFn = (event: KeyboardEvent) => this._onKeyDown(event);
+    document.addEventListener('keydown', this._keyDownEventHandlerFn);
+
     this._bulkTriageDialog = this.querySelector('dialog.bulk-triage');
     dialogPolyfill.registerDialog(this._bulkTriageDialog!);
 
@@ -230,6 +250,11 @@ export class SearchPageSk extends ElementSk {
     // lifecycle of the page. Worst case, the user will have to reload to get any new parameters.
     this._fetchCorpora();
     this._fetchParamSet();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('keydown', this._keyDownEventHandlerFn!);
   }
 
   private async _fetchCorpora() {
@@ -338,6 +363,10 @@ export class SearchPageSk extends ElementSk {
             {method: 'GET', signal: this._searchResultsFetchController.signal})
           .then(jsonOrThrow);
       this._searchResponse = searchResponse;
+
+      // Reset UI and render.
+      this._selectedSearchResultIdx = -1;
+      this._isZoomDialogOpen = false;
       this._render();
       sendEndTask(this);
     } catch(e) {
@@ -383,6 +412,102 @@ export class SearchPageSk extends ElementSk {
     this._patchset = event.detail.ps_order;
     this._stateChanged!();
     this._fetchSearchResults();
+  }
+
+  private _onKeyDown(event: KeyboardEvent) {
+    // Ignore all keyboard shortcuts if there is an open digest zoom dialog.
+    if (this._isZoomDialogOpen) return;
+
+    switch(event.key) {
+      // Next.
+      case 'j':
+        this._selectSearchResult(this._selectedSearchResultIdx + 1);
+        break;
+
+      // Previous.
+      case 'k':
+        this._selectSearchResult(this._selectedSearchResultIdx - 1);
+        break;
+
+      // Zoom in.
+      case 'w':
+        this._openZoomDialogForSelectedSearchResult();
+        break;
+
+      // Mark as positive.
+      case 'a':
+        this._triageSelectedSearchResult('positive');
+        break;
+
+      // Mark as negative.
+      case 's':
+        this._triageSelectedSearchResult('negative');
+        break;
+
+      // Mark as untriaged.
+      case 'd':
+        this._triageSelectedSearchResult('untriaged');
+        break;
+
+      // Show help dialog.
+      case '?':
+        this._helpDialog?.showModal();
+        break;
+
+      default:
+        return; // Do not stop propagation if we haven't captured the event.
+    }
+
+    event.stopPropagation(); // Stop propagation if we captured the event.
+  }
+
+  /**
+   * Selects the search result with the given index, i.e. it draws a box around its corresponding
+   * digest-details-sk element to indicate focus and scrolls it into view.
+   */
+  private _selectSearchResult(index: number) {
+    const searchResults = this._searchResponse?.digests || [];
+    if (index < 0 || index >= searchResults.length) return;
+
+    this._selectedSearchResultIdx = index;
+    this._render();
+    this._getSelectedDigestDetailsSk()!.scrollIntoView();
+  }
+
+  /**
+   * Applies the given label to the currently selected search result.
+   */
+  private _triageSelectedSearchResult(label: Label) {
+    // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
+
+    const digestDetailsSk = this._getSelectedDigestDetailsSk();
+    if (!digestDetailsSk) return;
+
+    digestDetailsSk.querySelector<HTMLButtonElement>(`triage-sk button.${label}`)!.click();
+  }
+
+  /**
+   * Opens the zoom dialog of the details-digest-sk element corresponding to the currently selected
+   * search result.
+   */
+  private _openZoomDialogForSelectedSearchResult() {
+    // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
+
+    const digestDetailsSk = this._getSelectedDigestDetailsSk();
+    if (!digestDetailsSk) return;
+
+    digestDetailsSk.querySelector<HTMLButtonElement>('button.zoom_btn')!.click();
+  }
+
+  /**
+   * Returns the digest-details-sk element corresponding to the currently selected search result.
+   */
+  private _getSelectedDigestDetailsSk() {
+    // TODO(lovisolo): Clean this up once DigestDetailsSk is ported to TypeScript.
+
+    if (this._selectedSearchResultIdx < 0) return null;
+    return this.querySelector<HTMLElement>(
+      `digest-details-sk:nth-child(${this._selectedSearchResultIdx + 1})`);
   }
 }
 
