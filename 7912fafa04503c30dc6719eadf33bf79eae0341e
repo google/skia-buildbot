@@ -16,6 +16,23 @@
       "revId": "7912fafa04503c30dc6719eadf33bf79eae0341e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "089b7c3c_4ba64012",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-28T19:14:38Z",
+      "side": 1,
+      "message": "I just submitted https://skia-review.googlesource.com/c/buildbot/+/320324",
+      "revId": "7912fafa04503c30dc6719eadf33bf79eae0341e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
