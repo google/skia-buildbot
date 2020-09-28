@@ -4,6 +4,7 @@ import (
 	context "context"
 	fmt "fmt"
 	http "net/http"
+	"sort"
 	"time"
 
 	twirp "github.com/twitchtv/twirp"
@@ -489,6 +490,10 @@ func convertJob(job *types.Job) (*Job, error) {
 			Dependencies: taskDeps,
 		})
 	}
+	// Sort the deps by task name for determinism.
+	sort.Slice(deps, func(i, j int) bool {
+		return deps[i].Task < deps[j].Task
+	})
 	status, err := convertJobStatus(job.Status)
 	if err != nil {
 		return nil, err
