@@ -1,6 +1,7 @@
 package login
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -79,6 +80,50 @@ func TestLoggedInAs(t *testing.T) {
 
 	activeUserEmailAllowList["fred@chromium.org"] = true
 	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email allow list.")
+}
+
+func TestAuthorizedEmail(t *testing.T) {
+	unittest.SmallTest(t)
+	once.Do(loginInit)
+	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
+	// In place of SessionMiddleware function.
+	middleware := func(r *http.Request) *http.Request {
+		session, _ := getSession(r)
+		ctx := context.WithValue(r.Context(), loginCtxKey, session)
+		return r.WithContext(ctx)
+	}
+
+	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r = middleware(r)
+
+	assert.Equal(t, AuthorizedEmail(r.Context()), "", "No skid cookie means not logged in.")
+
+	s := Session{
+		Email:     "fred@chromium.org",
+		ID:        "12345",
+		AuthScope: DEFAULT_SCOPE[0],
+		Token:     nil,
+	}
+	cookie, err := CookieFor(&s, r)
+	assert.NoError(t, err)
+	assert.Equal(t, "skia.org", cookie.Domain)
+	r.AddCookie(cookie)
+	r = middleware(r)
+	assert.Equal(t, AuthorizedEmail(r.Context()), "fred@chromium.org", "Correctly get logged in email.")
+	w := httptest.NewRecorder()
+	url := LoginURL(w, r)
+	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
+
+	delete(activeUserDomainAllowList, "chromium.org")
+	assert.Equal(t, AuthorizedEmail(r.Context()), "", "Not in the domain allow list.")
+	url = LoginURL(w, r)
+	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
+
+	activeUserEmailAllowList["fred@chromium.org"] = true
+	assert.Equal(t, AuthorizedEmail(r.Context()), "fred@chromium.org", "Found in the email allow list.")
 }
 
 func TestDomainFromHost(t *testing.T) {

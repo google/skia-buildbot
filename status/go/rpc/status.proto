@@ -8,6 +8,10 @@ import "google/protobuf/timestamp.proto";
 service StatusService {
   // Method to get updates to the lists of recent commits, their tasks, etc.
   rpc GetIncrementalCommits(GetIncrementalCommitsRequest) returns (GetIncrementalCommitsResponse);
+  // Method to add a comment to a task, commit, or task spec.
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse);
+  // Method to delete a comment to a task, commit, or task spec.
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
 }
 
 // Request for updated commit/task/comment/branch/etc data.
@@ -86,3 +90,33 @@ message ResponseMetadata {
   string pod = 2;
   google.protobuf.Timestamp timestamp = 3;
 }
+
+// Request for adding a comment. this, along with timestamp, represent the comment in the DB.
+message AddCommentRequest {
+  string repo = 1;
+  // Only one of the below will be set, based on if the comment is for a commit, task spec, or task.
+  oneof type {
+    string commit = 2;
+    string task_spec = 3;
+    string task_id = 4;
+  }
+  string message = 5;
+  bool flaky = 6; // Only valid when task_spec is set.
+  bool ignore_failure = 7;
+}
+// Response to AddComment, only success/failure needs to be conveyed.
+message AddCommentResponse{
+  // We provide the timestamp used for the comment so the UI can immediately update, rather than
+  // waiting on polling to pick up the new comment.
+  google.protobuf.Timestamp timestamp = 1;
+}
+// Request for deleting a comment. All fields used to identify the comment in the DB.
+message DeleteCommentRequest {
+  string repo = 1;
+  string commit = 2;
+  string task_spec = 3;
+  string task_id = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+// Empty, valid response to DeleteComment, only success/failure needs to be conveyed.
+message DeleteCommentResponse{}

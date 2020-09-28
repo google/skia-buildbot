@@ -4,7 +4,7 @@ import '../commits-data-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { mockIncrementalResponse, SetupMocks } from '../rpc-mock';
 
-SetupMocks(mockIncrementalResponse);
+SetupMocks().expectGetIncrementalCommits(mockIncrementalResponse);
 
 const data = document.createElement('commits-data-sk');
 ($$('#container') as HTMLElement).appendChild(data);

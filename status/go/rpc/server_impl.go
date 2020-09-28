@@ -2,10 +2,15 @@ package rpc
 
 import (
 	context "context"
+	fmt "fmt"
 	"net/http"
+	"time"
 
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/status/go/incremental"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,7 +24,8 @@ import (
 
 type statusServerImpl struct {
 	iCache               *incremental.IncrementalCache
-	getRepo              func(*GetIncrementalCommitsRequest) (string, string, error)
+	taskDb               db.RemoteDB
+	getRepo              func(string) (string, string, error)
 	maxCommitsToLoad     int
 	defaultCommitsToLoad int
 	podID                string
@@ -29,7 +35,7 @@ type statusServerImpl struct {
 func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 	req *GetIncrementalCommitsRequest) (*GetIncrementalCommitsResponse, error) {
 	defer metrics2.FuncTimer().Stop()
-	_, repoURL, err := s.getRepo(req)
+	_, repoURL, err := s.getRepo(req.RepoPath)
 	if err != nil {
 		return nil, err
 	}
@@ -62,15 +68,143 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 	return ConvertUpdate(update, s.podID), nil
 }
 
+func (s *statusServerImpl) AddComment(ctx context.Context,
+	req *AddCommentRequest) (*AddCommentResponse, error) {
+	defer metrics2.FuncTimer().Stop()
+	_, repoURL, err := s.getRepo(req.Repo)
+	if err != nil {
+		return nil, err
+	}
+	message := req.Message
+	now := time.Now().UTC()
+	switch req.Type.(type) {
+	case *AddCommentRequest_TaskId:
+		task, err := s.taskDb.GetTaskById(req.GetTaskId())
+		if err != nil {
+			return nil, fmt.Errorf("failed to obtain task details: %v", err)
+		}
+		c := types.TaskComment{
+			Repo:      task.Repo,
+			Revision:  task.Revision,
+			Name:      task.Name,
+			Timestamp: now,
+			TaskId:    task.Id,
+			User:      login.AuthorizedEmail(ctx),
+			Message:   message,
+		}
+		if err := s.taskDb.PutTaskComment(&c); err != nil {
+			return nil, fmt.Errorf("failed to add task comment: %v", err)
+		}
+	case *AddCommentRequest_TaskSpec:
+		c := types.TaskSpecComment{
+			Repo:          repoURL,
+			Name:          req.GetTaskSpec(),
+			Timestamp:     now,
+			User:          login.AuthorizedEmail(ctx),
+			Flaky:         req.Flaky,
+			IgnoreFailure: req.IgnoreFailure,
+			Message:       req.Message,
+		}
+		if err := s.taskDb.PutTaskSpecComment(&c); err != nil {
+			return nil, fmt.Errorf("failed to add task spec  comment: %v", err)
+		}
+	case *AddCommentRequest_Commit:
+		c := types.CommitComment{
+			Repo:          repoURL,
+			Revision:      req.GetCommit(),
+			Timestamp:     now,
+			User:          login.AuthorizedEmail(ctx),
+			IgnoreFailure: req.IgnoreFailure,
+			Message:       req.Message,
+		}
+		if err := s.taskDb.PutCommitComment(&c); err != nil {
+			return nil, fmt.Errorf("failed to add commit comment: %v", err)
+		}
+	case nil:
+		return nil, fmt.Errorf("no Task ID, Task Spec, or Commit given")
+	default:
+		return nil, fmt.Errorf("unsupported comment type given")
+	}
+	if err := s.iCache.Update(context.Background(), false); err != nil {
+		return nil, fmt.Errorf("failed to update cache: %s", err)
+	}
+	return &AddCommentResponse{Timestamp: timestamppb.New(now)}, nil
+}
+
+func (s *statusServerImpl) DeleteComment(ctx context.Context,
+	req *DeleteCommentRequest) (*DeleteCommentResponse, error) {
+	defer metrics2.FuncTimer().Stop()
+	_, repoURL, err := s.getRepo(req.Repo)
+	if err != nil {
+		return nil, err
+	}
+	timestamp := req.Timestamp.AsTime()
+	if timestamp.IsZero() {
+		return nil, fmt.Errorf("no timestamp (comment ID) given")
+	}
+	commit := req.Commit
+	taskSpec := req.TaskSpec
+	taskID := req.TaskId
+
+	if taskID != "" {
+		// This references a comment on an individual task.
+		task, err := s.taskDb.GetTaskById(taskID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to obtain task details: %v", err)
+		}
+		c := &types.TaskComment{
+			Repo:      task.Repo,
+			Revision:  task.Revision,
+			Name:      task.Name,
+			Timestamp: timestamp,
+			TaskId:    task.Id,
+		}
+
+		if err := s.taskDb.DeleteTaskComment(c); err != nil {
+			return nil, fmt.Errorf("failed to delete comment: %v", err)
+		}
+	} else if taskSpec != "" {
+		// This references a comment on a Task Spec.
+		c := types.TaskSpecComment{
+			Repo:      repoURL,
+			Name:      taskSpec,
+			Timestamp: timestamp,
+		}
+		if err := s.taskDb.DeleteTaskSpecComment(&c); err != nil {
+			return nil, fmt.Errorf("failed to delete comment: %v", err)
+		}
+	} else if commit != "" {
+		// This references a comment on a commit.
+		c := types.CommitComment{
+			Repo:      repoURL,
+			Revision:  commit,
+			Timestamp: timestamp,
+		}
+		if err := s.taskDb.DeleteCommitComment(&c); err != nil {
+			return nil, fmt.Errorf("failed to delete comment: %v", err)
+		}
+
+	} else {
+		return nil, fmt.Errorf("no Task ID, Task Spec, or Commit given")
+	}
+
+	if err := s.iCache.Update(context.Background(), false); err != nil {
+		return nil, fmt.Errorf("failed to update cache: %s", err)
+	}
+	return &DeleteCommentResponse{}, nil
+}
+
 // NewStatusServer creates and returns a Twirp HTTP Server.
 func NewStatusServer(
 	iCache *incremental.IncrementalCache,
-	getRepo func(*GetIncrementalCommitsRequest) (string, string, error),
+	taskDb db.RemoteDB,
+	getRepo func(string) (string, string, error),
 	maxCommitsToLoad int,
 	defaultCommitsToLoad int,
 	podID string) http.Handler {
 	return NewStatusServiceServer(&statusServerImpl{
 		iCache,
+		taskDb,
 		getRepo,
 		maxCommitsToLoad,
 		defaultCommitsToLoad,

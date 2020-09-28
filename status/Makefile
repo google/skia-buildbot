@@ -37,6 +37,19 @@ testjs:
 	npx webpack --mode=development
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+# Increase Node's heap size to accommodate for ts-node's higher memory usage.
+NODE_MEMORY_LIMIT=4096
+
+.PHONY: puppeteer-test
+puppeteer-test:
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	echo "results are found in ../puppeteer-tests/output"
+
+.PHONY: puppeteer-test-debug
+puppeteer-test-debug:
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
+	echo "results are found in ../puppeteer-tests/output"
+
 status: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/status
 
