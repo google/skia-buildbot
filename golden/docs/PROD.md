@@ -197,7 +197,8 @@ are receiving a lot of reads/writes. For this, a query like:
     rate(firestore_ops_count{app=~"gold.+"}[10m]) > 100
 ```
 
-can help identify those and possibly narrow in on the cause.
+can help identify those and possibly narrow in on the cause. `rate(gold_rpc_call_counter[1m]) > 1`
+is also a good query to cross-reference this with.
 
 GoldHeavyTraffic
 ----------------

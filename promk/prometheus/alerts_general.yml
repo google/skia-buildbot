@@ -195,13 +195,13 @@ groups:
       description: 'Firestore usage from {{ $labels.app }} over the last 24h is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-24h&to=now'
 
   - alert: HighFirestoreUsageSustainedGold
-    expr: sum(rate(firestore_ops_count{count="rows", app=~"gold.+"}[24h])) by (app) > 60
+    expr: sum(rate(firestore_ops_count{count="rows", app=~"gold.+"}[2h])) by (app) > 300
     labels:
       category: infra
       severity: warning
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'Firestore usage from {{ $labels.app }} over the last 24h is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-24h&to=now'
+      description: 'Firestore usage from {{ $labels.app }} over the last 2h is high. This sometimes happens when an instance restarts. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md'
 
   - alert: HighFirestoreUsageBurst
     expr: sum(rate(firestore_ops_count{count="rows"}[30m])) by (app) > 1000
