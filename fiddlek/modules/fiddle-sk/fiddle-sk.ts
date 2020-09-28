@@ -7,6 +7,8 @@
  *
  * This is essentially the entire fiddle UI, but subsets of it can also be used
  * in cases where we embed fiddles on https://skia.org.
+ *
+ * @event fiddle-success is emitted when a run of a fiddle has completed successfully.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
