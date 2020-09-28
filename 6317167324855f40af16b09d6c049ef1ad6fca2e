@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "65a11dca_67d8336c",
+        "filename": "go/login/login.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "This seems very close to LoggedInAs.  I don\u0027t have a good suggestion to differentiate them though.",
+      "range": {
+        "startLine": 573,
+        "startChar": 0,
+        "endLine": 573,
+        "endChar": 50
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c606414d_f7bc1818",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "Just curious why you went with a single RPC for all comments, as opposed to one RPC per type of comment, which would have been simpler at the expense of more code.",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 58
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19e332c5_5b2c801a",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": ":(  Not using an explicit ID field on comments was a mistake.",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 3
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "86f26fac_8df6ee48",
+        "filename": "status/go/rpc/status.proto",
+        "patchSetId": 11
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "Can we use https://developers.google.com/protocol-buffers/docs/proto3#oneof ?",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 21
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef86969b_54d4c1ae",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "Personally, I think I find it easier to read with one large template, rather than breaking it up like this.",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 38
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d79c37a_e67c4265",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "Nit: `get comments() {` ?",
+      "range": {
+        "startLine": 153,
+        "startChar": 2,
+        "endLine": 153,
+        "endChar": 10
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfdb2dfd_8439ceec",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "Probably don\u0027t need this :)",
+      "range": {
+        "startLine": 235,
+        "startChar": 8,
+        "endLine": 235,
+        "endChar": 21
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5af8cb8_9bf39c67",
+        "filename": "status/modules/rpc-mock/index.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T11:53:51Z",
+      "side": 1,
+      "message": "Nit: no longer used",
+      "range": {
+        "startLine": 17,
+        "startChar": 27,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
