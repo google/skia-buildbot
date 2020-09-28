@@ -696,6 +696,22 @@ func HealthzAndHTTPS(h http.Handler) http.Handler {
 	return Healthz(HTTPS(h))
 }
 
+// CrossOriginResourcePolicy adds a Cross-Origin-Resource-Policy: cross-origin
+// to every response.
+//
+// Example:
+//    if !*local {
+//      h := httputils.CrossOriginResourcePolicy(h)
+//    }
+//    http.Handle("/", h)
+//
+func CrossOriginResourcePolicy(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Set("Cross-Origin-Resource-Policy", "cross-origin")
+	}
+	return http.HandlerFunc(s)
+}
+
 // Healthz handles healthchecks at /healthz and GFE healthchecks at /.
 //
 // Example:

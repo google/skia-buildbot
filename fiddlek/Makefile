@@ -1,3 +1,12 @@
+.PHONY: build
+build: web
+	go install -v ./go/fiddle
+	go install -v ./go/fiddler
+	go install -v ./go/fiddlecli
+	go install -v ./go/smoketest
+	mkdir -p ./bin
+	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
+
 web: package-lock.json ./modules/json/index.ts
 	npx webpack --mode=production
 
@@ -25,15 +34,6 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 
 ./modules/json/index.ts: $(tsDependentFiles)
 	go run ./go/ts
-
-.PHONY: build
-build: elements_html core_js
-	go install -v ./go/fiddle
-	go install -v ./go/fiddler
-	go install -v ./go/fiddlecli
-	go install -v ./go/smoketest
-	mkdir -p ./bin
-	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
 .PHONY: fiddle_secwrap
 fiddle_secwrap:
