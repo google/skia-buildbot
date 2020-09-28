@@ -66,6 +66,12 @@ describe('search-page-sk', () => {
       await searchPageSkPO.clickHelpBtn();
       await takeScreenshot(testBed.page, 'gold', 'search-page-sk_help-dialog');
     });
+
+    it('shows a selected digest', async () => {
+      await goToPage('?untriaged=true&positive=true&negative=true');
+      await searchPageSkPO.typeKey('j'); // Select the first search result.
+      await takeScreenshot(testBed.page, 'gold', 'search-page-sk_first-search-result-selected');
+    });
   });
 
   it('reads search params from the URL', async () => {

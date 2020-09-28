@@ -1,5 +1,5 @@
 import './index';
-import { setUpElementUnderTest, eventSequencePromise, eventPromise, setQueryString, expectQueryStringToEqual } from '../../../infra-sk/modules/test_util';
+import { setUpElementUnderTest, eventSequencePromise, eventPromise, setQueryString, expectQueryStringToEqual, noEventPromise } from '../../../infra-sk/modules/test_util';
 import { searchResponse, statusResponse, paramSetResponse, changeListSummaryResponse } from './demo_data';
 import fetchMock from 'fetch-mock';
 import { deepCopy } from 'common-sk/modules/object';
@@ -566,6 +566,226 @@ describe('search-page-sk', () => {
           await bulkTriageSkPO.clickTriageBtn();
         });
       });
+    });
+  });
+
+  describe('keyboard shortcuts', () => {
+    // TODO(lovisolo): Clean this up after digest-details-sk is ported to TypeScript and we have
+    //                 a DigestDetailsSkPO.
+    const firstDigest = 'Left: fbd3de3fff6b852ae0bb6751b9763d27';
+    const secondDigest = 'Left: 2fa58aa430e9c815755624ca6cca4a72';
+    const thirdDigest = 'Left: ed4a8cf9ea9fbb57bf1f302537e07572';
+
+    describe('navigation', () => {
+      it('initially has an empty selection', async () => {
+        await instantiate();
+        expect(await searchPageSkPO.getSelectedDigest()).to.be.null;
+      });
+
+      it('can navigate between digests with keys "J" and "K"', async () => {
+
+        await instantiate();
+
+        expect(await searchPageSkPO.getSelectedDigest()).to.be.null;
+
+        // Forward.
+        await searchPageSkPO.typeKey('j');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(firstDigest);
+
+        // Forward.
+        await searchPageSkPO.typeKey('j');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
+
+        // Forward.
+        await searchPageSkPO.typeKey('j');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(thirdDigest);
+
+        // Forward. Nothing happens because we're at the last search result.
+        await searchPageSkPO.typeKey('j');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(thirdDigest);
+
+        // Back.
+        await searchPageSkPO.typeKey('k');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
+
+        // Back.
+        await searchPageSkPO.typeKey('k');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(firstDigest);
+
+        // Back. Nothing happens because we're at the first search result.
+        await searchPageSkPO.typeKey('k');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(firstDigest);
+      });
+
+      it('resets the selection when the search results change', async () => {
+        await instantiate();
+
+        // Select the first search result.
+        await searchPageSkPO.typeKey('j');
+
+        // Refresh the results by changing a search parameter.
+        fetchMock.get('glob:/json/v1/search?*', searchResponse);
+        const event = eventPromise('end-task');
+        await searchControlsSkPO.clickIncludePositiveDigestsCheckbox();
+        await event;
+
+        // Search results should be non-empty, but selection should be empty.
+        expect(await searchPageSkPO.getDigests()).to.not.be.empty;
+        expect(await searchPageSkPO.getSelectedDigest()).to.be.null;
+      });
+    });
+
+    describe('triaging', () => {
+      it('cannot triage with "A", "S" and "D" keys when the selection is empty', async () => {
+        await instantiate();
+
+        // Check initial labels.
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Triaging as positive should have no effect.
+        await searchPageSkPO.typeKey('a');
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Triaging as negative should have no effect.
+        await searchPageSkPO.typeKey('s');
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Triaging as untriaged should have no effect.
+        await searchPageSkPO.typeKey('d');
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+      });
+
+      it('can triage the selected digest with keys "A", "S" and "D"', async () => {
+        fetchMock.post('/json/v1/triage', 200); // We ignore the TriageRequest in this test.
+
+        await instantiate();
+
+        // Check initial labels.
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+
+        // Select the second search result.
+        await searchPageSkPO.typeKey('j');
+        await searchPageSkPO.typeKey('j');
+
+        // Triage as positive.
+        let event = eventPromise('end-task');
+        await searchPageSkPO.typeKey('a');
+        await event;
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+
+        // Triage as negative.
+        event = eventPromise('end-task');
+        await searchPageSkPO.typeKey('s');
+        await event;
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+
+        // Triage as untriaged.
+        event = eventPromise('end-task');
+        await searchPageSkPO.typeKey('d');
+        await event;
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('untriaged');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+      });
+    });
+
+    describe('zoom', () => {
+      it('cannot zoom with the "W" key when the selection is empty', async () => {
+        await instantiate();
+
+        // Check that there is no open zoom dialog.
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.be.null;
+
+        // The keyboard shortcut should have no effect as no digest is selected.
+        await searchPageSkPO.typeKey('w');
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.be.null;
+      });
+
+      it('can zoom into the selected digest with the "W" key', async () => {
+        await instantiate();
+
+        // Select the second search result.
+        await searchPageSkPO.typeKey('j');
+        await searchPageSkPO.typeKey('j');
+
+        // The zoom dialog for the second search result should open.
+        await searchPageSkPO.typeKey('w');
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.equal(secondDigest);
+      });
+
+      it('ignores keyboard shortcuts while a zoom dialog is open', async () => {
+        await instantiate();
+
+        // Select the second search result.
+        await searchPageSkPO.typeKey('j');
+        await searchPageSkPO.typeKey('j');
+
+        // Open zoom dialog.
+        await searchPageSkPO.typeKey('w');
+
+        // Navigation shortcuts should have no effect.
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
+        await searchPageSkPO.typeKey('j');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
+        await searchPageSkPO.typeKey('k');
+        expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
+
+        // Check initial triage labels.
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Shortcut for triaging as positive should have no effect.
+        let noEvent = noEventPromise('begin-task');
+        await searchPageSkPO.typeKey('a');
+        await noEvent;
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Shortcut for triaging as negative should have no effect.
+        noEvent = noEventPromise('begin-task');
+        await searchPageSkPO.typeKey('s');
+        await noEvent;
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Shortcut for triaging as untriagaed should have no effect.
+        noEvent = noEventPromise('begin-task');
+        await searchPageSkPO.typeKey('d');
+        await noEvent;
+        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
+        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
+        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+
+        // Shortcut for the help dialog should have no effect.
+        await searchPageSkPO.typeKey('?');
+        expect(await searchPageSkPO.isHelpDialogOpen()).to.be.false;
+      });
+    });
+
+    it('shows the help dialog when pressing the "?" key', async () => {
+      await instantiate();
+      await searchPageSkPO.typeKey('?');
+      expect(await searchPageSkPO.isHelpDialogOpen()).to.be.true;
     });
   });
 });
