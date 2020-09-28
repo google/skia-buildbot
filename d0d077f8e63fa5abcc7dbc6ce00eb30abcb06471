@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ff231b2f_b917154b",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T17:46:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e16f4b1_986a0cb8",
+      "range": {
+        "startLine": 465,
+        "startChar": 8,
+        "endLine": 465,
+        "endChar": 13
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8ebde772_45e6a851",
         "filename": "golden/modules/search-page-sk/search-page-sk_po.ts",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63909aab_05b3f740",
+        "filename": "golden/modules/search-page-sk/search-page-sk_po.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T17:46:37Z",
+      "side": 1,
+      "message": "Fair enough, changed this to throw an exception instead.\n\nBTW this is how PageLoader works, it turns out, so we know this pattern has been battle-tested.",
+      "parentUuid": "8ebde772_45e6a851",
+      "range": {
+        "startLine": 50,
+        "startChar": 7,
+        "endLine": 50,
+        "endChar": 55
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ba051e8e_849043a3",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T17:46:37Z",
+      "side": 1,
+      "message": "Replaced this with a more explicit getLabelForDigest(myDigest) method. Hopefully this will be a bit more declarative.",
+      "parentUuid": "4a57263d_1e4b365b",
+      "range": {
+        "startLine": 643,
+        "startChar": 36,
+        "endLine": 643,
+        "endChar": 51
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ed4da6a1_5826c576",
         "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2020-09-25T11:56:15Z",
       "side": 1,
       "message": "Same concern as above, I just don\u0027t get what these assertions are doing.",
+      "range": {
+        "startLine": 740,
+        "startChar": 36,
+        "endLine": 740,
+        "endChar": 51
+      },
+      "revId": "d0d077f8e63fa5abcc7dbc6ce00eb30abcb06471",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69787e27_21f84a19",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T17:46:37Z",
+      "side": 1,
+      "message": "Addressed in the above comment. Please let me know if it\u0027s any clearer.",
+      "parentUuid": "ed4da6a1_5826c576",
       "range": {
         "startLine": 740,
         "startChar": 36,
