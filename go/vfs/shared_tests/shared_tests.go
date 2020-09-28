@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vfs"
@@ -62,13 +61,10 @@ func TestFS(ctx context.Context, t sktest.TestingT, fs vfs.FS) {
 	require.Equal(t, []byte("rootFile contents"), rootFileContents)
 	st, err := rootFile.Stat(ctx)
 	require.NoError(t, err)
-	// Sizes are difficult to determine for some implementations. Fake it.
-	stFileInfo, ok := st.(*vfs.FileInfoImpl)
-	if ok {
-		stFileInfo.FileInfo.Size = contents[1].Size()
-		st = stFileInfo.Get()
-	}
-	assertdeep.Equal(t, contents[1], st)
+	// Check that the mode is the same. We already know the content and name are the same, so
+	// everything else should be ok too. Asserting other things, like access/creation time can be
+	// a little flaky, so we do not do that.
+	require.Equal(t, contents[1].Mode(), st.Mode())
 	require.NoError(t, rootFile.Close(ctx))
 
 	// Walk.
