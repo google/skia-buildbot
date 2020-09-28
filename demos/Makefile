@@ -9,6 +9,9 @@ wasm_libs:
 	mkdir -p build/canvaskit build/pathkit
 	# Extract them from the most recently built ones.
 	# Run as current user so they have non-root ownership.
+	# You will need docker gcloud authentication set up https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud-helper
+	# You will need Storage Object Viewer permissions to gs://artifacts.skia-public.appspot.com
+	# Ask skia infra team for help getting the correct permissions.
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
 		--volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
 		sh -c "cp -r /tmp/* /OUT/"
