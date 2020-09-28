@@ -200,9 +200,9 @@ func TestGetJob(t *testing.T) {
 	require.Equal(t, job.Id, res.Job.Id)
 	// Don't bother checking other fields, since we have a separate test for
 	// convertJob.
-	require.Equal(t, 1, len(res.TaskDimensions))
-	require.Equal(t, "task", res.TaskDimensions[0].TaskName)
-	assertdeep.Equal(t, []string{"os:linux"}, res.TaskDimensions[0].Dimensions)
+	require.Equal(t, 1, len(res.Job.TaskDimensions))
+	require.Equal(t, "task", res.Job.TaskDimensions[0].TaskName)
+	assertdeep.Equal(t, []string{"os:linux"}, res.Job.TaskDimensions[0].Dimensions)
 }
 
 func TestCancelJob(t *testing.T) {
@@ -611,6 +611,15 @@ func TestConvertJob(t *testing.T) {
 			},
 		},
 	})
+	// Use a placeholder value for TaskDimensions since it isn't filled in by
+	// convertJob.
+	actual.TaskDimensions = []*TaskDimensions{
+		{
+			TaskName:   "taskA",
+			Dimensions: []string{"os:OS-A"},
+		},
+	}
+
 	require.NoError(t, err)
 	assertdeep.Copy(t, &Job{
 		BuildbucketBuildId:  12345,
@@ -671,6 +680,14 @@ func TestConvertJob(t *testing.T) {
 						SwarmingTaskId: "swarm1",
 					},
 				},
+			},
+		},
+		// Just use a placeholder value for TaskDimensions; it isn't filled in
+		// by convertJob.
+		TaskDimensions: []*TaskDimensions{
+			{
+				TaskName:   "taskA",
+				Dimensions: []string{"os:OS-A"},
 			},
 		},
 	}, actual)
