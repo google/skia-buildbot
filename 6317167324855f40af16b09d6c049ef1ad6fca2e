@@ -307,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1ffade89_e440f1c4",
+        "filename": "status/modules/comments-sk/comments-sk.ts",
+        "patchSetId": 11
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-28T15:30:28Z",
+      "side": 1,
+      "message": "git merge is devious!",
+      "parentUuid": "40425c7c_e8c6ad37",
+      "range": {
+        "startLine": 235,
+        "startChar": 8,
+        "endLine": 235,
+        "endChar": 21
+      },
+      "revId": "6317167324855f40af16b09d6c049ef1ad6fca2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e5af8cb8_9bf39c67",
         "filename": "status/modules/rpc-mock/index.ts",
         "patchSetId": 11
