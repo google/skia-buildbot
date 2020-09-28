@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf1650d5_c9e15268",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T18:48:04Z",
+      "side": 1,
+      "message": "A couple of suggestions, feel free to ignore both.\n\n1. Consider defining type aliases to make these dictionaries more self documenting, e.g.\n\n  type TaskName \u003d string;\n\n2. Consider using the Map[1] object so you can use the above type alias as a key (e.g. const taskDims \u003d new Map\u003cTaskName, string[]\u003e()). The TypeScript compiler only allows \"string\" and \"number\" as the types for index signature parameters (e.g. {[key:TaskName]:string[]} will produce a compiler error, see TS1023). \n\nAn extra benefit of Map is that its forEach[2] method is slightly easier to read than Object.keys() and Object.values(), and it iterates all entries in insertion order, which might come in handy here.\n\n[1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map\n[2] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c29dd09a_133ba17a",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T18:48:04Z",
+      "side": 1,
+      "message": "Nit: Would it be simpler to turn this into an interface? IIUC all instances of this class are instantiated with explicit values for all its fields.",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 67,
+        "endChar": 5
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc15749f_40a04365",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T18:48:04Z",
+      "side": 1,
+      "message": "Nit: Same observation as above.",
+      "range": {
+        "startLine": 170,
+        "startChar": 4,
+        "endLine": 184,
+        "endChar": 5
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70be92e5_b3057d4f",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-28T18:48:04Z",
+      "side": 1,
+      "message": "Nit: const",
+      "range": {
+        "startLine": 228,
+        "startChar": 4,
+        "endLine": 228,
+        "endChar": 7
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
