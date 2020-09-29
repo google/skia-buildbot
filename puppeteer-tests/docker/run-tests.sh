@@ -100,6 +100,12 @@ cp -r /src/fiddlek/webpack.config.ts     /tests/fiddlek
 cp -r /src/fiddlek/tsconfig.json         /tests/fiddlek
 cp -r /src/fiddlek/modules               /tests/fiddlek
 
+mkdir /tests/task_scheduler
+cp -r /src/task_scheduler/package*          /tests/task_scheduler
+cp -r /src/task_scheduler/webpack.config.ts /tests/task_scheduler
+cp -r /src/task_scheduler/tsconfig.json     /tests/task_scheduler
+cp -r /src/task_scheduler/modules           /tests/task_scheduler
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -126,6 +132,9 @@ cd /tests/new_element
 npm ci
 
 cd /tests/fiddlek
+npm ci
+
+cd /tests/task_scheduler
 npm ci
 
 ################################################################################
@@ -160,4 +169,7 @@ cd /tests/new_element
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/fiddlek
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/task_scheduler
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts

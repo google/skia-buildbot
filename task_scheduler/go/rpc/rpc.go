@@ -110,40 +110,40 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 	if err != nil {
 		return nil, nil, err
 	}
-	return rv, dbJob, nil
-}
-
-// GetJob returns the given job.
-func (s *taskSchedulerServiceImpl) GetJob(ctx context.Context, req *GetJobRequest) (*GetJobResponse, error) {
-	job, dbJob, err := s.getJob(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
 
 	// Retrieve the task specs, so that we can include the task dimensions
 	// in the results.
 	cfg, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
 	if err != nil {
 		sklog.Error(err)
-		return nil, twirp.InternalError("Failed to retrieve job dependencies")
+		return nil, nil, twirp.InternalError("Failed to retrieve job dependencies")
 	}
-	taskDimensions := make([]*TaskDimensions, 0, len(job.Dependencies))
-	for _, task := range job.Dependencies {
+	taskDimensions := make([]*TaskDimensions, 0, len(rv.Dependencies))
+	for _, task := range rv.Dependencies {
 		taskSpec, ok := cfg.Tasks[task.Task]
 		if !ok {
-			err := fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", job.Id, job.Name, task.Task, job.RepoState)
+			err := fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", rv.Id, rv.Name, task.Task, rv.RepoState)
 			sklog.Error(err)
-			return nil, twirp.InternalError(err.Error())
+			return nil, nil, twirp.InternalError(err.Error())
 		}
 		taskDimensions = append(taskDimensions, &TaskDimensions{
 			TaskName:   task.Task,
 			Dimensions: taskSpec.Dimensions,
 		})
 	}
+	rv.TaskDimensions = taskDimensions
 
+	return rv, dbJob, nil
+}
+
+// GetJob returns the given job.
+func (s *taskSchedulerServiceImpl) GetJob(ctx context.Context, req *GetJobRequest) (*GetJobResponse, error) {
+	job, _, err := s.getJob(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
 	return &GetJobResponse{
-		Job:            job,
-		TaskDimensions: taskDimensions,
+		Job: job,
 	}, nil
 }
 
@@ -483,8 +483,14 @@ func convertJobStatus(st types.JobStatus) (JobStatus, error) {
 
 // convertJob converts a types.Job to rpc.Job.
 func convertJob(job *types.Job) (*Job, error) {
+	depNames := make([]string, 0, len(job.Dependencies))
+	for name := range job.Dependencies {
+		depNames = append(depNames, name)
+	}
+	sort.Strings(depNames)
 	deps := make([]*TaskDependencies, 0, len(job.Dependencies))
-	for name, taskDeps := range job.Dependencies {
+	for _, name := range depNames {
+		taskDeps := job.Dependencies[name]
 		deps = append(deps, &TaskDependencies{
 			Task:         name,
 			Dependencies: taskDeps,
@@ -498,8 +504,14 @@ func convertJob(job *types.Job) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
+	taskNames := make([]string, 0, len(job.Tasks))
+	for name := range job.Tasks {
+		taskNames = append(taskNames, name)
+	}
+	sort.Strings(taskNames)
 	tasks := make([]*TaskSummaries, 0, len(job.Tasks))
-	for name, taskSummaries := range job.Tasks {
+	for _, name := range taskNames {
+		taskSummaries := job.Tasks[name]
 		ts := make([]*TaskSummary, 0, len(tasks))
 		for _, taskSummary := range taskSummaries {
 			st, err := convertTaskStatus(taskSummary.Status)

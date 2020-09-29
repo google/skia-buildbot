@@ -56,19 +56,10 @@ message GetJobRequest {
 	string id = 1;
 }
 
-message TaskDimensions {
-	// task_name is the name of the task.
-	string task_name = 1;
-	// dimensions are the Swarming bot dimensions requested by the task.
-	repeated string dimensions = 2;
-}
-
 // GetJobResponse is a response returned from GetJob.
 message GetJobResponse {
 	// job contains the core information about the job.
 	Job job = 1;
-	// task_dimensions are the dimensions of the tasks needed for this job.
-	repeated TaskDimensions task_dimensions = 2;
 }
 
 // CancelJobRequest is a request to CancelJob.
@@ -332,6 +323,14 @@ message TaskSummaries {
 	repeated TaskSummary tasks = 2;
 }
 
+// TaskDimensions contains the dimensions required for a given task.
+message TaskDimensions {
+	// task_name is the name of the task.
+	string task_name = 1;
+	// dimensions are the Swarming bot dimensions requested by the task.
+	repeated string dimensions = 2;
+}
+
 // Job represents a set of Tasks which are executed as part of a larger effort.
 // This must be kept in sync with types.Job.
 message Job {
@@ -393,4 +392,7 @@ message Job {
 	// the Job. Keys are TaskSpec names and values are slices of TaskSummary
 	// instances describing the Tasks.
 	repeated TaskSummaries tasks = 14;
+
+	// taskDimensions are the dimensions of the tasks needed by this job.
+	repeated TaskDimensions task_dimensions = 15;
 }
