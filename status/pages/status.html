@@ -2,6 +2,13 @@
 <html>
   <head>
     <title>{{.Title}}</title>
+    <script>
+      window.StatusSettings = {
+        swarmingUrl: '{{.SwarmingURL}}',
+        taskSchedulerUrl: '{{.TaskSchedulerURL}}',
+        defaultRepo: '{{.DefaultRepo}}',
+      };
+    </script>
   </head>
   <body>
     <h2>lit-html/TS/Twirp Status Page Under Development</h2>
