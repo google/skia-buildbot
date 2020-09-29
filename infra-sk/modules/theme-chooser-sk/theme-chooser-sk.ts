@@ -16,11 +16,19 @@
  * To change the color themes override the css variables in a ':root' selector.
  * </p>
  *
+<<<<<<< HEAD
  * @attr dark - If this attribute is set during connectedCallback then the
  *   default mode will be dark.
  *
  * @evt theme-chooser-toggle Sent when the theme has changed. The detail
  *   contains the darkmode value:
+=======
+ * @attr dark - If this attribute is set during connecteCallback then the default mode
+ *   will be dark.
+ *
+ * @evt theme-chooser-toggle Sent when the theme has changed. The detail contains
+ *   the darkmode value:
+>>>>>>> 90d29b33a (git squash commit for fiddle-frontend.)
  *
  *   <pre>
  *     detail {
