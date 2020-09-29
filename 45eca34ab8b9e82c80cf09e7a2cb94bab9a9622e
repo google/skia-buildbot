@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f16ba31_ffb5e214",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-29T17:34:23Z",
+      "side": 1,
+      "message": "nit: The directory to find dist/ which contains ...",
+      "range": {
+        "startLine": 38,
+        "startChar": 65,
+        "endLine": 38,
+        "endChar": 69
+      },
+      "revId": "45eca34ab8b9e82c80cf09e7a2cb94bab9a9622e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cc956b4_96a78d35",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-29T17:34:23Z",
+      "side": 1,
+      "message": "nit: Should this be in httputils ?",
+      "revId": "45eca34ab8b9e82c80cf09e7a2cb94bab9a9622e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
