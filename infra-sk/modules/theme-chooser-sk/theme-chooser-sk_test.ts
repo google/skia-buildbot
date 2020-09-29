@@ -1,6 +1,6 @@
-import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
-import { ThemeChooserSk, ThemeChooserSkEventDetail, DARKMODE_CLASS} from './theme-chooser-sk';
 import { expect } from 'chai';
+import { setUpElementUnderTest, eventPromise } from '../test_util';
+import { ThemeChooserSk, ThemeChooserSkEventDetail, DARKMODE_CLASS } from './theme-chooser-sk';
 
 describe('theme-chooser-sk', () => {
   const newInstance = setUpElementUnderTest<ThemeChooserSk>('theme-chooser-sk');
@@ -9,7 +9,7 @@ describe('theme-chooser-sk', () => {
 
   beforeEach(() => {
     themeChooserSk = newInstance();
-  })
+  });
 
   it('generates event and toggles from darkmode when clicked', async () => {
     themeChooserSk.darkmode = true;
