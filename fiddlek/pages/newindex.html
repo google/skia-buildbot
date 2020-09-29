@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Skia Fiddle</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript" charset="utf-8">
+    window.sk = window.sk || {};
+    window.sk.fiddle = {% . %};
+  </script>
+</head>
+
+<body class="body-sk darkmode fiddle-body">
+  <header>
+    <h2>Skia Fiddle</h2>
+    <div>
+      <theme-chooser-sk dark></theme-chooser-sk>
+      Skia Version: <a href="https://skia.googlesource.com/skia/+show/{%.Version%}">{% chop .Version %}</a>
+    </div>
+  </header>
+  <main>
+    <fiddle-sk></fiddle-sk>
+    <error-toast-sk></error-toast-sk>
+    <p>
+      <a href="https://api.skia.org/" target=_blank id=docs>Skia API Documentation</a>
+    </p>
+    <p>
+      <a href="/named/">Named Fiddles</a>
+    </p>
+  </main>
+</body>
+
+</html>

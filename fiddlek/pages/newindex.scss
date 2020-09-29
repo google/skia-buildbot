@@ -1,0 +1,23 @@
+.fiddle-body {
+  padding: 0;
+  margin: 0;
+
+  header {
+    background: var(--surface);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0 8px;
+  }
+
+  fiddle-sk {
+    display: block;
+    margin: 16px;
+  }
+
+  main > p {
+    margin: 16px;
+  }
+}
