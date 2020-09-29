@@ -626,7 +626,7 @@ func main() {
 	v1Root("/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
 	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), rootRouter).Methods("GET")
 	v1Root("/trstatus", httputils.CorsHandler(handlers.StatusHandler)).Methods("GET")
-	v0("/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler), rootRouter).Methods("GET")
+	v0("/json/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler), rootRouter).Methods("GET")
 	v1Root("/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler)).Methods("GET")
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
