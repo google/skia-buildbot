@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3fc7348_eb220461",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Thanks! Just a note on test naming (see job-trigger-sk_puppeteer_test.ts). Everything else can be ignored.",
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8dbe727d_b6a80bb5",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Nit, feel free to ignore: Consider using an interface here.\n\nThe main rationale is that the TriggeredJob class in the generated JavaScript code is never used because there are no calls to \"new TriggeredJob()\". Instead, an object literal is used on lines 113-117. Note that this means the default values for the class fields are never used either.\n\nSee the compiler output here: https://www.typescriptlang.org/play?ssl\u003d1\u0026ssc\u003d1\u0026pln\u003d1\u0026pc\u003d6#code/MYGwhgzhAEAqBOBLA5sgpvNATAUgewCNoBvAKGmgDswBbNALmggBclLloBeaAIh4G5y0YHho1EzRizYdufQRURYprROy68BpAL6lSIyi2irUGbPgIRGCFOky5CAbQC6Gx0LIUK1Oox4AxPDweABohChExCT8AQTj4hNDw6CU-AEYkim0QkmSfBl4AITB4TK9I8Ukiwpra2rLFZV4AJjLdZ0EgA.\n\nIn other words, it seems like the TriggeredJob type\u0027s purpose is to describe the shape of our data, which is what interfaces are great for, as opposed to e.g. bundling data and behavior together, which we would typically do with a class.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 5
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84915b7e_d8c66a6e",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Nit: Could this be replaced with the following?\n\n  \u003cdiv ?hidden\u003d${ele.triggered?.length \u003e 0}\u003e\n\nThe main gotcha is that this won\u0027t work if the \"display\" property of this div is set via CSS, which overrides the \"hidden\" attribute.\n\nReference: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/hidden.",
+      "range": {
+        "startLine": 74,
+        "startChar": 7,
+        "endLine": 74,
+        "endChar": 85
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a0ffce2_d30960ad",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Ubernit: triggeredJobs?",
+      "range": {
+        "startLine": 86,
+        "startChar": 10,
+        "endLine": 86,
+        "endChar": 19
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ba34205_a0734167",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk_puppeteer_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Note on test naming: The convention currently used by most tests in https://skia-infra-gold.skia.org/list is to separate the component name and the test case with an underscore, e.g. this would become \"job-trigger-sk_deleted\"",
+      "range": {
+        "startLine": 28,
+        "startChar": 60,
+        "endLine": 28,
+        "endChar": 82
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c28381c4_eb40c872",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk_puppeteer_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Suggestion: It might be simpler to fold these two lines into a single call to testBed.page.type(), e.g.\n\n  await testBed.page.type(\u0027.job_specs_input\u0027, \u0027my-job\u0027);\n\nReference: https://pptr.dev/#?product\u003dPuppeteer\u0026version\u003dv5.2.1\u0026show\u003dapi-pagetypeselector-text-options.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 49
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc02e259_3706cd22",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-29T17:51:08Z",
+      "side": 1,
+      "message": "Feel free to delete this file if there\u0027s nothing interesting to test here.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 41
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
