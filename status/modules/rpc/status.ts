@@ -44,8 +44,6 @@ const JSONToGetIncrementalCommitsResponse = (m: GetIncrementalCommitsResponseJSO
 };
 
 export interface IncrementalUpdate {
-  swarmingUrl: string;
-  taskSchedulerUrl: string;
   commits?: LongCommit[];
   branchHeads?: Branch[];
   tasks?: Task[];
@@ -53,8 +51,6 @@ export interface IncrementalUpdate {
 }
 
 interface IncrementalUpdateJSON {
-  swarming_url?: string;
-  task_scheduler_url?: string;
   commits?: LongCommitJSON[];
   branch_heads?: BranchJSON[];
   tasks?: TaskJSON[];
@@ -63,8 +59,6 @@ interface IncrementalUpdateJSON {
 
 const JSONToIncrementalUpdate = (m: IncrementalUpdateJSON): IncrementalUpdate => {
   return {
-    swarmingUrl: m.swarming_url || "",
-    taskSchedulerUrl: m.task_scheduler_url || "",
     commits: m.commits && m.commits.map(JSONToLongCommit),
     branchHeads: m.branch_heads && m.branch_heads.map(JSONToBranch),
     tasks: m.tasks && m.tasks.map(JSONToTask),

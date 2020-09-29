@@ -159,8 +159,6 @@ export const mockIncrementalResponse: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
   update: {
     branchHeads: [branch0, branch1],
-    swarmingUrl: 'https://example.com/swarming',
-    taskSchedulerUrl: 'https://example.com/ts',
     comments: [commentCommit, commentTask, commentTaskSpec],
     commits: commits,
     tasks: tasks,

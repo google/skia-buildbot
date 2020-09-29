@@ -241,7 +241,6 @@ func ConvertUpdate(u *incremental.Update, podID string) *GetIncrementalCommitsRe
 			Body:      c.Body,
 			Timestamp: timestamppb.New(c.Timestamp)})
 	}
-	update.SwarmingUrl = u.SwarmingUrl
 	for _, t := range u.Tasks {
 		update.Tasks = append(update.Tasks, &Task{
 			Commits:        t.Commits,
@@ -251,7 +250,6 @@ func ConvertUpdate(u *incremental.Update, podID string) *GetIncrementalCommitsRe
 			Status:         string(t.Status),
 			SwarmingTaskId: t.SwarmingTaskId})
 	}
-	update.TaskSchedulerUrl = u.TaskSchedulerUrl
 	for hash, srcComments := range u.CommitComments {
 		for _, c := range srcComments {
 			update.Comments = append(update.Comments, &Comment{

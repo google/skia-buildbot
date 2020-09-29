@@ -54,8 +54,6 @@ describe('commits-data-sk', () => {
 
   it('loads ancillary data correctly', async () => {
     expect(commitsData.branchHeads).to.deep.equal([branch0, branch1]);
-    expect(commitsData.swarmingUrl).to.equal('https://example.com/swarming');
-    expect(commitsData.taskSchedulerUrl).to.equal('https://example.com/ts');
   });
 
   it('extracts reverts and relands correctly', async () => {

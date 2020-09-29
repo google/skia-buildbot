@@ -186,9 +186,7 @@ func TestConvertUpdate(t *testing.T) {
 	src.StartOver = newTrue()
 	expected.Metadata.StartOver = true
 	src.SwarmingUrl = "surl"
-	expected.Update.SwarmingUrl = "surl"
 	src.TaskSchedulerUrl = "tsurl"
-	expected.Update.TaskSchedulerUrl = "tsurl"
 	dest = ConvertUpdate(src, "mypod")
 	require.Equal(t, expected, dest)
 }
