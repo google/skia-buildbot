@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "c34bda3f_f45ae3a3",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-29T18:35:23Z",
+      "side": 1,
+      "message": "Add description / remove what you don\u0027t need",
+      "range": {
+        "startLine": 4,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 11
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8dbe727d_b6a80bb5",
         "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
         "patchSetId": 3
@@ -58,6 +81,53 @@
         "startChar": 7,
         "endLine": 74,
         "endChar": 85
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9be7f9c5_e72233c8",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-29T18:35:23Z",
+      "side": 1,
+      "message": "Alternatively, why not just not add this stuff to the DOM if we lack triggered jobs? i.e.\n\n${ele.triggered \u0026\u0026 ele.triggered.length \u003e 0\n   ? html`\n       ...`\n   : html``\n\n}",
+      "parentUuid": "84915b7e_d8c66a6e",
+      "range": {
+        "startLine": 74,
+        "startChar": 7,
+        "endLine": 74,
+        "endChar": 85
+      },
+      "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3243a5df_e8948f49",
+        "filename": "task_scheduler/modules/job-trigger-sk/job-trigger-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-29T18:35:23Z",
+      "side": 1,
+      "message": "This assumes ele.triggered is valid, but above with \u0027hidden\u0027 you don\u0027t, which is inconsistent. I think this reinforces my above suggestion of only rendering this stuff when you have data.",
+      "range": {
+        "startLine": 76,
+        "startChar": 6,
+        "endLine": 76,
+        "endChar": 23
       },
       "revId": "a5254854104d3326a9a6ccb703d77af0b3444606",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
