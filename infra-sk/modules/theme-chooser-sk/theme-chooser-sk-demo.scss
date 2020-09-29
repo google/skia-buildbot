@@ -1,7 +1,13 @@
 @use "./theme-chooser-sk.scss";
+@import '~elements-sk/themes/themes';
 
 theme-chooser-sk {
   cursor: pointer;
+}
+
+div {
+  padding: 16px;
+  width: 128px;
 }
 
 body.darkmode {
