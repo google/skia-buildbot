@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "119202e4_d95c513d",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-29T15:56:32Z",
+      "side": 1,
+      "message": "This needs to be updated as well, or else it won\u0027t reflect the case of a dark mode being set as default without the user altering it.",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 87
+      },
+      "revId": "b302302f7b1a604fd9304d7113d70fb5417eecca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
