@@ -40,6 +40,25 @@ dist := $(addprefix ./dist/,$(distNames))
 $(dist): $(frontendInputFiles)
 	npx webpack --mode=production
 
+.PHONY: serve
+serve: $(dist)
+	npx webpack-dev-server --mode=development --watch-poll
+
+.PHONY: test-frontend
+test-frontend: ./node_modules/lastupdate-webpack
+	npx karma start
+
+.PHONY: test-frontend-ci
+test-frontend-ci: ./node_modules/lastupdate-webpack
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+# Increase Node's heap size to accommodate for ts-node's higher memory usage.
+NODE_MEMORY_LIMIT=4096
+
+.PHONY: puppeteer-test
+puppeteer-test: ./node_modules/lastupdate-webpack
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v -r ts-node/register ./modules/**/*_puppeteer_test.ts
+
 .PHONY: all
 all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db
 
