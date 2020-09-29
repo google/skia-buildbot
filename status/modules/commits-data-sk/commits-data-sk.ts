@@ -20,6 +20,7 @@ import {
   StatusService,
 } from '../rpc';
 import 'elements-sk/select-sk';
+import { defaultRepo } from '../settings';
 
 const VALID_TASK_SPEC_CATEGORIES = ['Build', 'Housekeeper', 'Infra', 'Perf', 'Test', 'Upload'];
 
@@ -104,8 +105,6 @@ export class CommitsDataSk extends ElementSk {
   commitsByHash: Map<CommitHash, Commit> = new Map();
 
   branchHeads: Array<Branch> = [];
-  swarmingUrl: string = '';
-  taskSchedulerUrl: string = '';
   tasks: Map<TaskId, Task> = new Map();
   tasksBySpec: Map<TaskSpec, Map<TaskId, Task>> = new Map();
   tasksByCommit: Map<CommitHash, Map<TaskSpec, Task>> = new Map();
@@ -121,7 +120,7 @@ export class CommitsDataSk extends ElementSk {
 
   // Private members because we decorate their setters to refetch data.
   private _loggedIn: boolean | null = null;
-  private _repo: string = 'skia';
+  private _repo: string = defaultRepo();
   private _numCommits: number = 35;
 
   constructor() {
@@ -165,8 +164,6 @@ export class CommitsDataSk extends ElementSk {
   private extractData(update: IncrementalUpdate) {
     this.commits = update.commits as Array<Commit>;
     this.branchHeads = update.branchHeads || this.branchHeads;
-    this.swarmingUrl = update.swarmingUrl || this.swarmingUrl;
-    this.taskSchedulerUrl = update.taskSchedulerUrl || this.taskSchedulerUrl;
 
     // Map commits by hash.
     this.commits.forEach((commit: Commit) => {
