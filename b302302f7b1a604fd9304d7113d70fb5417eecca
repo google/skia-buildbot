@@ -22,6 +22,30 @@
       "revId": "b302302f7b1a604fd9304d7113d70fb5417eecca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "617f20cd_60bde06d",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-29T16:05:34Z",
+      "side": 1,
+      "message": "This is a static with no connection to the element, so I added a\ncomment that this call is only valid \n*after* ThemeChooserSk.connectedCallback() has been called.",
+      "parentUuid": "119202e4_d95c513d",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 87
+      },
+      "revId": "b302302f7b1a604fd9304d7113d70fb5417eecca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
