@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3328ce7c_31eae439",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-29T15:15:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf1650d5_c9e15268",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c29dd09a_133ba17a",
         "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4a8eeb2_337af4c3",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-29T15:15:03Z",
+      "side": 1,
+      "message": "Done, though to be honest I\u0027m not sure I understand the implications.",
+      "parentUuid": "c29dd09a_133ba17a",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 67,
+        "endChar": 5
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "db43efe8_7a6500c8",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-29T15:15:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc15749f_40a04365",
+      "range": {
+        "startLine": 170,
+        "startChar": 4,
+        "endLine": 184,
+        "endChar": 5
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "70be92e5_b3057d4f",
         "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d19c118_72f9fce2",
+        "filename": "task_scheduler/modules/task-graph-sk/task-graph-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-29T15:15:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70be92e5_b3057d4f",
+      "range": {
+        "startLine": 228,
+        "startChar": 4,
+        "endLine": 228,
+        "endChar": 7
+      },
+      "revId": "4bb691bfd88e44bfb8fc546afd049eba80048fe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
