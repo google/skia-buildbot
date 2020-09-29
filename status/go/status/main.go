@@ -565,7 +565,8 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 		reloadTemplates()
 	}
 
-	d := commitsTemplateData{
+	var d interface{}
+	d = commitsTemplateData{
 		Repo:     repoName,
 		RepoBase: fmt.Sprintf(gitiles.CommitURL, repoUrl, ""),
 		Repos:    getRepoNames(),
@@ -575,6 +576,17 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 	var template *template.Template
 	if experimental {
 		template = experimentalCommitsTemplate
+		d = struct {
+			Title            string
+			SwarmingURL      string
+			TaskSchedulerURL string
+			DefaultRepo      string
+		}{
+			Title:            fmt.Sprintf("Status: %s", repoName),
+			SwarmingURL:      *swarmingUrl,
+			TaskSchedulerURL: *taskSchedulerUrl,
+			DefaultRepo:      repoName,
+		}
 	} else {
 		template = commitsTemplate
 	}

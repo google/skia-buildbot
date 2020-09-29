@@ -32,12 +32,10 @@ message GetIncrementalCommitsResponse {
 // The (possible incremental) data comprising Status's table of
 // commits and their tasks.
 message IncrementalUpdate {
-  string swarming_url = 1;
-  string task_scheduler_url = 2;
-  repeated LongCommit commits = 3;
-  repeated Branch branch_heads = 4;
-  repeated Task tasks = 5;
-  repeated Comment comments = 6;
+  repeated LongCommit commits = 1;
+  repeated Branch branch_heads = 2;
+  repeated Task tasks = 3;
+  repeated Comment comments = 4;
 }
 
 // Branch names and their associated HEAD commit hash.
