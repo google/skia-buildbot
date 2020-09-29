@@ -111,8 +111,6 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
   update: {
     branchHeads: [branch0, branch1],
-    swarmingUrl: 'https://example.com/swarming',
-    taskSchedulerUrl: 'https://example.com/ts',
     comments: [commentCommit, commentTask, commentTaskSpec],
     commits: [
       commit0,
@@ -151,8 +149,6 @@ export const responseSingleCommitTask: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
   update: {
     branchHeads: [],
-    swarmingUrl: 'https://example.com/swarming',
-    taskSchedulerUrl: 'https://example.com/ts',
     comments: [],
     commits: [copy(commit0)],
     tasks: [copy(task0)],
