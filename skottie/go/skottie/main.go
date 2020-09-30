@@ -524,6 +524,7 @@ func main() {
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
+	h = httputils.CrossOriginResourcePolicy(h)
 	if !*local {
 		if *lockedDown {
 			h = login.RestrictViewer(h)
