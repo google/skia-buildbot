@@ -1,7 +1,7 @@
 import './newindex.scss';
 import '../modules/themes/themes.scss';
 import '../modules/fiddle-sk';
-import { FiddleSk } from '../modules/fiddle-sk/fiddle-sk';
+import { FiddleSk, FiddleSkFiddleSuccessEventDetail } from '../modules/fiddle-sk/fiddle-sk';
 import { FiddleContext } from '../modules/json';
 import '../../infra-sk/modules/theme-chooser-sk';
 
@@ -66,3 +66,8 @@ declare global {
 if (window.sk.fiddle.fiddlehash) {
   fiddle.context = window.sk.fiddle;
 }
+
+fiddle.addEventListener('fiddle-success', (e) => {
+  const hash = (e as CustomEvent<FiddleSkFiddleSuccessEventDetail>).detail;
+  window.history.pushState(null, hash, `/c/${hash}`);
+});
