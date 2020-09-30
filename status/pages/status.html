@@ -7,6 +7,11 @@
         swarmingUrl: '{{.SwarmingURL}}',
         taskSchedulerUrl: '{{.TaskSchedulerURL}}',
         defaultRepo: '{{.DefaultRepo}}',
+        repos: new Map([
+          {{range $repo, $url := .Repos}}
+            ['{{$repo}}', '{{$url}}'],
+          {{end}}
+        ]),
       };
     </script>
   </head>

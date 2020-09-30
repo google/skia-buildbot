@@ -122,6 +122,8 @@ var (
 
 	podId string
 	repos repograph.Map
+	// Repos and associated templates for creating links to their commits.
+	repoURLsByName map[string]string
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -581,11 +583,14 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 			SwarmingURL      string
 			TaskSchedulerURL string
 			DefaultRepo      string
+			// Repo name to repo URL.
+			Repos map[string]string
 		}{
 			Title:            fmt.Sprintf("Status: %s", repoName),
 			SwarmingURL:      *swarmingUrl,
 			TaskSchedulerURL: *taskSchedulerUrl,
 			DefaultRepo:      repoName,
+			Repos:            repoURLsByName,
 		}
 	} else {
 		template = commitsTemplate
@@ -771,6 +776,11 @@ func main() {
 	if podId == "" {
 		sklog.Error("POD_ID not defined; falling back to UUID.")
 		podId = uuid.New().String()
+	}
+
+	repoURLsByName := make(map[string]string)
+	for _, repoURL := range *repoUrls {
+		repoURLsByName[repoUrlToName(repoURL)] = fmt.Sprintf(gitiles.CommitURL, repoURL, "")
 	}
 
 	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.ScopePubSub, datastore.ScopeDatastore)
