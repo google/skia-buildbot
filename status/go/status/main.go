@@ -122,6 +122,7 @@ var (
 
 	podId string
 	repos repograph.Map
+	repoURLsByName map[string]string
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -202,6 +203,15 @@ func repoNameToUrl(repoName string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("No such repo.")
+}
+
+// repoUrlsByName returns a map of name->url for known repos.
+func repoUrlsByName() (map[string]string) {
+	rv := make(map[string]string)
+	for _, repoURL := range *repoUrls {
+		rv[repoUrlToName(repoURL)] = fmt.Sprintf(gitiles.CommitURL, repoURL, "")
+	}
+	return rv
 }
 
 // getRepo returns a short repo nickname and a full repo URL based on the URL
@@ -581,11 +591,14 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 			SwarmingURL      string
 			TaskSchedulerURL string
 			DefaultRepo      string
+			// Repo name to repo URL.
+			Repos			 map[string]string
 		}{
 			Title:            fmt.Sprintf("Status: %s", repoName),
 			SwarmingURL:      *swarmingUrl,
 			TaskSchedulerURL: *taskSchedulerUrl,
 			DefaultRepo:      repoName,
+			Repos: repoURLsByName,
 		}
 	} else {
 		template = commitsTemplate
@@ -772,6 +785,8 @@ func main() {
 		sklog.Error("POD_ID not defined; falling back to UUID.")
 		podId = uuid.New().String()
 	}
+
+	repoURLsByName = repoUrlsByName()
 
 	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.ScopePubSub, datastore.ScopeDatastore)
 	if err != nil {
