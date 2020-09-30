@@ -117,6 +117,30 @@
       "revId": "870669efc4355763fde0970b1dcb0585bf985e5c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "680f2ef8_64608f19",
+        "filename": "status/modules/settings.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-30T18:50:06Z",
+      "side": 1,
+      "message": "Doh! Somehow my brain attributed your comment to the function I had used in the Go (the one I removed as per your other comment). Renamed and commented to indicate this is a template to be used to make urls to revisions.",
+      "parentUuid": "a8d90c05_ccba9b0b",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 57
+      },
+      "revId": "870669efc4355763fde0970b1dcb0585bf985e5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
