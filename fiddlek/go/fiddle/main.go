@@ -511,24 +511,6 @@ func basicModeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/c/cbb8dee39e9f1576cd97c2d504db8eee?mode=basic", http.StatusFound)
 }
 
-// CrossOriginResourcePolicy adds a Cross-Origin-Resource-Policy: cross-origin
-// to every response.
-//
-// Example:
-//    if !*local {
-//      h := httputils.CrossOriginResourcePolicy(h)
-//    }
-//    http.Handle("/", h)
-//
-// TODO(jcgregorio) Move to httputils.
-func CrossOriginResourcePolicy(h http.Handler) http.Handler {
-	s := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
-		h.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(s)
-}
-
 func main() {
 	common.InitWithMust(
 		"fiddle",
@@ -577,7 +559,7 @@ func main() {
 	r.HandleFunc("/healthz", healthzHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)
-	h = CrossOriginResourcePolicy(h)
+	h = httputils.CrossOriginResourcePolicy(h)
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
 	sklog.Info("Ready to serve.")
