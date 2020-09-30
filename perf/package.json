@@ -32,7 +32,6 @@
     "@types/karma": "^5.0.0",
     "@types/mocha": "^7.0.2",
     "@types/webpack": "^4.41.13",
-    "@webcomponents/custom-elements": "^1.4.1",
     "autoprefixer": "^9.6.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "~5.0.4",
