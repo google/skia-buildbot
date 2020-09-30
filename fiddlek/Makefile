@@ -40,7 +40,6 @@ fiddle_secwrap:
 	mkdir -p ./bin
 	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
-
 .PHONY: image
 image: build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
@@ -105,9 +104,3 @@ run_local_fiddle:
 .PHONY: run_local_fiddler
 run_local_fiddler:
 	docker run -ti -p8000:8000 --cap-add=SYS_PTRACE fiddler
-
-# Build debug versions of core.js and elements.html.
-.PHONY: debug
-debug: clean_webtools debug_core_js debug_elements_html
-
-include ../webtools/webtools.mk
