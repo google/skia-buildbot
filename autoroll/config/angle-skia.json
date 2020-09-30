@@ -3,7 +3,6 @@
 {
   "childDisplayName": "ANGLE",
   "commitMsg": {
-    "bugProject": "chromium",
     "childLogURLTmpl": "https://chromium.googlesource.com/angle/angle.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "cqExtraTrybots": [
       "skia/skia.primary:Build-Debian10-Clang-x86_64-Release-ANGLE",
