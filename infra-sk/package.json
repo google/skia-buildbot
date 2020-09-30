@@ -28,7 +28,6 @@
     "@types/puppeteer": "^3.0.0",
     "@types/webpack": "4.41.13",
     "@types/webpack-dev-server": "3.11.0",
-    "@webcomponents/custom-elements": "^1.2.4",
     "autoprefixer": "^9.6.1",
     "chai-as-promised": "^7.1.1",
     "clean-webpack-plugin": "^3.0.0",
