@@ -262,6 +262,25 @@ func getLabelNames(labels []github.Label) []string {
 	return labelNames
 }
 
+// See https://developer.github.com/v3/issues/#list-repository-issues
+// for the API documentation.
+func (g *GitHub) GetIssues(open bool, labels []string) ([]*github.Issue, error) {
+	opts := &github.IssueListByRepoOptions{
+		Labels: labels,
+	}
+	if open {
+		opts.State = "open"
+	}
+	issues, resp, err := g.client.Issues.ListByRepo(g.ctx, g.RepoOwner, g.RepoName, opts)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing issues.list: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from issues.list.", resp.StatusCode)
+	}
+	return issues, nil
+}
+
 // See https://developer.github.com/v3/issues/#get-a-single-issue
 // for the API documentation.
 func (g *GitHub) GetLabels(pullRequestNum int) ([]string, error) {
@@ -479,6 +498,10 @@ func (g *GitHub) GetFullHistoryUrl(userEmail string) string {
 	return fmt.Sprintf("https://github.com/%s/%s/pulls/%s", g.RepoOwner, g.RepoName, user)
 }
 
-func (g *GitHub) GetIssueUrlBase() string {
+func (g *GitHub) GetPullRequestUrlBase() string {
 	return fmt.Sprintf("https://github.com/%s/%s/pull/", g.RepoOwner, g.RepoName)
+}
+
+func (g *GitHub) GetIssueUrlBase() string {
+	return fmt.Sprintf("https://github.com/%s/%s/issue/", g.RepoOwner, g.RepoName)
 }
