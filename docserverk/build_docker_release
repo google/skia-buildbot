@@ -10,9 +10,9 @@ copy_release_files()
 INSTALL="install -D --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile                ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}  ${ROOT}/usr/local/bin/${APPNAME}
-${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
+${INSTALL} --mode=644 -T ./res/js/docs.js          ${ROOT}/usr/local/share/${APPNAME}/res/js/docs.js
 ${INSTALL} --mode=644 -T ./res/img/logo.png        ${ROOT}/usr/local/share/${APPNAME}/res/img/logo.png
-${INSTALL} --mode=644 -T ./res/css/docs.css        ${ROOT}/usr/local/share/${APPNAME}/res/css/docs.css
+${INSTALL} --mode=644 -T ./res/css/main.css        ${ROOT}/usr/local/share/${APPNAME}/res/css/main.css
 ${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/${APPNAME}/templates/index.html
 }
 

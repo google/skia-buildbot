@@ -12,7 +12,6 @@ repository. Just append `?cl={Reitveld_issue_number}` to any
 URL and you can see what the file will render with the changes
 from that CL.
 
-
 ## Design
 
 The docserver presumes the Git repository that contains the Markdown files will
@@ -22,7 +21,7 @@ exists under the /site directory in the repo. Each directory should have an
 Other assetts may appear in the directory structure and will be served over
 HTTP as files. See below for an example directory layout:
 
-~~~~
+```
   site
   ├── dev
   │   ├── contrib
@@ -43,7 +42,7 @@ HTTP as files. See below for an example directory layout:
   │       └── linux.md
   └── xtra
       └── index.md
-~~~~
+```
 
 The server will build a navigation menu for the site by walking the directory
 structure in alphabetical order and will use each Markdown documents first line
@@ -53,8 +52,7 @@ as the title of the document in the navigation bar.
 
 Requirements:
 
-  1. [Go](https://golang.org)
-  2. [Node](https://nodejs.org/)
+1. [Go](https://golang.org)
 
 Clone this repo:
 
