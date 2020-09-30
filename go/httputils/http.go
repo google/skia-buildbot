@@ -776,3 +776,20 @@ func PostWithContext(ctx context.Context, c *http.Client, url, contentType strin
 	req.Header.Set("Content-Type", contentType)
 	return c.Do(req)
 }
+
+// CrossOriginResourcePolicy adds a Cross-Origin-Resource-Policy: cross-origin
+// to every response.
+//
+// Example:
+//    if !*local {
+//      h := httputils.CrossOriginResourcePolicy(h)
+//    }
+//    http.Handle("/", h)
+//
+func CrossOriginResourcePolicy(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(s)
+}
