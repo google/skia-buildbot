@@ -9,6 +9,7 @@ class StatusSettings {
   public swarmingUrl: string = '';
   public taskSchedulerUrl: string = '';
   public defaultRepo: string = '';
+  public repos: Map<string, string> = new Map();
 }
 
 // swarmingUrl: Base URL for linking to swarming task data.
@@ -24,6 +25,12 @@ export function taskSchedulerUrl() {
 // defaultRepo: Repo to use on initial load.
 export function defaultRepo() {
   return (<any>window).StatusSettings?.defaultRepo;
+}
+
+// commitUrlTemplate: Returns the base url for a repo's commits. Can be
+// concatenated with a commit hash to form a valid url.
+export function commitUrlTemplate(repo: string) {
+  return (<any>window).StatusSettings?.repos.get(repo);
 }
 
 // SetTestSettings: Inject setting values for tests.
