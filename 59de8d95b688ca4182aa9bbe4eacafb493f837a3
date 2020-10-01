@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e8e160c_822f549a",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-01T23:27:11Z",
+      "side": 0,
+      "message": "I\u0027m excluding these parameters for simplicity. This is OK because they set the corresponding search fields to their default values.",
+      "range": {
+        "startLine": 147,
+        "startChar": 37,
+        "endLine": 147,
+        "endChar": 55
+      },
+      "revId": "59de8d95b688ca4182aa9bbe4eacafb493f837a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
