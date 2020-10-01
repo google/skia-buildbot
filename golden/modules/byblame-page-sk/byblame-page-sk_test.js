@@ -191,8 +191,8 @@ function expectHasGmBlames(byblamePageSk) {
   expectBlames(
     byblamePageSk,
     6,
-    '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&unt=true&head=true&query=source_type%3Dgm',
-    '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&unt=true&head=true&query=source_type%3Dgm',
+    '/search?blame=4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7:a1050ed2b1120613d9ae9587e3c0f4116e17337f:3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d&corpus=gm&query=source_type%3Dgm',
+    '/search?blame=342fbc54844d0d3fc9d20e20b45115db1e33395b&corpus=gm&query=source_type%3Dgm',
   );
 }
 
@@ -201,8 +201,8 @@ function expectHasSvgBlames(byblamePageSk) {
   expectBlames(
     byblamePageSk,
     5,
-    '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&unt=true&head=true&query=source_type%3Dsvg',
-    '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&unt=true&head=true&query=source_type%3Dsvg',
+    '/search?blame=d2c67f44f8c2351e60e6ee224a060e916cd44f34&corpus=svg&query=source_type%3Dsvg',
+    '/search?blame=e1e197186238d8d304a39db9f94258d9584a8973&corpus=svg&query=source_type%3Dsvg',
   );
 }
 
