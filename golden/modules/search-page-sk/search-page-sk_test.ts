@@ -729,17 +729,25 @@ describe('search-page-sk', () => {
         await searchPageSkPO.typeKey('w');
         expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.equal(secondDigest);
       });
+    });
 
-      it('ignores keyboard shortcuts while a zoom dialog is open', async () => {
+    it('shows the help dialog when pressing the "?" key', async () => {
+      await instantiate();
+      await searchPageSkPO.typeKey('?');
+      expect(await searchPageSkPO.isHelpDialogOpen()).to.be.true;
+    });
+
+    describe('shortcuts are disabled when a dialog is open', () => {
+      beforeEach(async () => {
         await instantiate();
 
-        // Select the second search result.
+        // Select the second search result. The expectKeyboardShortcutsToBeDisabled() helper below
+        // relies on this.
         await searchPageSkPO.typeKey('j');
         await searchPageSkPO.typeKey('j');
+      });
 
-        // Open zoom dialog.
-        await searchPageSkPO.typeKey('w');
-
+      const expectKeyboardShortcutsToBeDisabled = async () => {
         // Navigation shortcuts should have no effect.
         expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
         await searchPageSkPO.typeKey('j');
@@ -776,16 +784,65 @@ describe('search-page-sk', () => {
         expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
         expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
 
-        // Shortcut for the help dialog should have no effect.
-        await searchPageSkPO.typeKey('?');
-        expect(await searchPageSkPO.isHelpDialogOpen()).to.be.false;
-      });
-    });
+        // Shortcut for the help dialog should have no effect, but we can only test this if the
+        // help dialog is not already open, otherwise the shortcut has no effect.
+        if (!(await searchPageSkPO.isHelpDialogOpen())) {
+          await searchPageSkPO.typeKey('?');
+          expect(await searchPageSkPO.isHelpDialogOpen()).to.be.false;
+        }
+      };
 
-    it('shows the help dialog when pressing the "?" key', async () => {
-      await instantiate();
-      await searchPageSkPO.typeKey('?');
-      expect(await searchPageSkPO.isHelpDialogOpen()).to.be.true;
+      it('disables keyboard shortcuts when the help dialog is open', async () => {
+        await searchPageSkPO.clickHelpBtn(); // Open help dialog.
+
+        expect(await searchPageSkPO.isHelpDialogOpen()).to.be.true;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
+
+      it('disables keyboard shortcuts when the bulk triage dialog is open', async () => {
+        await searchPageSkPO.clickBulkTriageBtn(); // Open bulk triage dialog.
+
+        expect(await searchPageSkPO.isBulkTriageDialogOpen()).to.be.true;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
+
+      it('disables keyboard shortcuts when the left-hand trace filter dialog is open', async () => {
+        const leftHandTraceFilterSkPO = await searchControlsSkPO.getTraceFilterSkPO();
+        await leftHandTraceFilterSkPO.clickEditBtn(); // Open left-hand trace filter dialog.
+
+        expect(await leftHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
+
+      it('disables keyboard shortcuts when the more filters dialog is open', async () => {
+        const filterDialogSkPO = await searchControlsSkPO.getFilterDialogSkPO();
+        await searchControlsSkPO.clickMoreFiltersBtn(); // Open more filters dialog.
+
+        expect(await filterDialogSkPO.isDialogOpen()).to.be.true;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
+
+      it(
+          'disables keyboard shortcuts when the right-hand trace filter dialog is open',
+          async () => {
+
+        const filterDialogSkPO = await searchControlsSkPO.getFilterDialogSkPO();
+        await searchControlsSkPO.clickMoreFiltersBtn(); // Open more filters dialog.
+
+        const rightHandTraceFilterSkPO = await filterDialogSkPO.getTraceFilterSkPO();
+        await rightHandTraceFilterSkPO.clickEditBtn(); // Open right-hand trace filter dialog.
+
+        expect(await filterDialogSkPO.isDialogOpen()).to.be.true;
+        expect(await rightHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
+
+      it('disables keyboard shortcuts when the zoom dialog is open', async () => {
+        await searchPageSkPO.typeKey('w'); // Open zoom dialog.
+
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.not.be.null;
+        await expectKeyboardShortcutsToBeDisabled();
+      });
     });
   });
 });
