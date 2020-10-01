@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9cf607d_ca114809",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:45:54Z",
+      "side": 0,
+      "message": "Can you see if there are any other listeners for this event? If not, let\u0027s delete it.",
+      "range": {
+        "startLine": 152,
+        "startChar": 37,
+        "endLine": 152,
+        "endChar": 43
+      },
+      "revId": "4b9f0583fc58ddf1cf5a495ee6534077268aa225",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

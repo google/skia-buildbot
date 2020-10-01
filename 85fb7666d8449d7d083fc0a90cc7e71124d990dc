@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56374ce4_edb5a41b",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:45:54Z",
+      "side": 1,
+      "message": "Clever.",
+      "range": {
+        "startLine": 413,
+        "startChar": 35,
+        "endLine": 413,
+        "endChar": 41
+      },
+      "revId": "85fb7666d8449d7d083fc0a90cc7e71124d990dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
