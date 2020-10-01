@@ -535,7 +535,7 @@ export class SearchPageSk extends ElementSk {
    * TODO(lovisolo): Remove after the legacy search page has been deleted.
    */
   private _getLegacySearchPageHref() {
-    const baseUrl = '/search';
+    const baseUrl = '/oldsearch';
     // The legacy search page uses the same GET parameters as the /json/search endpoint, so we can
     // reuse the logic to build a SearchRequest.
     const searchRequest = this._makeSearchRequest();

@@ -78,6 +78,7 @@
       ready: function() {
         // Set up in-app routing using the history api.
         this._setRoute('/search', 'search');
+        this._setRoute('/oldsearch', 'search');
 
         // Force hitting the server if logout was selected.
         page("/logout", function(ctx) {
