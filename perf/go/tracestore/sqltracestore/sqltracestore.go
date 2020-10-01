@@ -299,7 +299,7 @@ var templates = map[statement]string{
             TraceValues
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
-            AND commit_number < {{ .EndCommitNumber }}
+            AND commit_number <= {{ .EndCommitNumber }}
             AND trace_id IN
             (
                 {{ range $index, $trace_id :=  .TraceIDs -}}
@@ -807,9 +807,23 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 // ReadTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, traceNames []string) (types.TraceSet, error) {
 	defer timer.New("ReadTraces").Stop()
-	ret := types.TraceSet{}
 
 	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
+	return s.ReadTracesForCommitRange(context.TODO(), traceNames, beginCommit, endCommit)
+}
+
+// ReadTracesForCommitRange implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames []string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, error) {
+	defer timer.New("ReadTraces").Stop()
+	ret := types.TraceSet{}
+
+	// Validate the begin and end commit numbers.
+	if beginCommit > endCommit {
+		return nil, skerr.Fmt("Invalid commit range, [%d, %d] should be [%d, %d]", beginCommit, endCommit, endCommit, beginCommit)
+	}
+
+	// How long should the traces be in the response?
+	traceLength := endCommit - beginCommit + 1
 
 	// Get the traceIDs for the given keys.
 	traceIDs := make([]traceIDForSQL, 0, len(traceNames))
@@ -821,10 +835,7 @@ func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, traceNames []str
 			return nil, skerr.Fmt("Invalid key stored in shortcut: %q", key)
 		}
 
-		// TODO(jcgregorio) Replace this vec32.New() with a
-		// https://golang.org/pkg/sync/#Pool since this is our most used/reused
-		// type of memory.
-		ret[key] = vec32.New(int(s.tileSize))
+		ret[key] = vec32.New(int(traceLength))
 
 		traceNameMap[traceIDForSQLInBytesFromTraceName(key)] = key
 		traceIDs = append(traceIDs, traceIDForSQLFromTraceName(key))
@@ -847,7 +858,7 @@ func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, traceNames []str
 
 		sql := b.String()
 		// Execute the query.
-		rows, err := s.db.Query(context.TODO(), sql)
+		rows, err := s.db.Query(ctx, sql)
 		if err != nil {
 			return skerr.Wrapf(err, "SQL: %q", sql)
 		}
@@ -869,7 +880,7 @@ func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, traceNames []str
 			// we Scan into a byte slice and then copy into a byte array to use
 			// as the index into the map.
 			copy(traceIDArray[:], traceIDInBytes)
-			ret[traceNameMap[traceIDArray]][s.OffsetFromCommitNumber(commitNumber)] = float32(val)
+			ret[traceNameMap[traceIDArray]][commitNumber-beginCommit] = float32(val)
 		}
 		if err == pgx.ErrNoRows {
 			return nil

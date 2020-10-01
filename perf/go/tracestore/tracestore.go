@@ -42,6 +42,10 @@ type TraceStore interface {
 	// ReadTraces loads the traces for the given trace keys.
 	ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error)
 
+	// ReadTracesForCommitRange loads the traces for the given trace keys and
+	// between the begin and end commit, inclusive.
+	ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, error)
+
 	// TileNumber returns the types.TileNumber that the commit is stored in.
 	TileNumber(commitNumber types.CommitNumber) types.TileNumber
 
