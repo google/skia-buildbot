@@ -55,11 +55,6 @@ export class PageObjectElement {
     return this.applyFnToDOMNode((el) => el.className);
   }
 
-  /** Analogous to HTMLAnchorElement#href. */
-  get href() {
-    return this.applyFnToDOMNode((el) => (el as HTMLAnchorElement).href)
-  }
-
   /** Analogous to HTMLElement#focus(). */
   async focus() {
     await this.element.focus();
@@ -74,6 +69,12 @@ export class PageObjectElement {
   async hasAttribute(attribute: string) {
     return this.applyFnToDOMNode(
       (el, attribute) => el.hasAttribute(attribute as string), attribute);
+  }
+
+  /** Analogous to HTMLElement#getAttribute(). */
+  async getAttribute(attribute: string) {
+    return this.applyFnToDOMNode(
+      (el, attribute) => el.getAttribute(attribute as string), attribute);
   }
 
   /** Analogous to the HTMLElement#value property getter (e.g. for text inputs, selects, etc.). */
