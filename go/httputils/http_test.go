@@ -298,3 +298,16 @@ func TestPostWithContextCancelled(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "canceled")
 }
+
+func TestCrossOriginResourcePolicy_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	w := httptest.NewRecorder()
+	var h http.Handler
+	h = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	h = CrossOriginResourcePolicy(h)
+	r := httptest.NewRequest("GET", "/", nil)
+	h.ServeHTTP(w, r)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "cross-origin", w.Header().Get("Cross-Origin-Resource-Policy"))
+}
