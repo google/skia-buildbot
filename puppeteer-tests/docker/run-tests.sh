@@ -100,6 +100,12 @@ cp -r /src/fiddlek/webpack.config.ts     /tests/fiddlek
 cp -r /src/fiddlek/tsconfig.json         /tests/fiddlek
 cp -r /src/fiddlek/modules               /tests/fiddlek
 
+mkdir /tests/status
+cp -r /src/status/package*                   /tests/status
+cp -r /src/status/webpack.config.ts          /tests/status
+cp -r /src/status/tsconfig.json              /tests/status
+cp -r /src/status/modules                    /tests/status
+
 mkdir /tests/task_scheduler
 cp -r /src/task_scheduler/package*          /tests/task_scheduler
 cp -r /src/task_scheduler/webpack.config.ts /tests/task_scheduler
@@ -132,6 +138,9 @@ cd /tests/new_element
 npm ci
 
 cd /tests/fiddlek
+npm ci
+
+cd /tests/status
 npm ci
 
 cd /tests/task_scheduler
@@ -169,6 +178,9 @@ cd /tests/new_element
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/fiddlek
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/status
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/task_scheduler
