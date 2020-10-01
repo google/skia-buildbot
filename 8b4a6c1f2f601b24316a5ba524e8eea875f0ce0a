@@ -1,0 +1,418 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3c6721c5_f4239373",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "We prefer to use color variables and named colors in CSS\nhttps://github.com/google/skia-buildbot/blob/e89de2177bcbf02c680a70667fe0a8c7f93e23a7/golden/modules/gold-scaffold-sk/gold-scaffold-sk.scss#L8\nhttps://github.com/google/skia-buildbot/blob/master/golden/modules/colors.css",
+      "range": {
+        "startLine": 29,
+        "startChar": 46,
+        "endLine": 29,
+        "endChar": 49
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58344b70_9d0fb19c",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Fill this documentation block out",
+      "range": {
+        "startLine": 2,
+        "startChar": 30,
+        "endLine": 2,
+        "endChar": 32
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48b4e7b4_10b52ad5",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "It is better to use classes to describe the thing that is being styled instead of the Polymer style of \"classes describe the style\". This leads to more readable CSS and more fine-grain control over how to style things.\n\nMaybe call this class canvas-and-controls?",
+      "range": {
+        "startLine": 18,
+        "startChar": 9,
+        "endLine": 18,
+        "endChar": 32
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d9358b8_77690be7",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "How about using actual icons? https://jsdoc.skia.org/elements-sk/icon-sk.html Those are easier to style with colors/themes.",
+      "range": {
+        "startLine": 20,
+        "startChar": 9,
+        "endLine": 20,
+        "endChar": 12
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37dc279a_a6d186a0",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Same thing as above, maybe call it preview-canvas or something?",
+      "range": {
+        "startLine": 33,
+        "startChar": 23,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df41ebe8_2cea9c4a",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Is this function intentionally empty.",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 17
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e47a4d0e_077b2de0",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk_puppeteer_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "This is the perfect place to put tests for \"I click on a button and something shows up differently\" - I like the pattern of adding visual tests for those over normal tests.",
+      "range": {
+        "startLine": 23,
+        "startChar": 18,
+        "endLine": 23,
+        "endChar": 25
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "945f05f1_2a81f6be",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Please fill this out with an actual test, delete it, or add a TODO",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fe7c898_728feb73",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Similar comment to before about named css variables",
+      "range": {
+        "startLine": 32,
+        "startChar": 11,
+        "endLine": 32,
+        "endChar": 16
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90918cfa_8d3f725d",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Delete this code until it is needed (or add a TODO)",
+      "range": {
+        "startLine": 18,
+        "startChar": 14,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddb462aa_f0174bc6",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "double quotes for HTML",
+      "range": {
+        "startLine": 32,
+        "startChar": 32,
+        "endLine": 32,
+        "endChar": 34
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f39a16d8_411f762c",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Same comment about naming css classes based on what they style not what styles they are.",
+      "range": {
+        "startLine": 38,
+        "startChar": 17,
+        "endLine": 38,
+        "endChar": 34
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9af46ee0_5405d59d",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "If this data gets injected by the server, I would recommend looking at https://github.com/google/skia-buildbot/blob/master/golden/modules/settings.js\nand https://github.com/google/skia-buildbot/blob/master/golden/pages/ignorelist.html#L7 as a technique for doing so.",
+      "range": {
+        "startLine": 75,
+        "startChar": 9,
+        "endLine": 75,
+        "endChar": 20
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "770307f7_25e8d5dd",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "need docs",
+      "range": {
+        "startLine": 5,
+        "startChar": 4,
+        "endLine": 5,
+        "endChar": 7
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "965f9edd_8975675d",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "nit: wrap to 100 cols",
+      "range": {
+        "startLine": 17,
+        "startChar": 86,
+        "endLine": 17,
+        "endChar": 93
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61243a4c_cdd87698",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Please don\u0027t nest templates like this - use helper functions to make this more clear.",
+      "range": {
+        "startLine": 44,
+        "startChar": 11,
+        "endLine": 44,
+        "endChar": 117
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5f05f22_cd26f307",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "nit: space after commas",
+      "range": {
+        "startLine": 51,
+        "startChar": 11,
+        "endLine": 51,
+        "endChar": 15
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4f472c4_1adc8781",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:40:47Z",
+      "side": 1,
+      "message": "Remove console.log",
+      "range": {
+        "startLine": 86,
+        "startChar": 12,
+        "endLine": 86,
+        "endChar": 15
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
