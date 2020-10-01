@@ -142,8 +142,12 @@ define('byblameentry-sk', class extends ElementSk {
   }
 
   _blameHref() {
-    const query = encodeURIComponent(`source_type=${this.corpus}`);
     const groupID = this.byBlameEntry.groupID;
-    return `/search?blame=${groupID}&unt=true&head=true&query=${query}`;
+
+    // TODO(lovisolo): Delete after the legacy search page has been removed.
+    const query = encodeURIComponent(`source_type=${this.corpus}`);
+    const legacySearchPageParams = `query=${query}`;
+
+    return `/search?blame=${groupID}&corpus=${this.corpus}&${legacySearchPageParams}`;
   }
 });
