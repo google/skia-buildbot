@@ -1,0 +1,42 @@
+@import '../styles.scss';
+
+details-dialog-sk {
+  display: none;
+
+  .dialog {
+    position: fixed;
+    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12),
+      0 8px 10px -5px rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 10px;
+    border: none;
+    top: 30vh;
+    left: 30vw;
+    height: 40vh;
+    width: 40vw;
+    overflow: auto;
+    z-index: 5;
+    margin: 0;
+    background-color: var(--surface-1dp);
+    color: var(--on-surface);
+    fill: var(--on-surface);
+    a {
+      color: var(--on-surface);
+      fill: var(--on-surface);
+    }
+  }
+
+  .horizontal {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+  }
+  .task-success {
+    background-color: rgb(102, 166, 30);
+    color: var(--white);
+  }
+  .task-failure {
+    background-color: #d95f02;
+    color: var(--white);
+  }
+}

@@ -137,8 +137,15 @@ export class CommentsSk extends ElementSk {
     this._upgradeProperty('editRights');
     this._upgradeProperty('showIngoreFailure');
     this._upgradeProperty('showFlaky');
-    this._upgradeProperty('comments');
+    this._upgradeProperty('commentData');
     this._render();
+  }
+
+  _render() {
+    // Don't render of we don't have any information.
+    if (this.commentData) {
+      super._render();
+    }
   }
 
   get comments() {

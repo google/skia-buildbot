@@ -1,0 +1,8 @@
+@import 'elements-sk/themes/themes';
+
+body,
+html {
+  background-color: var(--background);
+  color: var(--on-background);
+  fill: var(--on-background);
+}
