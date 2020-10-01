@@ -43,7 +43,7 @@ describe('byblameentry-sk', () => {
         '112 untriaged digests',
         // This server-generated blame ID is a colon-separated list of the
         // commit hashes blamed for these untriaged digests.
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dgm',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm&query=source_type%3Dgm',
       );
       expectBlamesListEquals(
         byBlameEntrySk,
@@ -112,7 +112,7 @@ describe('byblameentry-sk', () => {
       expectTriageLinkEquals(
         byBlameEntrySk,
         '1 untriaged digest',
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dgm',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=gm&query=source_type%3Dgm',
       );
     });
 
@@ -121,7 +121,7 @@ describe('byblameentry-sk', () => {
       expectTriageLinkEquals(
         byBlameEntrySk,
         '112 untriaged digests',
-        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&unt=true&head=true&query=source_type%3Dsvg',
+        '/search?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&corpus=svg&query=source_type%3Dsvg',
       );
     });
   });
