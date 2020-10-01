@@ -64,25 +64,101 @@ describe('list-page-sk', () => {
       expect(listPageSk._paramset.source_type).to.be.undefined;
     });
 
+    const expectedSearchPageHref = (opts) => {
+      return '/search?' + [
+        'corpus=gm',
+        `include_ignored=${opts.disregardIgnoreRules}`,
+        'left_filter=name%3Dthis_is_another_test',
+        'max_rgba=0',
+        'min_rgba=0',
+        `negative=${opts.negative}`,
+        `not_at_head=${opts.showAllDigests}`,
+        `positive=${opts.positive}`,
+        'reference_image_required=false',
+        'right_filter=',
+        `untriaged=${opts.untriaged}`,
+
+        // Parameters for the legacy search page. TODO(lovisolo): Remove.
+        `head=${!opts.showAllDigests}`,
+        `include=${opts.disregardIgnoreRules}`,
+        `neg=${opts.negative}`,
+        `pos=${opts.positive}`,
+        'query=name%3Dthis_is_another_test%26source_type%3Dgm',
+        `unt=${opts.untriaged}`,
+      ].join('&');
+    };
+
+    const expectedClusterPageHref = (opts) => {
+      return '/cluster?' + [
+        'corpus=gm',
+        'grouping=this_is_another_test',
+        `include_ignored=${opts.disregardIgnoreRules}`,
+        'left_filter=',
+        'max_rgba=0',
+        'min_rgba=0',
+        'negative=true',
+        `not_at_head=${opts.showAllDigests}`,
+        'positive=true',
+        'reference_image_required=false',
+        'right_filter=',
+        'sort=descending',
+        'untriaged=true',
+      ].join('&');
+    };
+
     it('should have links for searching and the cluster view', () => {
       const secondRow = $$('table tbody tr:nth-child(2)', listPageSk);
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
+
       // First link should be to the search results for all digests.
-      const paramsForAllDigests = 'query=name%3Dthis_is_another_test%26source_type%3Dgm&head=true&include=false&unt=true&neg=true&pos=true';
-      expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
-      // Second through Fourth links are for just positive, negative, untriaged
-      expect(links[1].href).to.contain('pos=true&neg=false&unt=false');
-      expect(links[2].href).to.contain('pos=false&neg=true&unt=false');
-      expect(links[3].href).to.contain('pos=false&neg=false&unt=true');
-      // Fifth link is the total count, which is the same as the first link.
-      expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
+      expect(links[0].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: true,
+        negative: true,
+        untriaged: true,
+        showAllDigests: false,
+        disregardIgnoreRules: false,
+      }));
+
+      // Second link should be just positive digests.
+      expect(links[1].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: true,
+        negative: false,
+        untriaged: false,
+        showAllDigests: false,
+        disregardIgnoreRules: false,
+      }));
+
+      // Third link should be just negative digests.
+      expect(links[2].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: false,
+        negative: true,
+        untriaged: false,
+        showAllDigests: false,
+        disregardIgnoreRules: false,
+      }));
+
+      // Fourth link should be just untriaged digests.
+      expect(links[3].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: false,
+        negative: false,
+        untriaged: true,
+        showAllDigests: false,
+        disregardIgnoreRules: false,
+      }));
+
+      // Fifth link is the total count, and should be the same as the first link.
+      expect(links[4].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: true,
+        negative: true,
+        untriaged: true,
+        showAllDigests: false,
+        disregardIgnoreRules: false,
+      }));
+
       // Sixth link should be to cluster view
-      expect(links[5].href).to.contain(
-        '/cluster?corpus=gm&grouping=this_is_another_test&include_ignored=false'
-        + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=false&positive=true&'
-        + 'reference_image_required=false&right_filter=&sort=descending&untriaged=true',
-      );
+      expect(links[5].getAttribute('href')).to.equal(
+        expectedClusterPageHref({showAllDigests: false, disregardIgnoreRules: false}));
     });
 
     it('updates the links based on toggle positions', () => {
@@ -92,21 +168,55 @@ describe('list-page-sk', () => {
       const secondRow = $$('table tbody tr:nth-child(2)', listPageSk);
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
-      // First link should be to the search results
-      const paramsForAllDigests = 'query=name%3Dthis_is_another_test%26source_type%3Dgm&head=false&include=true&unt=true&neg=true&pos=true';
-      expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
-      // Second through Fourth links are for just positive, negative, untriaged
-      expect(links[1].href).to.contain('pos=true&neg=false&unt=false');
-      expect(links[2].href).to.contain('pos=false&neg=true&unt=false');
-      expect(links[3].href).to.contain('pos=false&neg=false&unt=true');
-      // Fifth link is the total count, which is the same as the first link.
-      expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
-      // Sixth link should be to cluster view (with a very similar href)
-      expect(links[5].href).to.contain(
-        '/cluster?corpus=gm&grouping=this_is_another_test&include_ignored=true'
-        + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=true&positive=true&'
-        + 'reference_image_required=false&right_filter=&sort=descending&untriaged=true',
-      );
+
+      // First link should be to the search results for all digests.
+      expect(links[0].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: true,
+        negative: true,
+        untriaged: true,
+        showAllDigests: true,
+        disregardIgnoreRules: true,
+      }));
+
+      // Second link should be just positive digests.
+      expect(links[1].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: true,
+        negative: false,
+        untriaged: false,
+        showAllDigests: true,
+        disregardIgnoreRules: true,
+      }));
+
+      // Third link should be just negative digests.
+      expect(links[2].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: false,
+        negative: true,
+        untriaged: false,
+        showAllDigests: true,
+        disregardIgnoreRules: true,
+      }));
+
+      // Fourth link should be just untriaged digests.
+      expect(links[3].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: false,
+        negative: false,
+        untriaged: true,
+        showAllDigests: true,
+        disregardIgnoreRules: true,
+      }));
+
+      // Fifth link is the total count, and should be the same as the first link.
+      expect(links[4].getAttribute('href')).to.equal(expectedSearchPageHref({
+        positive: true,
+        negative: true,
+        untriaged: true,
+        showAllDigests: true,
+        disregardIgnoreRules: true,
+      }));
+
+      // Sixth link should be to cluster view
+      expect(links[5].getAttribute('href')).to.equal(
+        expectedClusterPageHref({showAllDigests: true, disregardIgnoreRules: true}));
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {
