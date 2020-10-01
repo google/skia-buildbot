@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "640461c5_217f8528",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-01T19:29:04Z",
+      "side": 1,
+      "message": "Usage is basically:\nif (\u003cthis is a taskspec click\u003e) {\n  // extract info from element, look stuff up etc\n  dialog.displayTaskSpec(...);\nelse if (\u003cthis is a task click\u003e) {\n  ...\n} else if (\u003cthis is a commit click) {\n  ...\n} else {\n  dialog.close()\n}\n\nI opted for the single element for a few reasons:\n--the existing/previous task-popup-sk and others are mostly just copy paste of each other and intentionally look consistent.  If we altered the look of one we\u0027d likely want to do it for all 3.\n--They are all used in a single place, so we don\u0027t need modularity.\n--it slightly simplifies calling code, since you don\u0027t have to do \"open X, but first close Y and Z, if they\u0027re open\" type stuff.",
+      "parentUuid": "d430705d_f4796469",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 48
+      },
+      "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4680e313_0f9a7101",
         "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2020-10-01T18:04:19Z",
       "side": 1,
       "message": "Why not use \u003cdialog\u003e?",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 3
+      },
+      "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff4bb934_d553d3ab",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-01T19:29:04Z",
+      "side": 1,
+      "message": "Dialog takes over the whole viewport it seems, making it difficult to get the \u0027click away to close\u0027 behavior we want. See https://jsfiddle.net/ups6xafn/ no matter where you \u0027click away\u0027 you\u0027re inside the dialog.",
+      "parentUuid": "4680e313_0f9a7101",
       "range": {
         "startLine": 95,
         "startChar": 0,
