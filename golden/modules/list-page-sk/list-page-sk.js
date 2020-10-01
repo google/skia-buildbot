@@ -69,53 +69,86 @@ const template = (ele) => html`
 `;
 
 const testRow = (row, ele) => {
-  // TODO(kjlubick) update this to use helpers in search-controls-sk.
-  const allDigests = 'unt=true&neg=true&pos=true';
-  const query = encodeURIComponent(`name=${row.name}&source_type=${ele._currentCorpus}`);
-  const searchParams = `query=${query}`
-    + `&head=${ele._showAllDigests ? 'false' : 'true'}`
-    + `&include=${ele._disregardIgnoreRules ? 'true' : 'false'}`;
+  // Returns a HintableObject for building the GET parameters to the legacy search page.
+  //
+  // TODO(lovisolo): Delete after the legacy search page has been removed.
+  const makeOldSearchCriteria = (opts) => ({
+    query: {'name': [row.name], 'source_type': [ele._currentCorpus]},
+    pos: opts.positive,
+    neg: opts.negative,
+    unt: opts.untriaged,
+    head: ele._showAllDigests ? 'false' : 'true',
+    include: ele._disregardIgnoreRules ? 'true' : 'false',
+  });
 
-  const searchCriteria = {
+  // Returns a HintableObject for building the GET parameters to the lit-html search page.
+  const makeNewSearchCriteria = (opts) => SearchCriteriaToHintableObject({
     corpus: ele._currentCorpus,
-    includePositiveDigests: true,
-    includeNegativeDigests: true,
-    includeUntriagedDigests: true,
-    includeDigestsNotAtHead: ele._showAllDigests,
-    includeIgnoredDigests: ele._disregardIgnoreRules,
+    leftHandTraceFilter: {'name': [row.name]},
+    includePositiveDigests: opts.positive,
+    includeNegativeDigests: opts.negative,
+    includeUntriagedDigests: opts.untriaged,
+    includeDigestsNotAtHead: ele._showAllDigests ? 'true' : 'false',
+    includeIgnoredDigests: ele._disregardIgnoreRules ? 'true' : 'false',
+  });
+
+  const searchPageHref = (opts) => {
+    const oldSearchCriteria = makeOldSearchCriteria(opts);
+
+    const newSearchCriteria = makeNewSearchCriteria(opts);
+    // Delete the "sort" parameter, which the legacy and lit-html versions of the search page read
+    // in incompatible ways: asc/desc vs. ascending/descending, respectively. Will default to
+    // descending if absent.
+    delete newSearchCriteria['sort'];
+
+    const oldQueryParameters = fromObject(oldSearchCriteria);
+    const newQueryParameters = fromObject(newSearchCriteria);
+    return `/search?${newQueryParameters}&${oldQueryParameters}`;
   };
-  const clusterState = SearchCriteriaToHintableObject(searchCriteria);
-  clusterState.grouping = row.name;
+
+  const clusterPageHref = () => {
+    const hintableObject = {
+      ...makeNewSearchCriteria({positive: true, negative: true, untriaged: true}),
+      left_filter: '',
+      grouping: row.name,
+    };
+    return `/cluster?${fromObject(hintableObject)}`;
+  }
 
   return html`
 <tr>
   <td>
-    <a href="/search?${searchParams}&${allDigests}" target=_blank rel=noopener>
+    <a href="${searchPageHref({positive: true, negative: true, untriaged: true})}"
+       target=_blank rel=noopener>
       ${row.name}
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&pos=true&neg=false&unt=false" target=_blank rel=noopener>
+    <a href="${searchPageHref({positive: true, negative: false, untriaged: false})}"
+       target=_blank rel=noopener>
      ${row.positive_digests}
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&pos=false&neg=true&unt=false" target=_blank rel=noopener>
+    <a href="${searchPageHref({positive: false, negative: true, untriaged: false})}"
+       target=_blank rel=noopener>
      ${row.negative_digests}
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&pos=false&neg=false&unt=true" target=_blank rel=noopener>
+    <a href="${searchPageHref({positive: false, negative: false, untriaged: true})}"
+       target=_blank rel=noopener>
      ${row.untriaged_digests}
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&${allDigests}" target=_blank rel=noopener>
-     ${row.total_digests}
+    <a href="${searchPageHref({positive: true, negative: true, untriaged: true})}"
+       target=_blank rel=noopener>
+      ${row.total_digests}
     </a>
   </td>
   <td class=center>
-    <a href="/cluster?${fromObject(clusterState)}" target=_blank rel=noopener>
+    <a href="${clusterPageHref()}" target=_blank rel=noopener>
       <group-work-icon-sk></group-work-icon-sk>
     </a>
   </td>
