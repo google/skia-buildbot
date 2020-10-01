@@ -69,7 +69,7 @@ export class SearchPageSkPO extends PageObject {
   // TODO(lovisolo): Replace with DigestDetailsSkPO when DigestDetailsSk is ported to TypeScript
   //                 and tested with a page object.
   getDiffDetailsHrefs() {
-    return this.selectAllPOEThenMap('.diffpage_link', (el) => el.href);
+    return this.selectAllPOEThenMap('.diffpage_link', (el) => el.getAttribute('href'));
   }
 
   // TODO(lovisolo): Replace with DigestDetailsSkPO when DigestDetailsSk is ported to TypeScript
