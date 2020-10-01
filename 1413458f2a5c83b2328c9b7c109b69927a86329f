@@ -1,0 +1,112 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005292002",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/320722?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ffd284ba_e6bb4cf2",
+        "filename": "infra-sk/modules/task-driver-sk/test_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T16:19:29Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 260,
+        "startChar": 30,
+        "endLine": 260,
+        "endChar": 36
+      },
+      "revId": "1413458f2a5c83b2328c9b7c109b69927a86329f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005292002",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/320722?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "071492f1_17ccc5d5",
+        "filename": "infra-sk/modules/task-driver-sk/test_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T16:19:29Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 270,
+        "startChar": 46,
+        "endLine": 270,
+        "endChar": 52
+      },
+      "revId": "1413458f2a5c83b2328c9b7c109b69927a86329f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005292002",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/320722?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "701daccd_4844073a",
+        "filename": "infra-sk/modules/task-driver-sk/test_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T16:19:29Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 293,
+        "startChar": 41,
+        "endLine": 293,
+        "endChar": 47
+      },
+      "revId": "1413458f2a5c83b2328c9b7c109b69927a86329f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005292002",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/320722?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "d3c2753e_9fb2bedc",
+        "filename": "infra-sk/modules/task-driver-sk/test_data.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T16:19:29Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 303,
+        "startChar": 60,
+        "endLine": 303,
+        "endChar": 66
+      },
+      "revId": "1413458f2a5c83b2328c9b7c109b69927a86329f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
