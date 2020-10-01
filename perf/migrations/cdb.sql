@@ -235,3 +235,10 @@ WHERE
         '\xfe385b159ff55dca481069805e5ff050',
         '\x277262a9236d571883d47dab102070bc'
     );
+
+SELECT
+    trace_id, val
+FROM
+    TraceValues
+WHERE
+    commit_number=2;
