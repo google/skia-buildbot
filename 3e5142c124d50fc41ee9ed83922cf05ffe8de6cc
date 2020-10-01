@@ -1,0 +1,112 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005291376",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b8a1060d_b2ac66a7",
+        "filename": "bugs/go/bug_framework/bug_framework.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T15:33:40Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 143,
+        "startChar": 59,
+        "endLine": 143,
+        "endChar": 65
+      },
+      "revId": "3e5142c124d50fc41ee9ed83922cf05ffe8de6cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005291376",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "110a9645_998f5d26",
+        "filename": "bugs/go/bug_framework/bug_framework.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T15:33:40Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 235,
+        "startChar": 68,
+        "endLine": 235,
+        "endChar": 74
+      },
+      "revId": "3e5142c124d50fc41ee9ed83922cf05ffe8de6cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005291376",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "7ff0b934_089f12e8",
+        "filename": "bugs/go/main.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T15:33:40Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 113,
+        "startChar": 9,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "3e5142c124d50fc41ee9ed83922cf05ffe8de6cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005291376",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "f106b1d4_730c15a9",
+        "filename": "bugs/go/main.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-01T15:33:40Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 158,
+        "startChar": 11,
+        "endLine": 158,
+        "endChar": 15
+      },
+      "revId": "3e5142c124d50fc41ee9ed83922cf05ffe8de6cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
