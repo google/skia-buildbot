@@ -149,8 +149,6 @@ export class SearchPageSk extends ElementSk {
                         .details=${result}
                         .changeListID=${el._changelistId}
                         .crs=${el._crs}}
-                        @zoom-dialog-opened=${() => el._isZoomDialogOpen = true}
-                        @zoom-dialog-closed=${() => el._isZoomDialogOpen = false}
                         class="${selected ? 'selected' : ''}">
       </digest-details-sk>
     `;
@@ -199,9 +197,6 @@ export class SearchPageSk extends ElementSk {
   // Search result currently selected (e.g. via the J and K keyboard shortcuts). A negative value
   // represents an empty selection.
   private _selectedSearchResultIdx: number = -1;
-
-  // Whether the zoom dialog is open for any of the search results.
-  private _isZoomDialogOpen = false;
 
   constructor() {
     super(SearchPageSk._template);
@@ -366,7 +361,6 @@ export class SearchPageSk extends ElementSk {
 
       // Reset UI and render.
       this._selectedSearchResultIdx = -1;
-      this._isZoomDialogOpen = false;
       this._render();
       sendEndTask(this);
     } catch(e) {
@@ -415,8 +409,8 @@ export class SearchPageSk extends ElementSk {
   }
 
   private _onKeyDown(event: KeyboardEvent) {
-    // Ignore all keyboard shortcuts if there is an open digest zoom dialog.
-    if (this._isZoomDialogOpen) return;
+    // Ignore all keyboard shortcuts if there are any open modals.
+    if (document.querySelectorAll('dialog[open]').length > 0) return;
 
     switch(event.key) {
       // Next.
