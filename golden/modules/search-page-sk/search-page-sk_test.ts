@@ -850,7 +850,7 @@ describe('search-page-sk', () => {
     it('links with default query parameters', async () => {
       await instantiate();
       const expectedHref = [
-        '/search?',
+        '/oldsearch?',
         'fref=false&',
         'frgbamax=255&',
         'frgbamin=0&',
@@ -921,7 +921,7 @@ describe('search-page-sk', () => {
           'ext=png&name=gold_dots-sk&name=gold_dots-sk_highlighted&source_type=infra');
       const expectedRightHandQuery =  encodeURIComponent('name=gold_dots-sk&source_type=infra');
       const expectedHref = [
-        '/search?',
+        '/oldsearch?',
         `blame=${expectedBlame}&`,
         'crs=gerrit&',
         'fref=true&',
