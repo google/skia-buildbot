@@ -845,4 +845,101 @@ describe('search-page-sk', () => {
       });
     });
   });
+
+  describe('back to legacy search page link', () => {
+    it('links with default query parameters', async () => {
+      await instantiate();
+      const expectedHref = [
+        '/search?',
+        'fref=false&',
+        'frgbamax=255&',
+        'frgbamin=0&',
+        'head=true&',
+        'include=false&',
+        'neg=false&',
+        'pos=false&',
+        `query=${encodeURIComponent('source_type=infra')}&`,
+        `rquery=${encodeURIComponent('source_type=infra')}&`,
+        'sort=desc&',
+        'unt=true'
+      ].join('');
+      expect(await searchPageSkPO.getLegacySearchPageHref()).to.equal(expectedHref);
+    });
+
+    it('links with all query parameters set', async () => {
+      // Pretend the "blame", "crs" and "issue" parameters are set. We will test that these are also
+      // present in the link to the legacy search page.
+      await instantiate({
+        initialQueryString:
+          '?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&' +
+          'crs=gerrit&issue=123456',
+        expectedInitialSearchRequest: {
+          ...searchRequestWithCL,
+          blame: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        },
+        mockAndWaitForChangelistSummaryRPC: true,
+      });
+
+      // This test ignores the search response, but we still need to mock the search endpoint
+      // because each simulated change to the search controls will trigger a new search request.
+      fetchMock.get('glob:/json/v1/search?*', searchResponse);
+
+      // Set search controls.
+      const searchCriteria: SearchCriteria = {
+        corpus: 'infra',
+
+        leftHandTraceFilter: {
+          'name': ['gold_dots-sk', 'gold_dots-sk_highlighted'],
+          'ext': ['png'],
+        },
+
+        rightHandTraceFilter: {
+          'name': ['gold_dots-sk'],
+        },
+
+        includePositiveDigests: true,
+        includeNegativeDigests: true,
+        includeUntriagedDigests: true,
+        includeDigestsNotAtHead: true,
+        includeIgnoredDigests: true,
+
+        minRGBADelta: 100,
+        maxRGBADelta: 200,
+        mustHaveReferenceImage: true,
+        sortOrder: 'ascending',
+      };
+      await searchControlsSkPO.setSearchCriteria(searchCriteria);
+
+      // Set changelist controls.
+      await changelistControlsSkPO.setPatchSet('PS 2');
+      await changelistControlsSkPO.clickShowAllResultsRadio();
+
+      const expectedBlame =
+        encodeURIComponent('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');
+      const expectedLeftHandQuery =
+        encodeURIComponent(
+          'ext=png&name=gold_dots-sk&name=gold_dots-sk_highlighted&source_type=infra');
+      const expectedRightHandQuery =  encodeURIComponent('name=gold_dots-sk&source_type=infra');
+      const expectedHref = [
+        '/search?',
+        `blame=${expectedBlame}&`,
+        'crs=gerrit&',
+        'fref=true&',
+        'frgbamax=200&',
+        'frgbamin=100&',
+        'head=false&',
+        'include=true&',
+        'issue=123456&',
+        'master=true&',
+        'neg=true&',
+        'patchsets=2&',
+        'pos=true&',
+        `query=${expectedLeftHandQuery}&`,
+        `rquery=${expectedRightHandQuery}&`,
+        'sort=asc&',
+        'unt=true',
+      ].join('');
+      expect(await searchPageSkPO.getLegacySearchPageHref()).to.equal(expectedHref);
+    });
+  });
 });

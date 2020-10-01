@@ -76,6 +76,11 @@ export class SearchPageSk extends ElementSk {
                           @search-controls-sk-change=${el._onSearchControlsChange}>
       </search-controls-sk>
       <div class="buttons">
+        <p>
+          <a class="legacy-search-page" href="${el._getLegacySearchPageHref()}">
+            Back to the legacy search page
+          </a>
+        </p>
         <button class="bulk-triage" @click=${() => el._bulkTriageDialog?.showModal()}>
           Bulk Triage
         </button>
@@ -312,13 +317,7 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async _fetchSearchResults() {
-    // Force only one fetch at a time. Abort any outstanding requests.
-    if (this._searchResultsFetchController) {
-      this._searchResultsFetchController.abort();
-    }
-    this._searchResultsFetchController = new AbortController();
-
+  private _makeSearchRequest() {
     // Utility function to insert the selected corpus into the left- and right-hand trace filters,
     // as required by the /json/v1/search RPC.
     const insertCorpus = (paramSet: ParamSet) => {
@@ -349,6 +348,18 @@ export class SearchPageSk extends ElementSk {
     if (this._changelistId) searchRequest.issue = this._changelistId;
     if (this._includeDigestsFromPrimary) searchRequest.master = this._includeDigestsFromPrimary;
     if (this._patchset) searchRequest.patchsets = this._patchset;
+
+    return searchRequest;
+  }
+
+  private async _fetchSearchResults() {
+    // Force only one fetch at a time. Abort any outstanding requests.
+    if (this._searchResultsFetchController) {
+      this._searchResultsFetchController.abort();
+    }
+    this._searchResultsFetchController = new AbortController();
+
+    const searchRequest = this._makeSearchRequest();
 
     try {
       sendBeginTask(this);
@@ -399,6 +410,13 @@ export class SearchPageSk extends ElementSk {
     this._searchCriteria = event.detail;
     this._stateChanged!();
     this._fetchSearchResults();
+
+    // Re-render the page immediately so that the link to the legacy search page is updated with the
+    // new query parameters. If we don't re-render immediately, said link will briefly fall out of
+    // sync until the /json/search RPC resolves and the page is re-rendered with new search results.
+    //
+    // TODO(lovisolo): Remove after the legacy search page is deleted.
+    this._render();
   }
 
   private _onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>) {
@@ -406,6 +424,13 @@ export class SearchPageSk extends ElementSk {
     this._patchset = event.detail.ps_order;
     this._stateChanged!();
     this._fetchSearchResults();
+
+    // Re-render the page immediately so that the link to the legacy search page is updated with the
+    // new query parameters. If we don't re-render immediately, said link will briefly fall out of
+    // sync until the /json/search RPC resolves and the page is re-rendered with new search results.
+    //
+    // TODO(lovisolo): Remove after the legacy search page is deleted.
+    this._render();
   }
 
   private _onKeyDown(event: KeyboardEvent) {
@@ -502,6 +527,20 @@ export class SearchPageSk extends ElementSk {
     if (this._selectedSearchResultIdx < 0) return null;
     return this.querySelector<HTMLElement>(
       `digest-details-sk:nth-child(${this._selectedSearchResultIdx + 1})`);
+  }
+
+  /**
+   * Returns a relative path to the legacy search page with the same parameters as this page.
+   *
+   * TODO(lovisolo): Remove after the legacy search page has been deleted.
+   */
+  private _getLegacySearchPageHref() {
+    const baseUrl = '/search';
+    // The legacy search page uses the same GET parameters as the /json/search endpoint, so we can
+    // reuse the logic to build a SearchRequest.
+    const searchRequest = this._makeSearchRequest();
+    const queryString = fromObject(searchRequest as any);
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   }
 }
 
