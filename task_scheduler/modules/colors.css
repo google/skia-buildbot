@@ -1,0 +1,41 @@
+/* Common colors via CSS Variables.
+   Assumes use of infra-sk/modules/theme-chooser-sk.
+
+ Can be imported via:
+
+    @import '../colors';
+*/
+
+:root {
+  --primary: var(--blue-grey-600);
+  --on-primary: var(--white);
+  --primary-variant: rgb(204, 204, 255);
+  --on-primary-variant: var(--black);
+  --link-color: hsl(199, 70%, 40%);
+}
+.darkmode {
+  --grey-850: #303030;
+  --primary: var(--blue-grey-600);
+  --on-primary: var(--white);
+  --primary-variant: rgb(204, 204, 255);
+  --on-primary-variant: var(--black);
+  --background: var(--grey-900);
+  --on-background: var(--grey-300);
+  --surface: var(--grey-850);
+  --on-surface: var(--grey-200);
+  --error: var(--amber-900);
+  --link-color: hsl(199, 70%, 40%);
+}
+
+a,a.visited {
+  color: var(--link-color);
+}
+
+.darkmode input {
+  background-color: var(--surface-2dp);
+  color: var(--on-surface);
+}
+
+:disabled {
+  opacity: var(--text-intensity-medium);
+}
