@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "15874d09_5c5d8e53",
+        "filename": "perf/go/tracestore/tracestore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T19:53:07Z",
+      "side": 1,
+      "message": "nit: wrap comments to 100 cols.",
+      "range": {
+        "startLine": 45,
+        "startChar": 101,
+        "endLine": 45,
+        "endChar": 107
+      },
+      "revId": "d5a384966d3caa257f375b48fea8dd76f682d1a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
