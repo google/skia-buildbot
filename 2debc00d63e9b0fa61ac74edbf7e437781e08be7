@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ac913d1d_1c345ec9",
+        "filename": "golden/modules/search-page-sk/search-page-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 865,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-01T12:50:51Z",
+      "side": 1,
+      "message": "ubernit: semicolon",
+      "range": {
+        "startLine": 865,
+        "startChar": 15,
+        "endLine": 865,
+        "endChar": 16
+      },
+      "revId": "2debc00d63e9b0fa61ac74edbf7e437781e08be7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
