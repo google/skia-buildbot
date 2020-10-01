@@ -135,6 +135,40 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 	})
 }
 
+func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	ts, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(1))
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {2.3},
+		",arch=x86,config=8888,": {1.5},
+	}, ts)
+}
+
+func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	keys := []string{
+		",arch=x86,config=8888,",
+		",arch=x86,config=565,",
+	}
+
+	ts, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(2))
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,":  {2.3, 3.3},
+		",arch=x86,config=8888,": {1.5, 2.5},
+	}, ts)
+}
+
 func TestQueryTracesIDOnly_EmptyQueryReturnsError(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
