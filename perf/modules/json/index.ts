@@ -246,13 +246,13 @@ export interface RegressionDetectionRequest {
 
 export type RegressionDetectionGrouping = string;
 
-export type StepDetection = '' | 'absolute' | 'percent' | 'cohen';
+export type StepDetection = "" | "absolute" | "percent" | "cohen";
 
-export type ConfigState = 'ACTIVE' | 'DELETED';
+export type ConfigState = "ACTIVE" | "DELETED";
 
-export type Direction = 'UP' | 'DOWN' | 'BOTH';
+export type Direction = "UP" | "DOWN" | "BOTH";
 
-export type StepFitStatus = 'Low' | 'High' | 'Uninteresting';
+export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
 export type CommitNumber = number;
 
@@ -264,10 +264,10 @@ export type TraceSet = { [key: string]: Trace };
 
 export type ParamSet = { [key: string]: string[] | null };
 
-export type Status = '' | 'positive' | 'negative' | 'untriaged';
+export type Status = "" | "positive" | "negative" | "untriaged";
 
-export type ProcessState = 'Running' | 'Success' | 'Error';
+export type ProcessState = "Running" | "Success" | "Error";
 
-export type Subset = 'all' | 'regressions' | 'untriaged';
+export type Subset = "all" | "regressions" | "untriaged";
 
-export type ClusterAlgo = 'kmeans' | 'stepfit';
+export type ClusterAlgo = "kmeans" | "stepfit";
