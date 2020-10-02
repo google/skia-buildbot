@@ -152,6 +152,11 @@ type frontendServerConfig struct {
 
 	// BigTable table ID for the traces.
 	TraceBTTable string `json:"trace_bt_table"`
+
+	// If true, Gold will serve the lit-html version of the search page on /search, otherwise it will
+	// serve the legacy, Polymer-based version of said page.
+	// TODO(lovisolo): Delete this after the legacy search page has been removed.
+	UseLitHTMLSearchPage bool `json:"use_lit_html_search_page"`
 }
 
 func main() {
@@ -590,7 +595,14 @@ func main() {
 	loggedRouter.HandleFunc("/details", templateHandler("details.html"))
 	loggedRouter.HandleFunc("/list", templateHandler("by_test_list.html"))
 	loggedRouter.HandleFunc("/help", templateHandler("help.html"))
-	loggedRouter.HandleFunc("/search2", templateHandler("search.html"))
+
+	// The lit-html search page is gated behind a feature flag so we can roll it out slowly.
+	// TODO(lovisolo): Delete this after the legacy search page has been removed.
+	searchPagePath := "/newsearch"
+	if fsc.UseLitHTMLSearchPage {
+		searchPagePath = "/search"
+	}
+	loggedRouter.HandleFunc(searchPagePath, templateHandler("search.html"))
 
 	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
 
