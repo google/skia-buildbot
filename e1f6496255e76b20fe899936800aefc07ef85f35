@@ -22,6 +22,30 @@
       "revId": "e1f6496255e76b20fe899936800aefc07ef85f35",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd45dbc_adbd2ec4",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-02T16:59:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "289d8f4d_d8d83dd9",
+      "range": {
+        "startLine": 159,
+        "startChar": 60,
+        "endLine": 159,
+        "endChar": 68
+      },
+      "revId": "e1f6496255e76b20fe899936800aefc07ef85f35",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
