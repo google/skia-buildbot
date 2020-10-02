@@ -97,4 +97,9 @@ describe('commits-data-sk', () => {
       commitsData.comments.get(commentTask.commit)!.get(commentTask.taskSpecName)![0]
     ).to.deep.include({ message: commentTask.message });
   });
+  it('the fuck', async () => {
+    const tasks: Map<string, string> = new Map();
+    tasks.set('27', 'some data');
+    expect(tasks.get('27')).to.equal('some data');
+  });
 });
