@@ -124,4 +124,52 @@ describe('commits-table-sk', () => {
       'Always-Red-Spec',
     ]);
   });
+  describe('dialog', () => {
+    it('opens and closes properly', async () => {
+      const table = await setupWithResponse(incrementalResponse0);
+      expect($$('details-dialog-sk', table)).to.have.nested.property('style.display', '');
+      (<HTMLDivElement>$$('[data-task-id="99999"]', table)).click();
+      expect($$('details-dialog-sk', table)).to.have.nested.property('style.display', 'block');
+      // Clicking somewhere in the dialog doesn't close it.
+      (<HTMLTableCellElement>$$('details-dialog-sk td', table)).click();
+      expect($$('details-dialog-sk', table)).to.have.nested.property('style.display', 'block');
+      // Clicking elsewhere does close it.
+      (<HTMLDivElement>$$('div.tasksTable', table)).click();
+      expect($$('details-dialog-sk', table)).to.have.nested.property('style.display', 'none');
+    });
+
+    it('displays tasks', async () => {
+      const table = await setupWithResponse(incrementalResponse0);
+      expect($('[data-task-id="99999"]', table)).to.have.length(1);
+      (<HTMLDivElement>$$('[data-task-id="99999"]', table)).click();
+      expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
+        'innerText',
+        'Build-Some-Stuff'
+      );
+      expect($('details-dialog-sk .dialog table.blamelist tr', table)).to.have.length(1);
+      expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
+    });
+
+    it('displays taskSpecs', async () => {
+      const table = await setupWithResponse(incrementalResponse0);
+      expect($('[title="Build-Some-Stuff"]', table)).to.have.length(1);
+      (<HTMLDivElement>$$('[title="Build-Some-Stuff"]', table)).click();
+      expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
+        'innerText',
+        'Build-Some-Stuff'
+      );
+      expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
+    });
+
+    it('displays commits', async () => {
+      const table = await setupWithResponse(incrementalResponse0);
+      expect($('[data-commit-index="1"]', table)).to.have.length(1);
+      (<HTMLDivElement>$$('[data-commit-index="1"]', table)).click();
+      expect($$('details-dialog-sk .dialog h3', table)).to.have.property(
+        'innerText',
+        '2nd from HEAD'
+      );
+      expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
+    });
+  });
 });

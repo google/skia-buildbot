@@ -8,25 +8,30 @@ function copy<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
+Date.now = () => 1600883976659;
+const timestampBeforeNow = (seconds: number = 0) => {
+  return new Date(Date.now() - 1000 * seconds).toISOString();
+};
+
 export const branch0: Branch = { name: 'main', head: 'abc123' };
 export const branch1: Branch = { name: 'bar', head: '456789' };
 export const commentTask: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: 'timey',
+  timestamp: timestampBeforeNow(300),
   user: 'alison@google.com',
   message: 'this is a comment on a task',
   ignoreFailure: true,
   deleted: false,
   flaky: false,
-  taskId: 'SOMETASKID',
+  taskId: '99999',
   taskSpecName: 'Build-Some-Stuff',
   commit: 'abc123',
 };
 export const commentCommit: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: 'timey',
+  timestamp: timestampBeforeNow(300),
   user: 'alison@google.com',
   message: 'this is a comment on a commit',
   ignoreFailure: true,
@@ -39,7 +44,7 @@ export const commentCommit: Comment = {
 export const commentTaskSpec: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: 'timey',
+  timestamp: timestampBeforeNow(300),
   user: 'alison@google.com',
   message: 'this is a comment on a task spec',
   ignoreFailure: true,
@@ -89,7 +94,7 @@ const commit0: LongCommit = {
   parents: ['parentofabc123'],
   subject: 'current HEAD',
   body: 'the most recent commit',
-  timestamp: '34613488',
+  timestamp: timestampBeforeNow(300),
 };
 const commit1: LongCommit = {
   hash: 'parentofabc123',
@@ -97,7 +102,7 @@ const commit1: LongCommit = {
   parents: ['grandparentofabc123'],
   subject: '2nd from HEAD',
   body: 'the commit that comes before the most recent commit',
-  timestamp: '34613288',
+  timestamp: timestampBeforeNow(600),
 };
 const branchCommit0: LongCommit = {
   hash: '456789',
@@ -105,7 +110,7 @@ const branchCommit0: LongCommit = {
   parents: ['10111213'],
   subject: 'branch commit',
   body: 'commit on differnet branch',
-  timestamp: '34613388',
+  timestamp: timestampBeforeNow(450),
 };
 export const incrementalResponse0: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
@@ -121,7 +126,7 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         parents: ['revertbad'],
         subject: 'is a reland',
         body: 'This is a reland of bad',
-        timestamp: '34611288',
+        timestamp: timestampBeforeNow(700),
       },
       {
         // To test handling of leading digits in the selector.
@@ -130,7 +135,7 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         parents: ['bad'],
         subject: 'is a revert',
         body: 'This reverts commit bad',
-        timestamp: '34608288',
+        timestamp: timestampBeforeNow(800),
       },
       {
         hash: 'bad',
@@ -138,7 +143,7 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         parents: ['acommitthatisnotlisted'],
         subject: 'get reverted',
         body: 'dereference some null pointers',
-        timestamp: '34605288',
+        timestamp: timestampBeforeNow(900),
       },
     ],
     tasks: [task0, task1, task2],

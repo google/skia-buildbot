@@ -304,6 +304,13 @@ export class CommitsDataSk extends ElementSk {
       this.relandedMap.set(relanded.hash, commit);
     }
   }
+
+  get repo(): string {
+    return this._repo;
+  }
+  set repo(value) {
+    this._repo = value;
+  }
 }
 
 define('commits-data-sk', CommitsDataSk);

@@ -22,6 +22,7 @@ import '../comments-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/icon/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
+import { $$ } from 'common-sk/modules/dom';
 
 // Type defining the text and action of the upper-right button of the dialog.
 // For reverts of commits and re-running of tasks.
@@ -36,7 +37,7 @@ export class DetailsDialogSk extends ElementSk {
   // before rendering.
   private static template = (el: DetailsDialogSk) =>
     html`
-      <div class="dialog">
+      <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
         <div class="horizontal">
           <div class="flex">${el.titleSection}</div>
           ${el.actionButton
@@ -85,7 +86,7 @@ export class DetailsDialogSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    Login.then((res: any) => {
+    login().then((res: any) => {
       this.canEditComments = res.Email !== '';
       this._render();
     });
@@ -109,6 +110,10 @@ export class DetailsDialogSk extends ElementSk {
     this.detailsSection = null;
     this.showCommentsFlaky = false;
     this.showCommentsIgnoreFailure = false;
+    const commentInput = $$('comments-sk input-sk', this) as HTMLInputElement;
+    if (commentInput) {
+      commentInput.value = '';
+    }
   }
 
   displayTask(task: Task, comments: Array<Comment>, commitsByHash: Map<string, Commit>) {
@@ -297,3 +302,9 @@ export class DetailsDialogSk extends ElementSk {
 }
 
 define('details-dialog-sk', DetailsDialogSk);
+
+// Use this intermediary so we can inject a Login promise in place of the module-initialized
+// Login object.
+function login(): Promise<any> {
+  return window.Login ? window.Login : Login;
+}

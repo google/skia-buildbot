@@ -78,6 +78,14 @@ commits-table-sk {
     float: right;
   }
 
+  // With the exception of revert/reland icons, we don't want icons interferring with our
+  // dialog-opening clicks on tasks, commits, and task specs.
+  comment-icon-sk,
+  texture-icon-sk,
+  block-icon-sk {
+    pointer-events: none;
+  }
+
   .tasksTable {
     min-height: 780px;
     grid-column: 2 / 3;

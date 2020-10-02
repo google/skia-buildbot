@@ -16,7 +16,6 @@ import { html, TemplateResult } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
 import { classMap } from 'lit-html/directives/class-map';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Task } from '../rpc/status';
 
 import 'elements-sk/select-sk';
 import 'elements-sk/icon/comment-icon-sk';
@@ -25,6 +24,7 @@ import 'elements-sk/icon/block-icon-sk';
 import 'elements-sk/icon/undo-icon-sk';
 import 'elements-sk/icon/redo-icon-sk';
 import '../commits-data-sk';
+import '../details-dialog-sk';
 import {
   CommitsDataSk,
   CategorySpec,
@@ -32,6 +32,8 @@ import {
   TaskId,
   Commit,
 } from '../commits-data-sk/commits-data-sk';
+import { Task } from '../rpc/status';
+import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
 
 const CATEGORY_START_ROW = 1;
 const SUBCATEGORY_START_ROW = 2;
@@ -63,6 +65,7 @@ export class CommitsTableSk extends ElementSk {
       <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
     </div>
     <div class="tasksTable">${el.fillTableTemplate()}</div>
+    <details-dialog-sk .repo=${el.data().repo}></details-dialog-sk>
   </div>`;
 
   constructor() {
@@ -73,11 +76,11 @@ export class CommitsTableSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.data().addEventListener('end-task', () => this._render());
-    this.addEventListener('click', this.onClick);
+    document.addEventListener('click', this.onClick);
   }
 
   disconnectedCallback() {
-    this.removeEventListener('click', this.onClick);
+    document.removeEventListener('click', this.onClick);
   }
 
   get displayCommitSubject() {
@@ -115,15 +118,26 @@ export class CommitsTableSk extends ElementSk {
     this.draw();
   }
 
-  // TODO(westont): Make this handler handle taskspec, task, and commit dialogs, once dialog
-  // elements are written.
   // Arrow notation to allow for reference of same function in removeEventListener.
   private onClick = (event: Event) => {
     const target = event.target as HTMLElement;
+    const dialog = $$('details-dialog-sk', this) as DetailsDialogSk;
     if (target.classList.contains('task-spec')) {
-      console.log(`will show dialog for ${target.getAttribute('title')}`);
+      const spec = target.getAttribute('title') || '';
+      const comments = this.data().taskSpecs.get(spec)?.comments;
+      if (spec !== '' && comments !== undefined) {
+        dialog.displayTaskSpec(spec, comments);
+      }
+    } else if (target.classList.contains('commit')) {
+      const commit = this.data().commits[Number(target.dataset.commitIndex)]!;
+      const comments = this.data().comments.get(commit.hash)?.get('') || [];
+      dialog.displayCommit(commit, comments);
+    } else if (target.hasAttribute('data-task-id')) {
+      const task = this.data().tasks.get(target.dataset.taskId!)!;
+      const comments = this.data().comments.get(task.revision)?.get(task.name) || [];
+      dialog.displayTask(task, comments, this.data().commitsByHash);
     } else {
-      console.log('will close dialog');
+      dialog.close();
     }
   };
 
@@ -334,6 +348,7 @@ export class CommitsTableSk extends ElementSk {
         ? html` <div
             class=${taskClasses(task, ...this.getDashedBorderClasses(displayTaskRows, index))}
             style=${this.gridLocation(currRow - rowStart + 1, 1)}
+            data-task-id=${task.id}
           >
             ${index === 0 ? this.taskIcon(task) : ''}
           </div>`
@@ -379,6 +394,7 @@ export class CommitsTableSk extends ElementSk {
               class=${taskClasses(task, 'grow')}
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}
               title=${taskTitle(task)}
+              data-task-id=${task.id}
             >
               ${this.taskIcon(task)}
             </div>`
@@ -425,6 +441,7 @@ export class CommitsTableSk extends ElementSk {
           class="commit ${this.attributeStringFromHash(commit.hash)}"
           style=${this.gridLocation(rowStart, 1)}
           title=${title}
+          data-commit-index=${i}
         >
           ${text}${this.commitIcons(commit)}
         </div>`

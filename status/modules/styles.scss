@@ -5,4 +5,6 @@ html {
   background-color: var(--background);
   color: var(--on-background);
   fill: var(--on-background);
+  min-width: fit-content;
+  min-height: fit-content;
 }

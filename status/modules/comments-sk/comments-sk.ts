@@ -247,6 +247,7 @@ export class CommentsSk extends ElementSk {
     this.client
       .addComment(req)
       .then((resp) => {
+        (<HTMLInputElement>$$('input-sk', this)).value = '';
         // If we haven't altered what's being displayed since we sent the request, add the comment
         // to our array so the UI feels snappy, even though the comment hasn't been picked up by
         // our parent yet.

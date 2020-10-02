@@ -2,12 +2,17 @@
  * Nondeterministic, rich data for use on the demo page to visualize different scenarios.
  */
 import { Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task } from '../rpc/status';
+
+const timestampBeforeNow = (seconds: number = 0) => {
+  return new Date(Date.now() - 1000 * seconds).toISOString();
+};
+
 const branch0: Branch = { name: 'main', head: 'abc123' };
 const branch1: Branch = { name: 'bar', head: '456789' };
 const commentTask: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: 'timey',
+  timestamp: timestampBeforeNow(5),
   user: 'alison@google.com',
   message: 'this is a comment',
   ignoreFailure: true,
@@ -15,12 +20,12 @@ const commentTask: Comment = {
   flaky: false,
   taskId: 'SOMETASKID',
   taskSpecName: 'Build-iOS-Mac15.5-ASAN',
-  commit: 'abc5',
+  commit: 'abc0',
 };
 const commentCommit: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: 'timey',
+  timestamp: timestampBeforeNow(5),
   user: 'alison@google.com',
   message: 'this is a comment',
   ignoreFailure: true,
@@ -33,7 +38,7 @@ const commentCommit: Comment = {
 const commentTaskSpec: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: 'timey',
+  timestamp: timestampBeforeNow(5),
   user: 'alison@google.com',
   message: 'this is a comment',
   ignoreFailure: false,
@@ -55,21 +60,22 @@ const taskSpecs = [
   'Housekeeper-PerCommit-Large',
 ];
 
-const commitTemplate = {
+const commitTemplate: LongCommit = {
   hash: 'abc0',
   author: 'bob@example.com',
   parents: ['abc4'],
   subject: 'current HEAD',
-  body: 'the most recent commit',
-  timestamp: '34613488',
+  body:
+    'the most recent commit\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557',
+  timestamp: timestampBeforeNow(5),
 };
-const taskTemplate = {
+const taskTemplate: Task = {
   commits: ['abc0'],
   id: '1',
   name: 'Build-Android-Stuff-Metal',
   revision: 'abc0',
   status: 'SUCCESS',
-  swarmingtaskid: 'idforswarming',
+  swarmingTaskId: 'idforswarming',
 };
 const commits: Array<LongCommit> = [];
 const tasks: Array<Task> = [];
@@ -95,9 +101,9 @@ for (let i = 0; i < 30; i++) {
     Object.assign(JSON.parse(JSON.stringify(commitTemplate)), {
       hash: hash,
       parents: [`abc${i + 1}`],
-      body: body,
+      body: `${body}\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557\n`,
       subject: 'something',
-      timestamp: (parseInt(commitTemplate.timestamp) - 100 * i).toString(),
+      timestamp: timestampBeforeNow(100 * i),
       author: randomAuthor(),
     })
   );
@@ -131,29 +137,26 @@ for (let i = 0; i < 30; i++) {
         'RUNNING',
         '',
       ][Math.floor(Math.random() * (i < 4 ? 12 : 10))];
-      tasks.push(
-        Object.assign(JSON.parse(JSON.stringify(taskTemplate)), {
-          id: nextId++,
-          name: spec,
-          commits: hashes,
-          status: status,
-        })
-      );
+      tasks.push({
+        ...taskTemplate,
+        id: (nextId++).toString(),
+        name: spec,
+        commits: hashes,
+        revision: hashes[0],
+        status: status,
+      });
     }
   }
 }
 // Lets make one of our commits on a different branch, to test task splitting behavior.
-commits.splice(
-  4,
-  0,
-  Object.assign(JSON.parse(JSON.stringify(commitTemplate)), {
-    hash: 'def0',
-    parents: [`diffBranch`],
-    subject: 'otherBranchSubject',
-    timestamp: (parseInt(commitTemplate.timestamp) - (100 * 4 - 5)).toString(),
-    author: 'branchAuthor',
-  })
-);
+commits.splice(4, 0, {
+  ...commitTemplate,
+  hash: 'def0',
+  parents: [`diffBranch`],
+  subject: 'otherBranchSubject',
+  timestamp: timestampBeforeNow(395),
+  author: 'branchAuthor',
+});
 
 export const mockIncrementalResponse: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
