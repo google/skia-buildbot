@@ -487,6 +487,10 @@ func main() {
 		return versionedRPC(rpcRoute, "v1", handlerFunc, jsonRouter, false /*=isAuthenticated*/)
 	}
 
+	v2JSON := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+		return versionedRPC(rpcRoute, "v2", handlerFunc, jsonRouter, false /*=isAuthenticated*/)
+	}
+
 	v0("/byblame", handlers.ByBlameHandler, jsonRouter).Methods("GET")
 	v1JSON("/byblame", handlers.ByBlameHandler).Methods("GET")
 	v0("/changelists", handlers.ChangeListsHandler, jsonRouter).Methods("GET")
@@ -538,6 +542,7 @@ func main() {
 	// These routes can be served with baseline_server for higher availability.
 	v0(trim(shared.ExpectationsRoute), handlers.BaselineHandlerV1, jsonRouter).Methods("GET")
 	v1JSON(trim(shared.ExpectationsRouteV1), handlers.BaselineHandlerV1).Methods("GET")
+	v2JSON(trim(shared.ExpectationsRouteV2), handlers.BaselineHandlerV2).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
 	v0(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandlerV1, jsonRouter).Methods("GET")
 
