@@ -22,6 +22,30 @@
       "revId": "9f22154c7ed84d156529cfb6058c809f4f918d48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fa746e1_d77e0514",
+        "filename": "status/modules/commits-data-sk/commits-data-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-02T17:53:18Z",
+      "side": 1,
+      "message": "This was in the height of my frustration about TS not protecting me from myself, and having a map of strings that was holding numbers.. Fixed :D",
+      "parentUuid": "ec8a58a0_056377b3",
+      "range": {
+        "startLine": 100,
+        "startChar": 6,
+        "endLine": 100,
+        "endChar": 14
+      },
+      "revId": "9f22154c7ed84d156529cfb6058c809f4f918d48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
