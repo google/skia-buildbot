@@ -38,6 +38,10 @@ commits-table-sk {
     min-width: 20px;
     justify-content: center;
     text-align: center;
+    // We use this class to catch dialog-opening clicks, don't let icons get in the way.
+    * {
+      pointer-events: none;
+    }
   }
 
   .commit {

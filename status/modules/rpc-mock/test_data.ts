@@ -19,7 +19,7 @@ export const commentTask: Comment = {
   ignoreFailure: true,
   deleted: false,
   flaky: false,
-  taskId: 'SOMETASKID',
+  taskId: '99999',
   taskSpecName: 'Build-Some-Stuff',
   commit: 'abc123',
 };
