@@ -141,6 +141,30 @@
       "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1c6188a8_7bdc4b73",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-02T17:50:04Z",
+      "side": 1,
+      "message": "I think it can work via what lovisolo suggested (div inside the dialog that actually holds the content, and has the stopPropagation handler) but that seems to be this with more steps. Going to leave it as is, although learned a few things from the discussion.",
+      "parentUuid": "6962fe80_d56157d8",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 3
+      },
+      "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
