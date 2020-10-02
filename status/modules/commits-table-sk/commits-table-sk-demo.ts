@@ -1,9 +1,20 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
+import 'elements-sk/error-toast-sk';
 import '../commits-data-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { mockIncrementalResponse, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
+
+declare global {
+  interface Window {
+    Login: any;
+  }
+}
+window.Login = Promise.resolve({
+  Email: 'user@google.com',
+  LoginURL: 'https://accounts.google.com/',
+});
 
 SetupMocks().expectGetIncrementalCommits(mockIncrementalResponse);
 SetTestSettings({
