@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec8a58a0_056377b3",
+        "filename": "status/modules/commits-data-sk/commits-data-sk_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-02T17:38:56Z",
+      "side": 1,
+      "message": "nit :P",
+      "range": {
+        "startLine": 100,
+        "startChar": 6,
+        "endLine": 100,
+        "endChar": 14
+      },
+      "revId": "9f22154c7ed84d156529cfb6058c809f4f918d48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
