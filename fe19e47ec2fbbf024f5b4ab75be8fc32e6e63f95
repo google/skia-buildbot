@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "82d250f2_549c4bd6",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-02T17:17:37Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "640461c5_217f8528",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 48
+      },
+      "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4680e313_0f9a7101",
         "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
         "patchSetId": 5
@@ -93,6 +117,30 @@
       "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6962fe80_d56157d8",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-02T17:17:37Z",
+      "side": 1,
+      "message": "I think we\u0027ve typically used a click handler to close the dialog in the past.",
+      "parentUuid": "ff4bb934_d553d3ab",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 3
+      },
+      "revId": "fe19e47ec2fbbf024f5b4ab75be8fc32e6e63f95",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
