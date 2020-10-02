@@ -153,10 +153,10 @@ func main() {
 	v0(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
 	v1(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
-	v0(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
-	v1(shared.ExpectationsRouteV1, handlers.BaselineHandler).Methods("GET")
+	v0(shared.ExpectationsRoute, handlers.BaselineHandlerV1).Methods("GET")
+	v1(shared.ExpectationsRouteV1, handlers.BaselineHandlerV1).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
-	v0(shared.ExpectationsLegacyRoute, handlers.BaselineHandler).Methods("GET")
+	v0(shared.ExpectationsLegacyRoute, handlers.BaselineHandlerV1).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()

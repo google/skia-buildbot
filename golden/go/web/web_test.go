@@ -1433,9 +1433,9 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }
 
-// TestBaselineHandler_Success tests that the handler correctly calls the BaselineFetcher when no
+// TestBaselineHandlerV1_Success tests that the handler correctly calls the BaselineFetcher when no
 // GET parameters are set.
-func TestBaselineHandler_Success(t *testing.T) {
+func TestBaselineHandlerV1_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1467,7 +1467,7 @@ func TestBaselineHandler_Success(t *testing.T) {
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 
 	// Assert that the right route was called.
@@ -1475,9 +1475,9 @@ func TestBaselineHandler_Success(t *testing.T) {
 	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
-// TestBaselineHandler_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
+// TestBaselineHandlerV1_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
 // when the "issue" GET parameter is set.
-func TestBaselineHandler_IssueSet_Success(t *testing.T) {
+func TestBaselineHandlerV1_IssueSet_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1511,7 +1511,7 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 
 	// Assert that the right route was called.
@@ -1519,9 +1519,9 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
-// TestBaselineHandler_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
+// TestBaselineHandlerV1_IssueSet_Success tests that the handler correctly calls the BaselineFetcher
 // when the "issue" and "issueOnly" GET parameters are set.
-func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
+func TestBaselineHandlerV1_IssueSet_IssueOnly_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1555,7 +1555,7 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 
 	// Assert that the right route was called.
@@ -1563,9 +1563,9 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
-// TestBaselineHandler_BaselineFetcherError_InternalServerError tests that the handler correctly
+// TestBaselineHandlerV1_BaselineFetcherError_InternalServerError tests that the handler correctly
 // handles BaselineFetcher errors.
-func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) {
+func TestBaselineHandlerV1_BaselineFetcherError_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1590,7 +1590,7 @@ func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) 
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	resp := w.Result()
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
@@ -1599,10 +1599,10 @@ func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) 
 	assert.Equal(t, newRouteCounter+1, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
-// TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success tests that the {commit_hash} URL
+// TestBaselineHandlerV1_CommitHashSet_IgnoresCommitHash_Success tests that the {commit_hash} URL
 // variable in the /json/expectations/commit/{commit_hash} route is ignored.
 // TODO(lovisolo): Remove along with {commit_hash} and any references.
-func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
+func TestBaselineHandlerV1_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1637,7 +1637,7 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 
 	// Assert that the right route was called.
@@ -1645,11 +1645,11 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 	assert.Equal(t, newRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
-// TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success tests that the
+// TestBaselineHandlerV1_CommitHashSet_IssueSet_IgnoresCommitHash_Success tests that the
 // {commit_hash} URL variable in the /json/expectations/commit/{commit_hash} route is ignored and
 // that the "issue" GET parameter is handled correctly.
 // TODO(lovisolo): Remove along with {commit_hash} and any references.
-func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *testing.T) {
+func TestBaselineHandlerV1_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1686,7 +1686,7 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 
 	// Assert that the right route was called.
@@ -1694,11 +1694,11 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 	assert.Equal(t, newRouteCounter, metrics2.GetCounter("gold_baselinehandler_route_new").Get())
 }
 
-// TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success tests that the
+// TestBaselineHandlerV1_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success tests that the
 // {commit_hash} URL variable in the /json/expectations/commit/{commit_hash} route is ignored and
 // that the "issue" and "issueOnly" GET parameters are handled correctly.
 // TODO(lovisolo): Remove along with {commit_hash} and any references.
-func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success(t *testing.T) {
+func TestBaselineHandlerV1_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -1735,7 +1735,7 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Succ
 	newRouteCounter := metrics2.GetCounter("gold_baselinehandler_route_new").Get()
 
 	// Call route handler under test.
-	wh.BaselineHandler(w, r)
+	wh.BaselineHandlerV1(w, r)
 	assertJSONResponseWas(t, http.StatusOK, expectedJSONResponse, w)
 
 	// Assert that the right route was called.
