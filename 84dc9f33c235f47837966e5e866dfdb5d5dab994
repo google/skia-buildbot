@@ -1,0 +1,31 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005316966",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/321780?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ce646d93_da7a3a05",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-02T18:56:58Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 428,
+        "startChar": 0,
+        "endLine": 428,
+        "endChar": 2
+      },
+      "revId": "84dc9f33c235f47837966e5e866dfdb5d5dab994",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
