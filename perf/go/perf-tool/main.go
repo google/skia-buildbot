@@ -51,6 +51,10 @@ var (
 	indicesTileFlag types.TileNumber
 	tracesTileFlag  types.TileNumber
 
+	tracesBeginFlag types.CommitNumber
+	tracesEndFlag   types.CommitNumber
+	tracesFilename  string
+
 	tracesQueryFlag string
 
 	ingestStartFlag  string
@@ -218,7 +222,7 @@ using the same input file for both restores.
 	tracesCmd := &cobra.Command{
 		Use: "traces [sub]",
 	}
-	tracesCmd.PersistentFlags().Int32Var((*int32)(&tracesTileFlag), "tile", -1, "The tile to query")
+
 	tracesCmd.PersistentFlags().StringVar(&tracesQueryFlag, "query", "", "The query to run. Defaults to the empty query which matches all traces.")
 
 	tracesListByIndexCmd := &cobra.Command{
@@ -226,9 +230,20 @@ using the same input file for both restores.
 		Short: "Prints the IDs of traces in the last (most recent) tile, or the tile specified by the --tile flag, that match --query.",
 		RunE:  tracesListByIndexAction,
 	}
+	tracesListByIndexCmd.PersistentFlags().Int32Var((*int32)(&tracesTileFlag), "tile", -1, "The tile to query")
+
+	tracesExportCmd := &cobra.Command{
+		Use:   "export",
+		Short: "Writes a JSON files with the traces that match --query for the given range of commits.",
+		RunE:  tracesExportAction,
+	}
+	tracesExportCmd.PersistentFlags().Int32Var((*int32)(&tracesBeginFlag), "begin", -1, "The index of the first commit.")
+	tracesExportCmd.PersistentFlags().Int32Var((*int32)(&tracesEndFlag), "end", -1, "The index of the last commit. If not specified then only the values at --begin are returned.")
+	tracesExportCmd.PersistentFlags().StringVar(&tracesFilename, "filename", "-", "The name of the file to write the resulting JSON to.")
 
 	tracesCmd.AddCommand(
 		tracesListByIndexCmd,
+		tracesExportCmd,
 	)
 
 	ingestCmd := &cobra.Command{
@@ -797,6 +812,67 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 		fmt.Println(id, trace)
 	}
 	return nil
+}
+
+func getTraceNamesForTile(ctx context.Context, tileNumber types.TileNumber, q *query.Query, store tracestore.TraceStore) (map[string]bool, error) {
+	ch, err := store.QueryTracesIDOnly(ctx, tileNumber, q)
+	if err != nil {
+		return nil, err
+	}
+	traceNames := map[string]bool{}
+	for p := range ch {
+		traceName, err := query.MakeKey(p)
+		if err != nil {
+			sklog.Warningf("Invalid trace name found in query response: %s", err)
+			continue
+		}
+		traceNames[traceName] = true
+	}
+	return traceNames, nil
+}
+
+func tracesExportAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+
+	if tracesBeginFlag == types.BadCommitNumber {
+		return fmt.Errorf("The --begin flag is required.")
+	}
+
+	if tracesEndFlag == types.BadCommitNumber {
+		tracesEndFlag = tracesBeginFlag
+	}
+
+	updateInstanceConfigWithOverride(c)
+	store := mustGetStore()
+	values, err := url.ParseQuery(tracesQueryFlag)
+	if err != nil {
+		return err
+	}
+	q, err := query.New(values)
+	if err != nil {
+		return err
+	}
+	tileNumber := types.TileNumberFromCommitNumber(tracesBeginFlag, store.TileSize())
+	// Query the most recent tile.
+	traceNames, err := getTraceNamesForTile(ctx, tileNumber, q, store)
+	if err != nil {
+		return err
+	}
+	traceNamesSlice := make([]string, 0, len(traceNames))
+	for traceName := range traceNames {
+		traceNamesSlice = append(traceNamesSlice, traceName)
+	}
+	ts, err := store.ReadTracesForCommitRange(ctx, traceNamesSlice, tracesBeginFlag, tracesEndFlag)
+	if err != nil {
+		return err
+	}
+	if tracesFilename != "-" {
+		return util.WithWriteFile(tracesFilename, func(w io.Writer) error {
+			return json.NewEncoder(w).Encode(ts)
+		})
+	} else {
+		return json.NewEncoder(os.Stdout).Encode(ts)
+	}
 }
 
 func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName string) error {
