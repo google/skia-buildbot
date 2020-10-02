@@ -124,7 +124,7 @@ export class FiddleSk extends ElementSk {
     ? html``
     : html`
           <details ?open=${ele._config.options_open}>
-            <summary><h2>Options</h2></summary>
+            <summary>Options</summary>
             <div id="options">
               <label>
                 <input

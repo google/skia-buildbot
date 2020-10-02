@@ -5,10 +5,18 @@ fiddle-sk {
     margin-left: 16px;
     summary {
       margin-left: -16px;
+      display: inline-block;
       outline: none;
-      h2 {
-        display: inline-block;
-      }
+      padding: 4px;
+      background: var(--surface);
+      color: var(--on-surface);
+      border: solid 1px var(--surface-1dp);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
     }
   }
 
@@ -17,6 +25,11 @@ fiddle-sk {
     padding: 0 8px 16px 32px;
     background: var(--surface);
     margin-left: 0px;
+
+    summary {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
   }
 
   #f16,
