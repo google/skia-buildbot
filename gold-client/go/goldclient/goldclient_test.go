@@ -2477,6 +2477,12 @@ const mockBaselineJSON = `
       "badbadbad1325855590527db196112e0": "negative"
     }
   },
+  "primary": {
+    "ThisIsTheOnlyTest": {
+      "beef00d3a1527db19619ec12a4e0df68": "positive",
+      "badbadbad1325855590527db196112e0": "negative"
+    }
+  },
   "Issue": -1
 }`
 
