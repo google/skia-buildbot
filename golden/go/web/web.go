@@ -1341,7 +1341,7 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// BaselineHandler returns a JSON representation of that baseline including
+// BaselineHandlerV1 returns a JSON representation of that baseline including
 // baselines for a options issue. It can respond to requests like these:
 //
 //    /json/expectations
@@ -1363,7 +1363,7 @@ func (wh *Handlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request)
 // based on tryjob results).
 //
 // Parameter "issueOnly" is for debugging purposes only.
-func (wh *Handlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) BaselineHandlerV1(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
 	// should be able to handle a large load.
