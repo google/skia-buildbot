@@ -9,7 +9,7 @@
 $ServiceURL https://chrome-infra-packages.appspot.com/
 
 # This is the cipd client itself
-infra/tools/cipd/${os}-${arch}  git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
+infra/tools/cipd/${os}-${arch}  git_revision:654d18ff14171337af7c50496b4f8dda607078b5
 
 @Subdir cipd_bin_packages
 infra/3pp/tools/git/linux-amd64                  version:2.28.0.chromium.6
@@ -19,14 +19,14 @@ infra/3pp/tools/git/windows-386                  version:2.28.0.chromium.6
 infra/3pp/tools/git/windows-amd64                version:2.28.0.chromium.6
 infra/gsutil                                     version:4.46
 infra/3pp/tools/cpython/${platform}              version:2.7.18.chromium.29
-infra/tools/git/${platform}                      git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-infra/tools/luci-auth/${platform}                git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-infra/tools/luci/git-credential-luci/${platform} git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-infra/tools/luci/isolate/${platform}             git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-infra/tools/luci/isolated/${platform}            git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-infra/tools/luci/swarming/${platform}            git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-infra/tools/luci/vpython/${platform}             git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
-skia/tools/goldctl/${platform}                   git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
+infra/tools/git/${platform}                      git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+infra/tools/luci-auth/${platform}                git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+infra/tools/luci/git-credential-luci/${platform} git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+infra/tools/luci/isolate/${platform}             git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+infra/tools/luci/isolated/${platform}            git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+infra/tools/luci/swarming/${platform}            git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+infra/tools/luci/vpython/${platform}             git_revision:654d18ff14171337af7c50496b4f8dda607078b5
+skia/tools/goldctl/${platform}                   git_revision:654d18ff14171337af7c50496b4f8dda607078b5
 
 @Subdir
-infra/tools/luci/kitchen/${platform}    git_revision:fae5b5fe78804770fc3d5d390b4bbe9633a38c6b
+infra/tools/luci/kitchen/${platform}    git_revision:654d18ff14171337af7c50496b4f8dda607078b5
