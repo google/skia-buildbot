@@ -27,8 +27,8 @@
     text-transform: none;
     outline: none;
     padding: 4px;
-    margin: 2px;
     height: fit-content;
+    margin: 8px 0;
   }
 
   multi-select-sk {
@@ -75,6 +75,36 @@
 
   select-sk > [selected] {
     background-color: var(--surface-1dp);
+  }
+}
+
+details {
+  summary {
+    display: inline-block;
+    outline: none;
+    padding: 4px;
+    background: var(--surface);
+    color: var(--on-surface);
+    border: solid 1px var(--surface-1dp);
+    cursor: pointer;
+    list-style: none;
+    margin: 8px 0;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+details[open] {
+  border: solid 1px var(--on-surface);
+  padding: 0 8px 16px 8px;
+  background: var(--surface);
+  margin: 8px 8px 8px 0;
+
+  summary {
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
 }
 

@@ -28,4 +28,12 @@ cluster-page-sk {
   paramset-sk div {
     display: block;
   }
+
+  sort-sk[target='clusters'] button {
+    margin-right: 8px;
+  }
+
+  #selections {
+    margin-left: 8px;
+  }
 }

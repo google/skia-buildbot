@@ -23,10 +23,6 @@ cluster-lastn-page-sk {
     display: block;
   }
 
-  details {
-    margin-left: 8px;
-  }
-
   summary p {
     display: inline-block;
   }
@@ -34,5 +30,9 @@ cluster-lastn-page-sk {
   .messages {
     overflow-x: auto;
     width: 75%;
+  }
+
+  p {
+    margin: 8px 0 0 0;
   }
 }

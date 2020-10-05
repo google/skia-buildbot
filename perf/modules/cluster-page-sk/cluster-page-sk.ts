@@ -181,7 +181,7 @@ export class ClusterPageSk extends ElementSk {
 
     <details>
       <summary id="advanced">
-        <h2>Advanced</h2>
+        Advanced
       </summary>
       <div id="inputs">
         <label>

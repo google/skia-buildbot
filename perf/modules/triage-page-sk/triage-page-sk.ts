@@ -134,7 +134,7 @@ export class TriagePageSk extends ElementSk {
     <header>
       <details>
         <summary>
-          <h2>Filter</h2>
+          Filter
         </summary>
         <h3>Which commits to display.</h3>
         <select @input=${ele.commitsChange}>
@@ -169,7 +169,7 @@ export class TriagePageSk extends ElementSk {
       </details>
       <details>
         <summary>
-          <h2>Range</h2>
+          Range
         </summary>
         <day-range-sk
           @day-range-change=${ele.rangeChange}
@@ -179,7 +179,7 @@ export class TriagePageSk extends ElementSk {
       </details>
       <details @toggle=${ele.toggleStatus}>
         <summary>
-          <h2>Status</h2>
+          Status
         </summary>
         <div>
           <p>The current work on detecting regressions:</p>

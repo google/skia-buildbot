@@ -143,7 +143,7 @@ explore-sk {
   }
 
   dialog {
-    padding: 2em;
+    padding: 16px;
     border: solid var(--on-background) 1px;
     color: var(--on-background);
     background: var(--background);
@@ -176,14 +176,6 @@ explore-sk {
 
   tabs-panel-sk {
     border-radius: 0;
-  }
-
-  summary {
-    margin: 0.6em;
-  }
-
-  summary h2 {
-    display: inline-block;
   }
 
   #query-dialog {
