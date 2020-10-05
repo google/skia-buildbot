@@ -18,7 +18,7 @@ describe('search-page-sk', () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/search-page-sk.html${queryString}`);
     await busyEnd;
 
-    await testBed.page.setViewport({width: 1400, height: 1200});
+    await testBed.page.setViewport({width: 1600, height: 1200});
 
     searchPageSkPO = new SearchPageSkPO((await testBed.page.$('search-page-sk'))!);
   };
