@@ -133,7 +133,7 @@ func TestCleanup_PositiveDigestPolicy_MarkPositiveForGCAndGarbageCollect(t *test
 	oneHourAgo := mock.MatchedBy(func(ts time.Time) bool {
 		return now.Sub(ts) == time.Hour
 	})
-	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.PositiveInt, oneHourAgo).Return(0, nil)
+	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.Positive, oneHourAgo).Return(0, nil)
 	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
 
 	positiveOnlyPolicy := Policy{
@@ -154,7 +154,7 @@ func TestCleanup_NegativeDigestPolicy_MarkNegativeForGCAndGarbageCollect(t *test
 	twoHoursAgo := mock.MatchedBy(func(ts time.Time) bool {
 		return now.Sub(ts) == 2*time.Hour
 	})
-	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.NegativeInt, twoHoursAgo).Return(0, nil)
+	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.Negative, twoHoursAgo).Return(0, nil)
 	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
 
 	negativeOnlyPolicy := Policy{
@@ -178,8 +178,8 @@ func TestCleanup_PositiveAndNegativePolicy_BothMarkedForGCAndGarbageCollect(t *t
 	oneHourAgo := mock.MatchedBy(func(ts time.Time) bool {
 		return now.Sub(ts) == time.Hour
 	})
-	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.NegativeInt, twoHoursAgo).Return(0, nil)
-	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.PositiveInt, oneHourAgo).Return(0, nil)
+	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.Negative, twoHoursAgo).Return(0, nil)
+	mc.On("MarkUnusedEntriesForGC", testutils.AnyContext, expectations.Positive, oneHourAgo).Return(0, nil)
 	mc.On("GarbageCollect", testutils.AnyContext).Return(0, nil)
 
 	policy := Policy{
