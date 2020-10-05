@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06123db2_ed13ce6a",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-05T11:42:45Z",
+      "side": 1,
+      "message": "Given the change of plans - let\u0027s call this DeprecatedExpectations so it\u0027s more clear that it is going to go away. (MasterStr does not indicate that)",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 21,
+        "endChar": 22
+      },
+      "revId": "2e2d5647a89ea7723728fe35ea153b5c14b9fd2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
