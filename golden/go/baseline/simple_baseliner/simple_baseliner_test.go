@@ -14,10 +14,10 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-const masterBranch = ""
+const primaryBranch = ""
 const noCRS = ""
 
-// Test that the baseline fetcher produces a master baseline.
+// Test that the baseline fetcher produces a baseline for the primary branch.
 func TestFetchBaselineSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -28,14 +28,14 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 
 	baseliner := New(mes)
 
-	b, err := baseliner.FetchBaseline(context.Background(), masterBranch, "github", false)
+	b, err := baseliner.FetchBaseline(context.Background(), primaryBranch, "github", false)
 	assert.NoError(t, err)
 
 	exp := three_devices.MakeTestExpectations()
 	expectedBaseline := exp.AsBaseline()
 
 	assert.Equal(t, expectedBaseline, b.DeprecatedExpectations)
-	assert.Equal(t, masterBranch, b.ChangeListID)
+	assert.Equal(t, primaryBranch, b.ChangeListID)
 	assert.Equal(t, noCRS, b.CodeReviewSystem)
 	assert.NotEqual(t, "", b.MD5)
 }
@@ -72,7 +72,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 	mes.On("ForChangeList", clID, crs).Return(mesCL).Once()
 	// mock the expectations that a user would have applied to their CL (that
-	// are not live on master yet).
+	// are not live on the primary branch yet).
 	mesCL.On("GetCopy", testutils.AnyContext).Return(&additionalTriages, nil).Once()
 
 	baseliner := New(mes)
@@ -82,14 +82,14 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 
 	assert.Equal(t, clID, b.ChangeListID)
 	assert.Equal(t, crs, b.CodeReviewSystem)
-	// The expectation should be the master baseline merged in with the additionalTriages
-	// with additionalTriages overwriting existing expectations, if applicable.
+	// The expectation should be the baseline for the primary branch merged in with the
+	// additionalTriages, which overwrite any existing expectations.
 	assert.Equal(t, expectations.Baseline{
 		"brand-new-test": {
 			IotaNewDigest:  expectations.Positive,
 			KappaNewDigest: expectations.Negative,
 		},
-		// AlphaTest should be unchanged from the master baseline.
+		// AlphaTest should be unchanged from the baseline for the primary branch.
 		three_devices.AlphaTest: {
 			three_devices.AlphaPositiveDigest: expectations.Positive,
 			three_devices.AlphaNegativeDigest: expectations.Negative,
@@ -105,7 +105,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 			IotaNewDigest:  expectations.Positive,
 			KappaNewDigest: expectations.Negative,
 		},
-		// AlphaTest should be unchanged from the master baseline.
+		// AlphaTest should be unchanged from the baseline for the primary branch.
 		three_devices.AlphaTest: {
 			three_devices.AlphaPositiveDigest: expectations.Positive,
 			three_devices.AlphaNegativeDigest: expectations.Negative,
@@ -119,8 +119,8 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 
-	// Ensure that reading the issue branch does not impact the master branch
-	b, err = baseliner.FetchBaseline(context.Background(), masterBranch, noCRS, false)
+	// Ensure that reading the issue branch does not impact the primary branch
+	b, err = baseliner.FetchBaseline(context.Background(), primaryBranch, noCRS, false)
 	assert.NoError(t, err)
 	assert.Equal(t, three_devices.MakeTestBaseline(), b)
 }
