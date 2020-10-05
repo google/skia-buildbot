@@ -28,7 +28,7 @@ describe('commits-table-sk', () => {
     const ep = eventPromise('end-task');
     newDataInstance() as CommitsDataSk;
     await ep;
-    return newTableInstance((el) => ((<CommitsTableSk>el).filter = 'all')) as CommitsTableSk;
+    return newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
   };
 
   it('displays multiple commit tasks', async () => {
@@ -96,33 +96,46 @@ describe('commits-table-sk', () => {
       'Only-Failed-On-Commented-Commit-Spec',
     ]);
 
-    table.filter = 'interesting';
+    const getFilterLabel = (i: number) => {
+      return $('label.specFilter', table)[i] as HTMLLabelElement;
+    };
+    let label = getFilterLabel(0);
+    expect(label.innerText).to.contain('Interesting');
+    label.click();
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);
 
-    table.filter = 'failures';
+    label = getFilterLabel(1);
+    expect(label.innerText).to.contain('Failures');
+    label.click();
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Red-Spec',
       'Interesting-Spec',
     ]);
 
-    table.filter = 'nocomment';
+    label = getFilterLabel(2);
+    expect(label.innerText).to.contain('Comments');
+    label.click();
+    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
+      'Always-Red-Spec',
+    ]);
+    label = getFilterLabel(3);
+    expect(label.innerText).to.contain('Failing w/o comment');
+    label.click();
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);
 
-    table.filter = 'comments';
-    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
-      'Always-Red-Spec',
-    ]);
-
-    table.filter = 'search';
-    table.search = 'Always';
-    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
-      'Always-Green-Spec',
-      'Always-Red-Spec',
-    ]);
+    const searchbox = $$('input', table) as HTMLInputElement;
+    searchbox.value = 'Always';
+    searchbox.blur();
+    setTimeout(() => {
+      expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
+        'Always-Green-Spec',
+        'Always-Red-Spec',
+      ]);
+    }, 0);
   });
   describe('dialog', () => {
     it('opens and closes properly', async () => {

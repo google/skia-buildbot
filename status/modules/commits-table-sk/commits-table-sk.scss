@@ -68,9 +68,34 @@ commits-table-sk {
     }
   }
 
+  .controls .horizontal {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+  }
+
+  .commitLabelSelector {
+    padding-right: 40px;
+    padding-left: 10px;
+  }
+
+  .specFilter {
+    > * {
+      display: inline-block;
+    }
+    radio-sk {
+      margin-right: 0;
+    }
+  }
+
   .tiny svg {
     width: 12px;
     height: 12px;
+  }
+
+  radio-sk.tiny .box {
+    width: 8px;
+    height: 8px;
   }
 
   .icon-right {
