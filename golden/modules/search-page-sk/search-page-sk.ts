@@ -153,7 +153,7 @@ export class SearchPageSk extends ElementSk {
       <digest-details-sk .commits=${el._searchResponse?.commits}
                         .details=${result}
                         .changeListID=${el._changelistId}
-                        .crs=${el._crs}}
+                        .crs=${el._crs}
                         class="${selected ? 'selected' : ''}">
       </digest-details-sk>
     `;
