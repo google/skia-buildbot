@@ -111,6 +111,7 @@ function table(ele, o) {
       <th>${k}</th>
       <td>
         <input @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
+        ${displayIfBotParam(k, ele)}
       </td>
     </tr>`);
   rules.push(html`
@@ -127,6 +128,14 @@ function table(ele, o) {
     </tr>
   `);
   return rules;
+}
+
+function displayIfBotParam(key, ele) {
+  if (key === 'bot') {
+    // e needed?
+    return html `<button class="till-next-shift" @click=${(e) => ele._addBots(key, e)}>Add bots</button>`;
+  }
+  return '';
 }
 
 function displayParamValue(paramValue) {
@@ -331,6 +340,24 @@ define('silence-sk', class extends HTMLElement {
     // Reset the manual param key and value.
     keyInput.value = '';
     valueInput.value = '';
+  }
+
+  _addBots(key, e) {
+    // Do I need detail?
+    this.dispatchEvent(new CustomEvent('bot-chooser', { detail: {}, bubbles: true }));
+    return;
+
+    console.log("IN ADD BOTS");
+    const silence = JSON.parse(JSON.stringify(this._state));
+    console.log(silence.param_set[key]);
+    const selectedBots = "selectedsomething";
+    // Now need to figure out how to do the popup thing.
+    silence.param_set[key] = [`${silence.param_set[key]}|${selectedBots}`]
+    const detail = {
+      silence: silence,
+    };
+    this.dispatchEvent(new CustomEvent('modify-silence-param', { detail: detail, bubbles: true }));
+    console.log(e);
   }
 
   _addNote() {
