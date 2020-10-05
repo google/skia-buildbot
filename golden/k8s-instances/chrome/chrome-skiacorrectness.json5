@@ -15,6 +15,7 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
   client_secret_file: "/etc/skia.org/login.json",
   diff_server_grpc: "gold-chrome-diffserver:8000",
   diff_server_http: "gold-chrome-diffserver:8001",
+  disable_cl_comments: true,
   flaky_trace_threshold: 2, // traces creating 3 or more unique digests are flaky.
   force_login: true, // This instance requires authentication. It has a public view (chrome-public)
   frontend: {
