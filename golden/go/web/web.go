@@ -1380,7 +1380,7 @@ func (wh *Handlers) BaselineHandlerV1(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
 		return
 	}
-
+	bl.Expectations = expectations.Baseline{}
 	sendJSONResponse(w, bl)
 }
 
@@ -1441,6 +1441,9 @@ func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
 		return
 	}
+
+	// TODO(lovisolo): Delete after the ExpectationsMasterStr field has been removed.
+	bl.DeprecatedExpectations = expectations.Baseline{}
 
 	sendJSONResponse(w, bl)
 }

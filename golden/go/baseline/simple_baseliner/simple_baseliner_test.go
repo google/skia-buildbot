@@ -99,6 +99,22 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 			three_devices.BetaPositiveDigest:  expectations.Negative,
 			three_devices.BetaUntriagedDigest: expectations.Positive,
 		},
+	}, b.Expectations)
+	assert.Equal(t, expectations.Baseline{
+		"brand-new-test": {
+			IotaNewDigest:  expectations.Positive,
+			KappaNewDigest: expectations.Negative,
+		},
+		// AlphaTest should be unchanged from the master baseline.
+		three_devices.AlphaTest: {
+			three_devices.AlphaPositiveDigest: expectations.Positive,
+			three_devices.AlphaNegativeDigest: expectations.Negative,
+		},
+		three_devices.BetaTest: {
+			MuNewDigest:                       expectations.Positive,
+			three_devices.BetaPositiveDigest:  expectations.Negative,
+			three_devices.BetaUntriagedDigest: expectations.Positive,
+		},
 	}, b.DeprecatedExpectations)
 
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()

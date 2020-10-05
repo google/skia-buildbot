@@ -1457,6 +1457,11 @@ func TestBaselineHandlerV1_Success(t *testing.T) {
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1509,6 +1514,11 @@ func TestBaselineHandlerV1_IssueSet_Success(t *testing.T) {
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1561,6 +1571,11 @@ func TestBaselineHandlerV1_IssueSet_IssueOnly_Success(t *testing.T) {
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1651,6 +1666,11 @@ func TestBaselineHandlerV1_CommitHashSet_IgnoresCommitHash_Success(t *testing.T)
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1708,6 +1728,11 @@ func TestBaselineHandlerV1_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *t
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1765,6 +1790,11 @@ func TestBaselineHandlerV1_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Su
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1815,6 +1845,11 @@ func TestBaselineHandlerV2_Success(t *testing.T) {
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1822,7 +1857,7 @@ func TestBaselineHandlerV2_Success(t *testing.T) {
 		},
 		CodeReviewSystem: gerritCRS,
 	}
-	expectedJSONResponse := `{"md5":"fakehash","master_str":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "", false /* =issueOnly */).Return(bl, nil)
@@ -1867,6 +1902,11 @@ func TestBaselineHandlerV2_IssueSet_Success(t *testing.T) {
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1874,7 +1914,7 @@ func TestBaselineHandlerV2_IssueSet_Success(t *testing.T) {
 		},
 		CodeReviewSystem: gerritCRS,
 	}
-	expectedJSONResponse := `{"md5":"fakehash","master_str":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, false /* =issueOnly */).Return(bl, nil)
@@ -1919,6 +1959,11 @@ func TestBaselineHandlerV2_IssueSet_IssueOnly_Success(t *testing.T) {
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -1926,7 +1971,7 @@ func TestBaselineHandlerV2_IssueSet_IssueOnly_Success(t *testing.T) {
 		},
 		CodeReviewSystem: gerritCRS,
 	}
-	expectedJSONResponse := `{"md5":"fakehash","master_str":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, true /* =issueOnly */).Return(bl, nil)
@@ -2009,6 +2054,11 @@ func TestBaselineHandlerV2_CommitHashSet_IgnoresCommitHash_Success(t *testing.T)
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -2016,7 +2066,7 @@ func TestBaselineHandlerV2_CommitHashSet_IgnoresCommitHash_Success(t *testing.T)
 		},
 		CodeReviewSystem: gerritCRS,
 	}
-	expectedJSONResponse := `{"md5":"fakehash","master_str":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "", false /* =issueOnly */).Return(bl, nil)
@@ -2066,6 +2116,11 @@ func TestBaselineHandlerV2_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *t
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -2073,7 +2128,7 @@ func TestBaselineHandlerV2_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *t
 		},
 		CodeReviewSystem: gerritCRS,
 	}
-	expectedJSONResponse := `{"md5":"fakehash","master_str":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, false /* =issueOnly */).Return(bl, nil)
@@ -2123,6 +2178,11 @@ func TestBaselineHandlerV2_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Su
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{
 		MD5: "fakehash",
+		Expectations: expectations.Baseline{
+			"faketest": map[types.Digest]expectations.Label{
+				"abc123": "positive",
+			},
+		},
 		DeprecatedExpectations: expectations.Baseline{
 			"faketest": map[types.Digest]expectations.Label{
 				"abc123": "positive",
@@ -2130,7 +2190,7 @@ func TestBaselineHandlerV2_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Su
 		},
 		CodeReviewSystem: gerritCRS,
 	}
-	expectedJSONResponse := `{"md5":"fakehash","master_str":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","primary":{"faketest":{"abc123":"positive"}},"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, true /* =issueOnly */).Return(bl, nil)
