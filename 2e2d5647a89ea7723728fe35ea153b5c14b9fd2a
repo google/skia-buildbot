@@ -22,6 +22,30 @@
       },
       "revId": "2e2d5647a89ea7723728fe35ea153b5c14b9fd2a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dfa94805_98eea6a2",
+        "filename": "golden/go/baseline/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-05T17:26:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06123db2_ed13ce6a",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 21,
+        "endChar": 22
+      },
+      "revId": "2e2d5647a89ea7723728fe35ea153b5c14b9fd2a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
