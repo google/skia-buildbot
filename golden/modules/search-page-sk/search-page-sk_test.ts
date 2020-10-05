@@ -96,8 +96,8 @@ describe('search-page-sk', () => {
     // Override defaults with the given options, if any.
     opts = {...defaults, ...opts};
 
-    fetchMock.get('/json/v1/trstatus', () => statusResponse);
-    fetchMock.get('/json/v1/paramset', () => paramSetResponse);
+    fetchMock.getOnce('/json/v1/trstatus', () => statusResponse);
+    fetchMock.getOnce('/json/v1/paramset', () => paramSetResponse);
     fetchMock.get(
       '/json/v1/search?' + fromObject(opts.expectedInitialSearchRequest as any),
       () => opts.initialSearchResponse);
@@ -108,7 +108,7 @@ describe('search-page-sk', () => {
     // This mocked RPC corresponds to the queryStringWithCL and searchRequestWithCL constants
     // defined above.
     if (opts.mockAndWaitForChangelistSummaryRPC) {
-      fetchMock.get('/json/v1/changelist/gerrit/123456', () => changeListSummaryResponse);
+      fetchMock.getOnce('/json/v1/changelist/gerrit/123456', () => changeListSummaryResponse);
       eventsToWaitFor.push('end-task');
     }
 

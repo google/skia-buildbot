@@ -226,9 +226,16 @@ export class SearchPageSk extends ElementSk {
         this._changelistId = (newState.issue as string) || null;
         this._includeDigestsFromPrimary = (newState.master as boolean) || null;
         this._patchset = (newState.patchsets as number) || null;
-        this._render();
-        this._fetchChangeListSummary(); // Called here because the RPC needs the CRS and CL number.
+
+        // These RPCs are only called once during the page's lifetime.
+        this._fetchCorporaOnce();
+        this._fetchParamSetOnce();
+        this._maybeFetchChangeListSummaryOnce(); // Only called if the CL/CRS URL params are set.
+
+        // Called every time the state changes.
         this._fetchSearchResults();
+
+        this._render();
       },
     );
   }
@@ -245,11 +252,6 @@ export class SearchPageSk extends ElementSk {
 
     this._helpDialog = this.querySelector('dialog.help');
     dialogPolyfill.registerDialog(this._helpDialog!);
-
-    // It suffices to fetch the corpora and paramset once. We assume they don't change during the
-    // lifecycle of the page. Worst case, the user will have to reload to get any new parameters.
-    this._fetchCorpora();
-    this._fetchParamSet();
   }
 
   disconnectedCallback() {
@@ -257,7 +259,10 @@ export class SearchPageSk extends ElementSk {
     document.removeEventListener('keydown', this._keyDownEventHandlerFn!);
   }
 
-  private async _fetchCorpora() {
+  private async _fetchCorporaOnce() {
+    // Only fetch once. We assume this doesn't change during the page's lifetime.
+    if (this._corpora.length > 0) return;
+
     try {
       sendBeginTask(this);
       const statusResponse: StatusResponse =
@@ -270,7 +275,10 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async _fetchParamSet(changeListId?: number) {
+  private async _fetchParamSetOnce(changeListId?: number) {
+    // Only fetch once. We assume this doesn't change during the page's lifetime.
+    if (Object.keys(this._paramSet).length > 0) return;
+
     try {
       sendBeginTask(this);
       const paramSetResponse: ParamSetResponse =
@@ -297,12 +305,11 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async _fetchChangeListSummary() {
+  private async _maybeFetchChangeListSummaryOnce() {
     // We can skip this RPC if no CL information has been provided via URL parameters.
     if (!this._crs || !this._changelistId) return;
 
-    // It suffices to fetch the changelist summary only once because it's not possible to change the
-    // CL or CRS via the UI.
+    // Only fetch once. This is OK because the changelist cannot be changed via the UI.
     if (this._changeListSummaryResponse) return;
 
     try {
