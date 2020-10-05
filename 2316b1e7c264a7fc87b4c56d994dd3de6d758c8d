@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ee96b5a4_54399d9e",
+        "filename": "golden/go/baseline/simple_baseliner/simple_baseliner_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-05T18:39:25Z",
+      "side": 1,
+      "message": "Addressed in https://skia-review.googlesource.com/c/buildbot/+/322558.",
+      "parentUuid": "71a66167_b50db01f",
+      "range": {
+        "startLine": 108,
+        "startChar": 44,
+        "endLine": 108,
+        "endChar": 50
+      },
+      "revId": "2316b1e7c264a7fc87b4c56d994dd3de6d758c8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "83081501_cc7ccb59",
