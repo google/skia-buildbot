@@ -365,13 +365,13 @@ export class ExploreSk extends ElementSk {
         </div>
     </div>
     <details>
-      <summary><h2>Time Range</h2></summary>
+      <summary>Time Range</summary>
       <domain-picker-sk id=range>
       </domain-picker-sk>
     </details>
 
     <details>
-      <summary><h2>Calculated Traces</h2></summary>
+      <summary>Calculated Traces</summary>
       <div class=formulas>
         <textarea id=formula rows=3 cols=80></textarea>
         <button @click=${() => ele.addCalculated(true)}>Plot</button>

@@ -8,25 +8,12 @@ triage-page-sk {
     border: solid 1px var(--on-background);
   }
 
-  summary h2 {
-    display: inline-block;
-    margin: 0;
-  }
-
   header {
     display: flex;
   }
 
   details {
     display: inline-block;
-    margin: 1em 0.4em;
-    padding: 1em;
-    background: var(--surface);
-  }
-
-  details[open] {
-    border: solid 1px var(--on-surface);
-    background: var(--surface);
   }
 
   details table {
@@ -34,11 +21,11 @@ triage-page-sk {
   }
 
   summary {
-    padding: 0 0.6em;
+    margin-right: 8px;
   }
 
   summary:focus {
-    outline: dashed 2px var(--primary);
+    outline: dashed 1px var(--primary);
     outline-offset: 3px;
   }
 

@@ -106,12 +106,12 @@ export class ClusterLastNPageSk extends ElementSk {
       <button @click=${ele.alertEdit}>
         ${ClusterLastNPageSk.configTitle(ele)}
       </button>
+      <p>
+        You can optionally change the range of commits over which the Alert is run:
+      </p>
       <details>
         <summary>
-          <p>
-            You can optionally change the range of commits over which the Alert
-            is run:
-          </p>
+          Range
         </summary>
         <domain-picker-sk
           id="range"

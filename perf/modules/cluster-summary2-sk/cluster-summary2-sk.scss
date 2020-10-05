@@ -1,6 +1,10 @@
 @import '../themes/themes.scss';
 
 cluster-summary2-sk {
+  #status button {
+    margin-right: 8px;
+  }
+
   .actions button {
     min-width: 0;
     text-transform: none;
@@ -57,9 +61,14 @@ cluster-summary2-sk {
     border: solid var(--light-gray) 1px;
     display: flex;
     flex-flow: wrap column;
+
     triage2-sk {
       margin: 8px;
     }
+  }
+
+  #status > button {
+    margin: 8px;
   }
 
   #status.disabled .disabledMessage {
