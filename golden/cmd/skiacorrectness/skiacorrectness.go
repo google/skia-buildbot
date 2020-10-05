@@ -536,10 +536,10 @@ func main() {
 	v1JSON(trim(shared.KnownHashesRouteV1), handlers.TextKnownHashesProxy).Methods("GET")
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
-	v0(trim(shared.ExpectationsRoute), handlers.BaselineHandler, jsonRouter).Methods("GET")
-	v1JSON(trim(shared.ExpectationsRouteV1), handlers.BaselineHandler).Methods("GET")
+	v0(trim(shared.ExpectationsRoute), handlers.BaselineHandlerV1, jsonRouter).Methods("GET")
+	v1JSON(trim(shared.ExpectationsRouteV1), handlers.BaselineHandlerV1).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
-	v0(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandler, jsonRouter).Methods("GET")
+	v0(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandlerV1, jsonRouter).Methods("GET")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.
