@@ -1,0 +1,56 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005370578",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/321457?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "81b4ce8c_010d4f97",
+        "filename": "autoroll/config/tint-dawn.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T16:31:28Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 1,
+        "startChar": 56,
+        "endLine": 1,
+        "endChar": 62
+      },
+      "revId": "7edc7c3fe16bb6d7379ad919d4024b605408c60d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005370578",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/321457?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "002163f1_84e0f24d",
+        "filename": "autoroll/config/tint-dawn.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T16:31:28Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 37,
+        "startChar": 21,
+        "endLine": 37,
+        "endChar": 27
+      },
+      "revId": "7edc7c3fe16bb6d7379ad919d4024b605408c60d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
