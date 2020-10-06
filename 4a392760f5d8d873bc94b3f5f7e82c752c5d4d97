@@ -97,6 +97,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "39c099f5_063657a2",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:18:48Z",
+      "side": 1,
+      "message": "Ubernit: null is typically used to represent the intentional absence of a value.\n\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+      "parentUuid": "39cd5931_4f027d6b",
+      "range": {
+        "startLine": 326,
+        "startChar": 2,
+        "endLine": 326,
+        "endChar": 49
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "142cfbb0_61eb731b",
         "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
         "patchSetId": 5
