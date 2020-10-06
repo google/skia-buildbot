@@ -1,0 +1,108 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005372259",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d55",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "70c11053_deaf199c",
+        "filename": "bugs-central/go/bugs/monorail.go",
+        "patchSetId": 55
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T18:05:31Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 148,
+        "startChar": 95,
+        "endLine": 148,
+        "endChar": 101
+      },
+      "revId": "897f42a4de0c8077ff54d85e59afe9ffdd0199ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005372259",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d55",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "94e8835d_1b4a1d70",
+        "filename": "bugs-central/go/db/db.go",
+        "patchSetId": 55
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T18:05:31Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 1
+      },
+      "revId": "897f42a4de0c8077ff54d85e59afe9ffdd0199ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005372259",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d55",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "77e08ce2_4c1d8125",
+        "filename": "bugs-central/go/main.go",
+        "patchSetId": 55
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T18:05:31Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 125,
+        "startChar": 9,
+        "endLine": 125,
+        "endChar": 12
+      },
+      "revId": "897f42a4de0c8077ff54d85e59afe9ffdd0199ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005372259",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d55",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "040c968b_55f47806",
+        "filename": "bugs-central/go/main.go",
+        "patchSetId": 55
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T18:05:31Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 174,
+        "startChar": 11,
+        "endLine": 174,
+        "endChar": 15
+      },
+      "revId": "897f42a4de0c8077ff54d85e59afe9ffdd0199ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
