@@ -28,7 +28,7 @@ describe('commits-table-sk', () => {
     const ep = eventPromise('end-task');
     newDataInstance() as CommitsDataSk;
     await ep;
-    return newTableInstance((el) => ((<CommitsTableSk>el).filter = 'all')) as CommitsTableSk;
+    return newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
   };
 
   it('displays multiple commit tasks', async () => {
@@ -96,33 +96,40 @@ describe('commits-table-sk', () => {
       'Only-Failed-On-Commented-Commit-Spec',
     ]);
 
-    table.filter = 'interesting';
+    const clickLabel = (i: number, expectText: string) => {
+      const label = $('label.specFilter', table)[i] as HTMLLabelElement;
+      expect(label.innerText).to.contain(expectText);
+      label.click();
+    };
+    clickLabel(0, 'Interesting');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);
 
-    table.filter = 'failures';
+    clickLabel(1, 'Failures');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Red-Spec',
       'Interesting-Spec',
     ]);
 
-    table.filter = 'nocomment';
+    clickLabel(2, 'Comments');
+    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
+      'Always-Red-Spec',
+    ]);
+    clickLabel(3, 'Failing w/o comment');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);
 
-    table.filter = 'comments';
-    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
-      'Always-Red-Spec',
-    ]);
-
-    table.filter = 'search';
-    table.search = 'Always';
-    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
-      'Always-Green-Spec',
-      'Always-Red-Spec',
-    ]);
+    const searchbox = $$('input', table) as HTMLInputElement;
+    searchbox.value = 'Always';
+    searchbox.blur();
+    setTimeout(() => {
+      expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
+        'Always-Green-Spec',
+        'Always-Red-Spec',
+      ]);
+    }, 0);
   });
   describe('dialog', () => {
     it('opens and closes properly', async () => {

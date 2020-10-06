@@ -17,12 +17,14 @@ import { styleMap } from 'lit-html/directives/style-map';
 import { classMap } from 'lit-html/directives/class-map';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+import 'elements-sk/radio-sk';
 import 'elements-sk/select-sk';
-import 'elements-sk/icon/comment-icon-sk';
-import 'elements-sk/icon/texture-icon-sk';
 import 'elements-sk/icon/block-icon-sk';
-import 'elements-sk/icon/undo-icon-sk';
+import 'elements-sk/icon/comment-icon-sk';
+import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/redo-icon-sk';
+import 'elements-sk/icon/texture-icon-sk';
+import 'elements-sk/icon/undo-icon-sk';
 import '../commits-data-sk';
 import '../details-dialog-sk';
 import {
@@ -35,29 +37,77 @@ import {
 import { Task } from '../rpc/status';
 import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
 
-const CATEGORY_START_ROW = 1;
-const SUBCATEGORY_START_ROW = 2;
-const TASKSPEC_START_ROW = 3;
+const CONTROL_START_ROW = 1;
+const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
+const SUBCATEGORY_START_ROW = CATEGORY_START_ROW + 1;
+const TASKSPEC_START_ROW = SUBCATEGORY_START_ROW + 1;
+
+const COMMIT_START_COL = 1;
+const TASK_START_COL = COMMIT_START_COL + 1;
 
 const REVERT_HIGHLIGHT_CLASS = 'highlight-revert';
 const RELAND_HIGHLIGHT_CLASS = 'highlight-reland';
 
-enum Filter {
-  'interesting',
-  'failures',
-  'all',
-  'nocomment',
-  'comments',
-  'search',
+type Filter = 'Interesting' | 'Failures' | 'All' | 'Nocomment' | 'Comments' | 'Search';
+
+interface FilterInfo {
+  text: string;
+  title: string;
 }
+const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
+  [
+    'Interesting',
+    {
+      text: 'Interesting',
+      title: 'Tasks which have both successes and failures within the visible commit window.',
+    },
+  ],
+  [
+    'Failures',
+    {
+      text: 'Failures',
+      title: 'Tasks which have failures within the visible commit window.',
+    },
+  ],
+  [
+    'Comments',
+    {
+      text: 'Comments',
+      title: 'Tasks which have comments.',
+    },
+  ],
+  [
+    'Nocomment',
+    {
+      text: 'Failing w/o comment',
+      title: 'Tasks which have failures within the visible commit window but have no comments.',
+    },
+  ],
+  [
+    'All',
+    {
+      text: 'All',
+      title: 'Display all tasks.',
+    },
+  ],
+  [
+    'Search',
+    {
+      text: ' ',
+      title:
+        'Enter a search string. Substrings and regular expressions may be used, per the Javascript String match() rules.',
+    },
+  ],
+]);
 
 export class CommitsTableSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
-  private _filter: Filter = Filter.interesting;
+  private _filter: Filter = 'Interesting';
   private _search: RegExp = new RegExp('');
+  private lastColumn: number = 1;
 
   private static template = (el: CommitsTableSk) => html`<div class="commitsTableContainer">
-    <div class="legend" style=${el.gridLocation(1, 1, 4)}>
+    <div class="legend" style=${el.gridLocation(CATEGORY_START_ROW, 1, TASKSPEC_START_ROW + 1)}>
       <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
       <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
       <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
@@ -65,6 +115,51 @@ export class CommitsTableSk extends ElementSk {
       <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
     </div>
     <div class="tasksTable">${el.fillTableTemplate()}</div>
+
+    <div
+      class="controls"
+      style=${el.gridLocation(CONTROL_START_ROW, 1, CONTROL_START_ROW + 1, el.lastColumn)}
+    >
+      <div class="horizontal">
+        <div class="commitLabelSelector">
+          ${['Author', 'Subject'].map(
+            (label, i) => html` <radio-sk
+              class="tiny"
+              label=${label}
+              name="commitLabel"
+              ?checked=${!!i === el.displayCommitSubject}
+              @change=${el.toggleCommitLabel}
+            ></radio-sk>`
+          )}
+        </div>
+
+        <div class="horizontal">
+          ${Array.from(FILTER_INFO).map(
+            ([filter, info]) => html` <label class="specFilter" title=${info.title}>
+              <radio-sk
+                class="tiny"
+                label=""
+                id=${`${filter}Filter`}
+                name="specFilter"
+                ?checked=${el._filter === filter}
+                @change=${() => (el.filter = filter)}
+              >
+              </radio-sk>
+              <span>
+                ${info.text}
+                ${filter !== 'Search'
+                  ? // For Search, we put the help icon after the search input.
+                    html`<help-icon-sk class="tiny"></help-icon-sk>`
+                  : html``}
+              </span>
+            </label>`
+          )}
+          <input-sk label="Filter task spec" @change=${el.searchFilter} no-label-float> </input-sk>
+          <help-icon-sk class="tiny"></help-icon-sk>
+        </div>
+      </div>
+    </div>
+
     <details-dialog-sk .repo=${el.data().repo}></details-dialog-sk>
   </div>`;
 
@@ -81,6 +176,12 @@ export class CommitsTableSk extends ElementSk {
 
   disconnectedCallback() {
     document.removeEventListener('click', this.onClick);
+  }
+
+  _render() {
+    console.time('render');
+    super._render();
+    console.timeEnd('render');
   }
 
   get displayCommitSubject() {
@@ -100,12 +201,12 @@ export class CommitsTableSk extends ElementSk {
     });
   }
 
-  get filter(): string {
-    return Filter[this._filter];
+  get filter(): Filter {
+    return this._filter;
   }
 
-  set filter(v: string) {
-    this._filter = (<any>Filter)[v] || Filter.interesting;
+  set filter(v: Filter) {
+    this._filter = v;
     this.draw();
   }
 
@@ -116,6 +217,11 @@ export class CommitsTableSk extends ElementSk {
   set search(v: string) {
     this._search = new RegExp(v, 'i');
     this.draw();
+  }
+
+  private searchFilter(e: Event) {
+    this._filter = 'Search'; // Use the private member to avoid double-render
+    this.search = (<HTMLInputElement>e.target).value;
   }
 
   // Arrow notation to allow for reference of same function in removeEventListener.
@@ -141,6 +247,9 @@ export class CommitsTableSk extends ElementSk {
     }
   };
 
+  private toggleCommitLabel() {
+    this.displayCommitSubject = !this.displayCommitSubject;
+  }
   /**
    * gridLocation returns a lit StyleMap Part to inline on an element to place it between the
    * provided css grid row and column tracks.
@@ -166,17 +275,17 @@ export class CommitsTableSk extends ElementSk {
       return true;
     }
     switch (this._filter) {
-      case Filter.all:
+      case 'All':
         return true;
-      case Filter.comments:
+      case 'Comments':
         return specDetails.hasComment();
-      case Filter.nocomment:
+      case 'Nocomment':
         return specDetails.hasFailingNoComment();
-      case Filter.failures:
+      case 'Failures':
         return specDetails.hasFailing();
-      case Filter.interesting:
+      case 'Interesting':
         return specDetails.interesting();
-      case Filter.search:
+      case 'Search':
         return this._search.test(taskSpec);
     }
   }
@@ -268,7 +377,7 @@ export class CommitsTableSk extends ElementSk {
 
   addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
     const taskSpecStartCols: Map<TaskSpec, number> = new Map();
-    let categoryStartCol = 2; // first column is commits.
+    let categoryStartCol = TASK_START_COL;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
     this.data().categories.forEach((categoryDetails: CategorySpec, categoryName: string) => {
@@ -429,6 +538,9 @@ export class CommitsTableSk extends ElementSk {
     const res: Array<TemplateResult> = [];
     // Add headers and get grid column number of each TaskSpec.
     const taskSpecStartCols: Map<TaskSpec, number> = this.addTaskHeaders(res);
+    // We use lastColumn to ensure our controls panel and row underlay covers all columns, always
+    // at least 1 more than the commits panel, even if we have no tasks displayed.
+    this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
     const taskStartRow = TASKSPEC_START_ROW + 1;
     const tasksAddedToTemplate: Set<TaskId> = new Set();
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
@@ -439,7 +551,7 @@ export class CommitsTableSk extends ElementSk {
       res.push(
         html`<div
           class="commit ${this.attributeStringFromHash(commit.hash)}"
-          style=${this.gridLocation(rowStart, 1)}
+          style=${this.gridLocation(rowStart, COMMIT_START_COL)}
           title=${title}
           data-commit-index=${i}
         >
@@ -454,7 +566,7 @@ export class CommitsTableSk extends ElementSk {
     // Add a single div covering the grid, behind everything, that highlights alternate rows.
     let row = taskStartRow;
     const nextRowDiv = () => html` <div
-      style=${this.gridLocation(row, 1, ++row, taskSpecStartCols.size + 2)}
+      style=${this.gridLocation(row, 1, ++row, this.lastColumn)}
     ></div>`;
     res.push(html` <div class="rowUnderlay">
       ${Array(this.data().commits.length).fill(1).map(nextRowDiv)}
