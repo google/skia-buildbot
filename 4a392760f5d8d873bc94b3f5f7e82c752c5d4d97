@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "67d0d9ba_f4bb7c8b",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-06T14:14:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dffaf87f_e9234b18",
+      "range": {
+        "startLine": 125,
+        "startChar": 34,
+        "endLine": 125,
+        "endChar": 37
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "649a09bb_9a73c261",
@@ -49,6 +73,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "39cd5931_4f027d6b",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-06T14:14:30Z",
+      "side": 1,
+      "message": "The compiler doesn\u0027t like it:\nVariable \u0027dragStartX\u0027 implicitly has type \u0027any\u0027 in some locations where its type cannot be determined.",
+      "parentUuid": "649a09bb_9a73c261",
+      "range": {
+        "startLine": 326,
+        "startChar": 2,
+        "endLine": 326,
+        "endChar": 49
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "142cfbb0_61eb731b",
         "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
         "patchSetId": 5
@@ -60,6 +108,30 @@
       "writtenOn": "2020-10-06T13:29:58Z",
       "side": 1,
       "message": "Another to toss up to the top, probably.",
+      "range": {
+        "startLine": 353,
+        "startChar": 26,
+        "endLine": 353,
+        "endChar": 28
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b63c3b02_35d5aa9e",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-06T14:14:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "142cfbb0_61eb731b",
       "range": {
         "startLine": 353,
         "startChar": 26,
