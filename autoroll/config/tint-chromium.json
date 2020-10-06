@@ -1,0 +1,51 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Tint",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://dawn.googlesource.com/tint.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
+  "contacts": [
+    "radial-bots+tint-roll@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "tint-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
+  ],
+  "sheriffBackup": [
+    "radial-bots+tint-roll@google.com"
+  ],
+  "supportsManualRolls": true,
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "main",
+    "childPath": "src/third_party/tint/src",
+    "childRepo": "https://dawn.googlesource.com/tint.git",
+    "childRevLinkTmpl": "https://dawn.googlesource.com/tint.git/+show/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0s"
+}
