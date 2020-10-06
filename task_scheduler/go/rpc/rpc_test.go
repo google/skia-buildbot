@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
@@ -14,6 +15,7 @@ import (
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
@@ -40,7 +42,7 @@ var (
 	admins  = allowed.NewAllowedFromList([]string{admin})
 )
 
-func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, func()) {
+func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, *swarming.MockApiClient, func()) {
 	ctx := context.Background()
 
 	// Git repo.
@@ -122,9 +124,11 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	}
 	require.NoError(t, d.PutTask(task))
 
+	swarm := swarming.NewMockApiClient()
+
 	// Create the service.
-	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, viewers, editors, admins)
-	return ctx, srv, task, job, skipRule, func() {
+	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, swarm, viewers, editors, admins)
+	return ctx, srv, task, job, skipRule, swarm, func() {
 		btCleanup()
 		cleanupFS()
 	}
@@ -133,7 +137,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 func TestTriggerJobs(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, _, _, cleanup := setup(t)
+	ctx, srv, _, _, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	commit := srv.repos[fakeRepo].Get(git.DefaultBranch).Hash
@@ -176,7 +180,7 @@ func TestTriggerJobs(t *testing.T) {
 func TestGetJob(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, job, _, cleanup := setup(t)
+	ctx, srv, _, job, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &GetJobRequest{
@@ -208,7 +212,7 @@ func TestGetJob(t *testing.T) {
 func TestCancelJob(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, job, _, cleanup := setup(t)
+	ctx, srv, _, job, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &CancelJobRequest{
@@ -242,7 +246,7 @@ func TestCancelJob(t *testing.T) {
 func TestSearchJobs(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, job, _, cleanup := setup(t)
+	ctx, srv, _, job, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &SearchJobsRequest{}
@@ -269,7 +273,7 @@ func TestSearchJobs(t *testing.T) {
 func TestGetTask(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, task, _, _, cleanup := setup(t)
+	ctx, srv, task, _, _, swarm, cleanup := setup(t)
 	defer cleanup()
 
 	req := &GetTaskRequest{
@@ -291,14 +295,37 @@ func TestGetTask(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res.Task)
 	require.Equal(t, task.Id, res.Task.Id)
+	require.Nil(t, res.Task.Stats)
 	// Don't bother checking other fields, since we have a separate test for
 	// convertTask.
+
+	// Now, verify that we retrieve task stats when requested.
+	swarm.On("GetTask", task.SwarmingTaskId, true).Return(&swarming_api.SwarmingRpcsTaskResult{
+		PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
+			BotOverhead: 10.0,
+			IsolatedDownload: &swarming_api.SwarmingRpcsOperationStats{
+				Duration: 6.0,
+			},
+			IsolatedUpload: &swarming_api.SwarmingRpcsOperationStats{
+				Duration: 4.0,
+			},
+		},
+	}, nil)
+	req.IncludeStats = true
+	res, err = srv.GetTask(ctx, req)
+	require.NoError(t, err)
+	require.NotNil(t, res.Task)
+	require.Equal(t, task.Id, res.Task.Id)
+	require.NotNil(t, res.Task.Stats)
+	require.Equal(t, float32(10.0), res.Task.Stats.TotalOverheadS)
+	require.Equal(t, float32(6.0), res.Task.Stats.DownloadOverheadS)
+	require.Equal(t, float32(4.0), res.Task.Stats.UploadOverheadS)
 }
 
 func TestSearchTasks(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, task, _, _, cleanup := setup(t)
+	ctx, srv, task, _, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &SearchTasksRequest{}
@@ -325,7 +352,7 @@ func TestSearchTasks(t *testing.T) {
 func TestGetSkipTaskRules(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, _, skipRule, cleanup := setup(t)
+	ctx, srv, _, _, skipRule, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &GetSkipTaskRulesRequest{}
@@ -354,7 +381,7 @@ func TestGetSkipTaskRules(t *testing.T) {
 func TestAddSkipTaskRule(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, _, skipRule, cleanup := setup(t)
+	ctx, srv, _, _, skipRule, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &AddSkipTaskRuleRequest{
@@ -397,7 +424,7 @@ func TestAddSkipTaskRule(t *testing.T) {
 func TestDeleteSkipTaskRule(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, srv, _, _, skipRule, cleanup := setup(t)
+	ctx, srv, _, _, skipRule, _, cleanup := setup(t)
 	defer cleanup()
 
 	req := &DeleteSkipTaskRuleRequest{
@@ -506,6 +533,15 @@ func TestConvertTask(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+
+	// Fake the Stats to appease assertdeep.Copy; Stats aren't set in
+	// convertTask.
+	actual.Stats = &TaskStats{
+		DownloadOverheadS: 5,
+		UploadOverheadS:   4,
+		TotalOverheadS:    9,
+	}
+
 	assertdeep.Copy(t, &Task{
 		Attempt:        1,
 		Commits:        []string{"abc123"},
@@ -538,6 +574,12 @@ func TestConvertTask(t *testing.T) {
 			},
 			Name:        "my-task",
 			ForcedJobId: "forced-job",
+		},
+		// Not set in convertTask.
+		Stats: &TaskStats{
+			DownloadOverheadS: 5,
+			UploadOverheadS:   4,
+			TotalOverheadS:    9,
 		},
 	}, actual)
 }
