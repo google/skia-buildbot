@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6af44910_d202cccd",
+        "filename": "task_scheduler/go/rpc/rpc.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:49:21Z",
+      "side": 1,
+      "message": "Consider using google.protobuf.Duration for these.\n\nhttps://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration",
+      "range": {
+        "startLine": 343,
+        "startChar": 1,
+        "endLine": 343,
+        "endChar": 6
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "700a9226_fa3b4316",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:49:21Z",
+      "side": 1,
+      "message": "Array.from(lanes.values())",
+      "range": {
+        "startLine": 73,
+        "startChar": 13,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4c705d2b_2c581cd2",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:49:21Z",
+      "side": 1,
+      "message": "You can simply omit these fields if they are marked as optional (with the question mark symbol) in the Data interface defined in the parent CL.",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 0
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ddc1bb6a_e296a6d7",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk_puppeteer_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:49:21Z",
+      "side": 1,
+      "message": "Same nit as in the parent CL.",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 56
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c432324a_c55fab43",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:49:21Z",
+      "side": 1,
+      "message": "Please remove if there are no behaviors under test.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 0
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
