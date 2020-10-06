@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3369d406_12210eab",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-06T13:36:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d82a970_0e283ec2",
+      "range": {
+        "startLine": 62,
+        "startChar": 14,
+        "endLine": 62,
+        "endChar": 18
+      },
+      "revId": "6429a5696fe0f677cb6de4c22de95224f8970f73",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "aa013fb5_0e57b68f",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-06T11:15:00Z",
       "side": 1,
       "message": "Super optional suggestion: save some lines by changing this to:\n\nconst clickLabel \u003d (i: number, expectText: string) \u003d\u003e {\n  const label \u003d $(\u0027label.specFilter\u0027, table)[i] as HTMLLabelElement;\n  expect(label.innerText).to.contain(expectText);\n  label.click();\n};",
+      "range": {
+        "startLine": 99,
+        "startChar": 10,
+        "endLine": 99,
+        "endChar": 24
+      },
+      "revId": "6429a5696fe0f677cb6de4c22de95224f8970f73",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de10640d_a4f5b4e6",
+        "filename": "status/modules/commits-table-sk/commits-table-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-06T13:36:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa013fb5_0e57b68f",
       "range": {
         "startLine": 99,
         "startChar": 10,
