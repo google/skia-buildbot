@@ -66,6 +66,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "c260f3e2_466bac44",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-06T20:49:04Z",
+      "side": 1,
+      "message": "These can be marked optional with the question mark:\n\n  export interface Data {\n    lanes: Lane[],\n    start?: Date,\n    end?: Date,\n    epochs?: Date[],\n  }",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 0
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "60b4d7ec_689db6f1",
         "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
         "patchSetId": 8
