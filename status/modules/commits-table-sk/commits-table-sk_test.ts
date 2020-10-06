@@ -96,33 +96,27 @@ describe('commits-table-sk', () => {
       'Only-Failed-On-Commented-Commit-Spec',
     ]);
 
-    const getFilterLabel = (i: number) => {
-      return $('label.specFilter', table)[i] as HTMLLabelElement;
+    const clickLabel = (i: number, expectText: string) => {
+      const label = $('label.specFilter', table)[i] as HTMLLabelElement;
+      expect(label.innerText).to.contain(expectText);
+      label.click();
     };
-    let label = getFilterLabel(0);
-    expect(label.innerText).to.contain('Interesting');
-    label.click();
+    clickLabel(0, 'Interesting');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);
 
-    label = getFilterLabel(1);
-    expect(label.innerText).to.contain('Failures');
-    label.click();
+    clickLabel(1, 'Failures');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Red-Spec',
       'Interesting-Spec',
     ]);
 
-    label = getFilterLabel(2);
-    expect(label.innerText).to.contain('Comments');
-    label.click();
+    clickLabel(2, 'Comments');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Red-Spec',
     ]);
-    label = getFilterLabel(3);
-    expect(label.innerText).to.contain('Failing w/o comment');
-    label.click();
+    clickLabel(3, 'Failing w/o comment');
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Interesting-Spec',
     ]);

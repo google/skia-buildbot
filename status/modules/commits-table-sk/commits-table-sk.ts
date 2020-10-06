@@ -42,7 +42,8 @@ const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
 const SUBCATEGORY_START_ROW = CATEGORY_START_ROW + 1;
 const TASKSPEC_START_ROW = SUBCATEGORY_START_ROW + 1;
 
-const COMMIT_START_COL = 1;
+const BRANCH_START_COL = 1;
+const COMMIT_START_COL = BRANCH_START_COL + 1;
 const TASK_START_COL = COMMIT_START_COL + 1;
 
 const REVERT_HIGHLIGHT_CLASS = 'highlight-revert';
@@ -59,35 +60,35 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     'Interesting',
     {
       text: 'Interesting',
-      title: 'Bots which have both successes and failures within the visible commit window.',
+      title: 'Tasks which have both successes and failures within the visible commit window.',
     },
   ],
   [
     'Failures',
     {
       text: 'Failures',
-      title: 'Bots which have failures within the visible commit window.',
+      title: 'Tasks which have failures within the visible commit window.',
     },
   ],
   [
     'Comments',
     {
       text: 'Comments',
-      title: 'Bots which have comments.',
+      title: 'Tasks which have comments.',
     },
   ],
   [
     'Nocomment',
     {
       text: 'Failing w/o comment',
-      title: 'Bots which have failures within the visible commit window but have no comments.',
+      title: 'Tasks which have failures within the visible commit window but have no comments.',
     },
   ],
   [
     'All',
     {
       text: 'All',
-      title: 'Display all bots.',
+      title: 'Display all tasks.',
     },
   ],
   [
@@ -104,10 +105,14 @@ export class CommitsTableSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
   private _filter: Filter = 'Interesting';
   private _search: RegExp = new RegExp('');
+  private lastLoaded: string = '(not yet loaded)';
   private lastColumn: number = 1;
 
   private static template = (el: CommitsTableSk) => html`<div class="commitsTableContainer">
-    <div class="legend" style=${el.gridLocation(CATEGORY_START_ROW, 1, TASKSPEC_START_ROW + 1)}>
+    <div
+      class="legend"
+      style=${el.gridLocation(CATEGORY_START_ROW, COMMIT_START_COL, TASKSPEC_START_ROW + 1)}
+    >
       <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
       <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
       <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
@@ -116,9 +121,25 @@ export class CommitsTableSk extends ElementSk {
     </div>
     <div class="tasksTable">${el.fillTableTemplate()}</div>
 
+    TODO(westont): get reload and commits_to_load plumbed around. this would be easier if we combine
+    the elements first.
+
+    <div class="reloadControls" style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL)}>
+      <div class="refresh">
+        <input-sk type="number" textPrefix="Reload (s): " auto-validate no-label-float> </input-sk>
+        <input-sk type="number" textPrefix="Commits: " auto-validate no-label-float> </input-sk>
+        <div class="lastLoaded">Loaded ${el.lastLoaded}</div>
+      </div>
+    </div>
     <div
       class="controls"
-      style=${el.gridLocation(CONTROL_START_ROW, 1, CONTROL_START_ROW + 1, el.lastColumn)}
+      style=${el.gridLocation(
+        CONTROL_START_ROW,
+        COMMIT_START_COL,
+        CONTROL_START_ROW + 1,
+        // We render this after the table so we know our last column.
+        el.lastColumn
+      )}
     >
       <div class="horizontal">
         <div class="commitLabelSelector">
@@ -169,19 +190,13 @@ export class CommitsTableSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    this._render();
-    this.data().addEventListener('end-task', () => this._render());
+    this.draw();
+    this.data().addEventListener('end-task', () => this.draw());
     document.addEventListener('click', this.onClick);
   }
 
   disconnectedCallback() {
     document.removeEventListener('click', this.onClick);
-  }
-
-  _render() {
-    console.time('render');
-    super._render();
-    console.timeEnd('render');
   }
 
   get displayCommitSubject() {
@@ -644,7 +659,10 @@ export class CommitsTableSk extends ElementSk {
   }
 
   draw() {
+    this.lastLoaded = new Date().toLocaleTimeString();
+    console.time('draw');
     this._render();
+    console.timeEnd('draw');
   }
 }
 
