@@ -13,7 +13,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { Commit } from '../commits-data-sk/commits-data-sk';
+import { Commit } from '../commits-table-sk/commits-table-sk';
 import { Task, Comment } from '../rpc';
 import { CommentData } from '../comments-sk/comments-sk';
 import { revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../settings';
