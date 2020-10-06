@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dffaf87f_e9234b18",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-06T13:29:58Z",
+      "side": 1,
+      "message": "nit: I think this magic number should be declared above with the others.",
+      "range": {
+        "startLine": 125,
+        "startChar": 34,
+        "endLine": 125,
+        "endChar": 37
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "649a09bb_9a73c261",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-06T13:29:58Z",
+      "side": 1,
+      "message": "I think you can write this as\nlet dragStartX?: number;",
+      "range": {
+        "startLine": 326,
+        "startChar": 2,
+        "endLine": 326,
+        "endChar": 49
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "142cfbb0_61eb731b",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-06T13:29:58Z",
+      "side": 1,
+      "message": "Another to toss up to the top, probably.",
+      "range": {
+        "startLine": 353,
+        "startChar": 26,
+        "endLine": 353,
+        "endChar": 28
+      },
+      "revId": "4a392760f5d8d873bc94b3f5f7e82c752c5d4d97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
