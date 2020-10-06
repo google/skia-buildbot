@@ -165,15 +165,18 @@ const JSONToSearchJobsResponse = (m: SearchJobsResponseJSON): SearchJobsResponse
 
 export interface GetTaskRequest {
   id: string;
+  includeStats: boolean;
 }
 
 interface GetTaskRequestJSON {
   id?: string;
+  include_stats?: boolean;
 }
 
 const GetTaskRequestToJSON = (m: GetTaskRequest): GetTaskRequestJSON => {
   return {
     id: m.id,
+    include_stats: m.includeStats,
   };
 };
 
@@ -461,6 +464,7 @@ export interface Task {
   swarmingBotId: string;
   swarmingTaskId: string;
   taskKey?: TaskKey;
+  stats?: TaskStats;
 }
 
 interface TaskJSON {
@@ -481,6 +485,7 @@ interface TaskJSON {
   swarming_bot_id?: string;
   swarming_task_id?: string;
   task_key?: TaskKeyJSON;
+  stats?: TaskStatsJSON;
 }
 
 const JSONToTask = (m: TaskJSON): Task => {
@@ -502,6 +507,7 @@ const JSONToTask = (m: TaskJSON): Task => {
     swarmingBotId: m.swarming_bot_id || "",
     swarmingTaskId: m.swarming_task_id || "",
     taskKey: m.task_key && JSONToTaskKey(m.task_key),
+    stats: m.stats && JSONToTaskStats(m.stats),
   };
 };
 
@@ -579,6 +585,26 @@ const JSONToTaskDimensions = (m: TaskDimensionsJSON): TaskDimensions => {
   return {
     taskName: m.task_name || "",
     dimensions: m.dimensions,
+  };
+};
+
+export interface TaskStats {
+  totalOverheadS: string;
+  downloadOverheadS: string;
+  uploadOverheadS: string;
+}
+
+interface TaskStatsJSON {
+  total_overhead_s?: string;
+  download_overhead_s?: string;
+  upload_overhead_s?: string;
+}
+
+const JSONToTaskStats = (m: TaskStatsJSON): TaskStats => {
+  return {
+    totalOverheadS: m.total_overhead_s || "",
+    downloadOverheadS: m.download_overhead_s || "",
+    uploadOverheadS: m.upload_overhead_s || "",
   };
 };
 
