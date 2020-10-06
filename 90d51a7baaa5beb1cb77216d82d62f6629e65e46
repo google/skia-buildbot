@@ -1,0 +1,82 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005369058",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d52",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "67441aa8_79f3b9e3",
+        "filename": "bugs-central/go/bugs/monorail.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T14:54:32Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 148,
+        "startChar": 95,
+        "endLine": 148,
+        "endChar": 101
+      },
+      "revId": "90d51a7baaa5beb1cb77216d82d62f6629e65e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005369058",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d52",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "d77cfd61_4bf1f26a",
+        "filename": "bugs-central/go/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T14:54:32Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 125,
+        "startChar": 9,
+        "endLine": 125,
+        "endChar": 12
+      },
+      "revId": "90d51a7baaa5beb1cb77216d82d62f6629e65e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005369058",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d52",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "dced9c0b_b5d8b24d",
+        "filename": "bugs-central/go/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-06T14:54:32Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 170,
+        "startChar": 11,
+        "endLine": 170,
+        "endChar": 15
+      },
+      "revId": "90d51a7baaa5beb1cb77216d82d62f6629e65e46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
