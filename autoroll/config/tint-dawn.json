@@ -1,0 +1,48 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Tint",
+  "commitMsg": {
+    "bugProject": "dawn",
+    "childLogURLTmpl": "https://dawn.googlesource.com/tint.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "radial-bots+tint-roll@google.com"
+  ],
+  "gerrit": {
+    "url": "https://dawn-review.googlesource.com",
+    "project": "dawn",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Dawn",
+  "parentWaterfall": "TODO",
+  "rollerName": "tint-dawn",
+  "serviceAccount": "dawn-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
+  ],
+  "sheriffBackup": [
+    "radial-bots+tint-roll@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "main",
+    "childPath": "third_party/tint",
+    "childRepo": "https://dawn.googlesource.com/tint.git",
+    "childRevLinkTmpl": "https://dawn.googlesource.com/tint.git/+show/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://dawn.googlesource.com/dawn.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0s"
+}
