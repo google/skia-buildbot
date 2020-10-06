@@ -75,6 +75,7 @@ type Goldpushk struct {
 
 	// Other constructor parameters.
 	k8sConfigRepoUrl string
+	verbose          bool
 
 	// Checked out Git repository with k8s config files.
 	k8sConfigCheckout *git.TempCheckout
@@ -92,7 +93,7 @@ type Goldpushk struct {
 }
 
 // New is the Goldpushk constructor.
-func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, k8sConfigRepoUrl string) *Goldpushk {
+func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableUnit, skiaInfraRootPath string, dryRun, noCommit bool, minUptimeSeconds, uptimePollFrequencySeconds int, k8sConfigRepoUrl string, verbose bool) *Goldpushk {
 	return &Goldpushk{
 		deployableUnits:            deployableUnits,
 		canariedDeployableUnits:    canariedDeployableUnits,
@@ -102,6 +103,7 @@ func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableU
 		minUptimeSeconds:           minUptimeSeconds,
 		uptimePollFrequencySeconds: uptimePollFrequencySeconds,
 		k8sConfigRepoUrl:           k8sConfigRepoUrl,
+		verbose:                    verbose,
 	}
 }
 
@@ -887,7 +889,7 @@ func (g *Goldpushk) now() time.Time {
 }
 
 func (g *Goldpushk) execCmd(ctx context.Context, name string, args []string) error {
-	cmd := makeExecCommand(name, args)
+	cmd := makeExecCommand(name, args, g.verbose)
 	if err := exec.Run(ctx, cmd); err != nil {
 		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
 	}
@@ -895,7 +897,7 @@ func (g *Goldpushk) execCmd(ctx context.Context, name string, args []string) err
 }
 
 func (g *Goldpushk) execCmdAndReturnStdout(ctx context.Context, name string, args []string) (string, error) {
-	cmd := makeExecCommand(name, args)
+	cmd := makeExecCommand(name, args, g.verbose)
 	stdout, err := exec.RunCommand(ctx, cmd)
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
@@ -903,13 +905,16 @@ func (g *Goldpushk) execCmdAndReturnStdout(ctx context.Context, name string, arg
 	return stdout, nil
 }
 
-func makeExecCommand(name string, args []string) *exec.Command {
+func makeExecCommand(name string, args []string, debug bool) *exec.Command {
 	cmd := &exec.Command{
 		Name:        name,
 		Args:        args,
 		InheritPath: true,
 		LogStderr:   true,
 		LogStdout:   true,
+	}
+	if debug {
+		cmd.Verbose = exec.Info
 	}
 	return cmd
 }
