@@ -38,13 +38,16 @@ export class HumanDateSk extends ElementSk {
     let millis: number = 0;
     // Take the input and convert it to milliseconds.
     if (typeof this._date === 'number') {
+      console.log(this._date);
       millis = this._date;
       if (this.seconds) {
         millis *= 1000;
       }
     } else {
+      console.log(this._date);
       millis = new Date(this._date).getTime();
     }
+    console.log(millis);
 
     if (this.diff) {
       return diffDate(millis);

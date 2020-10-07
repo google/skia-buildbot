@@ -5,7 +5,7 @@
  * Displays a graph which shows the relationship between a set of tasks.
  */
 
-import { html, render, svg, TemplateResult } from 'lit-html';
+import { render, svg } from 'lit-html';
 import { define } from 'elements-sk/define';
 
 import {
