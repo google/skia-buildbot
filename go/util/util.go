@@ -482,6 +482,57 @@ func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx c
 	}
 }
 
+type chunk struct {
+	start int
+	end   int
+}
+
+// ChunkIterParallelPool is similar to ChunkIterParallel but it uses an errgroup
+// to run the chunks in parallel.
+func ChunkIterParallelPool(ctx context.Context, length, chunkSize, poolSize int, fn func(ctx context.Context, startIdx int, endIdx int) error) error {
+	if chunkSize < 1 {
+		return skerr.Fmt("chunk size may not be less than 1 (saw %d)", chunkSize)
+	}
+	if length < 0 {
+		return skerr.Fmt("length cannot be negative (saw %d)", length)
+	}
+	if poolSize < 1 {
+		return skerr.Fmt("pool size may not be less than 1 (saw %d)", poolSize)
+	}
+
+	chunkChannel := make(chan chunk)
+
+	g, eCtx := errgroup.WithContext(ctx)
+	// Start the pool of workers.
+	for i := 0; i < poolSize; i++ {
+		g.Go(func() error {
+			for chunk := range chunkChannel {
+				if err := eCtx.Err(); err != nil {
+					return skerr.Wrap(err)
+				}
+				if err := fn(ctx, chunk.start, chunk.end); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	}
+
+	chunkStart := 0
+	chunkEnd := MinInt(length, chunkSize)
+
+	for {
+		chunkChannel <- chunk{start: chunkStart, end: chunkEnd}
+		if chunkEnd == length {
+			break
+		}
+		chunkStart = chunkEnd
+		chunkEnd = MinInt(length, chunkEnd+chunkSize)
+	}
+	close(chunkChannel)
+	return g.Wait()
+}
+
 // BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
 func BugsFromCommitMsg(msg string) map[string][]string {
 	rv := map[string][]string{}
