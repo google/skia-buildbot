@@ -33,7 +33,6 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
@@ -187,8 +186,6 @@ func main() {
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
 	rand.Seed(time.Now().UnixNano())
-
-	mainTimer := timer.New("main init")
 
 	// If we are running this, we really don't want to talk to the emulator.
 	firestore.EnsureNotEmulator()
@@ -454,8 +451,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
-
-	mainTimer.Stop()
 
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.
