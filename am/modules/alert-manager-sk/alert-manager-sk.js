@@ -19,6 +19,7 @@ import 'elements-sk/tabs-sk';
 import 'elements-sk/toast-sk';
 
 import '../incident-sk';
+import '../bot-chooser-sk';
 import '../email-chooser-sk';
 import '../silence-sk';
 
@@ -138,25 +139,6 @@ function assignedTo(incident, ele) {
 }
 
 function botCentricView(ele, incidents) {
-    // Reset bots_to_incidents and populate it from scratch.
-    ele._bots_to_incidents = {};
-    for (let i = 0; i < incidents.length; i++) {
-      const incident = incidents[i];
-      if (incident.params && incident.params['bot']) {
-        // Only consider active bot incidents that are not assigned or silenced.
-        if (!incident.active || incident.params.__silence_state === 'silenced'
-                || incident.params.assigned_to) {
-          continue;
-        }
-        const botName = incident.params['bot'];
-        if(ele._bots_to_incidents[botName]) {
-          ele._bots_to_incidents[botName].push(incident);
-        } else {
-          ele._bots_to_incidents[botName] = [incident];
-        }
-      }
-    }
-
     const botsHTML = [];
     for (const botName in ele._bots_to_incidents) {
       botsHTML.push(html`
@@ -290,6 +272,7 @@ const template = (ele) => html`
 </section>
 <footer>
   <spinner-sk id=busy></spinner-sk>
+  <bot-chooser-sk id=bot-chooser></bot-chooser-sk>
   <email-chooser-sk id=chooser></email-chooser-sk>
   <error-toast-sk></error-toast-sk>
 <footer>
@@ -355,6 +338,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this.addEventListener('add-note', (e) => this._addNote(e));
     this.addEventListener('del-note', (e) => this._delNote(e));
     this.addEventListener('take', (e) => this._take(e));
+    this.addEventListener('bot-chooser', (e) => this._botChooser(e));
     this.addEventListener('assign', (e) => this._assign(e));
     this.addEventListener('assign-to-owner', (e) => this._assignToOwner(e));
 
@@ -379,6 +363,26 @@ define('alert-manager-sk', class extends HTMLElement {
       credentials: 'include',
     }).then(jsonOrThrow).then((json) => {
       this._incidents = json.incidents;
+
+      // Reset bots_to_incidents and populate it from scratch.
+      this._bots_to_incidents = {};
+      for (let i = 0; i < this._incidents.length; i++) {
+        const incident = this._incidents[i];
+        if (incident.params && incident.params['bot']) {
+          // Only consider active bot incidents that are not assigned or silenced.
+          if (!incident.active || incident.params.__silence_state === 'silenced'
+                  || incident.params.assigned_to) {
+            continue;
+          }
+          const botName = incident.params['bot'];
+          if(this._bots_to_incidents[botName]) {
+            this._bots_to_incidents[botName].push(incident);
+          } else {
+            this._bots_to_incidents[botName] = [incident];
+          }
+        }
+      }
+
       // If alert_id is specified and it is in supported rhs_states then display
       // an incident.
       if ((this._rhs_state == START || this._rhs_state == INCIDENT) &&
@@ -658,6 +662,20 @@ define('alert-manager-sk', class extends HTMLElement {
 
   _delSilenceNote(e) {
     this._doImpl('/_/del_silence_note', e.detail, (json) => this._silenceAction(json, false));
+  }
+
+  _botChooser(e) {
+    $$('#bot-chooser', this).open(this._bots_to_incidents, this._current_silence.param_set['bot']).then((bot) => {
+      const bot_incidents = this._bots_to_incidents[bot];
+      bot_incidents.forEach((i) => {
+        const bot_centric_params = {}
+        BOT_CENTRIC_PARAMS.forEach((p) => {
+          bot_centric_params[p] = i.params[p];
+        });
+        paramset.add(this._current_silence.param_set, bot_centric_params, this._ignored)
+      });
+      this._modifySilenceParam(this._current_silence);
+    });
   }
 
   _assign(e) {
