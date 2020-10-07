@@ -1,6 +1,6 @@
 @import '../styles.scss';
 
-body * {
+* {
   // We use z=1 as our 'base', so that our row highlighting underlay can exist
   // between the background(body) and content.
   z-index: 1;
