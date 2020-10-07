@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "44c518d8_fa356b9b",
+        "filename": "task_scheduler/go/rpc/rpc.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b168e77_a5d0451b",
+      "range": {
+        "startLine": 292,
+        "startChar": 4,
+        "endLine": 292,
+        "endChar": 11
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6af44910_d202cccd",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-06T20:49:21Z",
       "side": 1,
       "message": "Consider using google.protobuf.Duration for these.\n\nhttps://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration",
+      "range": {
+        "startLine": 343,
+        "startChar": 1,
+        "endLine": 343,
+        "endChar": 6
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2e2fffb_a9011657",
+        "filename": "task_scheduler/go/rpc/rpc.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Unfortunately, protoc-gen-twirp_typescript doesn\u0027t know what to do with google.protobuf.Duration.",
+      "parentUuid": "6af44910_d202cccd",
       "range": {
         "startLine": 343,
         "startChar": 1,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f53cbeef_f943b937",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9829ce16_a8dee845",
+      "range": {
+        "startLine": 4,
+        "startChar": 2,
+        "endLine": 4,
+        "endChar": 3
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "700a9226_fa3b4316",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-10-06T20:49:21Z",
       "side": 1,
       "message": "Array.from(lanes.values())",
+      "range": {
+        "startLine": 73,
+        "startChar": 13,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "26eb619c_5aa570d0",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "700a9226_fa3b4316",
       "range": {
         "startLine": 73,
         "startChar": 13,
@@ -116,6 +212,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0bcc15f0_4af14c1e",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c705d2b_2c581cd2",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 0
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ddc1bb6a_e296a6d7",
@@ -139,6 +259,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5545f0a0_c058b9be",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk_puppeteer_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ddc1bb6a_e296a6d7",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 56
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c432324a_c55fab43",
@@ -152,6 +296,30 @@
       "writtenOn": "2020-10-06T20:49:21Z",
       "side": 1,
       "message": "Please remove if there are no behaviors under test.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 0
+      },
+      "revId": "2fe69636f5dd623ab308fcb7df84cf4acad5c627",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b77844f4_9f41f92f",
+        "filename": "task_scheduler/modules/job-timeline-sk/job-timeline-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T14:53:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c432324a_c55fab43",
       "range": {
         "startLine": 7,
         "startChar": 0,
