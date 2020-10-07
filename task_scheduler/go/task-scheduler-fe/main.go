@@ -717,7 +717,7 @@ func main() {
 	var viewAllow allowed.Allow = nil
 	editAllow := allowed.Googlers()
 	adminAllow := allowed.Googlers()
-	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, viewAllow, editAllow, adminAllow)
+	srv := rpc.NewTaskSchedulerServer(ctx, tsDb, repos, skipTasks, taskCfgCache, swarm, viewAllow, editAllow, adminAllow)
 	if err != nil {
 		sklog.Fatal(err)
 	}

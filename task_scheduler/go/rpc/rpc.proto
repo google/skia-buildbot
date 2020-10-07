@@ -94,6 +94,9 @@ message SearchJobsResponse {
 message GetTaskRequest {
 	// ID of the task to retrieve.
 	string id = 1;
+	// Whether or not to include statistics. This is expensive and should only
+	// be set when needed.
+	bool include_stats = 2;
 }
 
 // GetTaskResponse is a response returned from GetTask.
@@ -286,10 +289,13 @@ message Task {
 	// Task does not correspond to a Swarming task.
 	string swarming_task_id = 16;
 
-	// TaskKey is a struct which describes aspects of the Task related
+	// task_key is a struct which describes aspects of the Task related
 	// to the current state of the repo when it ran, and about the Task
 	// itself.
 	TaskKey task_key = 17;
+
+	// stats provides statistics about the task.
+	TaskStats stats = 18;
 }
 
 enum JobStatus {
@@ -329,6 +335,18 @@ message TaskDimensions {
 	string task_name = 1;
 	// dimensions are the Swarming bot dimensions requested by the task.
 	repeated string dimensions = 2;
+}
+
+// TaskStats provides statistics about a task.
+message TaskStats {
+	// total_overhead_s is the total amount of overhead for the task.
+	float total_overhead_s = 1;
+	// download_overhead_s is the number of seconds spent downloading assets
+	// before running the task.
+	float download_overhead_s = 2;
+	// upload_overhead_s is the number of seconds spent uploading assets
+	// before running the task.
+	float upload_overhead_s = 3;
 }
 
 // Job represents a set of Tasks which are executed as part of a larger effort.

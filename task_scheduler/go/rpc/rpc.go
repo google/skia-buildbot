@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/twirp_auth"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
@@ -28,8 +29,8 @@ import (
 //go:generate protoc --twirp_typescript_out=../../modules/rpc ./rpc.proto
 
 // NewTaskSchedulerServer creates and returns a Twirp HTTP server.
-func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache *task_cfg_cache.TaskCfgCache, viewers, editors, admins allowed.Allow) http.Handler {
-	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, viewers, editors, admins)
+func NewTaskSchedulerServer(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache *task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) http.Handler {
+	impl := newTaskSchedulerServiceImpl(ctx, db, repos, skipTasks, taskCfgCache, swarm, viewers, editors, admins)
 	srv := NewTaskSchedulerServiceServer(impl, nil)
 	return twirp_auth.Middleware(srv)
 }
@@ -41,16 +42,18 @@ type taskSchedulerServiceImpl struct {
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
 	taskCfgCache *task_cfg_cache.TaskCfgCache
+	swarming     swarming.ApiClient
 }
 
 // newTaskSchedulerServiceImpl returns a taskSchedulerServiceImpl instance.
-func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache *task_cfg_cache.TaskCfgCache, viewers, editors, admins allowed.Allow) *taskSchedulerServiceImpl {
+func newTaskSchedulerServiceImpl(ctx context.Context, db db.DB, repos repograph.Map, skipTasks *skip_tasks.DB, taskCfgCache *task_cfg_cache.TaskCfgCache, swarm swarming.ApiClient, viewers, editors, admins allowed.Allow) *taskSchedulerServiceImpl {
 	return &taskSchedulerServiceImpl{
 		AuthHelper:   twirp_auth.NewAuthHelper(viewers, editors, admins),
 		db:           db,
 		repos:        repos,
 		skipTasks:    skipTasks,
 		taskCfgCache: taskCfgCache,
+		swarming:     swarm,
 	}
 }
 
@@ -252,6 +255,20 @@ func (s *taskSchedulerServiceImpl) GetTask(ctx context.Context, req *GetTaskRequ
 	task, _, err := s.getTask(ctx, req.Id)
 	if err != nil {
 		return nil, err
+	}
+	if req.IncludeStats {
+		swarmingTask, err := s.swarming.GetTask(task.SwarmingTaskId, true)
+		if err != nil {
+			sklog.Error(err)
+			return nil, twirp.InternalError("Failed to retrieve Swarming task")
+		}
+		if swarmingTask.PerformanceStats != nil && swarmingTask.PerformanceStats.IsolatedDownload != nil && swarmingTask.PerformanceStats.IsolatedUpload != nil {
+			task.Stats = &TaskStats{
+				TotalOverheadS:    float32(swarmingTask.PerformanceStats.BotOverhead),
+				DownloadOverheadS: float32(swarmingTask.PerformanceStats.IsolatedDownload.Duration),
+				UploadOverheadS:   float32(swarmingTask.PerformanceStats.IsolatedUpload.Duration),
+			}
+		}
 	}
 	return &GetTaskResponse{
 		Task: task,
