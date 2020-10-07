@@ -392,6 +392,30 @@
       },
       "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2abc4ac3_eca2824b",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk_puppeteer_test.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-07T18:22:15Z",
+      "side": 1,
+      "message": "Thanks for explaining!\n\nInstead of breaking the test into multiple it() blocks, WDYT about turning the above explanation into comments before each \"move mouse/click, take screenshot\" block? E.g.\n\n  // We move the mouse pointer onto the chart.\n  ...\n  // The pointer snaps to the edge of a block.\n  ...\n  // We begin a selection by clicking and dragging to the right.\n  ...\n  // We move to the desired position and finish the selection by releasing the mouse button.\n  ...\n\nI think this would be enough for the unfamiliar reader to get a solid sense of the behaviors under test.\n\nOne final suggestion: WDYT about renaming the test case from it(\"mouse behavior\", ...) to something like it(\"snaps pointer to block edge and selects a range\", ...)?",
+      "parentUuid": "69da13e5_266b9ad9",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
