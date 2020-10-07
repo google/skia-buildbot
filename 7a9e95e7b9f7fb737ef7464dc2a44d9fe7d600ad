@@ -16,6 +16,24 @@
       "message": "Please add docs to these methods.",
       "revId": "7a9e95e7b9f7fb737ef7464dc2a44d9fe7d600ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f7f6b0f8_dec9b830",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-07T17:56:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2df3f288_38067b0c",
+      "revId": "7a9e95e7b9f7fb737ef7464dc2a44d9fe7d600ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
