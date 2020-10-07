@@ -46,7 +46,8 @@ const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
 const SUBCATEGORY_START_ROW = CATEGORY_START_ROW + 1;
 const TASKSPEC_START_ROW = SUBCATEGORY_START_ROW + 1;
 
-const COMMIT_START_COL = 1;
+const BRANCH_START_COL = 1;
+const COMMIT_START_COL = BRANCH_START_COL + 1;
 const TASK_START_COL = COMMIT_START_COL + 1;
 
 const REVERT_HIGHLIGHT_CLASS = 'highlight-revert';
@@ -353,10 +354,11 @@ class Data {
 }
 
 export class CommitsTableSk extends ElementSk {
+  private _repo: string = defaultRepo();
   private _displayCommitSubject: boolean = false;
   private _filter: Filter = 'Interesting';
-  private _repo: string = defaultRepo();
   private _search: RegExp = new RegExp('');
+  private lastLoaded: string = '(not yet loaded)';
   private lastColumn: number = 1;
   private numCommits: number = 35;
   private refreshSeconds: number = 60;
@@ -364,7 +366,10 @@ export class CommitsTableSk extends ElementSk {
   private data: Data = new Data();
 
   private static template = (el: CommitsTableSk) => html`<div class="commitsTableContainer">
-    <div class="legend" style=${el.gridLocation(CATEGORY_START_ROW, 1, TASKSPEC_START_ROW + 1)}>
+    <div
+      class="legend"
+      style=${el.gridLocation(CATEGORY_START_ROW, COMMIT_START_COL, TASKSPEC_START_ROW + 1)}
+    >
       <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
       <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
       <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
@@ -372,10 +377,22 @@ export class CommitsTableSk extends ElementSk {
       <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
     </div>
     <div class="tasksTable">${el.fillTableTemplate()}</div>
-
+    <div class="reloadControls" style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL)}>
+      <div class="refresh">
+        <input-sk type="number" textPrefix="Reload (s):&nbsp"> </input-sk>
+        <input-sk type="number" textPrefix="Commits:&nbsp&nbsp&nbsp"> </input-sk>
+        <div class="lastLoaded">Loaded ${el.lastLoaded}</div>
+      </div>
+    </div>
     <div
       class="controls"
-      style=${el.gridLocation(CONTROL_START_ROW, 1, CONTROL_START_ROW + 1, el.lastColumn)}
+      style=${el.gridLocation(
+        CONTROL_START_ROW,
+        COMMIT_START_COL,
+        CONTROL_START_ROW + 1,
+        // We render this after the table so we know our last column.
+        el.lastColumn
+      )}
     >
       <div class="horizontal">
         <div class="commitLabelSelector">
@@ -907,6 +924,7 @@ export class CommitsTableSk extends ElementSk {
   }
 
   private draw() {
+    this.lastLoaded = new Date().toLocaleTimeString();
     console.time('render');
     this._render();
     console.timeEnd('render');

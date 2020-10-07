@@ -88,6 +88,19 @@ commits-table-sk {
     }
   }
 
+  .lastLoaded {
+    padding-top: 10px;
+  }
+
+  .reloadControls input-sk {
+    input {
+      width: 100px;
+    }
+    .input-container {
+      width: 180px;
+    }
+  }
+
   .tiny svg {
     width: 12px;
     height: 12px;
