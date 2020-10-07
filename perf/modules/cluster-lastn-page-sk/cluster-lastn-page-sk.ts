@@ -12,6 +12,7 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/spinner-sk';
@@ -73,11 +74,15 @@ export class ClusterLastNPageSk extends ElementSk {
 
   private alertConfig: AlertConfigSk | null = null;
 
+  private runSpinner: SpinnerSk | null = null;
+
   // The state of the cluster-summary2-sk dialog.
   private dialogState: Partial<TriageStatusSkStartTriageEventDetails> | null = {
     full_summary: null,
     triage: undefined,
   };
+
+  private hasError: boolean = false;
 
   constructor() {
     super(ClusterLastNPageSk.template);
@@ -131,8 +136,8 @@ export class ClusterLastNPageSk extends ElementSk {
         >
           Run
         </button>
-        <spinner-sk ?active=${!!ele.requestId}></spinner-sk>
-        <pre class="messages">${ele.runningStatus}</pre>
+        <spinner-sk id=run-spinner></spinner-sk>
+        <pre class="messages ${ClusterLastNPageSk.classIfError(ele.hasError)}">${ele.runningStatus}</pre>
       </div>
       <div class="saving">
         <p>
@@ -145,7 +150,7 @@ export class ClusterLastNPageSk extends ElementSk {
         >
           ${ClusterLastNPageSk.writeAlertTitle(ele)}
         </button>
-        <spinner-sk ?active=${ele.writingAlert}></spinner-sk>
+        <spinner-sk .active=${ele.writingAlert}></spinner-sk>
       </div>
     </div>
     <hr />
@@ -163,6 +168,10 @@ export class ClusterLastNPageSk extends ElementSk {
 
     ${ClusterLastNPageSk.table(ele)}
   `;
+
+  private static classIfError(hasError: boolean): string {
+    return hasError ? 'error' : '';
+  }
 
   private static stepUpAt(dir: Direction) {
     return dir === 'UP' || dir === 'BOTH';
@@ -313,6 +322,7 @@ export class ClusterLastNPageSk extends ElementSk {
         dialogPolyfill.registerDialog(this.alertDialog!);
         dialogPolyfill.registerDialog(this.triageDialog!);
         this.alertConfig = this.querySelector('alert-config-sk');
+        this.runSpinner = this.querySelector('#run-spinner');
         this.stateHasChanged = stateReflector(
           () => (this.state as unknown) as HintableObject,
           (state) => {
@@ -389,8 +399,10 @@ export class ClusterLastNPageSk extends ElementSk {
   }
 
   private catch(msg: string) {
+    this.hasError = true;
     this.requestId = '';
-    this.runningStatus = '';
+    this.runningStatus = msg;
+    this.runSpinner!.active = false;
     this._render();
     if (msg) {
       errorMessage(msg, 10000);
@@ -398,10 +410,12 @@ export class ClusterLastNPageSk extends ElementSk {
   }
 
   private run() {
+    this.hasError = false;
     if (this.requestId) {
       errorMessage('There is a pending query already running.');
       return;
     }
+    this.runSpinner!.active = true;
     this.domain = this.querySelector<DomainPickerSk>('#range')!.state;
     const body: RegressionDetectionRequest = {
       domain: {
@@ -443,6 +457,7 @@ export class ClusterLastNPageSk extends ElementSk {
         if (!json.finished) {
           window.setTimeout(() => this.checkDryRunStatus(cb), 300);
         } else {
+          this.runSpinner!.active = false;
           this.requestId = '';
         }
         // json.regressions will get filled in incrementally, so display them

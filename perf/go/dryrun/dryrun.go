@@ -70,7 +70,8 @@ func (d *Requests) cleanerStep() {
 		if !running.Finished {
 			state, msg, err := d.detector.Status(id)
 			if err != nil {
-				sklog.Error("Failed to get status if DryRun: %s", id)
+				sklog.Error("Failed to get status of DryRun: %s", id)
+				delete(d.inFlight, id)
 				continue
 			}
 			if state != regression.ProcessRunning {
