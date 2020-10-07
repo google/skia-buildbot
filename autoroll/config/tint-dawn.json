@@ -14,7 +14,7 @@
   "gerrit": {
     "url": "https://dawn-review.googlesource.com",
     "project": "dawn",
-    "config": "chromium"
+    "config": "angle"
   },
   "isInternal": false,
   "ownerPrimary": "borenet",
