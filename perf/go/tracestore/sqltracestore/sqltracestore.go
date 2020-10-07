@@ -183,7 +183,7 @@ const cacheMetricsRefreshDuration = 15 * time.Second
 const writeTracesChunkSize = 100
 
 // See writeTracesChunkSize.
-const readTracesChunkSize = 25
+const readTracesChunkSize = 1000
 
 const queryTracesIDOnlyByIndexChannelSize = 1000
 
@@ -841,6 +841,8 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 		traceIDs = append(traceIDs, traceIDForSQLFromTraceName(key))
 	}
 
+	// TODO(jcgregorio) This should also cap the max number of parallel requests at one time. I.e. we need
+	// a ChunkIterParallelPool.
 	err := util.ChunkIterParallel(context.TODO(), len(traceIDs), readTracesChunkSize, func(ctx context.Context, startIdx, endIdx int) error {
 
 		// Populate the context for the SQL template.
