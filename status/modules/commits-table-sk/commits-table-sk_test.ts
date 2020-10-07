@@ -8,17 +8,18 @@ import {
   responseMultiCommitTask,
   responseNoncontiguousCommitsTask,
   responseTasksToFilter,
+  branch0,
+  branch1,
+  commentCommit,
+  commentTask,
+  commentTaskSpec,
 } from '../rpc-mock/test_data';
 import { GetIncrementalCommitsResponse } from '../rpc';
 import { expect } from 'chai';
 import { CommitsTableSk } from './commits-table-sk';
-import { CommitsDataSk } from '../commits-data-sk/commits-data-sk';
 import { SetupMocks } from '../rpc-mock';
 
 describe('commits-table-sk', () => {
-  // We use a data instance and it's test data so we don't have to maintain additional,
-  // restructed test data.
-  const newDataInstance = setUpElementUnderTest('commits-data-sk');
   const newTableInstance = setUpElementUnderTest('commits-table-sk');
 
   beforeEach(async () => {});
@@ -26,9 +27,9 @@ describe('commits-table-sk', () => {
   let setupWithResponse = async (resp: GetIncrementalCommitsResponse) => {
     SetupMocks().expectGetIncrementalCommits(resp);
     const ep = eventPromise('end-task');
-    newDataInstance() as CommitsDataSk;
+    const table = newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
     await ep;
-    return newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
+    return table;
   };
 
   it('displays multiple commit tasks', async () => {
@@ -121,16 +122,17 @@ describe('commits-table-sk', () => {
       'Interesting-Spec',
     ]);
 
-    const searchbox = $$('input', table) as HTMLInputElement;
+    const searchbox = $$('input-sk input', table) as HTMLInputElement;
     searchbox.value = 'Always';
-    searchbox.blur();
-    setTimeout(() => {
-      expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
-        'Always-Green-Spec',
-        'Always-Red-Spec',
-      ]);
-    }, 0);
+    const ep = eventPromise('change');
+    searchbox.dispatchEvent(new Event('change', { bubbles: true }));
+    await ep;
+    expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
+      'Always-Green-Spec',
+      'Always-Red-Spec',
+    ]);
   });
+
   describe('dialog', () => {
     it('opens and closes properly', async () => {
       const table = await setupWithResponse(incrementalResponse0);
@@ -177,6 +179,97 @@ describe('commits-table-sk', () => {
         '2nd from HEAD'
       );
       expect($('details-dialog-sk .dialog table.comments tr.comment', table)).to.have.length(1);
+    });
+  });
+
+  /**
+   * Extra set of tests that break TS rules to peek at the underlying data.
+   */
+  describe('internal data', () => {
+    const internalData = async (): Promise<any> => {
+      const table = (await setupWithResponse(incrementalResponse0)) as any;
+      return table.data;
+    };
+
+    it('loads tasks correctly', async () => {
+      const commitsData = await internalData();
+      expect(commitsData.tasks.get('99999')).to.deep.equal({
+        commits: ['abc123'],
+        name: 'Build-Some-Stuff',
+        id: '99999',
+        revision: 'abc123',
+        status: 'SUCCESS',
+        swarmingTaskId: 'swarmy',
+      });
+      expect(commitsData.tasks.get('11111')).to.deep.equal({
+        commits: ['parentofabc123'],
+        id: '11111',
+        name: 'Test-Some-Stuff',
+        revision: 'parentofabc123',
+        status: 'FAILURE',
+        swarmingTaskId: 'swarmy',
+      });
+      expect(commitsData.tasks.get('77777')).to.deep.equal({
+        commits: ['acommitthatisnotlisted'],
+        id: '77777',
+        name: 'Upload-Some-Stuff',
+        revision: 'acommitthatisnotlisted',
+        status: 'SUCCESS',
+        swarmingTaskId: 'swarmy',
+      });
+      expect(commitsData.tasks).to.have.keys('99999', '11111', '77777');
+    });
+
+    it('loads ancillary data correctly', async () => {
+      const commitsData = await internalData();
+      expect(commitsData.branchHeads).to.deep.equal([branch0, branch1]);
+    });
+
+    it('extracts reverts and relands correctly', async () => {
+      const commitsData = await internalData();
+      expect(commitsData.revertedMap.get('bad')).to.include({ hash: '1revertbad' });
+      expect(commitsData.relandedMap.get('bad')).to.include({ hash: 'relandbad' });
+    });
+
+    it('extracts categories', async () => {
+      const commitsData = await internalData();
+      // Category 'Upload' is not included since no listed commits reference it.
+      expect(commitsData.categories).to.have.keys('Build', 'Test');
+    });
+
+    it('loads tasks by commit', async () => {
+      const commitsData = await internalData();
+      expect(commitsData.tasksByCommit).to.have.keys(
+        'abc123',
+        'parentofabc123',
+        'acommitthatisnotlisted'
+      );
+      expect(commitsData.tasksByCommit.get('abc123')).to.have.keys('Build-Some-Stuff');
+      // Task by Commit/TaskSpec reference same underlying object as task by id.
+      expect(commitsData.tasksByCommit.get('abc123')!.get('Build-Some-Stuff')).equal(
+        commitsData.tasks.get('99999')
+      );
+    });
+
+    it('loads comments', async () => {
+      const commitsData = await internalData();
+      // Category 'Upload' is not included since no listed commits reference it.
+      expect(commitsData.comments).to.have.keys(commentCommit.commit, commentTask.commit, '');
+      // TaskSpec comment.
+      expect(commitsData.comments.get('')).to.have.keys(commentTaskSpec.taskSpecName);
+      expect(commitsData.comments.get('')!.get(commentTaskSpec.taskSpecName)![0]).to.deep.include({
+        message: commentTaskSpec.message,
+      });
+      // Commit comment.
+      expect(commitsData.comments.get(commentCommit.commit)).to.have.keys('');
+      expect(commitsData.comments.get(commentCommit.commit)!.get('')![0]).to.deep.include({
+        message: commentCommit.message,
+      });
+      // Task comment.
+      expect(commitsData.comments.get(commentTask.commit)).to.have.keys(commentTask.taskSpecName);
+      expect(
+        commitsData.comments.get(commentTask.commit)!.get(commentTask.taskSpecName)![0]
+      ).to.deep.include({ message: commentTask.message });
     });
   });
 });
