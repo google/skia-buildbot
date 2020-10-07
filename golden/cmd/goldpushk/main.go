@@ -69,6 +69,7 @@ var (
 
 	// Flags for debugging.
 	flagLogToStdErr bool
+	flagVerbose     bool
 	flagTesting     bool
 )
 
@@ -99,6 +100,7 @@ func main() {
 	rootCmd.Flags().IntVar(&flagMinUptimeSeconds, "min-uptime", 30, "Minimum uptime in seconds required for all services before exiting the monitoring step.")
 	rootCmd.Flags().IntVar(&flagUptimePollFrequencySeconds, "poll-freq", 3, "How often to poll Kubernetes for service uptimes, in seconds.")
 	rootCmd.Flags().BoolVar(&flagLogToStdErr, "logtostderr", false, "Log debug information to stderr. No logs will be produced if this flag is not set.")
+	rootCmd.Flags().BoolVar(&flagVerbose, "verbose", false, "Verbose logs. This will log the commands executed and their command-line parameters.")
 	rootCmd.Flags().BoolVar(&flagTesting, "testing", false, "Do not deploy any production services; use testing services instead.")
 
 	// Fail with exit code 1 in the presence of invalid flags.
@@ -156,7 +158,7 @@ func run(cmd *cobra.Command) {
 	}
 
 	// Build goldpushk instance.
-	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, k8sConfigRepoUrl)
+	gpk := goldpushk.New(deployableUnits, canariedDeployableUnits, skiaInfraRoot, flagDryRun, flagNoCommit, flagMinUptimeSeconds, flagUptimePollFrequencySeconds, k8sConfigRepoUrl, flagVerbose)
 
 	// Run goldpushk.
 	if err = gpk.Run(context.Background()); err != nil {

@@ -31,7 +31,7 @@ func TestNew(t *testing.T) {
 	canariedDeployableUnits = appendUnit(t, canariedDeployableUnits, s, Fuchsia, IngestionBT) // Internal deployment with templated ConfigMap.
 
 	// Call code under test.
-	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", true, true, 30, 3, "http://k8s-config.com")
+	g := New(deployableUnits, canariedDeployableUnits, "path/to/buildbot", true /* =dryRun */, true /* =noCommit */, 30 /* =minUptimeSeconds */, 3 /* =uptimePollFrequencySeconds */, "http://k8s-config.com", true /* =verbose */)
 
 	expected := &Goldpushk{
 		deployableUnits:            deployableUnits,
@@ -42,6 +42,7 @@ func TestNew(t *testing.T) {
 		minUptimeSeconds:           30,
 		uptimePollFrequencySeconds: 3,
 		k8sConfigRepoUrl:           "http://k8s-config.com",
+		verbose:                    true,
 	}
 	require.Equal(t, expected, g)
 }
