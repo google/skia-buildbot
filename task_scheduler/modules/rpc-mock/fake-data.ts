@@ -84,7 +84,7 @@ export const task2: Task = {
   finishedAt: "2019-02-19T13:27:14.669965Z",
   id: "QT5J8rNsgnumXH67JwTr",
   isolatedOutput: "f43fcadbbffe79a92f5da6792ed992581aa620bd",
-  jobs: [job1ID, job2ID],
+  jobs: [job1ID/*, job2ID*/],
   maxAttempts: 2,
   parentTaskIds: [
     task0.id,

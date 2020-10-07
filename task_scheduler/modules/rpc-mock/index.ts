@@ -22,6 +22,7 @@ import {
   TriggerJobsRequest,
   TriggerJobsResponse,
 } from '../rpc';
+import { job1, task0, task1, task2, task3, task4 } from './fake-data';
 
 export * from './fake-data';
 
@@ -37,8 +38,16 @@ export function SetupMocks() {
  * TaskSchedulerService.
  */
 class FakeTaskSchedulerService implements TaskSchedulerService {
-  private jobs: {[key:string]:Job} = {};
-  private tasks: {[key:string]:Task} = {};
+  private jobs: {[key:string]:Job} = {
+    [job1.id]: job1,
+  };
+  private tasks: {[key:string]:Task} = {
+    [task0.id]: task0,
+    [task1.id]: task1,
+    [task2.id]: task2,
+    [task3.id]: task3,
+    [task4.id]: task4,
+  };
   private jobID: number = 0;
 
   triggerJobs(triggerJobsRequest: TriggerJobsRequest): Promise<TriggerJobsResponse> {
@@ -59,7 +68,9 @@ class FakeTaskSchedulerService implements TaskSchedulerService {
     return new Promise((_, reject) => { reject("not implemented")});
   }
   getTask(getTaskRequest: GetTaskRequest): Promise<GetTaskResponse> {
-    return new Promise((_, reject) => { reject("not implemented")});
+    return Promise.resolve({
+      task: this.tasks[getTaskRequest.id],
+    });
   }
   searchTasks(searchTasksRequest: SearchTasksRequest): Promise<SearchTasksResponse> {
     return new Promise((_, reject) => { reject("not implemented")});
