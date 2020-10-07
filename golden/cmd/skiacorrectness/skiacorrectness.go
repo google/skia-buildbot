@@ -532,6 +532,7 @@ func main() {
 	trim := func(r string) string {
 		r = strings.TrimPrefix(r, "/json")
 		r = strings.TrimPrefix(r, "/v1")
+		r = strings.TrimPrefix(r, "/v2")
 		return r
 	}
 	// Routes shared with the baseline server. These usually don't see traffic because the envoy
