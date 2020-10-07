@@ -16,6 +16,24 @@
       "message": "I guess maybe \"ANGLE\" is no longer an appropriate descriptor...",
       "revId": "82e3016818a67b2e7c4175f9b44956680b91cec2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b08f82d_591c4dfe",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-07T12:10:57Z",
+      "side": 1,
+      "message": "yes, lots of repos use CR+2",
+      "parentUuid": "e3e9f3e2_3f3ea1f4",
+      "revId": "82e3016818a67b2e7c4175f9b44956680b91cec2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
