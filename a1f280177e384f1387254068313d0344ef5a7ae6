@@ -16,6 +16,23 @@
       "message": "TBR",
       "revId": "a1f280177e384f1387254068313d0344ef5a7ae6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b94c5403_55cdb3f0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-07T15:08:15Z",
+      "side": 1,
+      "message": "Good idea with the pool",
+      "revId": "a1f280177e384f1387254068313d0344ef5a7ae6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
