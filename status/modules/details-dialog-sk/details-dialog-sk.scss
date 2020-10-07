@@ -2,7 +2,7 @@
 
 details-dialog-sk {
   display: none;
-
+  z-index: 5;
   .dialog {
     position: fixed;
     box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12),
@@ -15,7 +15,6 @@ details-dialog-sk {
     height: 40vh;
     width: 40vw;
     overflow: auto;
-    z-index: 5;
     margin: 0;
     background-color: var(--surface-1dp);
     color: var(--on-surface);
