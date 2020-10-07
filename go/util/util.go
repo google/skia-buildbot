@@ -482,6 +482,64 @@ func ChunkIterParallel(ctx context.Context, length, chunkSize int, fn func(ctx c
 	}
 }
 
+// chunk is used in ChunkIterParallelPool.
+type chunk struct {
+	start int
+	end   int
+}
+
+// ChunkIterParallelPool is similar to ChunkIterParallel but it uses a poolSize
+// group of workers to run the chunks in parallel.
+func ChunkIterParallelPool(ctx context.Context, length, chunkSize, poolSize int, fn func(ctx context.Context, startIdx int, endIdx int) error) error {
+	if chunkSize < 1 {
+		return skerr.Fmt("chunk size may not be less than 1 (saw %d)", chunkSize)
+	}
+	if length < 0 {
+		return skerr.Fmt("length cannot be negative (saw %d)", length)
+	}
+	if poolSize < 1 {
+		return skerr.Fmt("pool size may not be less than 1 (saw %d)", poolSize)
+	}
+
+	// We make the channel buffered with enough space to cover all the chunks,
+	// which avoids a deadlock if the context errors (or times out) before we
+	// finish putting all the chunks into the channel.
+	chunkChannel := make(chan chunk, length/chunkSize+1)
+
+	g, eCtx := errgroup.WithContext(ctx)
+	// Start the pool of workers.
+	for i := 0; i < poolSize; i++ {
+		g.Go(func() error {
+			for chunk := range chunkChannel {
+				if err := eCtx.Err(); err != nil {
+					return skerr.Wrap(err)
+				}
+				if err := fn(ctx, chunk.start, chunk.end); err != nil {
+					// Drain the channel before returning the err.
+					for range chunkChannel {
+					}
+					return err
+				}
+			}
+			return nil
+		})
+	}
+
+	chunkStart := 0
+	chunkEnd := MinInt(length, chunkSize)
+
+	for {
+		chunkChannel <- chunk{start: chunkStart, end: chunkEnd}
+		if chunkEnd == length {
+			break
+		}
+		chunkStart = chunkEnd
+		chunkEnd = MinInt(length, chunkEnd+chunkSize)
+	}
+	close(chunkChannel)
+	return skerr.Wrap(g.Wait())
+}
+
 // BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
 func BugsFromCommitMsg(msg string) map[string][]string {
 	rv := map[string][]string{}
