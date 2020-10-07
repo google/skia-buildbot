@@ -25,17 +25,21 @@ import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/redo-icon-sk';
 import 'elements-sk/icon/texture-icon-sk';
 import 'elements-sk/icon/undo-icon-sk';
-import '../commits-data-sk';
 import '../details-dialog-sk';
 import {
-  CommitsDataSk,
-  CategorySpec,
-  TaskSpec,
-  TaskId,
-  Commit,
-} from '../commits-data-sk/commits-data-sk';
-import { Task } from '../rpc/status';
+  Branch,
+  Comment,
+  GetIncrementalCommitsResponse,
+  IncrementalUpdate,
+  LongCommit,
+  StatusService,
+  Task,
+} from '../rpc/status';
 import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { truncateWithEllipses } from '../../../golden/modules/common';
+import { GetStatusService } from '../rpc';
+import { defaultRepo } from '../settings';
 
 const CONTROL_START_ROW = 1;
 const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
@@ -47,6 +51,62 @@ const TASK_START_COL = COMMIT_START_COL + 1;
 
 const REVERT_HIGHLIGHT_CLASS = 'highlight-revert';
 const RELAND_HIGHLIGHT_CLASS = 'highlight-reland';
+const VALID_TASK_SPEC_CATEGORIES = ['Build', 'Housekeeper', 'Infra', 'Perf', 'Test', 'Upload'];
+
+const TASK_STATUS_SUCCESS = 'SUCCESS';
+const TASK_STATUS_FAILURE = 'FAILURE';
+const TASK_STATUS_MISHAP = 'MISHAP';
+
+// Makes some maps more self-documenting.
+export type CommitHash = string;
+export type TaskSpec = string;
+export type TaskId = string;
+
+// Commit with added metadata we compute that aid in displaying and associating it with other data.
+export interface Commit extends LongCommit {
+  shortAuthor: string;
+  shortHash: string;
+  shortSubject: string;
+  issue: string;
+  patchStorage: string;
+  isRevert: boolean;
+  isReland: boolean;
+  ignoreFailure: boolean;
+}
+
+// Describes the subcategories and taskspecs within a category.
+export class CategorySpec {
+  taskSpecsBySubCategory: Map<string, Array<TaskSpec>> = new Map();
+  // Sum of the above taskspec array value lengths.
+  colspan: number = 0;
+}
+
+// Generated data to descrbie a taskspec and the tasks within it.
+export class TaskSpecDetails {
+  name: string = '';
+  comments: Array<Comment> = [];
+  category: string = '';
+  subcategory: string = '';
+  flaky: boolean = false;
+  ignoreFailure: boolean = false;
+  // Metadata about the set of tasks in this spec.
+  hasSuccess = false;
+  hasFailure = false;
+  hasTaskComment = false;
+
+  interesting(): boolean {
+    return this.hasSuccess && this.hasFailure && !this.ignoreFailure;
+  }
+  hasFailing(): boolean {
+    return this.hasFailure;
+  }
+  hasFailingNoComment(): boolean {
+    return this.hasFailure && (!this.comments || this.comments.length == 0);
+  }
+  hasComment(): boolean {
+    return this.hasTaskComment || (this.comments && this.comments.length > 0);
+  }
+}
 
 type Filter = 'Interesting' | 'Failures' | 'All' | 'Nocomment' | 'Comments' | 'Search';
 
@@ -54,6 +114,7 @@ interface FilterInfo {
   text: string;
   title: string;
 }
+
 const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
   [
     'Interesting',
@@ -100,11 +161,207 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
   ],
 ]);
 
+// An internal class used to keep the fetching and preprocessing of data untangled from the logic
+// to render the table itself.
+class Data {
+  // Outputs - Data to be used by the CommitsTableSk class. Derived from calling the
+  // GetIncrementalCommits API.
+  commits: Array<Commit> = []; // Commits in reverse chronoligcal order.
+  commitsByHash: Map<CommitHash, Commit> = new Map();
+  branchHeads: Array<Branch> = [];
+  tasks: Map<TaskId, Task> = new Map();
+  tasksBySpec: Map<TaskSpec, Map<TaskId, Task>> = new Map();
+  tasksByCommit: Map<CommitHash, Map<TaskSpec, Task>> = new Map();
+  comments: Map<CommitHash, Map<TaskSpec, Array<Comment>>> = new Map();
+  revertedMap: Map<CommitHash, Commit> = new Map();
+  relandedMap: Map<CommitHash, Commit> = new Map();
+  taskSpecs: Map<TaskSpec, TaskSpecDetails> = new Map();
+  categories: Map<string, CategorySpec> = new Map();
+  // Internal state.
+  private serverPodId: string = '';
+  private client: StatusService = GetStatusService();
+
+  update(repo: string, numCommits: number) {
+    // TODO(westont): Use real times, rather than always loading everything with 0 'from' value.
+    return this.client
+      .getIncrementalCommits({
+        // Twirp Typescript module doesn't correctly convey the imported timestamp proto type,
+        // and just makes these a string, which the backend chokes on.
+        // from: new Date(0).toUTCString(),
+        // to: new Date(0).toUTCString(),
+        n: numCommits,
+        pod: this.serverPodId,
+        repoPath: repo,
+      })
+      .then((json: GetIncrementalCommitsResponse) => {
+        // TODO(westont): Use StartOver to know to clear vs update, and actual implement updating.
+        const startOver: boolean = json.metadata!.startOver;
+        this.serverPodId = json.metadata!.pod;
+        this.extractData(json.update!);
+        this.processCommits();
+      })
+      .catch(errorMessage);
+  }
+
+  /**
+   * extractData takes data from GetIncrementalCommits and adds useful structure, mapping commits
+   * by hash, tasks by Id, commits to tasks, and comments by hash and taskSpec.
+   * @param update Data from the backend.
+   */
+  private extractData(update: IncrementalUpdate) {
+    this.commits = update.commits as Array<Commit>;
+    this.branchHeads = update.branchHeads || this.branchHeads;
+
+    // Map commits by hash.
+    this.commits.forEach((commit: Commit) => {
+      this.commitsByHash.set(commit.hash, commit);
+    });
+
+    // Map task Id to Task
+    for (const task of update.tasks || []) {
+      this.tasks.set(task.id, task);
+    }
+
+    // TODO(westont): Remove old commits.
+
+    // Map commits to tasks
+    for (const [, task] of this.tasks) {
+      if (task.commits) {
+        for (let commit of task.commits) {
+          let tasksForCommit = this.tasksByCommit.get(commit);
+          if (!tasksForCommit) {
+            tasksForCommit = new Map();
+            this.tasksByCommit.set(commit, tasksForCommit);
+          }
+          tasksForCommit.set(task.name, task);
+          // TODO(westont): Remove deleted comments.
+        }
+      }
+    }
+
+    // Map comments.
+    for (let comment of update.comments || []) {
+      comment.taskSpecName = comment.taskSpecName || '';
+      comment.commit = comment.commit || '';
+      const commentsBySpec = lookupOrInsert<string, Map<TaskSpec, Array<Comment>>>(
+        this.comments,
+        comment.commit,
+        Map
+      );
+      const comments = lookupOrInsert<TaskSpec, Array<Comment>>(
+        commentsBySpec,
+        comment.taskSpecName,
+        Array
+      );
+      comments.push(comment);
+      // Keep comments sorted by timestamp, if there are multiple.
+      comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
+    }
+  }
+
+  /**
+   * processCommits adds metadata to commit objects, maps reverts and relands, and gathers
+   * taskspecs references by commits.
+   */
+  private processCommits() {
+    for (let commit of this.commits) {
+      // Metadata for display/links.
+      commit.shortAuthor = shortAuthor(commit.author);
+      commit.shortHash = shortCommit(commit.hash);
+      commit.shortSubject = shortSubject(commit.subject);
+      [commit.issue, commit.patchStorage] = findIssueAndReviewTool(commit);
+
+      this.mapRevertsAndRelands(commit);
+
+      // Check for commit-specific comments with ignoreFailure.
+      const commitComments = this.comments.get(commit.hash)?.get('');
+      if (
+        commitComments &&
+        commitComments.length &&
+        commitComments[commitComments.length - 1].ignoreFailure
+      ) {
+        commit.ignoreFailure = true;
+      }
+
+      const commitTasks = this.tasksByCommit.get(commit.hash) || [];
+      this.processCommitTasks(commitTasks, commit);
+      // TODO(westont): Branch tags and time offset tags.
+    }
+  }
+
+  private processCommitTasks(commitTasks: Map<string, Task> | never[], commit: Commit) {
+    for (const [taskSpec, task] of commitTasks) {
+      const details = lookupOrInsert(this.taskSpecs, taskSpec, TaskSpecDetails);
+      // First time seeing the taskSpec, fill in header data.
+      if (!details.name) {
+        this.fillTaskSpecDetails(details, taskSpec);
+      }
+      // Aggregate data about this spec's tasks.
+      details.hasSuccess = details.hasSuccess || task.status == TASK_STATUS_SUCCESS;
+      // Only count failures we aren't ignoring.
+      details.hasFailure =
+        details.hasFailure ||
+        (!commit.ignoreFailure &&
+          (task.status == TASK_STATUS_FAILURE || task.status == TASK_STATUS_MISHAP));
+      details.hasTaskComment =
+        details.hasTaskComment || (this.comments.get(commit.hash)?.get(taskSpec)?.length || 0) > 0;
+      // TODO(westont): Track purple tasks.
+    }
+  }
+
+  private fillTaskSpecDetails(details: TaskSpecDetails, taskSpec: string) {
+    details.name = taskSpec;
+    const comments = this.comments.get('')?.get(taskSpec) || [];
+    details.comments = comments;
+
+    const split = taskSpec.split('-');
+    if (split.length >= 2 && VALID_TASK_SPEC_CATEGORIES.indexOf(split[0]) != -1) {
+      details.category = split[0];
+      details.subcategory = split[1];
+    }
+    if (comments.length > 0) {
+      details.flaky = comments[comments.length - 1].flaky;
+      details.ignoreFailure = comments[comments.length - 1].ignoreFailure;
+    }
+
+    const category = details.category || 'Other';
+    const categoryDetails = lookupOrInsert(this.categories, category, CategorySpec);
+    const subcategory = details.subcategory || 'Other';
+    lookupOrInsert<string, Array<string>>(
+      categoryDetails.taskSpecsBySubCategory,
+      subcategory,
+      Array
+    ).push(taskSpec);
+    categoryDetails.colspan++;
+  }
+
+  private mapRevertsAndRelands(commit: Commit) {
+    commit.isRevert = false;
+    var reverted = findRevertedCommit(this.commitsByHash, commit);
+    if (reverted) {
+      commit.isRevert = true;
+      this.revertedMap.set(reverted.hash, commit);
+      reverted.ignoreFailure = true;
+    }
+    commit.isReland = false;
+    var relanded = findRelandedCommit(this.commitsByHash, commit);
+    if (relanded) {
+      commit.isReland = true;
+      this.relandedMap.set(relanded.hash, commit);
+    }
+  }
+}
+
 export class CommitsTableSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
   private _filter: Filter = 'Interesting';
+  private _repo: string = defaultRepo();
   private _search: RegExp = new RegExp('');
   private lastColumn: number = 1;
+  private numCommits: number = 35;
+  private refreshSeconds: number = 60;
+
+  private data: Data = new Data();
 
   private static template = (el: CommitsTableSk) => html`<div class="commitsTableContainer">
     <div class="legend" style=${el.gridLocation(CATEGORY_START_ROW, 1, TASKSPEC_START_ROW + 1)}>
@@ -160,7 +417,7 @@ export class CommitsTableSk extends ElementSk {
       </div>
     </div>
 
-    <details-dialog-sk .repo=${el.data().repo}></details-dialog-sk>
+    <details-dialog-sk .repo=${el.repo}></details-dialog-sk>
   </div>`;
 
   constructor() {
@@ -169,19 +426,13 @@ export class CommitsTableSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    this._render();
-    this.data().addEventListener('end-task', () => this._render());
     document.addEventListener('click', this.onClick);
+    this._render();
+    this.update();
   }
 
   disconnectedCallback() {
     document.removeEventListener('click', this.onClick);
-  }
-
-  _render() {
-    console.time('render');
-    super._render();
-    console.timeEnd('render');
   }
 
   get displayCommitSubject() {
@@ -192,11 +443,11 @@ export class CommitsTableSk extends ElementSk {
     this._displayCommitSubject = v;
     $('.commit').forEach((el, i) => {
       if (v) {
-        el.innerHTML = this.data().commits[i].shortSubject;
-        el.setAttribute('title', this.data().commits[i].shortAuthor);
+        el.innerHTML = this.data.commits[i].shortSubject;
+        el.setAttribute('title', this.data.commits[i].shortAuthor);
       } else {
-        el.innerHTML = this.data().commits[i].shortAuthor;
-        el.setAttribute('title', this.data().commits[i].shortSubject);
+        el.innerHTML = this.data.commits[i].shortAuthor;
+        el.setAttribute('title', this.data.commits[i].shortSubject);
       }
     });
   }
@@ -219,6 +470,15 @@ export class CommitsTableSk extends ElementSk {
     this.draw();
   }
 
+  get repo(): string {
+    return this._repo;
+  }
+
+  set repo(value) {
+    this._repo = value;
+    this.draw();
+  }
+
   private searchFilter(e: Event) {
     this._filter = 'Search'; // Use the private member to avoid double-render
     this.search = (<HTMLInputElement>e.target).value;
@@ -230,18 +490,18 @@ export class CommitsTableSk extends ElementSk {
     const dialog = $$('details-dialog-sk', this) as DetailsDialogSk;
     if (target.classList.contains('task-spec')) {
       const spec = target.getAttribute('title') || '';
-      const comments = this.data().taskSpecs.get(spec)?.comments;
+      const comments = this.data.taskSpecs.get(spec)?.comments!;
       if (spec !== '' && comments !== undefined) {
         dialog.displayTaskSpec(spec, comments);
       }
     } else if (target.classList.contains('commit')) {
-      const commit = this.data().commits[Number(target.dataset.commitIndex)]!;
-      const comments = this.data().comments.get(commit.hash)?.get('') || [];
+      const commit = this.data.commits[Number(target.dataset.commitIndex)]!;
+      const comments = this.data.comments.get(commit.hash)?.get('') || [];
       dialog.displayCommit(commit, comments);
     } else if (target.hasAttribute('data-task-id')) {
-      const task = this.data().tasks.get(target.dataset.taskId!)!;
-      const comments = this.data().comments.get(task.revision)?.get(task.name) || [];
-      dialog.displayTask(task, comments, this.data().commitsByHash);
+      const task = this.data.tasks.get(target.dataset.taskId!)!;
+      const comments = this.data.comments.get(task.revision)?.get(task.name) || [];
+      dialog.displayTask(task, comments, this.data.commitsByHash);
     } else {
       dialog.close();
     }
@@ -254,7 +514,7 @@ export class CommitsTableSk extends ElementSk {
    * gridLocation returns a lit StyleMap Part to inline on an element to place it between the
    * provided css grid row and column tracks.
    */
-  gridLocation(
+  private gridLocation(
     rowStart: number,
     colStart: number,
     rowEnd: number = rowStart + 1,
@@ -269,8 +529,8 @@ export class CommitsTableSk extends ElementSk {
    * returns true if the taskspec should be displayed.
    * @param taskSpec The taskSpec name to check against the filter.
    */
-  includeTaskSpec(taskSpec: string): boolean {
-    const specDetails = this.data().taskSpecs.get(taskSpec);
+  private includeTaskSpec(taskSpec: string): boolean {
+    const specDetails = this.data.taskSpecs.get(taskSpec);
     if (!specDetails) {
       return true;
     }
@@ -294,9 +554,9 @@ export class CommitsTableSk extends ElementSk {
    * taskSpecIcons returns any needed comment related icons for a task spec.
    * @param taskSpec The taskSpec to assess.
    */
-  taskSpecIcons(taskSpec: string): Array<TemplateResult> {
+  private taskSpecIcons(taskSpec: string): Array<TemplateResult> {
     const res: Array<TemplateResult> = [];
-    const task = this.data().taskSpecs.get(taskSpec)!;
+    const task = this.data.taskSpecs.get(taskSpec)!;
     if (task.comments.length > 0) {
       res.push(html`<comment-icon-sk class="tiny"></comment-icon-sk>`);
     }
@@ -313,9 +573,9 @@ export class CommitsTableSk extends ElementSk {
    * taskIcon returns any needed comment icon for a task.
    * @param task The task to assess.
    */
-  taskIcon(task: Task): TemplateResult {
+  private taskIcon(task: Task): TemplateResult {
     return task.commits?.every((c) => {
-      return !this.data().comments.get(c)?.get(task.name);
+      return !this.data.comments.get(c)?.get(task.name);
     })
       ? html``
       : html`<comment-icon-sk class="tiny"></comment-icon-sk>`;
@@ -325,15 +585,15 @@ export class CommitsTableSk extends ElementSk {
    * commitIcons returns any needed comment, revert, and reland related icons for a commit.
    * @param commit The commit to assess.
    */
-  commitIcons(commit: Commit): Array<TemplateResult> {
+  private commitIcons(commit: Commit): Array<TemplateResult> {
     const res: Array<TemplateResult> = [];
-    if (this.data().comments.get(commit.hash)?.get('')?.length || 0 > 0) {
+    if (this.data.comments.get(commit.hash)?.get('')?.length || 0 > 0) {
       res.push(html`<comment-icon-sk class="tiny icon-right"></comment-icon-sk>`);
     }
     if (commit.ignoreFailure) {
       res.push(html`<block-icon-sk class="tiny icon-right"></block-icon-sk>`);
     }
-    const reverted = this.data().revertedMap.get(commit.hash);
+    const reverted = this.data.revertedMap.get(commit.hash);
     if (reverted && reverted.timestamp! > commit.timestamp!) {
       res.push(html`<undo-icon-sk
         class="tiny icon-right fill-red"
@@ -342,7 +602,7 @@ export class CommitsTableSk extends ElementSk {
       >
       </undo-icon-sk>`);
     }
-    const relanded = this.data().relandedMap.get(commit.hash);
+    const relanded = this.data.relandedMap.get(commit.hash);
     if (relanded && relanded.timestamp! > commit.timestamp!) {
       res.push(html`<redo-icon-sk
         class="tiny icon-right fill-green"
@@ -360,7 +620,7 @@ export class CommitsTableSk extends ElementSk {
    * @param hash Hash of the commit reverting/relanding this CL, which is also the commit div's id.
    * @param revert Use the revert highlight class instead of reland highlight class.
    */
-  highlightAssociatedCommit(hash: string, revert: boolean) {
+  private highlightAssociatedCommit(hash: string, revert: boolean) {
     $$(`.${this.attributeStringFromHash(hash)}`, this)?.classList.toggle(
       revert ? REVERT_HIGHLIGHT_CLASS : RELAND_HIGHLIGHT_CLASS
     );
@@ -371,16 +631,16 @@ export class CommitsTableSk extends ElementSk {
    * leading digits, which fail querySelector.
    * @param hash The hash being padded.
    */
-  attributeStringFromHash(hash: string) {
+  private attributeStringFromHash(hash: string) {
     return `commit-${hash}`;
   }
 
-  addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
+  private addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
     const taskSpecStartCols: Map<TaskSpec, number> = new Map();
     let categoryStartCol = TASK_START_COL;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
-    this.data().categories.forEach((categoryDetails: CategorySpec, categoryName: string) => {
+    this.data.categories.forEach((categoryDetails: CategorySpec, categoryName: string) => {
       let subcategoryStartCol = categoryStartCol;
       categoryDetails.taskSpecsBySubCategory.forEach(
         (taskSpecs: Array<string>, subcategoryName: string) => {
@@ -441,7 +701,7 @@ export class CommitsTableSk extends ElementSk {
     return taskSpecStartCols;
   }
 
-  multiCommitTaskSlots(
+  private multiCommitTaskSlots(
     displayTaskRows: Array<boolean>,
     rowStart: number,
     task: Task
@@ -473,7 +733,7 @@ export class CommitsTableSk extends ElementSk {
     });
   }
 
-  addTasks(
+  private addTasks(
     tasksBySpec: Map<string, Task>,
     taskSpecStartCols: Map<string, number>,
     rowStart: number,
@@ -530,7 +790,7 @@ export class CommitsTableSk extends ElementSk {
    * each styled with 'grid-area' to place them inside a css-grid element, covering one or more
    * cells.
    */
-  fillTableTemplate(): Array<TemplateResult> {
+  private fillTableTemplate(): Array<TemplateResult> {
     // Elements, each styled to cover one or more cells of a css grid element.
     // E.g.includes divs for commits and taskspecs that are single - row / column headings, but
     // also divs for tasks that may cover multiple commits(rows) and divs for category headings
@@ -544,7 +804,7 @@ export class CommitsTableSk extends ElementSk {
     const taskStartRow = TASKSPEC_START_ROW + 1;
     const tasksAddedToTemplate: Set<TaskId> = new Set();
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
-    for (const [i, commit] of this.data().commits.entries()) {
+    for (const [i, commit] of this.data.commits.entries()) {
       const rowStart = taskStartRow + i;
       const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
@@ -558,7 +818,7 @@ export class CommitsTableSk extends ElementSk {
           ${text}${this.commitIcons(commit)}
         </div>`
       );
-      const tasksBySpec = this.data().tasksByCommit.get(commit.hash);
+      const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
       if (tasksBySpec) {
         this.addTasks(tasksBySpec, taskSpecStartCols, rowStart, i, tasksAddedToTemplate, res);
       }
@@ -569,7 +829,7 @@ export class CommitsTableSk extends ElementSk {
       style=${this.gridLocation(row, 1, ++row, this.lastColumn)}
     ></div>`;
     res.push(html` <div class="rowUnderlay">
-      ${Array(this.data().commits.length).fill(1).map(nextRowDiv)}
+      ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
     </div>`);
     return res;
   }
@@ -581,7 +841,7 @@ export class CommitsTableSk extends ElementSk {
    * @param displayTaskRows Value returned from displayTaskRows.
    * @param index Index in displayTaskRows that we're assessing.
    */
-  getDashedBorderClasses(displayTaskRows: Array<boolean>, index: number) {
+  private getDashedBorderClasses(displayTaskRows: Array<boolean>, index: number) {
     const ret: Array<string> = [];
     if (index > 0 && !displayTaskRows[index - 1]) {
       ret.push('dashed-top');
@@ -600,28 +860,28 @@ export class CommitsTableSk extends ElementSk {
    * @param task The task being assessed.
    * @param latestCommitIndex: The index of the top/most recent commit covered by the task.
    */
-  displayTaskRows(task: Task, latestCommitIndex: number) {
+  private displayTaskRows(task: Task, latestCommitIndex: number) {
     // Only a single commit, or the last shown commit, obviously contiguous.
-    if (task.commits!.length < 2 || latestCommitIndex >= this.data().commits.length - 1) {
+    if (task.commits!.length < 2 || latestCommitIndex >= this.data.commits.length - 1) {
       return [true];
     }
     const thisTaskOverCommits: Array<boolean> = [true];
     // Check for parental gaps. Commits may be sorted, but we don't assume that.
     let displayCommitsCount = 1;
     // We update this as we 'walk backward' through the commits this task covers.
-    let currentCommitInTask = this.data().commits[latestCommitIndex];
+    let currentCommitInTask = this.data.commits[latestCommitIndex];
     // Follow the ancestory up to the penultimate commit, since we look ahead by 1.
     // Earlier here means visually below.
     for (
       let earlierCommitIndex = latestCommitIndex + 1;
-      earlierCommitIndex < this.data().commits.length;
+      earlierCommitIndex < this.data.commits.length;
       earlierCommitIndex++
     ) {
       // Exit if we know we've account for all commits in the task, to avoid an extra 'false' at
       // the end of the returned array.
       if (displayCommitsCount === task.commits!.length) break;
 
-      let earlierCommit = this.data().commits[earlierCommitIndex];
+      let earlierCommit = this.data.commits[earlierCommitIndex];
       if (currentCommitInTask.parents!.indexOf(earlierCommit.hash) === -1) {
         // Branch leaves a gap.
         thisTaskOverCommits.push(false);
@@ -638,13 +898,18 @@ export class CommitsTableSk extends ElementSk {
     return thisTaskOverCommits;
   }
 
-  // TODO(westont): Combine this class with commits-data-sk.
-  data(): CommitsDataSk {
-    return $$('commits-data-sk') as CommitsDataSk;
+  private update() {
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+    this.data.update(this.repo, this.numCommits).finally(() => {
+      this.draw();
+      this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+    });
   }
 
-  draw() {
+  private draw() {
+    console.time('render');
     this._render();
+    console.timeEnd('render');
   }
 }
 
@@ -659,4 +924,86 @@ function taskClasses(task: Task, ...classes: Array<string>) {
 
 function taskTitle(task: Task) {
   return `${task.name} @${task.commits!.length > 1 ? '\n' : ' '}${task.commits!.join(',\n')}`;
+}
+
+// shortCommit returns the first 7 characters of a commit hash.
+function shortCommit(commit: string): string {
+  return commit.substring(0, 7);
+}
+
+// shortAuthor shortens the commit author field by returning the
+// parenthesized email address if it exists. If it does not exist, the
+// entire author field is used.
+function shortAuthor(author: string): string {
+  const re: RegExp = /.*\((.+)\)/;
+  const match = re.exec(author);
+  let res = author;
+  if (match) {
+    res = match[1];
+  }
+  return res.split('@')[0];
+}
+
+// shortSubject truncates a commit subject line to 72 characters if needed.
+// If the text was shortened, the last three characters are replaced by
+// ellipsis.
+function shortSubject(subject: string): string {
+  return truncateWithEllipses(subject, 72);
+}
+
+// findIssueAndReviewTool returns [issue, patchStorage]. patchStorage will
+// be either Gerrit or empty, and issue will be the CL number or empty.
+// If an issue cannot be determined then an empty string is returned for
+// both issue and patchStorage.
+function findIssueAndReviewTool(commit: LongCommit): [string, string] {
+  // See if it is a Gerrit CL.
+  var gerritRE = /(.|[\r\n])*Reviewed-on:.*\/([0-9]*)/g;
+  var gerritTokens = gerritRE.exec(commit.body);
+  if (gerritTokens) {
+    return [gerritTokens[gerritTokens.length - 1], 'gerrit'];
+  }
+  // Could not find a CL number return an empty string.
+  return ['', ''];
+}
+
+// Find and return the commit which was reverted by the given commit.
+function findRevertedCommit(commits: Map<string, Commit>, commit: Commit) {
+  const patt = new RegExp('^This reverts commit ([a-f0-9]+)');
+  const tokens = patt.exec(commit.body);
+  if (tokens) {
+    return commits.get(tokens[tokens.length - 1]);
+  }
+  return null;
+}
+
+// Find and return the commit which was relanded by the given commit.
+function findRelandedCommit(commits: Map<string, Commit>, commit: Commit) {
+  // Relands can take one of two formats. The first is a "direct" reland.
+  const patt = new RegExp('^This is a reland of ([a-f0-9]+)');
+  const tokens = patt.exec(commit.body) as RegExpExecArray;
+  if (tokens) {
+    return commits.get(tokens[tokens.length - 1]);
+  }
+
+  // The second is a revert of a revert.
+  var revert = findRevertedCommit(commits, commit);
+  if (revert) {
+    return findRevertedCommit(commits, revert);
+  }
+  return null;
+}
+
+// Helper to get the value associated with a key, but default construct and
+// insert it first if not present.  Passing the type as a second arg is
+// necessary since types are erased when transcribed to JS.
+// Usage:
+// const mymap: Map<string, Array<string>> = new Map();
+// lookupOrInsert(mymap, 'foo', Array).push('bar')
+function lookupOrInsert<K, V>(map: Map<K, V>, key: K, valuetype: { new (): V }): V {
+  let maybeValue = map.get(key);
+  if (!maybeValue) {
+    maybeValue = new valuetype();
+    map.set(key, maybeValue);
+  }
+  return maybeValue;
 }
