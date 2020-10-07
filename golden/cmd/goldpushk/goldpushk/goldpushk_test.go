@@ -47,7 +47,7 @@ func TestNew(t *testing.T) {
 	require.Equal(t, expected, g)
 }
 
-func TestGoldpushkCheckOutK8sConfigGitRepository(t *testing.T) {
+func TestGoldpushk_CheckOutK8sConfigGitRepository_Success(t *testing.T) {
 	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -90,7 +90,7 @@ func TestGoldpushkCheckOutK8sConfigGitRepository(t *testing.T) {
 	require.Equal(t, "This is repo k8s-config!", string(k8sConfigReadmeMdBytes))
 }
 
-func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
+func TestGoldpushk_GetDeploymentFilePath_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -107,7 +107,7 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	require.Equal(t, filepath.Join(g.k8sConfigCheckout.Dir(), "skia-corp", "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
 }
 
-func TestRegenerateConfigFiles(t *testing.T) {
+func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -210,7 +210,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	}
 }
 
-func TestCommitConfigFiles(t *testing.T) {
+func TestGoldpushk_CommitConfigFiles_Success(t *testing.T) {
 	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -255,7 +255,7 @@ func TestCommitConfigFiles(t *testing.T) {
 	assertRepositoryContainsFileWithContents(t, ctx, fakeK8sConfig, "foo.yaml", "I'm a change in k8s-config.")
 }
 
-func TestCommitConfigFilesAbortedByUser(t *testing.T) {
+func TestGoldpushk_CommitConfigFiles_UserAborts_DoesNotCommit(t *testing.T) {
 	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -299,7 +299,7 @@ func TestCommitConfigFilesAbortedByUser(t *testing.T) {
 	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 }
 
-func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
+func TestGoldpushk_CommitConfigFiles_FlagNoCommitSet_DoesNotCommit(t *testing.T) {
 	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -338,7 +338,7 @@ func TestCommitConfigFilesSkippedWithFlagNoCommit(t *testing.T) {
 	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 }
 
-func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
+func TestGoldpushk_CommitConfigFiles_FlagDryRunSet_DoesNotCommit(t *testing.T) {
 	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -377,7 +377,7 @@ func TestCommitConfigFilesSkippedWithFlagDryRun(t *testing.T) {
 	assertNumCommits(t, ctx, fakeK8sConfig, 1)
 }
 
-func TestSwitchClusters(t *testing.T) {
+func TestGoldpushk_SwitchClusters_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -410,7 +410,7 @@ func TestSwitchClusters(t *testing.T) {
 	}
 }
 
-func TestPushCanaries(t *testing.T) {
+func TestGoldpushk_PushCanaries_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -460,7 +460,7 @@ func TestPushCanaries(t *testing.T) {
 	}
 }
 
-func TestPushCanariesDryRun(t *testing.T) {
+func TestGoldpushk_PushCanaries_FlagDryRunSet_DoesNotPush(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -502,7 +502,7 @@ Skipping push step (dry run).
 	require.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
 }
 
-func TestPushServices(t *testing.T) {
+func TestGoldpushk_PushServices_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -552,7 +552,7 @@ func TestPushServices(t *testing.T) {
 	}
 }
 
-func TestPushServicesDryRun(t *testing.T) {
+func TestGoldpushk_PushServices_FlagDryRunSet_DoesNotPush(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -594,7 +594,7 @@ Skipping push step (dry run).
 	require.Equal(t, expectedStdout, readFakeStdout(t, fakeStdout))
 }
 
-func TestGetUptimesSingleCluster(t *testing.T) {
+func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -644,7 +644,7 @@ func TestGetUptimesSingleCluster(t *testing.T) {
 	require.NotContains(t, uptime, makeID(Flutter, DiffServer))
 }
 
-func TestGetUptimes(t *testing.T) {
+func TestGoldpushk_GetUptimes_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -707,7 +707,7 @@ func TestGetUptimes(t *testing.T) {
 	require.Equal(t, 90*time.Second, uptime[makeID(Fuchsia, DiffServer)]) // 17:58:02 - 17:56:32
 }
 
-func TestMonitor(t *testing.T) {
+func TestGoldpushk_Monitor_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
@@ -828,7 +828,7 @@ func TestMonitor(t *testing.T) {
 	require.Equal(t, expectedMonitorStdout, readFakeStdout(t, fakeStdout))
 }
 
-func TestMonitorDryRun(t *testing.T) {
+func TestGoldpushk_Monitor_FlagDryRunSet_DoesNotMonitor(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
 
