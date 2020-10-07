@@ -327,8 +327,7 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, tem
 	serviceJSON5 := fmt.Sprintf("%s-%s.json5", unit.Instance, unit.Service)
 	serviceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), serviceJSON5)
 
-	cmd := &exec.Command{
-		Name: "kube-conf-gen",
+	err := g.execCmd(ctx, "kube-conf-gen", []string{
 		// Notes on the kube-conf-gen arguments used:
 		//   - Flag "-extra INSTANCE_ID:<instanceStr>" binds template variable
 		//     INSTANCE_ID to instanceStr.
@@ -337,22 +336,17 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, tem
 		//   - Flag "-parse_conf=false" prevents the values read from the JSON5
 		//     config files provided with -c <json5-file> from being converted to
 		//     strings.
-		Args: []string{
-			"-c", goldCommonJSON5,
-			"-c", instanceJSON5,
-			"-c", serviceJSON5,
-			"-extra", "INSTANCE_ID:" + instanceStr,
-			"-extra", "NOW:" + g.now().Format(rfc3999KubernetesSafe),
-			"-t", templatePath,
-			"-parse_conf=false", "-strict",
-			"-o", outputPath},
-		InheritPath: true,
-		LogStderr:   true,
-		LogStdout:   true,
-	}
-
-	if err := exec.Run(ctx, cmd); err != nil {
-		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+		"-c", goldCommonJSON5,
+		"-c", instanceJSON5,
+		"-c", serviceJSON5,
+		"-extra", "INSTANCE_ID:" + instanceStr,
+		"-extra", "NOW:" + g.now().Format(rfc3999KubernetesSafe),
+		"-t", templatePath,
+		"-parse_conf=false", "-strict",
+		"-o", outputPath,
+	})
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 	sklog.Infof("Generated %s", outputPath)
 	return nil
@@ -514,17 +508,9 @@ func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit Deployabl
 	// Push DeployableUnit.
 	path := g.getDeploymentFilePath(unit)
 	fmt.Printf("%s: applying %s.\n", unit.CanonicalName(), path)
-	cmd := &exec.Command{
-		Name:        "kubectl",
-		Args:        []string{"apply", "-f", path},
-		InheritPath: true,
-		LogStderr:   true,
-		LogStdout:   true,
+	if err := g.execCmd(ctx, "kubectl", []string{"apply", "-f", path}); err != nil {
+		return skerr.Wrap(err)
 	}
-	if err := exec.Run(ctx, cmd); err != nil {
-		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
-	}
-
 	return nil
 }
 
@@ -545,33 +531,20 @@ func (g *Goldpushk) pushConfigurationJSON(ctx context.Context, instance Instance
 // file or an entire directory.
 func (g *Goldpushk) pushConfigMap(ctx context.Context, path, configMapName string) error {
 	// Delete existing ConfigMap.
-	cmd := &exec.Command{
-		Name:        "kubectl",
-		Args:        []string{"delete", "configmap", configMapName},
-		InheritPath: true,
-		LogStderr:   true,
-		LogStdout:   true,
-	}
-	if err := exec.Run(ctx, cmd); err != nil {
+	if err := g.execCmd(ctx, "kubectl", []string{"delete", "configmap", configMapName}); err != nil {
 		// TODO(lovisolo): Figure out a less brittle way to detect exit status 1.
-		if strings.HasPrefix(err.Error(), "Command exited with exit status 1") {
+		if strings.Contains(err.Error(), "Command exited with exit status 1") {
 			sklog.Infof("Did not delete ConfigMap %s as it does not exist on the cluster.", configMapName)
 		} else {
-			return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+			return skerr.Wrap(err)
 		}
 	}
 
 	// Create new ConfigMap.
-	cmd = &exec.Command{
-		Name:        "kubectl",
-		Args:        []string{"create", "configmap", configMapName, "--from-file", path},
-		InheritPath: true,
-		LogStderr:   true,
-		LogStdout:   true,
+	if err := g.execCmd(ctx, "kubectl", []string{"create", "configmap", configMapName, "--from-file", path}); err != nil {
+		return skerr.Wrap(err)
 	}
-	if err := exec.Run(ctx, cmd); err != nil {
-		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
-	}
+
 	return nil
 }
 
@@ -579,15 +552,8 @@ func (g *Goldpushk) pushConfigMap(ctx context.Context, path, configMapName strin
 func (g *Goldpushk) switchClusters(ctx context.Context, cluster cluster) error {
 	if g.currentCluster != cluster {
 		sklog.Infof("Switching to cluster %s\n", cluster.name)
-		cmd := &exec.Command{
-			Name:        "gcloud",
-			Args:        []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID},
-			InheritPath: true,
-			LogStderr:   true,
-			LogStdout:   true,
-		}
-		if err := exec.Run(ctx, cmd); err != nil {
-			return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+		if err := g.execCmd(ctx, "gcloud", []string{"container", "clusters", "get-credentials", cluster.name, "--zone", "us-central1-a", "--project", cluster.projectID}); err != nil {
+			return skerr.Wrap(err)
 		}
 		g.currentCluster = cluster
 	}
@@ -802,17 +768,9 @@ func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []Deploya
 	jsonPathExpr = strings.ReplaceAll(jsonPathExpr, "\n", "")
 
 	// Execute kubectl command that will return per-pod uptime.
-	cmd := &exec.Command{
-		Name: "kubectl",
-		// See the comment above.
-		Args:        []string{"get", "pods", "-o", fmt.Sprintf("jsonpath=%s", jsonPathExpr)},
-		InheritPath: true,
-		LogStderr:   true,
-		LogStdout:   true,
-	}
-	stdout, err := exec.RunCommand(ctx, cmd)
+	stdout, err := g.execCmdAndReturnStdout(ctx, "kubectl", []string{"get", "pods", "-o", fmt.Sprintf("jsonpath=%s", jsonPathExpr)})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+		return nil, skerr.Wrap(err)
 	}
 
 	// This map will hold the uptimes parsed from the command output.
@@ -926,6 +884,37 @@ func (g *Goldpushk) now() time.Time {
 		return time.Now().UTC()
 	}
 	return g.fakeNow
+}
+
+// execCmd executes a command with the given arguments.
+func (g *Goldpushk) execCmd(ctx context.Context, name string, args []string) error {
+	cmd := makeExecCommand(name, args)
+	if err := exec.Run(ctx, cmd); err != nil {
+		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+	}
+	return nil
+}
+
+// execCmdAndReturnStdout executes a command with the given arguments and returns its output.
+func (g *Goldpushk) execCmdAndReturnStdout(ctx context.Context, name string, args []string) (string, error) {
+	cmd := makeExecCommand(name, args)
+	stdout, err := exec.RunCommand(ctx, cmd)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
+	}
+	return stdout, nil
+}
+
+// makeExecCommand returns an exec.Command for the given command and arguments.
+func makeExecCommand(name string, args []string) *exec.Command {
+	cmd := &exec.Command{
+		Name:        name,
+		Args:        args,
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	return cmd
 }
 
 // cmdToDebugStr returns a human-readable string representation of an *exec.Command.
