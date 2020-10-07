@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d768528e_8e37e44f",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk-demo.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f1b2d4bf_5fb6e809",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 0
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "19abfbc6_783af685",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-10-06T20:18:48Z",
       "side": 1,
       "message": "Nit: Please use Date.parse for human-readable dates, e.g. Date.parse(\u00271970-01-19T07:54:10Z\u0027).",
+      "range": {
+        "startLine": 29,
+        "startChar": 19,
+        "endLine": 29,
+        "endChar": 39
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "41fc8129_8b1f0536",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk-demo.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19abfbc6_783af685",
       "range": {
         "startLine": 29,
         "startChar": 19,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "80d5dbfc_9fa5d794",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c260f3e2_466bac44",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 0
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "60b4d7ec_689db6f1",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-10-06T20:18:48Z",
       "side": 1,
       "message": "Nit: Please use UpperCamelCase for all types, classes, etc., regardless of whether they are exported.\n\nhttps://google.github.io/styleguide/jsguide.html#naming-package-names",
+      "range": {
+        "startLine": 29,
+        "startChar": 10,
+        "endLine": 29,
+        "endChar": 15
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "04d95a56_4598e8f2",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60b4d7ec_689db6f1",
       "range": {
         "startLine": 29,
         "startChar": 10,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d8a32e8_f58f0904",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "138e16f1_0f4aebfb",
+      "range": {
+        "startLine": 146,
+        "startChar": 4,
+        "endLine": 146,
+        "endChar": 16
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "413d584b_41488413",
@@ -146,6 +266,30 @@
       "writtenOn": "2020-10-06T20:18:48Z",
       "side": 1,
       "message": "Nit: task_scheduler -\u003e task-scheduler or taskscheduler, so as to keep the \u003capp-name\u003e_\u003ccomponent-under-test\u003e_\u003ctest-case\u003e naming convention in skia-infra-gold.skia.org.",
+      "range": {
+        "startLine": 21,
+        "startChar": 42,
+        "endLine": 21,
+        "endChar": 56
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b540a652_0910282a",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk_puppeteer_test.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done, although the app name is \"task_scheduler\", so it\u0027s a bit confusing for it to be different here.",
+      "parentUuid": "413d584b_41488413",
       "range": {
         "startLine": 21,
         "startChar": 42,
@@ -179,6 +323,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fa8a4a7_ac5ecf12",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk_puppeteer_test.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baed1a0d_d72bdf8f",
+      "range": {
+        "startLine": 22,
+        "startChar": 6,
+        "endLine": 23,
+        "endChar": 6
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2fc98ecf_8f9275a2",
@@ -192,6 +360,30 @@
       "writtenOn": "2020-10-06T20:18:48Z",
       "side": 1,
       "message": "Consider breaking these down into one test case per behavior under test, and explicitly stating the behavior under test on each test case, e.g. it(\u0027can select an interval\u0027), it(\u0027can click an item\u0027), etc.\n\nRationale:\n\n- Right now it\u0027s tricky for the reader to understand what\u0027s actually being tested; the test is composed of a sequence of mouse movements/clicks and screenshots that might be interpreted in different ways (e.g. \"gantt-chart-sk_mouse-cursor\").\n\n- The test cases might more obviously correct if there\u0027s just one behavior under test, and the behavior under test is clearly indicated in the test case name (e.g. it(\u0027can do X\u0027, ...)).",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69da13e5_266b9ad9",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk_puppeteer_test.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-07T13:53:44Z",
+      "side": 1,
+      "message": "I\u0027ll change this if you feel strongly about it, but I view these as a sequence of snapshots of one behavior: mouse is moved onto the chart, snaps to the edge of a block, mouse is clicked and dragged, and then released.  If I broke it into separate tests I\u0027d need to copy all of the move/click events preceding each screenshot.",
+      "parentUuid": "2fc98ecf_8f9275a2",
       "range": {
         "startLine": 31,
         "startChar": 0,
