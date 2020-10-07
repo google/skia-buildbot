@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51e2aeac_e036c6fa",
+        "filename": "go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-07T20:37:35Z",
+      "side": 1,
+      "message": "Could you also bail if eCtx.Err()?",
+      "range": {
+        "startLine": 533,
+        "startChar": 17,
+        "endLine": 533,
+        "endChar": 23
+      },
+      "revId": "3a2c768f6128a2847f84d09c2e0f6d8adf76ffe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8aededad_3c58880d",
+        "filename": "go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 540,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-07T20:37:35Z",
+      "side": 1,
+      "message": "nit: skerr.Wrap(g.Wait())",
+      "range": {
+        "startLine": 540,
+        "startChar": 10,
+        "endLine": 540,
+        "endChar": 14
+      },
+      "revId": "3a2c768f6128a2847f84d09c2e0f6d8adf76ffe3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
