@@ -634,6 +634,76 @@ func TestChunkIterParallel_CancelledContext_ReturnsImmediatelyWithError(t *testi
 	assert.Contains(t, err.Error(), "canceled")
 }
 
+func TestChunkIterParallelPool_IteratesInChunks_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	check := func(length, chunkSize int, expect []int, expectedCallbackCount int32) {
+		actual := make([]int, length)
+		ctx := context.Background()
+		calledTimes := int32(0)
+		require.NoError(t, ChunkIterParallelPool(ctx, length, chunkSize, 2, func(eCtx context.Context, start, end int) error {
+			assert.NoError(t, eCtx.Err())
+			for i := start; i < end; i++ {
+				actual[i] = start
+			}
+			atomic.AddInt32(&calledTimes, 1)
+			return nil
+		}))
+		assert.Equal(t, expect, actual)
+		assert.Equal(t, expectedCallbackCount, calledTimes)
+	}
+
+	check(10, 5, []int{0, 0, 0, 0, 0, 5, 5, 5, 5, 5}, 2)
+	check(4, 1, []int{0, 1, 2, 3}, 4)
+	check(7, 4, []int{0, 0, 0, 0, 4, 4, 4}, 2)
+	// For an empty slice, we still want exactly one callback, in case there's extra work
+	// being done after iterating over the slice.
+	check(0, 5, []int{}, 1)
+}
+
+func TestChunkIterParallelPool_InvalidArgs_Error(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+	require.Error(t, ChunkIterParallelPool(ctx, -1, 10, 2, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+	require.Error(t, ChunkIterParallelPool(ctx, 10, 0, 2, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+	require.Error(t, ChunkIterParallelPool(ctx, 10, 5, 0, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called")
+		return nil
+	}))
+}
+
+func TestChunkIterParallelPool_ErrorReturnedOnChunk_StopsAndReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	err := ChunkIterParallelPool(context.Background(), 10, 3, 2, func(context.Context, int, int) error {
+		return fmt.Errorf("oops, robots took over")
+	})
+	require.Error(t, err)
+	// Either we'll see the error that we return or, due to the parallelism, a canceled context
+	// error due to the fact that the errgroup cancels the group context on an error.
+	if !(strings.Contains(err.Error(), "oops") || strings.Contains(err.Error(), "canceled")) {
+		assert.Fail(t, "unexpected error %s", err.Error())
+	}
+}
+
+func TestChunkIterParallelPool_CancelledContext_ReturnsImmediatelyWithError(t *testing.T) {
+	unittest.SmallTest(t)
+	// If the context is already in an error state, don't call the passed in function, just error.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	err := ChunkIterParallelPool(ctx, 10, 3, 2, func(context.Context, int, int) error {
+		require.Fail(t, "shouldn't be called because the original context was no good.")
+		return nil
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "canceled")
+}
+
 func TestRoundUpToPowerOf2(t *testing.T) {
 	unittest.SmallTest(t)
 
