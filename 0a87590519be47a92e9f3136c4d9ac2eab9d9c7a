@@ -1,0 +1,30 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005394089",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d62",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2e82406d_de11d196",
+        "filename": "bugs-central/go/bugs/monorail.go",
+        "patchSetId": 62
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-07T15:54:03Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 149,
+        "startChar": 95,
+        "endLine": 149,
+        "endChar": 101
+      },
+      "revId": "0a87590519be47a92e9f3136c4d9ac2eab9d9c7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
