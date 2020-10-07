@@ -158,6 +158,13 @@ type frontendServerConfig struct {
 	UseLitHTMLSearchPage bool `json:"use_lit_html_search_page"`
 }
 
+type frontendConfig struct {
+	BaseRepoURL   string `json:"baseRepoURL"`
+	DefaultCorpus string `json:"defaultCorpus"`
+	Title         string `json:"title"`
+	IsPublic      bool   `json:"isPublic"`
+}
+
 func main() {
 	// Command line flags.
 	var (
@@ -719,13 +726,6 @@ func initializeReviewSystems(configs []config.CodeReviewSystem, fc *firestore.Cl
 		})
 	}
 	return rs, nil
-}
-
-type frontendConfig struct {
-	BaseRepoURL   string `json:"baseRepoURL"`
-	DefaultCorpus string `json:"defaultCorpus"`
-	Title         string `json:"title"`
-	IsPublic      bool   `json:"isPublic"`
 }
 
 // startCommenter begins the background process that comments on CLs.
