@@ -6,7 +6,7 @@ import { deepCopy } from 'common-sk/modules/object';
 import { fromObject } from 'common-sk/modules/query';
 import { SearchPageSk, SearchRequest } from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
-import { SearchResponse, TriageRequest } from '../rpc_types';
+import { Label, SearchResponse, TriageRequest } from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
@@ -576,6 +576,13 @@ describe('search-page-sk', () => {
     const secondDigest = 'Left: 2fa58aa430e9c815755624ca6cca4a72';
     const thirdDigest = 'Left: ed4a8cf9ea9fbb57bf1f302537e07572';
 
+    const expectLabelsForFirstSecondAndThirdDigestsToBe =
+        async (firstLabel: Label, secondLabel: Label, thirdLabel: Label) => {
+      expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal(firstLabel);
+      expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal(secondLabel);
+      expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal(thirdLabel);
+    }
+
     describe('navigation', () => {
       it('initially has an empty selection', async () => {
         await instantiate();
@@ -583,7 +590,6 @@ describe('search-page-sk', () => {
       });
 
       it('can navigate between digests with keys "J" and "K"', async () => {
-
         await instantiate();
 
         expect(await searchPageSkPO.getSelectedDigest()).to.be.null;
@@ -640,27 +646,19 @@ describe('search-page-sk', () => {
         await instantiate();
 
         // Check initial labels.
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triaging as positive should have no effect.
         await searchPageSkPO.typeKey('a');
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triaging as negative should have no effect.
         await searchPageSkPO.typeKey('s');
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triaging as untriaged should have no effect.
         await searchPageSkPO.typeKey('d');
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
       });
 
       it('can triage the selected digest with keys "A", "S" and "D"', async () => {
@@ -669,10 +667,7 @@ describe('search-page-sk', () => {
         await instantiate();
 
         // Check initial labels.
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
-
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Select the second search result.
         await searchPageSkPO.typeKey('j');
@@ -682,27 +677,19 @@ describe('search-page-sk', () => {
         let event = eventPromise('end-task');
         await searchPageSkPO.typeKey('a');
         await event;
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
-
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
 
         // Triage as negative.
         event = eventPromise('end-task');
         await searchPageSkPO.typeKey('s');
         await event;
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
-
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triage as untriaged.
         event = eventPromise('end-task');
         await searchPageSkPO.typeKey('d');
         await event;
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('untriaged');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
       });
     });
 
@@ -756,33 +743,25 @@ describe('search-page-sk', () => {
         expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
 
         // Check initial triage labels.
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for triaging as positive should have no effect.
         let noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('a');
         await noEvent;
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for triaging as negative should have no effect.
         noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('s');
         await noEvent;
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for triaging as untriagaed should have no effect.
         noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('d');
         await noEvent;
-        expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal('positive');
-        expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal('negative');
-        expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal('untriaged');
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for the help dialog should have no effect, but we can only test this if the
         // help dialog is not already open, otherwise the shortcut has no effect.
