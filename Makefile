@@ -66,8 +66,11 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
+# .PHONY: all
+# all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+# DO NOT SUBMIT #########
 .PHONY: all
-all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+all: build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -91,6 +94,13 @@ puppeteer-tests:
 build-frontend-ci:
 	# Generate the //puppeteer-tests/node_modules directory. Some targets will not compile without it.
 	cd puppeteer-tests && npm ci
+
+	# DO NOT SUBMIT ###########################
+	docker run --interactive --rm \
+		--mount type=bind,source=`pwd`,target=/src \
+		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
+		gcr.io/skia-public/puppeteer-tests:latest \
+		/src/puppeteer-tests/docker/run-tests.sh
 
 	# infra-sk needs to be built first because this pulls its NPM dependencies
 	# with "npm ci", which are needed by other apps.
@@ -126,7 +136,7 @@ build-frontend-ci:
 	#   follow the steps in: https://cloud.google.com/container-registry/docs/advanced-authentication.
 	#   See 'docker run --help'.
 
-	# cd demos && $(MAKE) build-frontend-ci
+	cd demos && $(MAKE) build-frontend-ci
 	# cd jsfiddle && $(MAKE) build-frontend-ci
 	# cd particles && $(MAKE) build-frontend-ci
 	# cd skottie && $(MAKE) build-frontend-ci
