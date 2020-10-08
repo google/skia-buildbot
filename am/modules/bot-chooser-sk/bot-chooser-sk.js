@@ -1,6 +1,6 @@
 /**
- * @module email-chooser-sk
- * @description <h2><code>email-chooser-sk</code></h2>
+ * @module bot-chooser-sk
+ * @description <h2><code>bot-chooser-sk</code></h2>
  *
  * <p>
  * This element pops up a dialog with OK and Cancel buttons. Its open method returns a Promise
@@ -17,18 +17,25 @@ import { $$ } from 'common-sk/modules/dom';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
 
-function displayEmail(email, owner) {
-  if (owner === email) {
-    return html`<option value=${email}>${email} (alert owner)</option>`;
+function displayBotSelections(bots_to_incidents, ignore) {
+  const botsHTML = [];
+  let selectDefault = true;
+  for (const bot in bots_to_incidents) {
+    if (ignore.includes(bot)) {
+      continue;
+    }
+    botsHTML.push(html`
+      <option ?selected=${selectDefault} value=${bot}>${bot} [${bots_to_incidents[bot].map((i) => i.params.alertname).join(',')}]</option>
+    `);
+    selectDefault = false;
   }
-  return html`<option value=${email}>${email}</option>`;
+  return botsHTML;
 }
 
 const template = (ele) => html`<dialog>
-  <h2>Assign</h2>
+  <h2>Bots with active alerts</h2>
   <select size=10 @input=${ele._input}>
-    <option value='' selected>(un-assign)</option>
-    ${ele._emails.map((email) => displayEmail(email, ele._owner))}
+    ${displayBotSelections(ele._bots_to_incidents, ele._bots_to_ignore)}
   </select>
   <div class=buttons>
     <button @click=${ele._dismiss}>Cancel</button>
@@ -36,13 +43,13 @@ const template = (ele) => html`<dialog>
   </div>
 </dialog>`;
 
-define('email-chooser-sk', class extends HTMLElement {
+define('bot-chooser-sk', class extends HTMLElement {
   constructor() {
     super();
     this._resolve = null;
     this._reject = null;
-    this._emails = [];
-    this._owner = '';
+    this._bots_to_incidents = [];
+    this._bots_to_ignore = [];
     this._selected = '';
   }
 
@@ -55,14 +62,13 @@ define('email-chooser-sk', class extends HTMLElement {
   /**
    * Display the dialog.
    *
-   * @param emails {Array} List of emails to choose from.
-   * @param owner {String} The owner of this incident if available. Optional.
+   * @param bots_to_incidents {Object} Map of bots to their incidents.
    * @returns {Promise} Returns a Promise that resolves on OK, and rejects on Cancel.
    *
    */
-  open(emails, owner) {
-    this._emails = emails;
-    this._owner = owner;
+  open(bots_to_incidents, bots_to_ignore) {
+    this._bots_to_incidents = bots_to_incidents;
+    this._bots_to_ignore = bots_to_ignore;
     this._render();
     this._dialog.showModal();
     $$('select', this).focus();
