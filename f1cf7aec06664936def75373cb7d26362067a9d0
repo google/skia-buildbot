@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45a0265a_79f52a6f",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-08T11:54:20Z",
+      "side": 1,
+      "message": "bikeshed: maybeMust is not a clear naming pattern. Just go with must.",
+      "range": {
+        "startLine": 271,
+        "startChar": 5,
+        "endLine": 271,
+        "endChar": 14
+      },
+      "revId": "f1cf7aec06664936def75373cb7d26362067a9d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b16954aa_3aeb5116",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-08T11:54:20Z",
+      "side": 1,
+      "message": "I don\u0027t think this was intended.",
+      "range": {
+        "startLine": 383,
+        "startChar": 80,
+        "endLine": 383,
+        "endChar": 83
+      },
+      "revId": "f1cf7aec06664936def75373cb7d26362067a9d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "66a4b241_1d5ed0da",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-08T11:54:20Z",
+      "side": 1,
+      "message": "nit: make this more idiomatic:\nif err :\u003d tileSource...; err !\u003d nil {",
+      "range": {
+        "startLine": 523,
+        "startChar": 1,
+        "endLine": 523,
+        "endChar": 16
+      },
+      "revId": "f1cf7aec06664936def75373cb7d26362067a9d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
