@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ac7f88db_ffc5f994",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-08T12:37:00Z",
+      "side": 1,
+      "message": "swarming and task attributes can be added here, and perhaps a one liner explaining what this module does.",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 8
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8460fb17_97312134",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-08T12:37:00Z",
+      "side": 1,
+      "message": "I\u0027ve been told we prefer single quotes. may be worth updating that in tslint/Prettier/etc, to fix throughout.",
+      "range": {
+        "startLine": 30,
+        "startChar": 24,
+        "endLine": 30,
+        "endChar": 25
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc4a5b12_5e946534",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-08T12:37:00Z",
+      "side": 1,
+      "message": "Consider:\n`${patch.server}/c/${patch.issue}/${patch.patchset}`\n\n(I think either Prettier or tslint has support for automatically converting these as well)",
+      "range": {
+        "startLine": 180,
+        "startChar": 30,
+        "endLine": 180,
+        "endChar": 88
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ddc83581_f7ac8f38",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-08T12:37:00Z",
+      "side": 1,
+      "message": "Consider template literal as above.",
+      "range": {
+        "startLine": 182,
+        "startChar": 11,
+        "endLine": 182,
+        "endChar": 23
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6e522c35_20ea79bb",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-08T12:37:00Z",
+      "side": 1,
+      "message": "Consider template literal as above.",
+      "range": {
+        "startLine": 186,
+        "startChar": 11,
+        "endLine": 186,
+        "endChar": 27
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
