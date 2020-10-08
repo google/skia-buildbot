@@ -99,6 +99,7 @@ build-frontend-ci:
 	# Other apps can be built in alphabetical order.
 	cd am && $(MAKE) build-frontend-ci
 	cd ct && $(MAKE) build-frontend-ci
+	cd debugger-app && $(MAKE) build-frontend-ci
 	cd golden && $(MAKE) build-frontend-ci
 	cd hashtag && $(MAKE) build-frontend-ci
 	cd leasing && $(MAKE) build-frontend-ci
@@ -144,6 +145,7 @@ test-frontend-ci:
 	# Other apps can be tested in alphabetical order.
 	cd am && $(MAKE) test-frontend-ci
 	cd ct && $(MAKE) test-frontend-ci
+	cd debugger-app && $(MAKE) test-frontend-ci
 	cd demos && $(MAKE) test-frontend-ci
 	cd golden && $(MAKE) test-frontend-ci
 	cd machine && $(MAKE) test-frontend-ci
