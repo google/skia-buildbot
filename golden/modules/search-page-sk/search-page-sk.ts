@@ -16,7 +16,7 @@ import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk
 import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse, TriageRequestData, Label } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse, TriageRequestData, Label, Digest } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -151,10 +151,11 @@ export class SearchPageSk extends ElementSk {
   private static _resultTemplate =
     (el: SearchPageSk, result: SearchResult, selected: boolean) => html`
       <digest-details-sk .commits=${el._searchResponse?.commits}
-                        .details=${result}
-                        .changeListID=${el._changelistId}
-                        .crs=${el._crs}
-                        class="${selected ? 'selected' : ''}">
+                         .details=${result}
+                         .changeListID=${el._changelistId}
+                         .crs=${el._crs}
+                         @triage=${(e: CustomEvent<Label>) => el._onTriage(result, e.detail)}
+                         class="${selected ? 'selected' : ''}">
       </digest-details-sk>
     `;
 
@@ -438,6 +439,13 @@ export class SearchPageSk extends ElementSk {
     //
     // TODO(lovisolo): Remove after the legacy search page is deleted.
     this._render();
+  }
+
+  private _onTriage(result: SearchResult, label: Label) {
+    // When the user triages a digest, we patch the corresponding cached SearchResult with the new
+    // label. This prevents the digest-details-sk component from reverting to the original label
+    // when the search-page-sk is re-rendered with the same cached SearchResults.
+    result.status = label;
   }
 
   private _onKeyDown(event: KeyboardEvent) {

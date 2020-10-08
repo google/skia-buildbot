@@ -673,22 +673,52 @@ describe('search-page-sk', () => {
         await searchPageSkPO.typeKey('j');
         await searchPageSkPO.typeKey('j');
 
+        // We will also test that, when the user triages a digest, the new label remains in place
+        // even after the search-page-sk component is re-rendered with the same (now stale)
+        // cached SearchResults from an earlier RPC to /json/v1/search. The SearchResults are now
+        // stale because they reflect the RPC response prior to the user's triage action.
+        //
+        // This behavior is important to test because it exercises logic in search-page-sk that
+        // patches the cached SearchResults with a new label when the user triages a digest via the
+        // digest-details-sk component or via the "A", "S" or "D" keyboard shortcuts.
+        //
+        // A search page re-render can be triggered with the "J" and "K" keyboard shortcuts, which
+        // change the focused digest and redraw a box around it. (Note that this does not cause an
+        // RPC to the /json/v1/search RPC; the SearchResults will remain cached.)
+        //
+        // We test this behavior here via keyboard shortcuts for convenience.
+
         // Triage as positive.
         let event = eventPromise('end-task');
         await searchPageSkPO.typeKey('a');
         await event;
+
+        // It should be positive, and the label should stick after the page is re-rendered.
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
+        await searchPageSkPO.typeKey('k'); // Go one digest up. This re-renders the page.
+        await searchPageSkPO.typeKey('j'); // Go back down. This re-renders the page.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
 
         // Triage as negative.
         event = eventPromise('end-task');
         await searchPageSkPO.typeKey('s');
         await event;
+
+        // It should be negative, and the label should stick after the page is re-rendered.
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
+        await searchPageSkPO.typeKey('k'); // Go one digest up. This re-renders the page.
+        await searchPageSkPO.typeKey('j'); // Go back down. This re-renders the page.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triage as untriaged.
         event = eventPromise('end-task');
         await searchPageSkPO.typeKey('d');
         await event;
+
+        // It should be untriaged, and the label should stick after the page is re-rendered.
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
+        await searchPageSkPO.typeKey('k'); // Go one digest up. This re-renders the page.
+        await searchPageSkPO.typeKey('j'); // Go back down. This re-renders the page.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
       });
     });

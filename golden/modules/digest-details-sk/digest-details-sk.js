@@ -9,6 +9,7 @@
  * <h2>Events</h2>
  *   This element produces the following events:
  * @evt begin-task/end-task - when a POST request is in flight to handle triaging.
+ * @evt triage - Emitted when the user triages the digest. e.detail contains the assigned Label.
  *
  *   Children elements emit the following events of note:
  * @evt show-commits - Event generated when a trace dot is clicked. e.detail contains
@@ -19,7 +20,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { $$ } from 'common-sk/modules/dom';
-import { fromParamSet, fromObject } from 'common-sk/modules/query';
+import { fromObject } from 'common-sk/modules/query';
 import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -369,7 +370,9 @@ define('digest-details-sk', class extends ElementSk {
 
   _triageChangeHandler(e) {
     e.stopPropagation();
-    this.triggerTriage(e.detail);
+    const label = e.detail;
+    this.dispatchEvent(new CustomEvent('triage', { bubbles: true, detail: label }));
+    this.triggerTriage(label);
   }
 
   /**
