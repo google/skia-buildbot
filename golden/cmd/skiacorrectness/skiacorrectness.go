@@ -31,9 +31,9 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore"
@@ -44,6 +44,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expectations/cleanup"
@@ -57,6 +58,7 @@ import (
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/warmer"
@@ -69,10 +71,6 @@ const (
 
 	// callbackPath is callback endpoint used for the OAuth2 flow
 	callbackPath = "/oauth2callback/"
-)
-
-var (
-	templates *template.Template
 )
 
 type frontendServerConfig struct {
@@ -158,6 +156,11 @@ type frontendServerConfig struct {
 	UseLitHTMLSearchPage bool `json:"use_lit_html_search_page"`
 }
 
+// IsAuthoritative indicates that this instance can write to known_hashes, update CL statuses, etc.
+func (fsc *frontendServerConfig) IsAuthoritative() bool {
+	return !fsc.Local && !fsc.IsPublicView
+}
+
 type frontendConfig struct {
 	BaseRepoURL   string `json:"baseRepoURL"`
 	DefaultCorpus string `json:"defaultCorpus"`
@@ -172,6 +175,7 @@ func main() {
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to baseline server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
 	)
+
 	// Parse the flags, so we can load the configuration files.
 	flag.Parse()
 
@@ -180,16 +184,11 @@ func main() {
 		select {}
 	}
 
-	var fsc frontendServerConfig
-	if err := config.LoadFromJSON5(&fsc, commonInstanceConfig, thisConfig); err != nil {
-		sklog.Fatalf("Reading config: %s", err)
-	}
-	sklog.Infof("Loaded config %#v", fsc)
+	// Load configuration from common and instance-specific JSON files.
+	fsc := mustLoadFrontendServerConfig(commonInstanceConfig, thisConfig)
 
 	// Speculative memory usage fix? https://github.com/googleapis/google-cloud-go/issues/375
 	grpc.EnableTracing = false
-
-	var err error
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
 	rand.Seed(time.Now().UnixNano())
@@ -197,16 +196,75 @@ func main() {
 	// If we are running this, we really don't want to talk to the emulator.
 	firestore.EnsureNotEmulator()
 
-	// Set up the logging options.
-	logOpts := []common.Opt{
-		common.PrometheusOpt(&fsc.PromPort),
-	}
-
+	// Initialize service.
 	_, appName := filepath.Split(os.Args[0])
-	common.InitWithMust(appName, logOpts...)
+	common.InitWithMust(appName, common.PrometheusOpt(&fsc.PromPort))
 
 	ctx := context.Background()
 
+	mustStartDebugServer(fsc)
+
+	mustSetUpOAuth2Login(fsc)
+
+	client := mustMakeAuthenticatedHTTPClient(fsc.Local)
+
+	diffStore := mustMakeDiffStore(ctx, fsc)
+
+	gitStore := mustMakeGitStore(ctx, fsc, appName)
+
+	vcs := mustMakeVCS(ctx, gitStore)
+
+	traceStore := mustMakeTraceStore(ctx, fsc, vcs)
+
+	gsClient := mustMakeGCSClient(ctx, fsc, client)
+
+	fsClient := mustMakeFirestoreClient(ctx, fsc)
+
+	expStore, expChangeHandler := mustMakeExpectationsStore(ctx, fsClient)
+
+	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
+
+	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient)
+
+	tjs := fs_tjstore.New(fsClient)
+
+	reviewSystems := mustInitializeReviewSystems(fsc, fsClient, client)
+
+	tileSource := mustMakeTileSource(ctx, fsc, expStore, ignoreStore, traceStore, vcs, publiclyViewableParams, reviewSystems)
+
+	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, diffStore, gsClient, reviewSystems, tileSource, tjs)
+
+	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
+	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold)
+	sklog.Infof("Search API created")
+
+	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
+
+	statusWatcher := mustMakeStatusWatcher(ctx, vcs, expStore, expChangeHandler, tileSource)
+
+	mustStartExpectationsCleanupProcess(ctx, fsc, expStore, ixr)
+
+	handlers := mustMakeWebHandlers(diffStore, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, statusWatcher, tileSource, tjs, vcs)
+
+	rootRouter := mustMakeRootRouter(fsc, handlers, diffStore)
+
+	// Start the server
+	sklog.Infof("Serving on http://127.0.0.1" + fsc.Port)
+	sklog.Fatal(http.ListenAndServe(fsc.Port, rootRouter))
+}
+
+// mustLoadFrontendServerConfig parses the common and instance-specific JSON configuration files.
+func mustLoadFrontendServerConfig(commonInstanceConfig *string, thisConfig *string) *frontendServerConfig {
+	var fsc frontendServerConfig
+	if err := config.LoadFromJSON5(&fsc, commonInstanceConfig, thisConfig); err != nil {
+		sklog.Fatalf("Reading config: %s", err)
+	}
+	sklog.Infof("Loaded config %#v", fsc)
+	return &fsc
+}
+
+// mustStartDebugServer starts an internal HTTP server for debugging purposes if requested.
+func mustStartDebugServer(fsc *frontendServerConfig) {
 	// Start the internal server on the internal port if requested.
 	if fsc.DebugPort != "" {
 		// Add the profiling endpoints to the internal router.
@@ -226,7 +284,10 @@ func main() {
 			sklog.Fatal(http.ListenAndServe(fsc.DebugPort, internalRouter))
 		}()
 	}
+}
 
+// mustSetUpOAuth2Login initializes the OAuth 2.0 login system.
+func mustSetUpOAuth2Login(fsc *frontendServerConfig) {
 	// Set up login
 	redirectURL := fsc.SiteURL + "/oauth2callback/"
 	if fsc.Local {
@@ -236,15 +297,22 @@ func main() {
 	if err := login.Init(redirectURL, strings.Join(fsc.AuthorizedUsers, " "), fsc.ClientSecretFile); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
+}
 
+// mustMakeAuthenticatedHTTPClient returns an http.Client with the credentials required by the
+// services that Gold communicates with.
+func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 	// Get the token source for the service account with access to the services
 	// we need to operate.
-	tokenSource, err := auth.NewDefaultTokenSource(fsc.Local, auth.SCOPE_USERINFO_EMAIL, gstorage.CloudPlatformScope, auth.SCOPE_GERRIT)
+	tokenSource, err := auth.NewDefaultTokenSource(local, auth.SCOPE_USERINFO_EMAIL, gstorage.CloudPlatformScope, auth.SCOPE_GERRIT)
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
-	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+	return httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+}
 
+// mustMakeDiffStore returns a diff.DiffStore that speaks to a remote diff server via gRPC.
+func mustMakeDiffStore(ctx context.Context, fsc *frontendServerConfig) diff.DiffStore {
 	// Create the client connection and connect to the server.
 	conn, err := grpc.Dial(fsc.DiffServerGRPC,
 		grpc.WithInsecure(),
@@ -261,6 +329,12 @@ func main() {
 	}
 	sklog.Infof("DiffStore: NetDiffStore initiated.")
 
+	return diffStore
+}
+
+// mustMakeGitStore instantiates a BigTable-backed gitstore.GitStore using the BigTable specified
+// via the JSON configuration files.
+func mustMakeGitStore(ctx context.Context, fsc *frontendServerConfig, appName string) *bt_gitstore.BigTableGitStore {
 	if fsc.Local {
 		appName = bt.TestingAppProfile
 	}
@@ -276,6 +350,11 @@ func main() {
 		sklog.Fatalf("Error instantiating gitstore: %s", err)
 	}
 
+	return gitStore
+}
+
+// mustMakeVCS returns a vcsinfo.VCS that wraps the given BigTable-backed GitStore.
+func mustMakeVCS(ctx context.Context, gitStore *bt_gitstore.BigTableGitStore) *bt_vcs.BigTableVCS {
 	// TODO(kjlubick): remove gitilesRepo and the GetFile() from vcsinfo (unused and
 	//  leaky abstraction).
 	gitilesRepo := gitiles.NewRepo("", nil)
@@ -283,7 +362,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 	}
+	return vcs
+}
 
+// mustMakeTraceStore returns a BigTable-backed tracestore.TraceStore.
+func mustMakeTraceStore(ctx context.Context, fsc *frontendServerConfig, vcs *bt_vcs.BigTableVCS) *bt_tracestore.BTTraceStore {
 	btc := bt_tracestore.BTConfig{
 		InstanceID: fsc.BTInstance,
 		ProjectID:  fsc.BTProjectID,
@@ -291,8 +374,7 @@ func main() {
 		VCS:        vcs,
 	}
 
-	err = bt_tracestore.InitBT(ctx, btc)
-	if err != nil {
+	if err := bt_tracestore.InitBT(ctx, btc); err != nil {
 		sklog.Fatalf("Could not initialize BigTable tracestore with config %#v: %s", btc, err)
 	}
 
@@ -301,12 +383,16 @@ func main() {
 		sklog.Fatalf("Could not instantiate BT tracestore: %s", err)
 	}
 
-	// Indicates that this instance can write to known_hashes, update changelist statuses, etc
-	isAuthoritative := !fsc.Local && !fsc.IsPublicView
+	return traceStore
+}
 
+// mustMakeGCSClient returns a storage.GCSClient that uses the given http.Client. If the Gold
+// instance is not authoritative (e.g. when running locally) the client won't actually write any
+// files.
+func mustMakeGCSClient(ctx context.Context, fsc *frontendServerConfig, client *http.Client) storage.GCSClient {
 	gsClientOpt := storage.GCSClientOptions{
 		KnownHashesGCSPath: fsc.KnownHashesGCSPath,
-		Dryrun:             !isAuthoritative,
+		Dryrun:             !fsc.IsAuthoritative(),
 	}
 
 	gsClient, err := storage.NewGCSClient(ctx, client, gsClientOpt)
@@ -314,6 +400,12 @@ func main() {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
+	return gsClient
+}
+
+// mustMakeFirestoreClient returns a firestore.Client using the settings from the JSON configuration
+// files.
+func mustMakeFirestoreClient(ctx context.Context, fsc *frontendServerConfig) *firestore.Client {
 	// Auth note: the underlying firestore.NewClient looks at the
 	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
 	// a token source.
@@ -321,17 +413,27 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
+	return fsClient
+}
 
+// mustMakeExpectationsStore returns a Firestore-backed expectations.Store and a corresponding
+// change event dispatcher.
+func mustMakeExpectationsStore(ctx context.Context, fsClient *firestore.Client) (*fs_expectationstore.Store, *expectations.ChangeEventDispatcher) {
 	// Set up the cloud expectations store
 	expChangeHandler := expectations.NewEventDispatcher()
 	expStore := fs_expectationstore.New(fsClient, expChangeHandler, fs_expectationstore.ReadWrite)
 	if err := expStore.Initialize(ctx); err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
+	return expStore, expChangeHandler
+}
 
-	baseliner := simple_baseliner.New(expStore)
-
+// mustMakePubliclyViewableParams validates and computes a publicparams.Matcher from the publicly
+// allowed params specified in the JSON configuration files.
+func mustMakePubliclyViewableParams(fsc *frontendServerConfig) publicparams.Matcher {
 	var publiclyViewableParams publicparams.Matcher
+	var err error
+
 	// Load the publiclyViewable params if configured and disable querying for issues.
 	if len(fsc.PubliclyAllowableParams) > 0 {
 		if publiclyViewableParams, err = publicparams.MatcherFromRules(fsc.PubliclyAllowableParams); err != nil {
@@ -344,20 +446,69 @@ func main() {
 		sklog.Fatal("A non-empty map of publiclyViewableParams must be provided if is public view.")
 	}
 
-	ignoreStore := fs_ignorestore.New(ctx, fsClient)
+	return publiclyViewableParams
+}
 
+// mustMakeIgnoreStore returns a new ignore.Store and starts a monitoring routine that counts the
+// the number of expired ignore rules and exposes this as a metric.
+func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClient *firestore.Client) ignore.Store {
+	ignoreStore := fs_ignorestore.New(ctx, fsClient)
 	if err := ignore.StartMetrics(ctx, ignoreStore, fsc.TileFreshness.Duration); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
+	return ignoreStore
+}
 
-	tjs := fs_tjstore.New(fsClient)
-	reviewSystems, err := initializeReviewSystems(fsc.CodeReviewSystems, fsClient, client)
-	if err != nil {
-		sklog.Fatalf("Could not initialize CRS: %s", err)
+// mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
+// specified via the JSON configuration files.
+func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client, hc *http.Client) []clstore.ReviewSystem {
+	rs := make([]clstore.ReviewSystem, 0, len(fsc.CodeReviewSystems))
+	for _, cfg := range fsc.CodeReviewSystems {
+		var crs code_review.Client
+		if cfg.Flavor == "gerrit" {
+			if cfg.GerritURL == "" {
+				sklog.Fatal("You must specify gerrit_url")
+				return nil
+			}
+			gerritClient, err := gerrit.NewGerrit(cfg.GerritURL, hc)
+			if err != nil {
+				sklog.Fatalf("Could not create gerrit client for %s", cfg.GerritURL)
+				return nil
+			}
+			crs = gerrit_crs.New(gerritClient)
+		} else if cfg.Flavor == "github" {
+			if cfg.GitHubRepo == "" || cfg.GitHubCredPath == "" {
+				sklog.Fatal("You must specify github_repo and github_cred_path")
+				return nil
+			}
+			gBody, err := ioutil.ReadFile(cfg.GitHubCredPath)
+			if err != nil {
+				sklog.Fatalf("Couldn't find githubToken in %s: %s", cfg.GitHubCredPath, err)
+				return nil
+			}
+			gToken := strings.TrimSpace(string(gBody))
+			githubTS := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})
+			c := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(githubTS).Client()
+			crs = github_crs.New(c, cfg.GitHubRepo)
+		} else {
+			sklog.Fatalf("CRS flavor %s not supported.", cfg.Flavor)
+			return nil
+		}
+
+		rs = append(rs, clstore.ReviewSystem{
+			ID:          cfg.ID,
+			Client:      crs,
+			Store:       fs_clstore.New(fc, cfg.ID),
+			URLTemplate: cfg.URLTemplate,
+		})
 	}
+	return rs
+}
 
+// mustMakeTileSource returns a new tilesource.TileSource.
+func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, ignoreStore ignore.Store, traceStore *bt_tracestore.BTTraceStore, vcs vcsinfo.VCS, publiclyViewableParams publicparams.Matcher, reviewSystems []clstore.ReviewSystem) tilesource.TileSource {
 	var clUpdater code_review.ChangeListLandedUpdater
-	if isAuthoritative && !fsc.DisableCLTracking {
+	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
 		clUpdater = updater.New(expStore, reviewSystems)
 	}
 
@@ -373,11 +524,15 @@ func main() {
 	tileSource := tilesource.New(ctc)
 	sklog.Infof("Fetching tile")
 	// Blocks until tile is fetched
-	err = tileSource.StartUpdater(ctx, 2*time.Minute)
-	if err != nil {
+	if err := tileSource.StartUpdater(ctx, 2*time.Minute); err != nil {
 		sklog.Fatalf("Could not fetch initial tile: %s", err)
 	}
 
+	return tileSource
+}
+
+// mustMakeIndexer makes a new indexer.Indexer.
+func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, diffStore diff.DiffStore, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
 	ic := indexer.IndexerConfig{
 		ChangeListener:    expChangeHandler,
 		DiffStore:         diffStore,
@@ -397,12 +552,14 @@ func main() {
 	}
 	sklog.Infof("Indexer created.")
 
-	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold)
+	return ixr
+}
 
-	sklog.Infof("Search API created")
-
-	if isAuthoritative && !fsc.DisableCLTracking {
+// mustStartCommenters starts a background process that comments on CLs for each of the review
+// systems specified in the JSON configuration files, unless the Gold instance is not authoritative
+// (e.g. when running locally) or when CL tracking is disabled via the JSON configuration.
+func mustStartCommenters(ctx context.Context, fsc *frontendServerConfig, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI) {
+	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
 		for _, rs := range reviewSystems {
 			clCommenter, err := commenter.New(rs, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.PublicSiteURL, fsc.DisableCLComments)
 			if err != nil {
@@ -411,7 +568,22 @@ func main() {
 			startCommenter(ctx, clCommenter)
 		}
 	}
+}
 
+// startCommenter begins the background process that comments on CLs.
+func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
+	go func() {
+		// TODO(kjlubick): tune this time, maybe make it a flag
+		util.RepeatCtx(ctx, 3*time.Minute, func(ctx context.Context) {
+			if err := cmntr.CommentOnChangeListsWithUntriagedDigests(ctx); err != nil {
+				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
+			}
+		})
+	}()
+}
+
+// mustMakeStatusWatcher returns a new status.StatusWatcher.
+func mustMakeStatusWatcher(ctx context.Context, vcs vcsinfo.VCS, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, tileSource tilesource.TileSource) *status.StatusWatcher {
 	swc := status.StatusWatcherConfig{
 		VCS:               vcs,
 		ChangeListener:    expChangeHandler,
@@ -425,13 +597,19 @@ func main() {
 	}
 	sklog.Infof("statusWatcher created")
 
+	return statusWatcher
+}
+
+// mustStartExpectationsCleanupProcess starts a process that will garbage-collect any stale
+// expectations, unless the Gold instance is not authoritative (e.g. when running locally).
+func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServerConfig, expStore *fs_expectationstore.Store, ixr *indexer.Indexer) {
 	// reminder: this exp will be updated whenever expectations change.
 	exp, err := expStore.Get(ctx)
 	if err != nil {
 		sklog.Fatalf("Failed to get master-branch expectations: %s", err)
 	}
 
-	if isAuthoritative {
+	if fsc.IsAuthoritative() {
 		policy := cleanup.Policy{
 			PositiveMaxLastUsed: fsc.PositivesMaxAge.Duration,
 			NegativeMaxLastUsed: fsc.NegativesMaxAge.Duration,
@@ -440,9 +618,12 @@ func main() {
 			sklog.Fatalf("Could not start expectation cleaning process %s", err)
 		}
 	}
+}
 
+// mustMakeWebHandlers returns a new web.Handlers.
+func mustMakeWebHandlers(diffStore diff.DiffStore, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store, vcs vcsinfo.VCS) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		Baseliner:         baseliner,
+		Baseliner:         simple_baseliner.New(expStore),
 		DiffStore:         diffStore,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
@@ -458,7 +639,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
 	}
+	return handlers
+}
 
+// mustMakeRootRouter returns a mux.Router that can be used to serve Gold's web UI and JSON API.
+func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffStore diff.DiffStore) *mux.Router {
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.
 	loggedRouter := mux.NewRouter()
@@ -566,6 +751,8 @@ func main() {
 	jsonRouter.HandleFunc("/{ignore:.*}", http.NotFound)
 	loggedRouter.HandleFunc("/json", http.NotFound)
 
+	var templates *template.Template
+
 	loadTemplates := func() {
 		templates = template.Must(template.New("").ParseFiles(filepath.Join(fsc.ResourcesPath, "index.html")))
 		templates = template.Must(templates.ParseGlob(filepath.Join(fsc.LitHTMLPath, "dist", "*.html")))
@@ -651,9 +838,7 @@ func main() {
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
-	// Start the server
-	sklog.Infof("Serving on http://127.0.0.1" + fsc.Port)
-	sklog.Fatal(http.ListenAndServe(fsc.Port, rootRouter))
+	return rootRouter
 }
 
 // v0 sets up a route on the given router with a wrapper to count the number of calls to the given
@@ -687,56 +872,4 @@ func versionedRPC(rpcRoute, version string, handlerFunc http.HandlerFunc, router
 		counter.Inc(1)
 		handlerFunc(w, r)
 	})
-}
-
-func initializeReviewSystems(configs []config.CodeReviewSystem, fc *firestore.Client, hc *http.Client) ([]clstore.ReviewSystem, error) {
-	rs := make([]clstore.ReviewSystem, 0, len(configs))
-	for _, cfg := range configs {
-		var crs code_review.Client
-		if cfg.Flavor == "gerrit" {
-			if cfg.GerritURL == "" {
-				return nil, skerr.Fmt("You must specify gerrit_url")
-			}
-			gerritClient, err := gerrit.NewGerrit(cfg.GerritURL, hc)
-			if err != nil {
-				return nil, skerr.Fmt("Could not create gerrit client for %s", cfg.GerritURL)
-			}
-			crs = gerrit_crs.New(gerritClient)
-		} else if cfg.Flavor == "github" {
-			if cfg.GitHubRepo == "" || cfg.GitHubCredPath == "" {
-				return nil, skerr.Fmt("You must specify github_repo and github_cred_path")
-			}
-			gBody, err := ioutil.ReadFile(cfg.GitHubCredPath)
-			if err != nil {
-				return nil, skerr.Fmt("Couldn't find githubToken in %s: %s", cfg.GitHubCredPath, err)
-			}
-			gToken := strings.TrimSpace(string(gBody))
-			githubTS := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})
-			c := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(githubTS).Client()
-			crs = github_crs.New(c, cfg.GitHubRepo)
-		} else {
-			return nil, skerr.Fmt("CRS flavor %s not supported.", cfg.Flavor)
-		}
-
-		rs = append(rs, clstore.ReviewSystem{
-			ID:          cfg.ID,
-			Client:      crs,
-			Store:       fs_clstore.New(fc, cfg.ID),
-			URLTemplate: cfg.URLTemplate,
-		})
-	}
-	return rs, nil
-}
-
-// startCommenter begins the background process that comments on CLs.
-func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
-	go func() {
-		// TODO(kjlubick): tune this time, maybe make it a flag
-		util.RepeatCtx(ctx, 3*time.Minute, func(ctx context.Context) {
-			err := cmntr.CommentOnChangeListsWithUntriagedDigests(ctx)
-			if err != nil {
-				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
-			}
-		})
-	}()
 }
