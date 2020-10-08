@@ -29,6 +29,7 @@ import '../details-dialog-sk';
 import {
   Branch,
   Comment,
+  GetIncrementalCommitsRequest,
   GetIncrementalCommitsResponse,
   IncrementalUpdate,
   LongCommit,
@@ -46,7 +47,8 @@ const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
 const SUBCATEGORY_START_ROW = CATEGORY_START_ROW + 1;
 const TASKSPEC_START_ROW = SUBCATEGORY_START_ROW + 1;
 
-const COMMIT_START_COL = 1;
+const BRANCH_START_COL = 1;
+const COMMIT_START_COL = BRANCH_START_COL + 1;
 const TASK_START_COL = COMMIT_START_COL + 1;
 
 const REVERT_HIGHLIGHT_CLASS = 'highlight-revert';
@@ -180,27 +182,50 @@ class Data {
   // Internal state.
   private serverPodId: string = '';
   private client: StatusService = GetStatusService();
+  // Used to detect changes of these values between calls, to know when to load from scratch.
+  private repo: string = '';
+  private numCommits: number = -1;
 
-  update(repo: string, numCommits: number) {
-    // TODO(westont): Use real times, rather than always loading everything with 0 'from' value.
+  // TODO(westont): In addition to debouncing, we need to prevent overlapping requests from doing bad stuff.
+  update(repo: string, numCommits: number, lastLoaded?: Date) {
+    const req: GetIncrementalCommitsRequest = {
+      n: numCommits,
+      pod: this.serverPodId,
+      repoPath: repo,
+    };
+    if (lastLoaded && repo === this.repo && numCommits === this.numCommits) {
+      // We incrementally update if this is the same repo and numCommits as the
+      // previous call, and we have a starting point.
+      req.from = lastLoaded.toISOString();
+    }
+    this.repo = repo;
+    this.numCommits = numCommits;
     return this.client
-      .getIncrementalCommits({
-        // Twirp Typescript module doesn't correctly convey the imported timestamp proto type,
-        // and just makes these a string, which the backend chokes on.
-        // from: new Date(0).toUTCString(),
-        // to: new Date(0).toUTCString(),
-        n: numCommits,
-        pod: this.serverPodId,
-        repoPath: repo,
-      })
+      .getIncrementalCommits(req)
       .then((json: GetIncrementalCommitsResponse) => {
         // TODO(westont): Use StartOver to know to clear vs update, and actual implement updating.
-        const startOver: boolean = json.metadata!.startOver;
+        if (json.metadata!.startOver) {
+          this.clearData();
+        }
         this.serverPodId = json.metadata!.pod;
         this.extractData(json.update!);
         this.processCommits();
       })
       .catch(errorMessage);
+  }
+
+  private clearData() {
+    this.commits = []; // Commits in reverse chronoligcal order.
+    this.commitsByHash = new Map();
+    this.branchHeads = [];
+    this.tasks = new Map();
+    this.tasksBySpec = new Map();
+    this.tasksByCommit = new Map();
+    this.comments = new Map();
+    this.revertedMap = new Map();
+    this.relandedMap = new Map();
+    this.taskSpecs = new Map();
+    this.categories = new Map();
   }
 
   /**
@@ -209,7 +234,12 @@ class Data {
    * @param update Data from the backend.
    */
   private extractData(update: IncrementalUpdate) {
-    this.commits = update.commits as Array<Commit>;
+    const newCommits = (update.commits || []) as Array<Commit>;
+    var sliceIdx = this.commits.length - newCommits.length;
+    var keep = this.commits.slice(0, sliceIdx);
+    var remove = this.commits.slice(sliceIdx, this.commits.length);
+    this.commits = newCommits.concat(keep);
+
     this.branchHeads = update.branchHeads || this.branchHeads;
 
     // Map commits by hash.
@@ -222,9 +252,20 @@ class Data {
       this.tasks.set(task.id, task);
     }
 
-    // TODO(westont): Remove old commits.
+    // Remove too-old tasks.
+    for (let commit of remove) {
+      for (let [id, task] of this.tasks) {
+        if (task.revision == commit.hash) {
+          this.tasks.delete(id);
+        }
+      }
+    }
+
+    // TODO(weston) DO NOT SUBMIT audit for dangling references to old tasks. like below!
+    // consider just clearing this and rebuilding it each time.alternatively, mark tasks as altered / same.
 
     // Map commits to tasks
+    // This works for inserts and updates, and we don't bother deleting the entries in 'remove', though we could.
     for (const [, task] of this.tasks) {
       if (task.commits) {
         for (let commit of task.commits) {
@@ -234,10 +275,11 @@ class Data {
             this.tasksByCommit.set(commit, tasksForCommit);
           }
           tasksForCommit.set(task.name, task);
-          // TODO(westont): Remove deleted comments.
         }
       }
     }
+
+    // TODO(westont): Remove deleted comments.
 
     // Map comments.
     for (let comment of update.comments || []) {
@@ -264,6 +306,7 @@ class Data {
    * taskspecs references by commits.
    */
   private processCommits() {
+    // TODO(westont): We can optimize this by only looking at the first N commits. although with reverts, relands maybe not.
     for (let commit of this.commits) {
       // Metadata for display/links.
       commit.shortAuthor = shortAuthor(commit.author);
@@ -353,18 +396,21 @@ class Data {
 }
 
 export class CommitsTableSk extends ElementSk {
+  private _repo: string = defaultRepo();
   private _displayCommitSubject: boolean = false;
   private _filter: Filter = 'Interesting';
-  private _repo: string = defaultRepo();
   private _search: RegExp = new RegExp('');
+  private lastLoaded?: Date;
   private lastColumn: number = 1;
-  private numCommits: number = 35;
-  private refreshSeconds: number = 60;
+  private refreshHandle?: number;
 
   private data: Data = new Data();
 
   private static template = (el: CommitsTableSk) => html`<div class="commitsTableContainer">
-    <div class="legend" style=${el.gridLocation(CATEGORY_START_ROW, 1, TASKSPEC_START_ROW + 1)}>
+    <div
+      class="legend"
+      style=${el.gridLocation(CATEGORY_START_ROW, COMMIT_START_COL, TASKSPEC_START_ROW + 1)}
+    >
       <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
       <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
       <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
@@ -372,10 +418,35 @@ export class CommitsTableSk extends ElementSk {
       <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
     </div>
     <div class="tasksTable">${el.fillTableTemplate()}</div>
-
+    <div class="reloadControls" style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL)}>
+      <div class="refresh">
+        <input-sk
+          type="number"
+          textPrefix="Reload (s):&nbsp"
+          id="reloadInput"
+          @change=${() => el.update()}
+        ></input-sk>
+        <input-sk
+          type="number"
+          textPrefix="Commits:&nbsp&nbsp&nbsp"
+          id="commitsInput"
+          @change=${() => el.update()}
+        >
+        </input-sk>
+        <div class="lastLoaded">
+          ${el.lastLoaded ? `Loaded ${el.lastLoaded.toLocaleTimeString()}` : '(Not yet loaded)'}
+        </div>
+      </div>
+    </div>
     <div
       class="controls"
-      style=${el.gridLocation(CONTROL_START_ROW, 1, CONTROL_START_ROW + 1, el.lastColumn)}
+      style=${el.gridLocation(
+        CONTROL_START_ROW,
+        COMMIT_START_COL,
+        CONTROL_START_ROW + 1,
+        // We render this after the table so we know our last column.
+        el.lastColumn
+      )}
     >
       <div class="horizontal">
         <div class="commitLabelSelector">
@@ -428,6 +499,9 @@ export class CommitsTableSk extends ElementSk {
     super.connectedCallback();
     document.addEventListener('click', this.onClick);
     this._render();
+    // input-sk value is backed by its <inputs>'s value directly, so set after render.
+    (<HTMLInputElement>$$('#reloadInput', this)).value = '60';
+    (<HTMLInputElement>$$('#commitsInput', this)).value = '35';
     this.update();
   }
 
@@ -899,10 +973,16 @@ export class CommitsTableSk extends ElementSk {
   }
 
   private update() {
+    const refreshSeconds = Number((<HTMLInputElement>$$('#reloadInput', this)).value);
+    const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
+    window.clearTimeout(this.refreshHandle);
+    this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-    this.data.update(this.repo, this.numCommits).finally(() => {
+    this.data.update(this.repo, numCommits, this.lastLoaded).finally(() => {
+      this.lastLoaded = new Date();
       this.draw();
       this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      this.refreshHandle = window.setTimeout(() => this.update(), refreshSeconds * 1000);
     });
   }
 
