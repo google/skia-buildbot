@@ -32,6 +32,32 @@
       "url": "https://android-build.googleplex.com/builds/treetop/skia-review/324079?revision\u003d2",
       "fixSuggestions": [],
       "key": {
+        "uuid": "6b676d81_e92485ca",
+        "filename": "fiddlek/modules/fiddle-sk/fiddle-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-08T17:14:20Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 394,
+        "startChar": 0,
+        "endLine": 394,
+        "endChar": 4
+      },
+      "revId": "c25cc4e7d47f61b5607619972724a79107e10d40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005421902",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/324079?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
         "uuid": "172072f0_adaf77d9",
         "filename": "fiddlek/modules/fiddle-sk/fiddle-sk-demo.ts",
         "patchSetId": 2
@@ -41,6 +67,32 @@
         "id": 13964
       },
       "writtenOn": "2020-10-08T16:51:31Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 404,
+        "startChar": 0,
+        "endLine": 404,
+        "endChar": 4
+      },
+      "revId": "c25cc4e7d47f61b5607619972724a79107e10d40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005421902",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/324079?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "a7ece9bc_15fd55f4",
+        "filename": "fiddlek/modules/fiddle-sk/fiddle-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-08T17:14:20Z",
       "side": 1,
       "message": "Please remove the trailing whitespace.",
       "range": {
