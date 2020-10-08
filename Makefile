@@ -66,8 +66,11 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
+# .PHONY: all
+# all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+# DO NOT SUBMIT #########
 .PHONY: all
-all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+all: build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -97,20 +100,20 @@ build-frontend-ci:
 	cd infra-sk && $(MAKE) build-frontend-ci
 
 	# Other apps can be built in alphabetical order.
-	cd am && $(MAKE) build-frontend-ci
-	cd ct && $(MAKE) build-frontend-ci
-	cd golden && $(MAKE) build-frontend-ci
-	cd hashtag && $(MAKE) build-frontend-ci
-	cd leasing && $(MAKE) build-frontend-ci
-	cd machine && $(MAKE) build-frontend-ci
-	cd new_element && $(MAKE) build-frontend-ci
-	cd perf && $(MAKE) build-frontend-ci
-	cd power && $(MAKE) build-frontend-ci
-	cd pulld && $(MAKE) build-frontend-ci
-	cd push && $(MAKE) build-frontend-ci
-	cd status && $(MAKE) build-frontend-ci
-	cd task_driver && $(MAKE) build-frontend-ci
-	cd tree_status && $(MAKE) build-frontend-ci
+	# cd am && $(MAKE) build-frontend-ci
+	# cd ct && $(MAKE) build-frontend-ci
+	# cd golden && $(MAKE) build-frontend-ci
+	# cd hashtag && $(MAKE) build-frontend-ci
+	# cd leasing && $(MAKE) build-frontend-ci
+	# cd machine && $(MAKE) build-frontend-ci
+	# cd new_element && $(MAKE) build-frontend-ci
+	# cd perf && $(MAKE) build-frontend-ci
+	# cd power && $(MAKE) build-frontend-ci
+	# cd pulld && $(MAKE) build-frontend-ci
+	# cd push && $(MAKE) build-frontend-ci
+	# cd status && $(MAKE) build-frontend-ci
+	# cd task_driver && $(MAKE) build-frontend-ci
+	# cd tree_status && $(MAKE) build-frontend-ci
 
 	# The following apps are commented out because they require running the
 	# gcr.io/skia-public/skia-wasm-release:prod	Docker container as part of their build process, which
@@ -126,7 +129,7 @@ build-frontend-ci:
 	#   follow the steps in: https://cloud.google.com/container-registry/docs/advanced-authentication.
 	#   See 'docker run --help'.
 
-	# cd demos && $(MAKE) build-frontend-ci
+	cd demos && $(MAKE) build-frontend-ci
 	# cd jsfiddle && $(MAKE) build-frontend-ci
 	# cd particles && $(MAKE) build-frontend-ci
 	# cd skottie && $(MAKE) build-frontend-ci
