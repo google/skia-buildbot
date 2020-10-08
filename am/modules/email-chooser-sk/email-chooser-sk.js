@@ -48,7 +48,7 @@ define('email-chooser-sk', class extends HTMLElement {
 
   connectedCallback() {
     this._render();
-    this._dialog = $$('dialog');
+    this._dialog = $$('dialog', this);
     dialogPolyfill.registerDialog(this._dialog);
   }
 
