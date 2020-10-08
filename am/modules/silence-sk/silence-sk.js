@@ -113,7 +113,7 @@ function table(ele, o) {
       </td>
       <th>${k}</th>
       <td>
-        <input @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
+        <input class=param-val @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
         ${displayAddBots(botCentricParams, k, ele)}
       </td>
     </tr>`);
@@ -126,7 +126,7 @@ function table(ele, o) {
         <input id='add_param_key'></input>
       </td>
       <td>
-        <input id='add_param_value'></input>
+        <input class=param-val id='add_param_value'></input>
       </td>
     </tr>
   `);
