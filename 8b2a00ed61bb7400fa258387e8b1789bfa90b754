@@ -416,6 +416,30 @@
       },
       "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1e9d158e_9e5a9f93",
+        "filename": "task_scheduler/modules/gantt-chart-sk/gantt-chart-sk_puppeteer_test.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-08T11:23:12Z",
+      "side": 1,
+      "message": "Renamed and added comments.  Let me know if the wording is unclear.",
+      "parentUuid": "2abc4ac3_eca2824b",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 38
+      },
+      "revId": "8b2a00ed61bb7400fa258387e8b1789bfa90b754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
