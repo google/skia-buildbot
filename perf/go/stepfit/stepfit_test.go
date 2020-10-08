@@ -1,6 +1,7 @@
 package stepfit
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,6 +96,27 @@ func TestStepFit_Percent_StepTooSmall(t *testing.T) {
 	assert.Equal(t,
 		&StepFit{TurningPoint: 1, StepSize: -0.5, Status: UNINTERESTING, Regression: -0.5, LeastSquares: InvalidLeastSquaresError},
 		GetStepFitAtMid([]float32{1, 1.5, x}, minStdDev, 1.0, types.PercentStep))
+}
+
+func TestStepFit_Percent_DefendAgainstNegativeInf(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 1, StepSize: -math.MaxFloat32, Status: HIGH, Regression: -math.MaxFloat32, LeastSquares: InvalidLeastSquaresError},
+		GetStepFitAtMid([]float32{0, 0, 1, 1}, minStdDev, 1.0, types.PercentStep))
+}
+
+func TestStepFit_Percent_DefendAgainstInf(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 1, StepSize: math.MaxFloat32, Status: LOW, Regression: math.MaxFloat32, LeastSquares: InvalidLeastSquaresError},
+		GetStepFitAtMid([]float32{0, 0, -1, -1}, minStdDev, 1.0, types.PercentStep))
+}
+
+func TestStepFit_Percent_DefendAgainstNaN(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 1, StepSize: 0, Status: UNINTERESTING, Regression: 0, LeastSquares: InvalidLeastSquaresError},
+		GetStepFitAtMid([]float32{0, 0, 0, 0}, minStdDev, 1.0, types.PercentStep))
 }
 
 func TestStepFit_Cohen_NoStep(t *testing.T) {
