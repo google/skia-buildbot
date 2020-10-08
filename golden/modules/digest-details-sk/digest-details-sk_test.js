@@ -86,6 +86,23 @@ describe('digest-details-sk', () => {
       expect($$('.negative_warning').hidden).to.be.false;
     });
 
+    it('emits a "triage" event when a triage button is clicked', async () => {
+      // Triage as negative.
+      let triageEventPromise = eventPromise('triage');
+      $$('.metrics_and_triage triage-sk button.negative', digestDetailsSk).click();
+      expect((await triageEventPromise).detail).to.equal('negative');
+
+      // Triage as positive.
+       triageEventPromise = eventPromise('triage');
+      $$('.metrics_and_triage triage-sk button.positive', digestDetailsSk).click();
+      expect((await triageEventPromise).detail).to.equal('positive');
+
+      // Triage as untriaged.
+      triageEventPromise = eventPromise('triage');
+      $$('.metrics_and_triage triage-sk button.untriaged', digestDetailsSk).click();
+      expect((await triageEventPromise).detail).to.equal('untriaged');
+    });
+
     describe('RPC requests', () => {
       afterEach(() => {
         expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
