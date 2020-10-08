@@ -361,7 +361,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
       <h2 ?hidden=${ele._config.embedded}>Output</h2>
 
       <div class="textoutput">
-        <test-src-sk src=${ele.textURL()}></test-src-sk>
+        <test-src-sk .src=${ele.textURL()}></test-src-sk>
       </div>
     `;
   };
@@ -475,8 +475,6 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
           </select>
         </div>
       </div>
-
-      ${FiddleSk.textOnlyResults(ele)} ${FiddleSk.runDetails(ele)}
     `;
   };
 
@@ -504,7 +502,15 @@ ${err.text}</pre
 
       <textarea-numbers-sk .value=${ele._runResults.text}></textarea-numbers-sk>
 
-      ${FiddleSk.actions(ele)} ${FiddleSk.errors(ele)} ${FiddleSk.results(ele)}
+      ${FiddleSk.actions(ele)}
+
+      ${FiddleSk.errors(ele)}
+
+      ${FiddleSk.results(ele)}
+
+      ${FiddleSk.textOnlyResults(ele)}
+
+      ${FiddleSk.runDetails(ele)}
     `;
 
   connectedCallback(): void {
