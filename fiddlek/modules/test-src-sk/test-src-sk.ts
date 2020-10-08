@@ -34,6 +34,9 @@ export class TestSrcSk extends ElementSk {
   }
 
   set src(val: string) {
+    if (val === '') {
+      return;
+    }
     this._src = val;
     fetch(val).then((resp) => {
       if (!resp.ok) {
