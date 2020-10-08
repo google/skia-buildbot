@@ -236,5 +236,13 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
+		for _, r := range status.Regressions {
+			if r.Regression.Low != nil {
+				sklog.Errorf("Low %#v", r.Regression.Low.StepFit)
+			}
+			if r.Regression.High != nil {
+				sklog.Errorf("High %#v", r.Regression.High.StepFit)
+			}
+		}
 	}
 }
