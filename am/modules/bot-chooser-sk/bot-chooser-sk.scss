@@ -1,0 +1,10 @@
+@import '~elements-sk/colors';
+
+bot-chooser-sk {
+  dialog-sk {
+    h2 {
+      color: var(--blue);
+      margin: 0;
+    }
+  }
+}
