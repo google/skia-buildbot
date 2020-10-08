@@ -4,6 +4,7 @@ package vec32
 import (
 	"fmt"
 	"math"
+	"sort"
 )
 
 const (
@@ -38,6 +39,47 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 
 	if count == 0 {
 		return 0, 0, fmt.Errorf("Slice of length zero.")
+	}
+	mean := sum / float32(count)
+
+	vr := float32(0.0)
+	for _, x := range a {
+		if x != MissingDataSentinel {
+			vr += (x - mean) * (x - mean)
+		}
+	}
+	stddev := float32(math.Sqrt(float64(vr / float32(count))))
+
+	return mean, stddev, nil
+}
+
+type float32Slice []float32
+
+func (p float32Slice) Len() int           { return len(p) }
+func (p float32Slice) Less(i, j int) bool { return p[i] < p[j] }
+func (p float32Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// TwoSidedStdDev returns the median, and the stddev of all the points above and
+// below the media, and if an error occurred while doing the calculation.
+// MISSING_DATA_SENTINELs are ignored.
+func TwoSidedStdDev(a []float32) (float32, float32, error) {
+	values := make([]float32, len(a))
+	count := 0
+	for _, x := range a {
+		if x != MissingDataSentinel {
+			count += 1
+			values = append(values, x)
+		}
+	}
+	if count < 4 {
+		return 0, 0, fmt.Errorf("Insufficient number of points, at least 4 are needed: %d", len(values))
+	}
+	sort.Sort(float32Slice(values))
+
+	// Find the median
+	// Calculate the left and right stddevs.
+	if count == 0 {
+		return 0, 0, fmt.Errorf("Insufficient number of points: %d", len(a))
 	}
 	mean := sum / float32(count)
 
