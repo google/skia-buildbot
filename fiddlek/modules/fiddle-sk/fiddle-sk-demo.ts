@@ -349,5 +349,64 @@ document.querySelector('#mode_basic')!.addEventListener('click', () => {
   fiddle.querySelector('img.cpu')!.addEventListener('load', modeComplete);
 });
 
+
+document.querySelector('#mode_text')!.addEventListener('click', () => {
+  beforeMode();
+  fiddle.config = {
+    display_options: false,
+    embedded: false,
+    cpu_embedded: true,
+    gpu_embedded: true,
+    options_open: true,
+    basic_mode: false,
+    domain: 'https://fiddle.skia.org',
+    bug_link: true,
+    sources: [1, 2, 3, 4, 5, 6],
+    loop: true,
+    play: true,
+  };
+
+  fiddle.options = {
+    textOnly: true,
+    srgb: false,
+    f16: false,
+    width: 128,
+    height: 128,
+    animated: false,
+    duration: 5,
+    offscreen: true,
+    offscreen_width: 256,
+    offscreen_height: 256,
+    offscreen_sample_count: 1,
+    offscreen_texturable: false,
+    offscreen_mipmap: false,
+    source: 1,
+    source_mipmap: true,
+  };
+
+  fiddle.runResults = {
+    compile_errors: [],
+    runtime_error: '',
+    fiddleHash: 'b4c2c1465df5c54c953b1889bd3c47e7',
+    text: `void assert(bool cond) {
+      SkDebugf("%d\n", cond);
+    }
+    
+    void draw(SkCanvas* canvas) {
+    SkRRect r =
+          SkRRect::MakeRectXY(SkRect::MakeLTRB(421.5, 16, 526.5, 64), 24, 24);
+      assert(!r.isComplex());
+      SkMatrix matrix;
+      matrix.setScaleTranslate(1.0102191, 1.0102191, -2.4219234, 2.98397303);
+      SkRRect transformed;
+      r.transform(matrix, &transformed);
+      assert(!transformed.isComplex());
+    
+    }`,
+  };
+  fiddle.querySelector('test-src-sk')!.addEventListener('change', modeComplete);
+});
+
+
 document.querySelector<HTMLButtonElement>('#mode_start')!.click();
 document.querySelector<ThemeChooserSk>('theme-chooser-sk')!.darkmode = true;

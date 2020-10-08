@@ -45,5 +45,10 @@ describe('fiddle-sk', () => {
       await testBed.page.waitForSelector('#mode_complete pre');
       await takeScreenshot(testBed.page, 'fiddle', 'mode_basic');
     });
+    it('correctly displays text only results', async () => {
+      await testBed.page.click('#mode_text');
+      await testBed.page.waitForSelector('#mode_complete pre');
+      await takeScreenshot(testBed.page, 'fiddle', 'mode_text');
+    });
   });
 });
