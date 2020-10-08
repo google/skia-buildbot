@@ -141,11 +141,6 @@ test-frontend-ci:
 	# with "npm ci", which are needed by other apps.
 	cd infra-sk && $(MAKE) test-frontend-ci
 
-	# Gold needs to be built second because other apps depend on
-	# //golden/modules/test_util.ts.
-	# TODO(lovisolo): Clean this up once test_util.ts is extracted out of Gold.
-	cd golden && $(MAKE) test-frontend-ci
-
 	# Other apps can be tested in alphabetical order.
 	cd am && $(MAKE) test-frontend-ci
 	cd ct && $(MAKE) test-frontend-ci
