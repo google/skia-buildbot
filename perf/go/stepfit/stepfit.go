@@ -135,7 +135,16 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		// A simple check if the step size is greater than some percentage of
 		// the mean of the first half of the trace.
 		if len(trace) > 0 {
-			stepSize = (y0 - y1) / (y0)
+			stepSize = (y0 - y1) / (y0) // The division can produce +/-Inf or NaN.
+			if math.IsInf(float64(stepSize), 0) {
+				stepSize = math.MaxFloat32
+				if y0 < y1 {
+					stepSize *= -1
+				}
+			}
+			if math.IsNaN(float64(stepSize)) {
+				stepSize = 0
+			}
 			regression = stepSize
 		} else {
 			stepSize = 0
