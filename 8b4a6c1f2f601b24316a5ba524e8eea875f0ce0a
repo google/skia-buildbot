@@ -1,6 +1,7 @@
 {
   "comments": [
     {
+      "unresolved": true,
       "key": {
         "uuid": "3c6721c5_f4239373",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.scss",
@@ -20,10 +21,34 @@
         "endChar": 49
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "6d5e97b6_c5c32837",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Why?",
+      "parentUuid": "3c6721c5_f4239373",
+      "range": {
+        "startLine": 29,
+        "startChar": 46,
+        "endLine": 29,
+        "endChar": 49
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "58344b70_9d0fb19c",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
@@ -43,10 +68,34 @@
         "endChar": 32
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "69486d50_09a23d0f",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58344b70_9d0fb19c",
+      "range": {
+        "startLine": 2,
+        "startChar": 30,
+        "endLine": 2,
+        "endChar": 32
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "48b4e7b4_10b52ad5",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
@@ -66,10 +115,34 @@
         "endChar": 32
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "6f2636e0_332017fe",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "If it were up to me, horizontal-flex would be a three letter html tag just like div, which is basically vertical flex. This is a close approximation",
+      "parentUuid": "48b4e7b4_10b52ad5",
+      "range": {
+        "startLine": 18,
+        "startChar": 9,
+        "endLine": 18,
+        "endChar": 32
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "7d9358b8_77690be7",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
@@ -89,10 +162,34 @@
         "endChar": 12
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd21b056_28254c0d",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "The icon collection didn\u0027t include these or anything I felt was similar enough.",
+      "parentUuid": "7d9358b8_77690be7",
+      "range": {
+        "startLine": 20,
+        "startChar": 9,
+        "endLine": 20,
+        "endChar": 12
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "37dc279a_a6d186a0",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
@@ -112,10 +209,34 @@
         "endChar": 34
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "3bcfa587_53b85697",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "this class refers to one of the four ways to style this element contolled by the buttons though. it\u0027s actually supposed to name a style",
+      "parentUuid": "37dc279a_a6d186a0",
+      "range": {
+        "startLine": 33,
+        "startChar": 23,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "df41ebe8_2cea9c4a",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
@@ -135,10 +256,34 @@
         "endChar": 17
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "50a58b1d_55302b30",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df41ebe8_2cea9c4a",
+      "range": {
+        "startLine": 47,
+        "startChar": 10,
+        "endLine": 47,
+        "endChar": 17
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "e47a4d0e_077b2de0",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk_puppeteer_test.ts",
@@ -158,10 +303,10 @@
         "endChar": 25
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "945f05f1_2a81f6be",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk_test.ts",
@@ -181,10 +326,10 @@
         "endChar": 12
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "8fe7c898_728feb73",
         "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.scss",
@@ -204,10 +349,10 @@
         "endChar": 16
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "90918cfa_8d3f725d",
         "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
@@ -227,10 +372,34 @@
         "endChar": 18
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1533b923_e810b624",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90918cfa_8d3f725d",
+      "range": {
+        "startLine": 18,
+        "startChar": 14,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "ddb462aa_f0174bc6",
         "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
@@ -250,10 +419,34 @@
         "endChar": 34
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "92d9eb18_0a54709a",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ddb462aa_f0174bc6",
+      "range": {
+        "startLine": 32,
+        "startChar": 32,
+        "endLine": 32,
+        "endChar": 34
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "f39a16d8_411f762c",
         "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
@@ -273,10 +466,10 @@
         "endChar": 34
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "9af46ee0_5405d59d",
         "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
@@ -296,10 +489,34 @@
         "endChar": 20
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
+      "key": {
+        "uuid": "229c23de_a80f257a",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Fileversion comes from the SKP file, and this is now working. skiaVersion comes from build/debugger/VERSION which should be writter by the dockerfile in a manner similar to demos, but I haven\u0027t got that wired up yet.",
+      "parentUuid": "9af46ee0_5405d59d",
+      "range": {
+        "startLine": 75,
+        "startChar": 9,
+        "endLine": 75,
+        "endChar": 20
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "770307f7_25e8d5dd",
         "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
@@ -319,10 +536,34 @@
         "endChar": 7
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5616edf3_247f7a00",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "770307f7_25e8d5dd",
+      "range": {
+        "startLine": 5,
+        "startChar": 4,
+        "endLine": 5,
+        "endChar": 7
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "965f9edd_8975675d",
         "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
@@ -342,10 +583,10 @@
         "endChar": 93
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": true,
       "key": {
         "uuid": "61243a4c_cdd87698",
         "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
@@ -365,10 +606,34 @@
         "endChar": 117
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "62289d67_c3539d9b",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "61243a4c_cdd87698",
+      "range": {
+        "startLine": 44,
+        "startChar": 11,
+        "endLine": 44,
+        "endChar": 117
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "f5f05f22_cd26f307",
         "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
@@ -388,10 +653,34 @@
         "endChar": 15
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3042e8d4_0cea9cc6",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5f05f22_cd26f307",
+      "range": {
+        "startLine": 51,
+        "startChar": 11,
+        "endLine": 51,
+        "endChar": 15
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
       "key": {
         "uuid": "c4f472c4_1adc8781",
         "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
@@ -411,8 +700,31 @@
         "endChar": 15
       },
       "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
-      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
-      "unresolved": true
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f10a748a_7af72212",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-08T16:31:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4f472c4_1adc8781",
+      "range": {
+        "startLine": 86,
+        "startChar": 12,
+        "endLine": 86,
+        "endChar": 15
+      },
+      "revId": "8b4a6c1f2f601b24316a5ba524e8eea875f0ce0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
