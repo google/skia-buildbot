@@ -126,7 +126,7 @@ build-frontend-ci:
 	#   follow the steps in: https://cloud.google.com/container-registry/docs/advanced-authentication.
 	#   See 'docker run --help'.
 
-	# cd demos && $(MAKE) build-frontend-ci
+	cd demos && $(MAKE) build-frontend-ci
 	# cd jsfiddle && $(MAKE) build-frontend-ci
 	# cd particles && $(MAKE) build-frontend-ci
 	# cd skottie && $(MAKE) build-frontend-ci
