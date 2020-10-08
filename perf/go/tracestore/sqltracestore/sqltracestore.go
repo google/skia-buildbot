@@ -185,6 +185,10 @@ const writeTracesChunkSize = 100
 // See writeTracesChunkSize.
 const readTracesChunkSize = 1000
 
+// Number of parallel requests sent to the database when servicing a single
+// query. 30 matches the max number of cores we use on a clustering instance.
+const readPoolSize = 30
+
 const queryTracesIDOnlyByIndexChannelSize = 1000
 
 // defaultCacheSize is the size of the in-memory LRU caches.
@@ -841,9 +845,7 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 		traceIDs = append(traceIDs, traceIDForSQLFromTraceName(key))
 	}
 
-	// TODO(jcgregorio) This should also cap the max number of parallel requests at one time. I.e. we need
-	// a ChunkIterParallelPool.
-	err := util.ChunkIterParallel(context.TODO(), len(traceIDs), readTracesChunkSize, func(ctx context.Context, startIdx, endIdx int) error {
+	err := util.ChunkIterParallelPool(context.TODO(), len(traceIDs), readTracesChunkSize, readPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
 
 		// Populate the context for the SQL template.
 		readTracesContext := readTracesContext{
