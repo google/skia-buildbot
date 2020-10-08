@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "95f1a6de_e1dde2d2",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-08T14:07:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac7f88db_ffc5f994",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 8
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8460fb17_97312134",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-08T12:37:00Z",
       "side": 1,
       "message": "I\u0027ve been told we prefer single quotes. may be worth updating that in tslint/Prettier/etc, to fix throughout.",
+      "range": {
+        "startLine": 30,
+        "startChar": 24,
+        "endLine": 30,
+        "endChar": 25
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "012b2b53_229936c7",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-08T14:07:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8460fb17_97312134",
       "range": {
         "startLine": 30,
         "startChar": 24,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d490275e_c39dd4f0",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-08T14:07:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dc4a5b12_5e946534",
+      "range": {
+        "startLine": 180,
+        "startChar": 30,
+        "endLine": 180,
+        "endChar": 88
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ddc83581_f7ac8f38",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "01d637ac_f10d1050",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-08T14:07:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ddc83581_f7ac8f38",
+      "range": {
+        "startLine": 182,
+        "startChar": 11,
+        "endLine": 182,
+        "endChar": 23
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6e522c35_20ea79bb",
@@ -106,6 +202,30 @@
       "writtenOn": "2020-10-08T12:37:00Z",
       "side": 1,
       "message": "Consider template literal as above.",
+      "range": {
+        "startLine": 186,
+        "startChar": 11,
+        "endLine": 186,
+        "endChar": 27
+      },
+      "revId": "f53eac4dc321cc789b390632a01edbbe20656df2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f3a1b15c_bd06ac1f",
+        "filename": "task_scheduler/modules/task-sk/task-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-08T14:07:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e522c35_20ea79bb",
       "range": {
         "startLine": 186,
         "startChar": 11,
