@@ -100,9 +100,12 @@ import {
 } from '../am';
 import * as paramset from '../paramset';
 
+const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
+
 function table(ele, o) {
   const keys = Object.keys(o);
   keys.sort();
+  const botCentricParams = (keys.length === 2 && keys[0] === BOT_CENTRIC_PARAMS[0] && keys[1] == BOT_CENTRIC_PARAMS[1])
   const rules = keys.filter((k) => !k.startsWith('__')).map((k) => html`
     <tr>
       <td>
@@ -111,6 +114,7 @@ function table(ele, o) {
       <th>${k}</th>
       <td>
         <input @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
+        ${displayAddBots(botCentricParams, k, ele)}
       </td>
     </tr>`);
   rules.push(html`
@@ -127,6 +131,13 @@ function table(ele, o) {
     </tr>
   `);
   return rules;
+}
+
+function displayAddBots(botCentricParams, key, ele) {
+  if (botCentricParams && key === 'bot') {
+    return html `<button class="till-next-shift" @click=${() => ele._botsChooser()}>Add bot</button>`;
+  }
+  return '';
 }
 
 function displayParamValue(paramValue) {
@@ -331,6 +342,10 @@ define('silence-sk', class extends HTMLElement {
     // Reset the manual param key and value.
     keyInput.value = '';
     valueInput.value = '';
+  }
+
+  _botsChooser() {
+    this.dispatchEvent(new CustomEvent('bot-chooser', { detail: {}, bubbles: true }));
   }
 
   _addNote() {
