@@ -67,7 +67,22 @@ task_scheduler:
 
 # This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+# all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
+
+# DO NOT SUBMIT
+all:
+	echo "Environment variables:"
+	env
+	echo
+
+	echo "About to run the puppeteer-tests Docker container."
+	docker run --interactive --rm gcr.io/skia-public/puppeteer-tests:latest echo "Hello from puppeteer-tests!"
+	echo "Finished running the puppeteer-tests Docker container."
+	echo
+
+	echo "About to run the skia-wasm-release Docker container."
+	docker run --interactive --rm gcr.io/skia-public/skia-wasm-release:prod echo "Hello from skia-wasm-release!"
+	echo "Finished running the skia-wasm-release Docker container."
 
 .PHONY: tags
 tags:

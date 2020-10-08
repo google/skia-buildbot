@@ -121,7 +121,9 @@ def RunSteps(api):
       env['PATH'], str(api.path['depot_tools'])])
 
   if 'Build' in builder:
-    with api.context(cwd=infra_dir, env=env):
+    dockerEnv = env.copy()
+    dockerEnv['DOCKER_CONFIG'] = '/home/chrome-bot/.docker'
+    with api.context(cwd=infra_dir, env=dockerEnv):
       api.step('make all', ['make', 'all'])
   else:
     cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']

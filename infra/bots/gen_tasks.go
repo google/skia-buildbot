@@ -273,7 +273,11 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		task = kitchenTask(name, "puppeteer_tests", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, dockerGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
 		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GOLDCTL...)
 	} else {
-		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+		dimensions := linuxGceDimensions(machineType)
+		if strings.Contains(name, "Build") {
+			dimensions = dockerGceDimensions(machineType)
+		}
+		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, dimensions, nil, OUTPUT_NONE)
 	}
 
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
