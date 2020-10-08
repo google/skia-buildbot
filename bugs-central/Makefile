@@ -1,0 +1,33 @@
+default: build package-lock.json
+	npx webpack --mode=development
+
+build:
+	go install -v ./go/bugs-central
+
+release: build package-lock.json
+	npx webpack --mode=production
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/bugs-central
+	./build_release
+
+debug:
+	npx webpack --mode=development
+
+push: release
+	pushk bugs-central
+
+serve: package-lock.json
+	npx webpack-dev-server --mode=development --watch-poll
+
+testgo:
+	go test ./go/...
+
+watch: package-lock.json
+	npx webpack --mode=development --watch
+
+package-lock.json: package.json
+	npm install
+
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production
