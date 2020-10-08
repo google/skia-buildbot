@@ -100,9 +100,12 @@ import {
 } from '../am';
 import * as paramset from '../paramset';
 
+const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
+
 function table(ele, o) {
   const keys = Object.keys(o);
   keys.sort();
+  const botCentricParams = JSON.stringify(keys) === JSON.stringify(BOT_CENTRIC_PARAMS);
   const rules = keys.filter((k) => !k.startsWith('__')).map((k) => html`
     <tr>
       <td>
@@ -111,6 +114,7 @@ function table(ele, o) {
       <th>${k}</th>
       <td>
         <input @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
+        ${displayAddBots(botCentricParams, k, ele)}
       </td>
     </tr>`);
   rules.push(html`
@@ -127,6 +131,13 @@ function table(ele, o) {
     </tr>
   `);
   return rules;
+}
+
+function displayAddBots(botCentricParams, key, ele) {
+  if (botCentricParams && key === 'bot') {
+    return html `<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
+  }
+  return '';
 }
 
 function displayParamValue(paramValue) {
@@ -183,7 +194,7 @@ const template = (ele) => html`
     </section>
     <table class=info>
       <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button class="till-next-shift" @click=${ele._tillNextShift}>Till next shift</button></td></th>
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button class="param-btns" @click=${ele._tillNextShift}>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(ele._state.created * 1000).toLocaleString()}>${diffDate(ele._state.created * 1000)}</td></tr>
       <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
     </table>
@@ -331,6 +342,10 @@ define('silence-sk', class extends HTMLElement {
     // Reset the manual param key and value.
     keyInput.value = '';
     valueInput.value = '';
+  }
+
+  _botsChooser() {
+    this.dispatchEvent(new CustomEvent('bot-chooser', { detail: {}, bubbles: true }));
   }
 
   _addNote() {
