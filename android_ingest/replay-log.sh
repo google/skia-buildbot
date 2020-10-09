@@ -10,6 +10,6 @@ set -x -e
 for FILENAME in $(gsutil ls "gs://skia-perf/android-master-ingest/tx_log/2018/09/14/20/**")
 do
   echo $FILENAME
-  curl --data-binary @<(gsutil cat $FILENAME) -H "Content-Type: application/json" -X POST https://android-master-ingest.skia.org/upload
+  curl --data-binary @<(gsutil cat $FILENAME) -H "Content-Type: application/json" -X POST https://android-metric-ingest.skia.org/upload
 done
 

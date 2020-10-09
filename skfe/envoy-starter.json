@@ -882,11 +882,9 @@
                           "match": {
                             "prefix": "/"
                           },
-                          "route": {
-                            "cluster": "androidingest",
-                            "timeout": {
-                              "seconds": 600
-                            }
+                          "redirect": {
+                            "host_redirect": "android-metric-ingest.skia.org",
+                            "https_redirect": true
                           }
                         }
                       ]
@@ -1514,7 +1512,6 @@
                         }
                       ]
                     },
-
                     {
                       "domains": "android-perf.skia.org",
                       "name": "android-perf.skia.org",
