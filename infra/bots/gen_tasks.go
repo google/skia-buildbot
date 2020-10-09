@@ -114,11 +114,6 @@ func relpath(f string) string {
 	return rv
 }
 
-// Dimensions for Linux GCE instances which have Docker installed.
-func dockerGceDimensions(machineType string) []string {
-	return append(linuxGceDimensions(machineType), "docker_installed:true")
-}
-
 // Dimensions for Linux GCE instances.
 func linuxGceDimensions(machineType string) []string {
 	return []string{
@@ -127,6 +122,7 @@ func linuxGceDimensions(machineType string) []string {
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
 		fmt.Sprintf("machine_type:%s", machineType),
+		"docker_installed:true",
 	}
 }
 
@@ -270,7 +266,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		// Puppeteer tests run inside a Docker container, take screenshots and
 		// upload them to Gold. Therefore we need Docker, goldctl and EXTRA_PROPS,
 		// which include the properties required by goldctl (issue, patchset, etc).
-		task = kitchenTask(name, "puppeteer_tests", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, dockerGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
+		task = kitchenTask(name, "puppeteer_tests", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
 		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GOLDCTL...)
 	} else {
 		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
@@ -455,7 +451,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   dockerGceDimensions(machineType),
+		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
