@@ -1,0 +1,1044 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d42937c_fbf571f7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "148e5a98_8aeab512",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: This doesn\u0027t seem to be in use at the moment. Can we add a TODO, or delete this?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 3
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "973ac936_8e861d9e",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "We can probably do without an ID here since there\u0027s only one child \u003ccanvas\u003e.\n\nPlease see my suggestion below to use a query selector to retrieve this from the DOM.",
+      "range": {
+        "startLine": 29,
+        "startChar": 14,
+        "endLine": 29,
+        "endChar": 29
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "730873f9_28ea950e",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Did you mean ele._height?",
+      "range": {
+        "startLine": 29,
+        "startChar": 82,
+        "endLine": 29,
+        "endChar": 92
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fcc46c84_b46bd10e",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please define and export a FitStyle type as a union of the allowed values, and use it here and on the property setter below. E.g.:\n\n  type FitStyle \u003d \u0027natural\u0027 | \u0027fit\u0027 | \u0027right\u0027 | \u0027bottom\u0027;\n\nThis makes the component more self documenting and will catch invalid fit styles at compile time.\n\nReference: https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html.",
+      "range": {
+        "startLine": 35,
+        "startChar": 21,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2cefcc5_75511a68",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: Extra semicolon.",
+      "range": {
+        "startLine": 38,
+        "startChar": 32,
+        "endLine": 38,
+        "endChar": 33
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "87d4f36e_7066bbe1",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Ubernit: extra space.",
+      "range": {
+        "startLine": 76,
+        "startChar": 39,
+        "endLine": 76,
+        "endChar": 40
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d99355f6_0e15a62b",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Suggestion: the compiler can infer the HTMLCanvasElement type from the \"canvas\" parameter when the querySelector() function is used: \n\n  return this.querySelector(\u0027canvas\u0027)!;",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 69
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d92fda6_6faddec6",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Consider selecting by attribute since there\u0027s only one \u003cinput type\u003d\"file\"\u003e:\n\n  input[type\u003d\"file\"] {\n    width: 100%;\n  }",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 14
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "afdb0b1e_97536a66",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "I recommend moving these to //debugger-app/modules/debugger_types.ts.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 67
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6d39e1d4_f7b99386",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "This can probably be replaced with one or more private fields in the DebuggerPageSk element; please see my suggestion below.",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 1
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "534f6308_b705066d",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: CSS classes are preferred in most situations for styling. http://go/htmlcssstyle#ID_Selectors.",
+      "range": {
+        "startLine": 97,
+        "startChar": 9,
+        "endLine": 97,
+        "endChar": 26
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9324f9fe_4d610e59",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "?disabled\u003d${ele._debugwasm \u003d\u003d\u003d null}",
+      "range": {
+        "startLine": 105,
+        "startChar": 76,
+        "endLine": 105,
+        "endChar": 84
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e5a06c6_33e347ca",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: Please move to the stylesheet.",
+      "range": {
+        "startLine": 119,
+        "startChar": 34,
+        "endLine": 119,
+        "endChar": 54
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "95532ebb_20129e61",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Ubernit: _debugger?",
+      "range": {
+        "startLine": 139,
+        "startChar": 10,
+        "endLine": 139,
+        "endChar": 20
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "342d47ee_b4f1462c",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "This can be removed if you accept my suggestion above on line 105.",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 152,
+        "endChar": 31
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4bac8ff6_0253354f",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "We typically keep references to any child DOM elements as private fields, e.g.\n\n  // By convention we name the field after the component\u0027s full name in lowerCamelCase.\n  private _debugViewSk: DebugViewSk | null \u003d null;\n\n  ...\n\n  connectedCallback() {\n    super.connectedCallback();\n    this._render();\n\n    this._debugViewSk \u003d this.querySelector\u003cDebugViewSk\u003e(\u0027debug-view-sk\u0027)!;\n  }",
+      "range": {
+        "startLine": 160,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 6
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "09832373_db16dfb0",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please mark this and the below methods as private, e.g.\n\n  private _fileInputChanged(e: Event) { ... }",
+      "range": {
+        "startLine": 167,
+        "startChar": 2,
+        "endLine": 167,
+        "endChar": 19
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b576645a_4d1223a4",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: Please use the \"as\" syntax for type assertions, e.g. \n\n  const element \u003d e.target as HTMLInputElement;\n\nReferences:\n- http://go/tsstyle#type-assertions-syntax\n- https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions",
+      "range": {
+        "startLine": 170,
+        "startChar": 20,
+        "endLine": 170,
+        "endChar": 47
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "286d8b8f_f1ccaa8e",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "element.files?.length \u003d\u003d\u003d 0",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 43
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3f7f8dea_5d3599ae",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "You can probably drop the comment below if you add a type to this event:\n\n  e: ProgressEvent\u003cFileReader\u003e",
+      "range": {
+        "startLine": 177,
+        "startChar": 21,
+        "endLine": 177,
+        "endChar": 22
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4932a6cc_0235bcf4",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: this._openSkpFile(e.target.result as ArrayBuffer);",
+      "range": {
+        "startLine": 181,
+        "startChar": 26,
+        "endLine": 181,
+        "endChar": 55
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96fc1955_b2833d53",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: playerResult.error",
+      "range": {
+        "startLine": 195,
+        "startChar": 49,
+        "endLine": 195,
+        "endChar": 70
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "17b83282_ae0b9be7",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "This can be removed; the compiler should be able to infer this.",
+      "range": {
+        "startLine": 198,
+        "startChar": 24,
+        "endLine": 198,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d434ddd0_36bf3e00",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-types.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Gold defines its RPC types in //golden/modules/rpc_types.ts.\n\nWe could place these type definitions in a new //debugger-app/modules/debugger_types.ts file, which follows the same naming convention as Gold.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 42
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f4d7332_4155e6ff",
+        "filename": "debugger-app/modules/filter-sk/filter-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please mark these as private.",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 13
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8bf47b54_9f635e7e",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Suggestion for extra clarity and type safety:\n\n  export type Vector4 \u003d [number, number, number, number];\n\n  export type Matrix3x3 \u003d [\n    [number, number, number],\n    [number, number, number],\n    [number, number, number],\n  ];\n\n  export type Matrix4x4 \u003d [\n    [number, number, number, number],\n    [number, number, number, number],\n    [number, number, number, number],\n    [number, number, number, number],\n  ];\n\n  export interface MatrixClipInfo {\n    clip: Vector4;\n    matrix: Matrix3x3 | Matrix4x4;\n  };\n\nIt might make sense to move these Vector and Matrix types to debugger_types.ts, depending on how this will be used.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "769961ec_2b44a43d",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: The compiler should be able to infer these booleans:\n\n  private _showClip \u003d false;",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "afdd8e9b_fceba0e0",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "If you take the above suggestion, this could be written as:\n\n  _matrixTable(m: Matrix3x3 | Matrix4x4) { ... }",
+      "range": {
+        "startLine": 81,
+        "startChar": 18,
+        "endLine": 81,
+        "endChar": 29
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "771f0978_31aabf78",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit:\n\n  this._showClip \u003d (e.target as CheckOrRadio).checked;\n\nGenerally \"const\" or \"let\" is preferred over \"var\"; please see http://go/js-style#features-use-const-and-let.",
+      "range": {
+        "startLine": 87,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efaab47d_b452fdce",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please mark these methods as private.",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c24cea66_5929a76e",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please define a Mode type and use it here and below:\n\n  export type Mode \u003d \u0027play\u0027 | \u0027pause\u0027;",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 34
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3a47e9f_f6bdb42e",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "You probably ran into that problem where the TypeScript compiler thinks you want the Node.JS version of setTimeout() instead of the browser\u0027s.\n\nA workaround we\u0027ve used before is to call window.setTimeout() instead, which returns a number. Then this line can be rewritten as:\n\n  private _timeout: number \u003d 0;\n\nNote that there\u0027s no need for (number | null) because windows.setTimeout() always returns a positive number, so the number 0 can be used to represent the absence of a timeout.\n\nReference: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout",
+      "range": {
+        "startLine": 48,
+        "startChar": 20,
+        "endLine": 48,
+        "endChar": 50
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "19a581e1_eeb4478b",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Don\u0027t forget to clear the timeout before the element is detached from the DOM:\n\n  disconnectedCallback() {\n    if (this._timeout) window.clearTimeout(this._timeout);\n  }",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c2390ff_dc6f8d07",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please prefix this with \"window.\" for consistency with the above suggestions:\n\n  window.clearTimeout(this._timeout);",
+      "range": {
+        "startLine": 69,
+        "startChar": 6,
+        "endLine": 69,
+        "endChar": 18
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "558108b3_445c15f5",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: Unintentional?",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 36
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9504f14_79989379",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "As per the above suggestion:\n\n  this._timeout \u003d window.setTimeout(() \u003d\u003e this._nextItem, remainingMs);",
+      "range": {
+        "startLine": 104,
+        "startChar": 24,
+        "endLine": 104,
+        "endChar": 34
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0477013_2cc69ac2",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: private, here and below.",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 110,
+        "endChar": 16
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fcf8ae4c_d3f7d423",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Please define a type for the \"detail\" of any custom events, e.g.\n\n  export type Mode \u003d \u0027play\u0027 | \u0027pause\u0027;\n\n  // Naming convention: \u003cComponentName\u003e\u003cEventName\u003eEventDetail\n  export interface PlaySkModeChangedManuallyEventDetail {\n    readonly mode: Mode;\n  }\n\nThen the event can be dispatched as follows:\n\n  this.dispatchEvent(\n    new CustomEvent\u003cPlaySkModeChangedManuallyEventDetail\u003e(\n      \u0027mode-changed-manually\u0027, {\n        detail: {mode: this._mode}, // The compiler will type check this.\n        bubbles: true\n      }));\n\nAdvantages:\n- The compiler will produce an error if the event is accidentally dispatched with details of the wrong type.\n- Client code can use the event detail type and avoid error-prone type assertions.\n- More self documenting.\n\nFor an example, please see https://github.com/google/elements-sk/blob/ba8f06c9433de113518b7c348d1f31b2e4d9c953/src/errorMessage.ts#L39.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 0
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1715c389_e06f9a9d",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "window.clearTimeout",
+      "range": {
+        "startLine": 129,
+        "startChar": 6,
+        "endLine": 129,
+        "endChar": 18
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "314775f1_ec1199f9",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Same suggestion as above; I recommend calling the event detail type PlaySkMoveToEventDetail.",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 0
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c745b6b0_c036d7ae",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "If you take my suggestion above:\n\n  let ep \u003d eventPromise\u003cCustomEvent\u003cPlaySkMoveToEventDetail\u003e\u003e(\u0027moveto\u0027);\n\nHere are and below.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 56
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2958b959_be0fafc5",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Do these tests still pass if you remove the explicit timeouts?\n\nIf so, I recommend removing them as they might lead the reader to believe that the exact event timing might be part of the behavior under test.",
+      "range": {
+        "startLine": 36,
+        "startChar": 53,
+        "endLine": 36,
+        "endChar": 56
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c18800a3_2f1f1904",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "We can remove this type assertion if we specify a type for the event detail:\n\n  const ep \u003d eventPromise\u003cCustomEvent\u003cPlaySkMoveToEventDetail\u003e\u003e(\u0027moveto\u0027);\n  play.mode \u003d \u0027play\u0027;\n  const item \u003d (await ep).detail.item;",
+      "range": {
+        "startLine": 48,
+        "startChar": 18,
+        "endLine": 48,
+        "endChar": 28
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b2ef98ff_410fa128",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "I think it will be conceptually clearer for the reader if we first add a listener for the \"moveto\" event (via the eventPromise() function), and then call the code under test that will trigger said event.\n\nIn other words, I think it will be clearer if we swap the eventPromise() and play.movedTo() calls, e.g.:\n\n  ep \u003d eventPromise\u003cCustomEvent\u003c PlaySkMoveToEventDetail\u003e\u003e(\u0027moveto\u0027);\n  play.movedTo(8);\n  expect((await ep).detail.item).to.equal(9);\n\nIt might also be less brittle. The test currently passes (even though we set the event listener and trigger the event \"in reverse order\") because of the timeout in the movedTo() method. But that might not be true if for example there are no more remaining milliseconds to play.",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 0
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5e3d866a_dd26bcaa",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T01:06:04Z",
+      "side": 1,
+      "message": "Nit: const",
+      "range": {
+        "startLine": 83,
+        "startChar": 6,
+        "endLine": 83,
+        "endChar": 9
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
