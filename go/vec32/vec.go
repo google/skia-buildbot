@@ -4,6 +4,7 @@ package vec32
 import (
 	"fmt"
 	"math"
+	"sort"
 )
 
 const (
@@ -50,6 +51,64 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 	stddev := float32(math.Sqrt(float64(vr / float32(count))))
 
 	return mean, stddev, nil
+}
+
+// stddev only works on arrays that have no MISSING_DATA_SENTINEL values.
+func stddev(arr []float32, middle float32) float32 {
+	sum := float32(0)
+	for _, x := range arr {
+		sum += (x - middle) * (x - middle)
+	}
+	return float32(math.Sqrt(float64(sum) / float64(len(arr)-1)))
+}
+
+type float32Slice []float32
+
+func (p float32Slice) Len() int           { return len(p) }
+func (p float32Slice) Less(i, j int) bool { return p[i] < p[j] }
+func (p float32Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// TwoSidedStdDev returns the median, and the stddev of all the points below and
+// above the median respectively.
+//
+// That is, the vector is sorted, the median found, and then the stddev of all
+// the points below the median are returned, along with the stddev of all the
+// points above the median.
+//
+// This is useful because performance measurements are inherintly asymmetric. A
+// benchmark can always run 2x slower, or 10x slower, there's no upper bound. On
+// the other hand a performance metric can only run 100% faster, i.e. have a
+// value of 0. This implies that the distribution of samples from a benchmark
+// are skewed.
+//
+// MISSING_DATA_SENTINELs are ignored.
+//
+// The median is chosen as the midpoint instead of the mean because that ensures
+// that both sides have the same number of points (+/- 1).
+func TwoSidedStdDev(arr []float32) (float32, float32, float32, error) {
+	// Allocate a new slice since we need to sort the incoming values in the
+	// array.
+	values := make([]float32, 0, len(arr))
+	count := 0
+	for _, x := range arr {
+		if x != MissingDataSentinel {
+			count += 1
+			values = append(values, x)
+		}
+	}
+	if count < 4 {
+		return 0, 0, 0, fmt.Errorf("Insufficient number of points, at least 4 are needed: %d", len(values))
+	}
+	sort.Sort(float32Slice(values))
+
+	mid := len(values) / 2
+	var median float32
+	if len(values)%2 == 1 {
+		median = values[mid]
+	} else {
+		median = (values[mid-1] + values[mid]) / 2
+	}
+	return median, stddev(values[:mid], median), stddev(values[mid:], median), nil
 }
 
 // ScaleBy divides each non-sentinel value in the slice by 'b', converting
