@@ -16,7 +16,7 @@ import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk
 import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse, TriageRequestData, Label, Digest } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse, TriageRequestData, Label } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -148,6 +148,10 @@ export class SearchPageSk extends ElementSk {
     return `Showing results ${first} to ${last} (out of ${total}).`;
   }
 
+  // Note: The "selected" class is added/removed via DOM manipulations outside of lit-html for
+  // performance reasons when navigating search results via the "J" and "K" keyboard shortcuts.
+  // This is because re-rendering the search page can be very slow when displaying a large number of
+  // search results.
   private static _resultTemplate =
     (el: SearchPageSk, result: SearchResult, selected: boolean) => html`
       <digest-details-sk .commits=${el._searchResponse?.commits}
@@ -503,8 +507,16 @@ export class SearchPageSk extends ElementSk {
     const searchResults = this._searchResponse?.digests || [];
     if (index < 0 || index >= searchResults.length) return;
 
+    // We update the selected search result by hand to avoid re-rendering the entire page, which can
+    // be very slow if there are many search results.
+    this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
+    this.querySelector<HTMLElement>(`digest-details-sk:nth-child(${index + 1})`)
+      ?.classList.add('selected');
+
+    // We also keep track of the selected result so we can correctly add the "selected" CSS class
+    // in the lit-html template in case we re-render the page with the cached search results.
     this._selectedSearchResultIdx = index;
-    this._render();
+
     this._getSelectedDigestDetailsSk()!.scrollIntoView();
   }
 
