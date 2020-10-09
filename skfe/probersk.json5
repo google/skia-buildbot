@@ -6,6 +6,7 @@
     "method": "GET",
     "urls": [
       "https://afdo-chromium-roll.skia.org",
+      "https://android-master-ingest.skia.org",
       "https://android-master-roll.skia.org",
       "https://android-next-roll.skia.org",
       "https://android-o-roll.skia.org",
