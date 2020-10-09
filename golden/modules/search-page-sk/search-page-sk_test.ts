@@ -680,11 +680,20 @@ describe('search-page-sk', () => {
         //
         // This behavior is important to test because it exercises logic in search-page-sk that
         // patches the cached SearchResults with a new label when the user triages a digest via the
-        // digest-details-sk component or via the "A", "S" or "D" keyboard shortcuts.
+        // digest-details-sk component, or via the "A", "S" or "D" keyboard shortcuts.
         //
-        // A search page re-render can be triggered with the "J" and "K" keyboard shortcuts, which
-        // change the focused digest and redraw a box around it. (Note that this does not cause an
-        // RPC to the /json/v1/search RPC; the SearchResults will remain cached.)
+        // Currently there are no situations that would cause the search page to be re-rendered with
+        // cached SearchResults. It used to be the case that navigating between search results with
+        // the "J" and "K" keyboard shortcuts would trigger a re-render in order to redraw the box
+        // around the selected search result. However, this turned out to be slow for pages with
+        // many search results. So this is now done in an ad-hoc way by manually updating the
+        // affected DOM nodes, which is much faster than calling lit-html's render() function.
+        //
+        // We still want to test this behavior in case we decide to revert the above optimization
+        // (e.g. if we add pagination, therefore limiting the number of results displayed at once),
+        // or if we decide to implement new features that might require re-rendering the page with
+        // cached SearchResults. We exercise this behavior by forcing a page re-render via the
+        // _render() method.
         //
         // We test this behavior here via keyboard shortcuts for convenience.
 
@@ -695,8 +704,7 @@ describe('search-page-sk', () => {
 
         // It should be positive, and the label should stick after the page is re-rendered.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
-        await searchPageSkPO.typeKey('k'); // Go one digest up. This re-renders the page.
-        await searchPageSkPO.typeKey('j'); // Go back down. This re-renders the page.
+        (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
 
         // Triage as negative.
@@ -706,8 +714,7 @@ describe('search-page-sk', () => {
 
         // It should be negative, and the label should stick after the page is re-rendered.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
-        await searchPageSkPO.typeKey('k'); // Go one digest up. This re-renders the page.
-        await searchPageSkPO.typeKey('j'); // Go back down. This re-renders the page.
+        (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triage as untriaged.
@@ -717,8 +724,7 @@ describe('search-page-sk', () => {
 
         // It should be untriaged, and the label should stick after the page is re-rendered.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
-        await searchPageSkPO.typeKey('k'); // Go one digest up. This re-renders the page.
-        await searchPageSkPO.typeKey('j'); // Go back down. This re-renders the page.
+        (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
         await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
       });
     });
