@@ -63,6 +63,7 @@ def RunSteps(api):
   # Fetch Go dependencies.
   env = {
       'CHROME_HEADLESS': '1',
+      'DOCKER_CONFIG': '/home/chrome-bot/.docker',
       'GOCACHE': go_cache,
       'GOFLAGS': '-mod=readonly', # Prohibit builds from modifying go.mod.
       'GOROOT': go_root,
