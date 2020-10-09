@@ -1,0 +1,16 @@
+job-sk {
+  font-family: Arial;
+
+  #cancelButton {
+    background-color: rgb(117, 112, 179);
+    cursor: pointer;
+  }
+
+  button > a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+  td > button {
+    margin: 0px;
+  }
+}
