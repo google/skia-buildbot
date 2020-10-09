@@ -80,7 +80,7 @@ export class JobTriggerSk extends ElementSk {
   `;
 
   private jobs: TriggerJob[] = [{jobName: "", commitHash: ""}];
-  private rpc: TaskSchedulerService = GetTaskSchedulerService(this);
+  private _rpc: TaskSchedulerService | null = null;
   private triggeredJobs: TriggeredJob[] = [];
 
   constructor() {
@@ -90,6 +90,13 @@ export class JobTriggerSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+  }
+
+  get rpc(): TaskSchedulerService | null {
+    return this._rpc;
+  }
+  set rpc(rpc: TaskSchedulerService | null) {
+    this._rpc = rpc;
   }
 
   private addJob() {
@@ -103,6 +110,9 @@ export class JobTriggerSk extends ElementSk {
   }
 
   private triggerJobs() {
+    if (!this.rpc) {
+      return;
+    }
     const req: TriggerJobsRequest = {
       jobs: this.jobs,
     }
