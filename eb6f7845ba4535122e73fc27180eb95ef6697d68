@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ebc52bec_57100beb",
+        "filename": "debugger-app/package.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-09T11:39:11Z",
+      "side": 1,
+      "message": "What is using this? I vote that we remove all sinon deps we have and use fetchMock to be consistent with all other apps.",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 16
+      },
+      "revId": "eb6f7845ba4535122e73fc27180eb95ef6697d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
