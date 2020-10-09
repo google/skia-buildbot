@@ -503,3 +503,77 @@ func TestStdDev(t *testing.T) {
 		})
 	}
 }
+
+func TestStddev(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Try sample data with a known integer stddev to confirm the calculation.
+	assert.Equal(t, float32(2), stddev([]float32{-1, -1, 1, -2, 3}, 0))
+}
+
+func TestTwoSidedStdDev(t *testing.T) {
+	unittest.SmallTest(t)
+	tests := []struct {
+		name         string
+		arr          []float32
+		median       float32
+		lower, upper float32
+		hasError     bool
+	}{
+		{
+			"EmptyArray_Error",
+			[]float32{},
+			0,
+			0, 0,
+			true,
+		},
+		{
+			"InsufficientNonMissingData_Error",
+			[]float32{e, 1, 1, 2},
+			0,
+			0, 0,
+			true,
+		},
+		{
+			"ConstantArray_ZeroStdDevs",
+			[]float32{1, 1, 1, 1},
+			1,
+			0, 0,
+			false,
+		},
+		{
+			"ConfirmSorting_UpperHasNonZeroStdDev",
+			[]float32{1, 2, 1, 1},
+			1,
+			0, 1,
+			false,
+		},
+		{
+			"MissingDataValuesAreIgnored",
+			[]float32{1, 2, 1, 1, e, e, e},
+			1,
+			0, 1,
+			false,
+		},
+		{
+			"AnOddNumberOfValuesInArray",
+			[]float32{2, 2, 1, 1, 1},
+			1,
+			0, 1,
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			median, lower, upper, err := TwoSidedStdDev(tt.arr)
+			if tt.hasError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.median, median, "median")
+			assert.Equal(t, tt.lower, lower, "lower")
+			assert.Equal(t, tt.upper, upper, "upper")
+		})
+	}
+}
