@@ -34,6 +34,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -52,6 +53,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -71,6 +73,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -90,6 +93,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -109,6 +113,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -128,6 +133,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -147,6 +153,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -166,6 +173,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -185,6 +193,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -204,6 +213,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -224,6 +234,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -241,6 +252,7 @@
     "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
       "GOFLAGS": "-mod=readonly",
@@ -264,6 +276,7 @@
       "CHROME_HEADLESS": "1",
       "COCKROACHDB_EMULATOR_HOST": "localhost:8895",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "FIRESTORE_EMULATOR_HOST": "localhost:8894",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",
@@ -287,6 +300,7 @@
       "CHROME_HEADLESS": "1",
       "COCKROACHDB_EMULATOR_HOST": "localhost:8895",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
+      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
       "FIRESTORE_EMULATOR_HOST": "localhost:8894",
       "GIT_USER_AGENT": "git/1.9.1",
       "GOCACHE": "[START_DIR]/cache/go_cache",

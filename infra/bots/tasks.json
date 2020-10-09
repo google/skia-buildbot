@@ -148,7 +148,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -231,7 +232,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -291,7 +293,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highmem-2"
+        "machine_type:n1-highmem-2",
+        "docker_installed:true"
       ],
       "environment": {
         "GOARCH": "amd64",
@@ -350,7 +353,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highmem-2"
+        "machine_type:n1-highmem-2",
+        "docker_installed:true"
       ],
       "environment": {
         "GOARCH": "amd64",
@@ -404,7 +408,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highmem-2"
+        "machine_type:n1-highmem-2",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -487,7 +492,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -572,7 +578,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -758,7 +765,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -980,7 +988,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highcpu-64"
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -1082,7 +1091,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -1286,6 +1296,7 @@
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
         "machine_type:n1-standard-16",
+        "docker_installed:true",
         "docker_installed:true"
       ],
       "env_prefixes": {
@@ -1402,7 +1413,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -1505,7 +1517,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16"
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
       ],
       "env_prefixes": {
         "PATH": [
@@ -1546,7 +1559,8 @@
         "os:Debian-10.3",
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-highmem-2"
+        "machine_type:n1-highmem-2",
+        "docker_installed:true"
       ],
       "isolate": "autoroll_configs.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
