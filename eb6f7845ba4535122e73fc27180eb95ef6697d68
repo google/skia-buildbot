@@ -22,6 +22,30 @@
       },
       "revId": "eb6f7845ba4535122e73fc27180eb95ef6697d68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0594ce0b_e3606837",
+        "filename": "debugger-app/package.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-09T17:46:08Z",
+      "side": 1,
+      "message": "It\u0027s used to mock time in some tests where \"Date.now \u003d () \u003d\u003e fakeNow\" is not enough, e.g. where the code under test depends on setTimeout() / setInterval().",
+      "parentUuid": "ebc52bec_57100beb",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 16
+      },
+      "revId": "eb6f7845ba4535122e73fc27180eb95ef6697d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
