@@ -16,6 +16,29 @@
       "message": "Sorry for the noise; I enabled a formatter.",
       "revId": "071401ecccde053c7592b626251b1973b9164a26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "05ffd829_421375e6",
+        "filename": "task_scheduler/modules/job-sk/job-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-10T00:10:22Z",
+      "side": 1,
+      "message": "Would it be simpler to use properties instead of attributes for these?",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 42
+      },
+      "revId": "071401ecccde053c7592b626251b1973b9164a26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
