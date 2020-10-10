@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "388881a9_e1270189",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-10T16:09:48Z",
+      "side": 1,
+      "message": "There were indeed errors occurring from too many parallel queries to CockroachDB:\n\nhttps://screenshot.googleplex.com/A5DoJfbkG5qmZUi.png",
+      "revId": "176593d3c14690d576e86c92bc3e9da0f8cb691e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
