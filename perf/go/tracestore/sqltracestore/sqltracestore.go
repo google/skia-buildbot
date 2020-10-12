@@ -846,7 +846,6 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 	}
 
 	err := util.ChunkIterParallelPool(context.TODO(), len(traceIDs), readTracesChunkSize, readPoolSize, func(ctx context.Context, startIdx, endIdx int) error {
-
 		// Populate the context for the SQL template.
 		readTracesContext := readTracesContext{
 			BeginCommitNumber: beginCommit,
