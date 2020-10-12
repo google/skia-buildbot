@@ -35,6 +35,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8741d9e8_d93989c8",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk-demo.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a385957_75ae8caa",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "148e5a98_8aeab512",
@@ -48,6 +66,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Nit: This doesn\u0027t seem to be in use at the moment. Can we add a TODO, or delete this?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 3
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6c25d23_f877c0da",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "These a pair I\u0027d rather not separate, there is going to be a switch to toggle between them, probably in the next cl.",
+      "parentUuid": "148e5a98_8aeab512",
       "range": {
         "startLine": 33,
         "startChar": 0,
@@ -104,6 +146,54 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "512dc188_361ae943",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": ":D thank you, I was so puzzled by this height problem and thought it was something more complicated",
+      "parentUuid": "730873f9_28ea950e",
+      "range": {
+        "startLine": 29,
+        "startChar": 82,
+        "endLine": 29,
+        "endChar": 92
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8dc5cb8f_e25ae616",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "973ac936_8e861d9e",
+      "range": {
+        "startLine": 29,
+        "startChar": 14,
+        "endLine": 29,
+        "endChar": 29
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fcc46c84_b46bd10e",
@@ -117,6 +207,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Please define and export a FitStyle type as a union of the allowed values, and use it here and on the property setter below. E.g.:\n\n  type FitStyle \u003d \u0027natural\u0027 | \u0027fit\u0027 | \u0027right\u0027 | \u0027bottom\u0027;\n\nThis makes the component more self documenting and will catch invalid fit styles at compile time.\n\nReference: https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html.",
+      "range": {
+        "startLine": 35,
+        "startChar": 21,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5cd79d27_619b95ef",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fcc46c84_b46bd10e",
       "range": {
         "startLine": 35,
         "startChar": 21,
@@ -150,6 +264,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "db2aa098_9b4e4151",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2cefcc5_75511a68",
+      "range": {
+        "startLine": 38,
+        "startChar": 32,
+        "endLine": 38,
+        "endChar": 33
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "54475aa7_d671b782",
@@ -163,6 +301,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "remove this commented out code?",
+      "range": {
+        "startLine": 49,
+        "startChar": 13,
+        "endLine": 49,
+        "endChar": 21
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a0be8368_fea12b68",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "54475aa7_d671b782",
       "range": {
         "startLine": 49,
         "startChar": 13,
@@ -196,6 +358,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe42d724_fb186645",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11b3426e_e6c55264",
+      "range": {
+        "startLine": 75,
+        "startChar": 47,
+        "endLine": 75,
+        "endChar": 51
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "87d4f36e_7066bbe1",
@@ -209,6 +395,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Ubernit: extra space.",
+      "range": {
+        "startLine": 76,
+        "startChar": 39,
+        "endLine": 76,
+        "endChar": 40
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3627c14d_636bbe69",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87d4f36e_7066bbe1",
       "range": {
         "startLine": 76,
         "startChar": 39,
@@ -242,6 +452,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3a8e050c_106cfcdd",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d99355f6_0e15a62b",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 69
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6c18b34a_ca680df4",
@@ -255,6 +489,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "For smaller modules like this, we typically have a demo page with multiple copies of the same element in different states. That or we have one copy that we interact with. Then, we take a screenshot of just the element, not the element on the entire page.\n\nExample: https://github.com/google/skia-buildbot/blob/master/golden/modules/dots-legend-sk/dots-legend-sk_puppeteer_test.ts",
+      "range": {
+        "startLine": 24,
+        "startChar": 35,
+        "endLine": 24,
+        "endChar": 39
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e87cf23_2c1e65da",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk_puppeteer_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Thank you. I intend to write complete tests for this module after implementing the crosshair in a subsequent cl, which is it\u0027s core function.",
+      "parentUuid": "6c18b34a_ca680df4",
       "range": {
         "startLine": 24,
         "startChar": 35,
@@ -288,6 +546,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc39a25b_4c25b10b",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d92fda6_6faddec6",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 14
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "afdb0b1e_97536a66",
@@ -301,6 +583,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "I recommend moving these to //debugger-app/modules/debugger_types.ts.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 67
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "30c93b0b_d2ac77ca",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "heh, yes debugger_types.ts was an attempt at putting these somewhere and I failed to clean up. I\u0027ve also discussed this with kevin and I may also put them with the debugger_bindings code they describe in the main skia repo",
+      "parentUuid": "afdb0b1e_97536a66",
       "range": {
         "startLine": 22,
         "startChar": 0,
@@ -334,6 +640,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "87d574c4_c0e8bf2c",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d39e1d4_f7b99386",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 1
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "534f6308_b705066d",
@@ -347,6 +677,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Nit: CSS classes are preferred in most situations for styling. http://go/htmlcssstyle#ID_Selectors.",
+      "range": {
+        "startLine": 97,
+        "startChar": 9,
+        "endLine": 97,
+        "endChar": 26
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "341dcccb_91051ec7",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "534f6308_b705066d",
       "range": {
         "startLine": 97,
         "startChar": 9,
@@ -380,6 +734,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "07c37599_15c13056",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9324f9fe_4d610e59",
+      "range": {
+        "startLine": 105,
+        "startChar": 76,
+        "endLine": 105,
+        "endChar": 84
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d0356a62_951e725e",
@@ -393,6 +771,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "dangling attribute?",
+      "range": {
+        "startLine": 108,
+        "startChar": 31,
+        "endLine": 108,
+        "endChar": 33
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3115cf23_ac691867",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0356a62_951e725e",
       "range": {
         "startLine": 108,
         "startChar": 31,
@@ -426,6 +828,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "10765681_2fea9be9",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "yes, Seems like with this.querySelector(\u0027tag-name\u0027)! we don\u0027t need the id as long as the element is still the one one of it\u0027s type on the page",
+      "parentUuid": "86e4f15e_ff43693e",
+      "range": {
+        "startLine": 113,
+        "startChar": 23,
+        "endLine": 113,
+        "endChar": 34
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8e5a06c6_33e347ca",
@@ -439,6 +865,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Nit: Please move to the stylesheet.",
+      "range": {
+        "startLine": 119,
+        "startChar": 34,
+        "endLine": 119,
+        "endChar": 54
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ec0ef9f_93cdaa6e",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e5a06c6_33e347ca",
       "range": {
         "startLine": 119,
         "startChar": 34,
@@ -472,6 +922,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "88d06c69_4c003e46",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95532ebb_20129e61",
+      "range": {
+        "startLine": 139,
+        "startChar": 10,
+        "endLine": 139,
+        "endChar": 20
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "342d47ee_b4f1462c",
@@ -485,6 +959,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "This can be removed if you accept my suggestion above on line 105.",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 152,
+        "endChar": 31
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7d4270b_7ad2e249",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "342d47ee_b4f1462c",
       "range": {
         "startLine": 150,
         "startChar": 0,
@@ -518,6 +1016,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3514e3c4_e6ed49fa",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bac8ff6_0253354f",
+      "range": {
+        "startLine": 160,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 6
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "09832373_db16dfb0",
@@ -531,6 +1053,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Please mark this and the below methods as private, e.g.\n\n  private _fileInputChanged(e: Event) { ... }",
+      "range": {
+        "startLine": 167,
+        "startChar": 2,
+        "endLine": 167,
+        "endChar": 19
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0ebb94a7_78eee323",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09832373_db16dfb0",
       "range": {
         "startLine": 167,
         "startChar": 2,
@@ -564,6 +1110,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d5f044f_bf204dc4",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b576645a_4d1223a4",
+      "range": {
+        "startLine": 170,
+        "startChar": 20,
+        "endLine": 170,
+        "endChar": 47
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "286d8b8f_f1ccaa8e",
@@ -577,6 +1147,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "element.files?.length \u003d\u003d\u003d 0",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 43
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "81f7e572_db6a8351",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "286d8b8f_f1ccaa8e",
       "range": {
         "startLine": 171,
         "startChar": 8,
@@ -610,6 +1204,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d7e8ece7_965e9395",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3f7f8dea_5d3599ae",
+      "range": {
+        "startLine": 177,
+        "startChar": 21,
+        "endLine": 177,
+        "endChar": 22
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4932a6cc_0235bcf4",
@@ -623,6 +1241,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Nit: this._openSkpFile(e.target.result as ArrayBuffer);",
+      "range": {
+        "startLine": 181,
+        "startChar": 26,
+        "endLine": 181,
+        "endChar": 55
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d00dd001_55f4263d",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4932a6cc_0235bcf4",
       "range": {
         "startLine": 181,
         "startChar": 26,
@@ -656,6 +1298,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "74d0d193_84528ab8",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "96fc1955_b2833d53",
+      "range": {
+        "startLine": 195,
+        "startChar": 49,
+        "endLine": 195,
+        "endChar": 70
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "17b83282_ae0b9be7",
@@ -669,6 +1335,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "This can be removed; the compiler should be able to infer this.",
+      "range": {
+        "startLine": 198,
+        "startChar": 24,
+        "endLine": 198,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "db2603c8_c86c7870",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17b83282_ae0b9be7",
       "range": {
         "startLine": 198,
         "startChar": 24,
@@ -725,6 +1415,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "85222aba_01887404",
+        "filename": "debugger-app/modules/filter-sk/filter-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f4d7332_4155e6ff",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 44,
+        "endChar": 13
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8bf47b54_9f635e7e",
@@ -738,6 +1452,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Suggestion for extra clarity and type safety:\n\n  export type Vector4 \u003d [number, number, number, number];\n\n  export type Matrix3x3 \u003d [\n    [number, number, number],\n    [number, number, number],\n    [number, number, number],\n  ];\n\n  export type Matrix4x4 \u003d [\n    [number, number, number, number],\n    [number, number, number, number],\n    [number, number, number, number],\n    [number, number, number, number],\n  ];\n\n  export interface MatrixClipInfo {\n    clip: Vector4;\n    matrix: Matrix3x3 | Matrix4x4;\n  };\n\nIt might make sense to move these Vector and Matrix types to debugger_types.ts, depending on how this will be used.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b29d00e7_f4742958",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "I cannot get the _matrixTable method below to compile when the types are defined this way. It will work fine when written as _matrixTable(m: Matrix3x3) or as _matrixTable(m: Matrix4x4), but when written as _matrixTable(m: Matrix3x3 | Matrix4x4) i get the following error, and I\u0027m not sure what it means.\n\n      TS2349: This expression is not callable.\n  Each member of the union type \u0027(\u003cU\u003e(callbackfn: (value: [number, number, number], index: number, array: [number, number, number][]) \u003d\u003e U, thisArg?: any) \u003d\u003e U[]) | (\u003cU\u003e(callbackfn: (value: [number, number, number, number], index: number, array: [...][]) \u003d\u003e U, thisArg?: any) \u003d\u003e U[])\u0027 has signatures, but none of those signatures are compatible with each other.",
+      "parentUuid": "8bf47b54_9f635e7e",
       "range": {
         "startLine": 17,
         "startChar": 0,
@@ -771,6 +1509,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "034b0aaf_6208be9e",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "769961ec_2b44a43d",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "afdd8e9b_fceba0e0",
@@ -784,6 +1546,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "If you take the above suggestion, this could be written as:\n\n  _matrixTable(m: Matrix3x3 | Matrix4x4) { ... }",
+      "range": {
+        "startLine": 81,
+        "startChar": 18,
+        "endLine": 81,
+        "endChar": 29
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c775ce7_d3700593",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "See conversation above.",
+      "parentUuid": "afdd8e9b_fceba0e0",
       "range": {
         "startLine": 81,
         "startChar": 18,
@@ -817,6 +1603,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a95cadd7_73f6ed9e",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "771f0978_31aabf78",
+      "range": {
+        "startLine": 87,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "efaab47d_b452fdce",
@@ -834,6 +1644,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6f5b995e_fd86304e",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efaab47d_b452fdce",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "99863e5f_88e7cf10",
@@ -847,6 +1675,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "Is this the index?",
+      "range": {
+        "startLine": 11,
+        "startChar": 28,
+        "endLine": 11,
+        "endChar": 34
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "381818e7_410cb698",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99863e5f_88e7cf10",
       "range": {
         "startLine": 11,
         "startChar": 28,
@@ -880,6 +1732,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e8836b4_9535b106",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88b32023_829fe463",
+      "range": {
+        "startLine": 13,
+        "startChar": 4,
+        "endLine": 13,
+        "endChar": 11
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bd7deefa_138b55c2",
@@ -893,6 +1769,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "I don\u0027t find this spacing particularly readable. Don\u0027t try to align the fields.\n\n\u003cskip-previous-icon-sk title\u003d\"Go to first\" @click\u003d${ele._begin}\u003e\n\u003c/skip-previous-icon-sk\u003e",
+      "range": {
+        "startLine": 29,
+        "startChar": 36,
+        "endLine": 29,
+        "endChar": 85
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8b139ab_e58277e1",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd7deefa_138b55c2",
       "range": {
         "startLine": 29,
         "startChar": 36,
@@ -926,6 +1826,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "877cda63_093dc89e",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c24cea66_5929a76e",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 34
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c3a47e9f_f6bdb42e",
@@ -939,6 +1863,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "You probably ran into that problem where the TypeScript compiler thinks you want the Node.JS version of setTimeout() instead of the browser\u0027s.\n\nA workaround we\u0027ve used before is to call window.setTimeout() instead, which returns a number. Then this line can be rewritten as:\n\n  private _timeout: number \u003d 0;\n\nNote that there\u0027s no need for (number | null) because windows.setTimeout() always returns a positive number, so the number 0 can be used to represent the absence of a timeout.\n\nReference: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout",
+      "range": {
+        "startLine": 48,
+        "startChar": 20,
+        "endLine": 48,
+        "endChar": 50
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3a4d86e_0ff9375a",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3a47e9f_f6bdb42e",
       "range": {
         "startLine": 48,
         "startChar": 20,
@@ -966,6 +1914,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "656538c2_84d02760",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19a581e1_eeb4478b",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9c2390ff_dc6f8d07",
@@ -979,6 +1945,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Please prefix this with \"window.\" for consistency with the above suggestions:\n\n  window.clearTimeout(this._timeout);",
+      "range": {
+        "startLine": 69,
+        "startChar": 6,
+        "endLine": 69,
+        "endChar": 18
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5211f778_46857890",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c2390ff_dc6f8d07",
       "range": {
         "startLine": 69,
         "startChar": 6,
@@ -1012,6 +2002,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d8833ec9_9a95621f",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "558108b3_445c15f5",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 36
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "606d7602_ccd21789",
@@ -1025,6 +2039,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "Prefer \u003d\u003d\u003d",
+      "range": {
+        "startLine": 97,
+        "startChar": 19,
+        "endLine": 97,
+        "endChar": 21
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9170f161_acea0fba",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "606d7602_ccd21789",
       "range": {
         "startLine": 97,
         "startChar": 19,
@@ -1058,6 +2096,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "389216da_6964594e",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9504f14_79989379",
+      "range": {
+        "startLine": 104,
+        "startChar": 24,
+        "endLine": 104,
+        "endChar": 34
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a0477013_2cc69ac2",
@@ -1071,6 +2133,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Nit: private, here and below.",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 110,
+        "endChar": 16
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "043c4d4c_98ed131e",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0477013_2cc69ac2",
       "range": {
         "startLine": 110,
         "startChar": 2,
@@ -1127,6 +2213,54 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c2457dc9_bbc71541",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e56414eb_58134908",
+      "range": {
+        "startLine": 120,
+        "startChar": 52,
+        "endLine": 120,
+        "endChar": 57
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3e5006e1_4b370168",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a4ffa3c_00a189f0",
+      "range": {
+        "startLine": 120,
+        "startChar": 29,
+        "endLine": 120,
+        "endChar": 31
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fcf8ae4c_d3f7d423",
@@ -1140,6 +2274,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Please define a type for the \"detail\" of any custom events, e.g.\n\n  export type Mode \u003d \u0027play\u0027 | \u0027pause\u0027;\n\n  // Naming convention: \u003cComponentName\u003e\u003cEventName\u003eEventDetail\n  export interface PlaySkModeChangedManuallyEventDetail {\n    readonly mode: Mode;\n  }\n\nThen the event can be dispatched as follows:\n\n  this.dispatchEvent(\n    new CustomEvent\u003cPlaySkModeChangedManuallyEventDetail\u003e(\n      \u0027mode-changed-manually\u0027, {\n        detail: {mode: this._mode}, // The compiler will type check this.\n        bubbles: true\n      }));\n\nAdvantages:\n- The compiler will produce an error if the event is accidentally dispatched with details of the wrong type.\n- Client code can use the event detail type and avoid error-prone type assertions.\n- More self documenting.\n\nFor an example, please see https://github.com/google/elements-sk/blob/ba8f06c9433de113518b7c348d1f31b2e4d9c953/src/errorMessage.ts#L39.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 0
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "437cba77_4c78a353",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fcf8ae4c_d3f7d423",
       "range": {
         "startLine": 122,
         "startChar": 0,
@@ -1173,6 +2331,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "908ac278_f29b6086",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1715c389_e06f9a9d",
+      "range": {
+        "startLine": 129,
+        "startChar": 6,
+        "endLine": 129,
+        "endChar": 18
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "314775f1_ec1199f9",
@@ -1186,6 +2368,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Same suggestion as above; I recommend calling the event detail type PlaySkMoveToEventDetail.",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 0
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed4d0838_ac9d7dd2",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "314775f1_ec1199f9",
       "range": {
         "startLine": 132,
         "startChar": 0,
@@ -1219,6 +2425,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a15a2cd_45609b50",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27e2c33e_40b43922",
+      "range": {
+        "startLine": 137,
+        "startChar": 28,
+        "endLine": 137,
+        "endChar": 30
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3e0af053_de49517b",
@@ -1232,6 +2462,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "Why do we need both a _next and a _nextItem?",
+      "range": {
+        "startLine": 159,
+        "startChar": 2,
+        "endLine": 159,
+        "endChar": 7
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b24de78a_f941ddf3",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Whoops, sorry I didn\u0027t catch that.",
+      "parentUuid": "3e0af053_de49517b",
       "range": {
         "startLine": 159,
         "startChar": 2,
@@ -1278,6 +2532,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "Do these tests still pass if you remove the explicit timeouts?\n\nIf so, I recommend removing them as they might lead the reader to believe that the exact event timing might be part of the behavior under test.",
+      "range": {
+        "startLine": 36,
+        "startChar": 53,
+        "endLine": 36,
+        "endChar": 56
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "31f3910b_ef02808d",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Yes, but tests should be as hermetic as possible and therefore leave nothing up to defaults (and test utils probably should have no defaults to assist with this)\n\nAlso, the approximate timing of the event *is* under test.",
+      "parentUuid": "2958b959_be0fafc5",
       "range": {
         "startLine": 36,
         "startChar": 53,
@@ -1335,6 +2613,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dd4b1518_0144b297",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3a998f0_17702c80",
+      "range": {
+        "startLine": 48,
+        "startChar": 18,
+        "endLine": 48,
+        "endChar": 28
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b2ef98ff_410fa128",
@@ -1348,6 +2650,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "I think it will be conceptually clearer for the reader if we first add a listener for the \"moveto\" event (via the eventPromise() function), and then call the code under test that will trigger said event.\n\nIn other words, I think it will be clearer if we swap the eventPromise() and play.movedTo() calls, e.g.:\n\n  ep \u003d eventPromise\u003cCustomEvent\u003c PlaySkMoveToEventDetail\u003e\u003e(\u0027moveto\u0027);\n  play.movedTo(8);\n  expect((await ep).detail.item).to.equal(9);\n\nIt might also be less brittle. The test currently passes (even though we set the event listener and trigger the event \"in reverse order\") because of the timeout in the movedTo() method. But that might not be true if for example there are no more remaining milliseconds to play.",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 0
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2228afce_1afc353d",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Thank you.",
+      "parentUuid": "b2ef98ff_410fa128",
       "range": {
         "startLine": 59,
         "startChar": 0,
@@ -1381,6 +2707,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "733fddfb_49a88f93",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e3d866a_dd26bcaa",
+      "range": {
+        "startLine": 83,
+        "startChar": 6,
+        "endLine": 83,
+        "endChar": 9
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "664827ce_76a631e9",
@@ -1394,6 +2744,30 @@
       "writtenOn": "2020-10-09T11:51:37Z",
       "side": 1,
       "message": "Please expand on this comment with \"why\" - this a pretty big deviation from our normal conventions, so it would be good to have it documented properly.",
+      "range": {
+        "startLine": 6,
+        "startChar": 7,
+        "endLine": 6,
+        "endChar": 11
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "66d59f02_cd9fa338",
+        "filename": "debugger-app/pages/main.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-12T21:32:25Z",
+      "side": 1,
+      "message": "I\u0027ve written what I know, but unfortunately that\u0027s not much.",
+      "parentUuid": "664827ce_76a631e9",
       "range": {
         "startLine": 6,
         "startChar": 7,
