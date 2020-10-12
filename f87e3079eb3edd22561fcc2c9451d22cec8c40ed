@@ -1,0 +1,56 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005472181",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d79",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "9ad9b866_8850d821",
+        "filename": "bugs-central/go/bugs/monorail.go",
+        "patchSetId": 79
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-12T13:44:46Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 150,
+        "startChar": 95,
+        "endLine": 150,
+        "endChar": 101
+      },
+      "revId": "f87e3079eb3edd22561fcc2c9451d22cec8c40ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000005472181",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315841?revision\u003d79",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "9d3bdc13_0e146d4f",
+        "filename": "bugs-central/modules/bugs-central-scaffold-sk/bugs-central-scaffold-sk.js",
+        "patchSetId": 79
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-10-12T13:44:46Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 35,
+        "startChar": 60,
+        "endLine": 35,
+        "endChar": 66
+      },
+      "revId": "f87e3079eb3edd22561fcc2c9451d22cec8c40ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
