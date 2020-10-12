@@ -47,7 +47,9 @@ export class TaskGraphSk extends HTMLElement {
     });
 
     // Sort the tasks and task specs for consistency.
-    graph.forEach((tasks: string[]) => {tasks.sort()});
+    graph.forEach((tasks: string[]) => {
+      tasks.sort();
+    });
     taskData.forEach((tasks: TaskSummary[]) => {
       tasks.sort((a: TaskSummary, b: TaskSummary) => b.attempt - a.attempt);
     });
@@ -61,7 +63,7 @@ export class TaskGraphSk extends HTMLElement {
     const cols: cell[][] = [];
     const visited: Map<string, boolean> = new Map();
 
-    const visit = function(current: string) {
+    const visit = function (current: string) {
       visited.set(current, true);
       let myDepth = 0;
       (graph.get(current) || []).forEach((dep: string) => {
@@ -78,12 +80,12 @@ export class TaskGraphSk extends HTMLElement {
       if (cols.length == myDepth) {
         cols.push([]);
       } else if (myDepth > cols.length) {
-        console.log("_computeTasksGraph skipped a column!");
+        console.log('_computeTasksGraph skipped a column!');
         return;
       }
       cols[myDepth].push({
-          name: current,
-          tasks: taskData.get(current) || [],
+        name: current,
+        tasks: taskData.get(current) || [],
       });
     };
 
@@ -99,9 +101,9 @@ export class TaskGraphSk extends HTMLElement {
     const botLinkFontSize = 11;
     const botLinkMarginX = 10;
     const botLinkMarginY = 4;
-    const botLinkHeight = botLinkFontSize + 2*botLinkMarginY;
-    const botLinkText = "view swarming bots";
-    const fontFamily = "Arial";
+    const botLinkHeight = botLinkFontSize + 2 * botLinkMarginY;
+    const botLinkText = 'view swarming bots';
+    const fontFamily = 'Arial';
     const fontSize = 12;
     const taskSpecMarginX = 20;
     const taskSpecMarginY = 20;
@@ -114,24 +116,27 @@ export class TaskGraphSk extends HTMLElement {
     const taskLinkFontSize = botLinkFontSize;
     const taskLinkMarginX = botLinkMarginX;
     const taskLinkMarginY = botLinkMarginY;
-    const taskLinkHeight = taskLinkFontSize + 2*taskLinkMarginY;
-    const taskLinkText = "view swarming tasks";
+    const taskLinkHeight = taskLinkFontSize + 2 * taskLinkMarginY;
+    const taskLinkText = 'view swarming tasks';
     const textOffsetX = textMarginX;
     const textOffsetY = fontSize + textMarginY;
     const textHeight = fontSize + 2 * textMarginY;
     const botLinkOffsetY = textOffsetY + botLinkFontSize + botLinkMarginY;
     const taskLinkOffsetY = botLinkOffsetY + taskLinkFontSize + taskLinkMarginY;
-    const taskSpecHeight = textHeight + botLinkHeight + taskLinkHeight + taskHeight + taskMarginY;
+    const taskSpecHeight =
+      textHeight + botLinkHeight + taskLinkHeight + taskHeight + taskMarginY;
 
     // Compute the task spec block width for each column.
     const maxTextWidth = 0;
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d")!;
-    ctx.font = botLinkFontSize + "px " + fontFamily;
-    const botLinkTextWidth = ctx.measureText(botLinkText).width + 2 * botLinkMarginX;
-    ctx.font = taskLinkFontSize + "px " + fontFamily;
-    const taskLinkTextWidth = ctx.measureText(taskLinkText).width + 2 * taskLinkMarginX;
-    ctx.font = fontSize + "px " + fontFamily;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    ctx.font = botLinkFontSize + 'px ' + fontFamily;
+    const botLinkTextWidth =
+      ctx.measureText(botLinkText).width + 2 * botLinkMarginX;
+    ctx.font = taskLinkFontSize + 'px ' + fontFamily;
+    const taskLinkTextWidth =
+      ctx.measureText(taskLinkText).width + 2 * taskLinkMarginX;
+    ctx.font = fontSize + 'px ' + fontFamily;
     const taskSpecWidth: number[] = [];
     cols.forEach((col: cell[]) => {
       // Get the minimum width of a task spec block needed to fit the entire
@@ -141,7 +146,7 @@ export class TaskGraphSk extends HTMLElement {
         const oldFont = ctx.font;
         const text = col[i].name;
         if (text == selectedTask?.taskKey?.name) {
-          ctx.font = "bold " + ctx.font;
+          ctx.font = 'bold ' + ctx.font;
         }
         const textWidth = ctx.measureText(text).width + 2 * textMarginX;
         ctx.font = oldFont;
@@ -156,7 +161,7 @@ export class TaskGraphSk extends HTMLElement {
         }
       }
       taskSpecWidth.push(maxWidth);
-    })
+    });
 
     // Lay out the task specs and tasks.
     interface taskSpecRect {
@@ -224,8 +229,10 @@ export class TaskGraphSk extends HTMLElement {
         deps.forEach((dep: string) => {
           const src = byName.get(dep);
           if (!src) {
-            console.log("Error: task " + dst.name + " has unknown parent " + dep);
-            return "";
+            console.log(
+              'Error: task ' + dst.name + ' has unknown parent ' + dep
+            );
+            return '';
           } else {
             // Start and end points.
             const x1 = src.x + src.width;
@@ -233,29 +240,44 @@ export class TaskGraphSk extends HTMLElement {
             const x2 = dst.x - arrowWidth;
             const y2 = dst.y + dst.height / 2;
             // Control points.
-            const cx1 = x1 + taskSpecMarginX - arrowWidth/2;
+            const cx1 = x1 + taskSpecMarginX - arrowWidth / 2;
             const cy1 = y1;
-            const cx2 = x2 - taskSpecMarginX + arrowWidth/2;
+            const cx2 = x2 - taskSpecMarginX + arrowWidth / 2;
             const cy2 = y2;
-            arrows.push("M"  + x1  + " " + y1
-                      + " C" + cx1 + " " + cy1
-                      + " "  + cx2 + " " + cy2
-                      + " "  + x2  + " " + y2);
+            arrows.push(
+              'M' +
+                x1 +
+                ' ' +
+                y1 +
+                ' C' +
+                cx1 +
+                ' ' +
+                cy1 +
+                ' ' +
+                cx2 +
+                ' ' +
+                cy2 +
+                ' ' +
+                x2 +
+                ' ' +
+                y2
+            );
           }
         });
       }
     });
 
-    const taskStatusToTextColor: {[key:string]: string} = {
-      TASK_STATUS_PENDING: "rgb(255, 255, 255)",
-      TASK_STATUS_RUNNING: "rgb(248, 230, 180)",
-      TASK_STATUS_SUCCESS: "rgb(209, 228, 188)",
-      TASK_STATUS_FAILURE: "rgb(217, 95, 2)",
-      TASK_STATUS_MISHAP:  "rgb(117, 112, 179)",
+    const taskStatusToTextColor: { [key: string]: string } = {
+      TASK_STATUS_PENDING: 'rgb(255, 255, 255)',
+      TASK_STATUS_RUNNING: 'rgb(248, 230, 180)',
+      TASK_STATUS_SUCCESS: 'rgb(209, 228, 188)',
+      TASK_STATUS_FAILURE: 'rgb(217, 95, 2)',
+      TASK_STATUS_MISHAP: 'rgb(117, 112, 179)',
     };
 
     // Draw the graph.
-    render(svg`
+    render(
+      svg`
       <svg width="${totalWidth}" height="${totalHeight}">
         <marker
             id="arrowhead"
@@ -283,7 +305,8 @@ export class TaskGraphSk extends HTMLElement {
             </path>
           `;
         })}
-        ${taskSpecs.map((taskSpec: taskSpecRect) => svg`
+        ${taskSpecs.map(
+          (taskSpec: taskSpecRect) => svg`
           <rect
               class="taskSpec"
               rx="4"
@@ -293,7 +316,9 @@ export class TaskGraphSk extends HTMLElement {
               width="${taskSpec.width}"
               height="${taskSpec.height}"
               style="stroke: black; fill: white; ${
-                  taskSpec.name == selectedTask?.taskKey?.name ? "stroke-width: 3px;" : ""
+                taskSpec.name == selectedTask?.taskKey?.name
+                  ? 'stroke-width: 3px;'
+                  : ''
               }"
               >
           </rect>
@@ -303,18 +328,23 @@ export class TaskGraphSk extends HTMLElement {
               font-size="${fontSize}"
               x="${taskSpec.x + textOffsetX}"
               y="${taskSpec.y + textOffsetY}"
-              font-weight="${taskSpec.name == selectedTask?.taskKey?.name ? "bold" : "normal"}"
+              font-weight="${
+                taskSpec.name == selectedTask?.taskKey?.name ? 'bold' : 'normal'
+              }"
               >
             ${taskSpec.name}
           </text>
           <a
               class="bots"
               target="_blank"
-              href="${TaskGraphSk.computeBotsLink(taskDims.get(taskSpec.name)!, swarmingServer)}">
+              href="${TaskGraphSk.computeBotsLink(
+                taskDims.get(taskSpec.name)!,
+                swarmingServer
+              )}">
             <text
                 class="bots"
                 font-family="${fontFamily}"
-                font-size="${fontSize}"
+                font-size="${botLinkFontSize}"
                 style="text-decoration: underline;"
                 x="${taskSpec.x + textOffsetX}"
                 y="${taskSpec.y + botLinkOffsetY}"
@@ -325,7 +355,10 @@ export class TaskGraphSk extends HTMLElement {
           <a
               class="taskLinks"
               target="_blank"
-              href="${TaskGraphSk.computeTasksLink(taskSpec.name, swarmingServer)}">
+              href="${TaskGraphSk.computeTasksLink(
+                taskSpec.name,
+                swarmingServer
+              )}">
             <text
                 class="taskLinks"
                 font-family="${fontFamily}"
@@ -334,11 +367,13 @@ export class TaskGraphSk extends HTMLElement {
                 x="${taskSpec.x + textOffsetX}"
                 y="${taskSpec.y + taskLinkOffsetY}"
                 >
-              ${botLinkText}
+              ${taskLinkText}
             </text>
           </a>
-        `)}
-        ${tasks.map((task) => svg`
+        `
+        )}
+        ${tasks.map(
+          (task) => svg`
           <a
               class="task"
               target="_blank"
@@ -351,38 +386,61 @@ export class TaskGraphSk extends HTMLElement {
                 y="${task.y}"
                 width="${task.width}"
                 height="${task.height}"
-                style="stroke: black; fill: ${taskStatusToTextColor[task.task!.status]};
-                    ${task.task?.id == selectedTask?.id ? "stroke-width: 3px;" : ""}">
+                style="stroke: black; fill: ${
+                  taskStatusToTextColor[task.task!.status]
+                };
+                    ${
+                      task.task?.id == selectedTask?.id
+                        ? 'stroke-width: 3px;'
+                        : ''
+                    }">
             </rect>
           </a>
-        `)}
+        `
+        )}
       </svg>
-    `, this);
+    `,
+      this
+    );
   }
 
-  private static computeBotsLink(dims: string[], swarmingServer: string): string {
-    let link = "https://" + swarmingServer + "/botlist";
+  private static computeBotsLink(
+    dims: string[],
+    swarmingServer: string
+  ): string {
+    let link = 'https://' + swarmingServer + '/botlist';
     if (dims) {
       for (let i = 0; i < dims.length; i++) {
         if (i == 0) {
-          link += "?";
+          link += '?';
         } else {
-          link += "&";
+          link += '&';
         }
-        link += "f=" + encodeURIComponent(dims[i]);
+        link += 'f=' + encodeURIComponent(dims[i]);
       }
     }
     return link;
   }
 
-  private static computeTaskLink(task: TaskSummary, swarmingServer: string): string {
-    const swarmingLink = "https://" + swarmingServer + "/task?id=" + task.swarmingTaskId;
-    return "https://task-driver.skia.org/td/" + task.id + "?ifNotFound=" +
-        encodeURIComponent(swarmingLink);
+  private static computeTaskLink(
+    task: TaskSummary,
+    swarmingServer: string
+  ): string {
+    const swarmingLink =
+      'https://' + swarmingServer + '/task?id=' + task.swarmingTaskId;
+    return (
+      'https://task-driver.skia.org/td/' +
+      task.id +
+      '?ifNotFound=' +
+      encodeURIComponent(swarmingLink)
+    );
   }
 
-  private static computeTasksLink(name: string, swarmingServer: string): string {
-    return "https://" + swarmingServer + "/tasklist?f=sk_name-tag:" + name;
+  private static computeTasksLink(
+    name: string,
+    swarmingServer: string
+  ): string {
+    return 'https://' + swarmingServer + '/tasklist?f=sk_name-tag:' + name;
   }
 }
 
