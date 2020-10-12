@@ -47,6 +47,12 @@ func TestNew(t *testing.T) {
 	require.Equal(t, expected, g)
 }
 
+func TestThatAlwaysFails(t *testing.T) {
+	unittest.MediumTest(t)
+	unittest.LinuxOnlyTest(t)
+	require.True(t, false)
+}
+
 func TestGoldpushk_CheckOutK8sConfigGitRepository_Success(t *testing.T) {
 	unittest.MediumTest(t)
 	unittest.LinuxOnlyTest(t)
