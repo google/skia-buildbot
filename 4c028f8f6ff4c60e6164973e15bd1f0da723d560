@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fe6d13b_ae584ba4",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-12T10:52:31Z",
+      "side": 1,
+      "message": "I don\u0027t know how many GCE instances we have which don\u0027t have docker installed, but maybe the right thing to do long-term is to install it on all instances and just remove this dimension altogether.",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 125,
+        "endChar": 26
+      },
+      "revId": "4c028f8f6ff4c60e6164973e15bd1f0da723d560",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
