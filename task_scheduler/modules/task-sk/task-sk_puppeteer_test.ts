@@ -3,8 +3,6 @@ import {
   setUpPuppeteerAndDemoPageServer,
   takeScreenshot,
 } from '../../../puppeteer-tests/util';
-import { TaskSk } from './task-sk';
-import { task2, FakeTaskSchedulerService } from '../rpc-mock';
 
 describe('task-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
