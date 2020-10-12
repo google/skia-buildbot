@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -39,8 +40,13 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	fromTime := req.From.AsTime()
-	toTime := req.To.AsTime()
+
+	hasFromTime := req.From.IsValid()
+    if (hasFromTime) {
+		sklog.Infof("WESTON, fromTime is valid: %v.... %v", req.From, req.From.AsTime())
+	} else {
+		sklog.Infof("WESTON, fromTime is invalid: %v.... %v", req.From, req.From.AsTime())
+	}
 	n := req.N
 	expectPodId := req.Pod
 	numCommits := s.defaultCommitsToLoad
@@ -51,14 +57,16 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 		}
 	}
 	var update *incremental.Update
-	// TODO(westont): Fix timestamps, support updates on the client side, and stop always loading
-	// everything.
-	if (true || expectPodId != "" && expectPodId != s.podID) || fromTime.IsZero() {
+	if (expectPodId != "" && expectPodId != s.podID) || !hasFromTime {
+		sklog.Infof("WESTON: Getting all %s, %s, %v", expectPodId, s.podID, hasFromTime)
 		update, err = s.iCache.GetAll(repoURL, numCommits)
 	} else {
-		if !toTime.IsZero() {
-			update, err = s.iCache.GetRange(repoURL, fromTime, toTime, numCommits)
+		fromTime := req.From.AsTime()
+		if req.To.IsValid() {
+		sklog.Infof("WESTON: Getting range %s", req.To.AsTime().String())
+			update, err = s.iCache.GetRange(repoURL, fromTime, req.To.AsTime(), numCommits)
 		} else {
+		sklog.Infof("WESTON: Getting with fromtime %s", fromTime.String())
 			update, err = s.iCache.Get(repoURL, fromTime, numCommits)
 		}
 	}
