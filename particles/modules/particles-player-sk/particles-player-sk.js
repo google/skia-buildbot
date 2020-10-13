@@ -263,7 +263,7 @@ define('particles-player-sk', class extends HTMLElement {
     const canvas = this._engine.canvas;
     // Reset to identity
     const tt = canvas.getTotalMatrix();
-    const itt = ck.SkMatrix.invert(tt);
+    const itt = ck.Matrix.invert(tt);
     canvas.concat(itt);
     // Zoom to the middle of the animation
     canvas.translate(this._config.width/2, this._config.height/2);
@@ -290,11 +290,11 @@ define('particles-player-sk', class extends HTMLElement {
     const canvas = this._engine.canvas;
 
     const tt = canvas.getTotalMatrix();
-    const itt = ck.SkMatrix.invert(tt);
+    const itt = ck.Matrix.invert(tt);
     const pts = [e.clientX, e.clientY];
-    ck.SkMatrix.mapPoints(itt, pts); // Transform DOM pts into canvas space
+    ck.Matrix.mapPoints(itt, pts); // Transform DOM pts into canvas space
 
-    let matr = ck.SkMatrix.scaled(zoom, zoom, pts[0], pts[1]);
+    let matr = ck.Matrix.scaled(zoom, zoom, pts[0], pts[1]);
     canvas.concat(matr);
 
   }
