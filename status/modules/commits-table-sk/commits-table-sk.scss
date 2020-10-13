@@ -12,6 +12,9 @@ commits-table-sk {
 
   .commitsTableContainer {
     display: grid;
+    // Make the legend and commit columns shrink to content so with few taskspecs the commits don't
+    // awkwardly take up a large portion of the screen.
+    grid-template-columns: min-content min-content auto;
     gap: 2px 2px;
   }
 
