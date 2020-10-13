@@ -14,9 +14,11 @@ package goldpushk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	osexec "os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -534,8 +536,10 @@ func (g *Goldpushk) pushConfigurationJSON(ctx context.Context, instance Instance
 func (g *Goldpushk) pushConfigMap(ctx context.Context, path, configMapName string) error {
 	// Delete existing ConfigMap.
 	if err := g.execCmd(ctx, "kubectl", []string{"delete", "configmap", configMapName}); err != nil {
-		// TODO(lovisolo): Figure out a less brittle way to detect exit status 1.
-		if strings.Contains(err.Error(), "Command exited with exit status 1") {
+		// Command "kubectl delete configmap" returns exit code 1 when the ConfigMap does not exist on
+		// the cluster.
+		var exitError *osexec.ExitError
+		if errors.As(err, &exitError) && exitError.ExitCode() == 1 {
 			sklog.Infof("Did not delete ConfigMap %s as it does not exist on the cluster.", configMapName)
 		} else {
 			return skerr.Wrap(err)
