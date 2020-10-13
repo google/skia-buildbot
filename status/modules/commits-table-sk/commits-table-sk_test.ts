@@ -4,7 +4,6 @@ import { $, $$ } from 'common-sk/modules/dom';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import {
   incrementalResponse0,
-  responseSingleCommitTask,
   responseMultiCommitTask,
   responseNoncontiguousCommitsTask,
   responseTasksToFilter,
@@ -13,6 +12,8 @@ import {
   commentCommit,
   commentTask,
   commentTaskSpec,
+  incrementalResponse1,
+  resetResponse0,
 } from '../rpc-mock/test_data';
 import { GetIncrementalCommitsResponse } from '../rpc';
 import { expect } from 'chai';
@@ -122,7 +123,7 @@ describe('commits-table-sk', () => {
       'Interesting-Spec',
     ]);
 
-    const searchbox = $$('input-sk input', table) as HTMLInputElement;
+    const searchbox = $$('.controls input-sk input', table) as HTMLInputElement;
     searchbox.value = 'Always';
     const ep = eventPromise('change');
     searchbox.dispatchEvent(new Event('change', { bubbles: true }));
@@ -131,6 +132,68 @@ describe('commits-table-sk', () => {
       'Always-Green-Spec',
       'Always-Red-Spec',
     ]);
+  });
+
+  it('incorporates incremental update', async () => {
+    const mocker = SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
+    const ep = eventPromise('end-task');
+    const table = newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
+    await ep;
+    let commitDivs = $('.commit', table);
+    expect(commitDivs).to.have.length(5);
+    expect($('.task[title="Test-Some-Stuff @ parentofabc123"]', table)).to.have.length(1);
+    expect(
+      $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
+    ).to.contain('task-failure');
+    // Mock an incremental update, and change the reload interval to trigger it.
+    mocker.expectGetIncrementalCommits(incrementalResponse1);
+    const reloadInput = $$('#reloadInput input', table) as HTMLInputElement;
+    reloadInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // eventPromise for the same event 'end-task' seems to instantly resolve, so hack the delay.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    commitDivs = $('.commit', table);
+    expect(commitDivs).to.have.length(6);
+    // The commit divs, when sorted by vertical position, match the order of new commits followed
+    // by the the original commits.
+    expect(
+      commitDivs
+        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+        // Get hash from class list.
+        .map((el) => el.classList.item(1))
+    ).to.deep.equal(
+      incrementalResponse1
+        .update!.commits!.map((c) => `commit-${c.hash}`)
+        .concat(incrementalResponse0.update!.commits!.map((c) => `commit-${c.hash}`))
+    );
+
+    // New task is present.
+    expect($('.task[title="Build-Some-Stuff @ childofabc123"]', table)).to.have.length(1);
+    // Old task is updated.
+    expect(
+      $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
+    ).to.contain('task-success');
+  });
+
+  it('resets with startOver update', async () => {
+    const mocker = SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
+    const ep = eventPromise('end-task');
+    const table = newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
+    await ep;
+    let commitDivs = $('.commit', table);
+    expect(commitDivs).to.have.length(5);
+    // Mock an incremental update, and change the reload interval to trigger it.
+    mocker.expectGetIncrementalCommits(resetResponse0);
+    const reloadInput = $$('#reloadInput input', table) as HTMLInputElement;
+    reloadInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // eventPromise for the same event 'end-task' seems to instantly resolve, so hack the delay.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    commitDivs = $('.commit', table);
+    expect(commitDivs).to.have.length(1);
+    // Only the new commit and it's single task are present.
+    expect(commitDivs[0].classList.toString()).to.contain(resetResponse0.update!.commits![0].hash);
+    expect($('.task[title="Build-Some-Stuff @ childofabc123"]', table)).to.have.length(1);
   });
 
   describe('dialog', () => {

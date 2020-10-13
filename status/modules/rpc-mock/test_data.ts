@@ -80,6 +80,14 @@ const task2: Task = {
   status: 'SUCCESS',
   swarmingTaskId: 'swarmy',
 };
+const task3: Task = {
+  commits: ['childofabc123'],
+  id: '33333',
+  name: 'Build-Some-Stuff',
+  revision: 'childofabc123',
+  status: 'SUCCESS',
+  swarmingTaskId: 'swarmy',
+};
 const multicommitTask: Task = {
   commits: ['abc123', 'parentofabc123'],
   id: '99999',
@@ -103,6 +111,14 @@ const commit1: LongCommit = {
   subject: '2nd from HEAD',
   body: 'the commit that comes before the most recent commit',
   timestamp: timestampBeforeNow(600),
+};
+const commit2: LongCommit = {
+  hash: 'childofabc123',
+  author: 'alice@example.com',
+  parents: ['abc123'],
+  subject: 'newest commit',
+  body: 'newest commit sent via incremental update',
+  timestamp: timestampBeforeNow(100),
 };
 const branchCommit0: LongCommit = {
   hash: '456789',
@@ -202,5 +218,26 @@ export const responseTasksToFilter = (() => {
   r.update!.comments!.push(
     Object.assign(copy(commentTaskSpec), { ignoreFailure: false, taskSpecName: 'Always-Red-Spec' })
   );
+  return r;
+})();
+
+export const incrementalResponse1 = (() => {
+  const r = copy(incrementalResponse0);
+  r.metadata!.startOver = false;
+  r.update!.tasks = [
+    // New task for a the new commit.
+    task3,
+    // Existing task, with a revised status.
+    { ...task1, status: 'SUCCESS' },
+  ];
+  r.update!.comments = [];
+  r.update!.commits = [commit2];
+
+  return r;
+})();
+
+export const resetResponse0 = (() => {
+  const r = copy(incrementalResponse1);
+  r.metadata!.startOver = true;
   return r;
 })();
