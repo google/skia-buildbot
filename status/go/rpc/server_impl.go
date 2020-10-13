@@ -39,8 +39,8 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	fromTime := req.From.AsTime()
-	toTime := req.To.AsTime()
+
+	hasFromTime := req.From.IsValid()
 	n := req.N
 	expectPodId := req.Pod
 	numCommits := s.defaultCommitsToLoad
@@ -51,13 +51,12 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 		}
 	}
 	var update *incremental.Update
-	// TODO(westont): Fix timestamps, support updates on the client side, and stop always loading
-	// everything.
-	if (true || expectPodId != "" && expectPodId != s.podID) || fromTime.IsZero() {
+	if (expectPodId != "" && expectPodId != s.podID) || !hasFromTime {
 		update, err = s.iCache.GetAll(repoURL, numCommits)
 	} else {
-		if !toTime.IsZero() {
-			update, err = s.iCache.GetRange(repoURL, fromTime, toTime, numCommits)
+		fromTime := req.From.AsTime()
+		if req.To.IsValid() {
+			update, err = s.iCache.GetRange(repoURL, fromTime, req.To.AsTime(), numCommits)
 		} else {
 			update, err = s.iCache.Get(repoURL, fromTime, numCommits)
 		}

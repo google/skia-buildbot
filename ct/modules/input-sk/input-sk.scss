@@ -8,7 +8,6 @@ input-sk {
     outline: none;
     box-shadow: none;
     padding: 0;
-    width: 100%;
     max-width: 100%;
     border: none;
     text-align: inherit;
@@ -34,14 +33,14 @@ input-sk {
     position: relative;
   }
 
-  input:focus~label,
-  input:not(:focus):valid~label {
+  input:focus ~ label,
+  input:not(:focus):valid ~ label {
     transform: translate(-10%, -75%) scale(0.75);
     left: 0px;
     opacity: 1;
   }
 
-  input:focus~label {
+  input:focus ~ label {
     color: var(--primary);
   }
 
@@ -73,7 +72,7 @@ input-sk {
   }
 
   // When input is clicked we 'undo' the center based horizontal collapse.
-  input:focus~.underline-container>.underline {
+  input:focus ~ .underline-container > .underline {
     transform: none;
     transition: transform 0.4s;
   }
