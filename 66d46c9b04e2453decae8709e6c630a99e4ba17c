@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c54764be_120b36a6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Please rebase after https://skia-review.googlesource.com/c/buildbot/+/326459 lands, which adds build rules to pull the necessary WASM libraries. This is a prerequisite for the Infra-PerCommit-Medium and Infra-PerCommit-Puppeteer tryjobs to pass.",
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7b8249a2_697a3918",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Nit: I think the \"!\" can be dropped here, because this is followed by an \"as HTMLInputElement\" type assertion which would also get rid of the null type.",
+      "range": {
+        "startLine": 111,
+        "startChar": 28,
+        "endLine": 111,
+        "endChar": 29
+      },
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "084c501b_3fc5f324",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Ubernit: Must",
+      "range": {
+        "startLine": 21,
+        "startChar": 5,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4b51f048_356fe134",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Nit: const.",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 5
+      },
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

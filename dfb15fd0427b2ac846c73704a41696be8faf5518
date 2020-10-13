@@ -55,6 +55,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "2d530673_6fbe618e",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk-demo.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Note that we still need the *-demo.ts files to pull the dependencies needed by the demo pages, otherwise they won\u0027t render properly and the Puppeteer tests will fail.\n\nIn other words, please undelete all the *-demo.ts files, but only keep the following line:\n\n  import \u0027./index\u0027;",
+      "parentUuid": "8741d9e8_d93989c8",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "148e5a98_8aeab512",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.scss",
         "patchSetId": 6
@@ -1488,6 +1506,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4e00e21b_b607d8c9",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "I can think of two options to fix the _matrixTable(m: Matrix3x3 | Matrix4x4) compilation error.\n\nOption 1: Cast \"m\" as a number[][] before calling .map(...), e.g.\n\n  private _matrixTable(m: Matrix3x3 | Matrix4x4) {\n    return (m as number[][]).map((row: number[]) \u003d\u003e html`\u003ctr\u003e${ row.map((i: number) \u003d\u003e html`\u003ctd\u003e${i}\u003c/td\u003e`) }\u003c/tr\u003e`);\n  }\n\n- Pros: the method signature is still self documenting.\n- Cons: that \"as number[][]\" type assertion is a bit of an eyesore.\n\nOption 2: Replace the Matrix3x3 and Matrix4x4 with one single, less descriptive \"type Matrix \u003d number[][]\" and use it everywhere.\n\n- Pros: no ugly type assertions.\n- Cons: less self documenting, e.g. you\u0027ll still need to add comments such as \"// Can be either a 3x3 or a 4x4 matrix.\" in various places.\n\nPersonally I lean towards option 1, but it\u0027s totally up to you.",
+      "parentUuid": "b29d00e7_f4742958",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "769961ec_2b44a43d",
         "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
         "patchSetId": 6
@@ -1523,6 +1565,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "769961ec_2b44a43d",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ba729f33_479b02b2",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Type annotations are still present?",
+      "parentUuid": "034b0aaf_6208be9e",
       "range": {
         "startLine": 57,
         "startChar": 0,
@@ -2556,6 +2622,30 @@
       "side": 1,
       "message": "Yes, but tests should be as hermetic as possible and therefore leave nothing up to defaults (and test utils probably should have no defaults to assist with this)\n\nAlso, the approximate timing of the event *is* under test.",
       "parentUuid": "2958b959_be0fafc5",
+      "range": {
+        "startLine": 36,
+        "startChar": 53,
+        "endLine": 36,
+        "endChar": 56
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5d0c1bd_ab1e365b",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-13T20:32:17Z",
+      "side": 1,
+      "message": "Thanks for explaining!",
+      "parentUuid": "31f3910b_ef02808d",
       "range": {
         "startLine": 36,
         "startChar": 53,
