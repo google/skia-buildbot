@@ -1296,7 +1296,6 @@
         "gpu:none",
         "cpu:x86-64-Haswell_GCE",
         "machine_type:n1-standard-16",
-        "docker_installed:true",
         "docker_installed:true"
       ],
       "env_prefixes": {
