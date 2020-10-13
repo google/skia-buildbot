@@ -52,6 +52,19 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuil
 	}
 
 	g.Git(ctx, "init")
+	// Set the initial branch.
+	//
+	// It is important to set the initial branch explicitly because developer workstations might have
+	// a value for Git option init.defaultBranch[1] that differs from that of the CQ bots. This can
+	// cause tests that use GitBuilder to fail locally but pass on the CQ (or vice versa).
+	//
+	// [1] https://git-scm.com/docs/git-config#Documentation/git-config.txt-initdefaultBranch
+	//
+	// TODO(lovisolo): Replace with "git init --initial-branch <git_common.DefaultBranch>" once all
+	//                 GCE instances have been upgraded to Git >= v2.28, which introduces flag
+	//                 --initial-branch.
+	//                 See https://github.com/git/git/commit/32ba12dab2acf1ad11836a627956d1473f6b851a.
+	g.Git(ctx, "symbolic-ref", "HEAD", "refs/heads/"+g.branch)
 	g.Git(ctx, "remote", "add", git_common.DefaultRemote, ".")
 	g.Git(ctx, "config", "--local", "user.name", "test")
 	g.Git(ctx, "config", "--local", "user.email", "test@google.com")
