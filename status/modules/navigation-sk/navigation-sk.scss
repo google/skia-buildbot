@@ -1,0 +1,23 @@
+@import '../styles.scss';
+
+navigation-sk {
+  color: var(--on-surface);
+  a.item {
+    text-decoration: none;
+    color: var(--on-surface);
+  }
+
+  a.item:hover {
+    text-decoration: underline;
+  }
+
+  .icon {
+    margin-right: 10px;
+    fill: var(--secondary);
+  }
+
+  span {
+    white-space: nowrap;
+    display: block;
+  }
+}
