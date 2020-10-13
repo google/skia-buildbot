@@ -1,0 +1,30 @@
+bugs-central-sk {
+
+  table.client-counts {
+    width: 100%;
+    border: 1px solid var(--on-background);
+  }
+
+  table.client-counts th {
+    text-align: left;
+    background-color: var(--primary);
+    color: var(--on-primary);
+    font-weight: normal;
+    padding: 1em;
+  }
+
+  table.client-counts td {
+    padding: 1em;
+    border-bottom: 1px solid var(--on-background);
+  }
+
+  .client-link, a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-background);
+  }
+
+  .query-link {
+    float: right;
+  }
+}
