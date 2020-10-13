@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "520ba052_59ae1f3b",
+        "filename": "status/modules/navigation-sk/navigation-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:41:16Z",
+      "side": 1,
+      "message": "Note: IMO whoever handles this should reflect the new value to the URL (and we should be reading it from the URL on page load).  Otherwise we\u0027ll have to always navigate away from the default repo eg. to \"infra\", which will be annoying.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 87
+      },
+      "revId": "4d99ed83afb3c5f5f317071f7fee7467f8e6fb96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d27e1de1_a2a86281",
+        "filename": "status/modules/navigation-sk/navigation-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:41:16Z",
+      "side": 1,
+      "message": "If we\u0027re not going to navigate to separate pages for the different repos, maybe we can reclaim some space on the nav bar by removing the repo links there and adding a dropdown box in the commit table alongside \"reload\" and \"commits\" ?",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 24
+      },
+      "revId": "4d99ed83afb3c5f5f317071f7fee7467f8e6fb96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
