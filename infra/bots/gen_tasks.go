@@ -487,7 +487,7 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 			"--alsologtostderr",
 		},
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64"), createDockerImage(b, "Infra-PerCommit-CreateDockerImage")},
-		Dimensions:   append(linuxGceDimensions(machineType), "docker_installed:true"),
+		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},

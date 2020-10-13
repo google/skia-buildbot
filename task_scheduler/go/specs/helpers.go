@@ -114,6 +114,17 @@ func (b *TasksCfgBuilder) SetAssetsDir(assetsDir string) {
 // config already contains a Task with the same name and a different
 // implementation.
 func (b *TasksCfgBuilder) AddTask(name string, t *TaskSpec) error {
+	// Return an error if the task contains duplicate dimensions, which will
+	// cause it to be rejected by Swarming.
+	dims := make(map[string]bool, len(t.Dimensions))
+	for _, dim := range t.Dimensions {
+		if _, ok := dims[dim]; ok {
+			return fmt.Errorf("Dimension %q is duplicated for task %s", dim, name)
+		}
+		dims[dim] = true
+	}
+	// Ensure that we don't already have a different definition for this task
+	// name.
 	if old, ok := b.cfg.Tasks[name]; ok {
 		if !reflect.DeepEqual(old, t) {
 			return fmt.Errorf("Config already contains a Task named %q with a different implementation!\nHave:\n%v\n\nGot:\n%v", name, old, t)
