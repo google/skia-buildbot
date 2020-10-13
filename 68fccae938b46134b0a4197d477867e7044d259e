@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c858732c_84c444d5",
+        "filename": "ct/modules/input-sk/input-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:30:16Z",
+      "side": 1,
+      "message": "Nit: maybe this belongs in infra-sk?",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 27
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "703c9657_382e9e32",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:30:16Z",
+      "side": 1,
+      "message": "Is this becoming an option, as opposed to part of the URL path?\n\nie. https://status.skia.org/repo/skia \u003d\u003e https://status.skia.org?repo\u003dskia",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 28
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "117479dd_70ce0f0a",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:30:16Z",
+      "side": 1,
+      "message": "Under what circumstances do we try to send multiple requests for update at once?",
+      "range": {
+        "startLine": 407,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 22
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f5b480e_af364a50",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:30:16Z",
+      "side": 1,
+      "message": "I know you\u0027ve already written this, but I don\u0027t think it ever gets used (except maybe in debugging).  I\u0027m in favor of removing it.",
+      "range": {
+        "startLine": 459,
+        "startChar": 0,
+        "endLine": 464,
+        "endChar": 20
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8d6f4ce7_db640ea2",
+        "filename": "status/modules/commits-table-sk/commits-table-sk_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-13T18:30:16Z",
+      "side": 1,
+      "message": "Please add a test case for startOver as well.",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 53
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
