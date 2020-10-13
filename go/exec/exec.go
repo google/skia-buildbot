@@ -245,7 +245,7 @@ func wait(ctx context.Context, command *Command, cmd *osexec.Cmd) error {
 		return fmt.Errorf("%s %f secs", TIMEOUT_ERROR_PREFIX, command.Timeout.Seconds())
 	case err := <-done:
 		if err != nil {
-			return fmt.Errorf("Command exited with %s: %s", err, DebugString(command))
+			return fmt.Errorf("Command exited with %w: %s", err, DebugString(command))
 		}
 		return nil
 	}

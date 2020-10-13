@@ -3,6 +3,7 @@ package exec
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -234,12 +235,15 @@ func TestError(t *testing.T) {
 		Args: []string{"-u", "-c", `
 import sys
 sys.stderr.write('Error in subprocess!')
-sys.exit(1)
+sys.exit(123)
 `},
 		Stderr: &output,
 	})
 	expect.Error(t, err)
-	expect.Contains(t, err.Error(), "exit status 1")
+	expect.Contains(t, err.Error(), "exit status 123")
+	var exitError *exec.ExitError
+	require.True(t, errors.As(err, &exitError))
+	require.Equal(t, 123, exitError.ExitCode())
 	expect.Contains(t, string(output.Bytes()), "Error in subprocess!")
 }
 
