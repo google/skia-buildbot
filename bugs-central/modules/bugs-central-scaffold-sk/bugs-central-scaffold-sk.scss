@@ -1,0 +1,75 @@
+@import '~elements-sk/colors';
+@import '../colors';
+@import '../style.scss';
+
+bugs-central-scaffold-sk {
+  * {
+    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+  }
+
+  header {
+    h1 {
+      font-weight: 400;
+      font-size: 1.5em;
+      padding: 0 0.25em;
+    }
+
+    .spinner-spacer {
+      min-width: 40px;
+    }
+
+    spinner-sk {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      border: 8px solid var(--on-primary);
+      border-left: 8px solid var(--primary-variant);
+    }
+  }
+
+  main {
+    background-color: var(--background);
+  }
+
+  nav {
+    display:flex;
+    flex-direction: column;
+    a {
+      padding: 1em 0em;
+      color: var(--on-surface); /* Override User Agent SS*/
+      text-decoration: none;
+    }
+    span {
+      padding: 0 0.5em;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+  }
+
+  /* Overrides to elements-sk elements since they set color internally. */
+  app-sk, app-sk > aside {
+    background-color: var(--background);
+    color: var(--on-background);
+    aside {
+      border-right: 1px solid var(--on-background);
+    }
+    --content-horiz-padding: 2em;
+  }
+  app-sk > main {
+    padding: 2em 5em;
+  }
+  login-sk {
+    margin-left: auto;
+    margin-right: 1em;
+    display: block;
+    color: var(--on-primary);
+  }
+  login-sk .email, login-sk .logInOut {
+    font-size: 15px;
+    color: var(--on-primary);
+  }
+  error-toast-sk toast-sk {
+    background-color: var(--error);
+    color: var(--on-error);
+  }
+}
