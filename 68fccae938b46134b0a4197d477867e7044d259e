@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef27a138_cf1c09ed",
+        "filename": "ct/modules/input-sk/input-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-13T19:17:27Z",
+      "side": 1,
+      "message": "Added a comment, will do it in a separate cl.",
+      "parentUuid": "c858732c_84c444d5",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 27
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "703c9657_382e9e32",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-13T18:30:16Z",
       "side": 1,
       "message": "Is this becoming an option, as opposed to part of the URL path?\n\nie. https://status.skia.org/repo/skia \u003d\u003e https://status.skia.org?repo\u003dskia",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 28
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "523f06dc_5d921a9a",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-13T19:17:27Z",
+      "side": 1,
+      "message": "Yes, (see the next cl in the chain (navigation-sk), it emits repo-changed events rather than reloading the page, which will be routed to this class.  I\u0027ll have a CL soon that integrates the various options with a stateReflector for the query string.\n\nIf there\u0027s a strong justification for having separate pages let me know, but afaict it\u0027ll be snappier as a single page.",
+      "parentUuid": "703c9657_382e9e32",
       "range": {
         "startLine": 186,
         "startChar": 0,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "43bdda17_4b2f622a",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-13T19:17:27Z",
+      "side": 1,
+      "message": "Any time someone manages to change a setting after we send a request but before we get a response. Unlikely, with a fast and reliable connection.  \n\nThis logic (though slightly less clear IMO) already exists in status https://source.corp.google.com/skia/buildbot/status/res/imp/commits-data-sk.html;rcl\u003d65e0aa32ebd4ba2003fd199a77af4425af5c9eb8;l\u003d396-421 along with the commits-table-sk wrapping updates in debounce.",
+      "parentUuid": "117479dd_70ce0f0a",
+      "range": {
+        "startLine": 407,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 22
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2f5b480e_af364a50",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d40a0912_aaf74b16",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-13T19:17:27Z",
+      "side": 1,
+      "message": "Since it\u0027s already written and tested I\u0027ll leave it for now and shout \u0027feature parity!\u0027 from the rooftops when we eventually flip over to the new status. But I\u0027m fine removing it after if no one uses it :D",
+      "parentUuid": "2f5b480e_af364a50",
+      "range": {
+        "startLine": 459,
+        "startChar": 0,
+        "endLine": 464,
+        "endChar": 20
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8d6f4ce7_db640ea2",
@@ -106,6 +202,30 @@
       "writtenOn": "2020-10-13T18:30:16Z",
       "side": 1,
       "message": "Please add a test case for startOver as well.",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 53
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "10fd7a4e_f43baa3b",
+        "filename": "status/modules/commits-table-sk/commits-table-sk_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-13T19:17:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d6f4ce7_db640ea2",
       "range": {
         "startLine": 137,
         "startChar": 0,
