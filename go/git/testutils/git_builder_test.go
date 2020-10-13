@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -16,9 +17,15 @@ func TestGitSetup(t *testing.T) {
 	ctx := context.Background()
 	g := GitInit(t, ctx)
 	defer g.Cleanup()
+
+	// Assert that the default branch has the expected name.
+	output, err := exec.RunCwd(ctx, g.Dir(), g.git, "symbolic-ref", "--short", "HEAD")
+	require.NoError(t, err)
+	require.Equal(t, git_common.DefaultBranch, strings.TrimSpace(output))
+
 	commits := GitSetup(ctx, g)
 
-	output, err := exec.RunCwd(ctx, g.Dir(), g.git, "log", "-n", "6", "--format=format:%H:%P", "HEAD")
+	output, err = exec.RunCwd(ctx, g.Dir(), g.git, "log", "-n", "6", "--format=format:%H:%P", "HEAD")
 	require.NoError(t, err)
 	t.Log(ctx, output)
 	lines := strings.Split(output, "\n")
