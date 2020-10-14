@@ -95,6 +95,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8bcd9cf6_a02ad5e0",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-14T10:56:03Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "523f06dc_5d921a9a",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 28
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "117479dd_70ce0f0a",
@@ -132,6 +156,30 @@
       "side": 1,
       "message": "Any time someone manages to change a setting after we send a request but before we get a response. Unlikely, with a fast and reliable connection.  \n\nThis logic (though slightly less clear IMO) already exists in status https://source.corp.google.com/skia/buildbot/status/res/imp/commits-data-sk.html;rcl\u003d65e0aa32ebd4ba2003fd199a77af4425af5c9eb8;l\u003d396-421 along with the commits-table-sk wrapping updates in debounce.",
       "parentUuid": "117479dd_70ce0f0a",
+      "range": {
+        "startLine": 407,
+        "startChar": 0,
+        "endLine": 407,
+        "endChar": 22
+      },
+      "revId": "68fccae938b46134b0a4197d477867e7044d259e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab4bf0c2_797bfe37",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-14T10:56:03Z",
+      "side": 1,
+      "message": "Thanks, I\u0027d forgotten about that.",
+      "parentUuid": "43bdda17_4b2f622a",
       "range": {
         "startLine": 407,
         "startChar": 0,
