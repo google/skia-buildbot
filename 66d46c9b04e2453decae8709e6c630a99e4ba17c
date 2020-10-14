@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "eef4432a_35872806",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-14T19:40:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b8249a2_697a3918",
+      "range": {
+        "startLine": 111,
+        "startChar": 28,
+        "endLine": 111,
+        "endChar": 29
+      },
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "084c501b_3fc5f324",
@@ -64,6 +88,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5560b466_92261f95",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-14T19:40:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "084c501b_3fc5f324",
+      "range": {
+        "startLine": 21,
+        "startChar": 5,
+        "endLine": 21,
+        "endChar": 12
+      },
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4b51f048_356fe134",
@@ -77,6 +125,30 @@
       "writtenOn": "2020-10-13T20:32:17Z",
       "side": 1,
       "message": "Nit: const.",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 5
+      },
+      "revId": "66d46c9b04e2453decae8709e6c630a99e4ba17c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9edf871c_334e02b1",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-14T19:40:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b51f048_356fe134",
       "range": {
         "startLine": 22,
         "startChar": 2,

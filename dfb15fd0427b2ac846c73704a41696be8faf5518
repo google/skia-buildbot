@@ -71,6 +71,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "673e329d_0eea91a5",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk-demo.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-14T19:40:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d530673_6fbe618e",
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "148e5a98_8aeab512",
@@ -1528,6 +1546,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "22ddab20_b7e9438f",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-14T19:40:46Z",
+      "side": 1,
+      "message": "Gone with option 1, and I\u0027ve put the types in debugger.d.ts since they are supposed to match the json returned from the debugger_bindings.cpp code.",
+      "parentUuid": "4e00e21b_b607d8c9",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "769961ec_2b44a43d",
@@ -1589,6 +1631,30 @@
       "side": 1,
       "message": "Type annotations are still present?",
       "parentUuid": "034b0aaf_6208be9e",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a879b675_20a8bb12",
+        "filename": "debugger-app/modules/matrix-clip-controls-sk/matrix-clip-controls-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-14T19:40:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba729f33_479b02b2",
       "range": {
         "startLine": 57,
         "startChar": 0,
