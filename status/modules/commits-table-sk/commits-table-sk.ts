@@ -25,6 +25,7 @@ import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/redo-icon-sk';
 import 'elements-sk/icon/texture-icon-sk';
 import 'elements-sk/icon/undo-icon-sk';
+import 'elements-sk/styles/select';
 import '../details-dialog-sk';
 import {
   Branch,
@@ -40,7 +41,7 @@ import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { truncateWithEllipses } from '../../../golden/modules/common';
 import { GetStatusService } from '../rpc';
-import { defaultRepo } from '../settings';
+import { defaultRepo, repos } from '../settings';
 
 const CONTROL_START_ROW = 1;
 const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
@@ -454,7 +455,16 @@ export class CommitsTableSk extends ElementSk {
       <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
     </div>
     <div class="tasksTable">${el.fillTableTemplate()}</div>
-    <div class="reloadControls" style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL)}>
+    <div
+      class="reloadControls"
+      style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL, TASKSPEC_START_ROW + 1)}
+    >
+      <div id="repoContainer">
+        <div id="repoLabel">Repo:</div>
+        <select id="repoSelector" @change=${() => el.update()}>
+          ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
+        </select>
+      </div>
       <div class="refresh">
         <input-sk
           type="number"
@@ -581,12 +591,7 @@ export class CommitsTableSk extends ElementSk {
   }
 
   get repo(): string {
-    return this._repo;
-  }
-
-  set repo(value) {
-    this._repo = value;
-    this.draw();
+    return ($$('#repoSelector', this) as HTMLSelectElement)?.value || '';
   }
 
   private searchFilter(e: Event) {
