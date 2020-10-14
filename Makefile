@@ -80,6 +80,9 @@ buildall:
 
 .PHONY: puppeteer-tests
 puppeteer-tests:
+	# Pull the WASM binaries needed by the debugger-app Webpack build.
+	cd debugger-app && $(MAKE) wasm_libs
+
 	docker run --interactive --rm \
 		--mount type=bind,source=`pwd`,target=/src \
 		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \

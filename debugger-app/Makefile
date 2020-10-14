@@ -31,12 +31,21 @@ puppeteer-test-debug:
 serve:
 	npx webpack-dev-server --watch-poll --mode=development
 
+.PHONY: wasm_libs
+wasm_libs:
+	rm -rf build
+	mkdir build
+	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
+	       --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
+	       sh -c "cp -r /tmp/* /OUT"
+	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
+
 .PHONY: build-frontend-ci
-build-frontend-ci:
+build-frontend-ci: wasm_libs
 	npm ci
 	npx webpack --mode=production
 
 .PHONY: test-frontend-ci
-test-frontend-ci:
+test-frontend-ci: wasm_libs
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
