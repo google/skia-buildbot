@@ -25,7 +25,7 @@
   "rollerName": "vk-gl-cts-angle-autoroll",
   "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://rota-ng.appspot.com/legacy/sheriff_angle.json",
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:angle-wrangler",
     "angle-bots+autoroll-info@google.com"
   ],
   "sheriffBackup": [

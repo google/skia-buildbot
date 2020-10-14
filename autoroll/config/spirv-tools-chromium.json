@@ -41,7 +41,7 @@
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "radial-bots+chrome-roll@google.com",
-    "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:angle-wrangler"
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
