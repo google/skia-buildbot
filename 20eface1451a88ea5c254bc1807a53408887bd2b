@@ -16,6 +16,24 @@
       "message": "This has been pushed to the rollers.",
       "revId": "20eface1451a88ea5c254bc1807a53408887bd2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d395eb54_cf67441c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2020-10-14T14:09:05Z",
+      "side": 1,
+      "message": "Thanks Eric!",
+      "parentUuid": "1419673f_ff6ab603",
+      "revId": "20eface1451a88ea5c254bc1807a53408887bd2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
