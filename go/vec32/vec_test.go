@@ -504,13 +504,6 @@ func TestStdDev(t *testing.T) {
 	}
 }
 
-func TestStddev(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// Try sample data with a known integer stddev to confirm the calculation.
-	assert.Equal(t, float32(2), stddev([]float32{-1, -1, 1, -2, 3}, 0))
-}
-
 func TestTwoSidedStdDev(t *testing.T) {
 	unittest.SmallTest(t)
 	tests := []struct {
@@ -576,4 +569,28 @@ func TestTwoSidedStdDev(t *testing.T) {
 			assert.Equal(t, tt.upper, upper, "upper")
 		})
 	}
+}
+
+func TestQuartiles_OddNumberOfPointsExampleFromWikipedia(t *testing.T) {
+	unittest.SmallTest(t)
+
+	q, err := Quartiles([]float32{6, 7, 15, 36, 39, 40, 41, 42, 43, 47, 49})
+	assert.NoError(t, err)
+	assert.Equal(t, []float32{6, 15, 40, 43, 49}, q)
+}
+
+func TestQuartiles_EvenNumberOfPointsExampleFromWikipedia(t *testing.T) {
+	unittest.SmallTest(t)
+
+	q, err := Quartiles([]float32{7, 15, 36, 39, 40, 41})
+	assert.NoError(t, err)
+	assert.Equal(t, []float32{7, 15, 37.5, 40, 41}, q)
+}
+
+func TestRemoveMissingDataSentinel_Success(t *testing.T) {
+	assert.Equal(t, []float32{1, 2}, RemoveMissingDataSentinel([]float32{e, 1, e, 2, e}))
+}
+
+func TestRemoveMissingDataSentinel_Empty_Success(t *testing.T) {
+	assert.Equal(t, []float32{}, RemoveMissingDataSentinel([]float32{}))
 }
