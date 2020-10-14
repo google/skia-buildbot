@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5b1cda4e_cb893e32",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-10-14T16:34:06Z",
+      "side": 1,
+      "message": "Hey Eric, we need to change the autorollers to roll profiles with different names, and we can reduce the number of rollers on canary from 3 to 2. I changed the configs files, but not sure if other places need to change too. Let me know wdyt.",
+      "revId": "fdca348b732e4c075681e35d26d922d9562b8f17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
