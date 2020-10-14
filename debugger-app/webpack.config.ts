@@ -11,6 +11,16 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   // https://github.com/webpack/node-libs-browser/issues/26#issuecomment-267954095
   config.resolve.modules = [resolve(__dirname, 'node_modules'), 'node_modules'];
 
+  let aliases = [
+    { from: resolve(__dirname, 'static/favicon.png') },
+    { from: resolve(__dirname, 'build/debugger/debugger.wasm') },
+    { from: resolve(__dirname, 'build/debugger/debugger.js') },
+  ];
+
+  config.plugins!.push(
+    new CopyWebpackPlugin(aliases),
+  );
+
   config.node = {
     fs: 'empty',
   };

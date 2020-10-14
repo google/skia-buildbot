@@ -1,2 +1,48 @@
 debugger-page-sk {
+  * {
+    font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    font-size: 12px;
+  }
+
+  .horizontal-flex {
+    display: flex;
+    flex-diection: row;
+  }
+
+  header {
+    background: #1f78b4;
+    color: white;
+    padding: 0.5em;
+    margin: 0;
+
+    display: flex;
+    justify-content: space-between;
+  }
+
+  header h2 {
+    font-size: 1.5em;
+    margin: 0;
+  }
+
+  play-sk {
+    margin: 5px auto;
+  }
+
+  #content {
+    margin: 0.5em;
+  }
+
+  .version-link {
+    color: white;
+    font-weight: bold;
+  }
+
+  input[type="file"] {
+    width: 100%;
+  }
+
+  matrix-clip-controls-sk {
+    width: 20em;
+  }
+
 }
