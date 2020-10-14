@@ -111,6 +111,8 @@ cp -r /src/debugger-app/package*            /tests/debugger-app
 cp -r /src/debugger-app/webpack.config.ts   /tests/debugger-app
 cp -r /src/debugger-app/tsconfig.json       /tests/debugger-app
 cp -r /src/debugger-app/modules             /tests/debugger-app
+cp -r /src/debugger-app/build               /tests/debugger-app
+cp -r /src/debugger-app/static              /tests/debugger-app
 
 ################################################################################
 # Install node modules.                                                        #
