@@ -1428,6 +1428,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0ec29185_ba4ef088",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-types.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-14T20:18:39Z",
+      "side": 1,
+      "message": "Marking as resolved.",
+      "parentUuid": "d434ddd0_36bf3e00",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 42
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2f4d7332_4155e6ff",
@@ -2641,6 +2665,30 @@
       "writtenOn": "2020-10-09T01:06:04Z",
       "side": 1,
       "message": "If you take my suggestion above:\n\n  let ep \u003d eventPromise\u003cCustomEvent\u003cPlaySkMoveToEventDetail\u003e\u003e(\u0027moveto\u0027);\n\nHere are and below.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 56
+      },
+      "revId": "dfb15fd0427b2ac846c73704a41696be8faf5518",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7b4e34c_95610b9a",
+        "filename": "debugger-app/modules/play-sk/play-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-14T20:18:39Z",
+      "side": 1,
+      "message": "Marking as resolved.",
+      "parentUuid": "c745b6b0_c036d7ae",
       "range": {
         "startLine": 23,
         "startChar": 0,
