@@ -73,6 +73,7 @@ const (
 var (
 	autorollMtx                 sync.RWMutex
 	autorollStatus              []byte                        = nil
+	autorollStatusTwirp         *rpc.GetAutorollerStatusesResponse = nil
 	capacityClient              *capacity.CapacityClient      = nil
 	capacityTemplate            *template.Template            = nil
 	commitsTemplate             *template.Template            = nil
@@ -707,6 +708,12 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getAutorollerStatusesTwirp() (*rpc.GetAutorollerStatusesResponse) {
+	autorollMtx.RLock()
+	defer autorollMtx.RUnlock()
+    return autorollStatusTwirp
+}
+
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
 	topLevelRouter.Use(login.RestrictViewer)
@@ -893,6 +900,7 @@ func main() {
 		autorollMtx.Lock()
 		defer autorollMtx.Unlock()
 		autorollStatus = b
+		autorollStatusTwirp =  &rpc.GetAutorollerStatusesResponse{}
 		return nil
 	}
 	if err := updateAutorollStatus(ctx); err != nil {
@@ -916,7 +924,7 @@ func main() {
 	}
 
 	// Create Twirp Server.
-	twirpServer := rpc.NewStatusServer(iCache, taskDb, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
+	twirpServer := rpc.NewStatusServer(iCache, taskDb, getAutorollerStatusesTwirp, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
 
 	// Run the server.
 	runServer(serverURL, twirpServer)

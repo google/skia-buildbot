@@ -25,6 +25,7 @@ import (
 type statusServerImpl struct {
 	iCache               *incremental.IncrementalCache
 	taskDb               db.RemoteDB
+	getAutorollerStatuses func() (*GetAutorollerStatusesResponse)
 	getRepo              func(string) (string, string, error)
 	maxCommitsToLoad     int
 	defaultCommitsToLoad int
@@ -193,10 +194,15 @@ func (s *statusServerImpl) DeleteComment(ctx context.Context,
 	return &DeleteCommentResponse{}, nil
 }
 
+func (s *statusServerImpl) GetAutorollerStatuses(ctx context.Context, req *GetAutorollerStatusesRequest) (*GetAutorollerStatusesResponse, error) {
+	return s.getAutorollerStatuses(), nil
+}
+
 // NewStatusServer creates and returns a Twirp HTTP Server.
 func NewStatusServer(
 	iCache *incremental.IncrementalCache,
 	taskDb db.RemoteDB,
+	getAutorollStatuses func() (*GetAutorollerStatusesResponse),
 	getRepo func(string) (string, string, error),
 	maxCommitsToLoad int,
 	defaultCommitsToLoad int,
@@ -204,6 +210,7 @@ func NewStatusServer(
 	return NewStatusServiceServer(&statusServerImpl{
 		iCache,
 		taskDb,
+		getAutorollStatuses,
 		getRepo,
 		maxCommitsToLoad,
 		defaultCommitsToLoad,
