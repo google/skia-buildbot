@@ -649,11 +649,6 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// Serve static assets (favicon, etc.).
-	//
-	// TODO(lovisolo): Fold this and the below handlers to serve all static assets from /dist.
-	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))
-
 	// Serve Webpack output. This includes the raw lit-html templates, and the CSS and JS bundles.
 	//
 	// Note that this exposes the raw lit-html templates (e.g. /dist/byblame.html), which include
