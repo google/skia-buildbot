@@ -16,6 +16,24 @@
       "message": "Does this get removed in a future CL? I think it\u0027s not doing anything right now.",
       "revId": "0268859a20239f95b990810b82cb10a9b459e76a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "da645309_73f151a5",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-15T17:07:04Z",
+      "side": 1,
+      "message": "Yes, this get removed in https://skia-review.googlesource.com/c/buildbot/+/326978, where we stop serving all Polymer pages.",
+      "parentUuid": "d156d15a_49e5b120",
+      "revId": "0268859a20239f95b990810b82cb10a9b459e76a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
