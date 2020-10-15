@@ -22,6 +22,30 @@
       },
       "revId": "26e2dc95fe79579198ce3eb107ad1c9de6e15c1d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "756128d8_3b086c5a",
+        "filename": "golden/webpack.config.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-15T17:10:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7d92b37_272e6fe0",
+      "range": {
+        "startLine": 17,
+        "startChar": 31,
+        "endLine": 17,
+        "endChar": 33
+      },
+      "revId": "26e2dc95fe79579198ce3eb107ad1c9de6e15c1d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
