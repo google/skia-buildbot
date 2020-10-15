@@ -12,6 +12,9 @@ commits-table-sk {
 
   .commitsTableContainer {
     display: grid;
+    // Make the legend and commit columns shrink to content so with few taskspecs the commits don't
+    // awkwardly take up a large portion of the screen.
+    grid-template-columns: min-content min-content auto;
     gap: 2px 2px;
   }
 
@@ -93,12 +96,29 @@ commits-table-sk {
     padding-top: 10px;
   }
 
-  .reloadControls input-sk {
-    input {
-      width: 100px;
+  .reloadControls {
+    #repoLabel {
+      position: absolute;
+      top: 104px;
+      left: 15px;
     }
-    .input-container {
+
+    select {
+      padding: 2px 0px;
+      margin-left: 0px;
       width: 180px;
+      text-align-last: center;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    input-sk {
+      input {
+        width: 100px;
+      }
+      .input-container {
+        width: 180px;
+      }
     }
   }
 
