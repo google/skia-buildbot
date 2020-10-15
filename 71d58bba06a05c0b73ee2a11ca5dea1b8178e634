@@ -46,6 +46,30 @@
       },
       "revId": "71d58bba06a05c0b73ee2a11ca5dea1b8178e634",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "52712541_a4189fd1",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-15T20:32:10Z",
+      "side": 1,
+      "message": "That\u0027s fair.",
+      "parentUuid": "112ac896_8000bedf",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 14
+      },
+      "revId": "71d58bba06a05c0b73ee2a11ca5dea1b8178e634",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
