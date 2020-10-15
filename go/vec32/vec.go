@@ -13,6 +13,9 @@ const (
 	// JSON doesn't support NaN or +/- Inf, so we need a valid float32 to signal
 	// missing data that also has a compact JSON representation.
 	MissingDataSentinel float32 = 1e32
+
+	// maxStdDevRatio is the largest magnitude value that StdDevRatio can return.
+	maxStdDevRatio = 1000
 )
 
 // New creates a new []float32 of the given size pre-populated
@@ -53,13 +56,16 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 	return mean, stddev, nil
 }
 
-// stddev only works on arrays that have no MISSING_DATA_SENTINEL values.
-func stddev(arr []float32, middle float32) float32 {
-	sum := float32(0)
+// RemoveMissingDataSentinel returns a new slice with all the values that are
+// equal to the MissingDataSentinel removed.
+func RemoveMissingDataSentinel(arr []float32) []float32 {
+	ret := make([]float32, 0, len(arr))
 	for _, x := range arr {
-		sum += (x - middle) * (x - middle)
+		if x != MissingDataSentinel {
+			ret = append(ret, x)
+		}
 	}
-	return float32(math.Sqrt(float64(sum) / float64(len(arr)-1)))
+	return ret
 }
 
 type float32Slice []float32
@@ -86,16 +92,8 @@ func (p float32Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // The median is chosen as the midpoint instead of the mean because that ensures
 // that both sides have the same number of points (+/- 1).
 func TwoSidedStdDev(arr []float32) (float32, float32, float32, error) {
-	// Allocate a new slice since we need to sort the incoming values in the
-	// array.
-	values := make([]float32, 0, len(arr))
-	count := 0
-	for _, x := range arr {
-		if x != MissingDataSentinel {
-			count += 1
-			values = append(values, x)
-		}
-	}
+	values := RemoveMissingDataSentinel((arr))
+	count := len(values)
 	if count < 4 {
 		return 0, 0, 0, fmt.Errorf("Insufficient number of points, at least 4 are needed: %d", len(values))
 	}
@@ -108,7 +106,67 @@ func TwoSidedStdDev(arr []float32) (float32, float32, float32, error) {
 	} else {
 		median = (values[mid-1] + values[mid]) / 2
 	}
-	return median, stddev(values[:mid], median), stddev(values[mid:], median), nil
+	return median, StdDev(values[:mid], median), StdDev(values[mid:], median), nil
+}
+
+// StdDevRatio returns the number of standard deviations that the last point in
+// arr is away from the median of the remaining points in arr.
+//
+// Does not presume that arr is sorted.
+//
+// In detail, this calculates a measure of how likely the last point in the
+// slice is to come from the population, as represented by the remaining
+// elements of the slice.
+//
+// We calculate TwoSidedStdDev:
+//
+//   median, lower, upper = TwoSidedStdDev(values)
+//
+// Then calculate the std dev ratio (d):
+//
+//   d = (x-median)/[lower|upper]
+//
+// The value of d is the difference between the last point in arr (x) and the
+// median, divided by the lower or upper standard deviation. If x > median then
+// we divide by upper, else we divide by lower.
+//
+// This d is a unitless dimension, the number of standard deviations the trybot
+// value is either above or below the median.
+//
+// Returns the stddevRatio, median, lower, upper, and an error if one occurred.
+func StdDevRatio(arr []float32) (float32, float32, float32, float32, error) {
+	length := len(arr)
+	if length < 5 {
+		// Last point is 'x' and TwoSidedStdDev requires four points.
+		return 0, 0, 0, 0, fmt.Errorf("Insufficient number of points.")
+	}
+	x := arr[len(arr)-1]
+	if x == MissingDataSentinel {
+		return 0, 0, 0, 0, fmt.Errorf("Can't calculate StdDevRatio for MissingDataSentinel.")
+	}
+	median, lower, upper, err := TwoSidedStdDev(arr[:length-1])
+	if err != nil {
+		return 0, median, lower, upper, err
+	}
+	var stddevRatio float32
+	if x < median {
+		stddevRatio = (median - x) / lower
+		if stddevRatio > maxStdDevRatio {
+			stddevRatio = maxStdDevRatio
+		}
+		stddevRatio *= -1
+	} else {
+		stddevRatio = (x - median) / upper
+		if stddevRatio > maxStdDevRatio {
+			stddevRatio = maxStdDevRatio
+		}
+	}
+
+	if math.IsNaN(float64(stddevRatio)) {
+		return 0, 0, 0, 0, fmt.Errorf("Got NaN calculating StdDevRatio")
+	}
+
+	return stddevRatio, median, lower, upper, nil
 }
 
 // ScaleBy divides each non-sentinel value in the slice by 'b', converting

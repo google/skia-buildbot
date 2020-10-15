@@ -504,13 +504,6 @@ func TestStdDev(t *testing.T) {
 	}
 }
 
-func TestStddev(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// Try sample data with a known integer stddev to confirm the calculation.
-	assert.Equal(t, float32(2), stddev([]float32{-1, -1, 1, -2, 3}, 0))
-}
-
 func TestTwoSidedStdDev(t *testing.T) {
 	unittest.SmallTest(t)
 	tests := []struct {
@@ -571,6 +564,105 @@ func TestTwoSidedStdDev(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
+			assert.Equal(t, tt.median, median, "median")
+			assert.Equal(t, tt.lower, lower, "lower")
+			assert.Equal(t, tt.upper, upper, "upper")
+		})
+	}
+}
+
+func TestRemoveMissingDataSentinel_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, []float32{1, 2}, RemoveMissingDataSentinel([]float32{e, 1, e, 2, e}))
+}
+
+func TestRemoveMissingDataSentinel_Empty_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, []float32{}, RemoveMissingDataSentinel([]float32{}))
+}
+
+func TestStdDevRatio(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tests := []struct {
+		name          string
+		arg           []float32
+		stddevRatio   float32
+		median        float32
+		lower         float32
+		upper         float32
+		wantError     bool
+		errorContains string
+	}{
+		{
+			name:          "Too little data, needs at least 5 data points",
+			arg:           []float32{0, 0, 0, 0},
+			wantError:     true,
+			errorContains: "Insufficient",
+		},
+		{
+			name:          "Too little data after removing MissingDataSentinels",
+			arg:           []float32{e, e, e, e, e, e, 1.0},
+			wantError:     true,
+			errorContains: "Insufficient",
+		},
+		{
+			name:          "Catches NaN results",
+			arg:           []float32{0, 0, 0, 0, 0},
+			wantError:     true,
+			errorContains: "NaN",
+		},
+		{
+			name:          "Catches MissingDataSentinel as last point",
+			arg:           []float32{0, 0, 0, 0, e},
+			wantError:     true,
+			errorContains: "MissingDataSentinel",
+		},
+
+		{
+			name:        "-Inf result is forced to -maxStdDevRatio",
+			arg:         []float32{1, 1, 1, 1, -1.1},
+			stddevRatio: -maxStdDevRatio,
+			median:      1,
+			lower:       0,
+			upper:       0,
+		},
+		{
+			name:        "Inf result is forced to -maxStdDevRatio",
+			arg:         []float32{1, 1, 1, 1, 1.1},
+			stddevRatio: maxStdDevRatio,
+			median:      1,
+			lower:       0,
+			upper:       0,
+		},
+		{
+			name:        "Last point equals the median",
+			arg:         []float32{1, 2, 4, 5, 3},
+			stddevRatio: 0,
+			median:      3,
+			lower:       2.236068,
+			upper:       2.236068,
+		},
+		{
+			name:        "Last point equals the twice the median",
+			arg:         []float32{11, 12, 13, 14, 15, 16, 17, 20},
+			stddevRatio: 2.7774603,
+			median:      14,
+			lower:       2.6457512,
+			upper:       2.1602468,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stddevRatio, median, lower, upper, err := StdDevRatio(tt.arg)
+			if tt.wantError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorContains)
+				return
+			}
+			assert.Equal(t, tt.stddevRatio, stddevRatio, "stddevRatio")
 			assert.Equal(t, tt.median, median, "median")
 			assert.Equal(t, tt.lower, lower, "lower")
 			assert.Equal(t, tt.upper, upper, "upper")
