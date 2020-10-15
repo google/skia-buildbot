@@ -12,25 +12,35 @@ class StatusSettings {
   public repos: Map<string, string> = new Map();
 }
 
+function settings(): StatusSettings | undefined {
+  return (<any>window).StatusSettings;
+}
+
 // swarmingUrl: Base URL for linking to swarming task data.
 export function swarmingUrl() {
-  return (<any>window).StatusSettings?.swarmingUrl;
+  return settings()?.swarmingUrl;
 }
 
 // taskSchedulerUrl: Base URL for linking to Task Scheduler data.
 export function taskSchedulerUrl() {
-  return (<any>window).StatusSettings?.taskSchedulerUrl;
+  return settings()?.taskSchedulerUrl;
 }
 
 // defaultRepo: Repo to use on initial load.
 export function defaultRepo() {
-  return (<any>window).StatusSettings?.defaultRepo;
+  return settings()?.defaultRepo || '';
+}
+
+// repos: List of available repos.
+export function repos() {
+  const r = settings()?.repos;
+  return r ? [...r.keys()] : [];
 }
 
 // revisionUrlTemplate: Returns the base url for a repo's revisions. Can be
 // concatenated with a hash to form a valid url.
 export function revisionUrlTemplate(repo: string) {
-  return (<any>window).StatusSettings?.repos.get(repo);
+  return settings()?.repos.get(repo);
 }
 
 // SetTestSettings: Inject setting values for tests.

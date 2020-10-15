@@ -8,3 +8,9 @@ html {
   min-width: fit-content;
   min-height: fit-content;
 }
+
+:root {
+  --primary: var(--light-green-700);
+  // TODO(westont): Move to named colors, unify theme.
+  --secondary: #e6ab02;
+}
