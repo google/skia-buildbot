@@ -36,7 +36,7 @@ describe('commits-table-sk', () => {
   it('displays multiple commit tasks', async () => {
     const table = await setupWithResponse(responseMultiCommitTask);
     expect($('.task', table)).to.have.length(1);
-    expect($$('.task', table)!.classList.value).to.include('task-failure');
+    expect($$('.task', table)!.classList.value).to.include('bg-failure');
   });
 
   it('displays noncontiguous tasks', async () => {
@@ -144,7 +144,7 @@ describe('commits-table-sk', () => {
     expect($('.task[title="Test-Some-Stuff @ parentofabc123"]', table)).to.have.length(1);
     expect(
       $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
-    ).to.contain('task-failure');
+    ).to.contain('bg-failure');
     // Mock an incremental update, and change the reload interval to trigger it.
     mocker.expectGetIncrementalCommits(incrementalResponse1);
     const reloadInput = $$('#reloadInput input', table) as HTMLInputElement;
@@ -172,7 +172,7 @@ describe('commits-table-sk', () => {
     // Old task is updated.
     expect(
       $$('.task[title="Test-Some-Stuff @ parentofabc123"]', table)?.classList.value
-    ).to.contain('task-success');
+    ).to.contain('bg-success');
   });
 
   it('resets with startOver update', async () => {
