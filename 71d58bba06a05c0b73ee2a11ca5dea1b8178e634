@@ -22,6 +22,30 @@
       },
       "revId": "71d58bba06a05c0b73ee2a11ca5dea1b8178e634",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "112ac896_8000bedf",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-15T18:29:35Z",
+      "side": 1,
+      "message": "Just to bikeshed a bit, my reasoning for replacing LitHTMLPath with ResourcesDir is that the lit-html templates are just a subset of the static assets in that directory. The directory also contains the JS and CSS bundles, the favicon, and any static images we might add in the future. So \"resources dir\" seemed like a more accurate name.\n\nWDYT?",
+      "parentUuid": "2039aa8e_60eaf897",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 14
+      },
+      "revId": "71d58bba06a05c0b73ee2a11ca5dea1b8178e634",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
