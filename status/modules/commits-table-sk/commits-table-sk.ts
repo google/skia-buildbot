@@ -1047,7 +1047,7 @@ define('commits-table-sk', CommitsTableSk);
 
 function taskClasses(task: Task, ...classes: Array<string>) {
   const map: Record<string, any> = { task: true };
-  map[`task-${(task.status || 'PENDING').toLowerCase()}`] = true;
+  map[`bg-${(task.status || 'PENDING').toLowerCase()}`] = true;
   classes.forEach((c) => (map[c] = true));
   return classMap(map);
 }
