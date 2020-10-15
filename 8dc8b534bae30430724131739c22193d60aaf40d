@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cfa4fded_2cc967a3",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-15T11:36:54Z",
+      "side": 1,
+      "message": "Nit: should this be defaultRepo?",
+      "range": {
+        "startLine": 594,
+        "startChar": 70,
+        "endLine": 594,
+        "endChar": 72
+      },
+      "revId": "8dc8b534bae30430724131739c22193d60aaf40d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
