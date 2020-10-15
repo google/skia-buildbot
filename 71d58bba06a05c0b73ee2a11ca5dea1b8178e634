@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2039aa8e_60eaf897",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-15T11:29:27Z",
+      "side": 1,
+      "message": "Suggestion - remove this one and replace it with the more well-named LitHTMLPath",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 14
+      },
+      "revId": "71d58bba06a05c0b73ee2a11ca5dea1b8178e634",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
