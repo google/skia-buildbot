@@ -30,6 +30,9 @@ export class MockStatusService implements StatusService {
   private processDeleteComment:
     | ((req: status.DeleteCommentRequest) => status.DeleteCommentResponse)
     | null = null;
+  private processGetAutorollerStatuses:
+    | ((req: status.GetAutorollerStatusesRequest) => status.GetAutorollerStatusesResponse)
+    | null = null;
   private processGetIncrementalCommits:
     | ((req: status.GetIncrementalCommitsRequest) => status.GetIncrementalCommitsResponse)
     | null = null;
@@ -80,6 +83,18 @@ export class MockStatusService implements StatusService {
     return this;
   }
 
+  // Set the GetAutorollerStatuses response.
+  expectGetAutorollerStatuses(
+    resp: status.GetAutorollerStatusesResponse,
+    check: (req: status.GetAutorollerStatusesRequest) => void = (req) => {}
+  ): MockStatusService {
+    this.processGetAutorollerStatuses = (req) => {
+      check(req);
+      return resp;
+    };
+    return this;
+  }
+
   getIncrementalCommits(
     req: status.GetIncrementalCommitsRequest
   ): Promise<status.GetIncrementalCommitsResponse> {
@@ -97,6 +112,14 @@ export class MockStatusService implements StatusService {
   deleteComment(req: status.DeleteCommentRequest): Promise<status.DeleteCommentResponse> {
     const process = this.processDeleteComment;
     this.processDeleteComment = null;
+    return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
+  }
+
+  getAutorollerStatuses(
+    req: status.GetAutorollerStatusesRequest
+  ): Promise<status.GetAutorollerStatusesResponse> {
+    const process = this.processGetAutorollerStatuses;
+    this.processGetAutorollerStatuses = null;
     return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
   }
 }

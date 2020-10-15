@@ -288,10 +288,68 @@ const JSONToDeleteCommentResponse = (m: DeleteCommentResponseJSON): DeleteCommen
   };
 };
 
+export interface GetAutorollerStatusesRequest {
+}
+
+interface GetAutorollerStatusesRequestJSON {
+}
+
+const GetAutorollerStatusesRequestToJSON = (m: GetAutorollerStatusesRequest): GetAutorollerStatusesRequestJSON => {
+  return {
+  };
+};
+
+export interface GetAutorollerStatusesResponse {
+  rollers?: AutorollerStatus[];
+}
+
+interface GetAutorollerStatusesResponseJSON {
+  rollers?: AutorollerStatusJSON[];
+}
+
+const JSONToGetAutorollerStatusesResponse = (m: GetAutorollerStatusesResponseJSON): GetAutorollerStatusesResponse => {
+  return {
+    rollers: m.rollers && m.rollers.map(JSONToAutorollerStatus),
+  };
+};
+
+export interface AutorollerStatus {
+  name: string;
+  currentRollRev: string;
+  lastRollRev: string;
+  mode: string;
+  numFailed: number;
+  numBehind: number;
+  url: string;
+}
+
+interface AutorollerStatusJSON {
+  name?: string;
+  current_roll_rev?: string;
+  last_roll_rev?: string;
+  mode?: string;
+  num_failed?: number;
+  num_behind?: number;
+  url?: string;
+}
+
+const JSONToAutorollerStatus = (m: AutorollerStatusJSON): AutorollerStatus => {
+  return {
+    name: m.name || "",
+    currentRollRev: m.current_roll_rev || "",
+    lastRollRev: m.last_roll_rev || "",
+    mode: m.mode || "",
+    numFailed: m.num_failed || 0,
+    numBehind: m.num_behind || 0,
+    url: m.url || "",
+  };
+};
+
 export interface StatusService {
   getIncrementalCommits: (getIncrementalCommitsRequest: GetIncrementalCommitsRequest) => Promise<GetIncrementalCommitsResponse>;
   addComment: (addCommentRequest: AddCommentRequest) => Promise<AddCommentResponse>;
   deleteComment: (deleteCommentRequest: DeleteCommentRequest) => Promise<DeleteCommentResponse>;
+  getAutorollerStatuses: (getAutorollerStatusesRequest: GetAutorollerStatusesRequest) => Promise<GetAutorollerStatusesResponse>;
 }
 
 export class StatusServiceClient implements StatusService {
@@ -350,6 +408,21 @@ export class StatusServiceClient implements StatusService {
       }
 
       return resp.json().then(JSONToDeleteCommentResponse);
+    });
+  }
+
+  getAutorollerStatuses(getAutorollerStatusesRequest: GetAutorollerStatusesRequest): Promise<GetAutorollerStatusesResponse> {
+    const url = this.hostname + this.pathPrefix + "GetAutorollerStatuses";
+    let body: GetAutorollerStatusesRequest | GetAutorollerStatusesRequestJSON = getAutorollerStatusesRequest;
+    if (!this.writeCamelCase) {
+      body = GetAutorollerStatusesRequestToJSON(getAutorollerStatusesRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToGetAutorollerStatusesResponse);
     });
   }
 }
