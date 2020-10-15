@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d156d15a_49e5b120",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-15T11:22:06Z",
+      "side": 1,
+      "message": "Does this get removed in a future CL? I think it\u0027s not doing anything right now.",
+      "revId": "0268859a20239f95b990810b82cb10a9b459e76a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
