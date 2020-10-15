@@ -9,6 +9,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
+import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit } from '../json';
 
@@ -29,7 +30,7 @@ export class CommitDetailSk extends ElementSk {
 
   private static template = (ele: CommitDetailSk) => html`
     <div @click=${() => ele._click()} class="linkish">
-      <pre>${ele.cid.message}</pre>
+      <pre>${ele.cid.hash.slice(0, 8)} - ${diffDate(ele.cid.ts * 1000)} - ${ele.cid.message}</pre>
     </div>
     <div class="tip hidden">
       <a href="/g/e/${ele.cid.hash}">Explore</a>
