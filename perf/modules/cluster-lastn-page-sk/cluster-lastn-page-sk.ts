@@ -275,7 +275,7 @@ export class ClusterLastNPageSk extends ElementSk {
   );
 
   private static configTitle = (ele: ClusterLastNPageSk) => html`
-      Algo: ${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
+      Algo: ${ele.state!.step}/${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
       ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
 
