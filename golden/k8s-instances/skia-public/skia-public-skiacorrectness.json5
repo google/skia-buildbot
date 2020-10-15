@@ -24,7 +24,6 @@
   site_url: "https://public-gold.skia.org",
   tile_freshness: "10m",
   trace_bt_table: "gold-skia",
-  use_lit_html_search_page: true,
 
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_CPU: 20,
