@@ -1,6 +1,8 @@
 import './index';
 import { CommitDetailPanelSk } from './commit-detail-panel-sk';
 
+Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
+
 const commitinfo = [
   {
     ts: 1439649751,

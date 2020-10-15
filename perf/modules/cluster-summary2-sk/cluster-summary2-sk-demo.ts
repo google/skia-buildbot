@@ -2,6 +2,8 @@ import './index';
 import { ClusterSummary2Sk } from './cluster-summary2-sk';
 import { FullSummary, ClusterSummary, TriageStatus } from '../json';
 
+Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
+
 // Handle the sk namespace attached to window.
 declare global {
   interface Window {
@@ -20,7 +22,7 @@ ClusterSummary2Sk.lookupCids = () => new Promise((resolve) => {
       hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
       offset: 24748,
       author: 'msarett@google.com',
-      message: '313c463 - Safely handle unsupported color xforms in SkCodec',
+      message: 'Safely handle unsupported color xforms in SkCodec',
       url:
           'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
       ts: 1476984695,
