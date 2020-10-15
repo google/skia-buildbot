@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6e152f1_db8642e1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-10-15T16:55:56Z",
+      "side": 1,
+      "message": "Hey Eric, any changes we need to do for them to be displayed on https://autoroll.skia.org/?",
+      "revId": "9ad7abd4dc72b66a20f3f27d1f4dac7a7c44cb02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
