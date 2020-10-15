@@ -67,8 +67,83 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
   searchJobs(
     searchJobsRequest: SearchJobsRequest
   ): Promise<SearchJobsResponse> {
-    return new Promise((_, reject) => {
-      reject('not implemented');
+    console.log(searchJobsRequest);
+    const results: Job[] = Object.values(this.jobs).filter((job: Job) => {
+      const rs = searchJobsRequest.repoState;
+      if (rs) {
+        if (rs.repo != '' && job.repoState?.repo != rs.repo) {
+          console.log('repo');
+          return false;
+        } else if (
+          rs.revision != '' &&
+          job.repoState?.revision != rs.revision
+        ) {
+          console.log('revision');
+          return false;
+        } else if (rs.patch) {
+          if (
+            rs.patch.issue != '' &&
+            rs.patch.issue != job.repoState!.patch!.issue
+          ) {
+            console.log('issue');
+            return false;
+          } else if (
+            rs.patch.patchset != '' &&
+            rs.patch.patchset != job.repoState?.patch?.patchset
+          ) {
+            console.log('patchset');
+            return false;
+          }
+        }
+      }
+      if (searchJobsRequest.name != '' && job.name != searchJobsRequest.name) {
+        console.log('name');
+        return false;
+      }
+      if (
+        searchJobsRequest.buildbucketBuildId != 0 &&
+        job.buildbucketBuildId != searchJobsRequest.buildbucketBuildId
+      ) {
+        console.log('buildbucketBuildId');
+        return false;
+      }
+      // TODO: Won't match if unset.
+      if (
+        (searchJobsRequest.status as string) != '' &&
+        job.status != searchJobsRequest.status
+      ) {
+        console.log('status');
+        return false;
+      }
+      if (
+        searchJobsRequest.timeStart &&
+        new Date(job.createdAt!).getTime() <=
+          new Date(searchJobsRequest.timeStart).getTime()
+      ) {
+        console.log('timeStart');
+        return false;
+      }
+      if (
+        searchJobsRequest.timeEnd &&
+        new Date(job.createdAt!).getTime() >
+          new Date(searchJobsRequest.timeEnd).getTime()
+      ) {
+        console.log('timeEnd');
+        return false;
+      }
+      // TODO
+      if (
+        searchJobsRequest.isForce &&
+        job.isForce != searchJobsRequest.isForce
+      ) {
+        console.log('isForce');
+        return false;
+      }
+      return true;
+    });
+    console.log(results);
+    return Promise.resolve({
+      jobs: results,
     });
   }
   getTask(getTaskRequest: GetTaskRequest): Promise<GetTaskResponse> {

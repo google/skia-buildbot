@@ -1,0 +1,22 @@
+job-search-sk {
+  th {
+    opacity: inherit;
+  }
+
+  tr.searchTerms {
+    background: inherit;
+    border: 0px;
+  }
+
+  button.cancel {
+    background-color: rgb(117, 112, 179);
+    width: -webkit-fill-available;
+  }
+
+  div.container {
+    background-color: var(--surface);
+    border: 1px solid #eeeeee;
+    margin: 5px;
+    padding: 10px;
+  }
+}
