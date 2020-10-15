@@ -274,10 +274,18 @@ export class ClusterLastNPageSk extends ElementSk {
       `,
   );
 
-  private static configTitle = (ele: ClusterLastNPageSk) => html`
-      Algo: ${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
+  private static configTitle = (ele: ClusterLastNPageSk) => {
+    // Original style regression detection is indicated by the empty string for
+    // backwards compatibility, so calculate a display value in that case.
+    let detection: string = ele.state!.step;
+    if (ele.state!.step === '') {
+      detection = 'original';
+    }
+    return html`
+      Algo: ${detection}/${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
       ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
+  };
 
   private static writeAlertTitle = (ele: ClusterLastNPageSk) => {
     if (ele.state?.id_as_string === '-1') {
