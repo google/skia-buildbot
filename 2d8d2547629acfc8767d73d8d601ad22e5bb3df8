@@ -16,6 +16,24 @@
       "message": "I think this is a polymer thing",
       "revId": "2d8d2547629acfc8767d73d8d601ad22e5bb3df8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1d1cff3_92e02756",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-15T17:12:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3af3b2e8_0742de57",
+      "revId": "2d8d2547629acfc8767d73d8d601ad22e5bb3df8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
