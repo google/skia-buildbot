@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3af3b2e8_0742de57",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-15T11:26:10Z",
+      "side": 1,
+      "message": "I think this is a polymer thing",
+      "revId": "2d8d2547629acfc8767d73d8d601ad22e5bb3df8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
