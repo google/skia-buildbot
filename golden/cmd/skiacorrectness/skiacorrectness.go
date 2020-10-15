@@ -112,9 +112,6 @@ type frontendServerConfig struct {
 	// If this instance is simply a mirror of another instance's data.
 	IsPublicView bool `json:"is_public_view"`
 
-	// File path to built lit-html files that should be served as part of the frontend.
-	LitHTMLPath string `json:"lit_html_path"`
-
 	// The longest time negative expectations can go unused before being purged. (0 means infinity)
 	NegativesMaxAge config.Duration `json:"negatives_max_age" optional:"true"`
 
@@ -138,7 +135,7 @@ type frontendServerConfig struct {
 	// This can be used in a CL comment to direct users to the public instance for triaging.
 	PublicSiteURL string `json:"public_site_url" optional:"true"`
 
-	// Path to a directory with static assets that should be served to the frontend (e.g. favicon).
+	// Path to a directory with static assets that should be served to the frontend (JS, CSS, etc.).
 	ResourcesPath string `json:"resources_path"`
 
 	// URL where this app is hosted.
@@ -649,12 +646,13 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// Serve Webpack output. This includes the raw lit-html templates, and the CSS and JS bundles.
+	// Serve static assets (JS and CSS Webpack bundles, images, etc.)
 	//
-	// Note that this exposes the raw lit-html templates (e.g. /dist/byblame.html), which include
+	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
 	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
-	// unexpose them and only serve the JS and CSS bundles from this route.
-	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(fsc.LitHTMLPath))
+	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
+	// assets such as the favicon).
+	loggedRouter.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))))
 
 	// Login endpoints.
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
@@ -752,7 +750,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	var templates *template.Template
 
 	loadTemplates := func() {
-		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.LitHTMLPath, "dist", "*.html")))
+		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.ResourcesPath, "*.html")))
 	}
 
 	loadTemplates()
@@ -776,7 +774,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		}
 	}
 
-	// These are the new lit-html pages.
+	// These routes serve the web UI.
 	loggedRouter.HandleFunc("/", templateHandler("byblame.html"))
 	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
 	loggedRouter.HandleFunc("/cluster", templateHandler("cluster.html"))
