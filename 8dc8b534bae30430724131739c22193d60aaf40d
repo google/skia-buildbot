@@ -22,6 +22,30 @@
       },
       "revId": "8dc8b534bae30430724131739c22193d60aaf40d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "08212753_de8910d6",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-15T12:43:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfa4fded_2cc967a3",
+      "range": {
+        "startLine": 594,
+        "startChar": 70,
+        "endLine": 594,
+        "endChar": 72
+      },
+      "revId": "8dc8b534bae30430724131739c22193d60aaf40d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
