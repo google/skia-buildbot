@@ -96,7 +96,7 @@ const runningTemplate = (ele) => html`
     <canvas class=skottie-canvas id=skottie
             width=${ele._config.width * window.devicePixelRatio}
             height=${ele._config.height * window.devicePixelRatio}
-            style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
+            style='width: ${ele._config.width}px; height: ${ele._config.height}px; background-color: ${ele._config.bgColor}'>
       Your browser does not support the canvas tag.
     </canvas>
     <div class=controls ?hidden=${!ele._config.controls}>
@@ -161,10 +161,12 @@ define('skottie-player-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
+    const params = (new URL(document.location)).searchParams;
     this._config = {
       width: this.hasAttribute('width') ? this.getAttribute('width') : 256,
       height: this.hasAttribute('height') ? this.getAttribute('height') : 256,
-      controls: (new URL(document.location)).searchParams.has('controls'),
+      controls: params.has('controls'),
+      bgColor: params.has('bg') ? params.get('bg') : '#fff',
     };
     this._render();
   }
