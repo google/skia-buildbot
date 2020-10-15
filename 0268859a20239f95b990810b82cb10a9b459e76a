@@ -34,6 +34,24 @@
       "parentUuid": "d156d15a_49e5b120",
       "revId": "0268859a20239f95b990810b82cb10a9b459e76a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "333e3ab3_f902e564",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-15T18:37:04Z",
+      "side": 1,
+      "message": "*gets",
+      "parentUuid": "da645309_73f151a5",
+      "revId": "0268859a20239f95b990810b82cb10a9b459e76a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
