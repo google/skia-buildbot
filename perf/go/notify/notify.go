@@ -11,13 +11,14 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/stepfit"
 )
 
 const (
 	fromAddress = "alertserver@skia.org"
 	email       = `<b>Alert</b><br><br>
 <p>
-	A Perf Regression has been found at:
+	A Perf Regression ({{.Cluster.StepFit.Status}}) has been found at:
 </p>
 <p style="padding: 1em;">
 	<a href="{{.URL}}/g/t/{{.Commit.GitHash}}">{{.URL}}/g/t/{{.Commit.GitHash}}</a>
@@ -129,6 +130,9 @@ func (n *Notifier) ExampleSend(alert *alerts.Alert) error {
 	}
 	cl := &clustering2.ClusterSummary{
 		Num: 10,
+		StepFit: &stepfit.StepFit{
+			Status: stepfit.HIGH,
+		},
 	}
 	return n.Send(c, alert, cl)
 }
