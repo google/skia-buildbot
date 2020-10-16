@@ -1,15 +1,15 @@
 import './index';
-import { FilterSk } from './filter-sk';
+import { CommandsSk } from './commands-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
 
-describe('filter-sk', () => {
-  const newInstance = setUpElementUnderTest<FilterSk>('filter-sk');
+describe('commands-sk', () => {
+  const newInstance = setUpElementUnderTest<CommandsSk>('commands-sk');
 
-  let element: FilterSk;
+  let element: CommandsSk;
   beforeEach(() => {
-    element = newInstance((el: FilterSk) => {
+    element = newInstance((el: CommandsSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
       // document-level event listeners, etc.).
