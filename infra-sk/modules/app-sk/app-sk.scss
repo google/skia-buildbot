@@ -11,12 +11,12 @@ To style app-sk you can change the values of the CSS variables:
     --sidebar-width: 250px;
   }
 
-Note that app-sk is more specific than :root so the above variables will
+Note that app-sk will inherit from body so the above variables will
 over-ride the defaults regardless of the processing order of the CSS files.
 
 */
 
-:root {
+body {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
   --sidebar-background-color: var(--on-primary, --white);
@@ -26,6 +26,7 @@ over-ride the defaults regardless of the processing order of the CSS files.
   --header-font-color: var(--on-primary, --white);
 
   --content-horiz-padding: 5px;
+  --content-vert-padding: 0px;
 
   --footer-height: 0;
 }
@@ -38,6 +39,7 @@ body {
 
 app-sk {
   color: var(--on-background, --black);
+  fill: var(--on-background, --black);
   background: var(--background, --white);
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
@@ -52,6 +54,7 @@ app-sk > {
     flex-flow: row;
     justify-content: flex-start;
     color: var(--header-font-color);
+    fill: var(--header-font-color);
 
     grid-column: 1 / span 2;
     grid-row: 1;
@@ -72,7 +75,7 @@ app-sk > {
   }
 
   main {
-    padding: 0 var(--content-horiz-padding);
+    padding: var(--content-vert-padding) var(--content-horiz-padding);
     grid-row: 2;
   }
 

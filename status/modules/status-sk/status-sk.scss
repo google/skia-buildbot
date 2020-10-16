@@ -1,9 +1,26 @@
 @import '../styles.scss';
 
 status-sk {
-  autoroller-status-sk {
-    // TODO(westont): Temporary, this will be going into a fixed panel.
-    float: left;
-    margin: 10px;
+  app-sk {
+    --sidebar-width: auto;
+    --sidebar-horiz-padding: 0;
+    --content-horiz-padding: 5px;
+    --content-vert-padding: 5px;
+    aside {
+      z-index: 2;
+      > * {
+        border: 1px solid var(--primary);
+        padding: 1px;
+        margin: 5px;
+      }
+
+      .collapser {
+        width: 100%;
+        text-transform: none;
+        padding: 0 0.5em 0 0;
+        margin: 0;
+        height: auto;
+      }
+    }
   }
 }
