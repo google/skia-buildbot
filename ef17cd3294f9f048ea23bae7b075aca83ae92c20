@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "225f1163_c88b7fb8",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-16T12:26:27Z",
+      "side": 1,
+      "message": "Nit: this doesn\u0027t need to be specific to task drivers; I think a lot of regular apps do this as well.",
+      "range": {
+        "startLine": 488,
+        "startChar": 0,
+        "endLine": 488,
+        "endChar": 87
+      },
+      "revId": "ef17cd3294f9f048ea23bae7b075aca83ae92c20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
