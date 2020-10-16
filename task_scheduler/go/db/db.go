@@ -204,13 +204,16 @@ type JobDB interface {
 // any value for that field. If either of TimeStart or TimeEnd is not provided,
 // the search defaults to the last 24 hours.
 type JobSearchParams struct {
-	types.RepoState
-	BuildbucketBuildId *int64          `json:"buildbucket_build_id,string,omitempty"`
-	IsForce            *bool           `json:"is_force,omitempty"`
-	Name               string          `json:"name"`
-	Status             types.JobStatus `json:"status"`
-	TimeStart          time.Time       `json:"time_start"`
-	TimeEnd            time.Time       `json:"time_end"`
+	BuildbucketBuildID *int64           `json:"buildbucket_build_id,string,omitempty"`
+	IsForce            *bool            `json:"is_force,omitempty"`
+	Issue              *string          `json:"issue,omitempty"`
+	Name               *string          `json:"name"`
+	Patchset           *string          `json:"patchset,omitempty"`
+	Repo               *string          `json:"repo,omitempty"`
+	Revision           *string          `json:"revision,omitempty"`
+	Status             *types.JobStatus `json:"status"`
+	TimeStart          *time.Time       `json:"time_start"`
+	TimeEnd            *time.Time       `json:"time_end"`
 }
 
 // searchBoolEqual compares the two bools and returns true if the first is
@@ -232,55 +235,64 @@ func searchInt64Equal(search *int64, test int64) bool {
 }
 
 // searchStringEqual compares the two strings and returns true if the first is
-// either not provided or equal to the second.
-func searchStringEqual(search, test string) bool {
-	if search == "" {
+// either not provided, equal to the second, or a regular expression which
+// matches the second.
+func searchStringEqual(search *string, test string) bool {
+	if search == nil {
 		return true
 	}
-	return search == test
+	if *search == test {
+		return true
+	}
+	re, err := regexp.Compile(*search)
+	if err == nil && re.MatchString(test) {
+		return true
+	}
+	return false
 }
 
 // matchJobs returns Jobs which match the given search parameters.
-func matchJobs(jobs []*types.Job, p *JobSearchParams) ([]*types.Job, error) {
-	// We accept a regex for the job name.
-	nameRe, err := regexp.Compile(p.Name)
-	if err != nil {
-		return nil, err
-	}
-
+func matchJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 	rv := []*types.Job{}
 	for _, j := range jobs {
 		// Compare all attributes which are provided.
 		if true &&
-			!p.TimeStart.After(j.Created) &&
-			j.Created.Before(p.TimeEnd) &&
+			(p.TimeStart == nil || !(*p.TimeStart).After(j.Created)) &&
+			(p.TimeEnd == nil || j.Created.Before(*p.TimeEnd)) &&
 			searchStringEqual(p.Issue, j.Issue) &&
+			searchStringEqual(p.Name, j.Name) &&
 			searchStringEqual(p.Patchset, j.Patchset) &&
-			searchStringEqual(p.Server, j.Server) &&
 			searchStringEqual(p.Repo, j.Repo) &&
 			searchStringEqual(p.Revision, j.Revision) &&
-			nameRe.MatchString(j.Name) &&
-			searchStringEqual(string(p.Status), string(j.Status)) &&
+			searchStringEqual((*string)(p.Status), string(j.Status)) &&
 			searchBoolEqual(p.IsForce, j.IsForce) &&
-			searchInt64Equal(p.BuildbucketBuildId, j.BuildbucketBuildId) {
+			searchInt64Equal(p.BuildbucketBuildID, j.BuildbucketBuildId) {
 			rv = append(rv, j)
 		}
 	}
-	return rv, nil
+	return rv
 }
 
 // SearchJobs returns Jobs in the given time range which match the given search
 // parameters.
 func SearchJobs(db JobReader, p *JobSearchParams) ([]*types.Job, error) {
-	if util.TimeIsZero(p.TimeStart) || util.TimeIsZero(p.TimeEnd) {
-		p.TimeEnd = time.Now()
-		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
+	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
+		end := time.Now()
+		p.TimeEnd = &end
 	}
-	jobs, err := db.GetJobsFromDateRange(p.TimeStart, p.TimeEnd, p.Repo)
+	if p.TimeStart == nil || util.TimeIsZero(*p.TimeStart) {
+		start := (*p.TimeEnd).Add(-24 * time.Hour)
+		p.TimeStart = &start
+	}
+	repo := ""
+	if p.Repo != nil {
+		repo = *p.Repo
+	}
+	jobs, err := db.GetJobsFromDateRange(*p.TimeStart, *p.TimeEnd, repo)
 	if err != nil {
 		return nil, err
 	}
-	return matchJobs(jobs, p)
+	return matchJobs(jobs, p), nil
 }
 
 // matchTasks returns Tasks which match the given search parameters.
@@ -290,15 +302,14 @@ func matchTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
 		// Compare all attributes which are provided.
 		if true &&
 			!p.TimeStart.After(t.Created) &&
-			t.Created.Before(p.TimeEnd) &&
+			t.Created.Before(*p.TimeEnd) &&
 			searchInt64Equal(p.Attempt, int64(t.Attempt)) &&
 			searchStringEqual(p.Issue, t.Issue) &&
 			searchStringEqual(p.Patchset, t.Patchset) &&
-			searchStringEqual(p.Server, t.Server) &&
 			searchStringEqual(p.Repo, t.Repo) &&
 			searchStringEqual(p.Revision, t.Revision) &&
 			searchStringEqual(p.Name, t.Name) &&
-			searchStringEqual(string(p.Status), string(t.Status)) &&
+			searchStringEqual((*string)(p.Status), string(t.Status)) &&
 			searchStringEqual(p.ForcedJobId, t.ForcedJobId) {
 			rv = append(rv, t)
 		}
@@ -311,21 +322,34 @@ func matchTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
 // any value for that field. If either of TimeStart or TimeEnd is not provided,
 // the search defaults to the last 24 hours.
 type TaskSearchParams struct {
-	Attempt *int64           `json:"attempt,string,omitempty"`
-	Status  types.TaskStatus `json:"status"`
-	types.TaskKey
-	TimeStart time.Time `json:"time_start"`
-	TimeEnd   time.Time `json:"time_end"`
+	Attempt     *int64            `json:"attempt,string,omitempty"`
+	Status      *types.TaskStatus `json:"status"`
+	ForcedJobId *string           `json:"forcedJobId,omitempty"`
+	Issue       *string           `json:"issue,omitempty"`
+	Name        *string           `json:"name"`
+	Patchset    *string           `json:"patchset,omitempty"`
+	Repo        *string           `json:"repo,omitempty"`
+	Revision    *string           `json:"revision,omitempty"`
+	TimeStart   *time.Time        `json:"time_start"`
+	TimeEnd     *time.Time        `json:"time_end"`
 }
 
 // SearchTasks returns Tasks in the given time range which match the given search
 // parameters.
 func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
-	if util.TimeIsZero(p.TimeStart) || util.TimeIsZero(p.TimeEnd) {
-		p.TimeEnd = time.Now()
-		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
+	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
+		end := time.Now()
+		p.TimeEnd = &end
 	}
-	tasks, err := db.GetTasksFromDateRange(p.TimeStart, p.TimeEnd, p.Repo)
+	if p.TimeStart == nil || util.TimeIsZero(*p.TimeStart) {
+		start := (*p.TimeEnd).Add(-24 * time.Hour)
+		p.TimeStart = &start
+	}
+	repo := ""
+	if p.Repo != nil {
+		repo = *p.Repo
+	}
+	tasks, err := db.GetTasksFromDateRange(*p.TimeStart, *p.TimeEnd, repo)
 	if err != nil {
 		return nil, err
 	}
