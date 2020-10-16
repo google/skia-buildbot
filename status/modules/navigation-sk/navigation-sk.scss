@@ -2,6 +2,11 @@
 
 navigation-sk {
   color: var(--on-surface);
+
+  > div {
+    padding: 5px;
+  }
+
   a.item {
     text-decoration: none;
     color: var(--on-surface);

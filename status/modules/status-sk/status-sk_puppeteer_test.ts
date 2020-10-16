@@ -1,9 +1,6 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import {
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
-} from '../../../puppeteer-tests/util';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('status-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
@@ -22,6 +19,10 @@ describe('status-sk', () => {
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'status', 'status-sk');
+    });
+    it('changes repos', async () => {
+      testBed.page.select('#repoSelector', 'infra');
+      await takeScreenshot(testBed.page, 'status', 'status-sk_repo_change');
     });
   });
 });
