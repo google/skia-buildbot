@@ -114,6 +114,7 @@ var SubTests = map[string]struct {
 	"parse_SkipIfListedInBranchesButHasNoData":    {parse_SkipIfListedInBranchesButHasNoData, "no_results.json"},
 	"parse_OnlyOneMeasurementInfile":              {parse_OnlyOneMeasurementInfile, "one_measurement.json"},
 	"parse_OnlyOneMeasurementWithValueZeroInfile": {parse_OnlyOneMeasurementWithValueZeroInfile, "zero_measurement.json"},
+	"parseTryBot_Success":                         {parseTryBot_Success, "success.json"},
 }
 
 func parse_Success(t *testing.T, p *Parser, f file.File) {
@@ -126,6 +127,13 @@ func parse_Success(t *testing.T, p *Parser, f file.File) {
 	assert.Contains(t, params, expectedGoodParams)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())
+}
+
+func parseTryBot_Success(t *testing.T, p *Parser, f file.File) {
+	cl, patch, err := p.ParseTryBot(f)
+	require.NoError(t, err)
+	assert.Equal(t, "327697", cl)
+	assert.Equal(t, "1", patch)
 }
 
 func parse_NoBranchSpecified_Success(t *testing.T, p *Parser, f file.File) {
