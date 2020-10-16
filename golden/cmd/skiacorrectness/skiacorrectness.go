@@ -649,6 +649,41 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
+	// Login endpoints.
+	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
+	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
+	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
+
+	addUIRoutes(fsc, handlers, loggedRouter)
+
+	addJSONRoutes(fsc, handlers, rootRouter, loggedRouter)
+
+	// set up the app router that might be authenticated and logs almost everything.
+	appRouter := mux.NewRouter()
+	// Images should not be served gzipped, which can sometimes have issues
+	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
+	// given PNGs typically have zlib compression anyway.
+	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
+	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
+
+	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
+	// necessary it was requested via the force_login flag.
+	appHandler := http.Handler(appRouter)
+	if fsc.ForceLogin {
+		appHandler = login.ForceAuth(appRouter, callbackPath)
+	}
+
+	// The appHandler contains all application specific routes that are have logging and
+	// authentication configured. Now we wrap it into the router that is exposed to the host
+	// (aka the K8s container) which requires that some routes are never logged or authenticated.
+	rootRouter.PathPrefix("/").Handler(appHandler)
+
+	return rootRouter
+}
+
+// addUIRoutes adds the necessary routes to serve Gold's web pages and static assets such as JS and
+// CSS bundles, static images (digest and diff images are handled elsewhere), etc.
+func addUIRoutes(fsc *frontendServerConfig, handlers *web.Handlers, loggedRouter *mux.Router) {
 	// Serve static assets (JS and CSS Webpack bundles, images, etc.).
 	//
 	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
@@ -656,13 +691,6 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
 	// assets such as the favicon).
 	loggedRouter.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))))
-
-	// Login endpoints.
-	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
-	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
-	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
-
-	addJSONRoutes(fsc, handlers, rootRouter, loggedRouter)
 
 	var templates *template.Template
 
@@ -704,28 +732,6 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	loggedRouter.HandleFunc("/help", templateHandler("help.html"))
 	loggedRouter.HandleFunc("/search", templateHandler("search.html"))
 	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
-
-	// set up the app router that might be authenticated and logs almost everything.
-	appRouter := mux.NewRouter()
-	// Images should not be served gzipped, which can sometimes have issues
-	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
-	// given PNGs typically have zlib compression anyway.
-	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
-	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
-
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
-	// necessary it was requested via the force_login flag.
-	appHandler := http.Handler(appRouter)
-	if fsc.ForceLogin {
-		appHandler = login.ForceAuth(appRouter, callbackPath)
-	}
-
-	// The appHandler contains all application specific routes that are have logging and
-	// authentication configured. Now we wrap it into the router that is exposed to the host
-	// (aka the K8s container) which requires that some routes are never logged or authenticated.
-	rootRouter.PathPrefix("/").Handler(appHandler)
-
-	return rootRouter
 }
 
 // addJSONRoutes adds Gold's JSON RPC routes (/json/*) to the given router.
