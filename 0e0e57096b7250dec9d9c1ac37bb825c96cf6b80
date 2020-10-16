@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c97a4010_9d399102",
+        "filename": "perf/go/ingest/format/format.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-16T17:31:48Z",
+      "side": 1,
+      "message": "Changelist ID? If so, I prefer Changelist instead of \"issue\" because it\u0027s more clear.",
+      "range": {
+        "startLine": 122,
+        "startChar": 17,
+        "endLine": 122,
+        "endChar": 23
+      },
+      "revId": "0e0e57096b7250dec9d9c1ac37bb825c96cf6b80",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
