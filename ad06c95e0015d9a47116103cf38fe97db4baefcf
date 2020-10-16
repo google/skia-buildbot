@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2975a96b_fa883c8d",
+        "filename": "task_scheduler/go/rpc/rpc.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "Weston: Consider enum {UNSET, TRUE, FALSE}!\nEric: but then I\u0027d need one for each type, it gets tedious and gross.\nWeston: Meh.....okay fine.",
+      "range": {
+        "startLine": 79,
+        "startChar": 1,
+        "endLine": 99,
+        "endChar": 1
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb188a28_db7841c6",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "Shameless bump for the color palette and themes in elements-sk. Consider a named color e.g. var(--deep-purple-300).  Even better, set up use of --primary, --secondary, etc, so you can have darkmode.\n\nHere and for the button below.",
+      "range": {
+        "startLine": 17,
+        "startChar": 22,
+        "endLine": 17,
+        "endChar": 41
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b1d95aa6_57e7ef3a",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "Short description and remove what you don\u0027t use.",
+      "range": {
+        "startLine": 5,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 11
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b316f7e9_b5b030d9",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "nit: I\u0027d prefer a literal here, but whether it\u0027s cleaner is a matter of opinion I think. Also using an\n\ninterface DisplaySearchTerm {\n  label: string;\n  type: string;\n}\nMap\u003cstring, DisplaySearchTerm\u003e\n\nwould add clarity and make your various searchTerms.get(..)![1] etc clearer.",
+      "range": {
+        "startLine": 29,
+        "startChar": 6,
+        "endLine": 29,
+        "endChar": 17
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f6c316e4_e6d47531",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "I strongly recommend classes over inlining style strings via the template. How I\u0027ve handled this \u0027set of states that map to different styles in the past isn\u0027t too tedious I think. I do\nHTML:\n\u003cdiv class\u003d${jobClass(myjob)}\u003e....\u003c/div\u003e\n\nJS:\nfunction jobClass(job: Job) {\n  return `status-${job.status.replace(/\\s/g,\u0027\u0027)}`;\n}\n\nCSS:\n.status-suceeded {\n  background-color: rgb(209, 228, 188);\n}\n.....\n\nBetter organization that way, easier to find/change colors, and static validation of the CSS.",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 26
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "33c3efd1_6a05b894",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "Can we just do Array.from(ele.searchTerms.values()) here?",
+      "range": {
+        "startLine": 72,
+        "startChar": 9,
+        "endLine": 73,
+        "endChar": 27
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ebc8124a_e09178ba",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T19:17:40Z",
+      "side": 1,
+      "message": "Isn\u0027t this what common-sk/modules/stateReflector is for? May want to consider using that. I believe it differs in that it uses pushState, so back-button behavior is different.",
+      "range": {
+        "startLine": 259,
+        "startChar": 4,
+        "endLine": 285,
+        "endChar": 0
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
