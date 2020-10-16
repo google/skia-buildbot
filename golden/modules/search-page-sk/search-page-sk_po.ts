@@ -113,9 +113,4 @@ export class SearchPageSkPO extends PageObject {
   typeKey(key: string) {
     return this.element.typeKey(key);
   }
-
-  // TODO(lovisolo): Remove after the legacy search page has been deleted.
-  getLegacySearchPageHref() {
-    return this.selectOnePOEThenApplyFn('a.legacy-search-page', (el) => el.getAttribute('href'));
-  }
 };
