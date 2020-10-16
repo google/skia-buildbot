@@ -201,3 +201,29 @@ func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, 
 	}
 	return params, values, hash, nil
 }
+
+// ParseTryBot extracts the trybot and patch identifiers from the file.File.
+func (p *Parser) ParseTryBot(file file.File) (string, string, error) {
+	defer util.Close(file.Contents)
+	p.parseCounter.Inc(1)
+
+	// Read the whole content into bytes.Reader since we may take more than one
+	// pass at the data.
+	b, err := ioutil.ReadAll(file.Contents)
+	if err != nil {
+		return "", "", skerr.Wrap(err)
+	}
+	r := bytes.NewReader(b)
+
+	parsed, err := format.Parse(r)
+	if err != nil {
+		// Fallback to legacy format.
+		benchData, err := format.ParseLegacyFormat(r)
+		if err != nil {
+			return "", "", skerr.Wrap(err)
+		}
+		return benchData.Issue, benchData.PatchSet, nil
+	}
+	return parsed.Issue, parsed.Patchset, nil
+
+}
