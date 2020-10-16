@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
@@ -400,4 +401,34 @@ func TestEnvInheritance(t *testing.T) {
 	}
 	require.NotNil(t, data)
 	assertdeep.Equal(t, data.Env, expect)
+}
+
+func TestMustGetAbsolutePathOfFlag_NonEmptyPath_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	assert.NotEmpty(t, wd)
+
+	s := RunTestSteps(t, false, func(ctx context.Context) error {
+		path := MustGetAbsolutePathOfFlag(ctx, "my_dir", "some_flag")
+
+		assert.Contains(t, path, wd)
+		assert.Contains(t, path, "my_dir")
+		return nil
+	})
+	assert.Empty(t, s.Errors)
+	assert.Empty(t, s.Exceptions)
+}
+
+func TestMustGetAbsolutePathOfFlag_EmptyPath_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	s := RunTestSteps(t, true, func(ctx context.Context) error {
+		MustGetAbsolutePathOfFlag(ctx, "", "some_flag")
+		assert.Fail(t, "should not reach here")
+		return nil
+	})
+	assert.Empty(t, s.Exceptions)
+	require.Len(t, s.Errors, 1)
+	assert.Contains(t, s.Errors[0], "some_flag must")
 }

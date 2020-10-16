@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	fsnotify "gopkg.in/fsnotify.v1"
@@ -479,4 +481,17 @@ func HttpClient(ctx context.Context, c *http.Client) *http.Client {
 		rt:  c.Transport,
 	}
 	return c
+}
+
+// MustGetAbsolutePathOfFlag returns the absolute path to the specified path or exits with an
+// error indicating that the given flag must be specified.
+func MustGetAbsolutePathOfFlag(ctx context.Context, nonEmptyPath, flag string) string {
+	if nonEmptyPath == "" {
+		Fatalf(ctx, "--%s must be specified", flag)
+	}
+	absPath, err := filepath.Abs(nonEmptyPath)
+	if err != nil {
+		Fatal(ctx, skerr.Wrap(err))
+	}
+	return absPath
 }
