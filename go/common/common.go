@@ -4,8 +4,10 @@ package common
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -209,4 +211,43 @@ func (m *multiString) Set(value string) error {
 	}
 	*m.values = append(*m.values, strings.Split(value, ",")...)
 	return nil
+}
+
+type absPath struct {
+	value *string
+	name  string
+	set   bool
+}
+
+// String() returns the current value of the path.
+func (a *absPath) String() string {
+	if a == nil || a.value == nil {
+		return ""
+	}
+	return *a.value
+}
+
+// Set implements the flag.Value interface. If the passed in value is empty or cannot be converted
+// to an absolute file path, it returns an error.
+func (a *absPath) Set(value string) error {
+	if value == "" {
+		return fmt.Errorf("flag %s must be set", a.name)
+	}
+	abs, err := filepath.Abs(value)
+	if err != nil {
+		return fmt.Errorf("flag %s set to invalid value %q: %s", a.name, value, err)
+	}
+	*a.value = abs
+	a.set = true
+	return nil
+}
+
+// NewAbsPathFlag defines a required flag representing a directory with the given name and usage.
+// If an empty string is used for this flag, an error will be returned. Otherwise, the value will
+// be the absolute path of the passed in directory.
+func NewAbsPathFlag(name string, usage string) *string {
+	var value string
+	a := &absPath{value: &value, name: name, set: false}
+	flag.Var(a, name, usage)
+	return &value
 }

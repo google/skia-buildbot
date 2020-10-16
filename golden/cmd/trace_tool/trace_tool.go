@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/bt"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -29,8 +30,13 @@ const (
 )
 
 func main() {
+	var (
+		// This exists to test NewAbsPathFlag
+		workdir = common.NewAbsPathFlag("workdir", "[required] The path to a workdir")
+	)
 	flag.Parse()
 	ctx := context.Background()
+	sklog.Infof("workdir is %s", *workdir)
 
 	btConf := &bt_gitstore.BTConfig{
 		InstanceID: instanceID,

@@ -2,10 +2,13 @@ package common
 
 import (
 	"flag"
+	"os"
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -72,4 +75,35 @@ func TestMultiString(t *testing.T) {
 		z = reflect.Zero(typ)
 	}
 	require.Equal(t, "", z.Interface().(flag.Value).String())
+}
+
+func TestAbsPathFlag_SetComputesAbsoluteValue_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	assert.NotEmpty(t, wd)
+
+	var value string
+	a := absPath{value: &value, name: "some_path", set: false}
+
+	err = a.Set("my_dir")
+	require.NoError(t, err)
+
+	assert.Contains(t, *a.value, wd)
+	assert.Contains(t, *a.value, "my_dir")
+	assert.True(t, a.set)
+}
+func TestAbsPathFlag_SetWithEmptyValue_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	assert.NotEmpty(t, wd)
+
+	var value string
+	a := absPath{value: &value, name: "some_path", set: false}
+
+	err = a.Set("")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "some_path")
+	assert.False(t, a.set)
 }
