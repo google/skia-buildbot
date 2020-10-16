@@ -101,6 +101,7 @@ commits-table-sk {
       position: relative;
       top: 30px;
       left: 3px;
+      width: min-content;
     }
 
     select {
@@ -115,9 +116,6 @@ commits-table-sk {
     input-sk {
       input {
         width: 100px;
-      }
-      .input-container {
-        width: 180px;
       }
     }
   }
