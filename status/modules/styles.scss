@@ -9,8 +9,47 @@ html {
   min-height: fit-content;
 }
 
+.bg-success {
+  background-color: var(--success-alpha);
+}
+
+.bg-warning {
+  background-color: var(--warning-alpha);
+  color: var(--black);
+}
+
+.bg-failure {
+  background-color: var(--failure-alpha);
+}
+
+.bg-mishap {
+  background-color: var(--unexpected-alpha);
+}
+
+.bg-unknown {
+  background-color: var(--unexpected-alpha);
+}
+
 :root {
   --primary: var(--light-green-700);
   // TODO(westont): Move to named colors, unify theme.
   --secondary: #e6ab02;
+
+  --success: rgb(102, 166, 30);
+  --success-alpha: rgba(102, 166, 30, 0.3);
+  --warning: var(--orange-400);
+  --warning-alpha: var(--orange-a200);
+  --failure: rgb(217, 95, 2);
+  --failure-alpha: rgba(217, 95, 2, 0.3);
+  --unexpected: rgb(117, 112, 179);
+  --unexpected-alpha: rgba(117, 112, 179, 0.3);
+  --disabled: var(--grey-500);
+  --disabled-alpha: rgba(117, 117, 117, 0.3);
+
+  .darkmode {
+    --success-alpha: rgba(102, 166, 30, 0.9);
+    --failure-alpha: rgba(217, 95, 2, 0.9);
+    --unexpected-alpha: rgba(117, 112, 179, 0.9);
+    --disabled-alpha: rgba(117, 117, 117, 0.9);
+  }
 }

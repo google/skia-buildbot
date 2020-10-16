@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -72,18 +73,19 @@ const (
 
 var (
 	autorollMtx                 sync.RWMutex
-	autorollStatus              []byte                        = nil
-	capacityClient              *capacity.CapacityClient      = nil
-	capacityTemplate            *template.Template            = nil
-	commitsTemplate             *template.Template            = nil
-	experimentalCommitsTemplate *template.Template            = nil
-	iCache                      *incremental.IncrementalCache = nil
-	lkgrObj                     *lkgr.LKGR                    = nil
-	taskDb                      db.RemoteDB                   = nil
-	taskDriverDb                task_driver_db.DB             = nil
-	taskDriverLogs              *logs.LogsManager             = nil
-	tasksPerCommit              *tasksPerCommitCache          = nil
-	tCache                      cache.TaskCache               = nil
+	autorollStatus              []byte                             = nil
+	autorollStatusTwirp         *rpc.GetAutorollerStatusesResponse = nil
+	capacityClient              *capacity.CapacityClient           = nil
+	capacityTemplate            *template.Template                 = nil
+	commitsTemplate             *template.Template                 = nil
+	experimentalCommitsTemplate *template.Template                 = nil
+	iCache                      *incremental.IncrementalCache      = nil
+	lkgrObj                     *lkgr.LKGR                         = nil
+	taskDb                      db.RemoteDB                        = nil
+	taskDriverDb                task_driver_db.DB                  = nil
+	taskDriverLogs              *logs.LogsManager                  = nil
+	tasksPerCommit              *tasksPerCommitCache               = nil
+	tCache                      cache.TaskCache                    = nil
 
 	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -707,6 +709,12 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getAutorollerStatusesTwirp() *rpc.GetAutorollerStatusesResponse {
+	autorollMtx.RLock()
+	defer autorollMtx.RUnlock()
+	return autorollStatusTwirp
+}
+
 func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter := mux.NewRouter()
 	topLevelRouter.Use(login.RestrictViewer)
@@ -778,7 +786,7 @@ func main() {
 		podId = uuid.New().String()
 	}
 
-	repoURLsByName := make(map[string]string)
+	repoURLsByName = make(map[string]string)
 	for _, repoURL := range *repoUrls {
 		repoURLsByName[repoUrlToName(repoURL)] = fmt.Sprintf(gitiles.CommitURL, repoURL, "")
 	}
@@ -874,25 +882,41 @@ func main() {
 	autorollStatusDB := status.NewDatastoreDB()
 	updateAutorollStatus := func(ctx context.Context) error {
 		statuses := map[string]autoRollStatus{}
+		statusesTwirp := []*rpc.AutorollerStatus{}
 		for host, subMap := range AUTOROLLERS {
 			for roller, friendlyName := range subMap {
 				s, err := autorollStatusDB.Get(ctx, roller)
 				if err != nil {
 					return err
 				}
+				miniStatus := s.AutoRollMiniStatus
+				url := fmt.Sprintf("https://%s/r/%s", host, roller)
 				statuses[friendlyName] = autoRollStatus{
-					AutoRollMiniStatus: s.AutoRollMiniStatus,
-					Url:                fmt.Sprintf("https://%s/r/%s", host, roller),
+					AutoRollMiniStatus: miniStatus,
+					Url:                url,
 				}
+				statusesTwirp = append(statusesTwirp,
+					&rpc.AutorollerStatus{
+						Name:           friendlyName,
+						CurrentRollRev: miniStatus.CurrentRollRev,
+						LastRollRev:    miniStatus.LastRollRev,
+						Mode:           miniStatus.Mode,
+						NumBehind:      int32(miniStatus.NumNotRolledCommits),
+						NumFailed:      int32(miniStatus.NumFailedRolls),
+						Url:            url})
 			}
 		}
 		b, err := json.Marshal(statuses)
 		if err != nil {
 			return err
 		}
+		sort.Slice(statusesTwirp, func(i, j int) bool {
+			return statusesTwirp[i].Name < statusesTwirp[j].Name
+		})
 		autorollMtx.Lock()
 		defer autorollMtx.Unlock()
 		autorollStatus = b
+		autorollStatusTwirp = &rpc.GetAutorollerStatusesResponse{Rollers: statusesTwirp}
 		return nil
 	}
 	if err := updateAutorollStatus(ctx); err != nil {
@@ -916,7 +940,7 @@ func main() {
 	}
 
 	// Create Twirp Server.
-	twirpServer := rpc.NewStatusServer(iCache, taskDb, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
+	twirpServer := rpc.NewStatusServer(iCache, taskDb, getAutorollerStatusesTwirp, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
 
 	// Run the server.
 	runServer(serverURL, twirpServer)

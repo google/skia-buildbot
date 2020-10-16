@@ -961,6 +961,187 @@ func (*DeleteCommentResponse) Descriptor() ([]byte, []int) {
 	return file_status_proto_rawDescGZIP(), []int{11}
 }
 
+// Empty, no parameters needed to ask for latest autoroller status info.
+type GetAutorollerStatusesRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *GetAutorollerStatusesRequest) Reset() {
+	*x = GetAutorollerStatusesRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAutorollerStatusesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAutorollerStatusesRequest) ProtoMessage() {}
+
+func (x *GetAutorollerStatusesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAutorollerStatusesRequest.ProtoReflect.Descriptor instead.
+func (*GetAutorollerStatusesRequest) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{12}
+}
+
+type GetAutorollerStatusesResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Rollers []*AutorollerStatus `protobuf:"bytes,1,rep,name=rollers,proto3" json:"rollers,omitempty"`
+}
+
+func (x *GetAutorollerStatusesResponse) Reset() {
+	*x = GetAutorollerStatusesResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAutorollerStatusesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAutorollerStatusesResponse) ProtoMessage() {}
+
+func (x *GetAutorollerStatusesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAutorollerStatusesResponse.ProtoReflect.Descriptor instead.
+func (*GetAutorollerStatusesResponse) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetAutorollerStatusesResponse) GetRollers() []*AutorollerStatus {
+	if x != nil {
+		return x.Rollers
+	}
+	return nil
+}
+
+type AutorollerStatus struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name           string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	CurrentRollRev string `protobuf:"bytes,2,opt,name=current_roll_rev,json=currentRollRev,proto3" json:"current_roll_rev,omitempty"`
+	LastRollRev    string `protobuf:"bytes,3,opt,name=last_roll_rev,json=lastRollRev,proto3" json:"last_roll_rev,omitempty"`
+	Mode           string `protobuf:"bytes,4,opt,name=mode,proto3" json:"mode,omitempty"`
+	NumFailed      int32  `protobuf:"varint,5,opt,name=num_failed,json=numFailed,proto3" json:"num_failed,omitempty"`
+	NumBehind      int32  `protobuf:"varint,6,opt,name=num_behind,json=numBehind,proto3" json:"num_behind,omitempty"`
+	Url            string `protobuf:"bytes,7,opt,name=url,proto3" json:"url,omitempty"`
+}
+
+func (x *AutorollerStatus) Reset() {
+	*x = AutorollerStatus{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_status_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AutorollerStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AutorollerStatus) ProtoMessage() {}
+
+func (x *AutorollerStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_status_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AutorollerStatus.ProtoReflect.Descriptor instead.
+func (*AutorollerStatus) Descriptor() ([]byte, []int) {
+	return file_status_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AutorollerStatus) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AutorollerStatus) GetCurrentRollRev() string {
+	if x != nil {
+		return x.CurrentRollRev
+	}
+	return ""
+}
+
+func (x *AutorollerStatus) GetLastRollRev() string {
+	if x != nil {
+		return x.LastRollRev
+	}
+	return ""
+}
+
+func (x *AutorollerStatus) GetMode() string {
+	if x != nil {
+		return x.Mode
+	}
+	return ""
+}
+
+func (x *AutorollerStatus) GetNumFailed() int32 {
+	if x != nil {
+		return x.NumFailed
+	}
+	return 0
+}
+
+func (x *AutorollerStatus) GetNumBehind() int32 {
+	if x != nil {
+		return x.NumBehind
+	}
+	return 0
+}
+
+func (x *AutorollerStatus) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
 var File_status_proto protoreflect.FileDescriptor
 
 var file_status_proto_rawDesc = []byte{
@@ -1085,7 +1266,28 @@ var file_status_proto_rawDesc = []byte{
 	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73,
 	0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22,
 	0x17, 0x0a, 0x15, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x88, 0x02, 0x0a, 0x0d, 0x53, 0x74, 0x61,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1e, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x41,
+	0x75, 0x74, 0x6f, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x65,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x53, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x41,
+	0x75, 0x74, 0x6f, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x65,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x32, 0x0a, 0x07, 0x72, 0x6f, 0x6c,
+	0x6c, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x73, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x2e, 0x41, 0x75, 0x74, 0x6f, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x52, 0x07, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x73, 0x22, 0xd8, 0x01,
+	0x0a, 0x10, 0x41, 0x75, 0x74, 0x6f, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x28, 0x0a, 0x10, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e,
+	0x74, 0x5f, 0x72, 0x6f, 0x6c, 0x6c, 0x5f, 0x72, 0x65, 0x76, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0e, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x52, 0x65, 0x76,
+	0x12, 0x22, 0x0a, 0x0d, 0x6c, 0x61, 0x73, 0x74, 0x5f, 0x72, 0x6f, 0x6c, 0x6c, 0x5f, 0x72, 0x65,
+	0x76, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x6c, 0x61, 0x73, 0x74, 0x52, 0x6f, 0x6c,
+	0x6c, 0x52, 0x65, 0x76, 0x12, 0x12, 0x0a, 0x04, 0x6d, 0x6f, 0x64, 0x65, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x6d, 0x6f, 0x64, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x6e, 0x75, 0x6d, 0x5f,
+	0x66, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52, 0x09, 0x6e, 0x75,
+	0x6d, 0x46, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x6e, 0x75, 0x6d, 0x5f, 0x62,
+	0x65, 0x68, 0x69, 0x6e, 0x64, 0x18, 0x06, 0x20, 0x01, 0x28, 0x05, 0x52, 0x09, 0x6e, 0x75, 0x6d,
+	0x42, 0x65, 0x68, 0x69, 0x6e, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x07, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x32, 0xee, 0x02, 0x0a, 0x0d, 0x53, 0x74, 0x61,
 	0x74, 0x75, 0x73, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x64, 0x0a, 0x15, 0x47, 0x65,
 	0x74, 0x49, 0x6e, 0x63, 0x72, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x6d, 0x6d,
 	0x69, 0x74, 0x73, 0x12, 0x24, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74,
@@ -1102,9 +1304,16 @@ var file_status_proto_rawDesc = []byte{
 	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x44, 0x65,
 	0x6c, 0x65, 0x74, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x6f, 0x2e, 0x73, 0x6b, 0x69, 0x61, 0x2e, 0x6f,
-	0x72, 0x67, 0x2f, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x2f, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2f,
-	0x67, 0x6f, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x73, 0x65, 0x12, 0x64, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x6f, 0x72, 0x6f,
+	0x6c, 0x6c, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x65, 0x73, 0x12, 0x24, 0x2e, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x6f, 0x72, 0x6f, 0x6c,
+	0x6c, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x25, 0x2e, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x47, 0x65, 0x74, 0x41,
+	0x75, 0x74, 0x6f, 0x72, 0x6f, 0x6c, 0x6c, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x65,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x21, 0x5a, 0x1f, 0x67, 0x6f, 0x2e,
+	0x73, 0x6b, 0x69, 0x61, 0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x69, 0x6e, 0x66, 0x72, 0x61, 0x2f, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x2f, 0x67, 0x6f, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1119,7 +1328,7 @@ func file_status_proto_rawDescGZIP() []byte {
 	return file_status_proto_rawDescData
 }
 
-var file_status_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_status_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_status_proto_goTypes = []interface{}{
 	(*GetIncrementalCommitsRequest)(nil),  // 0: status.GetIncrementalCommitsRequest
 	(*GetIncrementalCommitsResponse)(nil), // 1: status.GetIncrementalCommitsResponse
@@ -1133,33 +1342,39 @@ var file_status_proto_goTypes = []interface{}{
 	(*AddCommentResponse)(nil),            // 9: status.AddCommentResponse
 	(*DeleteCommentRequest)(nil),          // 10: status.DeleteCommentRequest
 	(*DeleteCommentResponse)(nil),         // 11: status.DeleteCommentResponse
-	(*timestamp.Timestamp)(nil),           // 12: google.protobuf.Timestamp
+	(*GetAutorollerStatusesRequest)(nil),  // 12: status.GetAutorollerStatusesRequest
+	(*GetAutorollerStatusesResponse)(nil), // 13: status.GetAutorollerStatusesResponse
+	(*AutorollerStatus)(nil),              // 14: status.AutorollerStatus
+	(*timestamp.Timestamp)(nil),           // 15: google.protobuf.Timestamp
 }
 var file_status_proto_depIdxs = []int32{
-	12, // 0: status.GetIncrementalCommitsRequest.from:type_name -> google.protobuf.Timestamp
-	12, // 1: status.GetIncrementalCommitsRequest.to:type_name -> google.protobuf.Timestamp
+	15, // 0: status.GetIncrementalCommitsRequest.from:type_name -> google.protobuf.Timestamp
+	15, // 1: status.GetIncrementalCommitsRequest.to:type_name -> google.protobuf.Timestamp
 	7,  // 2: status.GetIncrementalCommitsResponse.metadata:type_name -> status.ResponseMetadata
 	2,  // 3: status.GetIncrementalCommitsResponse.update:type_name -> status.IncrementalUpdate
 	5,  // 4: status.IncrementalUpdate.commits:type_name -> status.LongCommit
 	3,  // 5: status.IncrementalUpdate.branch_heads:type_name -> status.Branch
 	4,  // 6: status.IncrementalUpdate.tasks:type_name -> status.Task
 	6,  // 7: status.IncrementalUpdate.comments:type_name -> status.Comment
-	12, // 8: status.LongCommit.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 9: status.Comment.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 10: status.ResponseMetadata.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 11: status.AddCommentResponse.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 12: status.DeleteCommentRequest.timestamp:type_name -> google.protobuf.Timestamp
-	0,  // 13: status.StatusService.GetIncrementalCommits:input_type -> status.GetIncrementalCommitsRequest
-	8,  // 14: status.StatusService.AddComment:input_type -> status.AddCommentRequest
-	10, // 15: status.StatusService.DeleteComment:input_type -> status.DeleteCommentRequest
-	1,  // 16: status.StatusService.GetIncrementalCommits:output_type -> status.GetIncrementalCommitsResponse
-	9,  // 17: status.StatusService.AddComment:output_type -> status.AddCommentResponse
-	11, // 18: status.StatusService.DeleteComment:output_type -> status.DeleteCommentResponse
-	16, // [16:19] is the sub-list for method output_type
-	13, // [13:16] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	15, // 8: status.LongCommit.timestamp:type_name -> google.protobuf.Timestamp
+	15, // 9: status.Comment.timestamp:type_name -> google.protobuf.Timestamp
+	15, // 10: status.ResponseMetadata.timestamp:type_name -> google.protobuf.Timestamp
+	15, // 11: status.AddCommentResponse.timestamp:type_name -> google.protobuf.Timestamp
+	15, // 12: status.DeleteCommentRequest.timestamp:type_name -> google.protobuf.Timestamp
+	14, // 13: status.GetAutorollerStatusesResponse.rollers:type_name -> status.AutorollerStatus
+	0,  // 14: status.StatusService.GetIncrementalCommits:input_type -> status.GetIncrementalCommitsRequest
+	8,  // 15: status.StatusService.AddComment:input_type -> status.AddCommentRequest
+	10, // 16: status.StatusService.DeleteComment:input_type -> status.DeleteCommentRequest
+	12, // 17: status.StatusService.GetAutorollerStatuses:input_type -> status.GetAutorollerStatusesRequest
+	1,  // 18: status.StatusService.GetIncrementalCommits:output_type -> status.GetIncrementalCommitsResponse
+	9,  // 19: status.StatusService.AddComment:output_type -> status.AddCommentResponse
+	11, // 20: status.StatusService.DeleteComment:output_type -> status.DeleteCommentResponse
+	13, // 21: status.StatusService.GetAutorollerStatuses:output_type -> status.GetAutorollerStatusesResponse
+	18, // [18:22] is the sub-list for method output_type
+	14, // [14:18] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_status_proto_init() }
@@ -1312,6 +1527,42 @@ func file_status_proto_init() {
 				return nil
 			}
 		}
+		file_status_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAutorollerStatusesRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_status_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAutorollerStatusesResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_status_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AutorollerStatus); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_status_proto_msgTypes[8].OneofWrappers = []interface{}{
 		(*AddCommentRequest_Commit)(nil),
@@ -1324,7 +1575,7 @@ func file_status_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_status_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

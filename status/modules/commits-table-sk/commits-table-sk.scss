@@ -98,9 +98,9 @@ commits-table-sk {
 
   .reloadControls {
     #repoLabel {
-      position: absolute;
-      top: 104px;
-      left: 15px;
+      position: relative;
+      top: 30px;
+      left: 3px;
     }
 
     select {
@@ -208,39 +208,27 @@ commits-table-sk {
     z-index: 2;
   }
 
-  .task-success {
-    background-color: rgba(102, 166, 30, 0.3);
+  .grow:hover.bg-success,
+  .grow:hover .bg-success {
+    background-color: var(--success);
   }
 
-  .task-failure {
-    background-color: rgba(217, 95, 2, 0.3);
+  .grow:hover.bg-failure,
+  .grow:hover .bg-failure {
+    background-color: var(--failure);
   }
 
-  .task-mishap {
-    background-color: rgba(117, 112, 179, 0.3);
-  }
-
-  .grow:hover.task-success,
-  .grow:hover .task-success {
-    background-color: rgb(102, 166, 30);
-  }
-
-  .grow:hover.task-failure,
-  .grow:hover .task-failure {
-    background-color: rgb(217, 95, 2);
-  }
-
-  .grow:hover.task-mishap,
-  .grow:hover .task-mishap {
-    background-color: rgb(117, 112, 179);
+  .grow:hover.bg-mishap,
+  .grow:hover .bg-mishap {
+    background-color: var(--unexpected);
   }
 
   .fill-green {
-    fill: rgb(102, 166, 30);
+    fill: var(--success);
   }
 
   .fill-red {
-    fill: #d95f02;
+    fill: var(--failure);
   }
 }
 
@@ -254,32 +242,5 @@ div.hidden.task {
     div:nth-child(odd) {
       background-color: var(--surface-2dp);
     }
-  }
-
-  .task-success {
-    background-color: rgba(102, 166, 30, 0.9);
-  }
-
-  .task-failure {
-    background-color: rgba(217, 95, 2, 0.9);
-  }
-
-  .task-mishap {
-    background-color: rgba(117, 112, 179, 0.9);
-  }
-
-  .grow:hover.task-success,
-  .grow:hover .task-success {
-    background-color: rgb(102, 166, 30);
-  }
-
-  .grow:hover.task-failure,
-  .grow:hover .task-failure {
-    background-color: rgb(217, 95, 2);
-  }
-
-  .grow:hover.task-mishap,
-  .grow:hover .task-mishap {
-    background-color: rgb(117, 112, 179);
   }
 }

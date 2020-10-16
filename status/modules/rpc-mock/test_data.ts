@@ -2,7 +2,14 @@
  * Deterministic data for tests, crafted to cover various use cases, whereas mock_data is for
  * visualizing a complete status table via nondeterministically generated tasks/commits.
  */
-import { Branch, GetIncrementalCommitsResponse, Comment, Task, LongCommit } from '../rpc/status';
+import {
+  Branch,
+  GetIncrementalCommitsResponse,
+  Comment,
+  Task,
+  LongCommit,
+  GetAutorollerStatusesResponse,
+} from '../rpc/status';
 
 function copy<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -241,3 +248,71 @@ export const resetResponse0 = (() => {
   r.metadata!.startOver = true;
   return r;
 })();
+
+export const getAutorollerStatusesResponse: GetAutorollerStatusesResponse = {
+  rollers: [
+    {
+      name: 'ANGLE',
+      mode: 'running',
+      numBehind: 0,
+      numFailed: 0,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/angle-skia-autoroll',
+    },
+    {
+      name: 'Android',
+      mode: 'running',
+      numBehind: 0,
+      numFailed: 1,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/android-skia-autoroll',
+    },
+    {
+      name: 'Chrome',
+      mode: 'running',
+      numBehind: 0,
+      numFailed: 1,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/chrome-skia-autoroll',
+    },
+    {
+      name: 'Flutter',
+      mode: 'running',
+      numBehind: 3,
+      numFailed: 6,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/flutter-skia-autoroll',
+    },
+    {
+      name: 'Google3',
+      mode: 'running',
+      numBehind: 0,
+      numFailed: 0,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/g3-skia-autoroll',
+    },
+    {
+      name: 'SwiftSh',
+      mode: 'running',
+      numBehind: 0,
+      numFailed: 0,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/swiftsh-skia-autoroll',
+    },
+    {
+      name: 'skcms',
+      mode: 'running',
+      numBehind: 0,
+      numFailed: 0,
+      currentRollRev: 'abc123',
+      lastRollRev: 'def456',
+      url: 'https://autoroll.skia.org/r/skcms-skia-autoroll',
+    },
+  ],
+};

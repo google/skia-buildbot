@@ -1,9 +1,11 @@
 import './index';
-import { incrementalResponse0, SetupMocks } from '../rpc-mock';
+import { getAutorollerStatusesResponse, incrementalResponse0, SetupMocks } from '../rpc-mock';
 import { $$ } from 'common-sk/modules/dom';
 import { SetTestSettings } from '../settings';
 
-SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
+SetupMocks()
+  .expectGetIncrementalCommits(incrementalResponse0)
+  .expectGetAutorollerStatuses(getAutorollerStatusesResponse);
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
   taskSchedulerUrl: 'example.com/ts',

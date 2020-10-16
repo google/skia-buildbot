@@ -10,6 +10,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../commits-table-sk';
+import '../autoroller-status-sk';
 import 'elements-sk/error-toast-sk';
 
 export class StatusSk extends ElementSk {
@@ -17,6 +18,7 @@ export class StatusSk extends ElementSk {
     html`
       <h2>lit-html/TS/Twirp Status Page Under Development</h2>
       <theme-chooser-sk></theme-chooser-sk>
+      <autoroller-status-sk></autoroller-status-sk>
       <commits-table-sk></commits-table-sk>
       <error-toast-sk></error-toast-sk>
     `;

@@ -12,6 +12,8 @@ service StatusService {
   rpc AddComment(AddCommentRequest) returns (AddCommentResponse);
   // Method to delete a comment to a task, commit, or task spec.
   rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+  // Method to get latest status of various autorollers.
+  rpc GetAutorollerStatuses(GetAutorollerStatusesRequest) returns (GetAutorollerStatusesResponse);
 }
 
 // Request for updated commit/task/comment/branch/etc data.
@@ -118,3 +120,20 @@ message DeleteCommentRequest {
 }
 // Empty, valid response to DeleteComment, only success/failure needs to be conveyed.
 message DeleteCommentResponse{}
+
+// Empty, no parameters needed to ask for latest autoroller status info.
+message GetAutorollerStatusesRequest{}
+
+message GetAutorollerStatusesResponse {
+  repeated AutorollerStatus rollers = 1;
+}
+
+message AutorollerStatus {
+  string name = 1;
+  string current_roll_rev = 2;
+  string last_roll_rev = 3;
+  string mode = 4;
+  int32 num_failed = 5;
+  int32 num_behind = 6;
+  string url = 7;
+}

@@ -1,1 +1,9 @@
 @import '../styles.scss';
+
+status-sk {
+  autoroller-status-sk {
+    // TODO(westont): Temporary, this will be going into a fixed panel.
+    float: left;
+    margin: 10px;
+  }
+}
