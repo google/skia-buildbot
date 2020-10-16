@@ -138,7 +138,7 @@ type frontendServerConfig struct {
 	// This can be used in a CL comment to direct users to the public instance for triaging.
 	PublicSiteURL string `json:"public_site_url" optional:"true"`
 
-	// The path to the directory that contains Polymer templates, JS, and CSS files.
+	// Path to a directory with static assets that should be served to the frontend (JS, CSS, etc.).
 	ResourcesPath string `json:"resources_path"`
 
 	// URL where this app is hosted.
@@ -649,12 +649,21 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// Legacy Polymer based UI endpoint
+	// Serve legacy static assets.
+	//
+	// TODO(lovisolo): Fold this and the below handlers to serve all static assets from /dist.
 	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))
-	// lit-html based UI endpoint.
-	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(fsc.LitHTMLPath))
-	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
 
+	// Serve static assets (JS and CSS Webpack bundles, images, etc.).
+	//
+	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
+	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
+	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
+	// assets such as the favicon).
+	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(fsc.LitHTMLPath))
+
+	// Login endpoints.
+	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
 
@@ -749,8 +758,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	var templates *template.Template
 
 	loadTemplates := func() {
-		templates = template.Must(template.New("").ParseFiles(filepath.Join(fsc.ResourcesPath, "index.html")))
-		templates = template.Must(templates.ParseGlob(filepath.Join(fsc.LitHTMLPath, "dist", "*.html")))
+		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.LitHTMLPath, "dist", "*.html")))
 	}
 
 	loadTemplates()
@@ -787,9 +795,6 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	loggedRouter.HandleFunc("/help", templateHandler("help.html"))
 	loggedRouter.HandleFunc("/search", templateHandler("search.html"))
 	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
-
-	// This route handles the legacy polymer "single page" app model
-	loggedRouter.PathPrefix("/").Handler(templateHandler("index.html"))
 
 	// set up the app router that might be authenticated and logs almost everything.
 	appRouter := mux.NewRouter()
