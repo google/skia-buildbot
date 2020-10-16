@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d691ecf0_d08ea0ee",
+        "filename": "status/go/rpc/status.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-16T13:25:12Z",
+      "side": 1,
+      "message": "Is it feasible to reuse the message(s) from //autoroll/go/rpc/rpc.proto?",
+      "range": {
+        "startLine": 131,
+        "startChar": 0,
+        "endLine": 131,
+        "endChar": 26
+      },
+      "revId": "cfac3391b1ec2994cff7c5e12bee46d406c41c12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "67038f71_5c604cce",
+        "filename": "status/modules/styles.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-16T13:25:12Z",
+      "side": 1,
+      "message": "Nice cleanup!",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 36
+      },
+      "revId": "cfac3391b1ec2994cff7c5e12bee46d406c41c12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
