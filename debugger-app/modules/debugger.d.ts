@@ -71,8 +71,8 @@ export type Matrix4x4 = [
 ];
 // return type of lastCommandInfo after json.parse
 export interface MatrixClipInfo {
-  clip: [number, number, number, number],
-  matrix: Matrix3x3 | Matrix4x4,
+  ClipRect: [number, number, number, number],
+  ViewMatrix: Matrix3x3 | Matrix4x4,
 };
 
 export interface SkpJsonGpuOp {
