@@ -112,9 +112,6 @@ type frontendServerConfig struct {
 	// If this instance is simply a mirror of another instance's data.
 	IsPublicView bool `json:"is_public_view"`
 
-	// File path to built lit-html files that should be served as part of the frontend.
-	LitHTMLPath string `json:"lit_html_path"`
-
 	// The longest time negative expectations can go unused before being purged. (0 means infinity)
 	NegativesMaxAge config.Duration `json:"negatives_max_age" optional:"true"`
 
@@ -655,7 +652,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
 	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
 	// assets such as the favicon).
-	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(fsc.LitHTMLPath))
+	loggedRouter.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))))
 
 	// Login endpoints.
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
@@ -753,7 +750,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	var templates *template.Template
 
 	loadTemplates := func() {
-		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.LitHTMLPath, "dist", "*.html")))
+		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.ResourcesPath, "*.html")))
 	}
 
 	loadTemplates()
@@ -777,7 +774,7 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		}
 	}
 
-	// These are the new lit-html pages.
+	// These routes serve the web UI.
 	loggedRouter.HandleFunc("/", templateHandler("byblame.html"))
 	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
 	loggedRouter.HandleFunc("/cluster", templateHandler("cluster.html"))
