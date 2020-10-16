@@ -10,15 +10,14 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   // https://github.com/webpack/node-libs-browser/issues/26#issuecomment-267954095
   config.resolve.modules = [resolve(__dirname, 'node_modules'), 'node_modules'];
 
+  // Copy static assets into the //golden/dist directory.
+  const copyPatterns: any[] = [{
+    from: resolve(__dirname, 'static/favicon.ico'), to: 'favicon.ico',
+  }];
   if (args.mode !== 'production') {
-    config.plugins!.push(
-      new CopyWebpackPlugin([
-        {
-          from: resolve(__dirname, 'demo-page-assets'),
-        },
-      ]),
-    );
+    copyPatterns.push({from: resolve(__dirname, 'demo-page-assets')});
   }
+  config.plugins!.push(new CopyWebpackPlugin(copyPatterns));
 
   return config;
 };
