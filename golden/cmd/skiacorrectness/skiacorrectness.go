@@ -69,8 +69,8 @@ const (
 	// imgURLPrefix is path prefix used for all images (digests and diffs)
 	imgURLPrefix = "/img/"
 
-	// callbackPath is callback endpoint used for the OAuth2 flow
-	callbackPath = "/oauth2callback/"
+	// oAuth2CallbackPath is callback endpoint used for the OAuth2 flow
+	oAuth2CallbackPath = "/oauth2callback/"
 )
 
 type frontendServerConfig struct {
@@ -636,52 +636,49 @@ func mustMakeWebHandlers(diffStore diff.DiffStore, expStore expectations.Store, 
 
 // mustMakeRootRouter returns a mux.Router that can be used to serve Gold's web UI and JSON API.
 func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffStore diff.DiffStore) *mux.Router {
+	// Root router that will serve all routes to the outside world, some authenticated and some not.
 	rootRouter := mux.NewRouter()
+
+	// This router will hold all routes that may require authentication.
+	authenticatedRouter := rootRouter.PathPrefix("/").Subrouter()
+	if fsc.ForceLogin {
+		authenticatedRouter.Use(login.ForceAuthMiddleware(oAuth2CallbackPath))
+	}
+
+	// Router for authenticated, logged and gzipped routes. Most routes will be added to this router.
+	authenticatedLoggingGzipRouter := authenticatedRouter.PathPrefix("/").Subrouter()
+	authenticatedLoggingGzipRouter.Use(httputils.LoggingGzipRequestResponse)
+
+	// Add routes that do not require authentication, logging or gzip compression.
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	addDigestAndDiffRoutes(rootRouter, diffStore)
+	addUnauthenticatedJSONRoutes(rootRouter, fsc, handlers)
 
-	// loggedRouter contains all the endpoints that are logged. See the call below to
-	// LoggingGzipRequestResponse.
-	loggedRouter := mux.NewRouter()
+	// Add all other routes, which do require authentication.
+	addLoginRoutes(authenticatedLoggingGzipRouter)
+	addUIRoutes(authenticatedLoggingGzipRouter, fsc, handlers)
+	addAuthenticatedJSONRoutes(authenticatedLoggingGzipRouter, fsc, handlers)
 
-	// Set up the resource to serve the image files.
+	return rootRouter
+}
+
+// addDigestAndDiffRoutes adds the routes to serve digest and diff PNG images from the diff store.
+func addDigestAndDiffRoutes(router *mux.Router, diffStore diff.DiffStore) {
+	// Images should not be served gzipped, which can sometimes have issues
+	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
+	// given PNGs typically have zlib compression anyway.
 	imgHandler, err := diffStore.ImageHandler(imgURLPrefix)
 	if err != nil {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
+	router.PathPrefix(imgURLPrefix).Handler(imgHandler)
+}
 
-	// Login endpoints.
-	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
-	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
-	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
-
-	// JSON endpoints.
-	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers)
-	addUnauthenticatedJSONRoutes(rootRouter, fsc, handlers)
-
-	// Routes to serve the UI, static assets, etc.
-	addUIRoutes(loggedRouter, fsc, handlers)
-
-	// set up the app router that might be authenticated and logs almost everything.
-	appRouter := mux.NewRouter()
-	// Images should not be served gzipped, which can sometimes have issues
-	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
-	// given PNGs typically have zlib compression anyway.
-	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
-	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
-
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
-	// necessary it was requested via the force_login flag.
-	appHandler := http.Handler(appRouter)
-	if fsc.ForceLogin {
-		appHandler = login.ForceAuth(appRouter, callbackPath)
-	}
-
-	// The appHandler contains all application specific routes that are have logging and
-	// authentication configured. Now we wrap it into the router that is exposed to the host
-	// (aka the K8s container) which requires that some routes are never logged or authenticated.
-	rootRouter.PathPrefix("/").Handler(appHandler)
-
-	return rootRouter
+// addLoginRoutes adds the routes required for OAuth2 authentication.
+func addLoginRoutes(router *mux.Router) {
+	router.HandleFunc(oAuth2CallbackPath, login.OAuth2CallbackHandler)
+	router.HandleFunc("/loginstatus/", login.StatusHandler)
+	router.HandleFunc("/logout/", login.LogoutHandler)
 }
 
 // addUIRoutes adds the necessary routes to serve Gold's web pages and static assets such as JS and
