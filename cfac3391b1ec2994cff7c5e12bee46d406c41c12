@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4327e9a_bb9de133",
+        "filename": "status/go/rpc/status.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T14:20:14Z",
+      "side": 1,
+      "message": "It is not. :D protoc --proto_path is unhappy.",
+      "parentUuid": "d691ecf0_d08ea0ee",
+      "range": {
+        "startLine": 131,
+        "startChar": 0,
+        "endLine": 131,
+        "endChar": 26
+      },
+      "revId": "cfac3391b1ec2994cff7c5e12bee46d406c41c12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "67038f71_5c604cce",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-16T13:25:12Z",
       "side": 1,
       "message": "Nice cleanup!",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 36
+      },
+      "revId": "cfac3391b1ec2994cff7c5e12bee46d406c41c12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "08ecacfd_78f8db36",
+        "filename": "status/modules/styles.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-16T14:20:14Z",
+      "side": 1,
+      "message": "Thanks, more to do for sure, but hoping to have everything neatly organized by the end.",
+      "parentUuid": "67038f71_5c604cce",
       "range": {
         "startLine": 1,
         "startChar": 0,
