@@ -1,5 +1,5 @@
 import './index';
-import { PlaySk, PlaySkMoveToEventDetail } from './play-sk';
+import { PlaySk, PlaySkMoveToEventDetail, PlaySkModeChangedManuallyEventDetail } from './play-sk';
 
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
@@ -22,6 +22,28 @@ describe('play-sk', () => {
   const delay = 120;
 
   describe('Events', () => {
+
+    it('Starts playing when play button clicked', async () => {
+      const promise1 = eventPromise<CustomEvent<PlaySkModeChangedManuallyEventDetail>>('mode-changed-manually', delay);
+      const promise2 = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      // rather than setting play.mode, click the play icon.
+      (document.getElementById('play-button') as HTMLElement).click();
+
+      expect((await promise1).detail.mode).to.equal('play');
+      expect((await promise2).detail.item).to.equal(4);
+    });
+
+    it('No stack overflow when delay is 0', async () => {
+      play.playbackDelay = 0;
+      const promise1 = eventPromise<CustomEvent<PlaySkModeChangedManuallyEventDetail>>('mode-changed-manually', delay);
+      const promise2 = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
+      // rather than setting play.mode, click the play icon.
+      (document.getElementById('play-button') as HTMLElement).click();
+
+      expect((await promise1).detail.mode).to.equal('play');
+      expect((await promise2).detail.item).to.equal(4);
+    });
+
     it('emits moveto when playing', async () => {
       let ep = eventPromise<CustomEvent<PlaySkMoveToEventDetail>>('moveto', delay);
       play.mode = 'play';
