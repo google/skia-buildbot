@@ -8,6 +8,8 @@
  * 'search'. To filter taskSpecs displayed.
  * @property search - a regex string with which to filter taskSpecs against for
  * display. Only used if filter == 'search'.
+ *
+ * @event repo-changed - Occurs when user selects a repo. Event has {detail: '<new repo>'}
  */
 
 import { $, $$ } from 'common-sk/modules/dom';
@@ -460,7 +462,15 @@ export class CommitsTableSk extends ElementSk {
     >
       <div id="repoContainer">
         <div id="repoLabel">Repo:</div>
-        <select id="repoSelector" @change=${() => el.update()}>
+        <select
+          id="repoSelector"
+          @change=${(e: Event) => {
+            el.dispatchEvent(
+              new CustomEvent('repo-changed', { bubbles: true, detail: (e.target as any).value })
+            );
+            el.update();
+          }}
+        >
           ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
         </select>
       </div>
