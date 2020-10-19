@@ -293,6 +293,10 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 		}
 	}
 
+	if len(t.Dimensions) == 0 {
+		return fmt.Errorf("Task must have dimensions")
+	}
+
 	// Ensure that the dimensions are specified properly.
 	for _, d := range t.Dimensions {
 		split := strings.SplitN(d, ":", 2)
