@@ -156,3 +156,7 @@ type Domain struct {
 
 // ProgressCallback if a func that's called to return information on a currently running process.
 type ProgressCallback func(message string)
+
+// CL is the identifier for a change list, or pull request in GitHub
+// lingo.
+type CL string

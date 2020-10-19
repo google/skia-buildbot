@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var (
@@ -207,7 +208,7 @@ func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, 
 //
 // The issue and patch values are returned as strings. If either can be further
 // parsed as integers that will be done at a higher level.
-func (p *Parser) ParseTryBot(file file.File) (string, string, error) {
+func (p *Parser) ParseTryBot(file file.File) (types.CL, string, error) {
 	defer util.Close(file.Contents)
 	p.parseCounter.Inc(1)
 
@@ -232,7 +233,7 @@ func (p *Parser) ParseTryBot(file file.File) (string, string, error) {
 			p.parseFailCounter.Inc(1)
 			return "", "", skerr.Wrap(err)
 		}
-		return benchData.Issue, benchData.PatchSet, nil
+		return types.CL(benchData.Issue), benchData.PatchSet, nil
 	}
 	return parsed.Issue, parsed.Patchset, nil
 
