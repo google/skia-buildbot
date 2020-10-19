@@ -35,7 +35,7 @@ const (
 	// to match the rest.
 	bucketSkiaLegacy     = "skia-infra-gm"
 	hostSkiaLegacy       = "https://gold.skia.org"
-	instanceIDSkiaLegacy = "skia-legacy"
+	instanceIDSkiaLegacy = "skia"
 
 	hostFuchsiaCorp   = "https://fuchsia-gold.corp.goog"
 	instanceIDFuchsia = "fuchsia"

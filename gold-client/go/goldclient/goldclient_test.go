@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"image"
 	"image/png"
 	"io"
@@ -188,7 +189,7 @@ func TestInit(t *testing.T) {
 	assert.Len(t, state.Expectations["ThisIsTheOnlyTest"], 2)
 	assert.Equal(t, makeTestSharedConfig(), *state.SharedConfig)
 
-	state, err = loadStateFromJSON("/tmp/some-file-guaranteed-not-to-exist")
+	_, err = loadStateFromJSON("/tmp/some-file-guaranteed-not-to-exist")
 	assert.Error(t, err)
 }
 
@@ -350,7 +351,90 @@ func TestNewReportNormal(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath, nil, nil)
+	pass, err := goldClient.Test("first-test", testImgPath, "", nil, nil)
+	assert.NoError(t, err)
+	// true is always returned if we are not on passFail mode.
+	assert.True(t, pass)
+}
+
+// Report an image using the supplied digest
+// This is effectively a test for "goldctl imgtest add --png-digest ... --png-file ..."
+func TestNewReportDigestAndImageSupplied(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// This is the digest the client has calculated
+	const precalculatedDigest = types.Digest("00000000000000111111111111111222")
+
+	auth, httpClient, uploader, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
+
+	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
+
+	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + precalculatedDigest + ".png")
+	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
+
+	// Notice the JSON is not uploaded if we are not in passfail mode - a client
+	// would need to call finalize first.
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	assert.NoError(t, err)
+
+	// This returns the "wrong" hash, i.e. the one we don't want to use.
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, "ffffffffffffffffffffffffffffffff", nil
+	})
+
+	pass, err := goldClient.Test("first-test", testImgPath, precalculatedDigest, nil, nil)
+	assert.NoError(t, err)
+	// true is always returned if we are not on passFail mode.
+	assert.True(t, pass)
+}
+
+// Report an image using only the supplied digest (no png to upload).
+// This is effectively a test for "goldctl imgtest add --png-digest ..."
+func TestNewReportDigestSupplied(t *testing.T) {
+	unittest.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	// This is the digest the client has calculated
+	precalculatedDigest := types.Digest("00000000000000111111111111111222")
+
+	auth, httpClient, uploader, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(precalculatedDigest), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
+
+	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
+
+	// Notice the JSON is not uploaded if we are not in passfail mode - a client
+	// would need to call finalize first.
+	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Fail(t, "call not expected")
+		return nil, "", errors.New("not expected")
+	})
+
+	pass, err := goldClient.Test("first-test", "", precalculatedDigest, nil, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -388,7 +472,7 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	_, err = goldClient.Test("first-test", testImgPath, map[string]string{"empty": ""}, nil)
+	_, err = goldClient.Test("first-test", testImgPath, "", map[string]string{"empty": ""}, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid test config")
 }
@@ -509,7 +593,7 @@ func TestInitAddFinalize(t *testing.T) {
 		return imgData, firstHash, nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath, map[string]string{
+	pass, err := goldClient.Test("first-test", testImgPath, "", map[string]string{
 		"config": "canvas",
 	}, map[string]string{
 		"alpha_type": "Premul",
@@ -543,7 +627,7 @@ func TestInitAddFinalize(t *testing.T) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, secondHash, nil
 	})
-	pass, err = goldClient.Test("second-test", testImgPath, map[string]string{
+	pass, err = goldClient.Test("second-test", testImgPath, "", map[string]string{
 		"config": "svg",
 	}, nil)
 	assert.NoError(t, err)
@@ -640,7 +724,7 @@ func TestNewReportPassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test name has never been seen before
 	// (and the digest is brand new)
@@ -721,7 +805,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 		"another_notch": "emeril",
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, extraKeys, nil)
+	pass, err := goldClient.Test(testName, testImgPath, "", extraKeys, nil)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -797,7 +881,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 		"another_notch": "emeril",
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, extraKeys, nil)
+	pass, err := goldClient.Test(testName, testImgPath, "", extraKeys, nil)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -937,7 +1021,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 		string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, extraKeys, optionalKeys)
+	pass, err := goldClient.Test(testName, testImgPath, "", extraKeys, optionalKeys)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -980,13 +1064,13 @@ func TestNegativePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
 
 	// Run it again to make sure the failure log isn't truncated
-	pass, err = goldClient.Test(testName, testImgPath, nil, nil)
+	pass, err = goldClient.Test(testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
@@ -1035,7 +1119,7 @@ func TestPositivePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns true because this test has been seen before and the digest was
 	// previously triaged positive.

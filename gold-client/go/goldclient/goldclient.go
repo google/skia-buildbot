@@ -58,7 +58,9 @@ type GoldClient interface {
 	// Test adds a test result to the current test run.
 	//
 	// The provided image will be uploaded to GCS if the hash of its pixels has not been seen before.
-	// Using auth.SetDryRun(true) can prevent this.
+	// Using auth.SetDryRun(true) can prevent this. If imgDigest is provided, that hash will
+	// override the built-in hashing. If imgDigest is provided and imgFileName is not, it is assumed
+	// that the image has already been uploaded to GCS.
 	//
 	// additionalKeys is an optional set of key/value pairs that apply to only this test. This is
 	// typically a small amount of data (and can be nil). If there are many keys, they are likely
@@ -77,7 +79,7 @@ type GoldClient interface {
 	// will return true.
 	//
 	// An error is only returned if there was a technical problem in processing the test.
-	Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error)
+	Test(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error)
 
 	// Check operates similarly to Test, except it does not persist anything about the call. That is,
 	// the image will not be uploaded to Gold, only compared against the baseline.
@@ -302,8 +304,8 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 }
 
 // Test implements the GoldClient interface.
-func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error) {
-	if res, err := c.addTest(name, imgFileName, additionalKeys, optionalKeys); err != nil {
+func (c *CloudClient) Test(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
+	if res, err := c.addTest(name, imgFileName, imgDigest, additionalKeys, optionalKeys); err != nil {
 		return false, err
 	} else {
 		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
@@ -312,7 +314,7 @@ func (c *CloudClient) Test(name types.TestName, imgFileName string, additionalKe
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *CloudClient) addTest(name types.TestName, imgFileName string, additionalKeys, optionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
 	if err := c.isReady(); err != nil {
 		return false, skerr.Wrapf(err, "gold client not ready")
 	}
@@ -323,30 +325,39 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 		return false, skerr.Wrapf(err, "retrieving uploader")
 	}
 
-	// Load the PNG from disk and hash it.
-	imgBytes, imgHash, err := c.loadAndHashImage(imgFileName)
-	if err != nil {
-		return false, skerr.Wrap(err)
+	var imgBytes []byte
+	if imgFileName != "" {
+		// Load the PNG from disk and hash it.
+		b, imgHash, err := c.loadAndHashImage(imgFileName)
+		if err != nil {
+			return false, skerr.Wrap(err)
+		}
+		imgBytes = b
+		// If a digest has been supplied, we'll use that. Otherwise, we'll use the hash we computed
+		// ourselves when loading the image.
+		if imgDigest == "" {
+			imgDigest = imgHash
+		}
 	}
 
 	// Add the result of this test.
-	traceId := c.addResult(name, imgHash, additionalKeys, optionalKeys)
+	traceId := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
 	if err := c.resultState.SharedConfig.Validate(false); err != nil {
 		return false, skerr.Wrapf(err, "invalid test config")
 	}
 
-	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
+	fmt.Printf("Given image with hash %s for test %s\n", imgDigest, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
 		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	var egroup errgroup.Group
 	// Check against known hashes and upload if needed.
-	if !c.resultState.KnownHashes[imgHash] {
+	if !c.resultState.KnownHashes[imgDigest] && imgBytes != nil {
 		egroup.Go(func() error {
-			gcsImagePath := c.resultState.getGCSImagePath(imgHash)
+			gcsImagePath := c.resultState.getGCSImagePath(imgDigest)
 			if err := uploader.UploadBytes(context.TODO(), imgBytes, imgFileName, gcsImagePath); err != nil {
 				return skerr.Fmt("Error uploading image %s to %s. Got: %s", imgFileName, gcsImagePath, err)
 			}
@@ -362,7 +373,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 		})
 
 		egroup.Go(func() error {
-			match, algorithmName, err := c.matchImageAgainstBaseline(name, traceId, imgBytes, imgHash, optionalKeys)
+			match, algorithmName, err := c.matchImageAgainstBaseline(name, traceId, imgBytes, imgDigest, optionalKeys)
 			if err != nil {
 				return skerr.Wrapf(err, "matching image against baseline")
 			}
@@ -371,15 +382,15 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 			// If the image is untriaged, but matches the latest positive digest in its baseline via the
 			// specified non-exact image matching algorithm, then triage the image as positive.
 			if match && algorithmName != imgmatching.ExactMatching {
-				sklog.Infof("Triaging digest %q for test %q as positive (algorithm name: %q)", imgHash, name, algorithmName)
-				err = c.TriageAsPositive(name, imgHash, string(algorithmName))
+				sklog.Infof("Triaging digest %q for test %q as positive (algorithm name: %q)", imgDigest, name, algorithmName)
+				err = c.TriageAsPositive(name, imgDigest, string(algorithmName))
 				if err != nil {
-					return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgHash, name, algorithmName)
+					return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgDigest, name, algorithmName)
 				}
 			}
 
 			if !match {
-				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgHash)
+				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgDigest)
 				if c.resultState.SharedConfig.ChangeListID != "" {
 					link += "&issue=" + c.resultState.SharedConfig.ChangeListID
 				}
@@ -473,6 +484,11 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	// known positive.
 	if algorithmName == imgmatching.ExactMatching {
 		return false, algorithmName, nil
+	}
+
+	// This can happen if a user supplied just the hash and not the image itself.
+	if len(imageBytes) == 0 {
+		return false, "", skerr.Fmt("Must supply the image if using a non-exact matching algorithm")
 	}
 
 	// Decode test output PNG image.
