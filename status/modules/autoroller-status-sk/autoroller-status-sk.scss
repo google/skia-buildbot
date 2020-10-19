@@ -1,59 +1,10 @@
 @import '../styles.scss';
 
 autoroller-status-sk {
-  .table {
-    background-color: var(--surface);
-    color: var(--on-surface);
-    display: table;
-    border-collapse: collapse;
-  }
-
-  .tr {
-    display: table-row;
-    border-bottom: 1px solid var(--grey-200);
-  }
-
   .tr.roller:hover {
     background-color: var(--primary);
     color: var(--on-primary);
     fill: var(--on-primary);
-  }
-
-  .td,
-  .th {
-    display: table-cell;
-    padding: 10px;
-  }
-
-  .td {
-    font-size: 0.813em;
-    vertical-align: middle;
-  }
-
-  .th {
-    font-size: 0.75em;
-  }
-
-  .number {
-    text-align: right;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
-
-  .td {
-    font-size: 1em;
-    padding: 6px;
-  }
-
-  .th {
-    padding: 8px;
   }
 
   // Remove the alpha from the failure color to make it pop.

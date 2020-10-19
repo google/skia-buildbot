@@ -3,7 +3,8 @@ import { StatusSk } from './status-sk';
 
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
-import { $, $$ } from 'common-sk/modules/dom';
+import { $$ } from 'common-sk/modules/dom';
+import { AlertsStatus } from '../../../perf/modules/json/index';
 import { incrementalResponse0, SetupMocks } from '../rpc-mock';
 import fetchMock from 'fetch-mock';
 import { SetTestSettings } from '../settings';
@@ -24,6 +25,7 @@ describe('status-sk', () => {
       ]),
     });
     fetchMock.getOnce('path:/loginstatus/', {});
+    fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{ alerts: 5 });
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');
     element = newInstance();
