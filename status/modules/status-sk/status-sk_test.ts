@@ -24,6 +24,7 @@ describe('status-sk', () => {
       ]),
     });
     fetchMock.getOnce('path:/loginstatus/', {});
+    fetchMock.getOnce('https://perf.skia.org/_/alerts/', { alerts: 5 });
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');
     element = newInstance();

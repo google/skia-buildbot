@@ -30,6 +30,47 @@ html {
   background-color: var(--unexpected-alpha);
 }
 
+.table {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  display: table;
+  border-collapse: collapse;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+.tr {
+  display: table-row;
+  border-bottom: 1px solid var(--grey-200);
+}
+
+.td,
+.th {
+  display: table-cell;
+}
+
+.td {
+  vertical-align: middle;
+  font-size: 1em;
+  padding: 6px;
+}
+
+.th {
+  font-size: 0.75em;
+  padding: 8px;
+}
+
+.number {
+  text-align: right;
+}
+
 :root {
   --primary: var(--light-green-700);
   // TODO(westont): Move to named colors, unify theme.
