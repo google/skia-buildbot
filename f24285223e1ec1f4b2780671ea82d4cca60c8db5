@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6f6b0297_02c3e2df",
+        "filename": "perf/go/trybot/results/results.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-19T18:58:48Z",
+      "side": 1,
+      "message": "I\u0027ve consistently used \"trybot\", starting with the Design Doc, while acknowledging our naming will never be universal, as these are called \"Checks\" in GitHub.",
+      "parentUuid": "0c96d088_8d3bf1e9",
+      "range": {
+        "startLine": 3,
+        "startChar": 35,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "f24285223e1ec1f4b2780671ea82d4cca60c8db5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c1b44a74_a92f2722",
@@ -37,6 +61,24 @@
       "writtenOn": "2020-10-19T18:46:31Z",
       "side": 1,
       "message": "nit: add docs for this function?",
+      "revId": "f24285223e1ec1f4b2780671ea82d4cca60c8db5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b769c166_da85b593",
+        "filename": "perf/go/trybot/results/results.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-19T18:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c1b44a74_a92f2722",
       "revId": "f24285223e1ec1f4b2780671ea82d4cca60c8db5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
