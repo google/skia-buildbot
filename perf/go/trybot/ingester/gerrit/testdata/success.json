@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "git_hash": "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
+  "issue": "327697",
+  "patchset": "1",
+  "key": {
+    "arch": "x86",
+    "branch": "some-branch-name",
+    "config": "meta",
+    "gpu": "GTX660",
+    "model": "ShuttleA",
+    "os": "Ubuntu12",
+    "system": "UNIX"
+  },
+  "results": [
+    {
+      "key": {
+        "test": "memory_usage_0_0",
+        "sub_result": "max_rss_mb"
+      },
+      "measurement": 858
+    },
+    {
+      "key": {
+        "test": "DeferredSurfaceCopy_discardable_640_480",
+        "source_type": "bench",
+        "sub_result": "min_ms"
+      },
+      "measurements": {
+        "config": [
+          {
+            "value": "8888",
+            "measurement": 2.223606
+          },
+          {
+            "value": "565",
+            "measurement": 2.215988
+          },
+          {
+            "value": "gpu",
+            "measurement": 0.115713274509804
+          }
+        ]
+      }
+    }
+  ]
+}

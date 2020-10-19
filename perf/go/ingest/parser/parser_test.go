@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const goodBranchName = "some-branch-name"
@@ -136,7 +137,7 @@ func parse_Success(t *testing.T, p *Parser, f file.File) {
 func parseTryBot_Success(t *testing.T, p *Parser, f file.File) {
 	cl, patch, err := p.ParseTryBot(f)
 	require.NoError(t, err)
-	assert.Equal(t, "327697", cl)
+	assert.Equal(t, types.CL("327697"), cl)
 	assert.Equal(t, "1", patch)
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(0), p.parseFailCounter.Get())

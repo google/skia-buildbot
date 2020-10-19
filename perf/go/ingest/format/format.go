@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // FileFormatVersion is the version of this ingestion format.
@@ -120,7 +121,7 @@ type Format struct {
 	GitHash string `json:"git_hash"`
 
 	// Issue is the Changelist ID.
-	Issue string `json:"issue"`
+	Issue types.CL `json:"issue"`
 
 	// Patchset is the tryjob patch identifier. For Gerrit this is an integer
 	// serialized as a string.
