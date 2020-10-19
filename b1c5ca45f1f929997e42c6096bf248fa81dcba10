@@ -46,6 +46,30 @@
       },
       "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "825a73f3_6ca4efc4",
+        "filename": "status/modules/perf-status-sk/perf-status-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-19T17:41:07Z",
+      "side": 1,
+      "message": "You can\u0027t do \u003ca\u003e\u003ctr\u003e...\u003c/tr\u003e\u003c/a\u003e?",
+      "parentUuid": "587b0954_5e2147ed",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 23
+      },
+      "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
