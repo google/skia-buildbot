@@ -424,10 +424,6 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type alertsStatus struct {
-	Alerts int `json:"alerts"`
-}
-
 func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
 	count, err := f.regressionCount(r.Context(), defaultAlertCategory)
 	if err != nil {
@@ -436,7 +432,7 @@ func (f *Frontend) alertsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
-	resp := alertsStatus{
+	resp := alerts.AlertsStatus{
 		Alerts: count,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

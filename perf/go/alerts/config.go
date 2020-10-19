@@ -110,6 +110,10 @@ type Alert struct {
 	Category          string    `json:"category"   ` // Which category this alert falls into.
 }
 
+type AlertsStatus struct {
+	Alerts int `json:"alerts"`
+}
+
 // SetIDFromInt64 sets both the integer and string IDs.
 func (c *Alert) SetIDFromInt64(id int64) {
 	c.IDAsString = fmt.Sprintf("%d", id)
