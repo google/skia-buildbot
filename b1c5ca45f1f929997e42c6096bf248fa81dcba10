@@ -22,6 +22,30 @@
       },
       "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "587b0954_5e2147ed",
+        "filename": "status/modules/perf-status-sk/perf-status-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-19T17:34:50Z",
+      "side": 1,
+      "message": "So I can use table here, but not tr, or td. I use .tr to get row-mimicing \u003ca\u003es, and td isn\u0027t happy being under something that isn\u0027t a \u003ctr\u003e.  Since I\u0027m using .tr and .td already, going to keep .table for consistence.",
+      "parentUuid": "d29d57c4_07964859",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 23
+      },
+      "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
