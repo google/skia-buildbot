@@ -70,6 +70,30 @@
       },
       "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eebca3c5_f575da1e",
+        "filename": "status/modules/perf-status-sk/perf-status-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-19T18:19:02Z",
+      "side": 1,
+      "message": "That appears to be invalid.  I could alternatively make each \u003ctd\u003e contain an \u003ca\u003e, but thats gross too.",
+      "parentUuid": "825a73f3_6ca4efc4",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 23
+      },
+      "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
