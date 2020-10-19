@@ -119,6 +119,13 @@ type Format struct {
 	// GitHash of the repo when these tests were run.
 	GitHash string `json:"git_hash"`
 
+	// Issue is the Changelist ID.
+	Issue string `json:"issue"`
+
+	// Patchset is the tryjob patch identifier. For Gerrit this is an integer
+	// serialized as a string.
+	Patchset string `json:"patchset"`
+
 	// Key contains key=value pairs that are part of all trace ids.
 	Key map[string]string `json:"key"`
 
