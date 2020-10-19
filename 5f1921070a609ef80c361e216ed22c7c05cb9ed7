@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "aa6ea804_746c523a",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 753,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be1f0598_95bec65b",
+      "range": {
+        "startLine": 753,
+        "startChar": 38,
+        "endLine": 753,
+        "endChar": 54
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "78eab2ee_b0ed1909",
@@ -41,6 +65,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7ffb99d3_419f9b4b",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "78eab2ee_b0ed1909",
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8e694f38_ffdeac54",
@@ -54,6 +96,30 @@
       "writtenOn": "2020-10-19T11:38:47Z",
       "side": 1,
       "message": "nit: don\u0027t recompile the regex every time - do it once as a variable.",
+      "range": {
+        "startLine": 852,
+        "startChar": 15,
+        "endLine": 852,
+        "endChar": 54
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "064bbbb1_4d2d4b96",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "I inlined these because I found it aids in readability as I was writing (and now re-reading) this function. I\u0027ll extract them out if you feel strongly about it. Performance wise, I don\u0027t notice any changes in startup time.",
+      "parentUuid": "8e694f38_ffdeac54",
       "range": {
         "startLine": 852,
         "startChar": 15,
@@ -87,6 +153,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "777e5e4f_698eafce",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8754faca_7f87cdae",
+      "range": {
+        "startLine": 18,
+        "startChar": 70,
+        "endLine": 18,
+        "endChar": 94
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "840c29f6_046d7cc4",
@@ -100,6 +190,30 @@
       "writtenOn": "2020-10-19T11:38:47Z",
       "side": 1,
       "message": "I prefer assert here because if this error code is wrong, I\u0027ll probably want to see the response to (require immediately stops).",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 29,
+        "endChar": 9
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "25457bb3_084d6b4b",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "840c29f6_046d7cc4",
       "range": {
         "startLine": 29,
         "startChar": 2,
@@ -133,6 +247,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "41061d2b_43878099",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef50a498_87b14757",
+      "range": {
+        "startLine": 31,
+        "startChar": 2,
+        "endLine": 31,
+        "endChar": 49
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "480004da_cb82279c",
@@ -146,6 +284,24 @@
       "writtenOn": "2020-10-19T11:38:47Z",
       "side": 1,
       "message": "Add a comment explaining that the fake handler will return a string, which is used to assert it was called correctly.",
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c4bec2f7_ada4bf31",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-19T21:02:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "480004da_cb82279c",
       "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
