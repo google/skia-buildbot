@@ -118,34 +118,73 @@ const JSONToCancelJobResponse = (m: CancelJobResponseJSON): CancelJobResponse =>
 };
 
 export interface SearchJobsRequest {
-  repoState?: RepoState;
   buildbucketBuildId: number;
+  hasBuildbucketBuildId: boolean;
   isForce: boolean;
+  hasIsForce: boolean;
+  issue: string;
+  hasIssue: boolean;
   name: string;
+  hasName: boolean;
+  patchset: string;
+  hasPatchset: boolean;
+  repo: string;
+  hasRepo: boolean;
+  revision: string;
+  hasRevision: boolean;
   status: JobStatus;
+  hasStatus: boolean;
   timeStart?: string;
+  hasTimeStart: boolean;
   timeEnd?: string;
+  hasTimeEnd: boolean;
 }
 
 interface SearchJobsRequestJSON {
-  repo_state?: RepoStateJSON;
   buildbucket_build_id?: number;
+  has_buildbucket_build_id?: boolean;
   is_force?: boolean;
+  has_is_force?: boolean;
+  issue?: string;
+  has_issue?: boolean;
   name?: string;
+  has_name?: boolean;
+  patchset?: string;
+  has_patchset?: boolean;
+  repo?: string;
+  has_repo?: boolean;
+  revision?: string;
+  has_revision?: boolean;
   status?: string;
+  has_status?: boolean;
   time_start?: string;
+  has_time_start?: boolean;
   time_end?: string;
+  has_time_end?: boolean;
 }
 
 const SearchJobsRequestToJSON = (m: SearchJobsRequest): SearchJobsRequestJSON => {
   return {
-    repo_state: m.repoState && RepoStateToJSON(m.repoState),
     buildbucket_build_id: m.buildbucketBuildId,
+    has_buildbucket_build_id: m.hasBuildbucketBuildId,
     is_force: m.isForce,
+    has_is_force: m.hasIsForce,
+    issue: m.issue,
+    has_issue: m.hasIssue,
     name: m.name,
+    has_name: m.hasName,
+    patchset: m.patchset,
+    has_patchset: m.hasPatchset,
+    repo: m.repo,
+    has_repo: m.hasRepo,
+    revision: m.revision,
+    has_revision: m.hasRevision,
     status: m.status,
+    has_status: m.hasStatus,
     time_start: m.timeStart,
+    has_time_start: m.hasTimeStart,
     time_end: m.timeEnd,
+    has_time_end: m.hasTimeEnd,
   };
 };
 
@@ -195,28 +234,67 @@ const JSONToGetTaskResponse = (m: GetTaskResponseJSON): GetTaskResponse => {
 };
 
 export interface SearchTasksRequest {
-  taskKey?: TaskKey;
   attempt: number;
+  hasAttempt: boolean;
+  issue: string;
+  hasIssue: boolean;
+  name: string;
+  hasName: boolean;
+  patchset: string;
+  hasPatchset: boolean;
+  repo: string;
+  hasRepo: boolean;
+  revision: string;
+  hasRevision: boolean;
   status: TaskStatus;
+  hasStatus: boolean;
   timeStart?: string;
+  hasTimeStart: boolean;
   timeEnd?: string;
+  hasTimeEnd: boolean;
 }
 
 interface SearchTasksRequestJSON {
-  task_key?: TaskKeyJSON;
   attempt?: number;
+  has_attempt?: boolean;
+  issue?: string;
+  has_issue?: boolean;
+  name?: string;
+  has_name?: boolean;
+  patchset?: string;
+  has_patchset?: boolean;
+  repo?: string;
+  has_repo?: boolean;
+  revision?: string;
+  has_revision?: boolean;
   status?: string;
+  has_status?: boolean;
   time_start?: string;
+  has_time_start?: boolean;
   time_end?: string;
+  has_time_end?: boolean;
 }
 
 const SearchTasksRequestToJSON = (m: SearchTasksRequest): SearchTasksRequestJSON => {
   return {
-    task_key: m.taskKey && TaskKeyToJSON(m.taskKey),
     attempt: m.attempt,
+    has_attempt: m.hasAttempt,
+    issue: m.issue,
+    has_issue: m.hasIssue,
+    name: m.name,
+    has_name: m.hasName,
+    patchset: m.patchset,
+    has_patchset: m.hasPatchset,
+    repo: m.repo,
+    has_repo: m.hasRepo,
+    revision: m.revision,
+    has_revision: m.hasRevision,
     status: m.status,
+    has_status: m.hasStatus,
     time_start: m.timeStart,
+    has_time_start: m.hasTimeStart,
     time_end: m.timeEnd,
+    has_time_end: m.hasTimeEnd,
   };
 };
 
@@ -364,15 +442,6 @@ interface RepoState_PatchJSON {
   server?: string;
 }
 
-const RepoState_PatchToJSON = (m: RepoState_Patch): RepoState_PatchJSON => {
-  return {
-    issue: m.issue,
-    patch_repo: m.patchRepo,
-    patchset: m.patchset,
-    server: m.server,
-  };
-};
-
 const JSONToRepoState_Patch = (m: RepoState_PatchJSON): RepoState_Patch => {
   return {
     issue: m.issue || "",
@@ -394,14 +463,6 @@ interface RepoStateJSON {
   revision?: string;
 }
 
-const RepoStateToJSON = (m: RepoState): RepoStateJSON => {
-  return {
-    patch: m.patch && RepoState_PatchToJSON(m.patch),
-    repo: m.repo,
-    revision: m.revision,
-  };
-};
-
 const JSONToRepoState = (m: RepoStateJSON): RepoState => {
   return {
     patch: m.patch && JSONToRepoState_Patch(m.patch),
@@ -421,14 +482,6 @@ interface TaskKeyJSON {
   name?: string;
   forced_job_id?: string;
 }
-
-const TaskKeyToJSON = (m: TaskKey): TaskKeyJSON => {
-  return {
-    repo_state: m.repoState && RepoStateToJSON(m.repoState),
-    name: m.name,
-    forced_job_id: m.forcedJobId,
-  };
-};
 
 const JSONToTaskKey = (m: TaskKeyJSON): TaskKey => {
   return {
