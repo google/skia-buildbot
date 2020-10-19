@@ -91,7 +91,7 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 		taskSpecs[name] = &TaskSpec{
 			CipdPackages: []*CipdPackage{},
 			Dependencies: deps,
-			Dimensions:   []string{},
+			Dimensions:   []string{"os:whatever"},
 			Isolate:      "abc123",
 			Priority:     0.0,
 		}
