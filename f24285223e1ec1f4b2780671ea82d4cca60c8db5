@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c96d088_8d3bf1e9",
+        "filename": "perf/go/trybot/results/results.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T18:46:31Z",
+      "side": 1,
+      "message": "nit: TryBot is a leftover from buildbot. TryJob is the new lingo",
+      "range": {
+        "startLine": 3,
+        "startChar": 35,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "f24285223e1ec1f4b2780671ea82d4cca60c8db5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c1b44a74_a92f2722",
+        "filename": "perf/go/trybot/results/results.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T18:46:31Z",
+      "side": 1,
+      "message": "nit: add docs for this function?",
+      "revId": "f24285223e1ec1f4b2780671ea82d4cca60c8db5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
