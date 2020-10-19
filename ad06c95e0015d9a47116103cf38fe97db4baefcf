@@ -95,6 +95,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b92d2d1f_1c23c2fd",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-19T15:16:32Z",
+      "side": 1,
+      "message": "That sounds like a good idea for infra-sk, but probably out of scope for this change (and any individual change, sadly :/ )",
+      "parentUuid": "ffeed2db_ade49663",
+      "range": {
+        "startLine": 17,
+        "startChar": 22,
+        "endLine": 17,
+        "endChar": 41
+      },
+      "revId": "ad06c95e0015d9a47116103cf38fe97db4baefcf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b1d95aa6_57e7ef3a",
