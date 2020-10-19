@@ -22,6 +22,30 @@
       },
       "revId": "4f27dfce44a2650c527815e3ad62c4b595c2be32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d6a1d7a_0a6cd576",
+        "filename": "status/modules/gold-status-sk/gold-status-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-19T19:29:14Z",
+      "side": 1,
+      "message": "Done, Gold had something already, added a Perf thing earlier in the chain and cced you.",
+      "parentUuid": "014678b7_da66a411",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 35
+      },
+      "revId": "4f27dfce44a2650c527815e3ad62c4b595c2be32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
