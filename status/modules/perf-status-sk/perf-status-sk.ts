@@ -8,6 +8,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { AlertsStatus } from '../../../perf/modules/json';
 
 export class PerfStatusSk extends ElementSk {
@@ -44,6 +45,7 @@ export class PerfStatusSk extends ElementSk {
         this.resp = json;
         this._render();
       })
+      .catch(errorMessage)
       .finally(() => {
         window.setTimeout(() => this.refresh(), 60 * 1000);
       });

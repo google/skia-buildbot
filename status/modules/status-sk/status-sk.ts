@@ -13,6 +13,7 @@ import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../autoroller-status-sk';
 import '../commits-table-sk';
+import '../gold-status-sk';
 import '../navigation-sk';
 import '../perf-status-sk';
 import 'elements-sk/collapse-sk';
@@ -29,6 +30,7 @@ export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
   private autorollersOpen: boolean = true;
   private perfOpen: boolean = true;
+  private goldOpen: boolean = true;
   private static template = (el: StatusSk) =>
     html`
       <app-sk>
@@ -72,6 +74,23 @@ export class StatusSk extends ElementSk {
             </button>
             <collapse-sk>
               <perf-status-sk></perf-status-sk>
+            </collapse-sk>
+          </div>
+          <div>
+            <button
+              class="collapser"
+              @click=${(e: Event) => {
+                el.goldOpen = !el.goldOpen;
+                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+              }}
+            >
+              ${el.goldOpen
+                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              Gold
+            </button>
+            <collapse-sk>
+              <gold-status-sk></gold-status-sk>
             </collapse-sk>
           </div>
         </aside>

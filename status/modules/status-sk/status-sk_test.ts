@@ -8,6 +8,7 @@ import { AlertsStatus } from '../../../perf/modules/json/index';
 import { incrementalResponse0, SetupMocks } from '../rpc-mock';
 import fetchMock from 'fetch-mock';
 import { SetTestSettings } from '../settings';
+import { StatusResponse } from '../../../golden/modules/rpc_types';
 
 describe('status-sk', () => {
   const newInstance = setUpElementUnderTest<StatusSk>('status-sk');
@@ -26,6 +27,17 @@ describe('status-sk', () => {
     });
     fetchMock.getOnce('path:/loginstatus/', {});
     fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{ alerts: 5 });
+    fetchMock.getOnce('https://gold.skia.org/json/v1/trstatus', <StatusResponse>{
+      corpStatus: [
+        { name: 'canvaskit', untriagedCount: 0 },
+        { name: 'colorImage', untriagedCount: 0 },
+        { name: 'gm', untriagedCount: 13 },
+        { name: 'image', untriagedCount: 0 },
+        { name: 'pathkit', untriagedCount: 0 },
+        { name: 'skp', untriagedCount: 0 },
+        { name: 'svg', untriagedCount: 27 },
+      ],
+    });
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');
     element = newInstance();
