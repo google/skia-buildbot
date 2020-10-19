@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d29d57c4_07964859",
+        "filename": "status/modules/perf-status-sk/perf-status-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-19T14:36:46Z",
+      "side": 1,
+      "message": "We used to use `\u003cdiv class\u003d\"table\"` et al because `\u003ctable\u003e` didn\u0027t play nice with Polymer. I think you should be able to use plain `\u003ctable\u003e` here and `import \u0027elements-sk/styles/table\u0027;` if you want the styles.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 23
+      },
+      "revId": "b1c5ca45f1f929997e42c6096bf248fa81dcba10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
