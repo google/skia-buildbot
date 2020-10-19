@@ -3,6 +3,7 @@ import { getAutorollerStatusesResponse, incrementalResponse0, SetupMocks } from 
 import { $$ } from 'common-sk/modules/dom';
 import { SetTestSettings } from '../settings';
 import fetchMock from 'fetch-mock';
+import { GoldStatusResponse } from '../gold-status-sk/gold-status-sk';
 
 SetupMocks()
   .expectGetIncrementalCommits(incrementalResponse0)
@@ -18,6 +19,17 @@ SetTestSettings({
   ]),
 });
 fetchMock.getOnce('https://perf.skia.org/_/alerts/', { alerts: 5 });
+fetchMock.getOnce('https://gold.skia.org/json/v1/trstatus', <GoldStatusResponse>{
+  corpStatus: [
+    { name: 'canvaskit', untriagedCount: 0 },
+    { name: 'colorImage', untriagedCount: 0 },
+    { name: 'gm', untriagedCount: 13 },
+    { name: 'image', untriagedCount: 0 },
+    { name: 'pathkit', untriagedCount: 0 },
+    { name: 'skp', untriagedCount: 0 },
+    { name: 'svg', untriagedCount: 27 },
+  ],
+});
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
 (document.querySelector('#AllFilter') as HTMLElement).click();
