@@ -1,6 +1,8 @@
 {
   "version": 1,
   "git_hash": "fe4a4029a080bc955e9588d05a6cd9eb490845d4",
+  "issue": "327697",
+  "patchset": "1",
   "key": {
     "arch": "x86",
     "branch": "some-branch-name",

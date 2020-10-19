@@ -169,6 +169,7 @@ func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, 
 	b, err := ioutil.ReadAll(file.Contents)
 	sklog.Infof("Finished readall.")
 	if err != nil {
+		p.parseFailCounter.Inc(1)
 		return nil, nil, "", skerr.Wrap(err)
 	}
 	r := bytes.NewReader(b)
@@ -200,4 +201,39 @@ func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, 
 		return nil, nil, "", ErrFileShouldBeSkipped
 	}
 	return params, values, hash, nil
+}
+
+// ParseTryBot extracts the issue and patch identifiers from the file.File.
+//
+// The issue and patch values are returned as strings. If either can be further
+// parsed as integers that will be done at a higher level.
+func (p *Parser) ParseTryBot(file file.File) (string, string, error) {
+	defer util.Close(file.Contents)
+	p.parseCounter.Inc(1)
+
+	// Read the whole content into bytes.Reader since we may take more than one
+	// pass at the data.
+	b, err := ioutil.ReadAll(file.Contents)
+	if err != nil {
+		p.parseFailCounter.Inc(1)
+		return "", "", skerr.Wrap(err)
+	}
+	r := bytes.NewReader(b)
+
+	parsed, err := format.Parse(r)
+	if err != nil {
+		// Fallback to legacy format.
+		if _, err := r.Seek(0, io.SeekStart); err != nil {
+			p.parseFailCounter.Inc(1)
+			return "", "", skerr.Wrap(err)
+		}
+		benchData, err := format.ParseLegacyFormat(r)
+		if err != nil {
+			p.parseFailCounter.Inc(1)
+			return "", "", skerr.Wrap(err)
+		}
+		return benchData.Issue, benchData.PatchSet, nil
+	}
+	return parsed.Issue, parsed.Patchset, nil
+
 }
