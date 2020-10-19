@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "be1f0598_95bec65b",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 753,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "Let\u0027s move this to be the first param and the handler function second. When I\u0027m investigating why RPC calls work a certain way, those are what I want to see. Move jsonRouter and pathPrefix to the end. If it\u0027s the same for all of them, then make a local helper function to \"curry\" those params.",
+      "range": {
+        "startLine": 753,
+        "startChar": 38,
+        "endLine": 753,
+        "endChar": 54
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "78eab2ee_b0ed1909",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "You should mention the myriad of ways this function can (realistically) panic.\n\nThat or have this return an error and the local helper versions from above catch the error and panic.",
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8e694f38_ffdeac54",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "nit: don\u0027t recompile the regex every time - do it once as a variable.",
+      "range": {
+        "startLine": 852,
+        "startChar": 15,
+        "endLine": 852,
+        "endChar": 54
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8754faca_7f87cdae",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "suggested name: callCountMetric",
+      "range": {
+        "startLine": 18,
+        "startChar": 70,
+        "endLine": 18,
+        "endChar": 94
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "840c29f6_046d7cc4",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "I prefer assert here because if this error code is wrong, I\u0027ll probably want to see the response to (require immediately stops).",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 29,
+        "endChar": 9
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ef50a498_87b14757",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "Isn\u0027t counterAfter always 1? If so, let\u0027s assert that it is 1, to be more clear. You could also reset the counter each time to make sure, if you prefer.",
+      "range": {
+        "startLine": 31,
+        "startChar": 2,
+        "endLine": 31,
+        "endChar": 49
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "480004da_cb82279c",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-19T11:38:47Z",
+      "side": 1,
+      "message": "Add a comment explaining that the fake handler will return a string, which is used to assert it was called correctly.",
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
