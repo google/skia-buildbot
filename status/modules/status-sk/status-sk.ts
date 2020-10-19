@@ -14,6 +14,7 @@ import '../../../infra-sk/modules/login-sk';
 import '../autoroller-status-sk';
 import '../commits-table-sk';
 import '../navigation-sk';
+import '../perf-status-sk';
 import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
@@ -27,6 +28,7 @@ function collapsableTemplate(content: TemplateResult): TemplateResult {
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
   private autorollersOpen: boolean = true;
+  private perfOpen: boolean = true;
   private static template = (el: StatusSk) =>
     html`
       <app-sk>
@@ -53,6 +55,23 @@ export class StatusSk extends ElementSk {
             </button>
             <collapse-sk>
               <autoroller-status-sk></autoroller-status-sk>
+            </collapse-sk>
+          </div>
+          <div>
+            <button
+              class="collapser"
+              @click=${(e: Event) => {
+                el.perfOpen = !el.perfOpen;
+                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+              }}
+            >
+              ${el.perfOpen
+                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              Perf
+            </button>
+            <collapse-sk>
+              <perf-status-sk></perf-status-sk>
             </collapse-sk>
           </div>
         </aside>
