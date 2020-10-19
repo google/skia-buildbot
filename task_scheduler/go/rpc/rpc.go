@@ -181,41 +181,49 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, err
 	}
-	bbid := int64(req.BuildbucketBuildId)
-	status := types.JobStatus("")
-	switch req.Status {
-	case JobStatus_JOB_STATUS_IN_PROGRESS:
-		status = types.JOB_STATUS_IN_PROGRESS
-	case JobStatus_JOB_STATUS_SUCCESS:
-		status = types.JOB_STATUS_IN_PROGRESS
-	case JobStatus_JOB_STATUS_FAILURE:
-		status = types.JOB_STATUS_FAILURE
-	case JobStatus_JOB_STATUS_MISHAP:
-		status = types.JOB_STATUS_MISHAP
-	case JobStatus_JOB_STATUS_CANCELED:
-		status = types.JOB_STATUS_CANCELED
+	params := &db.JobSearchParams{}
+	if req.HasBuildbucketBuildId {
+		params.BuildbucketBuildID = intPtr(req.BuildbucketBuildId)
 	}
-	params := &db.JobSearchParams{
-		BuildbucketBuildId: &bbid,
-		IsForce:            &req.IsForce,
-		Name:               req.Name,
-		Status:             status,
-		TimeStart:          req.TimeStart.AsTime(),
-		TimeEnd:            req.TimeEnd.AsTime(),
+	if req.HasIsForce {
+		params.IsForce = boolPtr(req.IsForce)
 	}
-	if req.RepoState != nil {
-		params.RepoState = types.RepoState{
-			Repo:     req.RepoState.Repo,
-			Revision: req.RepoState.Revision,
+	if req.HasIssue {
+		params.Issue = stringPtr(req.Issue)
+	}
+	if req.HasName {
+		params.Name = stringPtr(req.Name)
+	}
+	if req.HasPatchset {
+		params.Patchset = stringPtr(req.Patchset)
+	}
+	if req.HasRepo {
+		params.Repo = stringPtr(req.Repo)
+	}
+	if req.HasRevision {
+		params.Revision = stringPtr(req.Revision)
+	}
+	if req.HasStatus {
+		status := types.JobStatus("")
+		switch req.Status {
+		case JobStatus_JOB_STATUS_IN_PROGRESS:
+			status = types.JOB_STATUS_IN_PROGRESS
+		case JobStatus_JOB_STATUS_SUCCESS:
+			status = types.JOB_STATUS_IN_PROGRESS
+		case JobStatus_JOB_STATUS_FAILURE:
+			status = types.JOB_STATUS_FAILURE
+		case JobStatus_JOB_STATUS_MISHAP:
+			status = types.JOB_STATUS_MISHAP
+		case JobStatus_JOB_STATUS_CANCELED:
+			status = types.JOB_STATUS_CANCELED
 		}
-		if req.RepoState.Patch != nil {
-			params.RepoState.Patch = types.Patch{
-				Issue:     req.RepoState.Patch.Issue,
-				PatchRepo: req.RepoState.Patch.PatchRepo,
-				Patchset:  req.RepoState.Patch.Patchset,
-				Server:    req.RepoState.Patch.Server,
-			}
-		}
+		params.Status = (*types.JobStatus)(stringPtr(string(status)))
+	}
+	if req.HasTimeEnd {
+		params.TimeEnd = timePtr(req.TimeEnd.AsTime())
+	}
+	if req.HasTimeStart {
+		params.TimeStart = timePtr(req.TimeStart.AsTime())
 	}
 	results, err := db.SearchJobs(s.db, params)
 	if err != nil {
@@ -281,46 +289,48 @@ func (s *taskSchedulerServiceImpl) SearchTasks(ctx context.Context, req *SearchT
 	if _, err := s.GetViewer(ctx); err != nil {
 		return nil, err
 	}
-	attempt := int64(req.Attempt)
-	status := types.TaskStatus("")
-	switch req.Status {
-	case TaskStatus_TASK_STATUS_PENDING:
-		status = types.TASK_STATUS_PENDING
-	case TaskStatus_TASK_STATUS_RUNNING:
-		status = types.TASK_STATUS_RUNNING
-	case TaskStatus_TASK_STATUS_SUCCESS:
-		status = types.TASK_STATUS_SUCCESS
-	case TaskStatus_TASK_STATUS_FAILURE:
-		status = types.TASK_STATUS_FAILURE
-	case TaskStatus_TASK_STATUS_MISHAP:
-		status = types.TASK_STATUS_MISHAP
+	params := &db.TaskSearchParams{}
+	if req.HasAttempt {
+		params.Attempt = intPtr(int64(req.Attempt))
 	}
-	params := &db.TaskSearchParams{
-		Attempt:   &attempt, // TODO(borenet): nil vs empty?
-		Status:    status,
-		TimeStart: req.TimeStart.AsTime(),
-		TimeEnd:   req.TimeEnd.AsTime(),
+	if req.HasIssue {
+		params.Issue = stringPtr(req.Issue)
 	}
-	if req.TaskKey != nil {
-		params.TaskKey = types.TaskKey{
-			Name:        req.TaskKey.Name,
-			ForcedJobId: req.TaskKey.ForcedJobId,
+	if req.HasName {
+		params.Name = stringPtr(req.Name)
+	}
+	if req.HasPatchset {
+		params.Patchset = stringPtr(req.Patchset)
+	}
+	if req.HasRepo {
+		params.Repo = stringPtr(req.Repo)
+	}
+	if req.HasRevision {
+		params.Revision = stringPtr(req.Revision)
+	}
+	if req.HasStatus {
+		status := types.TaskStatus("")
+		switch req.Status {
+		case TaskStatus_TASK_STATUS_PENDING:
+			status = types.TASK_STATUS_PENDING
+		case TaskStatus_TASK_STATUS_RUNNING:
+			status = types.TASK_STATUS_RUNNING
+		case TaskStatus_TASK_STATUS_SUCCESS:
+			status = types.TASK_STATUS_SUCCESS
+		case TaskStatus_TASK_STATUS_FAILURE:
+			status = types.TASK_STATUS_FAILURE
+		case TaskStatus_TASK_STATUS_MISHAP:
+			status = types.TASK_STATUS_MISHAP
 		}
-		if req.TaskKey.RepoState != nil {
-			params.RepoState = types.RepoState{
-				Repo:     req.TaskKey.RepoState.Repo,
-				Revision: req.TaskKey.RepoState.Revision,
-			}
-			if req.TaskKey.RepoState.Patch != nil {
-				params.RepoState.Patch = types.Patch{
-					Issue:     req.TaskKey.RepoState.Patch.Issue,
-					PatchRepo: req.TaskKey.RepoState.Patch.PatchRepo,
-					Patchset:  req.TaskKey.RepoState.Patch.Patchset,
-					Server:    req.TaskKey.RepoState.Patch.Server,
-				}
-			}
-		}
+		params.Status = (*types.TaskStatus)(stringPtr(string(status)))
 	}
+	if req.HasTimeEnd {
+		params.TimeEnd = timePtr(req.TimeEnd.AsTime())
+	}
+	if req.HasTimeStart {
+		params.TimeStart = timePtr(req.TimeStart.AsTime())
+	}
+
 	results, err := db.SearchTasks(s.db, params)
 	if err != nil {
 		sklog.Error(err)
@@ -577,6 +587,27 @@ func convertJobs(jobs []*types.Job) ([]*Job, error) {
 		rv = append(rv, j)
 	}
 	return rv, nil
+}
+
+func stringPtr(s string) *string {
+	rv := new(string)
+	*rv = s
+	return rv
+}
+func intPtr(i int64) *int64 {
+	rv := new(int64)
+	*rv = i
+	return rv
+}
+func boolPtr(b bool) *bool {
+	rv := new(bool)
+	*rv = b
+	return rv
+}
+func timePtr(ts time.Time) *time.Time {
+	rv := new(time.Time)
+	*rv = ts
+	return rv
 }
 
 var _ TaskSchedulerService = &taskSchedulerServiceImpl{}
