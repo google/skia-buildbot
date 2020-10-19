@@ -20,99 +20,103 @@ func TestJobSearch(t *testing.T) {
 	j.Name = "Build-Win-Clang-x86_64-Debug-Vulkan"
 
 	emptyParams := func() *JobSearchParams {
+		start := now.Add(-1 * time.Hour)
+		end := now.Add(1 * time.Hour)
 		return &JobSearchParams{
-			TimeStart: now.Add(-1 * time.Hour),
-			TimeEnd:   now.Add(1 * time.Hour),
+			TimeStart: &start,
+			TimeEnd:   &end,
 		}
 	}
-	isForce := new(bool)
-	*isForce = j.IsForce
+	stringPtr := func(s string) *string {
+		rv := new(string)
+		*rv = s
+		return rv
+	}
+	intPtr := func(i int64) *int64 {
+		rv := new(int64)
+		*rv = i
+		return rv
+	}
+	boolPtr := func(b bool) *bool {
+		rv := new(bool)
+		*rv = b
+		return rv
+	}
+	timePtr := func(ts time.Time) *time.Time {
+		rv := new(time.Time)
+		*rv = ts
+		return rv
+	}
 	matchParams := func() *JobSearchParams {
 		return &JobSearchParams{
-			RepoState: types.RepoState{
-				Patch: types.Patch{
-					Issue:    j.Issue,
-					Patchset: j.Patchset,
-					Server:   j.Server,
-				},
-				Repo:     j.Repo,
-				Revision: j.Revision,
-			},
-			BuildbucketBuildId: &j.BuildbucketBuildId,
-			IsForce:            isForce,
-			Name:               j.Name,
-			Status:             j.Status,
-			TimeStart:          now.Add(-1 * time.Hour),
-			TimeEnd:            now.Add(1 * time.Hour),
+			Issue:              stringPtr(j.Issue),
+			Patchset:           stringPtr(j.Patchset),
+			Repo:               stringPtr(j.Repo),
+			Revision:           stringPtr(j.Revision),
+			BuildbucketBuildID: intPtr(j.BuildbucketBuildId),
+			IsForce:            boolPtr(j.IsForce),
+			Name:               stringPtr(j.Name),
+			Status:             (*types.JobStatus)(stringPtr(string(j.Status))),
+			TimeStart:          timePtr(now.Add(-1 * time.Hour)),
+			TimeEnd:            timePtr(now.Add(1 * time.Hour)),
 		}
 	}
 
 	checkMatches := func(p *JobSearchParams) {
-		jobs, err := matchJobs([]*types.Job{j}, p)
-		assert.NoError(t, err)
+		jobs := matchJobs([]*types.Job{j}, p)
 		assert.Equal(t, 1, len(jobs))
 		assertdeep.Equal(t, j, jobs[0])
 	}
 	checkNoMatch := func(p *JobSearchParams) {
-		jobs, err := matchJobs([]*types.Job{j}, p)
-		assert.NoError(t, err)
+		jobs := matchJobs([]*types.Job{j}, p)
 		assert.Equal(t, 0, len(jobs))
 	}
 
-	// Sanity check: both emptyParams and matchParams should match.
+	// Both emptyParams and matchParams should match.
 	checkMatches(matchParams())
 	checkMatches(emptyParams())
-	checkNoMatch(&JobSearchParams{})
+	checkMatches(&JobSearchParams{})
 
 	// Check each individual parameter.
 
 	// Issue
 	p := emptyParams()
-	p.Issue = j.Issue
+	p.Issue = stringPtr(j.Issue)
 	checkMatches(p)
 	p = matchParams()
-	p.Issue = "bogus"
+	p.Issue = stringPtr("bogus")
 	checkNoMatch(p)
 
 	// Patchset
 	p = emptyParams()
-	p.Patchset = j.Patchset
+	p.Patchset = stringPtr(j.Patchset)
 	checkMatches(p)
 	p = matchParams()
-	p.Patchset = "bogus"
-	checkNoMatch(p)
-
-	// Server
-	p = emptyParams()
-	p.Server = j.Server
-	checkMatches(p)
-	p = matchParams()
-	p.Server = "bogus"
+	p.Patchset = stringPtr("bogus")
 	checkNoMatch(p)
 
 	// Repo
 	p = emptyParams()
-	p.Repo = j.Repo
+	p.Repo = stringPtr(j.Repo)
 	checkMatches(p)
 	p = matchParams()
-	p.Repo = "bogus"
+	p.Repo = stringPtr("bogus")
 	checkNoMatch(p)
 
 	// Revision
 	p = emptyParams()
-	p.Revision = j.Revision
+	p.Revision = stringPtr(j.Revision)
 	checkMatches(p)
 	p = matchParams()
-	p.Revision = "bogus"
+	p.Revision = stringPtr("bogus")
 	checkNoMatch(p)
 
 	// BuildbucketBuildId
 	p = emptyParams()
-	p.BuildbucketBuildId = &j.BuildbucketBuildId
+	p.BuildbucketBuildID = intPtr(j.BuildbucketBuildId)
 	checkMatches(p)
 	p = matchParams()
-	v := int64(999991)
-	p.BuildbucketBuildId = &v
+	p.BuildbucketBuildID = intPtr(999991)
 	checkNoMatch(p)
 
 	// IsForce
@@ -128,46 +132,45 @@ func TestJobSearch(t *testing.T) {
 
 	// Name
 	p = emptyParams()
-	p.Name = j.Name
+	p.Name = stringPtr(j.Name)
 	checkMatches(p)
-	p.Name = j.Name[:3] + ".*"
+	p.Name = stringPtr(j.Name[:3] + ".*")
 	checkMatches(p)
 	p = matchParams()
-	p.Name = "bogus"
+	p.Name = stringPtr("bogus")
 	checkNoMatch(p)
 	p = matchParams()
-	p.Name = "^T.*"
+	p.Name = stringPtr("^T.*")
 	checkNoMatch(p)
-	p.Name = "((("
-	_, err := matchJobs([]*types.Job{}, p)
-	assert.EqualError(t, err, "error parsing regexp: missing closing ): `(((`")
+	p.Name = stringPtr("(((")
+	checkNoMatch(p)
 
 	// Status
 	p = emptyParams()
-	p.Status = j.Status
+	p.Status = (*types.JobStatus)(stringPtr(string(j.Status)))
 	checkMatches(p)
 	p = matchParams()
-	p.Status = "bogus"
+	p.Status = (*types.JobStatus)(stringPtr("bogus"))
 	checkNoMatch(p)
 
 	// Check time periods.
 
 	// Inclusive TimeStart.
 	p = matchParams()
-	p.TimeStart = j.Created
+	p.TimeStart = timePtr(j.Created)
 	checkMatches(p)
 
 	// j.Created just before p.TimeStart.
-	p.TimeStart = j.Created.Add(time.Millisecond)
+	p.TimeStart = timePtr(j.Created.Add(time.Millisecond))
 	checkNoMatch(p)
 
 	// Non-inclusive TimeEnd.
 	p = matchParams()
-	p.TimeEnd = j.Created
+	p.TimeEnd = timePtr(j.Created)
 	checkNoMatch(p)
 
 	// j.Created Just before TimeEnd.
-	p.TimeEnd = j.Created.Add(time.Millisecond)
+	p.TimeEnd = timePtr(j.Created.Add(time.Millisecond))
 	checkMatches(p)
 }
 

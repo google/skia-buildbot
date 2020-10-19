@@ -1,0 +1,39 @@
+@import '../colors';
+
+job-search-sk {
+  th {
+    opacity: inherit;
+  }
+
+  tr.searchTerms {
+    background: inherit;
+    border: 0px;
+  }
+
+  button {
+    cursor: pointer;
+    width: -webkit-fill-available;
+  }
+
+  button.cancel {
+    background-color: var(--color-canceled);
+  }
+
+  button.delete {
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+  }
+
+  button.search {
+    background-color: var(--secondary);
+    margin: 0px;
+  }
+
+  div.container {
+    background-color: var(--surface);
+    border: 1px solid #eeeeee;
+    margin: 5px;
+    padding: 10px;
+  }
+}

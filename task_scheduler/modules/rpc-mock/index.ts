@@ -64,11 +64,47 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
       job: job,
     });
   }
-  searchJobs(
-    searchJobsRequest: SearchJobsRequest
-  ): Promise<SearchJobsResponse> {
-    return new Promise((_, reject) => {
-      reject('not implemented');
+  searchJobs(req: SearchJobsRequest): Promise<SearchJobsResponse> {
+    console.log(req);
+    const results: Job[] = Object.values(this.jobs).filter((job: Job) => {
+      if (req.hasRepo && job.repoState?.repo != req.repo) {
+        return false;
+      } else if (req.hasRevision && job.repoState?.revision != req.revision) {
+        return false;
+      } else if (req.hasIssue && req.issue != job.repoState!.patch!.issue) {
+        return false;
+      } else if (
+        req.hasPatchset &&
+        req.patchset != job.repoState?.patch?.patchset
+      ) {
+        return false;
+      } else if (req.hasName && job.name != req.name) {
+        return false;
+      } else if (
+        req.hasBuildbucketBuildId &&
+        job.buildbucketBuildId != req.buildbucketBuildId
+      ) {
+        return false;
+      } else if (req.hasStatus && job.status != req.status) {
+        return false;
+      } else if (
+        req.hasTimeStart &&
+        new Date(job.createdAt!).getTime() <= new Date(req.timeStart!).getTime()
+      ) {
+        return false;
+      } else if (
+        req.hasTimeEnd &&
+        new Date(job.createdAt!).getTime() > new Date(req.timeEnd!).getTime()
+      ) {
+        return false;
+      } else if (req.hasIsForce && job.isForce != req.isForce) {
+        return false;
+      }
+      return true;
+    });
+    console.log(results);
+    return Promise.resolve({
+      jobs: results,
     });
   }
   getTask(getTaskRequest: GetTaskRequest): Promise<GetTaskResponse> {

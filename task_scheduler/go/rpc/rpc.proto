@@ -76,13 +76,26 @@ message CancelJobResponse {
 
 // SearchJobsRequest is a request to SearchJobs.
 message SearchJobsRequest {
-	RepoState repo_state = 1;
-	int64 buildbucket_build_id = 2; // TODO: Make optional.
-	bool is_force = 3; // TODO: Make optional.
-	string name = 4;
-	JobStatus status = 5; // TODO: Make optional.
-	google.protobuf.Timestamp time_start = 6;
-	google.protobuf.Timestamp time_end = 7;
+	int64 buildbucket_build_id = 1;
+	bool has_buildbucket_build_id = 2;
+	bool is_force = 3;
+	bool has_is_force = 4;
+	string issue = 5;
+	bool has_issue = 6;
+	string name = 7;
+	bool has_name = 8;
+	string patchset = 9;
+	bool has_patchset = 10;
+	string repo = 11;
+	bool has_repo = 12;
+	string revision = 13;
+	bool has_revision = 14;
+	JobStatus status = 15;
+	bool has_status = 16;
+	google.protobuf.Timestamp time_start = 17;
+	bool has_time_start = 18;
+	google.protobuf.Timestamp time_end = 19;
+	bool has_time_end = 20;
 }
 
 // SearchJobsRequest is a response returned by SearchJobs.
@@ -107,11 +120,24 @@ message GetTaskResponse {
 
 // SearchTasksRequest is a request to SearchTasks.
 message SearchTasksRequest {
-	TaskKey task_key = 1;
-	int32 attempt = 2; // TODO: Make optional.
-	TaskStatus status = 3;
-	google.protobuf.Timestamp time_start = 6;
-	google.protobuf.Timestamp time_end = 7;
+	int32 attempt = 1;
+	bool has_attempt = 2;
+	string issue = 3;
+	bool has_issue = 4;
+	string name = 5;
+	bool has_name = 6;
+	string patchset = 7;
+	bool has_patchset = 8;
+	string repo = 9;
+	bool has_repo = 10;
+	string revision = 11;
+	bool has_revision = 12;
+	TaskStatus status = 13;
+	bool has_status = 14;
+	google.protobuf.Timestamp time_start = 15;
+	bool has_time_start = 16;
+	google.protobuf.Timestamp time_end = 17;
+	bool has_time_end = 18;
 }
 
 // SearchTasksResponse is a response returned from SearchTasks.
@@ -174,7 +200,7 @@ message DeleteSkipTaskRuleResponse {
 	repeated SkipTaskRule rules = 1;
 }
 
-// RepoState encapsulates all of the parameters which define the state of a
+//  encapsulates all of the parameters which define the state of a
 // repo.
 message RepoState {
   // Patch describes a patch which may be applied to a code checkout.
@@ -322,7 +348,8 @@ message TaskSummary {
 	TaskStatus status = 4;
 	string swarming_task_id = 5;
 }
-
+ // TODO: Make optional.
+ // TODO: Make optional.
 // TaskSummaries groups TaskSummaries which have the same TaskSpec name.
 message TaskSummaries {
 	string name = 1;
@@ -395,7 +422,7 @@ message Job {
 	// priority is an indicator of the relative priority of this Job.
 	float priority = 10;
 
-	// repoState is the current state of the repository for this Job.
+	//  is the current state of the repository for this Job.
 	RepoState repo_state = 11;
 
 	// requested is the time at which this Job was requested. This is a
