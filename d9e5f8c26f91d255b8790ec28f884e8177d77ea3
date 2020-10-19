@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9dbfc76_9c1e7243",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-19T17:13:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15d34dd0_243097a5",
+      "range": {
+        "startLine": 143,
+        "startChar": 18,
+        "endLine": 147,
+        "endChar": 54
+      },
+      "revId": "d9e5f8c26f91d255b8790ec28f884e8177d77ea3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a0d873d1_9abe176f",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-19T15:16:32Z",
       "side": 1,
       "message": "maybe destructuring assignment here too.",
+      "range": {
+        "startLine": 279,
+        "startChar": 39,
+        "endLine": 279,
+        "endChar": 64
+      },
+      "revId": "d9e5f8c26f91d255b8790ec28f884e8177d77ea3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8187a891_41554acb",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-19T17:13:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0d873d1_9abe176f",
       "range": {
         "startLine": 279,
         "startChar": 39,

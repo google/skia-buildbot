@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7790249_95bbf435",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-19T17:13:31Z",
+      "side": 1,
+      "message": "Turns out stateReflector doesn\u0027t correctly initialize the state from the URL.  Rather than try to fix it in this CL, I just switched back to paramSet.",
+      "revId": "aff4a67d1528793a9842e0d1ef5c918bafa03915",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
