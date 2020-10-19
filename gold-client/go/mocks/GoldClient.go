@@ -103,20 +103,20 @@ func (_m *GoldClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 	return r0
 }
 
-// Test provides a mock function with given fields: name, imgFileName, additionalKeys, optionalKeys
-func (_m *GoldClient) Test(name types.TestName, imgFileName string, additionalKeys map[string]string, optionalKeys map[string]string) (bool, error) {
-	ret := _m.Called(name, imgFileName, additionalKeys, optionalKeys)
+// Test provides a mock function with given fields: name, imgFileName, imgDigest, additionalKeys, optionalKeys
+func (_m *GoldClient) Test(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys map[string]string, optionalKeys map[string]string) (bool, error) {
+	ret := _m.Called(name, imgFileName, imgDigest, additionalKeys, optionalKeys)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(types.TestName, string, map[string]string, map[string]string) bool); ok {
-		r0 = rf(name, imgFileName, additionalKeys, optionalKeys)
+	if rf, ok := ret.Get(0).(func(types.TestName, string, types.Digest, map[string]string, map[string]string) bool); ok {
+		r0 = rf(name, imgFileName, imgDigest, additionalKeys, optionalKeys)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(types.TestName, string, map[string]string, map[string]string) error); ok {
-		r1 = rf(name, imgFileName, additionalKeys, optionalKeys)
+	if rf, ok := ret.Get(1).(func(types.TestName, string, types.Digest, map[string]string, map[string]string) error); ok {
+		r1 = rf(name, imgFileName, imgDigest, additionalKeys, optionalKeys)
 	} else {
 		r1 = ret.Error(1)
 	}
