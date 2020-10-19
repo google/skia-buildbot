@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "014678b7_da66a411",
+        "filename": "status/modules/gold-status-sk/gold-status-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-19T18:36:55Z",
+      "side": 1,
+      "message": "Is it possible to go2ts (or Twirp) these?",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 35
+      },
+      "revId": "4f27dfce44a2650c527815e3ad62c4b595c2be32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
