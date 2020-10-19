@@ -5,6 +5,8 @@
 package results
 
 import (
+	"context"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
@@ -68,5 +70,5 @@ type TryBotResponse struct {
 // Loader returns the data for the given TryBotRequest.
 type Loader interface {
 	// Load the TryBot results for the given TryBotRequest.
-	Load(TryBotRequest) (TryBotResponse, error)
+	Load(context.Context, TryBotRequest, types.Progress) (TryBotResponse, error)
 }
