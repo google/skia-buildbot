@@ -24,6 +24,10 @@ export interface Alert {
 	category: string;
 }
 
+export interface AlertsStatus {
+	alerts: number;
+}
+
 export interface ValuePercent {
 	value: string;
 	percent: number;

@@ -38,6 +38,7 @@ func main() {
 	generator := go2ts.New()
 	err := generator.AddMultiple(generator,
 		alerts.Alert{},
+		alerts.AlertsStatus{},
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
 		dataframe.FrameRequest{},
