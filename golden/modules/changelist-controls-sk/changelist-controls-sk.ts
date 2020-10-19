@@ -37,7 +37,7 @@ export class ChangelistControlsSk extends ElementSk {
 
       <div class=inputs>
         <select @input=${ele._onSelectPS}>
-          ${ele._summary!.patch_sets!.map(
+          ${ele._summary.patch_sets?.map(
             (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`)}
         </select>
         <span class=spacer></span>
@@ -58,7 +58,7 @@ export class ChangelistControlsSk extends ElementSk {
       </div>
 
       <div class=tryjob-container>
-        ${ps!.try_jobs!.map((tj) => ChangelistControlsSk.tryJobTemplate(tj))}
+        ${ps?.try_jobs?.map((tj) => ChangelistControlsSk.tryJobTemplate(tj))}
       </div>
     `;
   };
