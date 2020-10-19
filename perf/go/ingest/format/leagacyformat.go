@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"go.skia.org/infra/perf/go/types"
 )
 
 // BenchResult represents a single test result.
@@ -25,7 +27,7 @@ type BenchResults map[string]BenchResult
 // other ingestion should use the FileFormat format.
 type BenchData struct {
 	Hash         string                  `json:"gitHash"`
-	Issue        string                  `json:"issue"`
+	Issue        types.CL                `json:"issue"`
 	PatchSet     string                  `json:"patchset"`
 	Source       string                  `json:"source"` // Where the data came from.
 	Key          map[string]string       `json:"key"`
