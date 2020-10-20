@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/perf/go/trybot"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // ListResult is returned from TryBotStore.List().
@@ -31,5 +32,5 @@ type TryBotStore interface {
 	List(ctx context.Context, since time.Time) ([]ListResult, error)
 
 	// Get all the results for a given cl and patch number.
-	Get(ctx context.Context, cl string, patch int) ([]GetResult, error)
+	Get(ctx context.Context, cl types.CL, patch int) ([]GetResult, error)
 }
