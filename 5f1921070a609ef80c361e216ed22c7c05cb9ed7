@@ -132,6 +132,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "2dcfaee1_f77cafcb",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-20T11:09:38Z",
+      "side": 1,
+      "message": "My primary concern is that this is not how we generally handle regexes and I\u0027d like to be consistent. Feel free to put it as a constant just above the declaration of this function, if you want to keep it close for inspection.\n\nOne other thing we tend to do with regexes is to name our subgroups (for self-documentation purposes). e.g. /json/v(?\u003cversion\u003e\\d+)/(?\u003crpc\u003e.+)",
+      "parentUuid": "064bbbb1_4d2d4b96",
+      "range": {
+        "startLine": 852,
+        "startChar": 15,
+        "endLine": 852,
+        "endChar": 54
+      },
+      "revId": "5f1921070a609ef80c361e216ed22c7c05cb9ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "8754faca_7f87cdae",
         "filename": "golden/cmd/skiacorrectness/skiacorrectness_test.go",
         "patchSetId": 13
