@@ -236,5 +236,4 @@ func (p *Parser) ParseTryBot(file file.File) (types.CL, string, error) {
 		return types.CL(benchData.Issue), benchData.PatchSet, nil
 	}
 	return parsed.Issue, parsed.Patchset, nil
-
 }
