@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aadfd66c_3c8cea30",
+        "filename": "infra-sk/modules/multi-input-sk/multi-input-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T14:11:41Z",
+      "side": 1,
+      "message": "border-radius: 4px;\nwould cover all these, right?",
+      "range": {
+        "startLine": 6,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 33
+      },
+      "revId": "f4e250e6d0cbce3e7d3cc1ddb62ec5132e571015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1968f559_725567a8",
+        "filename": "infra-sk/modules/multi-input-sk/multi-input-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T14:11:41Z",
+      "side": 1,
+      "message": "Short description, list the event, and remove what you don\u0027t use.",
+      "range": {
+        "startLine": 5,
+        "startChar": 3,
+        "endLine": 5,
+        "endChar": 7
+      },
+      "revId": "f4e250e6d0cbce3e7d3cc1ddb62ec5132e571015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2fe369bb_998efd74",
+        "filename": "infra-sk/modules/multi-input-sk/multi-input-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T14:11:41Z",
+      "side": 1,
+      "message": "nit: Here and below, the quotes around the event handlers are unnecessary, and seem odd (although it seems to work despite them)",
+      "range": {
+        "startLine": 25,
+        "startChar": 21,
+        "endLine": 25,
+        "endChar": 22
+      },
+      "revId": "f4e250e6d0cbce3e7d3cc1ddb62ec5132e571015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
