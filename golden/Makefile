@@ -50,12 +50,10 @@ node_modules: package.json
 
 .PHONY: frontend
 frontend:
-	cd frontend && $(MAKE) web
 	npx webpack-cli --mode=production
 
 .PHONY: frontend-debug
 frontend-debug:
-	cd frontend && $(MAKE) web
 	npx webpack-cli --mode=development
 
 .PHONY: serve
@@ -131,8 +129,6 @@ mocks:
 	go get github.com/vektra/mockery/...
 
 	go generate ./...
-
-include ../webtools/webtools.mk
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
