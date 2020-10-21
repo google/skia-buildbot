@@ -21,8 +21,19 @@ import {
   TriggerJobsRequest,
   TriggerJobsResponse,
 } from '../rpc';
-import { job1, task0, task1, task2, task3, task4, job2 } from './fake-data';
-import { JobStatus } from '../rpc/rpc';
+import {
+  job1,
+  task0,
+  task1,
+  task2,
+  task3,
+  task4,
+  job2,
+  skipRule1,
+  skipRule2,
+  skipRule3,
+} from './fake-data';
+import { JobStatus, SkipTaskRule } from '../rpc/rpc';
 
 export * from './fake-data';
 
@@ -43,6 +54,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
     [task4.id]: task4,
   };
   private jobID: number = 0;
+  private skipRules = [skipRule1, skipRule2, skipRule3];
 
   triggerJobs(
     triggerJobsRequest: TriggerJobsRequest
@@ -122,22 +134,26 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
   getSkipTaskRules(
     getSkipTaskRulesRequest: GetSkipTaskRulesRequest
   ): Promise<GetSkipTaskRulesResponse> {
-    return new Promise((_, reject) => {
-      reject('not implemented');
-    });
+    return Promise.resolve({ rules: this.skipRules.slice() });
   }
   addSkipTaskRule(
     addSkipTaskRuleRequest: AddSkipTaskRuleRequest
   ): Promise<AddSkipTaskRuleResponse> {
-    return new Promise((_, reject) => {
-      reject('not implemented');
+    this.skipRules.push({
+      addedBy: 'you@google.com',
+      taskSpecPatterns: addSkipTaskRuleRequest.taskSpecPatterns,
+      commits: addSkipTaskRuleRequest.commits,
+      description: addSkipTaskRuleRequest.description,
+      name: addSkipTaskRuleRequest.name,
     });
+    return Promise.resolve({ rules: this.skipRules.slice() });
   }
   deleteSkipTaskRule(
     deleteSkipTaskRuleRequest: DeleteSkipTaskRuleRequest
   ): Promise<DeleteSkipTaskRuleResponse> {
-    return new Promise((_, reject) => {
-      reject('not implemented');
-    });
+    this.skipRules = this.skipRules.filter(
+      (rule: SkipTaskRule) => rule.name != deleteSkipTaskRuleRequest.id
+    );
+    return Promise.resolve({ rules: this.skipRules.slice() });
   }
 }

@@ -1,5 +1,5 @@
 import { Job, Task } from '../rpc';
-import { TaskStatus, JobStatus, RepoState } from '../rpc/rpc';
+import { TaskStatus, JobStatus, RepoState, SkipTaskRule } from '../rpc/rpc';
 
 export const job1ID = 'aYwjrLWysQRUW2lGFQvR';
 export const job2ID = 'bYwjrLWysQRUW2lGFQvX';
@@ -378,4 +378,26 @@ export const job2: Job = {
       ],
     },
   ],
+};
+
+export const skipRule1: SkipTaskRule = {
+  addedBy: 'you@google.com',
+  taskSpecPatterns: ['Test-.*', 'Perf-.*'],
+  commits: ['abc123'],
+  description: 'Skip all test and perf tasks at abc123',
+  name: 'No test/perf @ abc',
+};
+
+export const skipRule2: SkipTaskRule = {
+  addedBy: 'me@google.com',
+  commits: ['def456'],
+  description: 'Skip everything at def456',
+  name: 'def456 is bad',
+};
+
+export const skipRule3: SkipTaskRule = {
+  addedBy: 'you@google.com',
+  taskSpecPatterns: ['BadTask'],
+  description: 'Skip all BadTasks at every commit',
+  name: 'BadTask is bad!',
 };
