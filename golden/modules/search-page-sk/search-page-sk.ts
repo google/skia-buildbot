@@ -76,11 +76,6 @@ export class SearchPageSk extends ElementSk {
                           @search-controls-sk-change=${el._onSearchControlsChange}>
       </search-controls-sk>
       <div class="buttons">
-        <p>
-          <a class="legacy-search-page" href="${el._getLegacySearchPageHref()}">
-            Back to the legacy search page
-          </a>
-        </p>
         <button class="bulk-triage" @click=${() => el._bulkTriageDialog?.showModal()}>
           Bulk Triage
         </button>
@@ -554,20 +549,6 @@ export class SearchPageSk extends ElementSk {
     if (this._selectedSearchResultIdx < 0) return null;
     return this.querySelector<HTMLElement>(
       `digest-details-sk:nth-child(${this._selectedSearchResultIdx + 1})`);
-  }
-
-  /**
-   * Returns a relative path to the legacy search page with the same parameters as this page.
-   *
-   * TODO(lovisolo): Remove after the legacy search page has been deleted.
-   */
-  private _getLegacySearchPageHref() {
-    const baseUrl = '/oldsearch';
-    // The legacy search page uses the same GET parameters as the /json/search endpoint, so we can
-    // reuse the logic to build a SearchRequest.
-    const searchRequest = this._makeSearchRequest();
-    const queryString = fromObject(searchRequest as any);
-    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   }
 }
 
