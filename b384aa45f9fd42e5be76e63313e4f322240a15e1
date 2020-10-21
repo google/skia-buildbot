@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "793bbe7d_de352b9c",
+        "filename": "bugs-central/bin/create-github-token-secret.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-21T20:20:12Z",
+      "side": 1,
+      "message": "Use kube/secrets for creating and storing the secrets and service accounts.",
+      "revId": "b384aa45f9fd42e5be76e63313e4f322240a15e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1146f612_cc0e6510",
+        "filename": "bugs-central/build_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-21T20:20:12Z",
+      "side": 1,
+      "message": "I\u0027ve been creating a directory called \u0027images\u0027 in the app dir and then have one directory for each image, and I put the Dockerfile and the release.sh file in that directory. See https://github.com/google/skia-buildbot/tree/master/machine/images for an example.",
+      "revId": "b384aa45f9fd42e5be76e63313e4f322240a15e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
