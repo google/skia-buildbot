@@ -1,0 +1,42 @@
+@import '~elements-sk/themes/themes';
+
+multi-input-sk {
+  .input-container {
+    border: 1px solid black;
+    border-radius: 4px;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 4px;
+    height: 24px;
+  }
+
+  .input-item {
+    background-color: var(--surface-1dp);
+    border-radius: 4px;
+    padding: 5px;
+    margin-right: 4px;
+    user-select: none;
+    white-space: nowrap;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    a {
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    close-icon-sk svg.icon-sk-svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  input {
+    border: none;
+    outline: none;
+    flex: 1;
+  }
+}
