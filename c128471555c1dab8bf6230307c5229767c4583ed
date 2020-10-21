@@ -16,6 +16,24 @@
       "message": "ping?",
       "revId": "c128471555c1dab8bf6230307c5229767c4583ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6e7082b_04ef3515",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T14:31:37Z",
+      "side": 1,
+      "message": "Puppeteer can\u0027t handle the double dependency of task-driver. (I believe Eric had to do some wierd stuff to get his original task-driver-sk to work with Polymer). So I won\u0027t be able to submit this until I remove the Polymer code.",
+      "parentUuid": "f6696fff_252eecf6",
+      "revId": "c128471555c1dab8bf6230307c5229767c4583ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
