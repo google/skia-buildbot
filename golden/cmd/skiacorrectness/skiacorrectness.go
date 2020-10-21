@@ -649,11 +649,6 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// Serve legacy static assets.
-	//
-	// TODO(lovisolo): Fold this and the below handlers to serve all static assets from /dist.
-	loggedRouter.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))
-
 	// Serve static assets (JS and CSS Webpack bundles, images, etc.).
 	//
 	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
