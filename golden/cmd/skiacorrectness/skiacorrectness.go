@@ -12,6 +12,8 @@ import (
 	"net/http/pprof"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -745,133 +747,150 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	// requested that doesn't exist. If we did this differently a call to a non-existing endpoint
 	// would be handled by the route that handles the returning the index template and make
 	// debugging confusing.
-	jsonRouter := router.PathPrefix("/json").Subrouter()
+	pathPrefix := "/json"
+	jsonRouter := router.PathPrefix(pathPrefix).Subrouter()
 
-	v1JSON := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
-		return versionedRPC(rpcRoute, "v1", handlerFunc, jsonRouter, false /*=isAuthenticated*/)
+	add := func(jsonRoute string, handlerFunc http.HandlerFunc, method string) {
+		addJSONRoute(jsonRoute, handlerFunc, jsonRouter, pathPrefix).Methods(method)
 	}
 
-	v2JSON := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
-		return versionedRPC(rpcRoute, "v2", handlerFunc, jsonRouter, false /*=isAuthenticated*/)
-	}
+	add("/json/byblame", handlers.ByBlameHandler, "GET")
+	add("/json/v1/byblame", handlers.ByBlameHandler, "GET")
+	add("/json/changelists", handlers.ChangeListsHandler, "GET")
+	add("/json/v1/changelists", handlers.ChangeListsHandler, "GET")
+	add("/json/clusterdiff", handlers.ClusterDiffHandler, "GET")
+	add("/json/v1/clusterdiff", handlers.ClusterDiffHandler, "GET")
+	add("/json/commits", handlers.CommitsHandler, "GET")
+	add("/json/v1/commits", handlers.CommitsHandler, "GET")
+	add("/json/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, "GET")
+	add("/json/v1/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, "GET")
+	add("/json/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, "GET")
+	add("/json/v1/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, "GET")
+	add("/json/details", handlers.DetailsHandler, "GET")
+	add("/json/v1/details", handlers.DetailsHandler, "GET")
+	add("/json/diff", handlers.DiffHandler, "GET")
+	add("/json/v1/diff", handlers.DiffHandler, "GET")
+	add("/json/digests", handlers.DigestListHandler, "GET")
+	add("/json/v1/digests", handlers.DigestListHandler, "GET")
+	add("/json/export", handlers.ExportHandler, "GET")
+	add("/json/v1/export", handlers.ExportHandler, "GET")
+	add("/json/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, "GET")
+	add("/json/v1/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, "GET")
+	add("/json/list", handlers.ListTestsHandler, "GET")
+	add("/json/v1/list", handlers.ListTestsHandler, "GET")
+	add("/json/paramset", handlers.ParamsHandler, "GET")
+	add("/json/v1/paramset", handlers.ParamsHandler, "GET")
+	add("/json/search", handlers.SearchHandler, "GET")
+	add("/json/v1/search", handlers.SearchHandler, "GET")
+	add("/json/triage", handlers.TriageHandler, "POST")
+	add("/json/v1/triage", handlers.TriageHandler, "POST")
+	add("/json/triagelog", handlers.TriageLogHandler, "GET")
+	add("/json/v1/triagelog", handlers.TriageLogHandler, "GET")
+	add("/json/triagelog/undo", handlers.TriageUndoHandler, "POST")
+	add("/json/v1/triagelog/undo", handlers.TriageUndoHandler, "POST")
+	add("/json/whoami", handlers.Whoami, "GET")
+	add("/json/v1/whoami", handlers.Whoami, "GET")
 
-	v0("/byblame", handlers.ByBlameHandler, jsonRouter).Methods("GET")
-	v1JSON("/byblame", handlers.ByBlameHandler).Methods("GET")
-	v0("/changelists", handlers.ChangeListsHandler, jsonRouter).Methods("GET")
-	v1JSON("/changelists", handlers.ChangeListsHandler).Methods("GET")
-	v0("/clusterdiff", handlers.ClusterDiffHandler, jsonRouter).Methods("GET")
-	v1JSON("/clusterdiff", handlers.ClusterDiffHandler).Methods("GET")
-	v0("/commits", handlers.CommitsHandler, jsonRouter).Methods("GET")
-	v1JSON("/commits", handlers.CommitsHandler).Methods("GET")
-	v0("/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, jsonRouter).Methods("GET")
-	v1JSON("/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName).Methods("GET")
-	v0("/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, jsonRouter).Methods("GET")
-	v1JSON("/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData).Methods("GET")
-	v0("/details", handlers.DetailsHandler, jsonRouter).Methods("GET")
-	v1JSON("/details", handlers.DetailsHandler).Methods("GET")
-	v0("/diff", handlers.DiffHandler, jsonRouter).Methods("GET")
-	v1JSON("/diff", handlers.DiffHandler).Methods("GET")
-	v0("/digests", handlers.DigestListHandler, jsonRouter).Methods("GET")
-	v1JSON("/digests", handlers.DigestListHandler).Methods("GET")
-	v0("/export", handlers.ExportHandler, jsonRouter).Methods("GET")
-	v1JSON("/export", handlers.ExportHandler).Methods("GET")
-	v0("/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, jsonRouter).Methods("GET")
-	v1JSON("/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler).Methods("GET")
-	v0("/list", handlers.ListTestsHandler, jsonRouter).Methods("GET")
-	v1JSON("/list", handlers.ListTestsHandler).Methods("GET")
-	v0("/paramset", handlers.ParamsHandler, jsonRouter).Methods("GET")
-	v1JSON("/paramset", handlers.ParamsHandler).Methods("GET")
-	v0("/search", handlers.SearchHandler, jsonRouter).Methods("GET")
-	v1JSON("/search", handlers.SearchHandler).Methods("GET")
-	v0("/triage", handlers.TriageHandler, jsonRouter).Methods("POST")
-	v1JSON("/triage", handlers.TriageHandler).Methods("POST")
-	v0("/triagelog", handlers.TriageLogHandler, jsonRouter).Methods("GET")
-	v1JSON("/triagelog", handlers.TriageLogHandler).Methods("GET")
-	v0("/triagelog/undo", handlers.TriageUndoHandler, jsonRouter).Methods("POST")
-	v1JSON("/triagelog/undo", handlers.TriageUndoHandler).Methods("POST")
-	v0("/whoami", handlers.Whoami, jsonRouter).Methods("GET")
-	v1JSON("/whoami", handlers.Whoami).Methods("GET")
-
-	// We trim the fulled shared route to fit the pattern of the rest of these routes.
-	trim := func(r string) string {
-		r = strings.TrimPrefix(r, "/json")
-		r = strings.TrimPrefix(r, "/v1")
-		r = strings.TrimPrefix(r, "/v2")
-		return r
-	}
 	// Routes shared with the baseline server. These usually don't see traffic because the envoy
 	// routing directs these requests to the baseline servers, if there are some.
-	v0(trim(shared.KnownHashesRoute), handlers.TextKnownHashesProxy, jsonRouter).Methods("GET")
-	v1JSON(trim(shared.KnownHashesRouteV1), handlers.TextKnownHashesProxy).Methods("GET")
+	add(shared.KnownHashesRoute, handlers.TextKnownHashesProxy, "GET")
+	add(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy, "GET")
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
-	v0(trim(shared.ExpectationsRoute), handlers.BaselineHandlerV1, jsonRouter).Methods("GET")
-	v1JSON(trim(shared.ExpectationsRouteV1), handlers.BaselineHandlerV1).Methods("GET")
-	v2JSON(trim(shared.ExpectationsRouteV2), handlers.BaselineHandlerV2).Methods("GET")
+	add(shared.ExpectationsRoute, handlers.BaselineHandlerV1, "GET")
+	add(shared.ExpectationsRouteV1, handlers.BaselineHandlerV1, "GET")
+	add(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2, "GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
-	v0(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandlerV1, jsonRouter).Methods("GET")
+	add(shared.ExpectationsLegacyRoute, handlers.BaselineHandlerV1, "GET")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.
 	if !fsc.IsPublicView {
-		v0("/ignores", handlers.ListIgnoreRules, jsonRouter).Methods("GET")
-		v1JSON("/ignores", handlers.ListIgnoreRules).Methods("GET")
-		v0("/ignores/add/", handlers.AddIgnoreRule, jsonRouter).Methods("POST")
-		v1JSON("/ignores/add/", handlers.AddIgnoreRule).Methods("POST")
-		v0("/ignores/del/{id}", handlers.DeleteIgnoreRule, jsonRouter).Methods("POST")
-		v1JSON("/ignores/del/{id}", handlers.DeleteIgnoreRule).Methods("POST")
-		v0("/ignores/save/{id}", handlers.UpdateIgnoreRule, jsonRouter).Methods("POST")
-		v1JSON("/ignores/save/{id}", handlers.UpdateIgnoreRule).Methods("POST")
+		add("/json/ignores", handlers.ListIgnoreRules, "GET")
+		add("/json/v1/ignores", handlers.ListIgnoreRules, "GET")
+		add("/json/ignores/add/", handlers.AddIgnoreRule, "POST")
+		add("/json/v1/ignores/add/", handlers.AddIgnoreRule, "POST")
+		add("/json/ignores/del/{id}", handlers.DeleteIgnoreRule, "POST")
+		add("/json/v1/ignores/del/{id}", handlers.DeleteIgnoreRule, "POST")
+		add("/json/ignores/save/{id}", handlers.UpdateIgnoreRule, "POST")
+		add("/json/v1/ignores/save/{id}", handlers.UpdateIgnoreRule, "POST")
 	}
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
 	jsonRouter.HandleFunc("/{ignore:.*}", http.NotFound)
-	router.HandleFunc("/json", http.NotFound)
+	router.HandleFunc(pathPrefix, http.NotFound)
 }
 
 // addUnauthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
 // that do not require authentication.
 func addUnauthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
-	v1Root := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
-		return versionedRPC(rpcRoute, "v1", handlerFunc, router, true /*=isAuthenticated*/)
+	add := func(jsonRoute string, handlerFunc http.HandlerFunc) {
+		addJSONRoute(jsonRoute, httputils.CorsHandler(handlerFunc), router, "").Methods("GET")
 	}
 
-	v0("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler), router).Methods("GET")
-	v1Root("/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
-	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), router).Methods("GET")
-	v1Root("/trstatus", httputils.CorsHandler(handlers.StatusHandler)).Methods("GET")
-	v0("/json/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler), router).Methods("GET")
-	v1Root("/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler)).Methods("GET")
+	add("/json/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangeListUntriagedHandler)
+	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangeListUntriagedHandler)
+	add("/json/trstatus", handlers.StatusHandler)
+	add("/json/v1/trstatus", handlers.StatusHandler)
+	add("/json/changelist/{system}/{id}", handlers.ChangeListSummaryHandler)
+	add("/json/v1/changelist/{system}/{id}", handlers.ChangeListSummaryHandler)
 }
 
-// v0 sets up a route on the given router with a wrapper to count the number of calls to the given
-// endpoint. A version zero route refers to the legacy, unversioned routes.
-func v0(rpcRoute string, handlerFunc http.HandlerFunc, router *mux.Router) *mux.Route {
-	counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
-		// For consistency, we remove the /json from all routes when adding them in the metrics.
-		"route":   strings.TrimPrefix(rpcRoute, "/json"),
-		"version": "v0",
-	})
-	return router.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
-		counter.Inc(1)
-		handlerFunc(w, r)
-	})
-}
+var (
+	unversionedRPCRegexp = regexp.MustCompile(`/json/(?P<path>.+)`)
+	versionedRPCRegexp   = regexp.MustCompile(`/json/v(?P<version>\d+)/(?P<path>.+)`)
+)
 
-// versionedRPC sets up a route on the given router with a wrapper to count the number of calls to
-// the given versioned endpoint. A versioned endpoint looks like /json/v1/what/ever.
-// rpcRoute is expected to be the part after /json (including a slash). If isUnauthenticated is
-// true, "/json" will be added as a prefix to the final route.
-func versionedRPC(rpcRoute, version string, handlerFunc http.HandlerFunc, router *mux.Router, isUnauthenticated bool) *mux.Route {
-	counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
-		"route":   rpcRoute,
-		"version": version,
-	})
-	fullRoute := "/" + version + rpcRoute
-	if isUnauthenticated {
-		fullRoute = "/json" + fullRoute
+// addJSONRoute adds a handler function to a router for the given JSON RPC route, which must be of
+// the form "/json/<path>" or "/json/v<n>/<path>", and increases a counter to track RPC and version
+// usage every time the RPC is invoked.
+//
+// If the given routerPathPrefix is non-empty, it will be removed from the JSON RPC route before the
+// handler function is added to the router (useful with subrouters for path prefixes, e.g. "/json").
+//
+// It panics if jsonRoute does not start with '/json', or if the routerPathPrefix is not a prefix of
+// the jsonRoute, or if the jsonRoute uses version 0 (e.g. /json/v0/foo), which is reserved for
+// unversioned RPCs.
+//
+// This function has been designed to take the full JSON RPC route as an argument, including the
+// RPC version number and the subrouter path prefix, if any (e.g. "/json/v2/my/rpc" vs. "/my/rpc").
+// This results in clearer code at the callsite because the reader can immediately see what the
+// final RPC route will look like from outside the HTTP server.
+func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Router, routerPathPrefix string) *mux.Route {
+	// Make sure the jsonRoute agrees with the router path prefix (which can be the empty string).
+	if !strings.HasPrefix(jsonRoute, routerPathPrefix) {
+		panic(fmt.Sprintf(`Prefix "%s" not found in JSON RPC route: %s`, routerPathPrefix, jsonRoute))
 	}
-	return router.HandleFunc(fullRoute, func(w http.ResponseWriter, r *http.Request) {
+
+	// Parse the JSON RPC route, which can be of the form "/json/v<n>/<path>" or "/json/<path>", and
+	// extract <path> and <n>, defaulting to 0 for the unversioned case.
+	var path string
+	version := 0 // Default value is used for unversioned JSON RPCs.
+	if matches := versionedRPCRegexp.FindStringSubmatch(jsonRoute); matches != nil {
+		var err error
+		version, err = strconv.Atoi(matches[versionedRPCRegexp.SubexpIndex("version")])
+		if err != nil {
+			// Should never happen.
+			panic("Failed to convert RPC version to integer (indicates a bug in the regexp): " + jsonRoute)
+		}
+		if version == 0 {
+			// Disallow /json/v0/* because we indicate unversioned RPCs with version 0.
+			panic("JSON RPC version cannot be 0: " + jsonRoute)
+		}
+		path = matches[versionedRPCRegexp.SubexpIndex("path")]
+	} else if matches := unversionedRPCRegexp.FindStringSubmatch(jsonRoute); matches != nil {
+		path = matches[unversionedRPCRegexp.SubexpIndex("path")]
+	} else {
+		// The path is neither a versioned nor an unversioned JSON RPC route. This is a coding error.
+		panic("Unrecognized JSON RPC route format: " + jsonRoute)
+	}
+
+	counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
+		"route":   "/" + path,
+		"version": fmt.Sprintf("v%d", version),
+	})
+
+	return router.HandleFunc(strings.TrimPrefix(jsonRoute, routerPathPrefix), func(w http.ResponseWriter, r *http.Request) {
 		counter.Inc(1)
 		handlerFunc(w, r)
 	})
