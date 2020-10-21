@@ -837,8 +837,8 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig,
 }
 
 var (
-	unversionedRPCRegexp = regexp.MustCompile(`/json/(?P<path>.+)`)
-	versionedRPCRegexp   = regexp.MustCompile(`/json/v(?P<version>\d+)/(?P<path>.+)`)
+	unversionedJSONRouteRegexp = regexp.MustCompile(`/json/(?P<path>.+)`)
+	versionedJSONRouteRegexp   = regexp.MustCompile(`/json/v(?P<version>\d+)/(?P<path>.+)`)
 )
 
 // addJSONRoute adds a handler function to a router for the given JSON RPC route, which must be of
@@ -866,9 +866,9 @@ func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Ro
 	// extract <path> and <n>, defaulting to 0 for the unversioned case.
 	var path string
 	version := 0 // Default value is used for unversioned JSON RPCs.
-	if matches := versionedRPCRegexp.FindStringSubmatch(jsonRoute); matches != nil {
+	if matches := versionedJSONRouteRegexp.FindStringSubmatch(jsonRoute); matches != nil {
 		var err error
-		version, err = strconv.Atoi(matches[versionedRPCRegexp.SubexpIndex("version")])
+		version, err = strconv.Atoi(matches[versionedJSONRouteRegexp.SubexpIndex("version")])
 		if err != nil {
 			// Should never happen.
 			panic("Failed to convert RPC version to integer (indicates a bug in the regexp): " + jsonRoute)
@@ -877,9 +877,9 @@ func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Ro
 			// Disallow /json/v0/* because we indicate unversioned RPCs with version 0.
 			panic("JSON RPC version cannot be 0: " + jsonRoute)
 		}
-		path = matches[versionedRPCRegexp.SubexpIndex("path")]
-	} else if matches := unversionedRPCRegexp.FindStringSubmatch(jsonRoute); matches != nil {
-		path = matches[unversionedRPCRegexp.SubexpIndex("path")]
+		path = matches[versionedJSONRouteRegexp.SubexpIndex("path")]
+	} else if matches := unversionedJSONRouteRegexp.FindStringSubmatch(jsonRoute); matches != nil {
+		path = matches[unversionedJSONRouteRegexp.SubexpIndex("path")]
 	} else {
 		// The path is neither a versioned nor an unversioned JSON RPC route. This is a coding error.
 		panic("Unrecognized JSON RPC route format: " + jsonRoute)
