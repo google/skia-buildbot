@@ -16,6 +16,7 @@ import '../commits-table-sk';
 import '../gold-status-sk';
 import '../navigation-sk';
 import '../perf-status-sk';
+import '../rotations-sk';
 import '../tree-status-sk';
 import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
@@ -23,12 +24,15 @@ import 'elements-sk/icon/expand-less-icon-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
 import { defaultRepo } from '../settings';
 import { TreeStatus } from '../tree-status-sk/tree-status-sk';
+import { $$ } from 'common-sk/modules/dom';
+import { RotationsSk } from '../rotations-sk/rotations-sk';
 
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
   private autorollersOpen: boolean = true;
   private perfOpen: boolean = true;
   private goldOpen: boolean = true;
+  private rotationsOpen: boolean = true;
   private static template = (el: StatusSk) =>
     html`
       <app-sk>
@@ -95,6 +99,23 @@ export class StatusSk extends ElementSk {
               <gold-status-sk></gold-status-sk>
             </collapse-sk>
           </div>
+          <div>
+            <button
+              class="collapser"
+              @click=${(e: Event) => {
+                el.rotationsOpen = !el.rotationsOpen;
+                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+              }}
+            >
+              ${el.rotationsOpen
+                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              Rotations
+            </button>
+            <collapse-sk>
+              <rotations-sk></rotations-sk>
+            </collapse-sk>
+          </div>
         </aside>
 
         <main>
@@ -130,6 +151,7 @@ export class StatusSk extends ElementSk {
   private updateTreeStatus(r: TreeStatus) {
     // We use css to style the header color based on state.
     this.setAttribute('state', r.status.general_state || '');
+    $$<RotationsSk>('rotations-sk', this)!.rotations = r.rotations;
   }
 }
 
