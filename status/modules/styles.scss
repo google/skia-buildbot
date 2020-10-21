@@ -20,6 +20,8 @@ html {
 
 .bg-failure {
   background-color: var(--failure-alpha);
+  color: var(--on-failure);
+  fill: var(--on-failure);
 }
 
 .bg-mishap {
@@ -82,6 +84,8 @@ html {
   --warning-alpha: var(--orange-a200);
   --failure: rgb(217, 95, 2);
   --failure-alpha: rgba(217, 95, 2, 0.3);
+  --on-failure: var(--black);
+  --on-warning: var(--black);
   --unexpected: rgb(117, 112, 179);
   --unexpected-alpha: rgba(117, 112, 179, 0.3);
   --disabled: var(--grey-500);
@@ -90,6 +94,7 @@ html {
   .darkmode {
     --success-alpha: rgba(102, 166, 30, 0.9);
     --failure-alpha: rgba(217, 95, 2, 0.9);
+    --on-failure: var(--white);
     --unexpected-alpha: rgba(117, 112, 179, 0.9);
     --disabled-alpha: rgba(117, 117, 117, 0.9);
   }
