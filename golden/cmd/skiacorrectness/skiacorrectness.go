@@ -649,14 +649,6 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 
-	// Serve static assets (JS and CSS Webpack bundles, images, etc.).
-	//
-	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
-	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
-	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
-	// assets such as the favicon).
-	loggedRouter.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))))
-
 	// Login endpoints.
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
@@ -665,6 +657,43 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	// JSON endpoints.
 	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers)
 	addUnauthenticatedJSONRoutes(rootRouter, fsc, handlers)
+
+	// Routes to serve the UI, static assets, etc.
+	addUIRoutes(loggedRouter, fsc, handlers)
+
+	// set up the app router that might be authenticated and logs almost everything.
+	appRouter := mux.NewRouter()
+	// Images should not be served gzipped, which can sometimes have issues
+	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
+	// given PNGs typically have zlib compression anyway.
+	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
+	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
+
+	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
+	// necessary it was requested via the force_login flag.
+	appHandler := http.Handler(appRouter)
+	if fsc.ForceLogin {
+		appHandler = login.ForceAuth(appRouter, callbackPath)
+	}
+
+	// The appHandler contains all application specific routes that are have logging and
+	// authentication configured. Now we wrap it into the router that is exposed to the host
+	// (aka the K8s container) which requires that some routes are never logged or authenticated.
+	rootRouter.PathPrefix("/").Handler(appHandler)
+
+	return rootRouter
+}
+
+// addUIRoutes adds the necessary routes to serve Gold's web pages and static assets such as JS and
+// CSS bundles, static images (digest and diff images are handled elsewhere), etc.
+func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+	// Serve static assets (JS and CSS Webpack bundles, images, etc.).
+	//
+	// Note that this includes the raw HTML templates (e.g. /dist/byblame.html) with unpopulated
+	// placeholders such as {{.Title}}. These aren't used directly by client code. We should probably
+	// unexpose them and only serve the JS/CSS Webpack bundles from this route (and any other static
+	// assets such as the favicon).
+	router.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(web.MakeResourceHandler(fsc.ResourcesPath))))
 
 	var templates *template.Template
 
@@ -694,40 +723,18 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	}
 
 	// These routes serve the web UI.
-	loggedRouter.HandleFunc("/", templateHandler("byblame.html"))
-	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
-	loggedRouter.HandleFunc("/cluster", templateHandler("cluster.html"))
-	loggedRouter.HandleFunc("/triagelog", templateHandler("triagelog.html"))
-	loggedRouter.HandleFunc("/ignores", templateHandler("ignorelist.html"))
-	loggedRouter.HandleFunc("/diff", templateHandler("diff.html"))
-	loggedRouter.HandleFunc("/detail", templateHandler("details.html"))
-	loggedRouter.HandleFunc("/details", templateHandler("details.html"))
-	loggedRouter.HandleFunc("/list", templateHandler("by_test_list.html"))
-	loggedRouter.HandleFunc("/help", templateHandler("help.html"))
-	loggedRouter.HandleFunc("/search", templateHandler("search.html"))
-	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
-
-	// set up the app router that might be authenticated and logs almost everything.
-	appRouter := mux.NewRouter()
-	// Images should not be served gzipped, which can sometimes have issues
-	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
-	// given PNGs typically have zlib compression anyway.
-	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
-	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
-
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
-	// necessary it was requested via the force_login flag.
-	appHandler := http.Handler(appRouter)
-	if fsc.ForceLogin {
-		appHandler = login.ForceAuth(appRouter, callbackPath)
-	}
-
-	// The appHandler contains all application specific routes that are have logging and
-	// authentication configured. Now we wrap it into the router that is exposed to the host
-	// (aka the K8s container) which requires that some routes are never logged or authenticated.
-	rootRouter.PathPrefix("/").Handler(appHandler)
-
-	return rootRouter
+	router.HandleFunc("/", templateHandler("byblame.html"))
+	router.HandleFunc("/changelists", templateHandler("changelists.html"))
+	router.HandleFunc("/cluster", templateHandler("cluster.html"))
+	router.HandleFunc("/triagelog", templateHandler("triagelog.html"))
+	router.HandleFunc("/ignores", templateHandler("ignorelist.html"))
+	router.HandleFunc("/diff", templateHandler("diff.html"))
+	router.HandleFunc("/detail", templateHandler("details.html"))
+	router.HandleFunc("/details", templateHandler("details.html"))
+	router.HandleFunc("/list", templateHandler("by_test_list.html"))
+	router.HandleFunc("/help", templateHandler("help.html"))
+	router.HandleFunc("/search", templateHandler("search.html"))
+	router.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
 }
 
 // addAuthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
