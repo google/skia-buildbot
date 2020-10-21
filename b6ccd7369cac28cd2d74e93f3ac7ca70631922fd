@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2070ad7e_173c8401",
+        "filename": "status/modules/rotations-sk/rotations-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-21T17:37:45Z",
+      "side": 1,
+      "message": "Just curious, why not also inherit this?",
+      "range": {
+        "startLine": 5,
+        "startChar": 10,
+        "endLine": 5,
+        "endChar": 27
+      },
+      "revId": "b6ccd7369cac28cd2d74e93f3ac7ca70631922fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
