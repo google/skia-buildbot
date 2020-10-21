@@ -899,6 +899,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "bugs-central",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "bugs-central",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "bugs-central",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "collectd-exporter",
           "endpoints": [
             {
@@ -3379,6 +3405,23 @@
                           },
                           "route": {
                             "cluster": "autoroll-fe",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "bugs-central.skia.org",
+                      "name": "bugs-central.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "bugs-central",
                             "timeout": {
                               "seconds": 600
                             }
