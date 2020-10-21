@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7b3b97a_3646f9df",
+        "filename": "infra-sk/modules/multi-input-sk/multi-input-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-21T14:44:09Z",
+      "side": 1,
+      "message": "Err, yep.",
+      "parentUuid": "aadfd66c_3c8cea30",
+      "range": {
+        "startLine": 6,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 33
+      },
+      "revId": "f4e250e6d0cbce3e7d3cc1ddb62ec5132e571015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1968f559_725567a8",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "93e40504_eadd643f",
+        "filename": "infra-sk/modules/multi-input-sk/multi-input-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-21T14:44:09Z",
+      "side": 1,
+      "message": "I\u0027m noticing a pattern here...",
+      "parentUuid": "1968f559_725567a8",
+      "range": {
+        "startLine": 5,
+        "startChar": 3,
+        "endLine": 5,
+        "endChar": 7
+      },
+      "revId": "f4e250e6d0cbce3e7d3cc1ddb62ec5132e571015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2fe369bb_998efd74",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-10-21T14:11:41Z",
       "side": 1,
       "message": "nit: Here and below, the quotes around the event handlers are unnecessary, and seem odd (although it seems to work despite them)",
+      "range": {
+        "startLine": 25,
+        "startChar": 21,
+        "endLine": 25,
+        "endChar": 22
+      },
+      "revId": "f4e250e6d0cbce3e7d3cc1ddb62ec5132e571015",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c5c9f09d_f64fe9fb",
+        "filename": "infra-sk/modules/multi-input-sk/multi-input-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-21T14:44:09Z",
+      "side": 1,
+      "message": "Removed, although attributes without quotes make me feel dirty.",
+      "parentUuid": "2fe369bb_998efd74",
       "range": {
         "startLine": 25,
         "startChar": 21,
