@@ -16,15 +16,13 @@ import '../commits-table-sk';
 import '../gold-status-sk';
 import '../navigation-sk';
 import '../perf-status-sk';
+import '../tree-status-sk';
 import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
 import { defaultRepo } from '../settings';
-
-function collapsableTemplate(content: TemplateResult): TemplateResult {
-  return html` <div>${content}</div> `;
-}
+import { TreeStatus } from '../tree-status-sk/tree-status-sk';
 
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
@@ -36,7 +34,11 @@ export class StatusSk extends ElementSk {
       <app-sk>
         <header>
           <h1>Status: ${el.repo}</h1>
-          <div class="spacer"></div>
+          <div class="spacer">
+            <tree-status-sk
+              @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
+            ></tree-status-sk>
+          </div>
           <login-sk></login-sk>
           <theme-chooser-sk></theme-chooser-sk>
         </header>
@@ -123,6 +125,11 @@ export class StatusSk extends ElementSk {
   private updateRepo(r: string) {
     this.repo = r.charAt(0).toUpperCase() + r.slice(1);
     this._render();
+  }
+
+  private updateTreeStatus(r: TreeStatus) {
+    // We use css to style the header color based on state.
+    this.setAttribute('state', r.status.general_state || '');
   }
 }
 

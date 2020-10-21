@@ -6,6 +6,13 @@ status-sk {
     --sidebar-horiz-padding: 0;
     --content-horiz-padding: 5px;
     --content-vert-padding: 5px;
+
+    header {
+      a {
+        color: var(--on-primary);
+      }
+    }
+
     aside {
       z-index: 2;
       > * {
@@ -22,5 +29,24 @@ status-sk {
         height: auto;
       }
     }
+  }
+}
+
+// Coloring for tree-status.
+status-sk[state='caution'] app-sk header {
+  background-color: var(--warning-alpha);
+  color: var(--on-warning);
+  fill: var(--on-warning);
+  a {
+    color: var(--on-warning);
+  }
+}
+
+status-sk[state='closed'] app-sk header {
+  background-color: var(--failure-alpha);
+  color: var(--on-failure);
+  fill: var(--on-failure);
+  a {
+    color: var(--on-failure);
   }
 }

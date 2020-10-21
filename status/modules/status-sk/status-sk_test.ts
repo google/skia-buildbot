@@ -9,6 +9,13 @@ import { incrementalResponse0, SetupMocks } from '../rpc-mock';
 import fetchMock from 'fetch-mock';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
+import {
+  treeStatusResp,
+  generalRoleResp,
+  gpuRoleResp,
+  androidRoleResp,
+  infraRoleResp,
+} from '../tree-status-sk/test_data';
 
 describe('status-sk', () => {
   const newInstance = setUpElementUnderTest<StatusSk>('status-sk');
@@ -38,6 +45,12 @@ describe('status-sk', () => {
         { name: 'svg', untriagedCount: 27 },
       ],
     });
+    fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
+    fetchMock.getOnce('https://tree-status.skia.org/current-sheriff', generalRoleResp);
+    fetchMock.getOnce('https://tree-status.skia.org/current-wrangler', gpuRoleResp);
+    fetchMock.getOnce('https://tree-status.skia.org/current-robocop', androidRoleResp);
+    fetchMock.getOnce('https://tree-status.skia.org/current-trooper', infraRoleResp);
+    Date.now = () => 1600883976659;
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');
     element = newInstance();
