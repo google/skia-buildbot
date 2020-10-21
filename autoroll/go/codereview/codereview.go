@@ -121,7 +121,7 @@ func newGithubCodeReview(cfg *GithubConfig, githubClient *github.GitHub) (CodeRe
 	}
 	return &githubCodeReview{
 		cfg:            cfg,
-		issueUrlBase:   githubClient.GetIssueUrlBase(),
+		issueUrlBase:   githubClient.GetPullRequestUrlBase(),
 		fullHistoryUrl: githubClient.GetFullHistoryUrl(userName),
 		githubClient:   githubClient,
 		userEmail:      userEmail,
