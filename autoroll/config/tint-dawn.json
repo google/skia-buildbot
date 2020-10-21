@@ -34,7 +34,7 @@
     "childPath": "third_party/tint",
     "childRepo": "https://dawn.googlesource.com/tint.git",
     "childRevLinkTmpl": "https://dawn.googlesource.com/tint.git/+show/%s",
-    "parentBranch": "master",
+    "parentBranch": "main",
     "parentRepo": "https://dawn.googlesource.com/dawn.git"
   },
   "kubernetes": {

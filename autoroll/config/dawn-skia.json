@@ -38,7 +38,7 @@
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "master",
+    "childBranch": "main",
     "childPath": "third_party/externals/dawn",
     "childRepo": "https://dawn.googlesource.com/dawn.git",
     "childRevLinkTmpl": "https://dawn.googlesource.com/dawn.git/+show/%s",
