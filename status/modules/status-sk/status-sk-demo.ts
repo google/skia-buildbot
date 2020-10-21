@@ -5,6 +5,13 @@ import { $$ } from 'common-sk/modules/dom';
 import { SetTestSettings } from '../settings';
 import fetchMock from 'fetch-mock';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
+import {
+  treeStatusResp,
+  generalRoleResp,
+  gpuRoleResp,
+  androidRoleResp,
+  infraRoleResp,
+} from '../tree-status-sk/test_data';
 
 SetupMocks()
   .expectGetIncrementalCommits(incrementalResponse0)
@@ -19,6 +26,7 @@ SetTestSettings({
     ['skcms', 'https://skia.googlesource.com/skcms/+show/'],
   ]),
 });
+fetchMock.getOnce('path:/loginstatus/', {});
 fetchMock.getOnce('https://perf.skia.org/_/alerts/', <AlertsStatus>{ alerts: 5 });
 fetchMock.getOnce('https://gold.skia.org/json/v1/trstatus', <StatusResponse>{
   corpStatus: [
@@ -31,6 +39,12 @@ fetchMock.getOnce('https://gold.skia.org/json/v1/trstatus', <StatusResponse>{
     { name: 'svg', untriagedCount: 27 },
   ],
 });
+fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
+fetchMock.getOnce('https://tree-status.skia.org/current-sheriff', generalRoleResp);
+fetchMock.getOnce('https://tree-status.skia.org/current-wrangler', gpuRoleResp);
+fetchMock.getOnce('https://tree-status.skia.org/current-robocop', androidRoleResp);
+fetchMock.getOnce('https://tree-status.skia.org/current-trooper', infraRoleResp);
+Date.now = () => 1600883976659;
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
 (document.querySelector('#AllFilter') as HTMLElement).click();
