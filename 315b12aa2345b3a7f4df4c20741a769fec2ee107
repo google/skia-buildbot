@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1d99d0e5_a4a203af",
+        "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T17:25:29Z",
+      "side": 1,
+      "message": ".catch(errorMEssage) ? And add an error-toast-sk to the app if it isn\u0027t yet present.\n\nHere and below, for your other API calls.",
+      "range": {
+        "startLine": 164,
+        "startChar": 4,
+        "endLine": 164,
+        "endChar": 7
+      },
+      "revId": "315b12aa2345b3a7f4df4c20741a769fec2ee107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "437cf33a_8c4d1c57",
+        "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T17:25:29Z",
+      "side": 1,
+      "message": "Shouldn\u0027t vestigial debugging lines include profanity? I don\u0027t understand. (here and below)",
+      "range": {
+        "startLine": 169,
+        "startChar": 4,
+        "endLine": 170,
+        "endChar": 22
+      },
+      "revId": "315b12aa2345b3a7f4df4c20741a769fec2ee107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "58e6bcee_aff637fa",
+        "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-21T17:25:29Z",
+      "side": 1,
+      "message": "Add tests?",
+      "range": {
+        "startLine": 11,
+        "startChar": 2,
+        "endLine": 23,
+        "endChar": 3
+      },
+      "revId": "315b12aa2345b3a7f4df4c20741a769fec2ee107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
