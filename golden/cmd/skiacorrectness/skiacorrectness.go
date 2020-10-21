@@ -636,6 +636,9 @@ func mustMakeWebHandlers(diffStore diff.DiffStore, expStore expectations.Store, 
 
 // mustMakeRootRouter returns a mux.Router that can be used to serve Gold's web UI and JSON API.
 func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffStore diff.DiffStore) *mux.Router {
+	rootRouter := mux.NewRouter()
+	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.
 	loggedRouter := mux.NewRouter()
@@ -659,12 +662,83 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
 
+	// JSON endpoints.
+	addAuthenticatedJSONRoutes(loggedRouter, fsc, handlers)
+	addUnauthenticatedJSONRoutes(rootRouter, fsc, handlers)
+
+	var templates *template.Template
+
+	loadTemplates := func() {
+		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.ResourcesPath, "*.html")))
+	}
+
+	loadTemplates()
+
+	fsc.FrontendConfig.BaseRepoURL = fsc.GitRepoURL
+	fsc.FrontendConfig.IsPublic = fsc.IsPublicView
+
+	templateHandler := func(name string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			httputils.AddOriginTrialHeader(w, fsc.Local)
+
+			// Reload the template if we are running locally.
+			if fsc.Local {
+				loadTemplates()
+			}
+			if err := templates.ExecuteTemplate(w, name, fsc.FrontendConfig); err != nil {
+				sklog.Errorf("Failed to expand template %s : %s", name, err)
+				return
+			}
+		}
+	}
+
+	// These routes serve the web UI.
+	loggedRouter.HandleFunc("/", templateHandler("byblame.html"))
+	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
+	loggedRouter.HandleFunc("/cluster", templateHandler("cluster.html"))
+	loggedRouter.HandleFunc("/triagelog", templateHandler("triagelog.html"))
+	loggedRouter.HandleFunc("/ignores", templateHandler("ignorelist.html"))
+	loggedRouter.HandleFunc("/diff", templateHandler("diff.html"))
+	loggedRouter.HandleFunc("/detail", templateHandler("details.html"))
+	loggedRouter.HandleFunc("/details", templateHandler("details.html"))
+	loggedRouter.HandleFunc("/list", templateHandler("by_test_list.html"))
+	loggedRouter.HandleFunc("/help", templateHandler("help.html"))
+	loggedRouter.HandleFunc("/search", templateHandler("search.html"))
+	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
+
+	// set up the app router that might be authenticated and logs almost everything.
+	appRouter := mux.NewRouter()
+	// Images should not be served gzipped, which can sometimes have issues
+	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
+	// given PNGs typically have zlib compression anyway.
+	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
+	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
+
+	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
+	// necessary it was requested via the force_login flag.
+	appHandler := http.Handler(appRouter)
+	if fsc.ForceLogin {
+		appHandler = login.ForceAuth(appRouter, callbackPath)
+	}
+
+	// The appHandler contains all application specific routes that are have logging and
+	// authentication configured. Now we wrap it into the router that is exposed to the host
+	// (aka the K8s container) which requires that some routes are never logged or authenticated.
+	rootRouter.PathPrefix("/").Handler(appHandler)
+
+	return rootRouter
+}
+
+// addAuthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
+// that require authentication.
+func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
 	// requested that doesn't exist. If we did this differently a call to a non-existing endpoint
 	// would be handled by the route that handles the returning the index template and make
 	// debugging confusing.
-	jsonRouter := loggedRouter.PathPrefix("/json").Subrouter()
+	jsonRouter := router.PathPrefix("/json").Subrouter()
 
 	v1JSON := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
 		return versionedRPC(rpcRoute, "v1", handlerFunc, jsonRouter, false /*=isAuthenticated*/)
@@ -745,84 +819,22 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
 	jsonRouter.HandleFunc("/{ignore:.*}", http.NotFound)
-	loggedRouter.HandleFunc("/json", http.NotFound)
+	router.HandleFunc("/json", http.NotFound)
+}
 
-	var templates *template.Template
-
-	loadTemplates := func() {
-		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.ResourcesPath, "*.html")))
-	}
-
-	loadTemplates()
-
-	fsc.FrontendConfig.BaseRepoURL = fsc.GitRepoURL
-	fsc.FrontendConfig.IsPublic = fsc.IsPublicView
-
-	templateHandler := func(name string) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/html")
-			httputils.AddOriginTrialHeader(w, fsc.Local)
-
-			// Reload the template if we are running locally.
-			if fsc.Local {
-				loadTemplates()
-			}
-			if err := templates.ExecuteTemplate(w, name, fsc.FrontendConfig); err != nil {
-				sklog.Errorf("Failed to expand template %s : %s", name, err)
-				return
-			}
-		}
-	}
-
-	// These routes serve the web UI.
-	loggedRouter.HandleFunc("/", templateHandler("byblame.html"))
-	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
-	loggedRouter.HandleFunc("/cluster", templateHandler("cluster.html"))
-	loggedRouter.HandleFunc("/triagelog", templateHandler("triagelog.html"))
-	loggedRouter.HandleFunc("/ignores", templateHandler("ignorelist.html"))
-	loggedRouter.HandleFunc("/diff", templateHandler("diff.html"))
-	loggedRouter.HandleFunc("/detail", templateHandler("details.html"))
-	loggedRouter.HandleFunc("/details", templateHandler("details.html"))
-	loggedRouter.HandleFunc("/list", templateHandler("by_test_list.html"))
-	loggedRouter.HandleFunc("/help", templateHandler("help.html"))
-	loggedRouter.HandleFunc("/search", templateHandler("search.html"))
-	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
-
-	// set up the app router that might be authenticated and logs almost everything.
-	appRouter := mux.NewRouter()
-	// Images should not be served gzipped, which can sometimes have issues
-	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
-	// given PNGs typically have zlib compression anyway.
-	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
-	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
-
-	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if
-	// necessary it was requested via the force_login flag.
-	appHandler := http.Handler(appRouter)
-	if fsc.ForceLogin {
-		appHandler = login.ForceAuth(appRouter, callbackPath)
-	}
-
-	// The appHandler contains all application specific routes that are have logging and
-	// authentication configured. Now we wrap it into the router that is exposed to the host
-	// (aka the K8s container) which requires that some routes are never logged or authenticated.
-	rootRouter := mux.NewRouter()
-
+// addUnauthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
+// that do not require authentication.
+func addUnauthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
 	v1Root := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
-		return versionedRPC(rpcRoute, "v1", handlerFunc, rootRouter, true /*=isAuthenticated*/)
+		return versionedRPC(rpcRoute, "v1", handlerFunc, router, true /*=isAuthenticated*/)
 	}
 
-	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-	v0("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler), rootRouter).Methods("GET")
+	v0("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler), router).Methods("GET")
 	v1Root("/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
-	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), rootRouter).Methods("GET")
+	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), router).Methods("GET")
 	v1Root("/trstatus", httputils.CorsHandler(handlers.StatusHandler)).Methods("GET")
-	v0("/json/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler), rootRouter).Methods("GET")
+	v0("/json/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler), router).Methods("GET")
 	v1Root("/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler)).Methods("GET")
-
-	rootRouter.PathPrefix("/").Handler(appHandler)
-
-	return rootRouter
 }
 
 // v0 sets up a route on the given router with a wrapper to count the number of calls to the given
