@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c71759b_47890180",
+        "filename": "bugs-central/go/bugs/github/github.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:58:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "498a7a4b_a1dbc5d7",
+      "range": {
+        "startLine": 56,
+        "startChar": 5,
+        "endLine": 56,
+        "endChar": 11
+      },
+      "revId": "8a3ee6a6345a316cdb91c8c66ddcbb073ed29b9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8f7703fc_017946cc",
@@ -37,6 +61,24 @@
       "writtenOn": "2020-10-22T18:40:46Z",
       "side": 1,
       "message": "Needs comment.",
+      "revId": "8a3ee6a6345a316cdb91c8c66ddcbb073ed29b9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d160f0b_14a883b7",
+        "filename": "bugs-central/go/bugs/github/github.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:58:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8f7703fc_017946cc",
       "revId": "8a3ee6a6345a316cdb91c8c66ddcbb073ed29b9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
