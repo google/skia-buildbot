@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a122e8f2_b3c84de8",
+        "filename": "bugs-central/go/bugs/bugs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:06:02Z",
+      "side": 1,
+      "message": "Make this into a struct that\u0027s passed into the constructors for BugFramework implementations, and put it in a separate file from the BugFramework interface.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "474bd7ec4eb98fcb6a95e9946c33e17906098767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
