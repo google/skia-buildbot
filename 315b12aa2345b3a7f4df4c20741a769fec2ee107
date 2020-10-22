@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "8186d3ae_61389893",
+        "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-22T11:42:50Z",
+      "side": 1,
+      "message": "That\u0027s handled by the RPC proxy: https://skia.googlesource.com/buildbot/+/master/autoroll/modules/rpc/index.ts#11",
+      "parentUuid": "1d99d0e5_a4a203af",
+      "range": {
+        "startLine": 164,
+        "startChar": 4,
+        "endLine": 164,
+        "endChar": 7
+      },
+      "revId": "315b12aa2345b3a7f4df4c20741a769fec2ee107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "437cf33a_8c4d1c57",
         "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk.ts",
         "patchSetId": 1
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-21T17:25:29Z",
       "side": 1,
       "message": "Shouldn\u0027t vestigial debugging lines include profanity? I don\u0027t understand. (here and below)",
+      "range": {
+        "startLine": 169,
+        "startChar": 4,
+        "endLine": 170,
+        "endChar": 22
+      },
+      "revId": "315b12aa2345b3a7f4df4c20741a769fec2ee107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3155ed25_537b05a9",
+        "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-22T11:42:50Z",
+      "side": 1,
+      "message": "Fails to meet expectations.",
+      "parentUuid": "437cf33a_8c4d1c57",
       "range": {
         "startLine": 169,
         "startChar": 4,
@@ -60,6 +108,30 @@
       "writtenOn": "2020-10-21T17:25:29Z",
       "side": 1,
       "message": "Add tests?",
+      "range": {
+        "startLine": 11,
+        "startChar": 2,
+        "endLine": 23,
+        "endChar": 3
+      },
+      "revId": "315b12aa2345b3a7f4df4c20741a769fec2ee107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1957cbdf_3af0c494",
+        "filename": "task_scheduler/modules/skip-tasks-sk/skip-tasks-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-22T11:42:50Z",
+      "side": 1,
+      "message": "Apparently I\u0027m at the point where I hallucinate writing tests.  I followed my recent trend of foregoing traditional tests and just using puppeteer to visually demonstrate correct behavior.",
+      "parentUuid": "58e6bcee_aff637fa",
       "range": {
         "startLine": 11,
         "startChar": 2,
