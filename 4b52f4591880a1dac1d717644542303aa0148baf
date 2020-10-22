@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "190e4754_03adfb58",
+        "filename": "bugs-central/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:23:43Z",
+      "side": 1,
+      "message": "Exported types need comments.",
+      "revId": "4b52f4591880a1dac1d717644542303aa0148baf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "49179e1a_e8c42cd7",
+        "filename": "bugs-central/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:23:43Z",
+      "side": 1,
+      "message": "Needs comment.",
+      "revId": "4b52f4591880a1dac1d717644542303aa0148baf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a50b3941_57902d99",
+        "filename": "bugs-central/go/types/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:23:43Z",
+      "side": 1,
+      "message": "Needs comment.",
+      "revId": "4b52f4591880a1dac1d717644542303aa0148baf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cfa23f19_717672dc",
+        "filename": "bugs-central/go/types/types_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:23:43Z",
+      "side": 1,
+      "message": "nit: I usually add a \"message string\" to the test case struct where this goes, and then pass that in as the message to the require/assert calls, which makes debugging failing tests easier.",
+      "range": {
+        "startLine": 39,
+        "startChar": 2,
+        "endLine": 39,
+        "endChar": 32
+      },
+      "revId": "4b52f4591880a1dac1d717644542303aa0148baf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
