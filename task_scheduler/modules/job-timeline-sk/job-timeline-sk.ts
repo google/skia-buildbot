@@ -12,7 +12,7 @@ import { draw, Block, Lane, Data } from '../gantt-chart-sk';
 function ts(tsStr: string) {
   // If the timestamp is zero-ish, return the current datetime.
   if (Date.parse(tsStr) <= 0) {
-    return new Date();
+    return new Date(Date.now()); // Use Date.now so that it can be mocked.
   }
   return new Date(tsStr);
 }
@@ -47,7 +47,7 @@ export class JobTimelineSk extends HTMLElement {
       // becomes multiple blocks, indicating the download and upload overhead
       // as well as the run time itself.
       let lastBlockEnd = createTs;
-      const makeBlock = function(label: string, end: string, color: string) {
+      const makeBlock = function (label: string, end: string, color: string) {
         const block: Block = {
           label: label,
           start: lastBlockEnd,
@@ -58,16 +58,28 @@ export class JobTimelineSk extends HTMLElement {
         lane!.blocks.push(block);
       };
       if (t.startedAt) {
-        makeBlock("pending", t.startedAt, "#e69f00");
+        makeBlock('pending', t.startedAt, '#e69f00');
       }
       if (t.stats) {
         const startTs = ts(t.startedAt!).getTime();
         const finishTs = ts(t.finishedAt!).getTime();
-        makeBlock("overhead", new Date(startTs + 1000*parseFloat(t.stats.downloadOverheadS)).toString(), "#d55e00");
-        makeBlock("running", new Date(finishTs - 1000*parseFloat(t.stats.uploadOverheadS)).toString(), "#0072b2");
-        makeBlock("overhead", t.finishedAt!, "#d55e00");
+        makeBlock(
+          'overhead',
+          new Date(
+            startTs + 1000 * parseFloat(t.stats.downloadOverheadS)
+          ).toString(),
+          '#d55e00'
+        );
+        makeBlock(
+          'running',
+          new Date(
+            finishTs - 1000 * parseFloat(t.stats.uploadOverheadS)
+          ).toString(),
+          '#0072b2'
+        );
+        makeBlock('overhead', t.finishedAt!, '#d55e00');
       } else {
-        makeBlock("running", t.finishedAt || "", "#0072b2");
+        makeBlock('running', t.finishedAt || '', '#0072b2');
       }
     }
 
@@ -84,6 +96,6 @@ export class JobTimelineSk extends HTMLElement {
     }
     draw(this, data);
   }
-};
+}
 
 define('job-timeline-sk', JobTimelineSk);
