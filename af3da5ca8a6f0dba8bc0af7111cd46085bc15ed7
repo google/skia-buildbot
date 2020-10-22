@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf10c2d4_0098b47e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T20:01:14Z",
+      "side": 1,
+      "message": "FYI: Incorporated comments from github here",
+      "revId": "af3da5ca8a6f0dba8bc0af7111cd46085bc15ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
