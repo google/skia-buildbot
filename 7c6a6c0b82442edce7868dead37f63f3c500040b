@@ -22,6 +22,30 @@
       },
       "revId": "7c6a6c0b82442edce7868dead37f63f3c500040b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1cab19da_995dc132",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T15:17:25Z",
+      "side": 1,
+      "message": "It\u0027s strange, eslint was auto-formating to this.\nI think this indentation was correct but everything else after the template was not.\nAfter I manually indented the template everything after that indented correctly.",
+      "parentUuid": "ac05c92c_986a8178",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 2
+      },
+      "revId": "7c6a6c0b82442edce7868dead37f63f3c500040b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
