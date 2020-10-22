@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8749ba1c_0acfb893",
+        "filename": "bugs-central/modules/colors.css",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T13:30:13Z",
+      "side": 1,
+      "message": "Looks like this whole file wasn\u0027t really used. I had copied from CT and left it around. Deleted.",
+      "parentUuid": "8a48ff76_ce5a76c3",
+      "range": {
+        "startLine": 9,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 20
+      },
+      "revId": "4e57f9f0b63a9dae1c15a49ac09c0236439f41df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7c18cf7d_d6e82e1b",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9d3f3e6_a6058d2c",
+        "filename": "bugs-central/modules/colors.css",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T13:30:13Z",
+      "side": 1,
+      "message": "Deleted the file.",
+      "parentUuid": "7c18cf7d_d6e82e1b",
+      "range": {
+        "startLine": 10,
+        "startChar": 2,
+        "endLine": 12,
+        "endChar": 19
+      },
+      "revId": "4e57f9f0b63a9dae1c15a49ac09c0236439f41df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "edb20c09_c51a41e9",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-10-21T20:32:38Z",
       "side": 1,
       "message": "themes provides a --error and --on-error color, which is better to over-ride.\n\nhttps://github.com/google/elements-sk/blob/master/src/themes/themes.scss#L51",
+      "range": {
+        "startLine": 21,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 24
+      },
+      "revId": "4e57f9f0b63a9dae1c15a49ac09c0236439f41df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ede6739d_ddd310fe",
+        "filename": "bugs-central/modules/style.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T13:30:13Z",
+      "side": 1,
+      "message": "Removed this as well.",
+      "parentUuid": "edb20c09_c51a41e9",
       "range": {
         "startLine": 21,
         "startChar": 2,
