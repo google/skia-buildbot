@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2485980e_85f11fc4",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk-demo.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T14:33:23Z",
+      "side": 1,
+      "message": "Manually added the puppeteer file.",
+      "parentUuid": "f61675b3_89c0c15c",
+      "range": {
+        "startLine": 2,
+        "startChar": 7,
+        "endLine": 2,
+        "endChar": 14
+      },
+      "revId": "825a6ad78e2eac0e9a171355a439e449acc363b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1a9b3207_3ef9dd03",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-22T12:51:12Z",
       "side": 1,
       "message": "{ define }\n\nLooks like the files need to be passed through eslint?",
+      "range": {
+        "startLine": 21,
+        "startChar": 7,
+        "endLine": 21,
+        "endChar": 15
+      },
+      "revId": "825a6ad78e2eac0e9a171355a439e449acc363b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "53910a59_e16341e4",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T14:33:23Z",
+      "side": 1,
+      "message": "Sorry, my vscode config was in a weird state after using it on Google3 before. Fixed.",
+      "parentUuid": "1a9b3207_3ef9dd03",
       "range": {
         "startLine": 21,
         "startChar": 7,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f3ab4d6_785c503f",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T14:33:23Z",
+      "side": 1,
+      "message": "Not sure why eslint did not complain about this. Done.",
+      "parentUuid": "74fc2375_ba3db9fd",
+      "range": {
+        "startLine": 37,
+        "startChar": 38,
+        "endLine": 37,
+        "endChar": 40
+      },
+      "revId": "825a6ad78e2eac0e9a171355a439e449acc363b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dc900ccf_dd267a41",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2885bef_73bc1ea8",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T14:33:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dc900ccf_dd267a41",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 9
+      },
+      "revId": "825a6ad78e2eac0e9a171355a439e449acc363b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cd0421ab_875ee68a",
@@ -106,6 +202,24 @@
       "writtenOn": "2020-10-22T12:51:12Z",
       "side": 1,
       "message": "If you are going to use attributes then you are missing:\n\n attributeChangedCallback(name, oldValue, newValue) {\n    this._render();\n }",
+      "revId": "825a6ad78e2eac0e9a171355a439e449acc363b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "248bec21_34e50d42",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T14:33:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd0421ab_875ee68a",
       "revId": "825a6ad78e2eac0e9a171355a439e449acc363b4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }

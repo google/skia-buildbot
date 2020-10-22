@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d3f1af2_2bbdd9da",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T14:33:23Z",
+      "side": 1,
+      "message": "eslint was complaining about this shadowing something. Please see the related change in .eslintrs.js",
+      "revId": "697fa762d18eeb58751cc4f7fc5f7fca2bd4c74c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
