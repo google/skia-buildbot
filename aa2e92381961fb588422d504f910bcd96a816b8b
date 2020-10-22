@@ -16,6 +16,120 @@
       "message": "Ran eslint and added puppeteer test here as well",
       "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0d948f1_568978bf",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:55:52Z",
+      "side": 1,
+      "message": "blank line before",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "28e4bf14_a74cab60",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:55:52Z",
+      "side": 1,
+      "message": "private _clients_map: Record\u003cstring, Record\u003cstring, Record\u003cstring, boolean\u003e\u003e\u003e \u003d {};\n\nAnd then you can remove the line from the constructor.\n\nSame for all the other private members.",
+      "range": {
+        "startLine": 98,
+        "startChar": 2,
+        "endLine": 98,
+        "endChar": 80
+      },
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c2df7b20_21cd4225",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:55:52Z",
+      "side": 1,
+      "message": "You don\u0027t call this._render() after setting this._updatingData so the spinner will never appear.",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ff1892fa_a847d5d6",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:55:52Z",
+      "side": 1,
+      "message": "You don\u0027t need the async/await if you call then/catch.\n\nSo this code can be:\n\n  private _doImpl(url: string, detail: any, action: (json: any)\u003d\u003e void): Promise\u003cvoid\u003e {\n    return fetch(url, {...\n\nOr you can rewrite it in an async manner:\n\n  private async _doImpl(url: string, detail: any, action: (json: any)\u003d\u003e void): Promise\u003cvoid\u003e {\n    try {\n      resp \u003d await fetch(url, {...\n      json \u003d await jsonOrThrow(resp);\n      action(json);\n    }\n    catch (msg) {\n      errorMessage(msg);\n    }\n  }",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d4535361_dddf6702",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:55:52Z",
+      "side": 1,
+      "message": "The underscore isn\u0027t really needed in TS since you mark the functions as \"private\".",
+      "range": {
+        "startLine": 342,
+        "startChar": 16,
+        "endLine": 342,
+        "endChar": 17
+      },
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b0acfdc7_892e4952",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:55:52Z",
+      "side": 1,
+      "message": "You can create an array of Promises that do the work as below and then call Promise.all() on that array which will do all the fetches in parallel, instead of serialized like they are in the current code.",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
