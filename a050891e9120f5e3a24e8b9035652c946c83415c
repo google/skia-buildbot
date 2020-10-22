@@ -39,6 +39,30 @@
       },
       "revId": "a050891e9120f5e3a24e8b9035652c946c83415c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ddd199bc_208504bb",
+        "filename": "perf/go/trybot/results/dfloader/dfloader_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T20:25:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e433fac6_489d11c9",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 27
+      },
+      "revId": "a050891e9120f5e3a24e8b9035652c946c83415c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
