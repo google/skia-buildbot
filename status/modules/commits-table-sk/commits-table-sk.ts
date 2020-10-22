@@ -634,7 +634,7 @@ export class CommitsTableSk extends ElementSk {
   set displayCommitSubject(v: boolean) {
     this._displayCommitSubject = v;
     this.stateHasChanged();
-    $('.commit').forEach((el, i) => {
+    $('.commit-text').forEach((el, i) => {
       if (v) {
         el.innerHTML = this.data.commits[i].shortSubject;
         el.setAttribute('title', this.data.commits[i].shortAuthor);
@@ -778,29 +778,30 @@ export class CommitsTableSk extends ElementSk {
    */
   private commitIcons(commit: Commit): Array<TemplateResult> {
     const res: Array<TemplateResult> = [];
-    if (this.data.comments.get(commit.hash)?.get('')?.length || 0 > 0) {
-      res.push(html`<comment-icon-sk class="tiny icon-right"></comment-icon-sk>`);
-    }
-    if (commit.ignoreFailure) {
-      res.push(html`<block-icon-sk class="tiny icon-right"></block-icon-sk>`);
+
+    const relanded = this.data.relandedMap.get(commit.hash);
+    if (relanded && relanded.timestamp! > commit.timestamp!) {
+      res.push(html`<redo-icon-sk
+        class="tiny fill-green"
+        @mouseenter=${() => this.highlightAssociatedCommit(relanded.hash, false)}
+        @mouseleave=${() => this.highlightAssociatedCommit(relanded.hash, false)}
+      >
+      </redo-icon-sk>`);
     }
     const reverted = this.data.revertedMap.get(commit.hash);
     if (reverted && reverted.timestamp! > commit.timestamp!) {
       res.push(html`<undo-icon-sk
-        class="tiny icon-right fill-red"
+        class="tiny fill-red"
         @mouseenter=${() => this.highlightAssociatedCommit(reverted.hash, true)}
         @mouseleave=${() => this.highlightAssociatedCommit(reverted.hash, true)}
       >
       </undo-icon-sk>`);
     }
-    const relanded = this.data.relandedMap.get(commit.hash);
-    if (relanded && relanded.timestamp! > commit.timestamp!) {
-      res.push(html`<redo-icon-sk
-        class="tiny icon-right fill-green"
-        @mouseenter=${() => this.highlightAssociatedCommit(relanded.hash, false)}
-        @mouseleave=${() => this.highlightAssociatedCommit(relanded.hash, false)}
-      >
-      </redo-icon-sk>`);
+    if (commit.ignoreFailure) {
+      res.push(html`<block-icon-sk class="tiny"></block-icon-sk>`);
+    }
+    if (this.data.comments.get(commit.hash)?.get('')?.length || 0 > 0) {
+      res.push(html`<comment-icon-sk class="tiny"></comment-icon-sk>`);
     }
     return res;
   }
@@ -1008,7 +1009,8 @@ export class CommitsTableSk extends ElementSk {
           title=${title}
           data-commit-index=${i}
         >
-          ${text}${this.commitIcons(commit)}
+          <span class="nowrap commit-text">${text}</span>
+          <span class="nowrap">${this.commitIcons(commit)}</span>
         </div>`
       );
       const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
