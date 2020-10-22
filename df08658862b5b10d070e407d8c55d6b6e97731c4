@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dbdba1d2_ad7dc80a",
+        "filename": "bugs-central/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T17:10:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3292217_9bb6690e",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 32
+      },
+      "revId": "df08658862b5b10d070e407d8c55d6b6e97731c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c0fbe909_e0b712e2",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "95db6912_d6912bca",
+        "filename": "bugs-central/go/types/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T17:10:50Z",
+      "side": 1,
+      "message": "I hope so. I left in unassigned in because calculating ownerless issues is already done and working. But if it turns out we will never need it then will remove it.",
+      "parentUuid": "c0fbe909_e0b712e2",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 45
+      },
+      "revId": "df08658862b5b10d070e407d8c55d6b6e97731c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9db597f6_a9c22c9c",
@@ -60,6 +108,24 @@
       "writtenOn": "2020-10-22T13:00:44Z",
       "side": 1,
       "message": "I think a table driven test will make this easier to follow: https://g3doc.corp.google.com/company/teams/go-community/gotip/episodes/21-table-driven-tests.md?cl\u003dhead",
+      "revId": "df08658862b5b10d070e407d8c55d6b6e97731c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2067fc4_6048e7a4",
+        "filename": "bugs-central/go/types/types_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T17:10:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9db597f6_a9c22c9c",
       "revId": "df08658862b5b10d070e407d8c55d6b6e97731c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
