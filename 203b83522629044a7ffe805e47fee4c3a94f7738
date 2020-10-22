@@ -22,6 +22,30 @@
       },
       "revId": "203b83522629044a7ffe805e47fee4c3a94f7738",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "70c43e0c_1317227c",
+        "filename": "bugs-central/go/bugs/open_issues.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:14:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1dc613fd_8f9e00c0",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 1
+      },
+      "revId": "203b83522629044a7ffe805e47fee4c3a94f7738",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
