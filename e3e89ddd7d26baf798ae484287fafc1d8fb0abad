@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "65bb7b96_42a2a930",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b5fee68_2984f4da",
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7d49a243_862a9d42",
@@ -31,6 +49,30 @@
       "writtenOn": "2020-10-22T13:19:45Z",
       "side": 1,
       "message": "maxGitHubResults",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "30a2cf5c_655f3a72",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d49a243_862a9d42",
       "range": {
         "startLine": 26,
         "startChar": 1,
@@ -64,6 +106,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea04ce37_c0334712",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "872a31ea_c0b429ab",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 13
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "744b6bb3_58f8f888",
@@ -77,6 +143,30 @@
       "writtenOn": "2020-10-22T13:19:45Z",
       "side": 1,
       "message": "I believe this can also be made private.",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 28
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e704499b_7d333ec5",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "744b6bb3_58f8f888",
       "range": {
         "startLine": 33,
         "startChar": 1,
@@ -104,6 +194,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5cf57002_c3e10d95",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "23590643_4f60fdfe",
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4c0b3d0e_e473a6bf",
@@ -117,6 +225,24 @@
       "writtenOn": "2020-10-22T13:19:45Z",
       "side": 1,
       "message": "// Github implements BugFramework for GitHub repos.",
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "482845bd_31f013c6",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4c0b3d0e_e473a6bf",
       "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
@@ -144,6 +270,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa7b967d_0cbed9d7",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Done and passing in OpenIssues here.",
+      "parentUuid": "b4f63e45_71d93cef",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ef22e928_3c6229ab",
@@ -157,6 +307,30 @@
       "writtenOn": "2020-10-22T13:19:45Z",
       "side": 1,
       "message": "It seems really awkward to pass in this bug tracker specific config as part of the generic interface and then fail if it\u0027s not the right type.\n\nWouldn\u0027t it be better to pass in the GitHubQueryConfig via New, store it in the instance, and keep it out of the interface?",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 96,
+        "endChar": 65
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3bd58c8a_5dc45776",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:03:58Z",
+      "side": 1,
+      "message": "Agree that it is awkward. I had originally thought about adding it to Init/New but then could not have just one instance of each bug framework.\nPassing it in Search makes it possible to reuse the same bug framework instance for different queries. For example, all the monorail queries done in the poller: https://skia-review.googlesource.com/c/buildbot/+/329077/1/bugs-central/go/bugs/poller.go#158",
+      "parentUuid": "ef22e928_3c6229ab",
       "range": {
         "startLine": 94,
         "startChar": 1,
