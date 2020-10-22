@@ -363,6 +363,30 @@
       },
       "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2898b7b6_a1a661ff",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:37:15Z",
+      "side": 1,
+      "message": "That\u0027s true. Changed interface and github.New to take in the query config.",
+      "parentUuid": "6ea340a8_a5eda033",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 96,
+        "endChar": 65
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
