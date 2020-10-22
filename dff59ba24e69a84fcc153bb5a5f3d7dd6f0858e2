@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "61151b5e_478f27a1",
+        "filename": "bugs-central/go/db/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T19:00:59Z",
+      "side": 1,
+      "message": "Pass these as values into New() and move the flags to main.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 159
+      },
+      "revId": "dff59ba24e69a84fcc153bb5a5f3d7dd6f0858e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ad5c74c_f68d802c",
+        "filename": "bugs-central/go/db/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T19:00:59Z",
+      "side": 1,
+      "message": "Move this into the FirestoreDB struct.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "dff59ba24e69a84fcc153bb5a5f3d7dd6f0858e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0038fcfa_d26b9046",
+        "filename": "bugs-central/go/db/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T19:00:59Z",
+      "side": 1,
+      "message": "I believe all the constants are only used internally and can be private, ala defaultAttempts.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "dff59ba24e69a84fcc153bb5a5f3d7dd6f0858e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f9b2b921_e8c0fd7a",
+        "filename": "bugs-central/go/db/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T19:00:59Z",
+      "side": 1,
+      "message": "// QueryData is ...",
+      "revId": "dff59ba24e69a84fcc153bb5a5f3d7dd6f0858e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5fef86ce_1edf4da7",
+        "filename": "bugs-central/go/db/db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T19:00:59Z",
+      "side": 1,
+      "message": "Should be named New() and also needs a comment.",
+      "revId": "dff59ba24e69a84fcc153bb5a5f3d7dd6f0858e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
