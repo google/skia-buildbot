@@ -1,6 +1,8 @@
 import { Job, Task } from '../rpc';
 import { TaskStatus, JobStatus, RepoState } from '../rpc/rpc';
 
+export const fakeNow = new Date('2016-11-10T13:56:44.572122663Z').getTime();
+
 export const job1ID = 'aYwjrLWysQRUW2lGFQvR';
 export const job2ID = 'bYwjrLWysQRUW2lGFQvX';
 
