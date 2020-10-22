@@ -23,7 +23,10 @@ import { SetupMocks } from '../rpc-mock';
 describe('commits-table-sk', () => {
   const newTableInstance = setUpElementUnderTest('commits-table-sk');
 
-  beforeEach(async () => {});
+  beforeEach(async () => {
+    // Clear Url between tests.
+    history.replaceState(null, '', window.location.origin + window.location.pathname);
+  });
 
   let setupWithResponse = async (resp: GetIncrementalCommitsResponse) => {
     SetupMocks().expectGetIncrementalCommits(resp);
