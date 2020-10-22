@@ -16,6 +16,23 @@
       "message": "eslint was complaining about this shadowing something. Please see the related change in .eslintrs.js",
       "revId": "697fa762d18eeb58751cc4f7fc5f7fca2bd4c74c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e3799350_57794a36",
+        "filename": "bugs-central/modules/bugs-chart-sk/bugs-chart-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T14:43:19Z",
+      "side": 1,
+      "message": "The books I\u0027ve read on TS say to avoid enums. A better type would be:\n\nexport type ChartType \u003d \u0027open\u0027 | \u0027slo\u0027 | \u0027untriaged\u0027;\n\nThis is what go2ts also does.\n\nIf you do this then you drop the eslintrc change.",
+      "revId": "697fa762d18eeb58751cc4f7fc5f7fca2bd4c74c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
