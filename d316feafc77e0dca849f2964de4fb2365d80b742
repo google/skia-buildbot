@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf163fde_074ae784",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-22T18:25:08Z",
+      "side": 1,
+      "message": "Removed the query config from the interface @PS5.",
+      "revId": "d316feafc77e0dca849f2964de4fb2365d80b742",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
