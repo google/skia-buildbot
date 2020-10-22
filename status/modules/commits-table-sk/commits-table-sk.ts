@@ -12,7 +12,9 @@
  * @event repo-changed - Occurs when user selects a repo. Event has {detail: '<new repo>'}
  */
 
-import { $, $$ } from 'common-sk/modules/dom';
+import { $, $$, DomReady } from 'common-sk/modules/dom';
+import { stateReflector } from 'common-sk/modules/stateReflector';
+import { Hintable, HintableObject } from 'common-sk/modules/hintable';
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -433,14 +435,22 @@ class RequestLimiter {
   }
 }
 
+class State {
+  filter: Filter = 'Interesting';
+  search: string = '';
+  displayCommitSubject: boolean = false;
+  repo: string = defaultRepo();
+}
+
 export class CommitsTableSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
   private _filter: Filter = 'Interesting';
-  private _search: RegExp = new RegExp('');
+  private _search: string = '';
   private lastLoaded?: Date;
   private lastColumn: number = 1;
   private refreshHandle?: number;
   private requestLimiter: RequestLimiter = new RequestLimiter();
+  private stateHasChanged: () => void = () => {};
 
   private data: Data = new Data();
 
@@ -468,6 +478,7 @@ export class CommitsTableSk extends ElementSk {
             el.dispatchEvent(
               new CustomEvent('repo-changed', { bubbles: true, detail: (e.target as any).value })
             );
+            el.stateHasChanged();
             el.update();
           }}
         >
@@ -537,7 +548,8 @@ export class CommitsTableSk extends ElementSk {
               </span>
             </label>`
           )}
-          <input-sk label="Filter task spec" @change=${el.searchFilter}> </input-sk>
+          <input-sk id="searchInput" label="Filter task spec" @change=${el.searchFilter}>
+          </input-sk>
           <help-icon-sk class="tiny"></help-icon-sk>
         </div>
       </div>
@@ -558,7 +570,57 @@ export class CommitsTableSk extends ElementSk {
     (<HTMLInputElement>$$('#reloadInput', this)).value = '60';
     (<HTMLInputElement>$$('#commitsInput', this)).value = '35';
     (<HTMLSelectElement>$$('#repoSelector', this)).value = defaultRepo();
+
+    this.stateHasChanged = stateReflector(
+      () => this.getState(),
+      (fromUrl) => this.setState(fromUrl)
+    );
+    // Now that we set the default object, use the real getState.
+    this.getState = () => this.getCurrentState();
+    // Update the Url with the real values after the stateReflector has applied any settings from
+    // the url.
+    DomReady.then(() => this.stateHasChanged());
+
     this.update();
+  }
+
+  // We provide this to stateReflector initially, to give it a typed but empty object to create
+  // deltas from.  This allows our 'default' values to still be reflected in the url.
+  private getState = () => {
+    const hintableSettings: HintableObject = {
+      filter: '',
+      search: '',
+      repo: '',
+      displayCommitSubject: false,
+    };
+    return hintableSettings;
+  };
+
+  private getCurrentState(): HintableObject {
+    const state: State = {
+      filter: this.filter,
+      search: this.search,
+      displayCommitSubject: this.displayCommitSubject,
+      repo: $$<HTMLSelectElement>('#repoSelector', this)!.value,
+    };
+    return (state as unknown) as HintableObject;
+  }
+
+  private setState(fromUrl: HintableObject) {
+    let state = (fromUrl as unknown) as State;
+    // Using empty default values in the default State object (so all values, including our true
+    // defaults are reflected in the url) means the initial load will try to set filter and
+    // repo to the empty string, prevent this.
+    if (state.filter) {
+      this._filter = state.filter;
+    }
+    if (state.repo) {
+      $$<HTMLSelectElement>('#repoSelector', this)!.value = state.repo;
+    }
+    this._search = state.search;
+    $$<HTMLInputElement>('#searchInput', this)!.value = this._search;
+    this._displayCommitSubject = state.displayCommitSubject;
+    this.draw();
   }
 
   disconnectedCallback() {
@@ -571,6 +633,7 @@ export class CommitsTableSk extends ElementSk {
 
   set displayCommitSubject(v: boolean) {
     this._displayCommitSubject = v;
+    this.stateHasChanged();
     $('.commit').forEach((el, i) => {
       if (v) {
         el.innerHTML = this.data.commits[i].shortSubject;
@@ -588,15 +651,17 @@ export class CommitsTableSk extends ElementSk {
 
   set filter(v: Filter) {
     this._filter = v;
+    this.stateHasChanged();
     this.draw();
   }
 
   get search(): string {
-    return this._search.toString();
+    return this._search;
   }
 
   set search(v: string) {
-    this._search = new RegExp(v, 'i');
+    this._search = v;
+    this.stateHasChanged();
     this.draw();
   }
 
@@ -653,8 +718,9 @@ export class CommitsTableSk extends ElementSk {
    * includeTaskSpec checks the spec against the filter type currently set for the table and
    * returns true if the taskspec should be displayed.
    * @param taskSpec The taskSpec name to check against the filter.
+   * @param searchRegex Regex to search with, must be set if this._filter === "Search".
    */
-  private includeTaskSpec(taskSpec: string): boolean {
+  private includeTaskSpec(taskSpec: string, searchRegex?: RegExp): boolean {
     const specDetails = this.data.taskSpecs.get(taskSpec);
     if (!specDetails) {
       return true;
@@ -671,7 +737,7 @@ export class CommitsTableSk extends ElementSk {
       case 'Interesting':
         return specDetails.interesting();
       case 'Search':
-        return this._search.test(taskSpec);
+        return searchRegex!.test(taskSpec);
     }
   }
 
@@ -763,6 +829,8 @@ export class CommitsTableSk extends ElementSk {
   private addTaskHeaders(res: Array<TemplateResult>): Map<TaskSpec, number> {
     const taskSpecStartCols: Map<TaskSpec, number> = new Map();
     let categoryStartCol = TASK_START_COL;
+    // We compile our regex once, rather than on ever taskspec.
+    const searchRegex = this._filter === 'Search' ? new RegExp(this._search, 'i') : undefined;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
     this.data.categories.forEach((categoryDetails: CategorySpec, categoryName: string) => {
@@ -771,7 +839,7 @@ export class CommitsTableSk extends ElementSk {
         (taskSpecs: Array<string>, subcategoryName: string) => {
           let taskSpecStartCol = subcategoryStartCol;
           taskSpecs
-            .filter((ts) => this.includeTaskSpec(ts))
+            .filter((ts) => this.includeTaskSpec(ts, searchRegex))
             .forEach((taskSpec: string) => {
               taskSpecStartCols.set(taskSpec, taskSpecStartCol);
               res.push(
