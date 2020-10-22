@@ -49,6 +49,8 @@ commits-table-sk {
     padding: 2px;
     position: relative;
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
   }
 
   .commit.highlight-revert {
@@ -128,10 +130,6 @@ commits-table-sk {
   radio-sk.tiny .box {
     width: 8px;
     height: 8px;
-  }
-
-  .icon-right {
-    float: right;
   }
 
   // With the exception of revert/reland icons, we don't want icons interferring with our
