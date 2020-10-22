@@ -1,0 +1,16 @@
+skip-tasks-sk {
+  .grid {
+    display: grid;
+    grid-template-columns: auto auto;
+  }
+  button {
+    background: inherit;
+    border: none;
+    cursor: pointer;
+  }
+
+  table.new-rule tr {
+    background: inherit;
+    border: none;
+  }
+}
