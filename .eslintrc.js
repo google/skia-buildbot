@@ -33,7 +33,7 @@ module.exports = {
     'no-plusplus': ['off'],
     'no-restricted-syntax': ['warn'],
     'no-return-assign': ['off'],
-    'no-shadow': ['warn'],
+    'no-shadow': ['off'],
     'no-underscore-dangle': ['off'],
     'no-use-before-define': ['error', { functions: false, variables: false }],
     'object-shorthand': ['off'],
@@ -65,6 +65,9 @@ module.exports = {
       },
       plugins: ['@typescript-eslint'],
       rules: {
+        // https://github.com/typescript-eslint/typescript-eslint/issues/2484
+        '@typescript-eslint/no-shadow': ['warn'],
+
         // Allow ! non-null assertions.
         '@typescript-eslint/no-non-null-assertion': 'off',
 
