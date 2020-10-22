@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9793eba9_f49cefcb",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 612,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-22T17:41:48Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 612,
+        "startChar": 81,
+        "endLine": 612,
+        "endChar": 87
+      },
+      "revId": "1b7dd6c55f8f979be94d3ee988c1d64cbeec2270",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
