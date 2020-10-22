@@ -5,6 +5,8 @@
 package results
 
 import (
+	"context"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
@@ -35,6 +37,9 @@ type TryBotRequest struct {
 	// CL is the ID of the changelist to analyze. Only use if Kind is TryBot.
 	CL types.CL `json:"cl"`
 
+	// PatchNumber is the index of the patch.
+	PatchNumber int `json:"patch_number"`
+
 	// CommitNumber is the commit to analyze. Only use if Kind is Commit.
 	CommitNumber types.CommitNumber `json:"cid"`
 
@@ -61,12 +66,13 @@ type TryBotResult struct {
 
 // TryBotResponse is the response sent to a TryBotRequest.
 type TryBotResponse struct {
-	Header  []dataframe.ColumnHeader
-	Results []TryBotResult
+	Header   []*dataframe.ColumnHeader `json:"header"`
+	Results  []TryBotResult            `json:"results"`
+	ParamSet paramtools.ParamSet       `json:"paramset"`
 }
 
 // Loader returns the data for the given TryBotRequest.
 type Loader interface {
 	// Load the TryBot results for the given TryBotRequest.
-	Load(TryBotRequest) (TryBotResponse, error)
+	Load(context.Context, TryBotRequest, types.Progress) (TryBotResponse, error)
 }
