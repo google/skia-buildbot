@@ -1,0 +1,13 @@
+bugs-chart-sk {
+  google-chart {
+    width: 100%;
+    height: 210px;
+  }
+
+  .charts-title {
+    text-align: left;
+    background-color: var(--primary);
+    color: var(--on-primary);
+    padding: 1em;
+  }
+}
