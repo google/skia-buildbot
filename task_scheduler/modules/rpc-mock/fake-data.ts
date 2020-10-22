@@ -1,6 +1,10 @@
 import { Job, Task } from '../rpc';
 import { TaskStatus, JobStatus, RepoState, SkipTaskRule } from '../rpc/rpc';
 
+// This is an arbitrary date which happens to be after all of the other
+// timestamps listed in this file.
+export const fakeNow = new Date('2019-11-10T13:56:44.572122663Z').getTime();
+
 export const job1ID = 'aYwjrLWysQRUW2lGFQvR';
 export const job2ID = 'bYwjrLWysQRUW2lGFQvX';
 
@@ -273,8 +277,8 @@ export const job1: Job = {
 export const job2: Job = {
   buildbucketBuildId: 8921090193851453000,
   buildbucketLeaseKey: 0,
-  createdAt: new Date('2016-10-10T13:56:44.572122663Z').toUTCString(),
-  dbModifiedAt: new Date('2016-10-10T19:56:44.572122663Z').toString(),
+  createdAt: new Date('2019-10-10T13:56:44.572122663Z').toUTCString(),
+  dbModifiedAt: new Date('2019-10-10T19:56:44.572122663Z').toString(),
   dependencies: [
     {
       task: 'F',
@@ -307,7 +311,7 @@ export const job2: Job = {
   name: 'ABCDEF',
   priority: '0.8',
   repoState: repoState,
-  requestedAt: new Date('2016-10-10T13:55:44.572122663Z').toUTCString(),
+  requestedAt: new Date('2019-10-10T13:55:44.572122663Z').toUTCString(),
   status: JobStatus.JOB_STATUS_IN_PROGRESS,
   tasks: [
     {

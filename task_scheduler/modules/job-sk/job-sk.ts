@@ -257,7 +257,7 @@ export class JobSk extends ElementSk {
     const start = new Date(this.job.createdAt!);
     const end = this.job.finishedAt
       ? new Date(this.job.finishedAt)
-      : new Date();
+      : new Date(Date.now()); // Use Date.now so that it can be mocked.
     this.duration = diffDate(start.getTime(), end.getTime());
     const rs = this.job.repoState!;
     this.revisionLink = `${rs.repo}/+show/${rs.revision}`;

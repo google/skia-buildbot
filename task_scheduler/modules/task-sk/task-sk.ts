@@ -211,7 +211,7 @@ export class TaskSk extends ElementSk {
       const start = new Date(this.task.createdAt!);
       const end = this.task.finishedAt
         ? new Date(this.task.finishedAt)
-        : new Date();
+        : new Date(Date.now()); // Use Date.now so that it can be mocked.
       this.duration = diffDate(start.getTime(), end.getTime());
       const rs = this.task.taskKey!.repoState!;
       this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
