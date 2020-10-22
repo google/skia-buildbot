@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0b5fee68_2984f4da",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "Put each implementation as a sub-directory of bugs and with it\u0027s own package name, e.g., this file would be go/bugs/gerrit/gerrit.go with a package name of gerrit.",
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d49a243_862a9d42",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "maxGitHubResults",
+      "range": {
+        "startLine": 26,
+        "startChar": 1,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "872a31ea_c0b429ab",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "gitHubSource",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 13
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "744b6bb3_58f8f888",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "I believe this can also be made private.",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 28
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "23590643_4f60fdfe",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "Move type to before it\u0027s used. Also it doesn\u0027t look like this is used outside this file, so it can be made private.",
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4c0b3d0e_e473a6bf",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "// Github implements BugFramework for GitHub repos.",
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4f63e45_71d93cef",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "Rename to New.\n\nAlso needs doc comment.",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ef22e928_3c6229ab",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T13:19:45Z",
+      "side": 1,
+      "message": "It seems really awkward to pass in this bug tracker specific config as part of the generic interface and then fail if it\u0027s not the right type.\n\nWouldn\u0027t it be better to pass in the GitHubQueryConfig via New, store it in the instance, and keep it out of the interface?",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 96,
+        "endChar": 65
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
