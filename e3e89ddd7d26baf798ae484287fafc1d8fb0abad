@@ -339,6 +339,30 @@
       },
       "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6ea340a8_a5eda033",
+        "filename": "bugs-central/go/bugs/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-22T18:12:20Z",
+      "side": 1,
+      "message": "\u003e Agree that it is awkward. I had originally thought about adding it to Init/New but then could not have just one instance of each bug framework.\n\u003e Passing it in Search makes it possible to reuse the same bug framework instance for different queries. For example, all the monorail queries done in the poller: https://skia-review.googlesource.com/c/buildbot/+/329077/1/bugs-central/go/bugs/poller.go#158\n\nRight, but what is that really saving? It\u0027s not like we\u0027re going to have thousands of bug reporting sources and are worried about having too many http clients around.",
+      "parentUuid": "3bd58c8a_5dc45776",
+      "range": {
+        "startLine": 94,
+        "startChar": 1,
+        "endLine": 96,
+        "endChar": 65
+      },
+      "revId": "e3e89ddd7d26baf798ae484287fafc1d8fb0abad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
