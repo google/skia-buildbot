@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bee05a16_40cec92c",
+        "filename": "task_scheduler/modules/rpc-mock/fake-data.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-10-22T13:53:58Z",
+      "side": 1,
+      "message": "Maybe add a comment where this date is derived from - seems somewhat arbitrary and much earlier than, for example, task0",
+      "revId": "86e9350c38862262ff72b8ffa8a49ca5d3f6c884",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
