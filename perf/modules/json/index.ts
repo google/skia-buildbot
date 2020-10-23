@@ -248,6 +248,27 @@ export interface RegressionDetectionRequest {
 	total_queries: number;
 }
 
+export interface TryBotRequest {
+	kind: Kind;
+	cl: CL;
+	cid: CommitNumber;
+	query: string;
+}
+
+export interface TryBotResult {
+	params: Params;
+	median: number;
+	lower: number;
+	upper: number;
+	stddevRatio: number;
+	values: number[] | null;
+}
+
+export interface TryBotResponse {
+	Header: ColumnHeader[] | null;
+	Results: TryBotResult[] | null;
+}
+
 export type RegressionDetectionGrouping = string;
 
 export type StepDetection = "" | "absolute" | "percent" | "cohen";
@@ -274,4 +295,12 @@ export type ProcessState = "Running" | "Success" | "Error";
 
 export type Subset = "all" | "regressions" | "untriaged";
 
+export type Kind = string;
+
+export type CL = string;
+
+export type Params = { [key: string]: string };
+
 export type ClusterAlgo = "kmeans" | "stepfit";
+
+export type TryBotRequestKind = "trybot" | "commit";
