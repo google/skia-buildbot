@@ -103,7 +103,8 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 		return nil, nil, err
 	}
 	dbJob, err := s.db.GetJobById(id)
-	if err == db.ErrNotFound {
+	if err == db.ErrNotFound || dbJob == nil {
+		sklog.Errorf("Unable to find job %q", id)
 		return nil, nil, twirp.NotFoundError("Unknown job")
 	} else if err != nil {
 		sklog.Error(err)
