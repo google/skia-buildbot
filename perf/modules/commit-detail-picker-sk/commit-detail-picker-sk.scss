@@ -10,5 +10,9 @@ commit-detail-picker-sk {
     color: var(--on-background);
     background: var(--background);
     border: solid 1px var(--on-background);
+
+    day-range-sk {
+      display: inline-block;
+    }
   }
 }
