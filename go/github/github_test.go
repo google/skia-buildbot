@@ -193,6 +193,27 @@ func TestClosePullRequest(t *testing.T) {
 	require.Equal(t, CLOSED_STATE, *pr.State)
 }
 
+func TestGetIssues(t *testing.T) {
+	unittest.SmallTest(t)
+	id1 := int64(11)
+	id2 := int64(22)
+	issue1 := github.Issue{ID: &id1}
+	issue2 := github.Issue{ID: &id2}
+	respBody := []byte(testutils.MarshalJSON(t, []*github.Issue{&issue1, &issue2}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues").Queries("labels", "label1,label2", "per_page", "123", "state", "open").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	require.NoError(t, err)
+	issues, getIssuesErr := githubClient.GetIssues(true, []string{"label1", "label2"}, 123)
+	require.NoError(t, getIssuesErr)
+	require.Equal(t, 2, len(issues))
+	require.Equal(t, id1, issues[0].GetID())
+	require.Equal(t, id2, issues[1].GetID())
+}
+
 func TestGetLabelsRequest(t *testing.T) {
 	unittest.SmallTest(t)
 	label1Name := "test1"
@@ -389,11 +410,20 @@ func TestGetFullHistoryUrl(t *testing.T) {
 	require.Equal(t, "https://github.com/kryptonians/krypton/pulls/superman", fullHistoryUrl)
 }
 
+func TestGetPullRequestUrlBase(t *testing.T) {
+	unittest.SmallTest(t)
+	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	require.NoError(t, err)
+	pullRequestUrlBase := githubClient.GetPullRequestUrlBase()
+	require.Equal(t, "https://github.com/kryptonians/krypton/pull/", pullRequestUrlBase)
+}
+
 func TestGetIssueUrlBase(t *testing.T) {
 	unittest.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
 	issueUrlBase := githubClient.GetIssueUrlBase()
-	require.Equal(t, "https://github.com/kryptonians/krypton/pull/", issueUrlBase)
+	require.Equal(t, "https://github.com/kryptonians/krypton/issues/", issueUrlBase)
 }
