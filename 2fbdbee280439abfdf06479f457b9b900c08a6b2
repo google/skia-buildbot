@@ -197,6 +197,30 @@
       },
       "revId": "2fbdbee280439abfdf06479f457b9b900c08a6b2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5dd95cdd_b265cc02",
+        "filename": "bugs-central/modules/bugs-central-scaffold-sk/bugs-central-scaffold-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-23T14:28:34Z",
+      "side": 1,
+      "message": "No worries.",
+      "parentUuid": "d6b75103_b7c35beb",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "2fbdbee280439abfdf06479f457b9b900c08a6b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
