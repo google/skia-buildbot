@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d917e777_9739a641",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-23T14:27:44Z",
+      "side": 1,
+      "message": "nit: Prefixing _ to props is also unneeded since they are labelled \"private\".",
+      "range": {
+        "startLine": 96,
+        "startChar": 10,
+        "endLine": 96,
+        "endChar": 11
+      },
+      "revId": "a69595e96ec057029cc84017612895adc557f4fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

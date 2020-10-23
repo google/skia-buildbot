@@ -250,6 +250,24 @@
       "parentUuid": "b0acfdc7_892e4952",
       "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e55c3c3_1dd47681",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-23T14:27:44Z",
+      "side": 1,
+      "message": "You are right, I mis-read the code.",
+      "parentUuid": "9505508e_abdc7c0f",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
