@@ -18,6 +18,8 @@
 
 import '../commit-detail-panel-sk';
 import 'elements-sk/styles/buttons';
+import 'elements-sk/spinner-sk';
+import '../day-range-sk';
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -53,6 +55,18 @@ export class CommitDetailPickerSk extends ElementSk {
   private static template = (ele: CommitDetailPickerSk) => html`
     <button @click=${ele._open}>${CommitDetailPickerSk._titleFrom(ele)}</button>
     <dialog>
+
+    <div class="day-range-with-spinner">
+      <day-range-sk
+        id="range"
+        @day-range-change=${ele.rangeChange}
+        begin=${ele.state.begin}
+        end=${ele.state.end}
+      ></day-range-sk>
+      <spinner-sk ?active=${ele.updatingCommits}></spinner-sk>
+    </div>
+
+
       <commit-detail-panel-sk
         @commit-selected="${ele._panelSelect}"
         .details="${ele._details}"
