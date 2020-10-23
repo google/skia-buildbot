@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -66,6 +67,8 @@ func main() {
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},
 		regression.TriageStatus{},
+		results.TryBotRequest{},
+		results.TryBotResponse{},
 	)
 	if err != nil {
 		sklog.Fatal(err)
@@ -83,6 +86,7 @@ func main() {
 		{stepfit.AllStepFitStatus, "StepFitStatus"},
 		{types.AllClusterAlgos, "ClusterAlgo"},
 		{types.AllStepDetections, "StepDetection"},
+		{results.AllRequestKind, "TryBotRequestKind"},
 	})
 	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
