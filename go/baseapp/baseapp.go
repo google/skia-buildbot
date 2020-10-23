@@ -78,7 +78,7 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 	// This non-local CSP string passes the tests at https://csp-evaluator.withgoogle.com/.
 	//
 	// See also: https://csp.withgoogle.com/docs/strict-csp.html
-	cspString := fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' %s https: http: ; report-uri /cspreport ;", addScriptSrc)
+	cspString := fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' %s https: http: ; report-uri /cspreport ;", addScriptSrc)
 
 	// Apply CSP and other security minded headers.
 	secureMiddleware := secure.New(secure.Options{
