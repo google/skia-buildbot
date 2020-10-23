@@ -1,0 +1,57 @@
+bugs-central-sk {
+
+  table.client-counts {
+    width: 100%;
+    border: 1px solid var(--on-background);
+  }
+
+  table.client-counts th {
+    text-align: left;
+    background-color: var(--primary);
+    color: var(--on-primary);
+    font-weight: normal;
+    padding: 1em;
+    white-space: nowrap;
+  }
+
+  table.client-counts td {
+    padding: 1em;
+    border-bottom: 1px solid var(--on-background);
+    white-space: nowrap;
+  }
+
+  .client-link, .query-link a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-background);
+  }
+
+  .client-name {
+    color: var(--on-background);
+  }
+
+  .small {
+    font-size: small;
+  }
+
+  .small a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-primary);
+  }
+
+  .charts-container {
+    width: 100%;
+    display: flex;
+  }
+
+  .chart-div {
+    border: 1px solid var(--on-background);
+    flex: 1;
+  }
+
+  .chart-div:first-child, .chart-div:nth-child(2) {
+    margin-right:2em;
+  }
+
+}
