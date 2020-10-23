@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9ef2fab2_30dc6901",
+        "filename": "task_scheduler/pages/job.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-23T13:17:29Z",
+      "side": 1,
+      "message": "(on each page.ts) Ubernit so egregious I\u0027m marking this comment resolved: probably can forgo the \u0027!\u0027 if you\u0027re casting to a type, since that type isn\u0027t \"\u003cJobSK |  null\u003e\". I know with \"document.querySelector(\u0027job-sk\u0027) as JobSk;\" that works.",
+      "range": {
+        "startLine": 7,
+        "startChar": 51,
+        "endLine": 7,
+        "endChar": 52
+      },
+      "revId": "e9fb60edd6237d9be1fee305a303920179a489e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
