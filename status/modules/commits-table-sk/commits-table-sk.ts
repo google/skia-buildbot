@@ -13,6 +13,7 @@
  */
 
 import { $, $$, DomReady } from 'common-sk/modules/dom';
+import { fromObject } from 'common-sk/modules/query';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { Hintable, HintableObject } from 'common-sk/modules/hintable';
 import { define } from 'elements-sk/define';
@@ -23,6 +24,8 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/radio-sk';
 import 'elements-sk/select-sk';
+import 'elements-sk/icon/add-icon-sk';
+import 'elements-sk/icon/autorenew-icon-sk';
 import 'elements-sk/icon/block-icon-sk';
 import 'elements-sk/icon/comment-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
@@ -45,7 +48,7 @@ import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { truncateWithEllipses } from '../../../golden/modules/common';
 import { GetStatusService } from '../rpc';
-import { defaultRepo, repos } from '../settings';
+import { defaultRepo, repos, taskSchedulerUrl } from '../settings';
 
 const CONTROL_START_ROW = 1;
 const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
@@ -448,6 +451,7 @@ export class CommitsTableSk extends ElementSk {
   private _search: string = '';
   private lastLoaded?: Date;
   private lastColumn: number = 1;
+  private mishapTasks: Array<Task> = [];
   private refreshHandle?: number;
   private requestLimiter: RequestLimiter = new RequestLimiter();
   private stateHasChanged: () => void = () => {};
@@ -551,6 +555,18 @@ export class CommitsTableSk extends ElementSk {
           <input-sk id="searchInput" label="Filter task spec" @change=${el.searchFilter}>
           </input-sk>
           <help-icon-sk class="tiny"></help-icon-sk>
+          <a href="${taskSchedulerUrl()}/trigger" target="_blank" rel="noopener">
+            <button>
+              <add-icon-sk></add-icon-sk>
+              Trigger a Job
+            </button>
+          </a>
+          <a href=${el.reRunMishapsUrl()} target="_blank" rel="noopener">
+            <button>
+              <autorenew-icon-sk></autorenew-icon-sk>
+              Re-Run Purple Jobs
+            </button>
+          </a>
         </div>
       </div>
     </div>
@@ -696,6 +712,21 @@ export class CommitsTableSk extends ElementSk {
       dialog.close();
     }
   };
+
+  private reRunMishapsUrl() {
+    const jobStrings: { job: Array<string> } = {
+      job: this.mishapTasks.map((task) => {
+        // Jobs are named after task, test, or perf tasks, but not
+        // uploads. If this is an upload, trim the prefix.
+        var jobName = task.name;
+        if (jobName.startsWith('Upload-')) {
+          jobName = jobName.substring('Upload-'.length);
+        }
+        return `${jobName}@${task.revision}`;
+      }),
+    };
+    return `${taskSchedulerUrl()}?${fromObject(jobStrings)}`;
+  }
 
   private toggleCommitLabel() {
     this.displayCommitSubject = !this.displayCommitSubject;
@@ -949,6 +980,9 @@ export class CommitsTableSk extends ElementSk {
         // We mark tasks as added, since the first time we see multi-commit
         // tasks we add them in their entirety.
         tasksAddedToTemplate.add(task.id);
+        if (task.status === TASK_STATUS_MISHAP) {
+          this.mishapTasks.push(task);
+        }
         const displayTaskRows = this.displayTaskRows(task, commitIndex);
         if (displayTaskRows.every(Boolean)) {
           // The task bubble is contiguous, just draw a single div over that span.
@@ -995,6 +1029,7 @@ export class CommitsTableSk extends ElementSk {
     // We use lastColumn to ensure our controls panel and row underlay covers all columns, always
     // at least 1 more than the commits panel, even if we have no tasks displayed.
     this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
+    this.mishapTasks = [];
     const taskStartRow = TASKSPEC_START_ROW + 1;
     const tasksAddedToTemplate: Set<TaskId> = new Set();
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
