@@ -35,6 +35,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ae8cbcc_d1473d72",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-23T14:06:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a0d948f1_568978bf",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "28e4bf14_a74cab60",
@@ -48,6 +66,30 @@
       "writtenOn": "2020-10-22T18:55:52Z",
       "side": 1,
       "message": "private _clients_map: Record\u003cstring, Record\u003cstring, Record\u003cstring, boolean\u003e\u003e\u003e \u003d {};\n\nAnd then you can remove the line from the constructor.\n\nSame for all the other private members.",
+      "range": {
+        "startLine": 98,
+        "startChar": 2,
+        "endLine": 98,
+        "endChar": 80
+      },
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5eadb635_47902710",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-23T14:06:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28e4bf14_a74cab60",
       "range": {
         "startLine": 98,
         "startChar": 2,
@@ -75,6 +117,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "20e68fa7_2a206a97",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-23T14:06:25Z",
+      "side": 1,
+      "message": "Oops. Done.",
+      "parentUuid": "c2df7b20_21cd4225",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ff1892fa_a847d5d6",
@@ -88,6 +148,24 @@
       "writtenOn": "2020-10-22T18:55:52Z",
       "side": 1,
       "message": "You don\u0027t need the async/await if you call then/catch.\n\nSo this code can be:\n\n  private _doImpl(url: string, detail: any, action: (json: any)\u003d\u003e void): Promise\u003cvoid\u003e {\n    return fetch(url, {...\n\nOr you can rewrite it in an async manner:\n\n  private async _doImpl(url: string, detail: any, action: (json: any)\u003d\u003e void): Promise\u003cvoid\u003e {\n    try {\n      resp \u003d await fetch(url, {...\n      json \u003d await jsonOrThrow(resp);\n      action(json);\n    }\n    catch (msg) {\n      errorMessage(msg);\n    }\n  }",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "62619e86_2d5de59d",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-23T14:06:25Z",
+      "side": 1,
+      "message": "Thank you, I rewrote it for async.",
+      "parentUuid": "ff1892fa_a847d5d6",
       "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
@@ -115,6 +193,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3e1c4d8_979a29a9",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-23T14:06:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d4535361_dddf6702",
+      "range": {
+        "startLine": 342,
+        "startChar": 16,
+        "endLine": 342,
+        "endChar": 17
+      },
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b0acfdc7_892e4952",
@@ -128,6 +230,24 @@
       "writtenOn": "2020-10-22T18:55:52Z",
       "side": 1,
       "message": "You can create an array of Promises that do the work as below and then call Promise.all() on that array which will do all the fetches in parallel, instead of serialized like they are in the current code.",
+      "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9505508e_abdc7c0f",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-23T14:06:25Z",
+      "side": 1,
+      "message": "I think that is what is already below?\n`Object.keys(..).map()` returns an array of promises.\nThen the Promise.all on that array does the fetches in parallel.",
+      "parentUuid": "b0acfdc7_892e4952",
       "revId": "aa2e92381961fb588422d504f910bcd96a816b8b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
