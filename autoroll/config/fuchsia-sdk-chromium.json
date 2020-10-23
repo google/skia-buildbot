@@ -5,13 +5,13 @@
   "commitMsg": {
     "cqExtraTrybots": [
       "luci.chromium.try:fuchsia-arm64-cast",
+      "luci.chromium.try:fuchsia-deterministic-dbg",
       "luci.chromium.try:fuchsia-x64-cast"
     ],
     "includeTbrLine": true
   },
   "contacts": [
-    "jbudorick@chromium.org",
-    "cr-fuchsia+bot@chromium.org"
+    "cr-fuchsia@chromium.org"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -26,7 +26,7 @@
   "rollerName": "fuchsia-sdk-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
-    "cr-fuchsia+bot@chromium.org"
+    "chrome-fuchsia-gardener@grotations.appspotmail.com"
   ],
   "fuchsiaSDKRepoManager": {
     "childBranch": "master",
