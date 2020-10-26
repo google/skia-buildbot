@@ -38,6 +38,15 @@ func New(client gerrit.GerritInterface) *CRSImpl {
 
 var invalidID = errors.New("invalid id - must be integer")
 
+// LoggedInAs returns the email address of the logged in user.
+func (c *CRSImpl) LoggedInAs(ctx context.Context) (string, error) {
+	s, err := c.gClient.GetUserEmail(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return s, nil
+}
+
 // GetChangeList implements the code_review.Client interface.
 func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
 	cl, err := c.getGerritCL(ctx, id)
