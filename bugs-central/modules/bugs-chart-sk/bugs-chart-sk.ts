@@ -8,11 +8,7 @@
  *
  * @attr chart_title {string} The title of the chart.
  *
- * @attr client {string} The name of the client. Eg: Android/Chromium/Flutter/Skia.
- *
- * @attr source {string} The name of the issue source. Eg: Github/Monorail.
- *
- * @attr query {string} The name of the query. Eg: is:open.
+ * @attr data {string} Data for the chart. Eg: '[["Month", "Days"], ["Jan", 31], ["Feb", 28], ["Mar", 31]]'.
  *
  */
 
@@ -70,7 +66,7 @@ export class BugsChartSk extends ElementSk {
     <google-chart
       id="${el.chart_type}-chart"
       options="${getChartOptions(el.chart_type)}"
-      data="/_/get_chart_data?client=${el.client}&source=${el.source}&query=${encodeURIComponent(el.query)}&type=${el.chart_type}">
+      data="${el.data}">
     </google-chart>
 `;
 
@@ -84,35 +80,23 @@ export class BugsChartSk extends ElementSk {
 
   set chart_title(val: string) { this.setAttribute('chart_title', (+val as unknown) as string); }
 
-  /** Reflects client attribute for convenience. */
-  get client(): string { return this.getAttribute('client')!; }
+  /** Reflects data attribute for convenience. */
+  get data(): string { return this.getAttribute('data')!; }
 
-  set client(val: string) { this.setAttribute('client', (+val as unknown) as string); }
-
-  /** Reflects source attribute for convenience. */
-  get source(): string { return this.getAttribute('source')!; }
-
-  set source(val: string) { this.setAttribute('source', (+val as unknown) as string); }
-
-  /** Reflects query attribute for convenience. */
-  get query(): string { return this.getAttribute('query')!; }
-
-  set query(val: string) { this.setAttribute('query', (+val as unknown) as string); }
+  set data(val: string) { this.setAttribute('data', (+val as unknown) as string); }
 
   connectedCallback(): void {
     super.connectedCallback();
 
     this._upgradeProperty('chart_type');
     this._upgradeProperty('chart_title');
-    this._upgradeProperty('client');
-    this._upgradeProperty('source');
-    this._upgradeProperty('query');
+    this._upgradeProperty('data');
 
     this._render();
   }
 
   static get observedAttributes(): string[] {
-    return ['chart_type', 'chart_title', 'client', 'source', 'query'];
+    return ['chart_type', 'chart_title', 'data'];
   }
 
   attributeChangedCallback(_name: string, oldValue: string, newValue: string): void {
