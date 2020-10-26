@@ -109,7 +109,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 
 	var reviewSystems []clstore.ReviewSystem
 	for _, crsName := range crsNames {
-		crsClient, err := codeReviewSystemFactory(crsName, config, client)
+		crsClient, err := codeReviewSystemFactory(ctx, crsName, config, client)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
 		}
@@ -127,7 +127,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 	}, nil
 }
 
-func codeReviewSystemFactory(crsName string, config ingestion.Config, client *http.Client) (code_review.Client, error) {
+func codeReviewSystemFactory(ctx context.Context, crsName string, config ingestion.Config, client *http.Client) (code_review.Client, error) {
 	if crsName == gerritCRS {
 		gerritURL := config.ExtraParams[gerritURLParam]
 		if strings.TrimSpace(gerritURL) == "" {
@@ -137,7 +137,13 @@ func codeReviewSystemFactory(crsName string, config ingestion.Config, client *ht
 		if err != nil {
 			return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
 		}
-		return gerrit_crs.New(gerritClient), nil
+		g := gerrit_crs.New(gerritClient)
+		email, err := g.LoggedInAs(ctx)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Getting logged in client to gerrit")
+		}
+		sklog.Infof("Logged into gerrit as %s", email)
+		return g, nil
 	}
 	if crsName == gerritInternalCRS {
 		gerritURL := config.ExtraParams[gerritInternalURLParam]
@@ -148,7 +154,13 @@ func codeReviewSystemFactory(crsName string, config ingestion.Config, client *ht
 		if err != nil {
 			return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
 		}
-		return gerrit_crs.New(gerritClient), nil
+		g := gerrit_crs.New(gerritClient)
+		email, err := g.LoggedInAs(ctx)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Getting logged in client to gerrit-internal")
+		}
+		sklog.Infof("Logged into gerrit-internal as %s", email)
+		return g, nil
 	}
 	if crsName == githubCRS {
 		githubRepo := config.ExtraParams[githubRepoParam]
