@@ -392,7 +392,8 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 			if !match {
 				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgDigest)
 				if c.resultState.SharedConfig.ChangeListID != "" {
-					link += "&issue=" + c.resultState.SharedConfig.ChangeListID
+					link += "&changelist_id=" + c.resultState.SharedConfig.ChangeListID
+					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
 				}
 				link += "\n"
 				fmt.Printf("Untriaged or negative image: %s", link)
