@@ -868,7 +868,7 @@ func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Ro
 	version := 0 // Default value is used for unversioned JSON RPCs.
 	if matches := versionedJSONRouteRegexp.FindStringSubmatch(jsonRoute); matches != nil {
 		var err error
-		version, err = strconv.Atoi(matches[versionedJSONRouteRegexp.SubexpIndex("version")])
+		version, err = strconv.Atoi(matches[1])
 		if err != nil {
 			// Should never happen.
 			panic("Failed to convert RPC version to integer (indicates a bug in the regexp): " + jsonRoute)
@@ -877,9 +877,9 @@ func addJSONRoute(jsonRoute string, handlerFunc http.HandlerFunc, router *mux.Ro
 			// Disallow /json/v0/* because we indicate unversioned RPCs with version 0.
 			panic("JSON RPC version cannot be 0: " + jsonRoute)
 		}
-		path = matches[versionedJSONRouteRegexp.SubexpIndex("path")]
+		path = matches[2]
 	} else if matches := unversionedJSONRouteRegexp.FindStringSubmatch(jsonRoute); matches != nil {
-		path = matches[unversionedJSONRouteRegexp.SubexpIndex("path")]
+		path = matches[1]
 	} else {
 		// The path is neither a versioned nor an unversioned JSON RPC route. This is a coding error.
 		panic("Unrecognized JSON RPC route format: " + jsonRoute)
