@@ -148,7 +148,9 @@ export class BugsCentralSk extends ElementSk {
     </div>
   </div>
   <br/><br/>
-  ${el.displayClientsTable()}
+  ${el.displayOpenCountsTable()}
+  <br/><br/>
+  ${el.displaySLOTable()}
   `;
 
 
@@ -175,11 +177,12 @@ export class BugsCentralSk extends ElementSk {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private stateHasChanged = () => {};
 
-  private displayClientsTable(): TemplateResult {
+  private displayOpenCountsTable(): TemplateResult {
     return html`
     <table class=client-counts>
       <colgroup>
-        <col span="1" style="width: 50%">
+        <col span="1" style="width: 40%">
+        <col span="1" style="width: 10%">
         <col span="1" style="width: 10%">
         <col span="1" style="width: 10%">
         <col span="1" style="width: 10%">
@@ -187,14 +190,37 @@ export class BugsCentralSk extends ElementSk {
         <col span="1" style="width: 10%">
       </colgroup>
       <tr>
-        <th>Client</th>
-        <th>P0/P1 <span class="small">[<a href="${SKIA_SLO_DOC}">SLO</a>]</span></th>
-        <th>P2 <span class="small">[<a href="${SKIA_SLO_DOC}">SLO</a>]</span></th>
-        <th>P3+ <span class="small">[<a href="${SKIA_SLO_DOC}">SLO</a>]</span></th>
+        <th>Client with Open Bugs</th>
+        <th>P0-P1</th>
+        <th>P2</th>
+        <th>P3+</th>
+        <th><a href="${SKIA_SLO_DOC}">SLO</a></th>
         <th>Untriaged</th>
         <th>Total</th>
       </tr>
        ${this.displayClientsRows()}
+    </table>
+  `;
+  }
+
+  private displaySLOTable(): TemplateResult {
+    return html`
+    <table class=client-counts>
+      <colgroup>
+        <col span="1" style="width: 60%">
+        <col span="1" style="width: 10%">
+        <col span="1" style="width: 10%">
+        <col span="1" style="width: 10%">
+        <col span="1" style="width: 10%">
+      </colgroup>
+      <tr>
+        <th>Client with bugs outside <a href="${SKIA_SLO_DOC}">Skia's SLO</a></th>
+        <th>P0-P1</th>
+        <th>P2</th>
+        <th>P3+</th>
+        <th>SLO: Total</th>
+      </tr>
+       ${this.displaySLORows()}
     </table>
   `;
   }
@@ -231,34 +257,55 @@ export class BugsCentralSk extends ElementSk {
           </td>
           <td>
             ${clientCounts.p0_count + clientCounts.p1_count}
-            ${clientCounts.p0_slo_count + clientCounts.p1_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p0_slo_count + clientCounts.p1_slo_count}]</span>`
-    : ''}
           </td>
           <td>
             ${clientCounts.p2_count}
-            ${clientCounts.p2_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p2_slo_count}]</span>`
-    : ''}
           </td>
           <td>
             ${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}
-            ${clientCounts.p3_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p3_slo_count}]</span>`
-    : ''}
           </td>
           <td>
-          ${clientCounts.untriaged_query_link
+            ${clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count}
+          </td>
+          <td>
+            ${clientCounts.untriaged_query_link
     ? html`<span class=query-link><a href="${clientCounts.untriaged_query_link}" target=_blank>${clientCounts.untriaged_count}</a></span>`
     : html`${clientCounts.untriaged_count}`}
           </td>
           <td>
-          ${clientCounts.query_link
+            ${clientCounts.query_link
     ? html`<span class=query-link><a href="${clientCounts.query_link}" target=_blank>${clientCounts.open_count}</a></span>`
     : html`${clientCounts.open_count}`}
-            ${clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count}]</span>`
-    : ''}
+          </td>
+        </tr>
+      `);
+    }
+    return rowsHTML;
+  }
+
+  private displaySLORows(): TemplateResult[] {
+    const rowsHTML = [];
+    const clientKeys = Object.keys(this.clients_to_counts);
+    clientKeys.sort();
+    for (let i = 0; i < clientKeys.length; i++) {
+      const clientKey = clientKeys[i];
+      const clientCounts = this.clients_to_counts[clientKey];
+      rowsHTML.push(html`
+        <tr>
+          <td @click=${() => this.clickClient(clientKey)}>
+            <span class=client-link>${clientKey}</span>
+          </td>
+          <td>
+            <span>${clientCounts.p0_slo_count + clientCounts.p1_slo_count}/${clientCounts.p0_count + clientCounts.p1_count}</span>
+          </td>
+          <td>
+            <span>${clientCounts.p2_count}/${clientCounts.p2_slo_count}</span>
+          </td>
+          <td>
+            <span>${clientCounts.p3_slo_count}/${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}</span>
+          </td>
+          <td>
+            <span>${clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count}/${clientCounts.open_count}</span>
           </td>
         </tr>
       `);
