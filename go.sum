@@ -460,6 +460,8 @@ github.com/google/go-licenses v0.0.0-20200511085313-e4cf7a36ee79 h1:/kgCkStHv3ZH
 github.com/google/go-licenses v0.0.0-20200511085313-e4cf7a36ee79/go.mod h1:EiGoSZYaoyOKTmTfBpX5D5odFoqz4uXoSgtvxKLeOYo=
 github.com/google/go-licenses v0.0.0-20200602185517-f29a4c695c3d h1:r8YwMrdIrMvQUlRJT/D5BCIy42bMMxS7zxV89k0i3ik=
 github.com/google/go-licenses v0.0.0-20200602185517-f29a4c695c3d/go.mod h1:g1VOUGKZYIqe8lDq2mL7plhAWXqrEaGUs7eIjthN1sk=
+github.com/google/go-licenses v0.0.0-20201026145851-73411c8fa237 h1:qmrsmPqL7jK5f7dwLc4oDBZu/3pzB19tvhnP4TngNYY=
+github.com/google/go-licenses v0.0.0-20201026145851-73411c8fa237/go.mod h1:g1VOUGKZYIqe8lDq2mL7plhAWXqrEaGUs7eIjthN1sk=
 github.com/google/go-querystring v1.0.0 h1:Xkwi/a1rcvNg1PPYe5vI8GbeBY/jrVuDX5ASuANWTrk=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
 github.com/google/gofuzz v1.0.0 h1:A8PeW59pxE9IoFRqBp37U+mSNaQoZ46F1f0f863XSXw=

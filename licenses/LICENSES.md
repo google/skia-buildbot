@@ -23,7 +23,7 @@ The following licenses are used in dependent packages.
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
 | github.com/cespare/xxhash/v2                                      | MIT           |
 | github.com/cockroachdb/cockroach-go/crdb                          | Apache-2.0    |
-| github.com/daaku/go.zipexe                                        | Unknown       |
+| github.com/daaku/go.zipexe                                        | MIT           |
 | github.com/danjacques/gofslock/fslock                             | BSD-3-Clause  |
 | github.com/davecgh/go-spew/spew                                   | ISC           |
 | github.com/fiorix/go-web/autogzip                                 | BSD-3-Clause  |
@@ -106,6 +106,7 @@ The following licenses are used in dependent packages.
 | github.com/subosito/gotenv                                        | MIT           |
 | github.com/syndtr/goleveldb/leveldb                               | BSD-2-Clause  |
 | github.com/texttheater/golang-levenshtein/levenshtein             | MIT           |
+| github.com/twitchtv/twirp                                         | Apache-2.0    |
 | github.com/unrolled/secure                                        | MIT           |
 | github.com/willf/bitset                                           | BSD-3-Clause  |
 | github.com/zeebo/bencode                                          | MIT           |
