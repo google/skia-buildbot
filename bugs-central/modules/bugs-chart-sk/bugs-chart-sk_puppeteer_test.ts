@@ -12,7 +12,7 @@ describe('bugs-chart-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('bugs-chart-sk')).to.have.length(2);
+    expect(await testBed.page.$$('bugs-chart-sk')).to.have.length(3);
   });
 
   describe('screenshots', () => {
