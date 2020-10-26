@@ -254,10 +254,19 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 			countsData.P2SLOViolationCount,                                  // SLO: P2
 			countsData.P3SLOViolationCount,                                  // SLO: P3+
 		})
-		untriagedData = append(untriagedData, []interface{}{
-			d,                         // Date
-			countsData.UntriagedCount, // Untriaged
-		})
+
+		// We did not ingest untriaged data before the 1603288800 timestamp.
+		// Hack to exclude everything before so we do not see 0s in the charts.
+		ts, err := time.Parse(time.RFC1123, d)
+		if err != nil {
+			sklog.Errorf("Could not time.Parse %s", d)
+		}
+		if ts.After(time.Unix(1603288800, 0)) {
+			untriagedData = append(untriagedData, []interface{}{
+				d,                         // Date
+				countsData.UntriagedCount, // Untriaged
+			})
+		}
 	}
 
 	resp := struct {
