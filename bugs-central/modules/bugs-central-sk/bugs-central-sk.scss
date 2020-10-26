@@ -14,6 +14,17 @@ bugs-central-sk {
     white-space: nowrap;
   }
 
+  table.client-counts th.table-title {
+    text-align: center;
+    border-bottom: 1px solid var(--on-background);
+  }
+
+  table.client-counts th.table-title a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-primary);
+  }
+
   table.client-counts td {
     padding: 1em;
     border-bottom: 1px solid var(--on-background);
@@ -31,7 +42,7 @@ bugs-central-sk {
   }
 
   .small {
-    font-size: small;
+    // font-size: small;
   }
 
   .small a {
