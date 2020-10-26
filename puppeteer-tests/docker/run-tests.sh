@@ -82,6 +82,12 @@ cp -r /src/am/webpack.config.ts             /tests/am
 cp -r /src/am/tsconfig.json                 /tests/am
 cp -r /src/am/modules                       /tests/am
 
+mkdir /tests/bugs-central
+cp -r /src/bugs-central/package*            /tests/bugs-central
+cp -r /src/bugs-central/webpack.config.ts   /tests/bugs-central
+cp -r /src/bugs-central/tsconfig.json       /tests/bugs-central
+cp -r /src/bugs-central/modules             /tests/bugs-central
+
 mkdir /tests/ct
 cp -r /src/ct/package*                      /tests/ct
 cp -r /src/ct/webpack.config.ts             /tests/ct
@@ -133,6 +139,9 @@ npm ci
 cd /tests/am
 npm ci
 
+cd /tests/bugs-central
+npm ci
+
 cd /tests/ct
 npm ci
 
@@ -171,6 +180,9 @@ cd /tests/perf
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/am
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/bugs-central
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
