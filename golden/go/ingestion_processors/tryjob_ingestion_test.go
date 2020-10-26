@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
@@ -49,8 +50,8 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 			continuousIntegrationSystemsParam: "buildbucket",
 		},
 	}
-
-	p, err := newModularTryjobProcessor(context.Background(), nil, config, httputils.NewTimeoutClient())
+	ctx := gerrit_crs.TestContext(context.Background())
+	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient())
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -77,7 +78,8 @@ func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 		},
 	}
 
-	p, err := newModularTryjobProcessor(context.Background(), nil, config, httputils.NewTimeoutClient())
+	ctx := gerrit_crs.TestContext(context.Background())
+	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient())
 	require.NoError(t, err)
 	require.NotNil(t, p)
 

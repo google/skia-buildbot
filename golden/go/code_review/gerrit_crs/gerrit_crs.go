@@ -22,7 +22,11 @@ const (
 	// These values are arbitrary guesses, roughly based on the values for gitiles.
 	maxQPS   = rate.Limit(4.0)
 	maxBurst = 20
+
+	testContextKey = gerritCRSContextKey("gerrit_crs_is_testing")
 )
+
+type gerritCRSContextKey string
 
 type CRSImpl struct {
 	gClient gerrit.GerritInterface
@@ -37,6 +41,18 @@ func New(client gerrit.GerritInterface) *CRSImpl {
 }
 
 var invalidID = errors.New("invalid id - must be integer")
+
+// LoggedInAs returns the email address of the logged in user.
+func (c *CRSImpl) LoggedInAs(ctx context.Context) (string, error) {
+	if ctx.Value(testContextKey) != nil {
+		return "test_crs_user@example.com", nil
+	}
+	s, err := c.gClient.GetUserEmail(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	return s, nil
+}
 
 // GetChangeList implements the code_review.Client interface.
 func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
@@ -144,6 +160,12 @@ func (c *CRSImpl) getGerritCL(ctx context.Context, clID string) (*gerrit.ChangeI
 		return nil, skerr.Wrapf(err, "fetching CL from gerrit with id %d", i)
 	}
 	return cl, nil
+}
+
+// TestContext returns a context that will cause certain APIs to return stub data. At present,
+// those APIs are LoggedInAs.
+func TestContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, testContextKey, testContextKey)
 }
 
 // Make sure CRSImpl fulfills the code_review.Client interface.
