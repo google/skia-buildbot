@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "59cc6d25_1a1c6323",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-26T18:03:49Z",
+      "side": 1,
+      "message": "Needs comments on how the data is formatted in those strings.",
+      "revId": "18e124f410c0774618c670a3a68c2b43a929e68c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d77fd12c_b1fe4853",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-26T18:03:49Z",
+      "side": 1,
+      "message": "nit: leading _ isn\u0027t needed for private.",
+      "range": {
+        "startLine": 116,
+        "startChar": 10,
+        "endLine": 116,
+        "endChar": 11
+      },
+      "revId": "18e124f410c0774618c670a3a68c2b43a929e68c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
