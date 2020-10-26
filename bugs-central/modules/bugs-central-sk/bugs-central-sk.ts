@@ -81,6 +81,12 @@ declare interface CountsData {
   untriaged_query_link: string,
 }
 
+declare interface ChartsData {
+  open_data: string,
+  slo_data: string,
+  untriaged_data: string,
+}
+
 // State is reflected to the URL via stateReflector.
 declare interface State {
   client: string,
@@ -103,6 +109,12 @@ export class BugsCentralSk extends ElementSk {
     query: '',
   };
 
+  private _open_chart_data: string = '';
+
+  private _slo_chart_data: string = '';
+
+  private _untriaged_chart_data: string = '';
+
   private _updatingData: boolean = true;
 
   constructor() {
@@ -117,31 +129,42 @@ export class BugsCentralSk extends ElementSk {
     <div class="chart-div">
       <bugs-chart-sk chart_type='open'
                      chart_title='Bug Count'
-                     client=${el._state.client}
-                     source=${el._state.source}
-                     query=${el._state.query}>
+                     data=${el._open_chart_data}>
       </bugs-chart-sk>
     </div>
     <div class="chart-div">
       <bugs-chart-sk chart_type='slo'
                      chart_title='SLO Violations'
-                     client=${el._state.client}
-                     source=${el._state.source}
-                     query=${el._state.query}>
+                     data=${el._slo_chart_data}>
       </bugs-chart-sk>
     </div>
-      <div class="chart-div">
+    <div class="chart-div">
       <bugs-chart-sk chart_type='untriaged'
                      chart_title='Untriaged Bugs'
-                     client=${el._state.client}
-                     source=${el._state.source}
-                     query=${el._state.query}>
+                     data=${el._untriaged_chart_data}>
       </bugs-chart-sk>
     </div>
   </div>
   <br/><br/>
   ${el.displayClientsTable()}
   `;
+
+  //   <div class="chart-div">
+  //   <bugs-chart-sk chart_type='slo'
+  //                  chart_title='SLO Violations'
+  //                  client=${el._state.client}
+  //                  source=${el._state.source}
+  //                  query=${el._state.query}>
+  //   </bugs-chart-sk>
+  // </div>
+  //   <div class="chart-div">
+  //   <bugs-chart-sk chart_type='untriaged'
+  //                  chart_title='Untriaged Bugs'
+  //                  client=${el._state.client}
+  //                  source=${el._state.source}
+  //                  query=${el._state.query}>
+  //   </bugs-chart-sk>
+  // </div>
 
 
   async connectedCallback(): Promise<void> {
@@ -157,7 +180,7 @@ export class BugsCentralSk extends ElementSk {
 
     this._updatingData = true;
     this._render();
-    await this.populateCountsAndRender();
+    await this.populateDataAndRender();
     this._updatingData = false;
     this._render();
   }
@@ -273,7 +296,7 @@ export class BugsCentralSk extends ElementSk {
     this._state.source = tokens.source ? tokens.source : '';
     this._state.query = tokens.query ? tokens.query : '';
     this._stateHasChanged();
-    this.populateCountsAndRender();
+    this.populateDataAndRender();
   }
 
   // If client is specified and there is only one source then directly display
@@ -313,7 +336,7 @@ export class BugsCentralSk extends ElementSk {
         if (stateUpdated) {
           this._stateHasChanged();
         }
-        this.populateCountsAndRender();
+        this.populateDataAndRender();
       },
     );
   }
@@ -349,7 +372,20 @@ export class BugsCentralSk extends ElementSk {
     return countsData;
   }
 
-  private async populateCountsAndRender() {
+  private async populateChartData() {
+    const detail = {
+      client: this.state.client,
+      source: this.state.source,
+      query: this.state.query,
+    };
+    await this.doImpl('/_/get_charts_data', detail, (json: ChartsData) => {
+      this._open_chart_data = JSON.stringify(json.open_data);
+      this._slo_chart_data = JSON.stringify(json.slo_data);
+      this._untriaged_chart_data = JSON.stringify(json.untriaged_data);
+    });
+  }
+
+  private async populateDataAndRender() {
     this._clients_to_counts = {};
     const c = this._state.client;
     const s = this._state.source;
@@ -364,6 +400,11 @@ export class BugsCentralSk extends ElementSk {
     } else {
       this._clients_to_counts[getClientKey(c, s, q)] = await this.getCounts(c, s, q);
     }
+    // Render counts since we have them. Rendering charts will take longer.
+    this._render();
+
+    // Get chart data and render.
+    await this.populateChartData();
     this._render();
   }
 }
