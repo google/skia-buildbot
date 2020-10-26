@@ -32,17 +32,27 @@ const testIssueCounts = {
   query_link: 'http://test_query_link/',
 };
 
-const chartData = [
-  ['date', 'col1', 'col2'],
-  ['2020-10-01', 14, 21],
-  ['2020-10-02', 32, 24],
-];
+const chartsData = {
+  open_data: [
+    ['date', 'col1', 'col2'],
+    ['2020-10-01', 14, 21],
+    ['2020-10-02', 32, 24],
+  ],
+  slo_data: [
+    ['date', 'col1', 'col2'],
+    ['2020-10-01', 14, 21],
+    ['2020-10-02', 32, 24],
+  ],
+  untriaged_data: [
+    ['date', 'col1', 'col2'],
+    ['2020-10-01', 14, 21],
+    ['2020-10-02', 32, 24],
+  ],
+};
 
 fetchMock.post('/_/get_clients_sources_queries', () => testClientsTestMap);
 fetchMock.post('/_/get_issue_counts', () => testIssueCounts);
-fetchMock.get('/_/get_chart_data?client=Android&source=Github&query=test%20query&type=open', chartData);
-fetchMock.get('/_/get_chart_data?client=Android&source=Github&query=test%20query&type=slo', chartData);
-fetchMock.get('/_/get_chart_data?client=Android&source=Github&query=test%20query&type=untriaged', chartData);
+fetchMock.post('/_/get_charts_data', () => chartsData);
 
 customElements.whenDefined('bugs-central-sk').then(() => {
   // Insert the element later, which should given enough time for fetchMock to be in place.

@@ -81,6 +81,14 @@ declare interface CountsData {
   untriaged_query_link: string,
 }
 
+// ChartsData is directly fed to @google-web-components/google-chart.
+// Example format: '[["Month", "Days"], ["Jan", 31], ["Feb", 28], ["Mar", 31]]'
+declare interface ChartsData {
+  open_data: string,
+  slo_data: string,
+  untriaged_data: string,
+}
+
 // State is reflected to the URL via stateReflector.
 declare interface State {
   client: string,
@@ -93,17 +101,23 @@ declare interface ClientsResponse {
 }
 
 export class BugsCentralSk extends ElementSk {
-  private _clients_to_counts: Record<string, CountsData> = {};
-
-  private _clients_map: Record<string, Record<string, Record<string, boolean>>> = {};
-
-  private _state: State = {
+  public state: State = {
     client: '',
     source: '',
     query: '',
   };
 
-  private _updatingData: boolean = true;
+  private clients_to_counts: Record<string, CountsData> = {};
+
+  private clients_map: Record<string, Record<string, Record<string, boolean>>> = {};
+
+  private open_chart_data: string = '';
+
+  private slo_chart_data: string = '';
+
+  private untriaged_chart_data: string = '';
+
+  private updatingData: boolean = true;
 
   constructor() {
     super(BugsCentralSk.template);
@@ -111,31 +125,25 @@ export class BugsCentralSk extends ElementSk {
 
   private static template = (el: BugsCentralSk) => html`
   <h2>${el.getTitle()}</h2>
-  <spinner-sk ?active=${el._updatingData}></spinner-sk>
+  <spinner-sk ?active=${el.updatingData}></spinner-sk>
   <br/><br/>
   <div class="charts-container">
     <div class="chart-div">
       <bugs-chart-sk chart_type='open'
                      chart_title='Bug Count'
-                     client=${el._state.client}
-                     source=${el._state.source}
-                     query=${el._state.query}>
+                     data=${el.open_chart_data}>
       </bugs-chart-sk>
     </div>
     <div class="chart-div">
       <bugs-chart-sk chart_type='slo'
                      chart_title='SLO Violations'
-                     client=${el._state.client}
-                     source=${el._state.source}
-                     query=${el._state.query}>
+                     data=${el.slo_chart_data}>
       </bugs-chart-sk>
     </div>
-      <div class="chart-div">
+    <div class="chart-div">
       <bugs-chart-sk chart_type='untriaged'
                      chart_title='Untriaged Bugs'
-                     client=${el._state.client}
-                     source=${el._state.source}
-                     query=${el._state.query}>
+                     data=${el.untriaged_chart_data}>
       </bugs-chart-sk>
     </div>
   </div>
@@ -149,32 +157,23 @@ export class BugsCentralSk extends ElementSk {
 
     // Populate map of clients to sources to queries.
     await this.doImpl('/_/get_clients_sources_queries', {}, async (json: ClientsResponse) => {
-      this._clients_map = json.clients;
+      this.clients_map = json.clients;
     });
 
     // From this point on reflect the state to the URL.
     this.startStateReflector();
 
-    this._updatingData = true;
+    this.updatingData = true;
     this._render();
-    await this.populateCountsAndRender();
-    this._updatingData = false;
+    await this.populateDataAndRender();
+    this.updatingData = false;
     this._render();
   }
 
   // Call this anytime something in private state is changed. Will be replaced
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private _stateHasChanged = () => {};
-
-  /** @prop state - The state of the element. */
-  get state(): State {
-    return this._state;
-  }
-
-  set state(state: State) {
-    this._state = state;
-  }
+  private stateHasChanged = () => {};
 
   private displayClientsTable(): TemplateResult {
     return html`
@@ -201,11 +200,11 @@ export class BugsCentralSk extends ElementSk {
   }
 
   private getTitle(): TemplateResult {
-    if (!this._state.client) {
+    if (!this.state.client) {
       return html`Displaying all clients`;
     }
-    const clientKey = getClientKey(this._state.client, this._state.source, this._state.query);
-    const clientCounts = this._clients_to_counts[clientKey];
+    const clientKey = getClientKey(this.state.client, this.state.source, this.state.query);
+    const clientCounts = this.clients_to_counts[clientKey];
     if (clientCounts && clientCounts.query_link) {
       return html`
         ${clientKey}
@@ -220,11 +219,11 @@ export class BugsCentralSk extends ElementSk {
 
   private displayClientsRows(): TemplateResult[] {
     const rowsHTML = [];
-    const clientKeys = Object.keys(this._clients_to_counts);
+    const clientKeys = Object.keys(this.clients_to_counts);
     clientKeys.sort();
     for (let i = 0; i < clientKeys.length; i++) {
       const clientKey = clientKeys[i];
-      const clientCounts = this._clients_to_counts[clientKey];
+      const clientCounts = this.clients_to_counts[clientKey];
       rowsHTML.push(html`
         <tr>
           <td @click=${() => this.clickClient(clientKey)}>
@@ -269,11 +268,11 @@ export class BugsCentralSk extends ElementSk {
 
   private clickClient(clientKey: string) {
     const tokens = breakupClientKey(clientKey);
-    this._state.client = tokens.client ? tokens.client : '';
-    this._state.source = tokens.source ? tokens.source : '';
-    this._state.query = tokens.query ? tokens.query : '';
-    this._stateHasChanged();
-    this.populateCountsAndRender();
+    this.state.client = tokens.client ? tokens.client : '';
+    this.state.source = tokens.source ? tokens.source : '';
+    this.state.query = tokens.query ? tokens.query : '';
+    this.stateHasChanged();
+    this.populateDataAndRender();
   }
 
   // If client is specified and there is only one source then directly display
@@ -287,11 +286,11 @@ export class BugsCentralSk extends ElementSk {
   private addExtraInformationToState(state: State): boolean {
     let stateUpdated = false;
     if (state.client && !state.source && !state.query) {
-      const sources = Object.keys(this._clients_map[state.client as string]);
+      const sources = Object.keys(this.clients_map[state.client as string]);
       if (sources.length === 1) {
         state.source = sources[0];
         stateUpdated = true;
-        const queries = Object.keys(this._clients_map[state.client as string][state.source]);
+        const queries = Object.keys(this.clients_map[state.client as string][state.source]);
         if (queries.length === 1) {
           state.query = queries[0];
           stateUpdated = true;
@@ -302,18 +301,18 @@ export class BugsCentralSk extends ElementSk {
   }
 
   private startStateReflector() {
-    this._stateHasChanged = stateReflector(
+    this.stateHasChanged = stateReflector(
       /* getState */() => {
-        this.addExtraInformationToState(this._state);
-        return (this._state as unknown) as HintableObject;
+        this.addExtraInformationToState(this.state);
+        return (this.state as unknown) as HintableObject;
       },
       /* setState */(newState) => {
-        this._state = (newState as unknown) as State;
-        const stateUpdated = this.addExtraInformationToState(this._state);
+        this.state = (newState as unknown) as State;
+        const stateUpdated = this.addExtraInformationToState(this.state);
         if (stateUpdated) {
-          this._stateHasChanged();
+          this.stateHasChanged();
         }
-        this.populateCountsAndRender();
+        this.populateDataAndRender();
       },
     );
   }
@@ -349,21 +348,39 @@ export class BugsCentralSk extends ElementSk {
     return countsData;
   }
 
-  private async populateCountsAndRender() {
-    this._clients_to_counts = {};
-    const c = this._state.client;
-    const s = this._state.source;
-    const q = this._state.query;
+  private async populateChartData() {
+    const detail = {
+      client: this.state.client,
+      source: this.state.source,
+      query: this.state.query,
+    };
+    await this.doImpl('/_/get_charts_data', detail, (json: ChartsData) => {
+      this.open_chart_data = JSON.stringify(json.open_data);
+      this.slo_chart_data = JSON.stringify(json.slo_data);
+      this.untriaged_chart_data = JSON.stringify(json.untriaged_data);
+    });
+  }
+
+  private async populateDataAndRender() {
+    this.clients_to_counts = {};
+    const c = this.state.client;
+    const s = this.state.source;
+    const q = this.state.query;
 
     if (!c) {
-      await Promise.all(Object.keys(this._clients_map).map(async (client) => this._clients_to_counts[getClientKey(client, '', '')] = await this.getCounts(client, '', '')));
+      await Promise.all(Object.keys(this.clients_map).map(async (client) => this.clients_to_counts[getClientKey(client, '', '')] = await this.getCounts(client, '', '')));
     } else if (!s) {
-      await Promise.all(Object.keys(this._clients_map[c]).map(async (source) => this._clients_to_counts[getClientKey(c, source, '')] = await this.getCounts(c, source, '')));
+      await Promise.all(Object.keys(this.clients_map[c]).map(async (source) => this.clients_to_counts[getClientKey(c, source, '')] = await this.getCounts(c, source, '')));
     } else if (!q) {
-      await Promise.all(Object.keys(this._clients_map[c][s]).map(async (query) => this._clients_to_counts[getClientKey(c, s, query)] = await this.getCounts(c, s, query)));
+      await Promise.all(Object.keys(this.clients_map[c][s]).map(async (query) => this.clients_to_counts[getClientKey(c, s, query)] = await this.getCounts(c, s, query)));
     } else {
-      this._clients_to_counts[getClientKey(c, s, q)] = await this.getCounts(c, s, q);
+      this.clients_to_counts[getClientKey(c, s, q)] = await this.getCounts(c, s, q);
     }
+    // Render counts as soon we have them. Rendering charts will take longer.
+    this._render();
+
+    // Get chart data and render.
+    await this.populateChartData();
     this._render();
   }
 }
