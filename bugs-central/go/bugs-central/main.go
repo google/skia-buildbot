@@ -125,7 +125,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/", srv.indexHandler)
 	appRouter.HandleFunc("/_/get_issue_counts", srv.getIssueCountsHandler).Methods("POST")
 	appRouter.HandleFunc("/_/get_clients_sources_queries", srv.getClients).Methods("POST")
-	appRouter.HandleFunc("/_/get_chart_data", srv.getChartData).Methods("GET")
+	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
@@ -177,15 +177,21 @@ func getStringParam(name string, r *http.Request) string {
 	return raw[0]
 }
 
-func (srv *Server) getChartData(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	client := getStringParam("client", r)
-	source := getStringParam("source", r)
-	query := getStringParam("query", r)
-	dataType := getStringParam("type", r)
+	// Parse the request.
+	q := struct {
+		Client types.RecognizedClient `json:"client"`
+		Source types.IssueSource      `json:"source"`
+		Query  string                 `json:"query"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
+		return
+	}
 
-	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), types.RecognizedClient(client), types.IssueSource(source), query)
+	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), types.RecognizedClient(q.Client), types.IssueSource(q.Source), q.Query)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -227,44 +233,43 @@ func (srv *Server) getChartData(w http.ResponseWriter, r *http.Request) {
 		return ts1.Before(ts2)
 	})
 
-	data := [][]interface{}{}
-	if dataType == "open" {
-		// The first row should contain column information.
-		data = append(data, []interface{}{"Date", "P0/P1", "P2", "P3+"})
-		for _, d := range dates {
-			countsData := dateToCountsData[d]
-			data = append(data, []interface{}{
-				d,                                       // Date
-				countsData.P0Count + countsData.P1Count, // P0/P1
-				countsData.P2Count,                      // P2
-				countsData.P3Count + countsData.P4Count + countsData.P5Count + countsData.P6Count, // P3+
-			})
-		}
-	} else if dataType == "slo" {
-		// The first row should contain column information.
-		data = append(data, []interface{}{"Date", "SLO: P0/P1", "SLO: P2", "SLO: P3+"})
-		for _, d := range dates {
-			countsData := dateToCountsData[d]
-			data = append(data, []interface{}{
-				d, // Date
-				countsData.P0SLOViolationCount + countsData.P1SLOViolationCount, // SLO: P0/P1
-				countsData.P2SLOViolationCount,                                  // SLO: P2
-				countsData.P3SLOViolationCount,                                  // SLO: P3+
-			})
-		}
-	} else if dataType == "untriaged" {
-		// The first row should contain column information.
-		data = append(data, []interface{}{"Date", "Untriaged"})
-		for _, d := range dates {
-			countsData := dateToCountsData[d]
-			data = append(data, []interface{}{
-				d,                         // Date
-				countsData.UntriagedCount, // Untriaged
-			})
-		}
+	openData := [][]interface{}{}
+	sloData := [][]interface{}{}
+	untriagedData := [][]interface{}{}
+	// The first row should contain column information.
+	openData = append(openData, []interface{}{"Date", "P0/P1", "P2", "P3+"})
+	sloData = append(sloData, []interface{}{"Date", "SLO: P0/P1", "SLO: P2", "SLO: P3+"})
+	untriagedData = append(untriagedData, []interface{}{"Date", "Untriaged"})
+	for _, d := range dates {
+		countsData := dateToCountsData[d]
+		openData = append(openData, []interface{}{
+			d,                                       // Date
+			countsData.P0Count + countsData.P1Count, // P0/P1
+			countsData.P2Count,                      // P2
+			countsData.P3Count + countsData.P4Count + countsData.P5Count + countsData.P6Count, // P3+
+		})
+		sloData = append(sloData, []interface{}{
+			d, // Date
+			countsData.P0SLOViolationCount + countsData.P1SLOViolationCount, // SLO: P0/P1
+			countsData.P2SLOViolationCount,                                  // SLO: P2
+			countsData.P3SLOViolationCount,                                  // SLO: P3+
+		})
+		untriagedData = append(untriagedData, []interface{}{
+			d,                         // Date
+			countsData.UntriagedCount, // Untriaged
+		})
 	}
 
-	if err := json.NewEncoder(w).Encode(&data); err != nil {
+	resp := struct {
+		OpenData      interface{} `json:"open_data"`
+		SloData       interface{} `json:"slo_data"`
+		UntriagedData interface{} `json:"untriaged_data"`
+	}{
+		OpenData:      openData,
+		SloData:       sloData,
+		UntriagedData: untriagedData,
+	}
+	if err := json.NewEncoder(w).Encode(&resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 
 	}
