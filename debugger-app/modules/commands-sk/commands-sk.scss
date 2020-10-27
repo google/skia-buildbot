@@ -1,0 +1,96 @@
+commands-sk {
+
+  .list {
+    overflow-y: scroll;
+    height: 88vh;
+    display: block;
+  }
+
+  .op {
+    display: block;
+    margin-left: -2em;
+  }
+
+  hr {
+    border: none;
+    height: 1px;
+    margin: 0px;
+    color: #BBB;
+    background-color: #BBB;
+  }
+
+  .count {
+    margin-left: -0.7em;
+    font-weight: bold;
+    top: 0.5em;
+    position: relative;
+  }
+
+  .index {
+    margin-right: 0.5em;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 0;
+    margin: 0 1em;
+  }
+
+  pre {
+    margin-left: 1em;
+  }
+
+  .icon {
+    margin-left: -0.5em;
+    display: inline-block;
+    opacity: 0.7;
+  }
+
+  details {
+    margin-left: 2em;
+  }
+
+  details[open] {
+    background: #eee;
+  }
+
+  .selected {
+    background: #77beff;
+  }
+
+  details:hover {
+    background-color: #eeffee;
+  }
+
+  summary {
+    display: block;
+  }
+
+  .gpu-op-id {
+    float: right;
+    background: #1B9E77;
+    color: white;
+    border-radius: 5px;
+    padding: 0.2em 0.4em;
+    margin-right: 0.5em;
+    margin-top: 0.2em;
+  }
+
+  checkbox-sk {
+    min-width: 16px;
+    display: inline-block;
+  }
+
+  play-sk {
+    margin: 5px auto;
+  }
+
+  .range-input {
+    width: 2em;
+  }
+
+  #text-filter {
+    flex-grow: 2;
+  }
+
+}
