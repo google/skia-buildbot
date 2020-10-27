@@ -7,8 +7,13 @@ const timestampBeforeNow = (seconds: number = 0) => {
   return new Date(Date.now() - 1000 * seconds).toISOString();
 };
 
-const branch0: Branch = { name: 'main', head: 'abc123' };
-const branch1: Branch = { name: 'bar', head: '456789' };
+const branches: Array<Branch> = [
+  { name: 'main', head: 'abc0' },
+  { name: 'Log Rolled', head: 'abc0' },
+  { name: 'Barrel Rolled', head: 'abc9' },
+  { name: 'Other Branch', head: 'def0' },
+];
+
 const commentTask: Comment = {
   id: 'foo',
   repo: 'skia',
@@ -161,7 +166,7 @@ commits.splice(4, 0, {
 export const mockIncrementalResponse: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
   update: {
-    branchHeads: [branch0, branch1],
+    branchHeads: branches,
     comments: [commentCommit, commentTask, commentTaskSpec],
     commits: commits,
     tasks: tasks,
