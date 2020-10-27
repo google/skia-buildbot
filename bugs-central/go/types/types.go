@@ -1,6 +1,10 @@
 package types
 
-import "time"
+import (
+	"time"
+
+	"go.skia.org/infra/bugs-central/go/slo"
+)
 
 const (
 	// All bug frameworks will be standardized to these priorities.
@@ -11,14 +15,6 @@ const (
 	PriorityP4 StandardizedPriority = "P4"
 	PriorityP5 StandardizedPriority = "P5"
 	PriorityP6 StandardizedPriority = "P6"
-
-	// Convenient constants to use when calculating SLO violations.
-	Daily     = 24 * time.Hour
-	Weekly    = 7 * Daily
-	Monthly   = 30 * Daily
-	Biannualy = 6 * Monthly
-	Yearly    = 2 * Biannualy
-	Biennialy = 2 * Yearly
 )
 
 // IssueSource types will be all the recognized issue frameworks (eg: Github, IssueTracker, Monorail).
@@ -77,19 +73,19 @@ type IssueCountsData struct {
 func (icd *IssueCountsData) CalculateSLOViolations(now, created, modified time.Time, priority StandardizedPriority) {
 	switch priority {
 	case PriorityP0:
-		if now.After(modified.Add(Daily)) || now.After(created.Add(Weekly)) {
+		if slo.IsP0SLOViolation(now, created, modified) {
 			icd.P0SLOViolationCount++
 		}
 	case PriorityP1:
-		if now.After(modified.Add(Weekly)) || now.After(created.Add(Monthly)) {
+		if slo.IsP1SLOViolation(now, created, modified) {
 			icd.P1SLOViolationCount++
 		}
 	case PriorityP2:
-		if now.After(modified.Add(Biannualy)) || now.After(created.Add(Yearly)) {
+		if slo.IsP2SLOViolation(now, created, modified) {
 			icd.P2SLOViolationCount++
 		}
 	case PriorityP3:
-		if now.After(modified.Add(Yearly)) || now.After(created.Add(Biennialy)) {
+		if slo.IsP3SLOViolation(now, created, modified) {
 			icd.P3SLOViolationCount++
 		}
 	}
@@ -136,4 +132,29 @@ func (icd *IssueCountsData) IncPriority(priority StandardizedPriority) {
 	case PriorityP6:
 		icd.P6Count++
 	}
+}
+
+// IsPrioritySLOViolation returns whether the priority is outside the SLO. This utility
+// function is in types package and not slo package because it would be a dependency cycle due to
+// types.StandarizedPriority.
+func IsPrioritySLOViolation(now, created, modified time.Time, priority StandardizedPriority) bool {
+	switch priority {
+	case PriorityP0:
+		if slo.IsP0SLOViolation(now, created, modified) {
+			return true
+		}
+	case PriorityP1:
+		if slo.IsP1SLOViolation(now, created, modified) {
+			return true
+		}
+	case PriorityP2:
+		if slo.IsP2SLOViolation(now, created, modified) {
+			return true
+		}
+	case PriorityP3:
+		if slo.IsP3SLOViolation(now, created, modified) {
+			return true
+		}
+	}
+	return false
 }
