@@ -32,7 +32,6 @@ import {
   ParamSet,
   RegressionDetectionRequest,
   ClusterAlgo,
-  RangeRequest,
   Commit,
   ClusterStartResponse,
   ClusterStatus,
@@ -42,7 +41,6 @@ import {
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
-import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 
 // The state that gets reflected to the URL.
@@ -73,12 +71,6 @@ class State {
   }
 }
 
-// The date range over which commits are presented.
-interface Range {
-  begin: number | null;
-  end: number | null;
-}
-
 export class ClusterPageSk extends ElementSk {
   // The state to be reflected to the URL.
   private state = new State();
@@ -91,9 +83,6 @@ export class ClusterPageSk extends ElementSk {
   // The commits to choose from.
   private cids: Commit[] = [];
 
-  // Which commit is selected.
-  private selectedCommitIndex: number = -1;
-
   // The id of the current cluster request. Will be the empty string if
   // there is no pending request.
   private requestId: string = '';
@@ -101,40 +90,17 @@ export class ClusterPageSk extends ElementSk {
   // The status of a running request.
   private status: string = '';
 
-  // True if we are fetching a new list of _cids from the server.
-  private updatingCommits: boolean = false;
-
-  // Only update _cids if the date range is different from the last fetch.
-  private lastRange: Range = {
-    begin: null,
-    end: null,
-  };
-
   constructor() {
     super(ClusterPageSk.template);
   }
 
   private static template = (ele: ClusterPageSk) => html`
     <h2>Commit</h2>
-    <h3>Appears in Date Range</h3>
-    <div class="day-range-with-spinner">
-      <day-range-sk
-        id="range"
-        @day-range-change=${ele.rangeChange}
-        begin=${ele.state.begin}
-        end=${ele.state.end}
-      ></day-range-sk>
-      <spinner-sk ?active=${ele.updatingCommits}></spinner-sk>
-    </div>
-    <h3>Commit</h3>
-    <div>
-      <commit-detail-picker-sk
-        @commit-selected=${ele.commitSelected}
-        .selected=${ele.selectedCommitIndex}
-        .details=${ele.cids}
-        id="commit"
-      ></commit-detail-picker-sk>
-    </div>
+    <commit-detail-picker-sk
+      @commit-selected=${ele.commitSelected}
+      .selection=${ele.state.offset}
+      id="commit"
+    ></commit-detail-picker-sk>
 
     <h2>Algorithm</h2>
     <algo-select-sk
@@ -252,7 +218,6 @@ export class ClusterPageSk extends ElementSk {
       (state) => {
         this.state = (state as unknown) as State;
         this._render();
-        this.updateCommitSelections();
       },
     );
   }
@@ -310,72 +275,12 @@ export class ClusterPageSk extends ElementSk {
     window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
-  private rangeChange(e: CustomEvent<DayRangeSkChangeDetail>) {
-    this.state.begin = e.detail.begin;
-    this.state.end = e.detail.end;
-    this.stateHasChanged();
-    this.updateCommitSelections();
-  }
 
   private commitSelected(
     e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>,
   ) {
     this.state.offset = ((e.detail.commit as unknown) as Commit).offset;
     this.stateHasChanged();
-  }
-
-  private updateCommitSelections() {
-    if (
-      this.lastRange.begin === this.state.begin
-      && this.lastRange.end === this.state.end
-    ) {
-      return;
-    }
-    this.lastRange = {
-      begin: this.state.begin,
-      end: this.state.end,
-    };
-    const body: RangeRequest = {
-      begin: this.state.begin,
-      end: this.state.end,
-      offset: this.state.offset,
-    };
-    this.updatingCommits = true;
-    fetch('/_/cidRange/', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((cids: Commit[]) => {
-        this.updatingCommits = false;
-        cids.reverse();
-        this.cids = cids;
-
-        this.selectedCommitIndex = -1;
-        // Look for commit id in this._cids.
-        for (let i = 0; i < cids.length; i++) {
-          if (((cids[i] as unknown) as Commit).offset === this.state.offset) {
-            this.selectedCommitIndex = i;
-            break;
-          }
-        }
-
-        if (!this.state.begin) {
-          this.state.begin = cids[cids.length - 1].ts;
-          this.state.end = cids[0].ts;
-        }
-        this._render();
-      })
-      .catch((msg) => {
-        if (msg) {
-          errorMessage(msg, 10000);
-        }
-        this.updatingCommits = false;
-        this._render();
-      });
   }
 
   private catch(msg: string) {
