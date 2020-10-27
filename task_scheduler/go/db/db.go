@@ -251,6 +251,15 @@ func searchStringEqual(search *string, test string) bool {
 	return false
 }
 
+// searchStatusEqual compares the two strings and returns true if the first is
+// either not provided or equal to the second.
+func searchStatusEqual(search *string, test string) bool {
+	if search == nil {
+		return true
+	}
+	return *search == test
+}
+
 // matchJobs returns Jobs which match the given search parameters.
 func matchJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 	rv := []*types.Job{}
@@ -264,7 +273,7 @@ func matchJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 			searchStringEqual(p.Patchset, j.Patchset) &&
 			searchStringEqual(p.Repo, j.Repo) &&
 			searchStringEqual(p.Revision, j.Revision) &&
-			searchStringEqual((*string)(p.Status), string(j.Status)) &&
+			searchStatusEqual((*string)(p.Status), string(j.Status)) &&
 			searchBoolEqual(p.IsForce, j.IsForce) &&
 			searchInt64Equal(p.BuildbucketBuildID, j.BuildbucketBuildId) {
 			rv = append(rv, j)
@@ -309,7 +318,7 @@ func matchTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
 			searchStringEqual(p.Repo, t.Repo) &&
 			searchStringEqual(p.Revision, t.Revision) &&
 			searchStringEqual(p.Name, t.Name) &&
-			searchStringEqual((*string)(p.Status), string(t.Status)) &&
+			searchStatusEqual((*string)(p.Status), string(t.Status)) &&
 			searchStringEqual(p.ForcedJobId, t.ForcedJobId) {
 			rv = append(rv, t)
 		}
