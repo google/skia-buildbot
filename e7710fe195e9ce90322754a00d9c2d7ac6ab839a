@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43156f1f_7230f6aa",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-27T20:06:07Z",
+      "side": 1,
+      "message": "This is just putting back the logic that was removed in https://skia-review.googlesource.com/c/buildbot/+/290124/5/autoroll/go/repo_manager/android_repo_manager.go",
+      "revId": "e7710fe195e9ce90322754a00d9c2d7ac6ab839a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
