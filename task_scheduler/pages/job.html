@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Task Scheduler</title>
+    <title>Job {{.JobId}}</title>
   </head>
   <body class="body-sk">
-    <task-scheduler-scaffold-sk title="Task Scheduler">
+    <task-scheduler-scaffold-sk title="Job {{.JobId}}">
+      <job-sk></job-sk>
     </task-scheduler-scaffold-sk>
   </body>
 </html>
