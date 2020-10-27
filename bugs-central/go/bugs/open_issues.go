@@ -4,6 +4,7 @@ package bugs
 
 import (
 	"sync"
+	"time"
 
 	"go.skia.org/infra/bugs-central/go/types"
 	"go.skia.org/infra/go/sklog"
@@ -21,6 +22,35 @@ func InitOpenIssues() *OpenIssues {
 	return &OpenIssues{
 		openIssues: map[types.RecognizedClient]map[types.IssueSource]map[string][]*types.Issue{},
 	}
+}
+
+// GetIssuesOutsideSLO returns all issues outside Skia's SLO mapped by priority.
+func (o *OpenIssues) GetIssuesOutsideSLO(client types.RecognizedClient, source types.IssueSource, query string) map[types.StandardizedPriority][]*types.Issue {
+	o.mtx.RLock()
+	defer o.mtx.RUnlock()
+
+	now := time.Now()
+	priorityToSLOIssues := map[types.StandardizedPriority][]*types.Issue{}
+
+	if sourceToQueries, ok := o.openIssues[client]; ok {
+		if queryToIssues, ok := sourceToQueries[source]; ok {
+			if issues, ok := queryToIssues[query]; ok {
+				for _, i := range issues {
+					if types.IsPrioritySLOViolation(now, i.CreatedTime, i.ModifiedTime, i.Priority) {
+						// fmt.Println("IT IS AN SLO VIOLATION!")
+						// fmt.Println(i.Id)
+						// fmt.Println(i.Priority)
+						if sloIssues, ok := priorityToSLOIssues[i.Priority]; ok {
+							priorityToSLOIssues[i.Priority] = append(sloIssues, i)
+						} else {
+							priorityToSLOIssues[i.Priority] = []*types.Issue{i}
+						}
+					}
+				}
+			}
+		}
+	}
+	return priorityToSLOIssues
 }
 
 // PrettyPrintOpenIssues pretty prints the open issues in-memory object.
