@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
+	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -34,6 +35,8 @@ const (
 
 var (
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
+
+	DELETE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
 )
 
 // ProjectMetadataFileConfig provides configuration for METADATA files in the Android repo.
@@ -281,6 +284,27 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		if conflictsErr != nil || conflictsOutput == "" {
 			util.LogErr(conflictsErr)
 			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
+		}
+		for _, conflict := range strings.Split(conflictsOutput, "\n") {
+			if conflict == "" {
+				continue
+			}
+			ignoreConflict := false
+			for _, del := range DELETE_MERGE_CONFLICT_FILES {
+				if conflict == del {
+					_, resetErr := r.childRepo.Git(ctx, "reset", "--", del)
+					util.LogErr(resetErr)
+					_, delErr := exec.RunCwd(ctx, r.childDir, "rm", del)
+					util.LogErr(delErr)
+					ignoreConflict = true
+					sklog.Infof("Deleting %s due to merge conflict", conflict)
+					break
+				}
+			}
+			if !ignoreConflict {
+				util.LogErr(r.abortMerge(ctx))
+				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, err)
+			}
 		}
 	}
 
