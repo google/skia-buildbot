@@ -67,7 +67,7 @@ export class TaskSchedulerScaffoldSk extends ElementSk {
             <home-icon-sk></home-icon-sk><span>Home</span>
           </a>
           <a href="/trigger">
-            <send-icon-sk></send-icon-sk><span>Trigger Tasks</span>
+            <send-icon-sk></send-icon-sk><span>Trigger Jobs</span>
           </a>
           <a href="/skip_tasks">
             <block-icon-sk></block-icon-sk><span>Skip Tasks</span>
