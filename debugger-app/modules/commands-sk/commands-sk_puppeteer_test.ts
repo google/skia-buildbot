@@ -5,23 +5,23 @@ import {
   takeScreenshot,
 } from '../../../puppeteer-tests/util';
 
-describe('filter-sk', () => {
+describe('commands-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
     path.join(__dirname, '..', '..', 'webpack.config.ts')
   );
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/filter-sk.html`);
+    await testBed.page.goto(`${testBed.baseUrl}/dist/commands-sk.html`);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
 
   it('should render the demo page (smoke test)', async () => {
-    expect(await testBed.page.$$('filter-sk')).to.have.length(1);
+    expect(await testBed.page.$$('commands-sk')).to.have.length(1);
   });
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'debugger-app', 'filter-sk');
+      await takeScreenshot(testBed.page, 'debugger-app', 'commands-sk');
     });
   });
 });

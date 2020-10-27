@@ -28,20 +28,20 @@ export class MatrixClipControlsSk extends ElementSk {
                    id=origin @change=${ele._originHandler}></checkbox-sk>
       <h3>Clip</h3>
       <table>
-        <tr><td>${ ele._info.clip[0] }</td><td>${ ele._info.clip[1] }</td></tr>
-        <tr><td>${ ele._info.clip[2] }</td><td>${ ele._info.clip[3] }</td></tr>
+        <tr><td>${ ele._info.ClipRect[0] }</td><td>${ ele._info.ClipRect[1] }</td></tr>
+        <tr><td>${ ele._info.ClipRect[2] }</td><td>${ ele._info.ClipRect[3] }</td></tr>
       </table>
       <h3>Matrix</h3>
       <table>
-        ${ele._matrixTable(ele._info.matrix)}
+        ${ele._matrixTable(ele._info.ViewMatrix)}
       </table>
     </div>`;
 
 
   private _info: MatrixClipInfo = {
     // These initial values do not matter.
-    clip: [0, 0, 0, 0],
-    matrix: [
+    ClipRect: [0, 0, 0, 0],
+    ViewMatrix: [
       [1, 0, 0],
       [0, 1, 0],
       [0, 0, 1],

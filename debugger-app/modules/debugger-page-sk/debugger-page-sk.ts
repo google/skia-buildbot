@@ -9,35 +9,40 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { DebugViewSk } from '../debug-view-sk/debug-view-sk';
+import {
+  CommandsSk, PrefixItem, Command, CommandsSkMovePositionEventDetail
+} from '../commands-sk/commands-sk';
+import { PlaySk } from '../play-sk/play-sk';
+import { MatrixClipControlsSk } from '../matrix-clip-controls-sk/matrix-clip-controls-sk'
 import { errorMessage } from 'elements-sk/errorMessage';
 import 'elements-sk/error-toast-sk';
 
 // Types for the wasm bindings
-import { Debugger, DebuggerInitOptions, SkpDebugPlayer, SkSurface } from '../debugger';
+import {
+  Debugger, DebuggerInitOptions, SkpDebugPlayer, SkSurface, SkpJsonCommandList,
+  MatrixClipInfo
+} from '../debugger';
 
 // other modules from this application
-import '../filter-sk';
-import '../play-sk';
+import '../commands-sk';
 import '../debug-view-sk';
 import '../matrix-clip-controls-sk';
 
 // TODO(nifong): find a way to move this declaration outside this file
 declare function DebuggerInit(opts: DebuggerInitOptions): Promise<Debugger>;
 
-interface SubModules {
-  debuggerView: DebugViewSk;
-}
 interface FileContext {
   player: SkpDebugPlayer;
   version: number;
-}
+};
 
 export class DebuggerPageSk extends ElementSk {
   private static template = (ele: DebuggerPageSk) =>
     html`
     <header>
       <h2>Skia WASM Debugger</h2>
-      <a class="version-link" href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
+      <a class="version-link"
+         href="https://skia.googlesource.com/skia/+show/${ele._skiaVersion}"
          title="The skia commit at which the debugger WASM module was built">
         ${ele._skiaVersionShort}
       </a>
@@ -51,11 +56,7 @@ export class DebuggerPageSk extends ElementSk {
       </div>
       <multi-frame-controls-sk></multi-frame-controls-sk>
       <div class="horizontal-flex">
-        <div>
-          <filter-sk></filter-sk>
-          <play-sk></play-sk>
-          <commands-sk></commands-sk>
-        </div>
+        <commands-sk></commands-sk>
         <div id=center>
           <debug-view-sk></debug-view-sk>
         </div>
@@ -78,12 +79,23 @@ export class DebuggerPageSk extends ElementSk {
   private _skiaVersion: string = 'a url of some kind';
   private _skiaVersionShort: string = '-1';
 
-  private _fileContext: FileContext | null = null; // null as long as no file loaded.
-  private _debugger: Debugger | null = null; // null until the DebuggerInit promise resolves.
-  private _surface: SkSurface | null = null; // null until either file loaded or cpu/gpu switch toggled
+  // null as long as no file loaded.
+  private _fileContext: FileContext | null = null;
+  // null until the DebuggerInit promise resolves.
+  private _debugger: Debugger | null = null;
+  // null until either file loaded or cpu/gpu switch toggled
+  private _surface: SkSurface | null = null;
 
   // submodules are null until first template render
   private _debugViewSk: DebugViewSk | null = null;
+  private _commandsSk: CommandsSk | null = null;
+  private _playSk: PlaySk | null = null;
+  private _matrixClipControlsSk: MatrixClipControlsSk | null = null;
+
+  // application state
+  private _targetItem: number = 0; // current command playback index in filtered list
+  // When turned on, always draw to the end of a frame
+  private _drawToEnd: boolean = false;
 
   constructor() {
     super(DebuggerPageSk.template);
@@ -102,6 +114,16 @@ export class DebuggerPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this._debugViewSk = this.querySelector<DebugViewSk>('debug-view-sk')!;
+    this._commandsSk = this.querySelector<CommandsSk>('commands-sk')!;
+    this._playSk = this.querySelector<PlaySk>('play-sk')!;
+    this._matrixClipControlsSk = this.querySelector<MatrixClipControlsSk>(
+      'matrix-clip-controls-sk')!;
+
+    this._commandsSk.addEventListener('move-position', (e) => {
+      this._targetItem = (e as CustomEvent<CommandsSkMovePositionEventDetail>)
+        .detail.position;
+      this._updateDebuggerView();
+    });
   }
 
   // Called when the filename in the file input element changs
@@ -143,6 +165,7 @@ export class DebuggerPageSk extends ElementSk {
       errorMessage("Could not create SkSurface, try GPU/CPU toggle.");
       return;
     }
+    this._setCommands();
     // TODO(nifong): Draw the rest of the owl
 
     this._render();
@@ -152,24 +175,26 @@ export class DebuggerPageSk extends ElementSk {
     this._surface.flush();
   }
 
-  // Create a new drawing surface. this is called when
+  // Create a new drawing surface. this should be called when
   // * GPU/CPU mode changes
   // * Bounds of the skp change (skp loaded)
   // * (not yet supported) Color mode changes
   private _replaceSurface() {
-    if (!(this._debugger && this._debugViewSk)) { return; }
+    if (!this._debugger) { return; }
 
     let width = 400;
     let height = 400;
     if (this._fileContext) {
-      // From the loaded SKP, player knows how large its picture is. Resize our canvas to match.
+      // From the loaded SKP, player knows how large its picture is. Resize our canvas
+      // to match.
       let bounds = this._fileContext.player.getBounds();
       width = bounds.fRight - bounds.fLeft;
       height = bounds.fBottom - bounds.fTop;
       console.log(`SKP width ${width} height ${height}`);
-      // Still ok to proceed if no skp, the toggle still should work before a file is picked.
+      // Still ok to proceed if no skp, the toggle still should work before a file
+      // is picked.
     }
-    const canvas = this._debugViewSk.resize(width, height);
+    const canvas = this._debugViewSk!.resize(width, height);
     // TODO(nifong): get this from toggle switch
     const useWebGL = true;
     // free the wasm memory of the previous surface
@@ -179,6 +204,49 @@ export class DebuggerPageSk extends ElementSk {
     } else {
       this._surface = this._debugger.MakeSWCanvasSurface(canvas);
     }
+  }
+
+  // Fetch the list of commands for the frame or layer the debugger is currently showing
+  // from wasm.
+  private _setCommands() {
+    // Cache only holds the regular frame's commands, not layers.
+    // const json = (self.inspectedLayer === -1 ? this._memoizedJsonCommandList()
+    //               : this._player.jsonCommandList(this._surface));
+    const json = this._fileContext!.player.jsonCommandList(this._surface!);
+    const parsed = JSON.parse(json) as SkpJsonCommandList;
+    this._commandsSk!.processCommands(parsed);
+
+    // this._applyRangeFilter();
+    // this.$.histogram.classList.remove('hidden');
+    // this._setLayerList();
+  }
+
+  // private _moveToTargetItem(){
+  //   // Constrain to command list filtered length.
+  //   //this._targetItem = Math.min(this._targetItem, this._commandsSk!.countFiltered-1);
+  //   // highlight it in the command list.
+  //   //this._commandsSk!.item = this._targetItem;
+  //   // update wasm module
+  //   this._updateDebuggerView();
+  //   // Acknowledge we've moved by calling play.movedTo
+  //   //this._playSk!.movedTo(this._targetItem);
+  // }
+
+  // Asks the wasm module to draw to the provided surface.
+  // Up to the command index indidated by this._targetItem
+  _updateDebuggerView() {
+    if (this._drawToEnd) {
+      this._fileContext!.player!.draw(this._surface!);
+    } else {
+      this._fileContext!.player!.drawTo(this._surface!, this._targetItem);
+    }
+    // if (!this.render_mode_gpu) {
+    //   this._surface.flush();
+    // }
+    // update zoom
+    // this.$.zoom.updateZoom();
+    const clipmatjson = this._fileContext!.player.lastCommandInfo();
+    this._matrixClipControlsSk!.info = JSON.parse(clipmatjson) as MatrixClipInfo;
   }
 };
 
