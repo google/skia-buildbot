@@ -14,7 +14,7 @@ describe('commit-detail-picker-sk', () => {
     await testBed.page.goto(
       `${testBed.baseUrl}/dist/commit-detail-picker-sk.html`,
     );
-    await testBed.page.setViewport({ width: 500, height: 500 });
+    await testBed.page.setViewport({ width: 800, height: 800 });
   });
 
   it('should render the demo page', async () => {
