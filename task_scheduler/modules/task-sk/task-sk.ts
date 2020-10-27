@@ -169,11 +169,11 @@ export class TaskSk extends ElementSk {
   }
 
   get taskID(): string {
-    return this.getAttribute('task') || '';
+    return this.getAttribute('task-id') || '';
   }
 
   set taskID(taskID: string) {
-    this.setAttribute('task', taskID);
+    this.setAttribute('task-id', taskID);
     this.reload();
   }
 
@@ -215,7 +215,12 @@ export class TaskSk extends ElementSk {
       this.duration = diffDate(start.getTime(), end.getTime());
       const rs = this.task.taskKey!.repoState!;
       this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
-      if (rs.patch) {
+      if (
+        rs.patch &&
+        rs.patch.issue != '' &&
+        rs.patch.patchset != '' &&
+        rs.patch.server != ''
+      ) {
         this.isTryJob = true;
         const p = rs.patch!;
         this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
