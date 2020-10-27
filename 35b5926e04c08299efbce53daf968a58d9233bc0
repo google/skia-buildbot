@@ -58,6 +58,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2a30fd6f_f39bef5d",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8f91430_bb480661",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 11
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2038f431_9d8b50fa",
@@ -71,6 +95,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Nit: Please turn these comments into JSDoc comments. VS Code and other editors will accompany intellisense/autocompletion with the symbol\u0027s documentation if it\u0027s formatted this way.\n\nExample:\n\n  /** A Processed command object, created from SkpJsonCommand. */",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 60
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d98d61a_ac46e845",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2038f431_9d8b50fa",
       "range": {
         "startLine": 39,
         "startChar": 0,
@@ -104,6 +152,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "53bf5c3f_a2cbff74",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Thanks I didn\u0027t know typescript had this.",
+      "parentUuid": "9b522ea3_872b6a34",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 29
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d40af45b_aa753119",
@@ -117,6 +189,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Note that this will result in multiple \u003ccheckbox-sk\u003e elements with the same ID because the opTemplate is used more than once.\n\nI recommend removing the ID field here and just using the tag name in query selectors, e.g.\n\n  import { CheckOrRadio } from \u0027elements-sk/checkbox-sk/checkbox-sk\u0027;\n\n  ...\n\n  const nthToggle \u003d this.querySelector\u003cCheckOrRadio\u003e(`#op-${n} checkbox-sk`);",
+      "range": {
+        "startLine": 128,
+        "startChar": 57,
+        "endLine": 128,
+        "endChar": 66
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b194bf62_621b6285",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d40af45b_aa753119",
       "range": {
         "startLine": 128,
         "startChar": 57,
@@ -150,6 +246,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dfe142fa_f97aabfa",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "63130273_e853b10b",
+      "range": {
+        "startLine": 168,
+        "startChar": 28,
+        "endLine": 168,
+        "endChar": 36
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "cfda85eb_343f58f0",
@@ -163,6 +283,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Please use a Set object[1], e.g.\n\n  private _includedSet \u003d new Set\u003cstring\u003e();\n\n[1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+      "range": {
+        "startLine": 179,
+        "startChar": 24,
+        "endLine": 179,
+        "endChar": 62
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7947c81a_be92369f",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfda85eb_343f58f0",
       "range": {
         "startLine": 179,
         "startChar": 24,
@@ -196,6 +340,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "808e4dc5_07f27cce",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e96cd61b_e67fa6ff",
+      "range": {
+        "startLine": 196,
+        "startChar": 1,
+        "endLine": 199,
+        "endChar": 5
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7571d97b_469deb6c",
@@ -209,6 +377,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "General nit: Prefer this.querySelector() / this.querySelectorAll() over document.getElementBy*().\n\nRationale:\n- This makes it clear to the reader that we\u0027re only searching for elements that are descendants of this component (as opposed to elements that could be anywhere in the document).\n- It reduces the chance of future bugs, e.g. if another element with the same ID/class name is introduced elsewhere in the DOM.\n\nSuggestion for the highlighted code:\n\n  this.querySelector\u003cHTMLInputElement\u003e(\u0027#text-filter\u0027)!.value \u003d q;",
+      "range": {
+        "startLine": 222,
+        "startChar": 5,
+        "endLine": 222,
+        "endChar": 28
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5833ed4a_791b94c4",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7571d97b_469deb6c",
       "range": {
         "startLine": 222,
         "startChar": 5,
@@ -242,6 +434,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c7c5d63_e040a970",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9bbb00d_bb1eeeea",
+      "range": {
+        "startLine": 254,
+        "startChar": 4,
+        "endLine": 254,
+        "endChar": 7
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "81a521d7_82d0b0d3",
@@ -255,6 +471,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "const out: Command \u003d {",
+      "range": {
+        "startLine": 265,
+        "startChar": 6,
+        "endLine": 265,
+        "endChar": 28
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d754409_467e7b96",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81a521d7_82d0b0d3",
       "range": {
         "startLine": 265,
         "startChar": 6,
@@ -288,6 +528,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7d7e265_bc614db1",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b098484_44ee984a",
+      "range": {
+        "startLine": 307,
+        "startChar": 0,
+        "endLine": 328,
+        "endChar": 10
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f8a4aa50_72dba909",
@@ -301,6 +565,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "const available \u003d new Set\u003cstring\u003e()",
+      "range": {
+        "startLine": 403,
+        "startChar": 4,
+        "endLine": 403,
+        "endChar": 53
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d19144c8_c9cbb9e1",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f8a4aa50_72dba909",
       "range": {
         "startLine": 403,
         "startChar": 4,
@@ -334,6 +622,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f551d59d_b2af07d2",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cac67f58_4777a3e0",
+      "range": {
+        "startLine": 474,
+        "startChar": 4,
+        "endLine": 474,
+        "endChar": 46
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5eeb622b_7aeda1ed",
@@ -347,6 +659,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Nit: conventionally we call the component under test using the lowerCamelCase component name, e.g.\n\n  let commandsSk: CommandsSk;",
+      "range": {
+        "startLine": 13,
+        "startChar": 6,
+        "endLine": 13,
+        "endChar": 13
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eaf8523d_5157c96e",
+        "filename": "debugger-app/modules/commands-sk/commands-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5eeb622b_7aeda1ed",
       "range": {
         "startLine": 13,
         "startChar": 6,
@@ -380,6 +716,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "06f49544_df460c58",
+        "filename": "debugger-app/modules/commands-sk/commands-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb9660d4_3a9be5f4",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 0
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "05dfc775_58296e8c",
@@ -393,6 +753,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Does it make sense to unnest these test cases inside this describe block?\n\nAlternatively, is there a more specific name for this block? (Arguably everything in this file is testing the element\u0027s behavior.)",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 38
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1b6b42d8_85a37db3",
+        "filename": "debugger-app/modules/commands-sk/commands-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "leftover from default file.",
+      "parentUuid": "05dfc775_58296e8c",
       "range": {
         "startLine": 22,
         "startChar": 0,
@@ -426,6 +810,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f6940e0_0a4b8243",
+        "filename": "debugger-app/modules/commands-sk/commands-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9abfefa_de51cd18",
+      "range": {
+        "startLine": 68,
+        "startChar": 13,
+        "endLine": 68,
+        "endChar": 68
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f525e998_6475e42c",
@@ -439,6 +847,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Ubernit: normally we don\u0027t capitalize these",
+      "range": {
+        "startLine": 77,
+        "startChar": 6,
+        "endLine": 77,
+        "endChar": 9
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd5ff190_6a40496d",
+        "filename": "debugger-app/modules/commands-sk/commands-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f525e998_6475e42c",
       "range": {
         "startLine": 77,
         "startChar": 6,
@@ -472,6 +904,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d25a03c2_daa9bf96",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17712a0f_9a64f006",
+      "range": {
+        "startLine": 216,
+        "startChar": 19,
+        "endLine": 216,
+        "endChar": 56
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4d57ce07_5cc4bf99",
@@ -485,6 +941,30 @@
       "writtenOn": "2020-10-26T22:50:02Z",
       "side": 1,
       "message": "Replace with HTMLInputElement, then we can drop the type assertion on line 110.",
+      "range": {
+        "startLine": 109,
+        "startChar": 27,
+        "endLine": 109,
+        "endChar": 32
+      },
+      "revId": "35b5926e04c08299efbce53daf968a58d9233bc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9a454bf_a856ccca",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-27T20:31:12Z",
+      "side": 1,
+      "message": "No, the function is passed an event, not an HTMLInputElement. I can\u0027t change this.",
+      "parentUuid": "4d57ce07_5cc4bf99",
       "range": {
         "startLine": 109,
         "startChar": 27,
