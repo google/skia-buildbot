@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b6b509a8_62ff1c73",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-27T18:55:31Z",
+      "side": 1,
+      "message": "Nit: s/var/const",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 133,
+        "endChar": 11
+      },
+      "revId": "6db806ab4fc9bc3de9ab05b726f92a4ef779b374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
