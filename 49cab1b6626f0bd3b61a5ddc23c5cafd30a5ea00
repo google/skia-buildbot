@@ -166,6 +166,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0c8d36d3_676ce68f",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-28T21:51:31Z",
+      "side": 1,
+      "message": "I added back polyfill. Still getting the same error \u0027dialogPolyfill is not defined\u0027 but I can investigate independent of this change.",
+      "parentUuid": "e0036c5e_b8e99f32",
+      "range": {
+        "startLine": 46,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "02b6be07_05b95370",
