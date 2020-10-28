@@ -34,6 +34,10 @@ const (
 type monorailPriorityData struct {
 	FieldName       string
 	PriorityMapping map[string]types.StandardizedPriority
+	// Query
+	P0P1Query      string
+	P2Query        string
+	P3AndRestQuery string
 }
 
 var (
@@ -49,6 +53,9 @@ var (
 				"Low":      types.PriorityP3,
 				"Icebox":   types.PriorityP4,
 			},
+			P0P1Query:      "Priority=Critical,High",
+			P2Query:        "Priority=Medium",
+			P3AndRestQuery: "Priority=Low,Icebox",
 		},
 		// https://bugs.chromium.org/p/chromium/fields/detail?field=Pri
 		"chromium": {
@@ -59,6 +66,9 @@ var (
 				"2": types.PriorityP2,
 				"3": types.PriorityP3,
 			},
+			P0P1Query:      "Pri=0,1",
+			P2Query:        "Pri=2",
+			P3AndRestQuery: "Pri=3",
 		},
 	}
 
@@ -291,6 +301,11 @@ func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient *db.Fire
 	countsData.QueryLink = fmt.Sprintf("https://bugs.chromium.org/p/%s/issues/list?can=2&q=%s", qc.Instance, qc.Query)
 	if len(qc.UntriagedStatuses) > 0 {
 		countsData.UntriagedQueryLink = fmt.Sprintf("%s status:%s", countsData.QueryLink, strings.Join(qc.UntriagedStatuses, ","))
+	}
+	if priorityData, ok := monorailProjectToPriorityData[m.queryConfig.Instance]; ok {
+		countsData.P0P1Link = fmt.Sprintf("%s %s", countsData.QueryLink, priorityData.P0P1Query)
+		countsData.P2Link = fmt.Sprintf("%s %s", countsData.QueryLink, priorityData.P2Query)
+		countsData.P3AndRestLink = fmt.Sprintf("%s %s", countsData.QueryLink, priorityData.P3AndRestQuery)
 	}
 	client := qc.Client
 

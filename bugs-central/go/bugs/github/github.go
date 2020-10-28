@@ -28,28 +28,44 @@ const (
 	githubSource types.IssueSource = "Github"
 )
 
-type githubPriorityData map[string]types.StandardizedPriority
+type githubPriorityData struct {
+	PriorityMapping map[string]types.StandardizedPriority
+	// Query
+	P0P1Query      string
+	P2Query        string
+	P3AndRestQuery string
+}
+
+// type githubPriorityData map[string]types.StandardizedPriority
 
 var (
 	// Maps the priority label names into the standardized priorities.
 	githubProjectToPriorityData map[string]githubPriorityData = map[string]githubPriorityData{
 		"flutter/flutter": {
-			// https://github.com/flutter/flutter/labels/P0
-			"P0": types.PriorityP0,
-			// https://github.com/flutter/flutter/labels/P1
-			"P1": types.PriorityP1,
-			// https://github.com/flutter/flutter/labels/P2
-			"P2": types.PriorityP2,
-			// https://github.com/flutter/flutter/labels/P3
-			"P3": types.PriorityP3,
-			// https://github.com/flutter/flutter/labels/P4
-			"P4": types.PriorityP4,
-			// https://github.com/flutter/flutter/labels/P5
-			"P5": types.PriorityP5,
-			// https://github.com/flutter/flutter/labels/P6
-			"P6": types.PriorityP6,
+			PriorityMapping: map[string]types.StandardizedPriority{
+				// https://github.com/flutter/flutter/labels/P0
+				"P0": types.PriorityP0,
+				// https://github.com/flutter/flutter/labels/P1
+				"P1": types.PriorityP1,
+				// https://github.com/flutter/flutter/labels/P2
+				"P2": types.PriorityP2,
+				// https://github.com/flutter/flutter/labels/P3
+				"P3": types.PriorityP3,
+				// https://github.com/flutter/flutter/labels/P4
+				"P4": types.PriorityP4,
+				// https://github.com/flutter/flutter/labels/P5
+				"P5": types.PriorityP5,
+				// https://github.com/flutter/flutter/labels/P6
+				"P6": types.PriorityP6,
+			},
+			// Github does not support logical OR queries (https://github.com/isaacs/github/issues/660)
+			P0P1Query: "label:P0",
+			P2Query        string
+			P3AndRestQuery string
 		},
 	}
+
+	// Maps the projects to priority links.
 )
 
 // githubFramework implements bugs.BugFramework for github repos.
@@ -210,6 +226,11 @@ func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient 
 	countsData.QueryLink = queryLink
 	// Github does not have an untriaged query link yet so use the open issues link instead.
 	countsData.UntriagedQueryLink = queryLink
+	// Calculate priority links.
+	countsData.P0P1Link =
+		countsData.P2Link
+	countsData.P3AndRestLink
+
 	client := gh.queryConfig.Client
 
 	// Put in DB.
