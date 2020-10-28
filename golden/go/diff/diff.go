@@ -73,6 +73,8 @@ type DiffMetrics struct {
 	DimDiffer bool `json:"dimDiffer"`
 
 	// Diffs contains different diff metrics for the two images.
+	// TODO(kjlubick) get rid of this - search.go is the only consumer and can figure it out.
+	//   Will need to put the "combined" metric as an explicit field.
 	Diffs map[string]float32 `json:"diffs"`
 }
 
