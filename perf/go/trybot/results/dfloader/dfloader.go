@@ -4,6 +4,7 @@ package dfloader
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
@@ -40,8 +41,14 @@ func New(dfb dataframe.DataFrameBuilder, store store.TryBotStore, git *perfgit.G
 	}
 }
 
+type sortableTryBotResults []results.TryBotResult
+
+func (p sortableTryBotResults) Len() int           { return len(p) }
+func (p sortableTryBotResults) Less(i, j int) bool { return p[i].StdDevRatio > p[j].StdDevRatio }
+func (p sortableTryBotResults) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // Load implements the results.Loader interface.
-func (l *Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
+func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
 	timestamp := time.Now()
 	if request.Kind == results.Commit {
 		commit, err := l.git.CommitFromCommitNumber(ctx, request.CommitNumber)
@@ -131,6 +138,9 @@ func (l *Loader) Load(ctx context.Context, request results.TryBotRequest, progre
 			Values:      values,
 		})
 	}
+
+	sort.Sort(sortableTryBotResults(res))
+
 	ret.Results = res
 	if rebuildParamSet {
 		ps := paramtools.NewParamSet()
