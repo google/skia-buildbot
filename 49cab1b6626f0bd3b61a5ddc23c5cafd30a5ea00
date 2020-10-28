@@ -142,6 +142,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e0036c5e_b8e99f32",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T21:11:13Z",
+      "side": 1,
+      "message": "w/o the polyfill this page won\u0027t work in FF or Safari: https://caniuse.com/dialog",
+      "parentUuid": "d2b223f1_c836eaf3",
+      "range": {
+        "startLine": 46,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "02b6be07_05b95370",
