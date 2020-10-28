@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d8b7b2e7_5eb1fbfc",
+        "filename": "bugs-central/go/bugs-central/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-28T20:58:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15075d45_b0810114",
+      "range": {
+        "startLine": 185,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 4
+      },
+      "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "202a08ac_af04cedd",
@@ -41,6 +65,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b978f78c_1ec4249c",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-28T20:58:39Z",
+      "side": 1,
+      "message": "This change is on https://bugs-central.skia.org/?client\u003dSkia\u0026query\u003dis%3Aopen\u0026source\u003dMonorail (click on SLO count in table). It seems very fast right now.",
+      "parentUuid": "202a08ac_af04cedd",
+      "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b6236eb8_381d2c91",
@@ -54,6 +96,24 @@
       "writtenOn": "2020-10-28T19:37:03Z",
       "side": 1,
       "message": "If public, then this needs comments.",
+      "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a4fcc77_7fe4998a",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-28T20:58:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b6236eb8_381d2c91",
       "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
