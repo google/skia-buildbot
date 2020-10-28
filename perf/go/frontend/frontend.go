@@ -155,6 +155,7 @@ var templateFilenames = []string{
 	"alerts.html",
 	"help.html",
 	"dryRunAlert.html",
+	"trybot.html",
 }
 
 func (f *Frontend) loadTemplatesImpl() {
@@ -1483,6 +1484,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/t/", f.templateHandler("triage.html"))
 	router.HandleFunc("/a/", f.templateHandler("alerts.html"))
 	router.HandleFunc("/d/", f.templateHandler("dryRunAlert.html"))
+	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)

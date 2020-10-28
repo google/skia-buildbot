@@ -41,7 +41,7 @@ type TryBotRequest struct {
 	PatchNumber int `json:"patch_number"`
 
 	// CommitNumber is the commit to analyze. Only use if Kind is Commit.
-	CommitNumber types.CommitNumber `json:"cid"`
+	CommitNumber types.CommitNumber `json:"commit_number"`
 
 	// Query is a query to select the set of traces to analys. Only used if Kind is Commit.
 	Query string `json:"query"`
