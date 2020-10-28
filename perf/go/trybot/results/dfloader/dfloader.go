@@ -41,7 +41,7 @@ func New(dfb dataframe.DataFrameBuilder, store store.TryBotStore, git *perfgit.G
 }
 
 // Load implements the results.Loader interface.
-func (l *Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
+func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
 	timestamp := time.Now()
 	if request.Kind == results.Commit {
 		commit, err := l.git.CommitFromCommitNumber(ctx, request.CommitNumber)
