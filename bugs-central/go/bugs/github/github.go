@@ -50,6 +50,8 @@ var (
 			"P6": types.PriorityP6,
 		},
 	}
+
+	// Maps the projects to priority links.
 )
 
 // githubFramework implements bugs.BugFramework for github repos.
@@ -210,6 +212,11 @@ func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient 
 	countsData.QueryLink = queryLink
 	// Github does not have an untriaged query link yet so use the open issues link instead.
 	countsData.UntriagedQueryLink = queryLink
+	// Calculate priority links.
+	countsData.P0P1Link =
+		countsData.P2Link
+	countsData.P3AndRestLink
+
 	client := gh.queryConfig.Client
 
 	// Put in DB.

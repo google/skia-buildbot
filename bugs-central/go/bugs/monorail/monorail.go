@@ -34,6 +34,10 @@ const (
 type monorailPriorityData struct {
 	FieldName       string
 	PriorityMapping map[string]types.StandardizedPriority
+	// Query
+	P0P1Query        string
+	P2Query          string
+	P3AndRestQuery   string
 }
 
 var (
@@ -49,6 +53,9 @@ var (
 				"Low":      types.PriorityP3,
 				"Icebox":   types.PriorityP4,
 			},
+			P0P1Query: "Priority%3DCritical%2CHigh",
+			P2Query: "Priority%3DMedium",
+			P3Query: "Priority%3DLow%2CIcebox",
 		},
 		// https://bugs.chromium.org/p/chromium/fields/detail?field=Pri
 		"chromium": {
@@ -59,6 +66,9 @@ var (
 				"2": types.PriorityP2,
 				"3": types.PriorityP3,
 			},
+			P0P1Link: "https://bugs.chromium.org/p/skia/issues/list?q=Priority%3DCritical%2CHigh&can=2",
+			P2Link: "https://bugs.chromium.org/p/skia/issues/list?q=Priority%3DMedium&can=2",
+			P3AndRestLink: "https://bugs.chromium.org/p/skia/issues/list?q=Priority%3DLow%2CIcebox&can=2",
 		},
 	}
 
