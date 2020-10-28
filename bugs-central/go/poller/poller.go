@@ -41,7 +41,8 @@ type IssuesPoller struct {
 	pathToGithubToken        string
 	pathToServiceAccountFile string
 
-	dbClient *db.FirestoreDB
+	dbClient   *db.FirestoreDB
+	openIssues *bugs.OpenIssues
 }
 
 // New returns an instance of IssuesPoller.
@@ -61,21 +62,28 @@ func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile st
 		pathToGithubToken = filepath.Join(usr.HomeDir, github_lib.GITHUB_TOKEN_FILENAME)
 	}
 
+	// Instantiate the in-memory open issues object that will be passed to the different frameworks to
+	// populate.
+	openIssues := bugs.InitOpenIssues()
+
 	return &IssuesPoller{
 		storageClient:            storageClient,
 		pathToGithubToken:        pathToGithubToken,
 		pathToServiceAccountFile: pathToServiceAccountFile,
 		dbClient:                 dbClient,
+		openIssues:               openIssues,
 	}, nil
+}
+
+// GetOpenIssues returns the bugs.OpenIssues held by this poller.
+func (p *IssuesPoller) GetOpenIssues() *bugs.OpenIssues {
+	return p.openIssues
 }
 
 // Start polls the different issue frameworks and populates DB and an in-memory object with that data.
 // It hardcodes information about Skia's various clients. It may be possible to extract some/all of these into
 // flags or YAML config files in the future.
 func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) error {
-	// Instantiate the in-memory open issues object that will be passed to the different frameworks to
-	// populate.
-	openIssues := bugs.InitOpenIssues()
 
 	// Instantiate the bug frameworks with the different client configurations and then poll them.
 	bugFrameworks := []bugs.BugFramework{}
@@ -87,7 +95,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		UntriagedPriorities: []string{"P4"},
 		UntriagedAliases:    []string{"skia-android-triage@google.com"},
 	}
-	androidIssueTracker, err := issuetracker.New(p.storageClient, openIssues, androidQueryConfig)
+	androidIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, androidQueryConfig)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init issuetracker for android")
 	}
@@ -100,7 +108,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		PriorityRequired: true,
 		Client:           FlutterOnWebClient,
 	}
-	flutterOnWebGithub, err := github.New(ctx, "flutter", "flutter", p.pathToGithubToken, openIssues, flutterOnWebQueryConfig)
+	flutterOnWebGithub, err := github.New(ctx, "flutter", "flutter", p.pathToGithubToken, p.openIssues, flutterOnWebQueryConfig)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init github for flutter-on-web")
 	}
@@ -114,7 +122,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		PriorityRequired: false,
 		Client:           FlutterNativeClient,
 	}
-	flutterNativeGithub, err := github.New(ctx, "flutter", "flutter", p.pathToGithubToken, openIssues, flutterNativeQueryConfig)
+	flutterNativeGithub, err := github.New(ctx, "flutter", "flutter", p.pathToGithubToken, p.openIssues, flutterNativeQueryConfig)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init github for flutter-on-web")
 	}
@@ -127,7 +135,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Client:            ChromiumClient,
 		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
 	}
-	crMonorail1, err := monorail.New(ctx, p.pathToServiceAccountFile, openIssues, crQueryConfig1)
+	crMonorail1, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig1)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init monorail for chromium")
 	}
@@ -140,7 +148,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Client:            ChromiumClient,
 		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
 	}
-	crMonorail2, err := monorail.New(ctx, p.pathToServiceAccountFile, openIssues, crQueryConfig2)
+	crMonorail2, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig2)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init monorail for chromium")
 	}
@@ -153,7 +161,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Client:            ChromiumClient,
 		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
 	}
-	crMonorail3, err := monorail.New(ctx, p.pathToServiceAccountFile, openIssues, crQueryConfig3)
+	crMonorail3, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig3)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init monorail for chromium")
 	}
@@ -166,7 +174,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Client:            SkiaClient,
 		UntriagedStatuses: []string{"New"},
 	}
-	skMonorail, err := monorail.New(ctx, p.pathToServiceAccountFile, openIssues, skQueryConfig)
+	skMonorail, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, skQueryConfig)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to init monorail for skia")
 	}
@@ -196,7 +204,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 			return
 		}
 
-		openIssues.PrettyPrintOpenIssues()
+		p.openIssues.PrettyPrintOpenIssues()
 	}, nil)
 
 	return nil
