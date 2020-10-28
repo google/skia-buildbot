@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "15075d45_b0810114",
+        "filename": "bugs-central/go/bugs-central/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "Break out the request and response structs as types, that will make moving to go2ts easier.",
+      "range": {
+        "startLine": 185,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 4
+      },
+      "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "202a08ac_af04cedd",
+        "filename": "bugs-central/modules/bugs-central-sk/bugs-central-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "If this is slow displaying a spinner might be a good idea.",
+      "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b6236eb8_381d2c91",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "If public, then this needs comments.",
+      "revId": "9af49ed9adc4effd38d7c663700fd8d7bbbea456",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

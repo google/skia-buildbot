@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b1b2e41_5a68a8f8",
+        "filename": "bugs-central/go/slo/slo.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "These three functions look like they could be a single table driven function.\n\nThat will also make testing easier.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 6
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c419292d_25106085",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "indentation?",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 1
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73c011fa_589bcbe9",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "needs the dialog polyfill also",
+      "range": {
+        "startLine": 46,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02b6be07_05b95370",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "private",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 2
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b64f4694_f74f0ca4",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "prefer priorities.forEach()",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 53,
+        "endChar": 49
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2116ccea_442cadd2",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "prefer issues.forEach",
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25c40734_7b8d9a54",
+        "filename": "bugs-central/modules/bugs-slo-popup-sk/bugs-slo-popup-sk.ts",
+        "patchSetId": 16
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-28T19:37:03Z",
+      "side": 1,
+      "message": "I believe all the browsers have been fixed and this is no longer needed.",
+      "range": {
+        "startLine": 61,
+        "startChar": 36,
+        "endLine": 61,
+        "endChar": 48
+      },
+      "revId": "49cab1b6626f0bd3b61a5ddc23c5cafd30a5ea00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
