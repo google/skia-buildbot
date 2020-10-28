@@ -3,6 +3,7 @@ package bugs
 // Defines an interface used by the different issue frameworks to add open issues to an in-memory object.
 
 import (
+	"sort"
 	"sync"
 
 	"go.skia.org/infra/bugs-central/go/types"
@@ -23,6 +24,40 @@ func InitOpenIssues() *OpenIssues {
 	}
 }
 
+// GetIssuesOutsideSLO returns all issues outside Skia's SLO mapped by priority sorted by how far
+// they are outside SLO.
+func (o *OpenIssues) GetIssuesOutsideSLO(client types.RecognizedClient, source types.IssueSource, query string) map[types.StandardizedPriority][]*types.Issue {
+	o.mtx.RLock()
+	defer o.mtx.RUnlock()
+
+	priorityToSLOIssues := map[types.StandardizedPriority][]*types.Issue{}
+
+	if sourceToQueries, ok := o.openIssues[client]; ok {
+		if queryToIssues, ok := sourceToQueries[source]; ok {
+			if issues, ok := queryToIssues[query]; ok {
+				for _, i := range issues {
+					if i.SLOViolation {
+						if sloIssues, ok := priorityToSLOIssues[i.Priority]; ok {
+							priorityToSLOIssues[i.Priority] = append(sloIssues, i)
+						} else {
+							priorityToSLOIssues[i.Priority] = []*types.Issue{i}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for _, issues := range priorityToSLOIssues {
+		// Sort issues by how far they are outside SLO.
+		sort.Slice(issues, func(i, j int) bool {
+			return issues[i].SLOViolationDuration > issues[j].SLOViolationDuration
+		})
+	}
+
+	return priorityToSLOIssues
+}
+
 // PrettyPrintOpenIssues pretty prints the open issues in-memory object.
 func (o *OpenIssues) PrettyPrintOpenIssues() {
 	o.mtx.RLock()
@@ -34,8 +69,15 @@ func (o *OpenIssues) PrettyPrintOpenIssues() {
 		for s, queriesToIssues := range sourceToQueries {
 			sklog.Infof("    %s", s)
 			for q, issues := range queriesToIssues {
+				sloViolations := 0
+				for _, i := range issues {
+					if i.SLOViolation {
+						sloViolations++
+					}
+				}
 				sklog.Infof("        \"%s\"", q)
 				sklog.Infof("            Open Issues: %d", len(issues))
+				sklog.Infof("            SLO violations: %d", sloViolations)
 			}
 		}
 	}
