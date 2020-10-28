@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d5e15f97_2a899393",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-28T21:39:08Z",
+      "side": 1,
+      "message": "You know I love me some destructuring assignment and named variables. Consider doing:\nArray.from(jobStatusToLabelAndClass).map(([jobStatus, labelAndClass])\u003d\u003ehtml`...`)\nor if you\u0027re feeling inspired:\nArray.from(jobStatusToLabelAndClass).map(([jobStatus, {label, class}])\u003d\u003ehtml`...`)",
+      "range": {
+        "startLine": 101,
+        "startChar": 26,
+        "endLine": 107,
+        "endChar": 43
+      },
+      "revId": "90a9c2b76ca8f1c5f5728bf225207cfdcdf12c07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b7d74ba3_42534154",
+        "filename": "task_scheduler/modules/job-sk/job-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-28T21:39:08Z",
+      "side": 1,
+      "message": "I believe you can remove this now.",
+      "range": {
+        "startLine": 217,
+        "startChar": 2,
+        "endLine": 217,
+        "endChar": 33
+      },
+      "revId": "90a9c2b76ca8f1c5f5728bf225207cfdcdf12c07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
