@@ -1,0 +1,22 @@
+trybot-page-sk {
+  .query {
+    display: flex;
+  }
+
+  .query-summary {
+    margin-left: 16px;
+  }
+
+  h2 {
+    margin: 0 0 8px -8px;
+    font-size: 18px;
+  }
+
+  #run {
+    margin-left: -8px;
+  }
+
+  [hidden] {
+    display: none;
+  }
+}
