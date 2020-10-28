@@ -14,6 +14,12 @@ bugs-central-sk {
     white-space: nowrap;
   }
 
+  table.client-counts th a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--on-primary);
+  }
+
   table.client-counts td {
     padding: 1em;
     border-bottom: 1px solid var(--on-background);
@@ -30,14 +36,10 @@ bugs-central-sk {
     color: var(--on-background);
   }
 
-  .small {
-    font-size: small;
-  }
-
-  .small a {
+  span.slo-link {
     cursor: pointer;
     text-decoration: underline;
-    color: var(--on-primary);
+    color: var(--on-background);
   }
 
   .charts-container {
