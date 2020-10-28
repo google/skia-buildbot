@@ -1,6 +1,10 @@
 package types
 
-import "time"
+import (
+	"time"
+
+	"go.skia.org/infra/bugs-central/go/slo"
+)
 
 const (
 	// All bug frameworks will be standardized to these priorities.
@@ -11,14 +15,6 @@ const (
 	PriorityP4 StandardizedPriority = "P4"
 	PriorityP5 StandardizedPriority = "P5"
 	PriorityP6 StandardizedPriority = "P6"
-
-	// Convenient constants to use when calculating SLO violations.
-	Daily     = 24 * time.Hour
-	Weekly    = 7 * Daily
-	Monthly   = 30 * Daily
-	Biannualy = 6 * Monthly
-	Yearly    = 2 * Biannualy
-	Biennialy = 2 * Yearly
 )
 
 // IssueSource types will be all the recognized issue frameworks (eg: Github, IssueTracker, Monorail).
@@ -37,6 +33,10 @@ type Issue struct {
 	Priority StandardizedPriority `json:"priority"`
 	Owner    string               `json:"owner"`
 	Link     string               `json:"link"`
+
+	SLOViolation         bool          `json:"slo_violation"`
+	SLOViolationReason   string        `json:"slo_violation_reason"`
+	SLOViolationDuration time.Duration `json:"slo_violation_duration"`
 
 	CreatedTime  time.Time `json:"created"`
 	ModifiedTime time.Time `json:"modified"`
@@ -73,23 +73,27 @@ type IssueCountsData struct {
 	UntriagedQueryLink string `json:"untriaged_query_link"`
 }
 
-// CalculateSLOViolations uses data from https://docs.google.com/document/d/1OgpX1KDDq3YkHzRJjqRHSPJ9CJ8hH0RTvMAApKVxwm8/edit
-func (icd *IssueCountsData) CalculateSLOViolations(now, created, modified time.Time, priority StandardizedPriority) {
+// IncSLOViolations will increment the priority's corresponding slo count.
+func (icd *IssueCountsData) IncSLOViolation(violation bool, priority StandardizedPriority) {
+	if !violation {
+		// Nothing to do here.
+		return
+	}
 	switch priority {
 	case PriorityP0:
-		if now.After(modified.Add(Daily)) || now.After(created.Add(Weekly)) {
+		if violation {
 			icd.P0SLOViolationCount++
 		}
 	case PriorityP1:
-		if now.After(modified.Add(Weekly)) || now.After(created.Add(Monthly)) {
+		if violation {
 			icd.P1SLOViolationCount++
 		}
 	case PriorityP2:
-		if now.After(modified.Add(Biannualy)) || now.After(created.Add(Yearly)) {
+		if violation {
 			icd.P2SLOViolationCount++
 		}
 	case PriorityP3:
-		if now.After(modified.Add(Yearly)) || now.After(created.Add(Biennialy)) {
+		if violation {
 			icd.P3SLOViolationCount++
 		}
 	}
@@ -136,4 +140,23 @@ func (icd *IssueCountsData) IncPriority(priority StandardizedPriority) {
 	case PriorityP6:
 		icd.P6Count++
 	}
+}
+
+// IsPrioritySLOViolation returns whether the priority is outside the SLO. This utility
+// function is in types package and not slo package because it would be a dependency cycle due to
+// types.StandardizedPriority.
+// If issue has violated SLO then returns description and a duration that shows by how much
+// it was surpassed.
+func IsPrioritySLOViolation(now, created, modified time.Time, priority StandardizedPriority) (bool, string, time.Duration) {
+	switch priority {
+	case PriorityP0:
+		return slo.IsP0SLOViolation(now, created, modified)
+	case PriorityP1:
+		return slo.IsP1SLOViolation(now, created, modified)
+	case PriorityP2:
+		return slo.IsP2SLOViolation(now, created, modified)
+	case PriorityP3:
+		return slo.IsP3SLOViolation(now, created, modified)
+	}
+	return false, "", 0
 }
