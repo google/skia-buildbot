@@ -6,19 +6,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/bugs-central/go/slo"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestCalculateSLOViolations(t *testing.T) {
+func TestIncSLOViolation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	now := time.Unix(1405544146, 0)
-	after1Day := now.Add(Daily).Add(time.Minute)
-	after1Week := now.Add(Weekly).Add(time.Minute)
-	after1Month := now.Add(Monthly).Add(time.Minute)
-	after6Months := now.Add(Biannualy).Add(time.Minute)
-	after1Year := now.Add(Yearly).Add(time.Minute)
-	after2Years := now.Add(Biennialy).Add(time.Minute)
+	after1Day := now.Add(slo.Daily).Add(time.Minute)
+	after1Week := now.Add(slo.Weekly).Add(time.Minute)
+	after1Month := now.Add(slo.Monthly).Add(time.Minute)
+	after6Months := now.Add(slo.Biannualy).Add(time.Minute)
+	after1Year := now.Add(slo.Yearly).Add(time.Minute)
+	after2Years := now.Add(slo.Biennialy).Add(time.Minute)
 
 	tests := []struct {
 		now      time.Time
@@ -51,7 +52,8 @@ func TestCalculateSLOViolations(t *testing.T) {
 	}
 	for _, test := range tests {
 		ics := IssueCountsData{}
-		ics.CalculateSLOViolations(test.now, test.created, test.modified, test.priority)
+		violation, _, _ := IsPrioritySLOViolation(test.now, test.created, test.modified, test.priority)
+		ics.IncSLOViolation(violation, test.priority)
 		require.Equal(t, test.expectedP0Violations, ics.P0SLOViolationCount, test.message)
 		require.Equal(t, test.expectedP1Violations, ics.P1SLOViolationCount, test.message)
 		require.Equal(t, test.expectedP2Violations, ics.P2SLOViolationCount, test.message)
