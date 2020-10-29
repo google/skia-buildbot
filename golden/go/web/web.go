@@ -1685,7 +1685,7 @@ func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	withCorpus := baseURL + "&query=source_type%3D" + digestList.Corpora[0]
+	withCorpus := baseURL + "&corpus=" + digestList.Corpora[0]
 	sklog.Debugf("Redirecting to %s", withCorpus)
 	http.Redirect(w, r, withCorpus, http.StatusTemporaryRedirect)
 }
