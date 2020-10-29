@@ -8,6 +8,18 @@ import (
 )
 
 const (
+	// All recognized clients.
+	AndroidClient       RecognizedClient = "Android"
+	ChromiumClient      RecognizedClient = "Chromium"
+	FlutterNativeClient RecognizedClient = "Flutter-native"
+	FlutterOnWebClient  RecognizedClient = "Flutter-on-web"
+	SkiaClient          RecognizedClient = "Skia"
+
+	// All recognized bug frameworks.
+	GithubSource       IssueSource = "Github"
+	MonorailSource     IssueSource = "Monorail"
+	IssueTrackerSource IssueSource = "Buganizer"
+
 	// All bug frameworks will be standardized to these priorities.
 	PriorityP0 StandardizedPriority = "P0"
 	PriorityP1 StandardizedPriority = "P1"

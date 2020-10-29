@@ -25,8 +25,6 @@ var (
 	issueTrackerBucket = "skia-issuetracker-details"
 	// The file that contains issuetracker search results in the above bucket.
 	resultsFileName = "results.json"
-
-	issueTrackerSource types.IssueSource = "Buganizer"
 )
 
 type issueTrackerIssue struct {
@@ -157,11 +155,11 @@ func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient *db
 	client := qc.Client
 
 	// Put in DB.
-	if err := dbClient.PutInDB(ctx, client, issueTrackerSource, queryDesc, runId, countsData); err != nil {
+	if err := dbClient.PutInDB(ctx, client, types.IssueTrackerSource, queryDesc, runId, countsData); err != nil {
 		return skerr.Wrapf(err, "error putting issuetracker results in DB")
 	}
 	// Put in memory.
-	it.openIssues.PutOpenIssues(client, issueTrackerSource, queryDesc, issues)
+	it.openIssues.PutOpenIssues(client, types.IssueTrackerSource, queryDesc, issues)
 	return nil
 }
 
