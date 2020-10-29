@@ -50,10 +50,8 @@ func TestIsolateCache(t *testing.T) {
 	link := "link"
 	mode := 777
 	size := int64(9000)
-	ro := isolated.Writable
 	if1 := &isolated.Isolated{
-		Algo:    "smrt",
-		Command: []string{"sit", "stay"},
+		Algo: "smrt",
 		Files: map[string]isolated.File{
 			"myfile": {
 				Digest: "abc123",
@@ -63,10 +61,8 @@ func TestIsolateCache(t *testing.T) {
 				Type:   isolated.Basic,
 			},
 		},
-		Includes:    []isolated.HexDigest{"def456"},
-		ReadOnly:    &ro,
-		RelativeCwd: "dot",
-		Version:     "NEW!",
+		Includes: []isolated.HexDigest{"def456"},
+		Version:  "NEW!",
 	}
 	fn := func(ctx context.Context) (*CachedValue, error) {
 		callCount++

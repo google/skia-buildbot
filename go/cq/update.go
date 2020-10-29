@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/duration"
-	"go.chromium.org/luci/cq/api/config/v2"
+	"go.chromium.org/luci/cv/api/config/v2"
 )
 
 const (

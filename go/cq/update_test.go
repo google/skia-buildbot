@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/stretchr/testify/require"
-	"go.chromium.org/luci/cq/api/config/v2"
+	"go.chromium.org/luci/cv/api/config/v2"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/testutils/unittest"

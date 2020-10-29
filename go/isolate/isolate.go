@@ -240,19 +240,11 @@ func CopyIsolated(iso *isolated.Isolated) *isolated.Isolated {
 		includes = make([]isolated.HexDigest, len(iso.Includes))
 		copy(includes, iso.Includes)
 	}
-	var ro *isolated.ReadOnlyValue
-	if iso.ReadOnly != nil {
-		rov := *iso.ReadOnly
-		ro = &rov
-	}
 	return &isolated.Isolated{
-		Algo:        iso.Algo,
-		Command:     util.CopyStringSlice(iso.Command),
-		Files:       files,
-		Includes:    includes,
-		ReadOnly:    ro,
-		RelativeCwd: iso.RelativeCwd,
-		Version:     iso.Version,
+		Algo:     iso.Algo,
+		Files:    files,
+		Includes: includes,
+		Version:  iso.Version,
 	}
 }
 
