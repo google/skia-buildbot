@@ -46,6 +46,42 @@ commits-table-sk {
     text-align: center;
   }
 
+  .commit-container {
+    display: flex;
+    position: relative;
+
+    .time-spacer {
+      display: flex;
+      margin-right: 1px;
+      width: 25px;
+      position: relative;
+
+      .time-label {
+        font-family: monospace;
+        font-size: 0.75em;
+        background-color: var(--grey-700);
+        color: var(--white);
+        border-radius: 3px;
+        bottom: -5.5px;
+        right: 2px;
+        color: white;
+        margin: auto;
+        padding: 1px;
+        position: absolute;
+        z-index: 2;
+      }
+    }
+
+    .time-underline {
+      border-bottom: 2px solid var(--grey-700);
+      bottom: -2px;
+      height: 10px;
+      left: 20px;
+      position: absolute;
+      right: -3px;
+    }
+  }
+
   .commit {
     font-family: monospace;
     font-size: 0.75em;
@@ -54,6 +90,7 @@ commits-table-sk {
     display: flex;
     justify-content: space-between;
     height: 16px;
+    width: 100%;
     span {
       line-height: 16px;
     }
@@ -243,6 +280,16 @@ div.hidden.task {
   .rowUnderlay {
     div:nth-child(odd) {
       background-color: var(--surface-2dp);
+    }
+  }
+  .commit-container {
+    .time-spacer .time-label {
+      background-color: var(--grey-300);
+      color: var(--black);
+    }
+    .time-underline {
+      color: var(--white);
+      border-color: var(--grey-300);
     }
   }
 }

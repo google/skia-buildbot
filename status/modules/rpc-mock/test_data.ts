@@ -15,9 +15,9 @@ function copy<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
-Date.now = () => 1600883976659;
-const timestampBeforeNow = (seconds: number = 0) => {
-  return new Date(Date.now() - 1000 * seconds).toISOString();
+Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
+const timestampBeforeNow = (minutes: number = 0) => {
+  return new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 };
 
 export const branch0: Branch = { name: 'main', head: 'abc123' };
@@ -25,7 +25,7 @@ export const branch1: Branch = { name: 'bar', head: '456789' };
 export const commentTask: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: timestampBeforeNow(300),
+  timestamp: timestampBeforeNow(5),
   user: 'alison@google.com',
   message: 'this is a comment on a task',
   ignoreFailure: true,
@@ -38,7 +38,7 @@ export const commentTask: Comment = {
 export const commentCommit: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: timestampBeforeNow(300),
+  timestamp: timestampBeforeNow(5),
   user: 'alison@google.com',
   message: 'this is a comment on a commit',
   ignoreFailure: true,
@@ -51,7 +51,7 @@ export const commentCommit: Comment = {
 export const commentTaskSpec: Comment = {
   id: 'foo',
   repo: 'skia',
-  timestamp: timestampBeforeNow(300),
+  timestamp: timestampBeforeNow(5),
   user: 'alison@google.com',
   message: 'this is a comment on a task spec',
   ignoreFailure: true,
@@ -109,7 +109,7 @@ const commit0: LongCommit = {
   parents: ['parentofabc123'],
   subject: 'current HEAD',
   body: 'the most recent commit',
-  timestamp: timestampBeforeNow(300),
+  timestamp: timestampBeforeNow(5),
 };
 const commit1: LongCommit = {
   hash: 'parentofabc123',
@@ -117,7 +117,7 @@ const commit1: LongCommit = {
   parents: ['grandparentofabc123'],
   subject: '2nd from HEAD',
   body: 'the commit that comes before the most recent commit',
-  timestamp: timestampBeforeNow(600),
+  timestamp: timestampBeforeNow(10),
 };
 const commit2: LongCommit = {
   hash: 'childofabc123',
@@ -125,7 +125,7 @@ const commit2: LongCommit = {
   parents: ['abc123'],
   subject: 'newest commit',
   body: 'newest commit sent via incremental update',
-  timestamp: timestampBeforeNow(100),
+  timestamp: timestampBeforeNow(2),
 };
 const branchCommit0: LongCommit = {
   hash: '456789',
@@ -133,7 +133,7 @@ const branchCommit0: LongCommit = {
   parents: ['10111213'],
   subject: 'branch commit',
   body: 'commit on differnet branch',
-  timestamp: timestampBeforeNow(450),
+  timestamp: timestampBeforeNow(8),
 };
 export const incrementalResponse0: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
@@ -149,7 +149,7 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         parents: ['1revertbad'],
         subject: 'is a reland',
         body: 'This is a reland of bad',
-        timestamp: timestampBeforeNow(700),
+        timestamp: timestampBeforeNow(12),
       },
       {
         // To test handling of leading digits in the selector.
@@ -158,7 +158,7 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         parents: ['bad'],
         subject: 'is a revert',
         body: 'This reverts commit bad',
-        timestamp: timestampBeforeNow(800),
+        timestamp: timestampBeforeNow(13),
       },
       {
         hash: 'bad',
@@ -166,7 +166,7 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
         parents: ['acommitthatisnotlisted'],
         subject: 'get reverted',
         body: 'dereference some null pointers',
-        timestamp: timestampBeforeNow(900),
+        timestamp: timestampBeforeNow(65),
       },
     ],
     tasks: [task0, task1, task2],
