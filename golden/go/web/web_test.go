@@ -2513,7 +2513,7 @@ func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 	wh.ChangeListSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit&query=source_type%3Done_corpus"}, headers["Location"])
+	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit&corpus=one_corpus"}, headers["Location"])
 }
 
 func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutCorpus(t *testing.T) {
