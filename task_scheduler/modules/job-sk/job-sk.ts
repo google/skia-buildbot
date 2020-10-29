@@ -210,32 +210,31 @@ export class JobSk extends ElementSk {
   private duration: string = '';
   private isTryJob: boolean = false;
   private job: Job | null = null;
-  private _jobID: string = '';
   private revisionLink: string = '';
   private _rpc: TaskSchedulerService | null = null;
   private statusColor: string = '';
   private statusText: string = '';
-  private _swarming: string = '';
 
   constructor() {
     super(JobSk.template);
   }
 
   get jobID(): string {
-    return this._jobID;
+    return this.getAttribute('job-id') || '';
   }
 
   set jobID(jobID: string) {
-    this._jobID = jobID;
+    this.setAttribute('job-id', jobID);
     this.reload();
   }
 
   get swarming(): string {
-    return this._swarming;
+    return this.getAttribute('swarming') || '';
   }
 
   set swarming(swarming: string) {
-    this._swarming = swarming;
+    this.setAttribute('swarming', swarming);
+    this._render();
   }
 
   get rpc(): TaskSchedulerService | null {
@@ -261,7 +260,12 @@ export class JobSk extends ElementSk {
     this.duration = diffDate(start.getTime(), end.getTime());
     const rs = this.job.repoState!;
     this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
-    if (rs.patch) {
+    if (
+      rs.patch &&
+      rs.patch.issue != '' &&
+      rs.patch.patchset != '' &&
+      rs.patch.server != ''
+    ) {
       this.isTryJob = true;
       const p = rs.patch!;
       this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;

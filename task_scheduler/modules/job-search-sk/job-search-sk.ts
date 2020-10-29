@@ -80,43 +80,72 @@ export class JobSearchSk extends ElementSk {
       <table class="searchTerms">
         ${Array.from(ele.searchTerms.values()).map(
           (term: SearchTerm) => html`
-        <tr class="searchTerms">
-          <th>
-            <label for="${term.key}">
-              ${searchTerms[term.key]!.label}
-            </label>
-          </th>
-          <td>
-            <input
-                .id="${term.key}"
-                .type="${searchTerms[term.key]!.type}"
-                .value="${term.value}"
-                ?checked="${
-                  searchTerms[term.key]!.type == 'checkbox' &&
-                  term.value == 'true'
-                }"
-                @change="${(ev: Event) => {
-                  const input = (<HTMLInputElement>ev.target)!;
-                  if (searchTerms[term.key]!.type == 'checkbox') {
-                    term.value = input.checked ? 'true' : 'false';
-                  } else {
-                    term.value = input.value;
-                  }
-                  ele.updateQuery();
-                }}"
+            <tr class="searchTerms">
+              <th>
+                <label for="${term.key}">
+                  ${searchTerms[term.key]!.label}
+                </label>
+              </th>
+              <td>
+                ${term.key == 'status'
+                  ? html`
+                      <select
+                        id="${term.key}"
+                        @change="${(ev: Event) => {
+                          const input = (<HTMLSelectElement>ev.target)!;
+                          term.value = input.value;
+                          ele.updateQuery();
+                        }}"
+                        selected=
+                      >
+                        ${Object.entries(jobStatusToLabelAndClass).map(
+                          ([status, labelAndClass]) => html`
+                            <option
+                              value="${status}"
+                              ?selected="${term.value == status}"
+                            >
+                              ${labelAndClass.label}
+                            </option>
+                          `
+                        )}
+                      </select>
+                    `
+                  : html`
+                    <input
+                        .id="${term.key}"
+                        .type="${searchTerms[term.key]!.type}"
+                        .value="${term.value}"
+                        ?checked="${
+                          searchTerms[term.key]!.type == 'checkbox' &&
+                          term.value == 'true'
+                        }"
+                        @change="${(ev: Event) => {
+                          const input = (<HTMLInputElement>ev.target)!;
+                          if (searchTerms[term.key]!.type == 'checkbox') {
+                            term.value = input.checked ? 'true' : 'false';
+                          } else {
+                            term.value = input.value;
+                          }
+                          ele.updateQuery();
+                        }}"
+                        >
+                    </input>
+                `}
+              </td>
+              <td>
+                <button
+                  class="delete"
+                  @click="${() => {
+                    ele.searchTerms.delete(term.key);
+                    ele._render();
+                    ele.updateQuery();
+                  }}"
                 >
-            </input>
-          </td>
-          <td>
-            <button class="delete" @click="${() => {
-              ele.searchTerms.delete(term.key);
-              ele._render();
-              ele.updateQuery();
-            }}">
-              <delete-icon-sk></delete-icon-sk>
-            </button>
-        </tr>
-      `
+                  <delete-icon-sk></delete-icon-sk>
+                </button>
+              </td>
+            </tr>
+          `
         )}
         <tr class="searchTerms">
           <td>
@@ -133,7 +162,6 @@ export class JobSearchSk extends ElementSk {
                 ele.updateQuery();
                 // Auto-focus the new input field.
                 const inp = $$<HTMLInputElement>('#' + selected, ele)!;
-                console.log(inp);
                 inp?.focus();
               }}"
             >
@@ -289,7 +317,7 @@ export class JobSearchSk extends ElementSk {
   }
 
   private search() {
-    const req: SearchJobsRequest = {
+    const req = {
       buildbucketBuildId: parseInt(
         this.searchTerms.get('buildbucketBuildId')?.value || '0'
       ),
@@ -306,11 +334,11 @@ export class JobSearchSk extends ElementSk {
       hasRepo: !!this.searchTerms.get('repo'),
       revision: this.searchTerms.get('revision')?.value || '',
       hasRevision: !!this.searchTerms.get('revision'),
-      status: (this.searchTerms.get('status')?.value || '') as JobStatus,
+      status: (this.searchTerms.get('status')?.value || null) as JobStatus,
       hasStatus: !!this.searchTerms.get('status'),
-      timeEnd: this.searchTerms.get('timeEnd')?.value || '',
+      timeEnd: this.searchTerms.get('timeEnd')?.value || null,
       hasTimeEnd: !!this.searchTerms.get('timeEnd'),
-      timeStart: this.searchTerms.get('timeStart')?.value || '',
+      timeStart: this.searchTerms.get('timeStart')?.value || null,
       hasTimeStart: !!this.searchTerms.get('timeStart'),
     };
     this.rpc!.searchJobs(req as SearchJobsRequest).then(
