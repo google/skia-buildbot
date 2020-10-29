@@ -23,6 +23,13 @@ details-dialog-sk {
       color: var(--on-surface);
       fill: var(--on-surface);
     }
+    .close {
+      float: right;
+      height: min-content;
+      width: min-content;
+      min-width: 0;
+      padding: 0;
+    }
   }
 
   .horizontal {
