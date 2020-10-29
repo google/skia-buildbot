@@ -25,10 +25,8 @@ func TestCopyIsolatedFile(t *testing.T) {
 	link := "link"
 	mode := 777
 	size := int64(9000)
-	ro := isolated.Writable
 	iso := &isolated.Isolated{
-		Algo:    "smrt",
-		Command: []string{"sit", "shake"},
+		Algo: "smrt",
 		Files: map[string]isolated.File{
 			"my-file": {
 				Digest: "abc123",
@@ -38,10 +36,8 @@ func TestCopyIsolatedFile(t *testing.T) {
 				Type:   isolated.Basic,
 			},
 		},
-		Includes:    []isolated.HexDigest{"blah"},
-		ReadOnly:    &ro,
-		RelativeCwd: "dot",
-		Version:     "NEW!",
+		Includes: []isolated.HexDigest{"blah"},
+		Version:  "NEW!",
 	}
 	assertdeep.Copy(t, iso, CopyIsolated(iso))
 
@@ -214,10 +210,8 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 	link := "link"
 	mode := 777
 	size := int64(9000)
-	ro := isolated.Writable
 	i1 := &isolated.Isolated{
-		Algo:    "smrt",
-		Command: []string{"sit", "shake"},
+		Algo: "smrt",
 		Files: map[string]isolated.File{
 			"my-file": {
 				Digest: "abc123",
@@ -227,10 +221,8 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 				Type:   isolated.Basic,
 			},
 		},
-		Includes:    []isolated.HexDigest{"blah"},
-		ReadOnly:    &ro,
-		RelativeCwd: "dot",
-		Version:     "NEW!",
+		Includes: []isolated.HexDigest{"blah"},
+		Version:  "NEW!",
 	}
 	// Initial upload.
 	hashes, err := c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"go.chromium.org/luci/cq/api/config/v2"
+	"go.chromium.org/luci/cv/api/config/v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/git"

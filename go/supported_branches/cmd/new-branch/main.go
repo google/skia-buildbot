@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	cq_config "go.chromium.org/luci/cq/api/config/v2"
+	cq_config "go.chromium.org/luci/cv/api/config/v2"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
