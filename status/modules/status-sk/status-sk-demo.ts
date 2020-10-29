@@ -44,7 +44,6 @@ fetchMock.getOnce('https://tree-status.skia.org/current-sheriff', generalRoleRes
 fetchMock.getOnce('https://tree-status.skia.org/current-wrangler', gpuRoleResp);
 fetchMock.getOnce('https://tree-status.skia.org/current-robocop', androidRoleResp);
 fetchMock.getOnce('https://tree-status.skia.org/current-trooper', infraRoleResp);
-Date.now = () => 1600883976659;
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
 (document.querySelector('#AllFilter') as HTMLElement).click();

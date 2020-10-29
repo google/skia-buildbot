@@ -94,7 +94,7 @@ export class CategorySpec {
   colspan: number = 0;
 }
 
-// Generated data to descrbie a taskspec and the tasks within it.
+// Generated data to describe a taskspec and the tasks within it.
 export class TaskSpecDetails {
   name: string = '';
   comments: Array<Comment> = [];
@@ -1023,6 +1023,22 @@ export class CommitsTableSk extends ElementSk {
     }
   }
 
+  // Return a time label if one should be used for the commit at the given index.
+  private timeLabel(commits: Commit[], index: number, timePoints: { label: string; time: Date }[]) {
+    if (index === commits.length - 1) {
+      return null;
+    }
+
+    const curr = new Date(commits[index].timestamp!);
+    const next = new Date(commits[index + 1].timestamp!);
+    let ret = null;
+    for (const moment of timePoints) {
+      if (moment.time <= curr && moment.time > next) {
+        ret = html`<span class="time-label">${moment.label}</span>`;
+      }
+    }
+    return ret;
+  }
   /**
    * fillTableTemplate returns an array of templates (containing headers, commits, tasks, etc),
    * each styled with 'grid-area' to place them inside a css-grid element, covering one or more
@@ -1042,20 +1058,37 @@ export class CommitsTableSk extends ElementSk {
     this.mishapTasks = [];
     const taskStartRow = COMMIT_START_ROW;
     const tasksAddedToTemplate: Set<TaskId> = new Set();
+    const now = Date.now();
+    // Explicitly privide 'now' in case we patched it out for testing.
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today.valueOf());
+    yesterday.setDate(yesterday.getDate() - 1);
+    const timePoints = [
+      { label: '-1h', time: new Date(now - 60 * 60 * 1000) },
+      { label: '-3h', time: new Date(now - 3 * 60 * 60 * 1000) },
+      { label: 'today', time: today },
+      { label: 'yesterday', time: yesterday },
+    ];
+    timePoints.sort((a, b) => b.time.valueOf() - a.time.valueOf());
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
     for (const [i, commit] of this.data.commits.entries()) {
       const rowStart = taskStartRow + i;
       const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
+      const timeLabel = this.timeLabel(this.data.commits, i, timePoints);
       res.push(
-        html`<div
-          class="commit ${this.attributeStringFromHash(commit.hash)}"
-          style=${this.gridLocation(rowStart, COMMIT_START_COL)}
-          title=${title}
-          data-commit-index=${i}
-        >
-          <span class="nowrap commit-text">${text}</span>
-          <span class="nowrap">${this.commitIcons(commit)}</span>
+        html` <div class="commit-container" style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
+          <div class="time-spacer">${timeLabel}</div>
+          <div
+            class="commit ${this.attributeStringFromHash(commit.hash)}"
+            title=${title}
+            data-commit-index=${i}
+          >
+            <span class="nowrap commit-text">${text}</span>
+            <span class="nowrap">${this.commitIcons(commit)}</span>
+          </div>
+          ${timeLabel ? html`<span class="time-underline"></span>` : html``}
         </div>`
       );
       const tasksBySpec = this.data.tasksByCommit.get(commit.hash);

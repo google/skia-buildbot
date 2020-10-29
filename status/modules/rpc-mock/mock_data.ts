@@ -3,8 +3,9 @@
  */
 import { Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task } from '../rpc/status';
 
-const timestampBeforeNow = (seconds: number = 0) => {
-  return new Date(Date.now() - 1000 * seconds).toISOString();
+Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
+const timestampBeforeNow = (minutes: number = 0) => {
+  return new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 };
 
 const branches: Array<Branch> = [
@@ -94,6 +95,9 @@ const seen = (key: string) => {
   alreadyFilled.add(key);
   return ret;
 };
+
+const minutesBetweenCommits = 15;
+
 for (let i = 0; i < 30; i++) {
   const hash = `abc${i}`;
   let body = 'Some description';
@@ -102,13 +106,18 @@ for (let i = 0; i < 30; i++) {
   } else if (i === 14) {
     body = 'This is a reland of abc18';
   }
+  let commitTime = timestampBeforeNow(minutesBetweenCommits * i);
+  if (i > 28) {
+    // Make the last 2 commits past yesterday, to see the last marker.
+    commitTime = timestampBeforeNow(36 * 60 + i);
+  }
   commits.push(
     Object.assign(JSON.parse(JSON.stringify(commitTemplate)), {
       hash: hash,
       parents: [`abc${i + 1}`],
       body: `${body}\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557\n`,
-      subject: 'something',
-      timestamp: timestampBeforeNow(100 * i),
+      subject: 'something, timestamp is ' + commitTime,
+      timestamp: commitTime,
       author: randomAuthor(),
     })
   );
@@ -159,7 +168,7 @@ commits.splice(4, 0, {
   hash: 'def0',
   parents: [`diffBranch`],
   subject: 'otherBranchSubject',
-  timestamp: timestampBeforeNow(395),
+  timestamp: timestampBeforeNow(minutesBetweenCommits * 4),
   author: 'branchAuthor',
 });
 
