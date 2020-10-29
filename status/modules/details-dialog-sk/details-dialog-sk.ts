@@ -20,6 +20,7 @@ import { revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../settings'
 
 import '../comments-sk';
 import 'elements-sk/styles/buttons';
+import 'elements-sk/icon/close-icon-sk';
 import 'elements-sk/icon/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
 import { $$ } from 'common-sk/modules/dom';
@@ -38,25 +39,31 @@ export class DetailsDialogSk extends ElementSk {
   private static template = (el: DetailsDialogSk) =>
     html`
       <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
+        <button class=close @click=${() => el.close()}><close-icon-sk></close-icon-sk></button>
+        </br>
         <div class="horizontal">
           <div class="flex">${el.titleSection}</div>
-          ${el.actionButton
-            ? html`<button class="action" @click=${el.actionButton.handler}>
-                ${el.actionButton.buttonText}
-              </button>`
-            : html``}
+          ${
+            el.actionButton
+              ? html`<button class="action" @click=${el.actionButton.handler}>
+                  ${el.actionButton.buttonText}
+                </button>`
+              : html``
+          }
         </div>
         <br />
         <hr />
-        ${el.detailsSection
-          ? [
-              el.detailsSection,
-              html`
-                <br />
-                <hr />
-              `,
-            ]
-          : html``}
+        ${
+          el.detailsSection
+            ? [
+                el.detailsSection,
+                html`
+                  <br />
+                  <hr />
+                `,
+              ]
+            : html``
+        }
         <div>
           <comments-sk
             .commentData=${el.commentData}
@@ -96,11 +103,19 @@ export class DetailsDialogSk extends ElementSk {
   private open() {
     this._render();
     (<HTMLElement>this).style.display = 'block';
+    document.addEventListener('keydown', this.keydown);
   }
 
   close() {
     (<HTMLElement>this).style.display = 'none';
+    document.removeEventListener('keydown', this.keydown);
   }
+
+  private keydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      this.close();
+    }
+  };
 
   // reset clears the computed templates to ensure we don't have any leftovers if switching from
   // e.g.a task view to a taskspec view.
