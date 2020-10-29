@@ -336,9 +336,13 @@ export class JobSearchSk extends ElementSk {
       hasRevision: !!this.searchTerms.get('revision'),
       status: (this.searchTerms.get('status')?.value || null) as JobStatus,
       hasStatus: !!this.searchTerms.get('status'),
-      timeEnd: this.searchTerms.get('timeEnd')?.value || null,
+      timeEnd: new Date(
+        this.searchTerms.get('timeEnd')?.value || 0
+      ).toISOString(),
       hasTimeEnd: !!this.searchTerms.get('timeEnd'),
-      timeStart: this.searchTerms.get('timeStart')?.value || null,
+      timeStart: new Date(
+        this.searchTerms.get('timeStart')?.value || 0
+      ).toISOString(),
       hasTimeStart: !!this.searchTerms.get('timeStart'),
     };
     this.rpc!.searchJobs(req as SearchJobsRequest).then(
