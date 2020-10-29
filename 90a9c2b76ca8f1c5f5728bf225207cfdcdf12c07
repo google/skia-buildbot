@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e9185e48_0cef64ed",
+        "filename": "task_scheduler/modules/job-search-sk/job-search-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-29T11:45:03Z",
+      "side": 1,
+      "message": "Did something similar; the compiler complained about Array.from and your second suggestion.",
+      "parentUuid": "d5e15f97_2a899393",
+      "range": {
+        "startLine": 101,
+        "startChar": 26,
+        "endLine": 107,
+        "endChar": 43
+      },
+      "revId": "90a9c2b76ca8f1c5f5728bf225207cfdcdf12c07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "b7d74ba3_42534154",
         "filename": "task_scheduler/modules/job-sk/job-sk.ts",
         "patchSetId": 5
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-28T21:39:08Z",
       "side": 1,
       "message": "I believe you can remove this now.",
+      "range": {
+        "startLine": 217,
+        "startChar": 2,
+        "endLine": 217,
+        "endChar": 33
+      },
+      "revId": "90a9c2b76ca8f1c5f5728bf225207cfdcdf12c07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2a59c7ce_2f2469d8",
+        "filename": "task_scheduler/modules/job-sk/job-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-29T11:45:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7d74ba3_42534154",
       "range": {
         "startLine": 217,
         "startChar": 2,
