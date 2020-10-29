@@ -82,6 +82,10 @@ declare interface CountsData {
 
   query_link: string,
   untriaged_query_link: string,
+  p0_link: string,
+  p1_link: string,
+  p2_link: string,
+  p3_and_rest_link: string,
 }
 
 // ChartsData is directly fed to @google-web-components/google-chart.
@@ -190,17 +194,19 @@ export class BugsCentralSk extends ElementSk {
     return html`
     <table class=client-counts>
       <colgroup>
-        <col span="1" style="width: 40%">
-        <col span="1" style="width: 10%">
-        <col span="1" style="width: 10%">
-        <col span="1" style="width: 10%">
-        <col span="1" style="width: 10%">
-        <col span="1" style="width: 10%">
-        <col span="1" style="width: 10%">
+        <col span="1" style="width: 58%">
+        <col span="1" style="width: 6%">
+        <col span="1" style="width: 6%">
+        <col span="1" style="width: 6%">
+        <col span="1" style="width: 6%">
+        <col span="1" style="width: 6%">
+        <col span="1" style="width: 6%">
+        <col span="1" style="width: 6%">
       </colgroup>
       <tr>
         <th>Client</th>
-        <th>P0-P1</th>
+        <th>P0</th>
+        <th>P1</th>
         <th>P2</th>
         <th>P3+</th>
         <th><a href="${SKIA_SLO_DOC}">SLO</a></th>
@@ -244,13 +250,24 @@ export class BugsCentralSk extends ElementSk {
             <span class=client-link>${clientKey}</span>
           </td>
           <td>
-            ${clientCounts.p0_count + clientCounts.p1_count}
+            ${clientCounts.p0_link
+    ? html`<span class=query-link><a href="${clientCounts.p0_link}" target=_blank>${clientCounts.p0_count}</a></span>`
+    : html`${clientCounts.p0_count}`}
           </td>
           <td>
-            ${clientCounts.p2_count}
+          ${clientCounts.p1_link
+    ? html`<span class=query-link><a href="${clientCounts.p1_link}" target=_blank>${clientCounts.p1_count}</a></span>`
+    : html`${clientCounts.p1_count}`}
           </td>
           <td>
-            ${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}
+          ${clientCounts.p2_link
+    ? html`<span class=query-link><a href="${clientCounts.p2_link}" target=_blank>${clientCounts.p2_count}</a></span>`
+    : html`${clientCounts.p2_count}`}
+          </td>
+          <td>
+            ${clientCounts.p3_and_rest_link
+    ? html`<span class=query-link><a href="${clientCounts.p3_and_rest_link}" target=_blank>${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}</a></span>`
+    : html`${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}`}
           </td>
           <td>
             ${this.displaySLOTemplate(clientCounts)}

@@ -147,6 +147,11 @@ func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient *db
 			untriagedAliasesTokens = append(untriagedAliasesTokens, fmt.Sprintf("assignee:%s", a))
 		}
 		countsData.UntriagedQueryLink = fmt.Sprintf("%s (%s|%s)", countsData.QueryLink, strings.Join(untriagedPrioritiesTokens, "|"), strings.Join(untriagedAliasesTokens, "|"))
+		// Calculate priority links.
+		countsData.P0Link = fmt.Sprintf("%s P:P0", countsData.QueryLink)
+		countsData.P1Link = fmt.Sprintf("%s P:P1", countsData.QueryLink)
+		countsData.P2Link = fmt.Sprintf("%s P:P2", countsData.QueryLink)
+		countsData.P3AndRestLink = fmt.Sprintf("%s (P:P3 P:P4)", countsData.QueryLink)
 	}
 	client := qc.Client
 

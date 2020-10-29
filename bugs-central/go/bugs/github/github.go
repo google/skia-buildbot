@@ -28,26 +28,42 @@ const (
 	githubSource types.IssueSource = "Github"
 )
 
-type githubPriorityData map[string]types.StandardizedPriority
+type githubPriorityData struct {
+	PriorityMapping map[string]types.StandardizedPriority
+
+	P0Query        string
+	P1Query        string
+	P2Query        string
+	P3AndRestQuery string
+}
 
 var (
 	// Maps the priority label names into the standardized priorities.
 	githubProjectToPriorityData map[string]githubPriorityData = map[string]githubPriorityData{
 		"flutter/flutter": {
-			// https://github.com/flutter/flutter/labels/P0
-			"P0": types.PriorityP0,
-			// https://github.com/flutter/flutter/labels/P1
-			"P1": types.PriorityP1,
-			// https://github.com/flutter/flutter/labels/P2
-			"P2": types.PriorityP2,
-			// https://github.com/flutter/flutter/labels/P3
-			"P3": types.PriorityP3,
-			// https://github.com/flutter/flutter/labels/P4
-			"P4": types.PriorityP4,
-			// https://github.com/flutter/flutter/labels/P5
-			"P5": types.PriorityP5,
-			// https://github.com/flutter/flutter/labels/P6
-			"P6": types.PriorityP6,
+			PriorityMapping: map[string]types.StandardizedPriority{
+				// https://github.com/flutter/flutter/labels/P0
+				"P0": types.PriorityP0,
+				// https://github.com/flutter/flutter/labels/P1
+				"P1": types.PriorityP1,
+				// https://github.com/flutter/flutter/labels/P2
+				"P2": types.PriorityP2,
+				// https://github.com/flutter/flutter/labels/P3
+				"P3": types.PriorityP3,
+				// https://github.com/flutter/flutter/labels/P4
+				"P4": types.PriorityP4,
+				// https://github.com/flutter/flutter/labels/P5
+				"P5": types.PriorityP5,
+				// https://github.com/flutter/flutter/labels/P6
+				"P6": types.PriorityP6,
+			},
+			P0Query: "label:P0",
+			P1Query: "label:P1",
+			P2Query: "label:P2",
+			// Github does not support logical OR queries (https://github.com/isaacs/github/issues/660)
+			// so create a query with no P0/P1/P2. Problem is that this could include issues with no
+			// priorities attached, but this is the best we can do right now.
+			P3AndRestQuery: "-label:P0+-label:P1+-label:P2",
 		},
 	}
 )
@@ -106,10 +122,6 @@ func (gh *githubFramework) Search(ctx context.Context) ([]*types.Issue, *types.I
 	// Convert github issues into bug_framework's generic issues
 	issues := []*types.Issue{}
 	countsData := &types.IssueCountsData{}
-	priorityData, ok := githubProjectToPriorityData[gh.projectName]
-	if !ok {
-		sklog.Errorf("Could not find GithubPriorityData for project %s", gh.projectName)
-	}
 	for _, gi := range githubIssues {
 		owner := ""
 		if gi.GetAssignee() != nil {
@@ -134,16 +146,18 @@ func (gh *githubFramework) Search(ctx context.Context) ([]*types.Issue, *types.I
 
 		// Find priority.
 		priority := types.StandardizedPriority("")
-		if priorityData != nil {
+		if priorityData, ok := githubProjectToPriorityData[gh.projectName]; ok {
 			// Go through labels for this issue to see if any of them are priority labels.
 			for _, l := range gi.Labels {
-				if p, ok := priorityData[*l.Name]; ok {
+				if p, ok := priorityData.PriorityMapping[*l.Name]; ok {
 					priority = p
 					// What happens if there are multiple priority labels attached? Use the
 					// first one we encounter because that one *should* be the highest priority.
 					break
 				}
 			}
+		} else {
+			sklog.Errorf("Could not find GithubPriorityData for project %s", gh.projectName)
 		}
 		if gh.queryConfig.PriorityRequired && priority == "" {
 			continue
@@ -210,6 +224,14 @@ func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient 
 	countsData.QueryLink = queryLink
 	// Github does not have an untriaged query link yet so use the open issues link instead.
 	countsData.UntriagedQueryLink = queryLink
+	// Calculate priority links.
+	if priorityData, ok := githubProjectToPriorityData[gh.projectName]; ok {
+		countsData.P0Link = fmt.Sprintf("%s+%s", queryLink, priorityData.P0Query)
+		countsData.P1Link = fmt.Sprintf("%s+%s", queryLink, priorityData.P1Query)
+		countsData.P2Link = fmt.Sprintf("%s+%s", queryLink, priorityData.P2Query)
+		countsData.P3AndRestLink = fmt.Sprintf("%s+%s", queryLink, priorityData.P3AndRestQuery)
+	}
+
 	client := gh.queryConfig.Client
 
 	// Put in DB.
