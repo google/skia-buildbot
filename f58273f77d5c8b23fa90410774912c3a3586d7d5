@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ee0c4d7a_c824b8aa",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 1068,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-29T15:02:32Z",
+      "side": 1,
+      "message": "Nit: I think \"today\" is actually a better label for this, ie. everything above this line happened today.  Personally, I think I might also like a \"yesterday\" label in addition.",
+      "range": {
+        "startLine": 1068,
+        "startChar": 16,
+        "endLine": 1068,
+        "endChar": 25
+      },
+      "revId": "f58273f77d5c8b23fa90410774912c3a3586d7d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
