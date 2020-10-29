@@ -4,6 +4,7 @@ package github
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -246,4 +247,9 @@ func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient 
 // See documentation for bugs.GetIssueLink interface.
 func (gh *githubFramework) GetIssueLink(_, id string) string {
 	return gh.githubClient.GetIssueUrlBase() + id
+}
+
+// See documentation for bugs.SetOwnerAndAddComment interface.
+func (gh *githubFramework) SetOwnerAndAddComment(owner, comment, id string) error {
+	return errors.New("SetOwnerAndAddComment not implemented for github")
 }

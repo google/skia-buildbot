@@ -5,6 +5,7 @@ package issuetracker
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -167,4 +168,9 @@ func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient *db
 // See documentation for bugs.GetIssueLink interface.
 func (it *issueTracker) GetIssueLink(_, id string) string {
 	return fmt.Sprintf("http://b/%s", id)
+}
+
+// See documentation for bugs.SetOwnerAndAddComment interface.
+func (it *issueTracker) SetOwnerAndAddComment(owner, comment, id string) error {
+	return errors.New("SetOwnerAndAddComment not implemented for issuetracker")
 }
