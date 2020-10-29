@@ -21,6 +21,7 @@ import (
 
 	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/poller"
+	"go.skia.org/infra/bugs-central/go/watcher"
 	"go.skia.org/infra/bugs-central/go/types"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -74,6 +75,7 @@ func New() (baseapp.App, error) {
 		sklog.Fatal("Could not init DB: %s", err)
 	}
 
+	// Instantiate poller and turn it on.
 	pollerClient, err := poller.New(ctx, ts, *serviceAccountFile, dbClient)
 	if err != nil {
 		sklog.Fatal("Could not init poller: %s", err)
@@ -81,6 +83,9 @@ func New() (baseapp.App, error) {
 	if err := pollerClient.Start(ctx, *pollInterval); err != nil {
 		sklog.Fatal("Could not start poller: %s", err)
 	}
+
+	// Instantiate aliases-watcher and turn it on.
+
 
 	srv := &Server{
 		pollerClient: pollerClient,
