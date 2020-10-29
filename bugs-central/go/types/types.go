@@ -107,8 +107,13 @@ type IssueCountsData struct {
 	P2SLOViolationCount int `json:"p2_slo_count"`
 	P3SLOViolationCount int `json:"p3_slo_count"`
 
+	// Links to the issue framework.
 	QueryLink          string `json:"query_link"`
 	UntriagedQueryLink string `json:"untriaged_query_link"`
+	P0Link             string `json:"p0_link"`
+	P1Link             string `json:"p1_link"`
+	P2Link             string `json:"p2_link"`
+	P3AndRestLink      string `json:"p3_and_rest_link"`
 }
 
 // IncSLOViolations will increment the priority's corresponding slo count.
