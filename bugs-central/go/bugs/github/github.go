@@ -25,8 +25,6 @@ import (
 const (
 	// Not clear what the maximum allowable results are for github API.
 	maxGithubResults = 1000
-
-	githubSource types.IssueSource = "Github"
 )
 
 type githubPriorityData struct {
@@ -236,11 +234,11 @@ func (gh *githubFramework) SearchClientAndPersist(ctx context.Context, dbClient 
 	client := gh.queryConfig.Client
 
 	// Put in DB.
-	if err := dbClient.PutInDB(ctx, client, githubSource, queryDesc, runId, countsData); err != nil {
+	if err := dbClient.PutInDB(ctx, client, types.GithubSource, queryDesc, runId, countsData); err != nil {
 		return skerr.Wrapf(err, "error putting github results in DB")
 	}
 	// Put in memory.
-	gh.openIssues.PutOpenIssues(client, githubSource, queryDesc, issues)
+	gh.openIssues.PutOpenIssues(client, types.GithubSource, queryDesc, issues)
 	return nil
 }
 
