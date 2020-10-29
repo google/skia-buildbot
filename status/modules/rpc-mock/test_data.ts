@@ -142,11 +142,11 @@ export const incrementalResponse0: GetIncrementalCommitsResponse = {
     comments: [commentCommit, commentTask, commentTaskSpec],
     commits: [
       commit0,
-      commit1,
+      { ...commit1, parents: ['relandbad'] },
       {
         hash: 'relandbad',
         author: 'alice@example.com',
-        parents: ['revertbad'],
+        parents: ['1revertbad'],
         subject: 'is a reland',
         body: 'This is a reland of bad',
         timestamp: timestampBeforeNow(700),

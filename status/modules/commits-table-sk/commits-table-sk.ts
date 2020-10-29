@@ -15,7 +15,7 @@
 import { $, $$, DomReady } from 'common-sk/modules/dom';
 import { fromObject } from 'common-sk/modules/query';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import { Hintable, HintableObject } from 'common-sk/modules/hintable';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -33,6 +33,7 @@ import 'elements-sk/icon/redo-icon-sk';
 import 'elements-sk/icon/texture-icon-sk';
 import 'elements-sk/icon/undo-icon-sk';
 import 'elements-sk/styles/select';
+import '../branches-sk';
 import '../details-dialog-sk';
 import {
   Branch,
@@ -48,12 +49,14 @@ import { DetailsDialogSk } from '../details-dialog-sk/details-dialog-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { truncateWithEllipses } from '../../../golden/modules/common';
 import { GetStatusService } from '../rpc';
+import { BranchesSk } from '../branches-sk/branches-sk';
 import { defaultRepo, repos, taskSchedulerUrl } from '../settings';
 
 const CONTROL_START_ROW = 1;
 const CATEGORY_START_ROW = CONTROL_START_ROW + 1;
 const SUBCATEGORY_START_ROW = CATEGORY_START_ROW + 1;
 const TASKSPEC_START_ROW = SUBCATEGORY_START_ROW + 1;
+const COMMIT_START_ROW = TASKSPEC_START_ROW + 1;
 
 const BRANCH_START_COL = 1;
 const COMMIT_START_COL = BRANCH_START_COL + 1;
@@ -461,7 +464,7 @@ export class CommitsTableSk extends ElementSk {
   private static template = (el: CommitsTableSk) => html`<div class="commitsTableContainer">
     <div
       class="legend"
-      style=${el.gridLocation(CATEGORY_START_ROW, COMMIT_START_COL, TASKSPEC_START_ROW + 1)}
+      style=${el.gridLocation(CATEGORY_START_ROW, COMMIT_START_COL, COMMIT_START_ROW)}
     >
       <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
       <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
@@ -472,7 +475,7 @@ export class CommitsTableSk extends ElementSk {
     <div class="tasksTable">${el.fillTableTemplate()}</div>
     <div
       class="reloadControls"
-      style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL, TASKSPEC_START_ROW + 1)}
+      style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL, COMMIT_START_ROW)}
     >
       <div id="repoContainer">
         <div id="repoLabel">Repo:</div>
@@ -508,6 +511,13 @@ export class CommitsTableSk extends ElementSk {
         </div>
       </div>
     </div>
+    <branches-sk
+      style=${el.gridLocation(
+        COMMIT_START_ROW,
+        BRANCH_START_COL,
+        COMMIT_START_ROW + el.data.commits.length
+      )}
+    ></branches-sk>
     <div
       class="controls"
       style=${el.gridLocation(
@@ -1030,7 +1040,7 @@ export class CommitsTableSk extends ElementSk {
     // at least 1 more than the commits panel, even if we have no tasks displayed.
     this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
     this.mishapTasks = [];
-    const taskStartRow = TASKSPEC_START_ROW + 1;
+    const taskStartRow = COMMIT_START_ROW;
     const tasksAddedToTemplate: Set<TaskId> = new Set();
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
     for (const [i, commit] of this.data.commits.entries()) {
@@ -1141,6 +1151,9 @@ export class CommitsTableSk extends ElementSk {
     this.data.update(this.repo, numCommits, this.lastLoaded).finally(() => {
       this.lastLoaded = new Date();
       this.draw();
+      const branchesSk = $$('branches-sk', this) as BranchesSk;
+      branchesSk.commits = this.data.commits;
+      branchesSk.branchHeads = this.data.branchHeads;
       this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       // If an additional update was requested, start it, otherwise schedule it.
       if (this.requestLimiter.endUpdate()) {
