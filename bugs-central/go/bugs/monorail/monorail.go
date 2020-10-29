@@ -327,3 +327,12 @@ func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient *db.Fire
 func (m *monorail) GetIssueLink(instance, id string) string {
 	return fmt.Sprintf("https://bugs.chromium.org/p/%s/issues/detail?id=%s", instance, id)
 }
+
+// See documentation for bugs.SetOwnerAndAddComment interface.
+func (m *monorail) SetOwnerAndAddComment(owner, comment, id string) error {
+	query := fmt.Sprintf(`{"deltas": [{"issue": {"name": "projects/%s/issues/%s", "owner": {"user": "users/%s"}}, "update_mask": "owner"}], "comment_content": "%s", "notify_type": "EMAIL"}`, m.queryConfig.Instance, id, owner, comment)
+	if _, err := m.makeJSONCall([]byte(query), "Issues", "ModifyIssues"); err != nil {
+		return skerr.Wrapf(err, "Issues.ModifyIssues JSON API call failed")
+	}
+	return nil
+}
