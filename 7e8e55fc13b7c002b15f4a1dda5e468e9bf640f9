@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1c393785_59e62470",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-29T16:35:29Z",
+      "side": 1,
+      "message": "Nit: seems like a \u003cbutton\u003e would be more idiomatic.",
+      "range": {
+        "startLine": 42,
+        "startChar": 8,
+        "endLine": 42,
+        "endChar": 66
+      },
+      "revId": "7e8e55fc13b7c002b15f4a1dda5e468e9bf640f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
