@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"os"
@@ -140,6 +141,9 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
 	appRouter.HandleFunc("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO).Methods("POST")
 
+	// Endpoints that status will use to get client counts.
+	r.HandleFunc("/get_client_counts", httputils.CorsHandler(srv.getClientCounts)).Methods("GET")
+
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
@@ -188,6 +192,42 @@ func getStringParam(name string, r *http.Request) string {
 		return ""
 	}
 	return raw[0]
+}
+
+// StatusData is used in the response of the get_client_counts endpoint.
+type StatusData struct {
+	UntriagedCount int    `json:"untriaged_count"`
+	Link           string `json:"link"`
+}
+
+// GetClientCountsResponse is the response used by the get_client_counts endpoint.
+type GetClientCountsResponse struct {
+	ClientsToStatusData map[types.RecognizedClient]StatusData `json:"clients_to_status_data"`
+}
+
+func (srv *Server) getClientCounts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	clientsForStatus := []types.RecognizedClient{types.SkiaClient, types.AndroidClient, types.ChromiumClient}
+	clientsToStatusData := map[types.RecognizedClient]StatusData{}
+	for _, c := range clientsForStatus {
+		countsData, err := srv.dbClient.GetCountsFromDB(r.Context(), c, "", "")
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to query DB.", http.StatusInternalServerError)
+		}
+		clientsToStatusData[c] = StatusData{
+			UntriagedCount: countsData.UntriagedCount,
+			Link:           fmt.Sprintf("http://%s/?client=%s", *host, c),
+		}
+	}
+
+	resp := GetClientCountsResponse{
+		ClientsToStatusData: clientsToStatusData,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
 }
 
 // IssuesOutsideSLORequest is the request used by the get_issues_outside_slo endpoint.

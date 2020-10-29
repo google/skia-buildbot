@@ -27,8 +27,6 @@ import (
 const (
 	monorailApiBase             = "https://api-dot-monorail-prod.appspot.com/prpc/"
 	monorailTokenTargetAudience = "https://monorail-prod.appspot.com"
-
-	monorailSource types.IssueSource = "Monorail"
 )
 
 type monorailPriorityData struct {
@@ -315,11 +313,11 @@ func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient *db.Fire
 	client := qc.Client
 
 	// Put in DB.
-	if err := dbClient.PutInDB(ctx, client, monorailSource, queryDesc, runId, countsData); err != nil {
+	if err := dbClient.PutInDB(ctx, client, types.MonorailSource, queryDesc, runId, countsData); err != nil {
 		return skerr.Wrapf(err, "error putting monorail results in DB")
 	}
 	// Put in memory.
-	m.openIssues.PutOpenIssues(client, monorailSource, queryDesc, issues)
+	m.openIssues.PutOpenIssues(client, types.MonorailSource, queryDesc, issues)
 	return nil
 }
 
