@@ -20,4 +20,7 @@ type BugFramework interface {
 
 	// GetIssueLink returns a link to the specified issue ID.
 	GetIssueLink(project, id string) string
+
+	// Sets owner and adds a comment to the specified issue ID.
+	SetOwnerAndAddComment(owner, comment, id string) error
 }
