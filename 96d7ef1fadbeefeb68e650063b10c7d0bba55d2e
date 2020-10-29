@@ -33,6 +33,23 @@
       "message": "Thanks for the bug fix!",
       "revId": "96d7ef1fadbeefeb68e650063b10c7d0bba55d2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0bc7dd26_038aee6f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2020-10-29T20:44:17Z",
+      "side": 1,
+      "message": "I don\u0027t have commit permissions, so I\u0027ll need you to press the button :(",
+      "revId": "96d7ef1fadbeefeb68e650063b10c7d0bba55d2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
