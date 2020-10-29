@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "966c3564_3b9b4a7f",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-29T18:31:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c77671ea_eb7604a9",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 59
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2cce18fb_f4af13f4",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-10-29T17:52:50Z",
       "side": 1,
       "message": "Needs comments explaining ts and pathToServiceAccountFile, what permissions they need and how they are used.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 45
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb476da1_13fdacc0",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-29T18:31:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2cce18fb_f4af13f4",
       "range": {
         "startLine": 41,
         "startChar": 0,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b3df86f_2c3f733a",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-29T18:31:17Z",
+      "side": 1,
+      "message": "Could do that but I\u0027m not sure how useful it will be test this with mocks, it\u0027ll probably just be asserting the flow which might not be that useful. The different components it calls are tested (for the most part).",
+      "parentUuid": "424da6b1_d439f7b1",
+      "range": {
+        "startLine": 79,
+        "startChar": 30,
+        "endLine": 79,
+        "endChar": 55
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "02fd491f_fd91288c",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d5bbd6e_8f94dc39",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-29T18:31:17Z",
+      "side": 1,
+      "message": "Oh, that\u0027s a good point. Done.",
+      "parentUuid": "02fd491f_fd91288c",
+      "range": {
+        "startLine": 83,
+        "startChar": 3,
+        "endLine": 83,
+        "endChar": 29
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "38656b08_174dc3fe",
@@ -106,6 +202,24 @@
       "writtenOn": "2020-10-29T17:52:50Z",
       "side": 1,
       "message": "Metrics should be added so that alerts can be fired if this starts to fail.",
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf8a900f_cfe16c2b",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-10-29T18:31:17Z",
+      "side": 1,
+      "message": "I was going to rely on error rate alerts for this. IIRC, they are automatically setup for all apps? I might be remembering wrong and might still need a liveness metric.",
+      "parentUuid": "38656b08_174dc3fe",
       "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
