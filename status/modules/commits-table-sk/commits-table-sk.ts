@@ -1077,6 +1077,12 @@ export class CommitsTableSk extends ElementSk {
       const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const timeLabel = this.timeLabel(this.data.commits, i, timePoints);
+
+      const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
+      if (tasksBySpec) {
+        this.addTasks(tasksBySpec, taskSpecStartCols, rowStart, i, tasksAddedToTemplate, res);
+      }
+      // Draw commits last so the span.highlight-row naturally renders above the tasks.
       res.push(
         html` <div class="commit-container" style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
           <div class="time-spacer">${timeLabel}</div>
@@ -1087,14 +1093,11 @@ export class CommitsTableSk extends ElementSk {
           >
             <span class="nowrap commit-text">${text}</span>
             <span class="nowrap">${this.commitIcons(commit)}</span>
+            <span class="highlight-row"></span>
           </div>
           ${timeLabel ? html`<span class="time-underline"></span>` : html``}
         </div>`
       );
-      const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
-      if (tasksBySpec) {
-        this.addTasks(tasksBySpec, taskSpecStartCols, rowStart, i, tasksAddedToTemplate, res);
-      }
     }
     // Add a single div covering the grid, behind everything, that highlights alternate rows.
     let row = taskStartRow;

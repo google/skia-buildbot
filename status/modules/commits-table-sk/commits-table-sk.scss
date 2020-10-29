@@ -82,6 +82,16 @@ commits-table-sk {
     }
   }
 
+  .commit-container:hover {
+    .highlight-row {
+      border-bottom: 3px solid var(--secondary);
+      bottom: 6px;
+      left: 95%;
+      position: absolute;
+      right: -100vw;
+    }
+  }
+
   .commit {
     font-family: monospace;
     font-size: 0.75em;
