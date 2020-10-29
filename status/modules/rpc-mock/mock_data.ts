@@ -3,12 +3,18 @@
  */
 import { Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task } from '../rpc/status';
 
-const timestampBeforeNow = (seconds: number = 0) => {
-  return new Date(Date.now() - 1000 * seconds).toISOString();
+Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
+const timestampBeforeNow = (minutes: number = 0) => {
+  return new Date(Date.now() - 1000 * 60 * minutes).toISOString();
 };
 
-const branch0: Branch = { name: 'main', head: 'abc123' };
-const branch1: Branch = { name: 'bar', head: '456789' };
+const branches: Array<Branch> = [
+  { name: 'main', head: 'abc0' },
+  { name: 'Log Rolled', head: 'abc0' },
+  { name: 'Barrel Rolled', head: 'abc9' },
+  { name: 'Other Branch', head: 'def0' },
+];
+
 const commentTask: Comment = {
   id: 'foo',
   repo: 'skia',
@@ -89,6 +95,9 @@ const seen = (key: string) => {
   alreadyFilled.add(key);
   return ret;
 };
+
+const minutesBetweenCommits = 15;
+
 for (let i = 0; i < 30; i++) {
   const hash = `abc${i}`;
   let body = 'Some description';
@@ -97,13 +106,14 @@ for (let i = 0; i < 30; i++) {
   } else if (i === 14) {
     body = 'This is a reland of abc18';
   }
+  const commitTime = timestampBeforeNow(minutesBetweenCommits * i);
   commits.push(
     Object.assign(JSON.parse(JSON.stringify(commitTemplate)), {
       hash: hash,
       parents: [`abc${i + 1}`],
       body: `${body}\nReviewed-on: https://skia-review.googlesource.com/c/buildbot/+/320557\n`,
-      subject: 'something',
-      timestamp: timestampBeforeNow(100 * i),
+      subject: 'something, timestamp is ' + commitTime,
+      timestamp: commitTime,
       author: randomAuthor(),
     })
   );
@@ -154,14 +164,14 @@ commits.splice(4, 0, {
   hash: 'def0',
   parents: [`diffBranch`],
   subject: 'otherBranchSubject',
-  timestamp: timestampBeforeNow(395),
+  timestamp: timestampBeforeNow(minutesBetweenCommits * 4),
   author: 'branchAuthor',
 });
 
 export const mockIncrementalResponse: GetIncrementalCommitsResponse = {
   metadata: { pod: 'podd', startOver: true },
   update: {
-    branchHeads: [branch0, branch1],
+    branchHeads: branches,
     comments: [commentCommit, commentTask, commentTaskSpec],
     commits: commits,
     tasks: tasks,

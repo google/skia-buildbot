@@ -15,6 +15,10 @@ commits-table-sk {
     // Make the legend and commit columns shrink to content so with few taskspecs the commits don't
     // awkwardly take up a large portion of the screen.
     grid-template-columns: min-content min-content auto;
+    // Specify header rows (controls, taskspecs, etc) as dynamically sized, then force all
+    // commit/task rows to be 18px (plus 2px gap).
+    grid-template-rows: min-content min-content min-content min-content;
+    grid-auto-rows: 18px;
     gap: 2px 2px;
   }
 
@@ -42,15 +46,54 @@ commits-table-sk {
     text-align: center;
   }
 
+  .commit-container {
+    display: flex;
+    position: relative;
+
+    .time-spacer {
+      display: flex;
+      margin-right: 1px;
+      width: 25px;
+      position: relative;
+
+      .time-label {
+        font-family: monospace;
+        font-size: 0.75em;
+        background-color: var(--grey-700);
+        color: var(--white);
+        border-radius: 3px;
+        bottom: -5.5px;
+        right: 2px;
+        color: white;
+        margin: auto;
+        padding: 1px;
+        position: absolute;
+        z-index: 2;
+      }
+    }
+
+    .time-underline {
+      border-bottom: 2px solid var(--grey-700);
+      bottom: -2px;
+      height: 10px;
+      left: 20px;
+      position: absolute;
+      right: -3px;
+    }
+  }
+
   .commit {
     font-family: monospace;
     font-size: 0.75em;
-    height: 16px;
-    padding: 2px;
     position: relative;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
+    height: 16px;
+    width: 100%;
+    span {
+      line-height: 16px;
+    }
   }
 
   .commit.highlight-revert {
@@ -237,6 +280,16 @@ div.hidden.task {
   .rowUnderlay {
     div:nth-child(odd) {
       background-color: var(--surface-2dp);
+    }
+  }
+  .commit-container {
+    .time-spacer .time-label {
+      background-color: var(--grey-300);
+      color: var(--black);
+    }
+    .time-underline {
+      color: var(--white);
+      border-color: var(--grey-300);
     }
   }
 }
