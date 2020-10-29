@@ -140,6 +140,9 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
 	appRouter.HandleFunc("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO).Methods("POST")
 
+	// Endpoints that status will use to get client counts.
+	r.HandleFunc("/get_client_counts", httputils.CorsHandler(srv.getClientCounts)).Methods("GET")
+
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
 	if !*baseapp.Local {
@@ -188,6 +191,32 @@ func getStringParam(name string, r *http.Request) string {
 		return ""
 	}
 	return raw[0]
+}
+
+type StatusData struct {
+	UntriagedCount int    `json:"untriaged_count"`
+	Link           string `json:"link"`
+}
+
+// GetClientCountsResponse is the response used by the get_client_counts endpoint.
+type GetClientCountsResponse struct {
+	ClientsToStatusData map[string]StatusData                         `json:"clients_to_status_data"`
+	PriToSLOIssues      map[types.StandardizedPriority][]*types.Issue `json:"pri_to_slo_issues"`
+}
+
+func (srv *Server) getClientCounts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Hardcoding which client's data we want to return to status.
+	skiaCountsData, err := srv.dbClient.GetCountsFromDB(r.Context(), q.Client, q.Source, q.Query)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get issue counts", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(countsData); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+
+	}
 }
 
 // IssuesOutsideSLORequest is the request used by the get_issues_outside_slo endpoint.
