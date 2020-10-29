@@ -2338,8 +2338,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	hashes := gb.CommitN(ctx, 1)
 
 	isolateContents := &isolated.Isolated{
-		Algo:    "sha1",
-		Command: []string{"python", "recipes.py", "run"},
+		Algo: "sha1",
 		Files: map[string]isolated.File{
 			"../../somefile.txt": {
 				Digest: "abc123",
