@@ -98,7 +98,8 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 		modified := time.Unix(i.ModifiedTS, 0)
 		priority := types.StandardizedPriority(i.Priority)
 		countsData.IncPriority(priority)
-		countsData.CalculateSLOViolations(time.Now(), created, modified, priority)
+		sloViolation, reason, d := types.IsPrioritySLOViolation(time.Now(), created, modified, priority)
+		countsData.IncSLOViolation(sloViolation, priority)
 		if util.In(i.Priority, it.queryConfig.UntriagedPriorities) {
 			countsData.UntriagedCount++
 		} else if util.In(i.Assignee, it.queryConfig.UntriagedAliases) {
@@ -113,6 +114,10 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 			Owner:        i.Assignee,
 			CreatedTime:  created,
 			ModifiedTime: modified,
+
+			SLOViolation:         sloViolation,
+			SLOViolationReason:   reason,
+			SLOViolationDuration: d,
 
 			Link: it.GetIssueLink("", id),
 		})

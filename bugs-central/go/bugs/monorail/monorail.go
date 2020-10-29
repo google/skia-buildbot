@@ -247,7 +247,8 @@ func (m *monorail) Search(ctx context.Context) ([]*types.Issue, *types.IssueCoun
 			countsData.UnassignedCount++
 		}
 		countsData.IncPriority(priority)
-		countsData.CalculateSLOViolations(time.Now(), mi.CreatedTime, mi.ModifiedTime, priority)
+		sloViolation, reason, d := types.IsPrioritySLOViolation(time.Now(), mi.CreatedTime, mi.ModifiedTime, priority)
+		countsData.IncSLOViolation(sloViolation, priority)
 		if util.In(mi.State.Status, m.queryConfig.UntriagedStatuses) {
 			countsData.UntriagedCount++
 		}
@@ -262,6 +263,10 @@ func (m *monorail) Search(ctx context.Context) ([]*types.Issue, *types.IssueCoun
 			Priority: priority,
 			Owner:    owner,
 			Link:     m.GetIssueLink(m.queryConfig.Instance, id),
+
+			SLOViolation:         sloViolation,
+			SLOViolationReason:   reason,
+			SLOViolationDuration: d,
 
 			CreatedTime:  mi.CreatedTime,
 			ModifiedTime: mi.ModifiedTime,

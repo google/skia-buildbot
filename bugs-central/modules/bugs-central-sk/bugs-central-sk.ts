@@ -10,6 +10,7 @@
  */
 
 import { define } from 'elements-sk/define';
+import { $$ } from 'common-sk/modules/dom';
 import { html, TemplateResult } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
@@ -17,9 +18,11 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 
 import 'elements-sk/spinner-sk';
 import '../bugs-chart-sk';
+import '../bugs-slo-popup-sk';
 
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { BugsSLOPopupSk, Issue } from '../bugs-slo-popup-sk/bugs-slo-popup-sk';
 
 const CLIENT_KEY_DELIMITER = ' > ';
 
@@ -89,6 +92,10 @@ declare interface ChartsData {
   untriaged_data: string,
 }
 
+declare interface PriToSLOIssues{
+  pri_to_slo_issues: Record<string, Issue[]>;
+}
+
 // State is reflected to the URL via stateReflector.
 declare interface State {
   client: string,
@@ -118,6 +125,8 @@ export class BugsCentralSk extends ElementSk {
   private untriaged_chart_data: string = '';
 
   private updatingData: boolean = true;
+
+  private sloPopup: BugsSLOPopupSk | null = null;
 
   constructor() {
     super(BugsCentralSk.template);
@@ -168,6 +177,8 @@ export class BugsCentralSk extends ElementSk {
     await this.populateDataAndRender();
     this.updatingData = false;
     this._render();
+
+    this.sloPopup = $$<BugsSLOPopupSk>('bugs-slo-popup-sk', this);
   }
 
   // Call this anytime something in private state is changed. Will be replaced
@@ -179,7 +190,8 @@ export class BugsCentralSk extends ElementSk {
     return html`
     <table class=client-counts>
       <colgroup>
-        <col span="1" style="width: 50%">
+        <col span="1" style="width: 40%">
+        <col span="1" style="width: 10%">
         <col span="1" style="width: 10%">
         <col span="1" style="width: 10%">
         <col span="1" style="width: 10%">
@@ -188,14 +200,16 @@ export class BugsCentralSk extends ElementSk {
       </colgroup>
       <tr>
         <th>Client</th>
-        <th>P0/P1 <span class="small">[<a href="${SKIA_SLO_DOC}">SLO</a>]</span></th>
-        <th>P2 <span class="small">[<a href="${SKIA_SLO_DOC}">SLO</a>]</span></th>
-        <th>P3+ <span class="small">[<a href="${SKIA_SLO_DOC}">SLO</a>]</span></th>
+        <th>P0-P1</th>
+        <th>P2</th>
+        <th>P3+</th>
+        <th><a href="${SKIA_SLO_DOC}">SLO</a></th>
         <th>Untriaged</th>
         <th>Total</th>
       </tr>
        ${this.displayClientsRows()}
     </table>
+    <bugs-slo-popup-sk></bugs-slo-popup-sk>
   `;
   }
 
@@ -231,39 +245,44 @@ export class BugsCentralSk extends ElementSk {
           </td>
           <td>
             ${clientCounts.p0_count + clientCounts.p1_count}
-            ${clientCounts.p0_slo_count + clientCounts.p1_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p0_slo_count + clientCounts.p1_slo_count}]</span>`
-    : ''}
           </td>
           <td>
             ${clientCounts.p2_count}
-            ${clientCounts.p2_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p2_slo_count}]</span>`
-    : ''}
           </td>
           <td>
             ${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}
-            ${clientCounts.p3_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p3_slo_count}]</span>`
-    : ''}
           </td>
           <td>
-          ${clientCounts.untriaged_query_link
+            ${this.displaySLOTemplate(clientCounts)}
+          </td>
+          <td>
+            ${clientCounts.untriaged_query_link
     ? html`<span class=query-link><a href="${clientCounts.untriaged_query_link}" target=_blank>${clientCounts.untriaged_count}</a></span>`
     : html`${clientCounts.untriaged_count}`}
           </td>
           <td>
-          ${clientCounts.query_link
+            ${clientCounts.query_link
     ? html`<span class=query-link><a href="${clientCounts.query_link}" target=_blank>${clientCounts.open_count}</a></span>`
     : html`${clientCounts.open_count}`}
-            ${clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count > 0
-    ? html`<span class="small"> [${clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count}]</span>`
-    : ''}
           </td>
         </tr>
       `);
     }
     return rowsHTML;
+  }
+
+  private displaySLOTemplate(clientCounts: CountsData): TemplateResult {
+    const sloTotal = clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count;
+    if (!this.state.client || !this.state.source || sloTotal === 0) {
+      // Do not make clickable if we do not have client+source or if the total is 0.
+      return html`${sloTotal}`;
+    }
+    return html`<span class=slo-link @click=${() => this.displaySLOPopup()}>${sloTotal}</span>`;
+  }
+
+  private async displaySLOPopup() {
+    const priToSLOIssues = await this.getSLOIssues(this.state.client, this.state.source, this.state.query);
+    this.sloPopup!.open(priToSLOIssues);
   }
 
   private clickClient(clientKey: string) {
@@ -333,6 +352,19 @@ export class BugsCentralSk extends ElementSk {
     } catch (msg) {
       errorMessage(msg);
     }
+  }
+
+  private async getSLOIssues(client: string, source: string, query: string) {
+    const detail = {
+      client: client,
+      source: source,
+      query: query,
+    };
+    let priToSLOIssues = {} as Record<string, Issue[]>;
+    await this.doImpl('/_/get_issues_outside_slo', detail, (json: PriToSLOIssues) => {
+      priToSLOIssues = json.pri_to_slo_issues;
+    });
+    return priToSLOIssues;
   }
 
   private async getCounts(client: string, source: string, query: string) {

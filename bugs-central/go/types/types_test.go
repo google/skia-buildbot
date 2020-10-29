@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestCalculateSLOViolations(t *testing.T) {
+func TestIncSLOViolation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	now := time.Unix(1405544146, 0)
@@ -51,7 +51,8 @@ func TestCalculateSLOViolations(t *testing.T) {
 	}
 	for _, test := range tests {
 		ics := IssueCountsData{}
-		ics.CalculateSLOViolations(test.now, test.created, test.modified, test.priority)
+		violation, _, _ := IsPrioritySLOViolation(test.now, test.created, test.modified, test.priority)
+		ics.IncSLOViolation(violation, test.priority)
 		require.Equal(t, test.expectedP0Violations, ics.P0SLOViolationCount, test.message)
 		require.Equal(t, test.expectedP1Violations, ics.P1SLOViolationCount, test.message)
 		require.Equal(t, test.expectedP2Violations, ics.P2SLOViolationCount, test.message)

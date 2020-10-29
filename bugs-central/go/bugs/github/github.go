@@ -155,7 +155,8 @@ func (gh *githubFramework) Search(ctx context.Context) ([]*types.Issue, *types.I
 		}
 		countsData.OpenCount++
 		countsData.IncPriority(priority)
-		countsData.CalculateSLOViolations(time.Now(), gi.GetCreatedAt(), gi.GetUpdatedAt(), priority)
+		sloViolation, reason, d := types.IsPrioritySLOViolation(time.Now(), gi.GetCreatedAt(), gi.GetUpdatedAt(), priority)
+		countsData.IncSLOViolation(sloViolation, priority)
 
 		issues = append(issues, &types.Issue{
 			Id:       id,
@@ -163,6 +164,10 @@ func (gh *githubFramework) Search(ctx context.Context) ([]*types.Issue, *types.I
 			Priority: priority,
 			Owner:    owner,
 			Link:     gh.GetIssueLink("", id),
+
+			SLOViolation:         sloViolation,
+			SLOViolationReason:   reason,
+			SLOViolationDuration: d,
 
 			CreatedTime:  gi.GetCreatedAt(),
 			ModifiedTime: gi.GetUpdatedAt(),

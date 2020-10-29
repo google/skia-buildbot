@@ -126,6 +126,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/get_issue_counts", srv.getIssueCountsHandler).Methods("POST")
 	appRouter.HandleFunc("/_/get_clients_sources_queries", srv.getClients).Methods("POST")
 	appRouter.HandleFunc("/_/get_charts_data", srv.getChartsData).Methods("POST")
+	appRouter.HandleFunc("/_/get_issues_outside_slo", srv.getIssuesOutsideSLO).Methods("POST")
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)
@@ -175,6 +176,37 @@ func getStringParam(name string, r *http.Request) string {
 		return ""
 	}
 	return raw[0]
+}
+
+// IssuesOutsideSLORequest is the request used by the get_issues_outside_slo endpoint.
+type IssuesOutsideSLORequest struct {
+	Client types.RecognizedClient `json:"client"`
+	Source types.IssueSource      `json:"source"`
+	Query  string                 `json:"query"`
+}
+
+// IssuesOutsideSLOResponse is the response used by the get_issues_outside_slo endpoint.
+type IssuesOutsideSLOResponse struct {
+	PriToSLOIssues map[types.StandardizedPriority][]*types.Issue `json:"pri_to_slo_issues"`
+}
+
+func (srv *Server) getIssuesOutsideSLO(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse the request.
+	q := IssuesOutsideSLORequest{}
+	if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
+		return
+	}
+
+	priToIssues := srv.pollerClient.GetOpenIssues().GetIssuesOutsideSLO(q.Client, q.Source, q.Query)
+	resp := IssuesOutsideSLOResponse{
+		PriToSLOIssues: priToIssues,
+	}
+	if err := json.NewEncoder(w).Encode(&resp); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
 }
 
 func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
@@ -280,7 +312,6 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
-
 	}
 }
 
