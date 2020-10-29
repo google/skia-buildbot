@@ -5,7 +5,7 @@
   </head>
   <body class="body-sk">
     <task-scheduler-scaffold-sk title="Job {{.JobId}}">
-      <job-sk></job-sk>
+      <job-sk job-id="{{.JobId}}" swarming="{{.SwarmingServer}}"></job-sk>
     </task-scheduler-scaffold-sk>
   </body>
 </html>

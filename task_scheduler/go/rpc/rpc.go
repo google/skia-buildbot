@@ -103,7 +103,8 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 		return nil, nil, err
 	}
 	dbJob, err := s.db.GetJobById(id)
-	if err == db.ErrNotFound {
+	if err == db.ErrNotFound || dbJob == nil {
+		sklog.Errorf("Unable to find job %q", id)
 		return nil, nil, twirp.NotFoundError("Unknown job")
 	} else if err != nil {
 		sklog.Error(err)
@@ -209,7 +210,7 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 		case JobStatus_JOB_STATUS_IN_PROGRESS:
 			status = types.JOB_STATUS_IN_PROGRESS
 		case JobStatus_JOB_STATUS_SUCCESS:
-			status = types.JOB_STATUS_IN_PROGRESS
+			status = types.JOB_STATUS_SUCCESS
 		case JobStatus_JOB_STATUS_FAILURE:
 			status = types.JOB_STATUS_FAILURE
 		case JobStatus_JOB_STATUS_MISHAP:
@@ -245,7 +246,7 @@ func (s *taskSchedulerServiceImpl) getTask(ctx context.Context, id string) (*Tas
 		return nil, nil, err
 	}
 	dbTask, err := s.db.GetTaskById(id)
-	if err == db.ErrNotFound {
+	if err == db.ErrNotFound || dbTask == nil {
 		return nil, nil, twirp.NotFoundError("Unknown task")
 	} else if err != nil {
 		sklog.Error(err)

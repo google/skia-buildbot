@@ -175,21 +175,29 @@ export class SkipTasksSk extends ElementSk {
   }
 
   private addRule() {
-    const name = $$<HTMLInputElement>('#input-name', this)!.value;
-    const description = $$<HTMLTextAreaElement>('#input-description', this)!
-      .value;
-    const commitStart = $$<HTMLInputElement>('#input-range-start', this)!.value;
+    const inputName = $$<HTMLInputElement>('#input-name', this)!;
+    const inputDescription = $$<HTMLTextAreaElement>(
+      '#input-description',
+      this
+    )!;
+    const inputRangeStart = $$<HTMLInputElement>('#input-range-start', this)!;
+    const inputRangeEnd = $$<HTMLInputElement>('#input-range-end', this);
+    const inputIsRange = $$<HTMLInputElement>('#range-checkbox', this)!;
+    const inputTaskSpecs = $$<MultiInputSk>('#input-task-specs')!;
+    const name = inputName.value;
+    const description = inputDescription.value;
+    const commitStart = inputRangeStart.value;
     const commits = [];
     if (commitStart) {
       commits.push(commitStart);
       if (this.isCommitRange) {
-        const commitEnd = $$<HTMLInputElement>('#input-range-end', this)?.value;
+        const commitEnd = inputRangeEnd!.value;
         if (commitEnd) {
           commits.push(commitEnd);
         }
       }
     }
-    const taskSpecs = $$<MultiInputSk>('#input-task-specs')!.values;
+    const taskSpecs = inputTaskSpecs.values;
     this.rpc!.addSkipTaskRule({
       name: name,
       commits: commits,
@@ -198,6 +206,14 @@ export class SkipTasksSk extends ElementSk {
     }).then((resp: AddSkipTaskRuleResponse) => {
       this.rules = resp.rules!;
       this._render();
+      inputName.value = '';
+      inputDescription.value = '';
+      inputRangeStart.value = '';
+      if (inputRangeEnd) {
+        inputRangeEnd.value = '';
+      }
+      inputIsRange.checked = false;
+      inputTaskSpecs.values = [];
     });
     $$<HTMLDialogElement>('dialog', this)!.close();
   }

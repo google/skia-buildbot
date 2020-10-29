@@ -8,6 +8,13 @@
 import { define } from 'elements-sk/define';
 import { Job, Task } from '../rpc';
 import { draw, Block, Lane, Data } from '../gantt-chart-sk';
+import {
+  GetTaskSchedulerService,
+  GetJobResponse,
+  TaskSummaries,
+  TaskSummary,
+  GetTaskResponse,
+} from '../rpc';
 
 function ts(tsStr: string) {
   // If the timestamp is zero-ish, return the current datetime.
@@ -18,6 +25,38 @@ function ts(tsStr: string) {
 }
 
 export class JobTimelineSk extends HTMLElement {
+  connectedCallback() {
+    if (this.hasAttribute('job-id')) {
+      const rpc = GetTaskSchedulerService(this);
+      rpc
+        .getJob({
+          id: this.getAttribute('job-id')!,
+        })
+        .then((jobResp: GetJobResponse) => {
+          const taskIds = jobResp
+            .job!.tasks!.map((tasks: TaskSummaries) => tasks.tasks!)
+            .reduce((acc: TaskSummary[], subArray: TaskSummary[]) =>
+              acc.concat(subArray)
+            )
+            .map((task: TaskSummary) => task.id);
+          Promise.all(
+            taskIds.map((id: string) =>
+              rpc.getTask({
+                id: id,
+                includeStats: true,
+              })
+            )
+          ).then((taskResps: GetTaskResponse[]) => {
+            this.draw(
+              jobResp.job!,
+              taskResps.map((resp: GetTaskResponse) => resp.task!),
+              []
+            );
+          });
+        });
+    }
+  }
+
   draw(job: Job, tasks: Task[], epochs: string[]) {
     const lanes: Map<string, Lane> = new Map();
     for (const t of tasks) {
