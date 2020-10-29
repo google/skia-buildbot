@@ -6,4 +6,3 @@ import { GetTaskSchedulerService } from '../modules/rpc';
 
 const ele = <TaskSk>document.querySelector('task-sk');
 ele.rpc = GetTaskSchedulerService(ele);
-ele.taskID = '{{.TaskId}}';
