@@ -12,6 +12,7 @@
     "@bundled-es-modules/fetch-mock": "^6.5.2",
     "@types/chai": "^4.2.11",
     "@types/copy-webpack-plugin": "^5.0.1",
+    "@types/dialog-polyfill": "^0.5.0",
     "@types/mocha": "^7.0.2",
     "@types/webpack": "^4.41.13",
     "autoprefixer": "^9.6.1",
@@ -42,14 +43,15 @@
     "webpack-dev-server": "~3.8.2"
   },
   "dependencies": {
-    "chai": "~4.2.0",
-    "common-sk": "^3.2.4",
-    "elements-sk": "^4.0.0",
-    "eslint": "^6.8.0",
-    "lit-html": "^1.1.2",
     "@google-web-components/google-apis": "^3.0.1",
     "@google-web-components/google-chart": "^3.0.4",
     "@types/fetch-mock": "^7.3.2",
-    "fetch-mock": "^9.10.1"
+    "chai": "~4.2.0",
+    "common-sk": "^3.2.4",
+    "dialog-polyfill": "^0.5.0",
+    "elements-sk": "^4.0.0",
+    "eslint": "^6.8.0",
+    "fetch-mock": "^9.10.1",
+    "lit-html": "^1.1.2"
   }
 }
