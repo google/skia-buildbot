@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c77671ea_eb7604a9",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-29T17:52:50Z",
+      "side": 1,
+      "message": "Should be at the beginning of the file before the package name and start\n\n// Package aliases_watcher watches different...",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 59
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2cce18fb_f4af13f4",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-29T17:52:50Z",
+      "side": 1,
+      "message": "Needs comments explaining ts and pathToServiceAccountFile, what permissions they need and how they are used.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 45
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "424da6b1_d439f7b1",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-29T17:52:50Z",
+      "side": 1,
+      "message": "Since bugFramework is an interface it should be possible break out this as a standalone function and test it with mocks.",
+      "range": {
+        "startLine": 79,
+        "startChar": 30,
+        "endLine": 79,
+        "endChar": 55
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02fd491f_fd91288c",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-29T17:52:50Z",
+      "side": 1,
+      "message": "Since this is a background task why not always used context.Background() ?",
+      "range": {
+        "startLine": 83,
+        "startChar": 3,
+        "endLine": 83,
+        "endChar": 29
+      },
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "38656b08_174dc3fe",
+        "filename": "bugs-central/go/aliases_watcher/aliases_watcher.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-29T17:52:50Z",
+      "side": 1,
+      "message": "Metrics should be added so that alerts can be fired if this starts to fail.",
+      "revId": "aba20cb245826e1de336b322254fdbdbb15a6616",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
