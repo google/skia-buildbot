@@ -38,6 +38,9 @@ export class StatusSk extends ElementSk {
       <app-sk>
         <header>
           <h1>Status: ${el.repo}</h1>
+          <a id="legacy" class="secondary-container-themes-sk" href="/repo/${el.repo.toLowerCase()}"
+            ><p>Return to Legacy Status page</p></a
+          >
           <div class="spacer">
             <tree-status-sk
               @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}

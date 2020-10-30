@@ -72,20 +72,20 @@ const (
 )
 
 var (
-	autorollMtx                 sync.RWMutex
-	autorollStatus              []byte                             = nil
-	autorollStatusTwirp         *rpc.GetAutorollerStatusesResponse = nil
-	capacityClient              *capacity.CapacityClient           = nil
-	capacityTemplate            *template.Template                 = nil
-	commitsTemplate             *template.Template                 = nil
-	experimentalCommitsTemplate *template.Template                 = nil
-	iCache                      *incremental.IncrementalCache      = nil
-	lkgrObj                     *lkgr.LKGR                         = nil
-	taskDb                      db.RemoteDB                        = nil
-	taskDriverDb                task_driver_db.DB                  = nil
-	taskDriverLogs              *logs.LogsManager                  = nil
-	tasksPerCommit              *tasksPerCommitCache               = nil
-	tCache                      cache.TaskCache                    = nil
+	autorollMtx           sync.RWMutex
+	autorollStatus        []byte                             = nil
+	autorollStatusTwirp   *rpc.GetAutorollerStatusesResponse = nil
+	capacityClient        *capacity.CapacityClient           = nil
+	capacityTemplate      *template.Template                 = nil
+	legacyCommitsTemplate *template.Template                 = nil
+	commitsTemplate       *template.Template                 = nil
+	iCache                *incremental.IncrementalCache      = nil
+	lkgrObj               *lkgr.LKGR                         = nil
+	taskDb                db.RemoteDB                        = nil
+	taskDriverDb          task_driver_db.DB                  = nil
+	taskDriverLogs        *logs.LogsManager                  = nil
+	tasksPerCommit        *tasksPerCommitCache               = nil
+	tCache                cache.TaskCache                    = nil
 
 	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -147,10 +147,10 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	experimentalCommitsTemplate = template.Must(template.ParseFiles(
+	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "dist", "status.html"),
 	))
-	commitsTemplate = template.Must(template.ParseFiles(
+	legacyCommitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/commits.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -544,18 +544,40 @@ type commitsTemplateData struct {
 	Repos    []string
 }
 
-func defaultRedirectHandler(w http.ResponseWriter, r *http.Request) {
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "text/html")
+
 	defaultRepo := repoUrlToName((*repoUrls)[0])
-	http.Redirect(w, r, fmt.Sprintf("/repo/%s", defaultRepo), http.StatusFound)
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	d := struct {
+		Title            string
+		SwarmingURL      string
+		LogsURLTemplate  string
+		TaskSchedulerURL string
+		DefaultRepo      string
+		// Repo name to repo URL.
+		Repos map[string]string
+	}{
+		Title:            fmt.Sprintf("Status: %s", defaultRepo),
+		SwarmingURL:      *swarmingUrl,
+		LogsURLTemplate:  *taskLogsUrlTemplate,
+		TaskSchedulerURL: *taskSchedulerUrl,
+		DefaultRepo:      defaultRepo,
+		Repos:            repoURLsByName,
+	}
+
+	if err := commitsTemplate.Execute(w, d); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
+	}
 }
 
-func statusHandler(w http.ResponseWriter, r *http.Request) {
-	statusHandlerInternal(w, r, false)
-}
-func experimentalStatusHandler(w http.ResponseWriter, r *http.Request) {
-	statusHandlerInternal(w, r, true)
-}
-func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental bool) {
+func legacyStatusHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
@@ -570,37 +592,14 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 		reloadTemplates()
 	}
 
-	var d interface{}
-	d = commitsTemplateData{
+	d := commitsTemplateData{
 		Repo:     repoName,
 		RepoBase: fmt.Sprintf(gitiles.CommitURL, repoUrl, ""),
 		Repos:    getRepoNames(),
 		Title:    fmt.Sprintf("Status: %s", repoName),
 	}
 
-	var template *template.Template
-	if experimental {
-		template = experimentalCommitsTemplate
-		d = struct {
-			Title            string
-			SwarmingURL      string
-			LogsURLTemplate  string
-			TaskSchedulerURL string
-			DefaultRepo      string
-			// Repo name to repo URL.
-			Repos map[string]string
-		}{
-			Title:            fmt.Sprintf("Status: %s", repoName),
-			SwarmingURL:      *swarmingUrl,
-			LogsURLTemplate:  *taskLogsUrlTemplate,
-			TaskSchedulerURL: *taskSchedulerUrl,
-			DefaultRepo:      repoName,
-			Repos:            repoURLsByName,
-		}
-	} else {
-		template = commitsTemplate
-	}
-	if err := template.Execute(w, d); err != nil {
+	if err := legacyCommitsTemplate.Execute(w, d); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 	}
 }
@@ -726,9 +725,8 @@ func runServer(serverURL string, srv http.Handler) {
 	topLevelRouter.PathPrefix(rpc.StatusServicePathPrefix).Handler(httputils.LoggingRequestResponse(srv))
 	r := topLevelRouter.NewRoute().Subrouter()
 	r.Use(httputils.LoggingGzipRequestResponse)
-	r.HandleFunc("/", defaultRedirectHandler)
-	r.HandleFunc("/experimental/repo/{repo}", httputils.CorsHandler(experimentalStatusHandler))
-	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(statusHandler, *testing))
+	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
+	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(legacyStatusHandler, *testing))
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/autorollers", autorollStatusHandler)
