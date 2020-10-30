@@ -168,7 +168,10 @@ export class CommitDetailPickerSk extends ElementSk {
   /** The CommitNumber that is selected. */
   get selection(): CommitNumber { return this._selection; }
 
-  set selection(val: CommitNumber) { this._selection = val; }
+  set selection(val: CommitNumber) {
+    this._selection = val;
+    this.updateCommitSelections();
+  }
 }
 
 define('commit-detail-picker-sk', CommitDetailPickerSk);
