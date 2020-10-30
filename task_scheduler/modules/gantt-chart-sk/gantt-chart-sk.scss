@@ -1,0 +1,24 @@
+@import '../colors';
+
+line {
+  stroke: var(--on-background);
+  stroke-width: hairline;
+}
+rect {
+  stroke: none;
+}
+rect.epoch:nth-child(odd) {
+  fill: var(--surface-1dp);
+}
+rect.epoch:nth-child(even) {
+  fill: var(--surface);
+}
+text {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  font-family: Arial;
+  font-size: 11px;
+}

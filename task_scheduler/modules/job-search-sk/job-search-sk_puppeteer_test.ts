@@ -4,6 +4,7 @@ import {
   setUpPuppeteerAndDemoPageServer,
   takeScreenshot,
 } from '../../../puppeteer-tests/util';
+import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 describe('job-search-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
@@ -13,6 +14,11 @@ describe('job-search-sk', () => {
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/job-search-sk.html`);
     await testBed.page.setViewport({ width: 2200, height: 500 });
+    await testBed.page.evaluate((_) => {
+      (<ThemeChooserSk>(
+        document.getElementsByTagName('theme-chooser-sk')[0]
+      )).darkmode = false;
+    });
   });
 
   it('should render the demo page (smoke test)', async () => {
@@ -49,6 +55,18 @@ describe('job-search-sk', () => {
         testBed.page,
         'task-scheduler',
         'job-search-sk-searching-results'
+      );
+
+      // Take a screenshot in dark mode.
+      await testBed.page.evaluate((_) => {
+        (<ThemeChooserSk>(
+          document.getElementsByTagName('theme-chooser-sk')[0]
+        )).darkmode = true;
+      });
+      await takeScreenshot(
+        testBed.page,
+        'task-scheduler',
+        'job-search-sk-searching-results-dark'
       );
     });
 
