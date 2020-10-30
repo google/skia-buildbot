@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "008cdc7e_45b8a0a9",
+        "filename": "task_scheduler/modules/colors.css",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-30T15:29:30Z",
+      "side": 1,
+      "message": "This seems wrong, although admittedly I didn\u0027t go track down the usage.\n\n\u0027fill\u0027 is for SVGs/icons and often matches the \u0027color\u0027 property. I\u0027d assume it being the same as \u0027background-color\u0027 would lead to impossible to see icons, unless there\u0027s some less obvious inheritance you\u0027re taking advantage of, where you set background color on a child, and let it inherit the fill... if so that could probably be made more clear.\n\n(guessing by the below where the pattern is similar, but with a comment, this is a case of \u0027less obvious inheritance\u0027, can you add a comment?)",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "6d893b6fac126ac63195710a9026c65f92876926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
