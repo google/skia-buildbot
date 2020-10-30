@@ -20,8 +20,8 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
-import { ElementSk } from '../ElementSk';
 import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { ElementSk } from '../ElementSk';
 import {
   QueryValuesSk,
   QueryValuesSkQueryValuesChangedEventDetail,
@@ -100,15 +100,14 @@ export class QuerySk extends ElementSk {
     `;
   }
 
-  private static keysTemplate = (ele: QuerySk) =>
-    ele._keys.map(
-      (k) =>
-        html`
+  private static keysTemplate = (ele: QuerySk) => ele._keys.map(
+    (k) => html`
           <div>${k}</div>
-        `
-    );
+        `,
+  );
 
   private _paramset: ParamSet = {};
+
   private _originalParamset: ParamSet = {};
 
   // True if there is text in the fitler input.
@@ -126,7 +125,9 @@ export class QuerySk extends ElementSk {
   private _delayedTimeout: number | null = null;
 
   private _keySelect: SelectSk | null = null;
+
   private _values: QueryValuesSk | null = null;
+
   private _fast: HTMLInputElement | null = null;
 
   constructor() {
@@ -147,7 +148,7 @@ export class QuerySk extends ElementSk {
   }
 
   private _valuesChanged(
-    e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>
+    e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>,
   ) {
     const key = this._keys[this._keySelect!.selection as number];
     if (this._fast!.value.trim() !== '') {
@@ -160,9 +161,9 @@ export class QuerySk extends ElementSk {
 
       // When we toggle from a regex to a non-regex we need to clear the values.
       if (
-        !e.detail.regex &&
-        this._query[key] &&
-        this._query[key][0][0] === '~'
+        !e.detail.regex
+        && this._query[key]
+        && this._query[key][0][0] === '~'
       ) {
         this._query[key] = [];
       }
@@ -180,7 +181,7 @@ export class QuerySk extends ElementSk {
       const valuesDisplayed = new Set(this._paramset[key]);
       const currentQueryForKey = new Set(this._query[key]);
       const unprefixedSelectionsFromEvent = new Set(
-        e.detail.values.map(removePrefix)
+        e.detail.values.map(removePrefix),
       );
 
       // Loop over valuesDisplayed, if the value appears in selectionsFromEvent
@@ -213,9 +214,10 @@ export class QuerySk extends ElementSk {
     }
     const valuesHaveInvert = values[0][0] === '!';
     if (invert === valuesHaveInvert) {
+      // eslint-disable-next-line no-useless-return
       return;
-    } else if (invert && !valuesHaveInvert) {
-      this._query[key] = values.map((v) => '!' + v);
+    } if (invert && !valuesHaveInvert) {
+      this._query[key] = values.map((v) => `!${v}`);
     } else {
       this._query[key] = values.map(removePrefix);
     }
@@ -248,7 +250,7 @@ export class QuerySk extends ElementSk {
         new CustomEvent<QuerySkQueryChangeEventDetail>('query-change', {
           detail: { q: this.current_query },
           bubbles: true,
-        })
+        }),
       );
       window.clearTimeout(this._delayedTimeout!);
       this._delayedTimeout = window.setTimeout(() => {
@@ -258,8 +260,8 @@ export class QuerySk extends ElementSk {
             {
               detail: { q: this.current_query },
               bubbles: true,
-            }
-          )
+            },
+          ),
         );
       }, DELAY_MS);
     }
@@ -278,10 +280,9 @@ export class QuerySk extends ElementSk {
       } else {
         // Filter out invalid values.
         this._query[key] = this._query[key].filter(
-          (val) =>
-            this._originalParamset[key].includes(val) ||
-            val.startsWith('~') ||
-            val.startsWith('!')
+          (val) => this._originalParamset[key].includes(val)
+            || val.startsWith('~')
+            || val.startsWith('!'),
         );
       }
     });
@@ -371,9 +372,9 @@ export class QuerySk extends ElementSk {
 
     // Now re-select the current key if it still exists post-filtering.
     if (
-      this._keySelect &&
-      prevSelectKey &&
-      this._keys.indexOf(prevSelectKey) !== -1
+      this._keySelect
+      && prevSelectKey
+      && this._keys.indexOf(prevSelectKey) !== -1
     ) {
       this._keySelect.selection = this._keys.indexOf(prevSelectKey);
       this._keyChange();
@@ -435,7 +436,7 @@ export class QuerySk extends ElementSk {
     return ['current_query', 'hide_invert', 'hide_regex'];
   }
 
-  attributeChangedCallback(name: String, _: string, newValue: string) {
+  attributeChangedCallback(name: string, _: string, newValue: string) {
     if (name === 'current_query') {
       // Convert the current_query string into an object.
       this._query = toParamSet(newValue);
