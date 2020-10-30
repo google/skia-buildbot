@@ -4,6 +4,7 @@ package dfloader
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
@@ -40,8 +41,16 @@ func New(dfb dataframe.DataFrameBuilder, store store.TryBotStore, git *perfgit.G
 	}
 }
 
+// sortableTryBotResults sorts a slice of results.TryBotResult in StdDevRatio
+// descending so we list regressions first and performance improvements last.
+type sortableTryBotResults []results.TryBotResult
+
+func (p sortableTryBotResults) Len() int           { return len(p) }
+func (p sortableTryBotResults) Less(i, j int) bool { return p[i].StdDevRatio > p[j].StdDevRatio }
+func (p sortableTryBotResults) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // Load implements the results.Loader interface.
-func (l *Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
+func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
 	timestamp := time.Now()
 	if request.Kind == results.Commit {
 		commit, err := l.git.CommitFromCommitNumber(ctx, request.CommitNumber)
@@ -61,6 +70,13 @@ func (l *Loader) Load(ctx context.Context, request results.TryBotRequest, progre
 
 	var df *dataframe.DataFrame
 	rebuildParamSet := false
+
+	// TODO(jcgregorio) What we really need for queries below is a new call into
+	// TraceStore that retrieves the last N commits along with their offsets
+	// ending at a given commit. Note that the N values can come from different
+	// commits from trace to trace. These should be run as individual LIMIT N
+	// queries across the TraceValues table.
+
 	if request.Kind == results.Commit {
 		// Always pull in TraceHistorySize+1 trace values. The TraceHistorySize
 		// represents the history of the trace, and the TraceHistorySize+1 point
@@ -131,6 +147,9 @@ func (l *Loader) Load(ctx context.Context, request results.TryBotRequest, progre
 			Values:      values,
 		})
 	}
+
+	sort.Sort(sortableTryBotResults(res))
+
 	ret.Results = res
 	if rebuildParamSet {
 		ps := paramtools.NewParamSet()
