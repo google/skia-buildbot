@@ -38,6 +38,7 @@ The following licenses are used in dependent packages.
 | github.com/golang/mock/gomock                                     | Apache-2.0    |
 | github.com/golang/protobuf                                        | BSD-3-Clause  |
 | github.com/golang/snappy                                          | BSD-3-Clause  |
+| github.com/go-logr/logr                                           | Apache-2.0    |
 | github.com/googleapis/gax-go/v2                                   | BSD-3-Clause  |
 | github.com/googleapis/gnostic                                     | Apache-2.0    |
 | github.com/google/go-cmp/cmp                                      | BSD-3-Clause  |
@@ -48,6 +49,7 @@ The following licenses are used in dependent packages.
 | github.com/go-python/gpython                                      | BSD-3-Clause  |
 | github.com/gorilla/mux                                            | BSD-3-Clause  |
 | github.com/gorilla/securecookie                                   | BSD-3-Clause  |
+| github.com/hako/durafmt                                           | MIT           |
 | github.com/hashicorp/errwrap                                      | MPL-2.0       |
 | github.com/hashicorp/golang-lru                                   | MPL-2.0       |
 | github.com/hashicorp/go-multierror                                | MPL-2.0       |
@@ -69,6 +71,7 @@ The following licenses are used in dependent packages.
 | github.com/jmespath/go-jmespath                                   | Apache-2.0    |
 | github.com/json-iterator/go                                       | MIT           |
 | github.com/julienschmidt/httprouter                               | BSD-3-Clause  |
+| github.com/klauspost/compress                                     | BSD-3-Clause  |
 | github.com/lib/pq                                                 | MIT           |
 | github.com/magiconair/properties                                  | BSD-2-Clause  |
 | github.com/Masterminds/goutils                                    | Apache-2.0    |
@@ -110,9 +113,9 @@ The following licenses are used in dependent packages.
 | github.com/unrolled/secure                                        | MIT           |
 | github.com/willf/bitset                                           | BSD-3-Clause  |
 | github.com/zeebo/bencode                                          | MIT           |
-| go.chromium.org/gae/service                                       | Apache-2.0    |
 | go.chromium.org/luci                                              | Apache-2.0    |
 | go.chromium.org/luci/common/api/internal/gensupport               | BSD-3-Clause  |
+| go.chromium.org/luci/gae/service                                  | Apache-2.0    |
 | golang.org/x/crypto                                               | BSD-3-Clause  |
 | golang.org/x/net                                                  | BSD-3-Clause  |
 | golang.org/x/oauth2                                               | BSD-3-Clause  |
@@ -138,7 +141,7 @@ The following licenses are used in dependent packages.
 | k8s.io/api                                                        | Apache-2.0    |
 | k8s.io/apimachinery                                               | Apache-2.0    |
 | k8s.io/client-go                                                  | Apache-2.0    |
-| k8s.io/klog                                                       | Apache-2.0    |
+| k8s.io/klog/v2                                                    | Apache-2.0    |
 | k8s.io/utils/integer                                              | Apache-2.0    |
-| sigs.k8s.io/structured-merge-diff/v3/value                        | Apache-2.0    |
+| sigs.k8s.io/structured-merge-diff/v4/value                        | Apache-2.0    |
 | sigs.k8s.io/yaml                                                  | MIT           |
