@@ -31,8 +31,8 @@ interface DisplayBlock {
   y: number;
   width: number;
   height: number;
-  title: string,
-  color: string,
+  title: string;
+  color: string;
 }
 
 interface Label {
@@ -95,7 +95,8 @@ export function draw(container: HTMLElement, data: Data) {
   const boundingRect = container.getBoundingClientRect();
   const totalWidth = boundingRect.width;
   const totalHeight = boundingRect.height;
-  const blocksHeight = totalHeight - rulerHeight - mouseoverHeight - 2*chartMarginY;
+  const blocksHeight =
+    totalHeight - rulerHeight - mouseoverHeight - 2 * chartMarginY;
   const rowHeight = blocksHeight / data.lanes.length;
   const blockHeight = rowHeight * blockHeightProportion;
   const blockMarginY = (rowHeight - blockHeight) / 2;
@@ -159,18 +160,18 @@ export function draw(container: HTMLElement, data: Data) {
     lane.blocks.forEach((block: Block) => {
       const start = block.start.getTime();
       const end = block.end.getTime();
-      let title = "";
+      let title = '';
       if (block.label) {
-        title = block.label + " ";
+        title = block.label + ' ';
       }
       title += strDuration((end - start) / 1000);
       blocks.push({
-        x: blocksStartX + blocksWidth * (start - tStart) / duration,
+        x: blocksStartX + (blocksWidth * (start - tStart)) / duration,
         y: blocksStartY + laneIndex * rowHeight + blockMarginY,
-        width: Math.max(blocksWidth * (end - start) / duration, 1.0),
+        width: Math.max((blocksWidth * (end - start)) / duration, 1.0),
         height: blockHeight,
         title: title,
-        color: block.color || "#000000",
+        color: block.color || '#000000',
       });
     });
   });
@@ -182,21 +183,21 @@ export function draw(container: HTMLElement, data: Data) {
   // Round the tick size to the nearest multiple of an appropriate unit.
   // Timestamps are in milliseconds.
   const units = [
-           1, //   1 ms
-           5, //   5 ms
-          10, //  10 ms
-          50, //  50 ms
-         100, // 100 ms
-         500, // 500 ms
-        1000, //   1 s
-        5000, //   5 s
-       10000, //  10 s
-       30000, //  30 s
-       60000, //   1 m
-      300000, //   5 m
-      600000, //  10 m
-     1800000, //  30 m
-     3600000, //   1 h
+    1, //   1 ms
+    5, //   5 ms
+    10, //  10 ms
+    50, //  50 ms
+    100, // 100 ms
+    500, // 500 ms
+    1000, //   1 s
+    5000, //   5 s
+    10000, //  10 s
+    30000, //  30 s
+    60000, //   1 m
+    300000, //   5 m
+    600000, //  10 m
+    1800000, //  30 m
+    3600000, //   1 h
     10800000, //   3 h
     21600000, //   6 h
     43200000, //  12 h
@@ -221,7 +222,9 @@ export function draw(container: HTMLElement, data: Data) {
   tickAnchor.setMilliseconds(0);
   // Create the ticks. The first tick is the first multiple of the tick size
   // which comes after tStart.
-  const numTicksPastAnchor = Math.ceil((tStart - tickAnchor.getTime()) / actualTickSize);
+  const numTicksPastAnchor = Math.ceil(
+    (tStart - tickAnchor.getTime()) / actualTickSize
+  );
   let tick = tickAnchor.getTime() + numTicksPastAnchor * actualTickSize;
   const ticks = [];
   while (tick < tEnd) {
@@ -234,15 +237,12 @@ export function draw(container: HTMLElement, data: Data) {
   // Ensure that there's an epoch block which reaches to the end of the chart.
   epochs.push(new Date(tEnd));
   const normEpochs: Epoch[] = [];
-  const epochColors = [
-    '#EFEFEF',
-    '#EAEAEA',
-  ];
+  const epochColors = ['#EFEFEF', '#EAEAEA'];
   let lastX = blocksStartX;
   for (let i = 0; i < epochs.length; i++) {
     const epoch = epochs[i].getTime();
     if (epoch >= tStart && epoch <= tEnd) {
-      const x = blocksStartX + blocksWidth * (epoch - tStart) / duration;
+      const x = blocksStartX + (blocksWidth * (epoch - tStart)) / duration;
       normEpochs.push({
         x: lastX,
         y: blocksStartY,
@@ -258,7 +258,7 @@ export function draw(container: HTMLElement, data: Data) {
   const rulerTexts: RulerText[] = [];
   let lastDate = new Date(ticks[0]).getDate();
   for (const tick of ticks) {
-    const x = blocksStartX + blocksWidth * (tick - tStart) / duration;
+    const x = blocksStartX + (blocksWidth * (tick - tStart)) / duration;
     const y1 = blocksStartY + blocksHeight;
     const y2 = y1 + rulerTickLength;
     rulerTicks.push({
@@ -273,7 +273,8 @@ export function draw(container: HTMLElement, data: Data) {
       y: y2,
       rotationX: x,
       rotationY: y2,
-      text: d.getDate() === lastDate ? d.toLocaleTimeString() : d.toLocaleString(),
+      text:
+        d.getDate() === lastDate ? d.toLocaleTimeString() : d.toLocaleString(),
     });
     lastDate = d.getDate();
   }
@@ -326,7 +327,7 @@ export function draw(container: HTMLElement, data: Data) {
       x = nearest;
     }
     return x;
-  }
+  };
 
   // Helper function for finding the timestamp associated with the given
   // x-coordinate on the chart.
@@ -337,21 +338,21 @@ export function draw(container: HTMLElement, data: Data) {
   // Create a vertical line used on mouseover. This is a helper function used
   // by the mousemove callback function.
   const mouseMoved = (e: MouseEvent) => {
-    const svg = $$<SVGElement>("svg", container);
+    const svg = $$<SVGElement>('svg', container);
     if (!svg) {
       return;
     }
 
     // Update the vertical cursor line.
     const x = getMouseX(e);
-    const mouseLine = $$<SVGLineElement>("#mouse-line", svg)!;
-    mouseLine.setAttributeNS(null, "x1", ""+x);
-    mouseLine.setAttributeNS(null, "x2", ""+x);
+    const mouseLine = $$<SVGLineElement>('#mouse-line', svg)!;
+    mouseLine.setAttributeNS(null, 'x1', '' + x);
+    mouseLine.setAttributeNS(null, 'x2', '' + x);
 
     // Update the timestamp for the cursor.
     const ts = getTimeAtMouseX(x);
-    const mouseTime = $$<SVGTextElement>("#mouse-text", svg)!;
-    mouseTime.setAttributeNS(null, "x", ""+x);
+    const mouseTime = $$<SVGTextElement>('#mouse-text', svg)!;
+    mouseTime.setAttributeNS(null, 'x', '' + x);
     mouseTime.innerHTML = ts.toLocaleTimeString();
 
     // If we're selecting, update the selection box.
@@ -362,94 +363,104 @@ export function draw(container: HTMLElement, data: Data) {
         x2 = x1;
         x1 = x;
       }
-      const selectRect = $$<SVGRectElement>("#select-rect", svg)!;
-      const selectText = $$<SVGTextElement>("#select-text", svg)!;
-      const selectLineStart = $$<SVGLineElement>("#select-line-start", svg)!;
-      const selectLineEnd = $$<SVGLineElement>("#select-line-end", svg)!;
+      const selectRect = $$<SVGRectElement>('#select-rect', svg)!;
+      const selectText = $$<SVGTextElement>('#select-text', svg)!;
+      const selectLineStart = $$<SVGLineElement>('#select-line-start', svg)!;
+      const selectLineEnd = $$<SVGLineElement>('#select-line-end', svg)!;
 
-      selectRect.setAttributeNS(null, "x", ""+x1);
-      selectRect.setAttributeNS(null, "width", ""+(x2-x1));
-      selectLineStart.setAttributeNS(null, "x1", ""+x1);
-      selectLineStart.setAttributeNS(null, "x2", ""+x1);
-      selectLineEnd.setAttributeNS(null, "x1", ""+x2);
-      selectLineEnd.setAttributeNS(null, "x2", ""+x2);
+      selectRect.setAttributeNS(null, 'x', '' + x1);
+      selectRect.setAttributeNS(null, 'width', '' + (x2 - x1));
+      selectLineStart.setAttributeNS(null, 'x1', '' + x1);
+      selectLineStart.setAttributeNS(null, 'x2', '' + x1);
+      selectLineEnd.setAttributeNS(null, 'x1', '' + x2);
+      selectLineEnd.setAttributeNS(null, 'x2', '' + x2);
 
       // Update the selected time range label.
       const selectedDuration =
-          getTimeAtMouseX(x2).getTime() - getTimeAtMouseX(x1).getTime();
-      selectText.setAttributeNS(null, "x", ""+(x1+x2)/2);
+        getTimeAtMouseX(x2).getTime() - getTimeAtMouseX(x1).getTime();
+      selectText.setAttributeNS(null, 'x', '' + (x1 + x2) / 2);
       selectText.innerHTML = strDuration(selectedDuration / 1000);
 
       // The cursor time label interferes with the selected time labels.
       // make it disappear if we're actively selecting.
-      mouseTime.innerHTML = "";
+      mouseTime.innerHTML = '';
     }
   };
 
   // Create a selection box when the mouse is clicked and dragged. This is a
   // helper function used by the mousedown callback function.
   const mouseSelectStart = (e: MouseEvent) => {
-    const svg = $$<SVGElement>("svg", container);
+    const svg = $$<SVGElement>('svg', container);
     if (!svg) {
       return;
     }
-    const selectRect = $$<SVGRectElement>("#select-rect", svg)!;
-    const selectLineStart = $$<SVGLineElement>("#select-line-start", svg)!;
-    const selectLineEnd = $$<SVGLineElement>("#select-line-end", svg)!;
+    const selectRect = $$<SVGRectElement>('#select-rect', svg)!;
+    const selectLineStart = $$<SVGLineElement>('#select-line-start', svg)!;
+    const selectLineEnd = $$<SVGLineElement>('#select-line-end', svg)!;
 
     const x = getMouseX(e);
 
-    selectRect.setAttributeNS(null, "x", ""+x);
-    selectLineStart.setAttributeNS(null, "x1", ""+x);
-    selectLineStart.setAttributeNS(null, "x2", ""+x);
-    selectLineEnd.setAttributeNS(null, "x1", ""+x);
-    selectLineEnd.setAttributeNS(null, "x2", ""+x);
+    selectRect.setAttributeNS(null, 'x', '' + x);
+    selectLineStart.setAttributeNS(null, 'x1', '' + x);
+    selectLineStart.setAttributeNS(null, 'x2', '' + x);
+    selectLineEnd.setAttributeNS(null, 'x1', '' + x);
+    selectLineEnd.setAttributeNS(null, 'x2', '' + x);
 
     dragStartX = x;
   };
 
   const mouseOut = (e: MouseEvent) => {
     dragStartX = undefined;
-  }
+  };
 
   // Render.
-  render(svg`
+  render(
+    svg`
     <svg
         width="${totalWidth}"
         height="${totalHeight}"
-        @mousemove="${(e:MouseEvent) => {mouseMoved(e)}}"
-        @mousedown="${(e:MouseEvent) => {mouseSelectStart(e)}}"
-        @mouseup="${(e:MouseEvent) => {mouseOut(e)}}"
-        @mouseleave="${(e:MouseEvent) => {mouseOut(e)}}"
+        @mousemove="${(e: MouseEvent) => {
+          mouseMoved(e);
+        }}"
+        @mousedown="${(e: MouseEvent) => {
+          mouseSelectStart(e);
+        }}"
+        @mouseup="${(e: MouseEvent) => {
+          mouseOut(e);
+        }}"
+        @mouseleave="${(e: MouseEvent) => {
+          mouseOut(e);
+        }}"
         >
-      ${normEpochs.map((epoch: Epoch) => svg`
+      ${normEpochs.map(
+        (epoch: Epoch) => svg`
         <rect
             x="${epoch.x}"
             y="${epoch.y}"
             width="${epoch.width}"
             height="${epoch.height}"
-            fill="${epoch.color}"
+            class="epoch"
             >
         </rect>
-      `)}
-      ${labels.map((lbl: Label) => svg`
+      `
+      )}
+      ${labels.map(
+        (lbl: Label) => svg`
         <text
             alignment-baseline="middle"
             text-anchor="end"
-            style="-webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none;"
             x="${lbl.x}"
             y="${lbl.y}"
             width="${lbl.width}"
             height="${labelHeight}"
-            font-family="${labelFontFamily}"
-            font-size="${labelFontSize}"
             >
           ${lbl.text}
         </text>
-      `)}
-      ${blocks.map((block: DisplayBlock) => svg`
+      `
+      )}
+      ${blocks.map(
+        (block: DisplayBlock) => svg`
         <rect
-            stroke="none"
             x="${block.x}"
             y="${block.y}"
             width="${block.width}"
@@ -458,47 +469,45 @@ export function draw(container: HTMLElement, data: Data) {
             >
           <title>${block.title}</title>
         </rect>
-      `)}
-      ${borders.map((b: Border) => svg`
+      `
+      )}
+      ${borders.map(
+        (b: Border) => svg`
         <line
-            stroke="black"
-            stroke-width="hairline"
             x1="${b.x1}"
             y1="${b.y1}"
             x2="${b.x2}"
             y2="${b.y2}"
             >
         </line>
-      `)}
-      ${rulerTicks.map((tick: RulerTick) => svg`
+      `
+      )}
+      ${rulerTicks.map(
+        (tick: RulerTick) => svg`
         <line
-            stroke="black"
-            stroke-width="hairline"
             x1="${tick.x1}"
             y1="${tick.y1}"
             x2="${tick.x2}"
             y2="${tick.y2}"
             >
         </line>
-      `)}
-      ${rulerTexts.map((text: RulerText) => svg`
+      `
+      )}
+      ${rulerTexts.map(
+        (text: RulerText) => svg`
         <text
             alignment-baseline="middle"
             text-anchor="end"
-            style="-webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none;"
             x="${text.x}"
             y="${text.y}"
-            font-family="${labelFontFamily}"
-            font-size="${labelFontSize}"
             transform="rotate(${rulerLabelRotation} ${text.rotationX} ${text.rotationY})"
             >
           ${text.text}
         </text>
-      `)}
+      `
+      )}
       <line
           id="mouse-line"
-          stroke="black"
-          stroke-width="hairline"
           x1="-1000"
           y1="${blocksStartY - 10}"
           x2="-1000"
@@ -509,11 +518,8 @@ export function draw(container: HTMLElement, data: Data) {
           id="mouse-text"
           alignment-baseline="bottom"
           text-anchor="middle"
-          style="-webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none;"
           x="-1000"
           y="${blocksStartY - 20}"
-          font-family="${labelFontFamily}"
-          font-size="${labelFontSize}"
           >
       </text>
       <rect
@@ -530,17 +536,12 @@ export function draw(container: HTMLElement, data: Data) {
           id="select-text"
           alignment-baseline="bottom"
           text-anchor="middle"
-          style="-webkit-user-select:none; -moz-user-select:none; -ms-user-select:none; user-select:none;"
           x="-1000"
           y="${blocksStartY - 10}"
-          font-family="${labelFontFamily}"
-          font-size="${labelFontSize}"
           >
       </text>
       <line
           id="select-line-start"
-          stroke="black"
-          stroke-width="hairline"
           x1="-1000"
           y1="${blocksStartY - 10}"
           x2="-1000"
@@ -549,8 +550,6 @@ export function draw(container: HTMLElement, data: Data) {
       </line>
       <line
           id="select-line-end"
-          stroke="black"
-          stroke-width="hairline"
           x1="-1000"
           y1="${blocksStartY - 10}"
           x2="-1000"
@@ -558,5 +557,7 @@ export function draw(container: HTMLElement, data: Data) {
           >
       </line>
     </svg>
-  `, container);
+  `,
+    container
+  );
 }
