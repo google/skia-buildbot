@@ -1,6 +1,7 @@
 import { FakeTaskSchedulerService, job2, fakeNow } from '../rpc-mock';
 import './index';
 import { JobSk } from './job-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 // Override the current date to keep puppeteer tests consistent.
 Date.now = () => fakeNow;
