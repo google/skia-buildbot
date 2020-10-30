@@ -152,6 +152,27 @@ export class StatusSk extends ElementSk {
     // We use css to style the header color based on state.
     this.setAttribute('state', r.status.general_state || '');
     $$<RotationsSk>('rotations-sk', this)!.rotations = r.rotations;
+    // Set the favicon.
+    const link = document.createElement('link');
+    link.id = 'dynamicFavicon';
+    link.rel = 'shortcut icon';
+    switch (r.status.general_state) {
+      case 'caution':
+        link.href = '/res/img/favicon-caution.ico';
+        break;
+      case 'closed':
+        link.href = '/res/img/favicon-closed.ico';
+        break;
+      default:
+        link.href = '/res/img/favicon-open.ico';
+        break;
+    }
+    const head = document.getElementsByTagName('head')[0];
+    const oldIcon = document.getElementById(link.id);
+    if (oldIcon) {
+      head.removeChild(oldIcon);
+    }
+    head.appendChild(link);
   }
 }
 
