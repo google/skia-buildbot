@@ -271,7 +271,8 @@ var templates = map[statement]string{
         SELECT
             key_value, trace_id
         FROM
-            Postings@by_trace_id
+			Postings@by_trace_id
+			AS OF SYSTEM TIME '-1s'
         WHERE
             tile_number = {{ $tileNumber }}
             AND trace_id IN (
@@ -300,7 +301,8 @@ var templates = map[statement]string{
             commit_number,
             val
         FROM
-            TraceValues
+			TraceValues
+			AS OF SYSTEM TIME '-1s'
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
             AND commit_number <= {{ .EndCommitNumber }}
@@ -316,7 +318,8 @@ var templates = map[statement]string{
         SELECT
             SourceFiles.source_file
         FROM
-            TraceValues
+			TraceValues
+			AS OF SYSTEM TIME '-1s'
         INNER LOOKUP JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
         WHERE
             TraceValues.trace_id = '{{ .MD5HexTraceID }}'
@@ -438,7 +441,7 @@ var statements = map[statement]string{
         SELECT
             source_file_id
         FROM
-            SourceFiles
+			SourceFiles
         WHERE
             source_file=$1`,
 	getLatestTile: `
@@ -454,14 +457,16 @@ var statements = map[statement]string{
         SELECT
            param_key, param_value
         FROM
-            ParamSets
+			ParamSets
+			AS OF SYSTEM TIME '-1s'
         WHERE
             tile_number = $1`,
 	traceCount: `
         SELECT
             COUNT(DISTINCT trace_id)
         FROM
-            Postings
+			Postings
+			AS OF SYSTEM TIME '-1s'
         WHERE
           tile_number = $1`,
 }
