@@ -23,6 +23,7 @@ import { classMap } from 'lit-html/directives/class-map';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/radio-sk';
+import 'elements-sk/tabs-sk';
 import 'elements-sk/select-sk';
 import 'elements-sk/icon/add-icon-sk';
 import 'elements-sk/icon/autorenew-icon-sk';
@@ -167,12 +168,14 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
   [
     'Search',
     {
-      text: ' ',
+      text: '_',
       title:
         'Enter a search string. Substrings and regular expressions may be used, per the Javascript String match() rules.',
     },
   ],
 ]);
+// Used to translate tabs-sk event indices to Filters.
+const FILTER_INDEX = Array.from(FILTER_INFO).map(([filter, _]) => filter);
 
 // An internal class used to keep the fetching and preprocessing of data untangled from the logic
 // to render the table itself.
@@ -542,29 +545,25 @@ export class CommitsTableSk extends ElementSk {
         </div>
 
         <div class="horizontal">
-          ${Array.from(FILTER_INFO).map(
-            ([filter, info]) => html` <label class="specFilter" title=${info.title}>
-              <radio-sk
-                class="tiny"
-                label=""
-                id=${`${filter}Filter`}
-                name="specFilter"
-                ?checked=${el._filter === filter}
-                @change=${() => (el.filter = filter)}
-              >
-              </radio-sk>
-              <span>
-                ${info.text}
-                ${filter !== 'Search'
-                  ? // For Search, we put the help icon after the search input.
-                    html`<help-icon-sk class="tiny"></help-icon-sk>`
-                  : html``}
-              </span>
-            </label>`
-          )}
-          <input-sk id="searchInput" label="Filter task spec" @change=${el.searchFilter}>
+          <tabs-sk
+            @tab-selected-sk=${(e: CustomEvent) => (el.filter = FILTER_INDEX[e.detail.index])}
+          >
+            ${Array.from(FILTER_INFO).map(([filter, info]) =>
+              filter === 'Search'
+                ? html``
+                : html`<button title=${info.title} class=${el._filter === filter ? 'selected' : ''}>
+                    ${info.text}
+                    <help-icon-sk class="tiny"></help-icon-sk>
+                  </button> `
+            )}
+          </tabs-sk>
+          <input-sk
+            id="searchInput"
+            class=${el.filter === 'Search' ? 'selected' : ''}
+            label="Filter task spec"
+            @change=${el.searchFilter}
+          >
           </input-sk>
-          <help-icon-sk class="tiny"></help-icon-sk>
           <a href="${taskSchedulerUrl()}/trigger" target="_blank" rel="noopener">
             <button>
               <add-icon-sk></add-icon-sk>
