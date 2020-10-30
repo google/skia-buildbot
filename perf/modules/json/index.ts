@@ -10,7 +10,7 @@ export interface Alert {
 	alert: string;
 	interesting: number;
 	bug_uri_template: string;
-	algo: RegressionDetectionGrouping;
+	algo: ClusterAlgo;
 	step: StepDetection;
 	state: ConfigState;
 	owner: string;
@@ -248,7 +248,7 @@ export interface RegressionDetectionRequest {
 	total_queries: number;
 }
 
-export type RegressionDetectionGrouping = string;
+export type ClusterAlgo = "kmeans" | "stepfit";
 
 export type StepDetection = "" | "absolute" | "percent" | "cohen";
 
@@ -273,5 +273,3 @@ export type Status = "" | "positive" | "negative" | "untriaged";
 export type ProcessState = "Running" | "Success" | "Error";
 
 export type Subset = "all" | "regressions" | "untriaged";
-
-export type ClusterAlgo = "kmeans" | "stepfit";
