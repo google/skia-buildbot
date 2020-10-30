@@ -27,7 +27,7 @@ describe('details-dialog-sk', () => {
 
   it('displays tasks', () => {
     element.displayTask(task, [comment], commitsByHash);
-    expect($$('button', element)).to.have.property('innerText', 'Re-run Job');
+    expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     expect($('.task-failure', element)).to.have.length(1);
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(2);
@@ -40,7 +40,7 @@ describe('details-dialog-sk', () => {
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
 
-    expect($$('button', element)).to.have.property('innerText', 'Re-run Job');
+    expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     // No simple title with status, we have the task-driver-sk instead.
     expect($('.task-failure', element)).to.have.length(0);
     expect($('task-driver-sk', element)).to.have.length(1);
@@ -52,7 +52,7 @@ describe('details-dialog-sk', () => {
 
   it('displays taskspec', () => {
     element.displayTaskSpec('Build-Some-Thing', [comment]);
-    expect($('button', element)).to.have.length(0);
+    expect($('button.action', element)).to.have.length(0);
     // 2 sections, seperated by a line.
     expect($('hr', element)).to.have.length(1);
     expect($('table.comments tr.comment', element)).to.have.length(1);
@@ -60,7 +60,7 @@ describe('details-dialog-sk', () => {
 
   it('displays commit', () => {
     element.displayCommit(commit, [comment]);
-    expect($$('button', element)).to.have.property('innerText', 'Revert');
+    expect($$('button.action', element)).to.have.property('innerText', 'Revert');
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(2);
     expect($('table.comments tr.comment', element)).to.have.length(1);
