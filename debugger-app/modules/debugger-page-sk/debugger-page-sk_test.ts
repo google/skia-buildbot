@@ -35,13 +35,13 @@ describe('debugger-page-sk', () => {
 
       // expect histogram selection are highlighted correctly
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-save'), 'pinkBackground')).to.equal(true);
+        '#hist-row-save')!, 'pinkBackground')).to.equal(true);
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-restore'), 'pinkBackground')).to.equal(true);
+        '#hist-row-restore')!, 'pinkBackground')).to.equal(true);
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-drawannotation'), 'pinkBackground')).to.equal(false);
+        '#hist-row-drawannotation')!, 'pinkBackground')).to.equal(false);
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-drawimagerect'), 'pinkBackground')).to.equal(false);
+        '#hist-row-drawimagerect')!, 'pinkBackground')).to.equal(false);
     });
 
     it('can set a postive text filter and it is reflected in the histogram', () => {
@@ -54,13 +54,13 @@ describe('debugger-page-sk', () => {
 
       // expect histogram selection are highlighted correctly
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-save'), 'pinkBackground')).to.equal(false);
+        '#hist-row-save')!, 'pinkBackground')).to.equal(false);
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-restore'), 'pinkBackground')).to.equal(false);
+        '#hist-row-restore')!, 'pinkBackground')).to.equal(false);
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-drawannotation'), 'pinkBackground')).to.equal(true);
+        '#hist-row-drawannotation')!, 'pinkBackground')).to.equal(true);
       expect(hasClass(histogramSk.querySelector<HTMLElement>(
-        '#hist-row-drawimagerect'), 'pinkBackground')).to.equal(true);
+        '#hist-row-drawimagerect')!, 'pinkBackground')).to.equal(true);
     });
 
     it('can click a histogram row and reflect it in the text filter', () => {
@@ -71,7 +71,7 @@ describe('debugger-page-sk', () => {
       commandsSk.processCommands(testData);
 
       // expect histogram selection are highlighted correctly
-      histogramSk.querySelector<HTMLElement>('#hist-row-save').click();
+      histogramSk.querySelector<HTMLElement>('#hist-row-save')!.click();
 
       expect(commandsSk.querySelector<HTMLInputElement>(
         '#text-filter')!.value).to.equal('!save')

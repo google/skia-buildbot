@@ -5,23 +5,23 @@ import {
   takeScreenshot,
 } from '../../../puppeteer-tests/util';
 
-describe('matrix-clip-controls-sk', () => {
+describe('zoom-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
     path.join(__dirname, '..', '..', 'webpack.config.ts')
   );
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/dist/matrix-clip-controls-sk.html`);
+    await testBed.page.goto(`${testBed.baseUrl}/dist/zoom-sk.html`);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
 
   it('should render the demo page (smoke test)', async () => {
-    expect(await testBed.page.$$('matrix-clip-controls-sk')).to.have.length(1);
+    expect(await testBed.page.$$('zoom-sk')).to.have.length(1);
   });
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'debugger-app', 'matrix-clip-controls-sk');
+      await takeScreenshot(testBed.page, 'debugger-app', 'zoom-sk');
     });
   });
 });
