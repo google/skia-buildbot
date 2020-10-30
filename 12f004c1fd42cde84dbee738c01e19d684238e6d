@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4d13bc7c_ab80d8b3",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-30T15:37:33Z",
+      "side": 1,
+      "message": "This seems strange.  Why do we need to use tabs?  Can\u0027t we use buttons for the other filters and a change notification for the search box?",
+      "range": {
+        "startLine": 135,
+        "startChar": 0,
+        "endLine": 135,
+        "endChar": 24
+      },
+      "revId": "12f004c1fd42cde84dbee738c01e19d684238e6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
