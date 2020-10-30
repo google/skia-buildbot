@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "05f8e6ee_4be2cfbc",
+        "filename": "status/pages/status.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-30T17:38:49Z",
+      "side": 1,
+      "message": "Do we need this here if we already have it in status-sk?",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 85
+      },
+      "revId": "9820f503ab1b8c4113f9f7767368fd6089a51926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
