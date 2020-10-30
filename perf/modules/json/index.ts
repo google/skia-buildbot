@@ -251,7 +251,8 @@ export interface RegressionDetectionRequest {
 export interface TryBotRequest {
 	kind: Kind;
 	cl: CL;
-	cid: CommitNumber;
+	patch_number: number;
+	commit_number: CommitNumber;
 	query: string;
 }
 
@@ -265,8 +266,9 @@ export interface TryBotResult {
 }
 
 export interface TryBotResponse {
-	Header: ColumnHeader[] | null;
-	Results: TryBotResult[] | null;
+	header: (ColumnHeader | null)[] | null;
+	results: TryBotResult[] | null;
+	paramset: ParamSet;
 }
 
 export type RegressionDetectionGrouping = string;
