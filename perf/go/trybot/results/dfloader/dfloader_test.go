@@ -238,6 +238,78 @@ func TestLoader_OneTraceTryBotHappyPath_LoadReturnsSuccess(t *testing.T) {
 	assert.Equal(t, df.ParamSet, resp.ParamSet)
 }
 
+func TestLoader_TwoTraces_LoadReturnsSuccessAndResultsAreSorted(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, g, _ := setupForTest(t)
+
+	dfb := &mocks.DataFrameBuilder{}
+	df := &dataframe.DataFrame{
+		Header: []*dataframe.ColumnHeader{
+			{Offset: 0, Timestamp: gittest.StartTime.Unix()},
+			{Offset: 1, Timestamp: gittest.StartTime.Unix() + 1},
+			{Offset: 2, Timestamp: gittest.StartTime.Unix() + 2},
+			{Offset: 3, Timestamp: gittest.StartTime.Unix() + 3},
+			{Offset: 4, Timestamp: gittest.StartTime.Unix() + 4},
+			{Offset: 5, Timestamp: gittest.StartTime.Unix() + 5},
+			{Offset: 6, Timestamp: gittest.StartTime.Unix() + 6},
+			{Offset: 7, Timestamp: gittest.StartTime.Unix() + 7},
+		},
+		ParamSet: paramtools.ParamSet{"config": []string{"gpu", "cpu"}},
+		TraceSet: types.TraceSet{
+			",config=cpu,": []float32{1, 1, 1, 1, 2, 2, 2, 0},
+			",config=gpu,": []float32{1, 1, 1, 1, 2, 2, 2, 0},
+		},
+	}
+	dfb.On("NewNFromKeys", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(df, nil)
+
+	storeMock := &storeMocks.TryBotStore{}
+	const cl = types.CL("123456")
+	const patch = int(1)
+	storeResults := []store.GetResult{
+		{
+			TraceName: ",config=gpu,",
+			Value:     6.0,
+		},
+		{
+			TraceName: ",config=cpu,",
+			Value:     4.0,
+		},
+	}
+	storeMock.On("Get", mock.Anything, cl, patch).Return(storeResults, nil)
+
+	loader := New(dfb, storeMock, g)
+	request := results.TryBotRequest{
+		Kind:        results.TryBot,
+		CL:          cl,
+		PatchNumber: patch,
+	}
+	resp, err := loader.Load(ctx, request, nil)
+	require.NoError(t, err)
+	assert.Len(t, resp.Results, 2)
+	expected := []results.TryBotResult{
+		{
+			Params:      paramtools.Params{"config": "gpu"},
+			Median:      1,
+			Lower:       0,
+			Upper:       1,
+			StdDevRatio: 5,
+			Values:      []float32{1, 1, 1, 1, 2, 2, 2, 6},
+		},
+		{
+			Params:      paramtools.Params{"config": "cpu"},
+			Median:      1,
+			Lower:       0,
+			Upper:       1,
+			StdDevRatio: 3,
+			Values:      []float32{1, 1, 1, 1, 2, 2, 2, 4},
+		},
+	}
+	assert.Equal(t, expected, resp.Results)
+
+	assert.Equal(t, types.BadCommitNumber, df.Header[len(df.Header)-1].Offset)
+	assert.Equal(t, df.ParamSet, resp.ParamSet)
+}
+
 func TestLoader_UnknownTracesAreIgnored_LoadReturnsSuccess(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, g, _ := setupForTest(t)
