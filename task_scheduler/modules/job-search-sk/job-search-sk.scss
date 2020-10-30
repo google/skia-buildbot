@@ -32,7 +32,7 @@ job-search-sk {
 
   div.container {
     background-color: var(--surface);
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--surface-2dp, #ddd);
     margin: 5px;
     padding: 10px;
   }
