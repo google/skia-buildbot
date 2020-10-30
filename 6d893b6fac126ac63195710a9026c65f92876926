@@ -22,6 +22,30 @@
       },
       "revId": "6d893b6fac126ac63195710a9026c65f92876926",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cfb4c003_d03ff93b",
+        "filename": "task_scheduler/modules/colors.css",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-10-30T15:42:27Z",
+      "side": 1,
+      "message": "In this case, I\u0027m using rects like divs and thus want the fill to behave like a background color.  I actually think the more natural pairings are [background-color, fill] and [color, stroke], but that breaks down for icons, which happens to be the most common usage scenario.  I don\u0027t know what the right resolution is.",
+      "parentUuid": "008cdc7e_45b8a0a9",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "6d893b6fac126ac63195710a9026c65f92876926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
