@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5070c749_4ebff6c5",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Ubernit: Turn these interface and property comments into JSDoc with /** ... */ so that IDEs know to interpret it as documentation.",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 0
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f8f9ec30_bae935ee",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Ubernit: extra space",
+      "range": {
+        "startLine": 355,
+        "startChar": 21,
+        "endLine": 355,
+        "endChar": 22
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "26116f6d_034d8bfc",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 367,
+        "startChar": 4,
+        "endLine": 367,
+        "endChar": 7
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13dbacb6_4746976f",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Nit: Array.from(diff) is a bit more idiomatic.\n\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from",
+      "range": {
+        "startLine": 373,
+        "startChar": 19,
+        "endLine": 373,
+        "endChar": 33
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9657f795_216ed058",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Nit: counts.forEach((value, key) \u003d\u003e { ... }) is more idiomatic and might be a bit faster.",
+      "range": {
+        "startLine": 535,
+        "startChar": 0,
+        "endLine": 535,
+        "endChar": 40
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5837849e_047f608a",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk-demo.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Delete?",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 8
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c6b362a_7a0df2fd",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "This might hide bugs. I recommend failing loudly with an exception, e.g.\n\n  throw new Error(\u0027_fileContext is empty.\u0027);",
+      "range": {
+        "startLine": 241,
+        "startChar": 0,
+        "endLine": 241,
+        "endChar": 61
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ea5a72b3_bae23b23",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Suggestion: return e.classList.contains(expected);",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 0
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d4bc6177_4889cbd0",
+        "filename": "debugger-app/modules/histogram-sk/histogram-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Ubernit: indentation",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 0
+      },
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "50ca2f90_eedcdc47",
+        "filename": "debugger-app/modules/histogram-sk/histogram-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T19:36:13Z",
+      "side": 1,
+      "message": "Please delete this file if there\u0027s nothing to test.\n\nIIUC the histogram-sk component is tested from debugger-page-sk_test.ts.",
+      "revId": "29c883d8503221b9e605380b68b7d3778ec67170",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
