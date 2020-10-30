@@ -30,26 +30,23 @@ import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/search-icon-sk';
 import 'elements-sk/icon/timeline-icon-sk';
 
-const jobStatusToTextColor = new Map<JobStatus, [string, string]>();
-jobStatusToTextColor.set(JobStatus.JOB_STATUS_IN_PROGRESS, [
+const jobStatusToTextClass = new Map<JobStatus, [string, string]>();
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_IN_PROGRESS, [
   'in progress',
-  'rgb(248, 230, 180)',
+  'bg-in-progress',
 ]);
-jobStatusToTextColor.set(JobStatus.JOB_STATUS_SUCCESS, [
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_SUCCESS, [
   'succeeded',
-  'rgb(209, 228, 188)',
+  'bg-success',
 ]);
-jobStatusToTextColor.set(JobStatus.JOB_STATUS_FAILURE, [
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_FAILURE, [
   'failed',
-  'rgb(217, 95, 2)',
+  'bg-failure',
 ]);
-jobStatusToTextColor.set(JobStatus.JOB_STATUS_MISHAP, [
-  'mishap',
-  'rgb(117, 112, 179)',
-]);
-jobStatusToTextColor.set(JobStatus.JOB_STATUS_CANCELED, [
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_MISHAP, ['mishap', 'bg-mishap']);
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_CANCELED, [
   'canceled',
-  'rgb(117, 112, 179)',
+  'bg-canceled',
 ]);
 
 export class JobSk extends ElementSk {
@@ -88,7 +85,7 @@ export class JobSk extends ElementSk {
         </tr>
         <tr>
           <td>Status</td>
-          <td style="background-color:${ele.statusColor}">${ele.statusText}</td>
+          <td class="${ele.statusClass}">${ele.statusText}</td>
           <td></td>
         </tr>
         <tr>
@@ -212,7 +209,7 @@ export class JobSk extends ElementSk {
   private job: Job | null = null;
   private revisionLink: string = '';
   private _rpc: TaskSchedulerService | null = null;
-  private statusColor: string = '';
+  private statusClass: string = '';
   private statusText: string = '';
 
   constructor() {
@@ -270,7 +267,7 @@ export class JobSk extends ElementSk {
       const p = rs.patch!;
       this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
     }
-    [this.statusText, this.statusColor] = jobStatusToTextColor.get(
+    [this.statusText, this.statusClass] = jobStatusToTextClass.get(
       this.job.status
     )!;
     this._render();

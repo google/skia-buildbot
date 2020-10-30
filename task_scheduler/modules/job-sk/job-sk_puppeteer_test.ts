@@ -17,6 +17,9 @@ describe('job-sk', () => {
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'task-scheduler', 'job-sk');
+      // Take a screenshot in dark mode.
+      await testBed.page.click('theme-chooser-sk');
+      await takeScreenshot(testBed.page, 'task-scheduler', 'job-sk_dark');
     });
     it('cancels jobs', async () => {
       await testBed.page.click('#cancelButton');

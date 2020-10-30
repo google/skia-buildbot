@@ -23,6 +23,13 @@ describe('task-scheduler-scaffold-sk', () => {
         'task-scheduler',
         'task-scheduler-scaffold-sk'
       );
+      // Take a screenshot in dark mode.
+      await testBed.page.click('theme-chooser-sk');
+      await takeScreenshot(
+        testBed.page,
+        'task-scheduler',
+        'task-scheduler-scaffold-sk_dark'
+      );
     });
   });
 });

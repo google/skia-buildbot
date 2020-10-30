@@ -1,0 +1,27 @@
+@import '../colors';
+
+task-graph-sk {
+  path.arrow {
+    stroke: var(--on-surface);
+    stroke-width: 1px;
+    fill: transparent;
+  }
+  rect {
+    stroke: var(--on-surface);
+    fill: var(--surface);
+  }
+  rect.emphasis {
+    stroke-width: 3px;
+  }
+  text {
+    color: var(--on-surface);
+    font-family: Arial;
+    font-size: 12px;
+  }
+  text.emphasis {
+    font-weight: bold;
+  }
+  text.links {
+    text-decoration: underline;
+  }
+}

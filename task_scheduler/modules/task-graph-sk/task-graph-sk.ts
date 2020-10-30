@@ -267,12 +267,12 @@ export class TaskGraphSk extends HTMLElement {
       }
     });
 
-    const taskStatusToTextColor: { [key: string]: string } = {
-      TASK_STATUS_PENDING: 'rgb(255, 255, 255)',
-      TASK_STATUS_RUNNING: 'rgb(248, 230, 180)',
-      TASK_STATUS_SUCCESS: 'rgb(209, 228, 188)',
-      TASK_STATUS_FAILURE: 'rgb(217, 95, 2)',
-      TASK_STATUS_MISHAP: 'rgb(117, 112, 179)',
+    const taskStatusToClass: { [key: string]: string } = {
+      TASK_STATUS_PENDING: 'bg-in-progress',
+      TASK_STATUS_RUNNING: 'bg-in-progress',
+      TASK_STATUS_SUCCESS: 'bg-success',
+      TASK_STATUS_FAILURE: 'bg-failure',
+      TASK_STATUS_MISHAP: 'bg-mishap',
     };
 
     // Draw the graph.
@@ -296,9 +296,6 @@ export class TaskGraphSk extends HTMLElement {
           return svg`
             <path
                 class="arrow"
-                stroke="black"
-                stroke-width="1"
-                fill="transparent"
                 marker-end="url(#arrowhead)"
                 d="${arrow}"
                 >
@@ -308,44 +305,34 @@ export class TaskGraphSk extends HTMLElement {
         ${taskSpecs.map(
           (taskSpec: taskSpecRect) => svg`
           <rect
-              class="taskSpec"
               rx="4"
               ry="4"
               x="${taskSpec.x}"
               y="${taskSpec.y}"
               width="${taskSpec.width}"
               height="${taskSpec.height}"
-              style="stroke: black; fill: white; ${
-                taskSpec.name == selectedTask?.taskKey?.name
-                  ? 'stroke-width: 3px;'
-                  : ''
+              class="${
+                taskSpec.name == selectedTask?.taskKey?.name ? 'emphasis' : ''
               }"
               >
           </rect>
           <text
-              class="taskSpec"
-              font-family="${fontFamily}"
-              font-size="${fontSize}"
               x="${taskSpec.x + textOffsetX}"
               y="${taskSpec.y + textOffsetY}"
-              font-weight="${
-                taskSpec.name == selectedTask?.taskKey?.name ? 'bold' : 'normal'
+              class="${
+                taskSpec.name == selectedTask?.taskKey?.name ? 'emphasis' : ''
               }"
               >
             ${taskSpec.name}
           </text>
           <a
-              class="bots"
               target="_blank"
               href="${TaskGraphSk.computeBotsLink(
                 taskDims.get(taskSpec.name)!,
                 swarmingServer
               )}">
             <text
-                class="bots"
-                font-family="${fontFamily}"
-                font-size="${botLinkFontSize}"
-                style="text-decoration: underline;"
+                class="links"
                 x="${taskSpec.x + textOffsetX}"
                 y="${taskSpec.y + botLinkOffsetY}"
                 >
@@ -353,17 +340,13 @@ export class TaskGraphSk extends HTMLElement {
             </text>
           </a>
           <a
-              class="taskLinks"
               target="_blank"
               href="${TaskGraphSk.computeTasksLink(
                 taskSpec.name,
                 swarmingServer
               )}">
             <text
-                class="taskLinks"
-                font-family="${fontFamily}"
-                font-size="${taskLinkFontSize}"
-                style="text-decoration: underline;"
+                class="links"
                 x="${taskSpec.x + textOffsetX}"
                 y="${taskSpec.y + taskLinkOffsetY}"
                 >
@@ -379,21 +362,16 @@ export class TaskGraphSk extends HTMLElement {
               target="_blank"
               href="${TaskGraphSk.computeTaskLink(task.task!, swarmingServer)}">
             <rect
-                class="task"
+                class="task ${
+                  task.task.id == selectedTask?.id ? 'emphasis' : ''
+                } ${taskStatusToClass[task.task!.status]}"
                 rx="4"
                 ry="4"
                 x="${task.x}"
                 y="${task.y}"
                 width="${task.width}"
                 height="${task.height}"
-                style="stroke: black; fill: ${
-                  taskStatusToTextColor[task.task!.status]
-                };
-                    ${
-                      task.task?.id == selectedTask?.id
-                        ? 'stroke-width: 3px;'
-                        : ''
-                    }">
+                >
             </rect>
           </a>
         `

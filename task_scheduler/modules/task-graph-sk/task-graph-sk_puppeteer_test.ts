@@ -22,6 +22,13 @@ describe('task-graph-sk', () => {
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'task_scheduler', 'task-graph-sk');
+      // Take a screenshot in dark mode.
+      await testBed.page.click('theme-chooser-sk');
+      await takeScreenshot(
+        testBed.page,
+        'task-scheduler',
+        'task-graph-sk_dark'
+      );
     });
   });
 });

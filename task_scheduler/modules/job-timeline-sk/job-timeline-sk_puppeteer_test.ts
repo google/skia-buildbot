@@ -22,6 +22,13 @@ describe('job-timeline-sk', () => {
   describe('screenshots', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'task-scheduler', 'job-timeline-sk');
+      // Take a screenshot in dark mode.
+      await testBed.page.click('theme-chooser-sk');
+      await takeScreenshot(
+        testBed.page,
+        'task-scheduler',
+        'job-timeline-sk_dark'
+      );
     });
   });
 });

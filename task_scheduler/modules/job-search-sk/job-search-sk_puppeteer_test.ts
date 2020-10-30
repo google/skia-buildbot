@@ -50,6 +50,14 @@ describe('job-search-sk', () => {
         'task-scheduler',
         'job-search-sk-searching-results'
       );
+
+      // Take a screenshot in dark mode.
+      await testBed.page.click('theme-chooser-sk');
+      await takeScreenshot(
+        testBed.page,
+        'task-scheduler',
+        'job-search-sk-searching-results-dark'
+      );
     });
 
     it('deletes search terms', async () => {

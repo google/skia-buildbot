@@ -26,6 +26,13 @@ describe('skip-tasks-sk', () => {
         'task-scheduler',
         'skip-tasks-sk_start'
       );
+      // Take a screenshot in dark mode.
+      await testBed.page.click('theme-chooser-sk');
+      await takeScreenshot(
+        testBed.page,
+        'task-scheduler',
+        'skip-tasks-sk_start-dark'
+      );
     });
     it('adds a rule', async () => {
       await testBed.page.click('add-icon-sk');
