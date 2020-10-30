@@ -138,12 +138,19 @@ commits-table-sk {
     padding-left: 10px;
   }
 
-  .specFilter {
-    > * {
-      display: inline-block;
-    }
-    radio-sk {
-      margin-right: 0;
+  #searchInput {
+    width: 200px;
+    margin-left: 10px;
+    margin-bottom: 3px;
+    margin-right: 10px;
+  }
+
+  // Style search input similar to how the buttons are styled when selected.
+  #searchInput.selected {
+    border-bottom: solid 4px var(--primary);
+    input {
+      color: var(--primary);
+      font-weight: 700;
     }
   }
 

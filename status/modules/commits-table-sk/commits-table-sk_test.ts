@@ -102,7 +102,7 @@ describe('commits-table-sk', () => {
     ]);
 
     const clickLabel = (i: number, expectText: string) => {
-      const label = $('label.specFilter', table)[i] as HTMLLabelElement;
+      const label = $('tabs-sk button', table)[i] as HTMLLabelElement;
       expect(label.innerText).to.contain(expectText);
       label.click();
     };
