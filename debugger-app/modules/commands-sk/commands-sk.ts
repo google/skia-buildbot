@@ -140,7 +140,7 @@ export class CommandsSk extends ElementSk {
                 >Show image</button>`
             : ''
           }
-          ${ op.details.auditTrail.Ops
+          ${ (op.details.auditTrail && op.details.auditTrail.Ops)
             ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
                 CommandsSk.gpuOpIdTemplate(ele, gpuOp) )
             : ''
