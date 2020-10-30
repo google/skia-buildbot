@@ -46,6 +46,30 @@
       },
       "revId": "6d893b6fac126ac63195710a9026c65f92876926",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3159469c_7d562927",
+        "filename": "task_scheduler/modules/colors.css",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-30T16:06:14Z",
+      "side": 1,
+      "message": "Just a comment that says something like \"rects used as divs so fill is like bg color\" sgtm!",
+      "parentUuid": "cfb4c003_d03ff93b",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "6d893b6fac126ac63195710a9026c65f92876926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
