@@ -6,6 +6,7 @@ import { TryBotResponse } from '../json';
 export interface AveForParam {
     keyValue: string;
     aveStdDevRatio: number;
+    n: number;
 }
 
 interface runningTotal {
@@ -46,6 +47,7 @@ export function byParams(res: TryBotResponse): AveForParam[] {
     ret.push({
       keyValue: runningTotalKey,
       aveStdDevRatio: r.totalStdDevRatio / r.n,
+      n: r.n,
     });
   });
 
