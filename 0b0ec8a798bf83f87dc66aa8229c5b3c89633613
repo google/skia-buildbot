@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d8ebcba_7fc5d0f4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-10-30T20:56:29Z",
+      "side": 1,
+      "message": "Please ignore lint errors, I\u0027ll get to them on my second round.",
+      "revId": "0b0ec8a798bf83f87dc66aa8229c5b3c89633613",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
