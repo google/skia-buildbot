@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69b12738_f1befe16",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-10-30T20:15:52Z",
+      "side": 1,
+      "message": "This empty if block is a bit weird. Can we fold the guard into the conditionals below?",
+      "range": {
+        "startLine": 216,
+        "startChar": 4,
+        "endLine": 218,
+        "endChar": 5
+      },
+      "revId": "14ce7c0f2461c69fa6a9e38ca822e052966aada6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
