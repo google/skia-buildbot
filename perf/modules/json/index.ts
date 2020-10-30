@@ -10,7 +10,7 @@ export interface Alert {
 	alert: string;
 	interesting: number;
 	bug_uri_template: string;
-	algo: RegressionDetectionGrouping;
+	algo: ClusterAlgo;
 	step: StepDetection;
 	state: ConfigState;
 	owner: string;
@@ -249,7 +249,7 @@ export interface RegressionDetectionRequest {
 }
 
 export interface TryBotRequest {
-	kind: Kind;
+	kind: TryBotRequestKind;
 	cl: CL;
 	patch_number: number;
 	commit_number: CommitNumber;
@@ -271,7 +271,7 @@ export interface TryBotResponse {
 	paramset: ParamSet;
 }
 
-export type RegressionDetectionGrouping = string;
+export type ClusterAlgo = "kmeans" | "stepfit";
 
 export type StepDetection = "" | "absolute" | "percent" | "cohen";
 
@@ -297,12 +297,8 @@ export type ProcessState = "Running" | "Success" | "Error";
 
 export type Subset = "all" | "regressions" | "untriaged";
 
-export type Kind = string;
+export type TryBotRequestKind = "trybot" | "commit";
 
 export type CL = string;
 
 export type Params = { [key: string]: string };
-
-export type ClusterAlgo = "kmeans" | "stepfit";
-
-export type TryBotRequestKind = "trybot" | "commit";
