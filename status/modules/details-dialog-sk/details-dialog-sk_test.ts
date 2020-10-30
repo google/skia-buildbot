@@ -16,6 +16,8 @@ describe('details-dialog-sk', () => {
   beforeEach(() => {
     SetTestSettings({
       swarmingUrl: 'example.com/swarming',
+      logsUrlTemplate:
+        'https://ci.chromium.org/raw/build/logs.chromium.org/skia/TASKID/+/annotations',
       taskSchedulerUrl: 'example.com/ts',
       defaultRepo: 'skia',
       repos: new Map([['skia', 'https://skia.googlesource.com/skia/+show/']]),
@@ -27,6 +29,9 @@ describe('details-dialog-sk', () => {
 
   it('displays tasks', () => {
     element.displayTask(task, [comment], commitsByHash);
+    expect($$<HTMLAnchorElement>('a', element)!.href).to.equal(
+      'https://ci.chromium.org/raw/build/logs.chromium.org/skia/999991/+/annotations'
+    );
     expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     expect($('.task-failure', element)).to.have.length(1);
     // 3 sections, seperated by lines.
@@ -36,7 +41,7 @@ describe('details-dialog-sk', () => {
   });
 
   it('displays tasks with taskdriver', async () => {
-    fetchMock.getOnce('path:/json/td/99999', taskDriverData);
+    fetchMock.getOnce('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
 
