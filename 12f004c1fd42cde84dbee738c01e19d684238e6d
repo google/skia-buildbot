@@ -22,6 +22,30 @@
       },
       "revId": "12f004c1fd42cde84dbee738c01e19d684238e6d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32600ccf_b69c4f0f",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-10-30T16:10:59Z",
+      "side": 1,
+      "message": "We talked in whiskey last week and people thought tabs would give a good look/style. I did take your advice and got rid of the \u0027move input-sk on top of button\u0027 and instead just added a little css to make the input-sk looks \u0027selected\u0027 when the filter is \u0027Search\u0027. The change notification already exists and acts correctly.",
+      "parentUuid": "4d13bc7c_ab80d8b3",
+      "range": {
+        "startLine": 135,
+        "startChar": 0,
+        "endLine": 135,
+        "endChar": 24
+      },
+      "revId": "12f004c1fd42cde84dbee738c01e19d684238e6d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
