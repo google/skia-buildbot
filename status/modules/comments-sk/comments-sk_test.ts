@@ -102,7 +102,7 @@ describe('comments-sk', () => {
       element.allowDelete = true;
       clientMock.expectDeleteComment({}, (req) => {
         expect(req).to.deep.equal({
-          timestamp: '2020-09-22T14:21:52.000Z',
+          timestamp: '2020-09-22T10:21:52.000Z',
           repo: 'skia',
           taskId: '',
           taskSpec: 'Build-Some-Stuff',
