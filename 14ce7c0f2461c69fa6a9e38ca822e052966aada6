@@ -22,6 +22,30 @@
       },
       "revId": "14ce7c0f2461c69fa6a9e38ca822e052966aada6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6bcfb19_e105364f",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-10-30T20:18:46Z",
+      "side": 1,
+      "message": "Hmm, I don\u0027t remember deleting that line, might be typo.",
+      "parentUuid": "69b12738_f1befe16",
+      "range": {
+        "startLine": 216,
+        "startChar": 4,
+        "endLine": 218,
+        "endChar": 5
+      },
+      "revId": "14ce7c0f2461c69fa6a9e38ca822e052966aada6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
