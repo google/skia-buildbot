@@ -128,12 +128,19 @@ commits-table-sk {
     padding-left: 10px;
   }
 
-  .specFilter {
-    > * {
-      display: inline-block;
-    }
-    radio-sk {
-      margin-right: 0;
+  // Can't have an input inside a button and tabs-sk uses buttons, so we set widths and move the
+  // input with margin.
+  #searchInput {
+    width: 200px;
+    margin-left: -218px;
+    margin-bottom: 7px;
+    margin-right: 40px;
+  }
+
+  .searchTab {
+    width: 218px;
+    help-icon-sk {
+      margin-right: -180px;
     }
   }
 
