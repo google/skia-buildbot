@@ -1,15 +1,15 @@
 import './index';
-import { MatrixClipControlsSk } from './matrix-clip-controls-sk';
+import { ZoomSk } from './zoom-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
 
-describe('matrix-clip-controls-sk', () => {
-  const newInstance = setUpElementUnderTest<MatrixClipControlsSk>('matrix-clip-controls-sk');
+describe('zoom-sk', () => {
+  const newInstance = setUpElementUnderTest<ZoomSk>('zoom-sk');
 
-  let element: MatrixClipControlsSk;
+  let element: ZoomSk;
   beforeEach(() => {
-    element = newInstance((el: MatrixClipControlsSk) => {
+    element = newInstance((el: ZoomSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
       // document-level event listeners, etc.).
