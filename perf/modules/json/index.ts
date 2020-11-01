@@ -3,6 +3,10 @@
 export interface Go2TS {
 }
 
+export interface IgnoreNil {
+	paramset: ParamSet;
+}
+
 export interface Alert {
 	id_as_string: string;
 	display_name: string;
@@ -271,6 +275,8 @@ export interface TryBotResponse {
 	paramset: ParamSet;
 }
 
+export type ParamSet = { [key: string]: string[] };
+
 export type ClusterAlgo = "kmeans" | "stepfit";
 
 export type StepDetection = "" | "absolute" | "percent" | "cohen";
@@ -288,8 +294,6 @@ export type RequestType = 0 | 1;
 export type Trace = number[] | null;
 
 export type TraceSet = { [key: string]: Trace };
-
-export type ParamSet = { [key: string]: string[] | null };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
 
