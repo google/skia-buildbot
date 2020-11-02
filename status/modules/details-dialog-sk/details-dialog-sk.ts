@@ -16,7 +16,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { Commit } from '../commits-table-sk/commits-table-sk';
 import { Task, Comment } from '../rpc';
 import { CommentData } from '../comments-sk/comments-sk';
-import { revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../settings';
+import { logsUrl, revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../settings';
 
 import '../comments-sk';
 import 'elements-sk/styles/buttons';
@@ -151,11 +151,7 @@ export class DetailsDialogSk extends ElementSk {
       td,
       html`
         <h3>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="${swarmingUrl()}/task?id=${task.swarmingTaskId}"
-          >
+          <a target="_blank" rel="noopener noreferrer" href="${logsUrl(task.swarmingTaskId)}">
             <span>${task.name}</span><launch-icon-sk></launch-icon-sk>
           </a>
         </h3>
@@ -170,6 +166,18 @@ export class DetailsDialogSk extends ElementSk {
               <td>
                 <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
                   View on Task Scheduler
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>This Task:</td>
+              <td>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="${swarmingUrl()}/task?id=${task.swarmingTaskId}"
+                >
+                  View on Swarming
                 </a>
               </td>
             </tr>

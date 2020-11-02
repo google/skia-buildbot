@@ -19,6 +19,7 @@ SetupMocks().expectGetIncrementalCommits(mockIncrementalResponse);
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
   taskSchedulerUrl: 'example.com/ts',
+  logsUrlTemplate: 'https://ci.chromium.org/raw/build/logs.chromium.org/skia/TASKID/+/annotations',
   defaultRepo: 'skia',
   repos: new Map([
     ['skia', 'https://skia.googlesource.com/skia/+show/'],

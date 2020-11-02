@@ -21,7 +21,7 @@ export const task: Task = {
   name: 'Build-Some-Stuff',
   revision: 'abc123',
   status: 'FAILURE',
-  swarmingTaskId: 'someswarmingtaskid',
+  swarmingTaskId: '1234560',
 };
 
 export const commitsByHash: Map<string, Commit> = new Map([
