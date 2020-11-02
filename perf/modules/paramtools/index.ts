@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 // Contains mirror functions to /infra/go/paramtools. See that module for more
 // details.
 //
 // All the validation is done on the server, so these functions do less checking
 // on the validity of structured keys and Params.
+=======
+// Contains mirror functions to /infra/go/query.go for structured keys, see that
+// module for more details.
+//
+// All the validation is done on the server, so these functions do not do any
+// checking on the validity of structured keys.
+>>>>>>> cca7ab03e (git squash commit for trybot-page.)
 import { Params, ParamSet } from '../json';
 
 /** Create a structured key from a Params. */
@@ -32,7 +40,11 @@ export function addParamsToParamSet(ps: ParamSet, p: Params): void {
   Object.entries(p).forEach((keyValue) => {
     const [key, value] = keyValue;
     let values = ps[key];
+<<<<<<< HEAD
     if (!values) {
+=======
+    if (values === undefined || values === null) {
+>>>>>>> cca7ab03e (git squash commit for trybot-page.)
       values = [];
     }
     if (values.indexOf(value) === -1) {
