@@ -1,0 +1,21 @@
+histogram-sk {
+  table {
+    padding-left: 2em;
+  }
+
+  .countCol {
+    text-align: right;
+  }
+
+  td {
+    padding: 0.2em;
+  }
+
+  tr:hover {
+    background-color: #eee;
+  }
+
+  tr.pinkBackground {
+    background-color: #ffc9db;
+  }
+}

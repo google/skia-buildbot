@@ -26,6 +26,7 @@ import {
 // other modules from this application
 import '../commands-sk';
 import '../debug-view-sk';
+import '../histogram-sk';
 import '../matrix-clip-controls-sk';
 
 // TODO(nifong): find a way to move this declaration outside this file
@@ -52,6 +53,7 @@ export class DebuggerPageSk extends ElementSk {
         <label>SKP to open:</label>
         <input type="file" @change=${ele._fileInputChanged}
          ?disabled=${ele._debugger === null} />
+        <a href="https://skia.org/dev/tools/debugger">User Guide</a>
         <p>File version: ${ele._fileContext?.version}</p>
       </div>
       <multi-frame-controls-sk></multi-frame-controls-sk>
@@ -63,7 +65,7 @@ export class DebuggerPageSk extends ElementSk {
         <div id=right>
           <matrix-clip-controls-sk></matrix-clip-controls-sk>
           <!-- hidable gpu op bounds legend-->
-          <command-histogram-sk></command-histogram-sk>
+          <histogram-sk></histogram-sk>
           <!-- cursor position and color -->
           <!-- breakpoint controls -->
           <!-- hidable gpu op bounds legend-->
@@ -235,6 +237,9 @@ export class DebuggerPageSk extends ElementSk {
   // Asks the wasm module to draw to the provided surface.
   // Up to the command index indidated by this._targetItem
   _updateDebuggerView() {
+    if (!this._fileContext) {
+      return; // AFAIK this should only happen in unit tests.
+    }
     if (this._drawToEnd) {
       this._fileContext!.player!.draw(this._surface!);
     } else {
@@ -245,7 +250,7 @@ export class DebuggerPageSk extends ElementSk {
     // }
     // update zoom
     // this.$.zoom.updateZoom();
-    const clipmatjson = this._fileContext!.player.lastCommandInfo();
+    const clipmatjson = this._fileContext.player.lastCommandInfo();
     this._matrixClipControlsSk!.info = JSON.parse(clipmatjson) as MatrixClipInfo;
   }
 };

@@ -34,7 +34,7 @@ export class DebugViewSk extends ElementSk {
   // the native width and height of the main canvas, before css is applied
   private _width: number = 400;
   private _height: number = 400;
-  private _fitStyle: FitStyle = 'right';
+  private _fitStyle: FitStyle = 'fit';
 
   constructor() {
     super(DebugViewSk.template);
