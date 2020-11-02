@@ -384,7 +384,7 @@ func TestParseGitRevLogStream_EmptyFile_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	r := strings.NewReader("")
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Shoud never get here.")
+		assert.Fail(t, "Should never get here.")
 		return nil
 	})
 	assert.NoError(t, err)
@@ -397,7 +397,7 @@ func TestParseGitRevLogStream_ErrMissingTimestamp(t *testing.T) {
 Joe Gregorio <joe@bitworking.org>
 Change #9`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Shoud never get here.")
+		assert.Fail(t, "Should never get here.")
 		return nil
 	})
 	assert.Contains(t, err.Error(), "expecting a timestamp")
@@ -411,7 +411,7 @@ Joe Gregorio <joe@bitworking.org>
 Change #9
 ooops 1584837780`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Shoud never get here.")
+		assert.Fail(t, "Should never get here.")
 		return nil
 	})
 	assert.Contains(t, err.Error(), "Failed to parse timestamp")
@@ -423,7 +423,7 @@ func TestParseGitRevLogStream_ErrMissingSubject(t *testing.T) {
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0
 Joe Gregorio <joe@bitworking.org>`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Shoud never get here.")
+		assert.Fail(t, "Should never get here.")
 		return nil
 	})
 	assert.Contains(t, err.Error(), "expecting a subject")
@@ -434,7 +434,7 @@ func TestParseGitRevLogStream_ErrMissingAuthor(t *testing.T) {
 	r := strings.NewReader(
 		`commit 6079a7810530025d9877916895dd14eb8bb454c0`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Shoud never get here.")
+		assert.Fail(t, "Should never get here.")
 		return nil
 	})
 	assert.Contains(t, err.Error(), "expecting an author")
@@ -445,7 +445,7 @@ func TestParseGitRevLogStream_ErrMalformedCommitLine(t *testing.T) {
 	r := strings.NewReader(
 		`something_not_commit 6079a7810530025d9877916895dd14eb8bb454c0`)
 	err := parseGitRevLogStream(ioutil.NopCloser(r), func(p Commit) error {
-		assert.Fail(t, "Shoud never get here.")
+		assert.Fail(t, "Should never get here.")
 		return nil
 	})
 	assert.Contains(t, err.Error(), "expected commit at")
