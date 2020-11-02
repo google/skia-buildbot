@@ -31,6 +31,10 @@ function getChartOptions(type: string): string {
       width: '83%',
       height: '82%',
     },
+    backgroundColor: {
+      fill: 'var(--background)',
+      fillOpacity: 0.8,
+    },
     hAxis: {
       slantedText: false,
     },
