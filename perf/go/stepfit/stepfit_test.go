@@ -145,3 +145,10 @@ func TestStepFit_Cohen_StepWithLargeStandardDeviation(t *testing.T) {
 		&StepFit{LeastSquares: InvalidLeastSquaresError, TurningPoint: 2, StepSize: -2.828427, Regression: -2.828427, Status: "High"},
 		GetStepFitAtMid([]float32{1, 2, 3, 4, x}, minStdDev, 0.2, types.CohenStep))
 }
+
+func TestStepFit_MannWhitneyU_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: InvalidLeastSquaresError, TurningPoint: 4, StepSize: -10, Regression: -0.028571428571428577, Status: "High"},
+		GetStepFitAtMid([]float32{2, 1, 3, 5, 12, 11, 13, 15, x}, minStdDev, 0.05, types.MannWhitneyU))
+}
