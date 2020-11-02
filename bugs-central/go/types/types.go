@@ -38,6 +38,41 @@ const (
 	Biennialy = 2 * Yearly
 )
 
+// StatusData is used in the response of the get_client_counts endpoint.
+type StatusData struct {
+	UntriagedCount int    `json:"untriaged_count"`
+	Link           string `json:"link"`
+}
+
+// GetClientCountsResponse is the response used by the get_client_counts endpoint.
+type GetClientCountsResponse struct {
+	ClientsToStatusData map[RecognizedClient]StatusData `json:"clients_to_status_data"`
+}
+
+// GetChartsDataResponse is the response used by the get_charts_data endpoint.
+type GetChartsDataResponse struct {
+	OpenData      interface{} `json:"open_data"`
+	SloData       interface{} `json:"slo_data"`
+	UntriagedData interface{} `json:"untriaged_data"`
+}
+
+// ClientSourceQueryRequest is the request used by different bugs central endpoints.
+type ClientSourceQueryRequest struct {
+	Client RecognizedClient `json:"client"`
+	Source IssueSource      `json:"source"`
+	Query  string           `json:"query"`
+}
+
+// IssuesOutsideSLOResponse is the response used by the get_issues_outside_slo endpoint.
+type IssuesOutsideSLOResponse struct {
+	PriToSLOIssues map[StandardizedPriority][]*Issue `json:"pri_to_slo_issues"`
+}
+
+// GetClientsResponse is the response used by the get_clients endpoint.
+type GetClientsResponse struct {
+	Clients map[RecognizedClient]map[IssueSource]map[string]bool `json:"clients"`
+}
+
 type sloViolationData struct {
 	// If an open issue's last modified time is beyond this duration then it is an SLO violation.
 	modifiedDuration time.Duration
