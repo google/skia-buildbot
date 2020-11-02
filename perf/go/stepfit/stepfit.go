@@ -150,7 +150,7 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 			stepSize = 0
 			regression = stepSize
 		}
-	} else /* Cohen's d */ {
+	} else if stepDetection == types.CohenStep {
 		// https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
 		if len(trace) < 4 {
 			// The math for Cohen's d only makes sense for len(trace) >= 4.
@@ -166,7 +166,8 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 				stepSize = (y0 - y1) / s
 			}
 			regression = stepSize
-		}
+	} else /* types.MannWhitneyU  */ {
+
 	}
 	status := UNINTERESTING
 	if regression >= interesting {
