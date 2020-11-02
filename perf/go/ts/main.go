@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/skia-dev/go2ts"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
@@ -35,9 +36,16 @@ func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
 	return nil
 }
 
+// IgnoreNil is a utitlity struct that allows specifying which structs should
+// have go2ts:"ignorenil" applied.
+type IgnoreNil struct {
+	ParamSet paramtools.ParamSet `json:"paramset" go2ts:"ignorenil"`
+}
+
 func main() {
 	generator := go2ts.New()
 	err := generator.AddMultiple(generator,
+		IgnoreNil{}, // Goes first to ensure the ignorenil version of structs are seen first.
 		alerts.Alert{},
 		alerts.AlertsStatus{},
 		clustering2.ClusterSummary{},
