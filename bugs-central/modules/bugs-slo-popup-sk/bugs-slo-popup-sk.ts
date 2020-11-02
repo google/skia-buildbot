@@ -13,15 +13,7 @@ import { $$ } from 'common-sk/modules/dom';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/styles/buttons';
-
-// TODO(rmistry): Generate this using go2ts.
-export interface Issue {
-  id: string,
-  priority: string,
-  link: string,
-
-  slo_violation_reason: string,
-}
+import { Issue } from '../json';
 
 export class BugsSLOPopupSk extends ElementSk {
   private priToSLOIssues: Record<string, Issue[]> = {};

@@ -22,7 +22,10 @@ import '../bugs-slo-popup-sk';
 
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { BugsSLOPopupSk, Issue } from '../bugs-slo-popup-sk/bugs-slo-popup-sk';
+import { BugsSLOPopupSk } from '../bugs-slo-popup-sk/bugs-slo-popup-sk';
+import {
+  IssueCountsData, Issue, ClientSourceQueryRequest, GetChartsDataResponse, GetClientsResponse,
+} from '../json';
 
 const CLIENT_KEY_DELIMITER = ' > ';
 
@@ -61,41 +64,6 @@ function breakupClientKey(clientKey: string) {
   return ret;
 }
 
-// TODO(rmistry): Generate this using go2ts.
-declare interface CountsData {
-  open_count: number,
-  unassigned_count: number,
-  untriaged_count: number,
-
-  p0_count: number,
-  p1_count: number,
-  p2_count: number,
-  p3_count: number,
-  p4_count: number,
-  p5_count: number,
-  p6_count: number,
-
-  p0_slo_count: number,
-  p1_slo_count: number,
-  p2_slo_count: number,
-  p3_slo_count: number,
-
-  query_link: string,
-  untriaged_query_link: string,
-  p0_link: string,
-  p1_link: string,
-  p2_link: string,
-  p3_and_rest_link: string,
-}
-
-// ChartsData is directly fed to @google-web-components/google-chart.
-// Example format: '[["Month", "Days"], ["Jan", 31], ["Feb", 28], ["Mar", 31]]'
-declare interface ChartsData {
-  open_data: string,
-  slo_data: string,
-  untriaged_data: string,
-}
-
 declare interface PriToSLOIssues{
   pri_to_slo_issues: Record<string, Issue[]>;
 }
@@ -107,10 +75,6 @@ declare interface State {
   query: string,
 }
 
-declare interface ClientsResponse {
-  clients: Record<string, Record<string, Record<string, boolean>>>,
-}
-
 export class BugsCentralSk extends ElementSk {
   public state: State = {
     client: '',
@@ -118,7 +82,7 @@ export class BugsCentralSk extends ElementSk {
     query: '',
   };
 
-  private clients_to_counts: Record<string, CountsData> = {};
+  private clients_to_counts: Record<string, IssueCountsData> = {};
 
   private clients_map: Record<string, Record<string, Record<string, boolean>>> = {};
 
@@ -169,7 +133,7 @@ export class BugsCentralSk extends ElementSk {
     super.connectedCallback();
 
     // Populate map of clients to sources to queries.
-    await this.doImpl('/_/get_clients_sources_queries', {}, async (json: ClientsResponse) => {
+    await this.doImpl('/_/get_clients_sources_queries', {}, async (json: GetClientsResponse) => {
       this.clients_map = json.clients;
     });
 
@@ -289,7 +253,7 @@ export class BugsCentralSk extends ElementSk {
     return rowsHTML;
   }
 
-  private displaySLOTemplate(client: string, source: string, query: string, clientCounts: CountsData): TemplateResult {
+  private displaySLOTemplate(client: string, source: string, query: string, clientCounts: IssueCountsData): TemplateResult {
     const sloTotal = clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count;
     if (!client || !source || !query || sloTotal === 0) {
       // Do not make clickable if we do not have client+source+query or if the total is 0.
@@ -372,7 +336,7 @@ export class BugsCentralSk extends ElementSk {
   }
 
   private async getSLOIssues(client: string, source: string, query: string) {
-    const detail = {
+    const detail: ClientSourceQueryRequest = {
       client: client,
       source: source,
       query: query,
@@ -385,25 +349,25 @@ export class BugsCentralSk extends ElementSk {
   }
 
   private async getCounts(client: string, source: string, query: string) {
-    const detail = {
+    const detail: ClientSourceQueryRequest = {
       client: client,
       source: source,
       query: query,
     };
-    let countsData = {} as CountsData;
-    await this.doImpl('/_/get_issue_counts', detail, (json: CountsData) => {
+    let countsData = {} as IssueCountsData;
+    await this.doImpl('/_/get_issue_counts', detail, (json: IssueCountsData) => {
       countsData = json;
     });
     return countsData;
   }
 
   private async populateChartData() {
-    const detail = {
+    const detail: ClientSourceQueryRequest = {
       client: this.state.client,
       source: this.state.source,
       query: this.state.query,
     };
-    await this.doImpl('/_/get_charts_data', detail, (json: ChartsData) => {
+    await this.doImpl('/_/get_charts_data', detail, (json: GetChartsDataResponse) => {
       this.open_chart_data = JSON.stringify(json.open_data);
       this.slo_chart_data = JSON.stringify(json.slo_data);
       this.untriaged_chart_data = JSON.stringify(json.untriaged_data);

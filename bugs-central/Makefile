@@ -1,8 +1,13 @@
 
-default: build package-lock.json
+default: build web
+
+web: ./modules/json/index.ts package-lock.json
 	npx webpack --mode=development
 
-build:
+./modules/json/index.ts: ./go/types/types.go
+	go run ./go/types/ts
+
+build: web
 	go install -v ./go/bugs-central
 
 release: build package-lock.json

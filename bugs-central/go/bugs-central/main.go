@@ -175,23 +175,13 @@ func (srv *Server) getClients(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := struct {
-		Clients map[types.RecognizedClient]map[types.IssueSource]map[string]bool `json:"clients"`
-	}{
+	resp := types.GetClientsResponse{
 		Clients: clients,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 
 	}
-}
-
-func getStringParam(name string, r *http.Request) string {
-	raw, ok := r.URL.Query()[name]
-	if !ok {
-		return ""
-	}
-	return raw[0]
 }
 
 // StatusData is used in the response of the get_client_counts endpoint.
@@ -230,30 +220,18 @@ func (srv *Server) getClientCounts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// IssuesOutsideSLORequest is the request used by the get_issues_outside_slo endpoint.
-type IssuesOutsideSLORequest struct {
-	Client types.RecognizedClient `json:"client"`
-	Source types.IssueSource      `json:"source"`
-	Query  string                 `json:"query"`
-}
-
-// IssuesOutsideSLOResponse is the response used by the get_issues_outside_slo endpoint.
-type IssuesOutsideSLOResponse struct {
-	PriToSLOIssues map[types.StandardizedPriority][]*types.Issue `json:"pri_to_slo_issues"`
-}
-
 func (srv *Server) getIssuesOutsideSLO(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse the request.
-	q := IssuesOutsideSLORequest{}
-	if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+	var req types.ClientSourceQueryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
 		return
 	}
 
-	priToIssues := srv.pollerClient.GetOpenIssues().GetIssuesOutsideSLO(q.Client, q.Source, q.Query)
-	resp := IssuesOutsideSLOResponse{
+	priToIssues := srv.pollerClient.GetOpenIssues().GetIssuesOutsideSLO(req.Client, req.Source, req.Query)
+	resp := types.IssuesOutsideSLOResponse{
 		PriToSLOIssues: priToIssues,
 	}
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
@@ -265,17 +243,13 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse the request.
-	q := struct {
-		Client types.RecognizedClient `json:"client"`
-		Source types.IssueSource      `json:"source"`
-		Query  string                 `json:"query"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+	var req types.ClientSourceQueryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
 		return
 	}
 
-	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), types.RecognizedClient(q.Client), types.IssueSource(q.Source), q.Query)
+	qds, err := srv.dbClient.GetQueryDataFromDB(context.Background(), types.RecognizedClient(req.Client), types.IssueSource(req.Source), req.Query)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -353,11 +327,7 @@ func (srv *Server) getChartsData(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp := struct {
-		OpenData      interface{} `json:"open_data"`
-		SloData       interface{} `json:"slo_data"`
-		UntriagedData interface{} `json:"untriaged_data"`
-	}{
+	resp := types.GetChartsDataResponse{
 		OpenData:      openData,
 		SloData:       sloData,
 		UntriagedData: untriagedData,
@@ -371,17 +341,13 @@ func (srv *Server) getIssueCountsHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 
 	// Parse the request.
-	q := struct {
-		Client types.RecognizedClient `json:"client"`
-		Source types.IssueSource      `json:"source"`
-		Query  string                 `json:"query"`
-	}{}
-	if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+	var req types.ClientSourceQueryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode request.", http.StatusInternalServerError)
 		return
 	}
 
-	countsData, err := srv.dbClient.GetCountsFromDB(r.Context(), q.Client, q.Source, q.Query)
+	countsData, err := srv.dbClient.GetCountsFromDB(r.Context(), req.Client, req.Source, req.Query)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get issue counts", http.StatusInternalServerError)
 		return
