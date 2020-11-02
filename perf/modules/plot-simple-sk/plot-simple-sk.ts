@@ -912,7 +912,7 @@ export class PlotSimpleSk extends ElementSk {
   /**
    * Remove all lines from plot.
    */
-  removeAll(): void{
+  removeAll(): void {
     this._lineData = [];
     this._labels = [];
     this._hoverPt = {
@@ -935,6 +935,18 @@ export class PlotSimpleSk extends ElementSk {
     this._drawTracesCanvas();
   }
 
+  /** Return the names of all the lines being plotted, not including SPECIAL
+   * names. */
+  getLineNames(): string[] {
+    const ret: string[] = [];
+    this._lineData.forEach((line) => {
+      if (line.name.startsWith(SPECIAL)) {
+        return;
+      }
+      ret.push(line.name);
+    });
+    return ret;
+  }
 
   /**
    * Update all the things that look like constants, but are really dependent on
