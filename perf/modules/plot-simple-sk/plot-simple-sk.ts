@@ -935,8 +935,10 @@ export class PlotSimpleSk extends ElementSk {
     this._drawTracesCanvas();
   }
 
-  /** Return the names of all the lines being plotted, not including SPECIAL
-   * names. */
+  /**
+   * Return the names of all the lines being plotted, not including SPECIAL
+   * names.
+   * */
   getLineNames(): string[] {
     const ret: string[] = [];
     this._lineData.forEach((line) => {
