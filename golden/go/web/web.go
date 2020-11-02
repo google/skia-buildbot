@@ -1391,15 +1391,6 @@ func (wh *Handlers) BaselineHandlerV1(w http.ResponseWriter, r *http.Request) {
 //    /json/expectations?issue=123456
 //    /json/expectations?issue=123456&issueOnly=true
 //
-// It also supports requests in the legacy format below:
-//
-//    /json/expectations/commit/HEAD
-//    /json/expectations/commit/09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1
-//    /json/expectations/commit/09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1?issue=123456
-//    /json/expectations/commit/09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1?issue=123456&issueOnly=true
-//
-// TODO(lovisolo): Remove references to legacy routes when goldctl is fully migrated.
-//
 // The "issue" parameter indicates the changelist ID for which we would like to
 // retrieve the baseline. In that case the returned options will be a blend of
 // the master baseline and the baseline defined for the changelist (usually
@@ -1410,13 +1401,6 @@ func (wh *Handlers) BaselineHandlerV2(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// No limit for anon users - this is an endpoint backed up by baseline servers, and
 	// should be able to handle a large load.
-
-	// Track usage of the legacy /json/expectations/commit/{commit_hash} route.
-	if _, ok := mux.Vars(r)["commit_hash"]; ok {
-		metrics2.GetCounter("gold_baselinehandler_route_legacy").Inc(1)
-	} else {
-		metrics2.GetCounter("gold_baselinehandler_route_new").Inc(1)
-	}
 
 	q := r.URL.Query()
 	clID := q.Get("issue")
