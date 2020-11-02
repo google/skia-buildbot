@@ -9,6 +9,13 @@
  * Contains play-sk as a submodule, which playes over the filtered list of
  * commands.
  *
+ * Data flows along this path in one direction depending on which end triggers a
+ * change.
+ * filter text box <=> this._includedSet <=> histogram-sk
+ *
+ * @evt histogram-update: An event containing the list of histogram entries.
+ *      Emitted every time the histogram is recomputed.
+ *
  * @evt move-position: When the play-sk module or user selects a different
  * command, this event is emitted, and it's detail contains the command index in
  * the unfiltered command list for this frame.
@@ -18,6 +25,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { PlaySk, PlaySkMoveToEventDetail } from '../play-sk/play-sk';
+import { HistogramSkToggleEventDetail } from '../histogram-sk/histogram-sk'
 
 import 'elements-sk/icon/save-icon-sk';
 import 'elements-sk/icon/content-copy-icon-sk';
@@ -70,6 +78,17 @@ export interface HistogramEntry {
   countInFrame: number,
   // number of occurances in the current range filter
   countInRange: number,
+}
+
+/** An event detail containing a new histogram
+ * or new filter set to be displayed by the histogram-sk module.
+ * The event may update one or both of the two fields.
+ */
+export interface CommandsSkHistogramEventDetail {
+  /** A newly computed histogram that needs to be displayed by histogram-sk */
+  hist?: HistogramEntry[];
+  /** whether the command is include by the filter */
+  included?: Set<string>;
 }
 
 // Colors to use for gpu op ids
@@ -235,7 +254,6 @@ Command types can also be filted by clicking on their names in the histogram"
     return this._filtered;
   }
 
-
   constructor() {
     super(CommandsSk.template);
   }
@@ -248,6 +266,10 @@ Command types can also be filted by clicking on their names in the histogram"
 
     this._playSk.addEventListener('moveto', (e) => {
       this.item = (e as CustomEvent<PlaySkMoveToEventDetail>).detail.item;
+    });
+
+    document.addEventListener('toggle-command-inclusion', (e) => {
+      this._toggleName((e as CustomEvent<HistogramSkToggleEventDetail>).detail.name);
     });
   }
 
@@ -329,7 +351,34 @@ Command types can also be filted by clicking on their names in the histogram"
   clearFilter() {
     this.querySelector<HTMLInputElement>('#text-filter')!.value = '';
     if (!this.count) { return; }
-    this.range = [0, this._cmd.length-1]; // does render
+    this.range = [0, this._cmd.length-1]; // setter triggers _applyRangeFilter, follow that
+  }
+
+  // filter change coming from histogram
+  private _toggleName(name: string) {
+    const lowerName = name.toLowerCase();
+    if (!this._available.has(lowerName)) {
+      return;
+    }
+    if (this._includedSet.has(lowerName)) {
+      this._includedSet.delete(lowerName);
+    } else {
+      this._includedSet.add(lowerName);
+    }
+
+    // represent _includedSet as a negative text filter and put it in the box
+    const diff = new Set(this._available);
+    for (let c of this._includedSet) {
+        diff.delete(c)
+    }
+    let filter = '';
+    if (diff.size > 0) {
+      filter = '!'+Array.from(diff).join(' ');
+    }
+    this.querySelector<HTMLInputElement>('#text-filter')!.value = filter;
+    // don't trigger _textFilter() since that would send an event back to histogram and
+    // start an infinite loop. this._includedSet is correct, apply it and render.
+    this._applyCommandFilter();
   }
 
   // TODO(nifong): make this smarter, show matrices as tables, colors as colors, etc
@@ -377,14 +426,14 @@ Command types can also be filted by clicking on their names in the histogram"
   }
 
   // parse the text filter input, and if it is possible to represent it purely as
-  // a command filter,
-  // store it in this._histogram[i].included
+  // a command filter, store it in this._includedSet
   private _textFilter() {
     let rawFilter = this.querySelector<HTMLInputElement>('#text-filter'
       )!.value.trim().toLowerCase();
     const negative = (rawFilter[0] == '!');
 
-    this._includedSet = this._available;
+    // make sure to copy it so we don't alter this._available
+    this._includedSet = new Set<string>(this._available);
 
     if (rawFilter !== '') {
       if (negative) {
@@ -400,17 +449,31 @@ Command types can also be filted by clicking on their names in the histogram"
         const tokens = rawFilter.split(/\s+/);
         this._includedSet = new Set<string>();
         for (const token of tokens) {
-          if (token in this._available) {
+          if (this._available.has(token)) {
             this._includedSet.add(token);
           } else {
             // not a command name, bail out, reset this, do a free text search
-            this._includedSet = this._available;
+            this._includedSet = new Set<string>(this._available);
+            // since we just altered this._includedSet we have to let histogram know.
+            this.dispatchEvent(new CustomEvent<CommandsSkHistogramEventDetail>(
+              'histogram-update', {
+                detail: { included: new Set<string>(this._includedSet) },
+                bubbles: true,
+              }));
             this._freeTextSearch(tokens);
+            // TODO(nifong): need some visual feedback to let the user know
+            console.log(`Query interpreted as free text search becauuse ${token}
+doesn't appear to be a command name`);
             return;
           }
         }
       }
     }
+    this.dispatchEvent(new CustomEvent<CommandsSkHistogramEventDetail>(
+        'histogram-update', {
+          detail: { included: new Set<string>(this._includedSet) },
+          bubbles: true,
+        }));
     this._applyCommandFilter(); // note we still do this for emtpy filters.
   }
 
@@ -433,7 +496,9 @@ Command types can also be filted by clicking on their names in the histogram"
       }
     }
     this._render();
-    this.item = this._filtered.length - 1; // after render because it causes a scroll
+    if (this._filtered.length > 0) {
+      this.item = this._filtered.length - 1; // after render because it causes a scroll
+    }
   }
 
   // Applies range filter and recalculates command name histogram.
@@ -470,13 +535,13 @@ Command types can also be filted by clicking on their names in the histogram"
     // Now format the histogram as a sorted array suitable for use in the template.
     // First convert the counts map into an Array of HistogramEntry.
     this._histogram = [];
-    for (const k in counts) {
+    counts.forEach((value, key) => {
       this._histogram.push({
-        name: k,
-        countInFrame: counts.get(k)!.count_in_frame,
-        countInRange: counts.get(k)!.count_in_range_filter,
-      });
-    }
+        name: key,
+        countInFrame: value.count_in_frame,
+        countInRange: value.count_in_range_filter,
+      })
+    });
     // Now sort the array, descending on the rangeCount, ascending
     // on the op name.
     // sort by rangeCount so entries don't move on enable/disable
@@ -494,8 +559,22 @@ Command types can also be filted by clicking on their names in the histogram"
       }
     });
 
-    // the user's selections are still present in the text filter. Apply them now
+    // the user's selections are present in the text filter. Apply them now
+    // triggers render
     this._textFilter();
+    // that populated this._includedSet, which we also need to notify histogram of.
+
+    // send this to the histogram element
+    this.dispatchEvent(
+      new CustomEvent<CommandsSkHistogramEventDetail>(
+        'histogram-update', {
+          detail: {
+            hist: this._histogram,
+            // Make a copy so listener can't accidently write to it.
+            included: new Set<string>(this._includedSet),
+          },
+          bubbles: true,
+        }));
   }
 
   // Apply a filter specified by this._includedSet and set the filtered list to be visible.
