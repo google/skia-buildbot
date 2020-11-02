@@ -9,11 +9,7 @@ describe('example-control-sk', () => {
 
   let element: PlotSimpleSk;
   beforeEach(() => {
-    element = newInstance((el: PlotSimpleSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+    element = newInstance();
   });
 
   describe('add some lines to plot', () => {
