@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e5b86073_e59d1002",
+        "filename": "bugs-central/go/types/ts/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-02T20:30:16Z",
+      "side": 1,
+      "message": "I think you also want to check in ./modules/json/index.ts since not having that file will cause a diff on the bots.",
+      "range": {
+        "startLine": 1,
+        "startChar": 2,
+        "endLine": 1,
+        "endChar": 3
+      },
+      "revId": "05c011c99e6e73cfdca9a48f97acbee2aa0bb339",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0b7638c5_369c3e56",
+        "filename": "bugs-central/go/types/ts/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-02T20:30:16Z",
+      "side": 1,
+      "message": "Break into one type per line.",
+      "revId": "05c011c99e6e73cfdca9a48f97acbee2aa0bb339",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
