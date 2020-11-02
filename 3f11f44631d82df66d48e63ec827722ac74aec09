@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ee7551b2_f7ccc017",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-02T17:33:45Z",
+      "side": 1,
+      "message": "nit: better to be outside the repeat?",
+      "revId": "3f11f44631d82df66d48e63ec827722ac74aec09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
