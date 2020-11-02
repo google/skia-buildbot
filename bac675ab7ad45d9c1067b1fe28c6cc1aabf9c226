@@ -22,6 +22,30 @@
       },
       "revId": "bac675ab7ad45d9c1067b1fe28c6cc1aabf9c226",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef12b5ca_58812d5e",
+        "filename": "golden/modules/rpc_types.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-02T20:28:35Z",
+      "side": 1,
+      "message": "This is necessary for two reasons:\n\n1) To ensure that ParamSet is seen by go2ts for the very first time with the go2ts:\"ignorenil\" annotation (go2ts only takes into account the first occurrence of any given type).\n\n2) We can\u0027t use the go2ts:\"ignorenil\" annotation directly on ParamSet because it is a type alias (as opposed to e.g. a struct field). Therfore we need the auxiliary IgnoreNil struct.",
+      "parentUuid": "13d36cc1_903cafef",
+      "range": {
+        "startLine": 3,
+        "startChar": 17,
+        "endLine": 3,
+        "endChar": 37
+      },
+      "revId": "bac675ab7ad45d9c1067b1fe28c6cc1aabf9c226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
