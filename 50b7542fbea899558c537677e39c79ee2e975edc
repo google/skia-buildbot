@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9902877d_214b8844",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 939,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-02T18:36:47Z",
+      "side": 1,
+      "message": "Formatting ubernit: with multiline JSDOc, prefer moving /** and */ into separate lines, e.g.\n\n  /**\n   * Return the names of all the lines being plotted, not including SPECIAL\n   * names.\n   */",
+      "range": {
+        "startLine": 938,
+        "startChar": 0,
+        "endLine": 939,
+        "endChar": 14
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a4700848_413e655f",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 948,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-02T18:36:47Z",
+      "side": 1,
+      "message": "Suggestion:\n  return this._lineData.map(line \u003d\u003e line.name).filter(name \u003d\u003e !name.startsWith(SPECIAL));",
+      "range": {
+        "startLine": 941,
+        "startChar": 3,
+        "endLine": 948,
+        "endChar": 15
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4fba5830_c3ab5946",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-02T18:36:47Z",
+      "side": 1,
+      "message": "Nit: delete if unused.",
+      "range": {
+        "startLine": 12,
+        "startChar": 26,
+        "endLine": 16,
+        "endChar": 5
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
