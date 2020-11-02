@@ -55,6 +55,8 @@ import (
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/trybot/results"
+	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
@@ -115,6 +117,8 @@ type Frontend struct {
 
 	dfBuilder dataframe.DataFrameBuilder
 
+	trybotResultsLoader results.Loader
+
 	// distFileSystem is the ./dist directory of files produced by webpack.
 	distFileSystem http.FileSystem
 
@@ -155,6 +159,7 @@ var templateFilenames = []string{
 	"alerts.html",
 	"help.html",
 	"dryRunAlert.html",
+	"trybot.html",
 }
 
 func (f *Frontend) loadTemplatesImpl() {
@@ -364,6 +369,9 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	sklog.Info("About to build dfbuilder.")
 	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore)
 
+	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
+	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
+
 	alerts.DefaultSparse = f.flags.DefaultSparse
 
 	sklog.Info("About to build alertStore.")
@@ -454,6 +462,24 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req results.TryBotRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+	resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load results.", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to encode trybot results: %s", err)
+	}
+}
+
 // RangeRequest is used in cidRangeHandler and is used to query for a range of
 // cid.CommitIDs that include the range between [begin, end) and include the
 // explicit CommitID of "Source, Offset".
@@ -489,7 +515,6 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 		resp = append(resp, details)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
@@ -1483,6 +1508,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/t/", f.templateHandler("triage.html"))
 	router.HandleFunc("/a/", f.templateHandler("alerts.html"))
 	router.HandleFunc("/d/", f.templateHandler("dryRunAlert.html"))
+	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
@@ -1500,6 +1526,8 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", f.frameResultsHandler).Methods("GET")
 	router.HandleFunc("/_/cluster/start", f.clusterStartHandler).Methods("POST")
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", f.clusterStatusHandler).Methods("GET")
+
+	router.HandleFunc("/_/trybot/load/", f.trybotLoadHandler).Methods("POST")
 
 	router.HandleFunc("/_/dryrun/start", f.dryrunRequests.StartHandler).Methods("POST")
 	router.HandleFunc("/_/dryrun/status/{id:[a-zA-Z0-9]+}", f.dryrunRequests.StatusHandler).Methods("GET")

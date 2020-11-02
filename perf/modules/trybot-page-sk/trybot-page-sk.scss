@@ -1,0 +1,69 @@
+trybot-page-sk {
+  .query {
+    display: flex;
+  }
+
+  .query-summary {
+    margin-left: 16px;
+  }
+
+  h2 {
+    margin: 0 0 8px -8px;
+    font-size: 18px;
+  }
+
+  #run {
+    margin-left: -8px;
+  }
+
+  [hidden] {
+    display: none;
+  }
+
+  .run {
+    display: flex;
+    align-items: center;
+
+    spinner-sk {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .changed {
+    color: var(--secondary);
+  }
+
+  plot-simple-sk {
+    display: block;
+    width: 800px;
+  }
+
+  td.link {
+    text-decoration: underline;
+    color: var(--primary);
+    fill: var(--primary);
+  }
+
+  th {
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding-right: 8px;
+  }
+
+  .tiny {
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  paramset-sk .highlight {
+    color: var(--secondary);
+  }
+
+  #by-params-traceid-container {
+    margin: 8px;
+  }
+}
