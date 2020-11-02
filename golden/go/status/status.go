@@ -41,7 +41,7 @@ type GUIStatus struct {
 	FilledCommits int `json:"filledCommits"`
 
 	// Status per corpus.
-	CorpStatus []*GUICorpusStatus `json:"corpStatus"`
+	CorpStatus []*GUICorpusStatus `json:"corpStatus" go2ts:"ignorenil"`
 }
 
 type GUICorpusStatus struct {

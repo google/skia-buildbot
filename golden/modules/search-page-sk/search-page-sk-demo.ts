@@ -26,7 +26,7 @@ fetchMock.get('glob:/json/v1/search*', (url: string) => {
   const filteredSearchResponse = deepCopy(searchResponse);
 
   // Filter only by untriaged/positive/negative.
-  filteredSearchResponse.digests = filteredSearchResponse.digests!.filter(
+  filteredSearchResponse.digests = filteredSearchResponse.digests.filter(
     (digest) =>
       (digest!.status === 'untriaged' && url.includes('unt=true')) ||
       (digest!.status === 'positive' && url.includes('pos=true')) ||
@@ -53,7 +53,7 @@ fetchMock.post('/json/v1/triage', (_: any, req: any) => {
       if (label as string === '') return;
 
       // Iterate over all search results.
-      searchResponse.digests?.forEach((searchResult) => {
+      searchResponse.digests.forEach((searchResult) => {
         // Update the search result if it matches the current digest.
         if (searchResult?.digest === digest && searchResult.test === testName) {
           searchResult.status = label;
