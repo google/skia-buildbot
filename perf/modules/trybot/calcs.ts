@@ -6,11 +6,28 @@ import { TryBotResponse } from '../json';
 export interface AveForParam {
     keyValue: string;
     aveStdDevRatio: number;
+
+    /** Total number of traces that match this keyValue. */
+    n: number;
+
+    /** The number of traces that match this keyValue and have aveStdDevRatio >= 0. */
+    high: number;
+
+    /** The number of traces that match this keyValue and have aveStdDevRatio < 0. */
+    low: number;
 }
 
 interface runningTotal {
     totalStdDevRatio: number;
+
+    /** Total number of traces that match this keyValue. */
     n: number;
+
+    /** The number of traces that match this keyValue and have aveStdDevRatio >= 0. */
+    high: number;
+
+    /** The number of traces that match this keyValue and have aveStdDevRatio < 0. */
+    low: number;
 }
 
 /** Returns an array of AveForParam, where each one contains
@@ -31,10 +48,17 @@ export function byParams(res: TryBotResponse): AveForParam[] {
         t = {
           totalStdDevRatio: 0,
           n: 0,
+          high: 0,
+          low: 0,
         };
       }
       t.totalStdDevRatio += r.stddevRatio;
       t.n += 1;
+      if (r.stddevRatio >= 0) {
+        t.high += 1;
+      } else {
+        t.low += 1;
+      }
       runningTotals[runningTotalsKey] = t;
     });
   });
@@ -46,6 +70,9 @@ export function byParams(res: TryBotResponse): AveForParam[] {
     ret.push({
       keyValue: runningTotalKey,
       aveStdDevRatio: r.totalStdDevRatio / r.n,
+      n: r.n,
+      high: r.high,
+      low: r.low,
     });
   });
 
