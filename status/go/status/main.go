@@ -119,6 +119,7 @@ var (
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
+	taskLogsUrlTemplate         = flag.String("task_logs_url_template", "https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations", "Template URL for direct link to logs, with {{TaskID}} as placeholder.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 
@@ -583,6 +584,7 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 		d = struct {
 			Title            string
 			SwarmingURL      string
+			LogsURLTemplate  string
 			TaskSchedulerURL string
 			DefaultRepo      string
 			// Repo name to repo URL.
@@ -590,6 +592,7 @@ func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental 
 		}{
 			Title:            fmt.Sprintf("Status: %s", repoName),
 			SwarmingURL:      *swarmingUrl,
+			LogsURLTemplate:  *taskLogsUrlTemplate,
 			TaskSchedulerURL: *taskSchedulerUrl,
 			DefaultRepo:      repoName,
 			Repos:            repoURLsByName,
