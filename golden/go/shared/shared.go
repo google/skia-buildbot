@@ -21,11 +21,6 @@ const (
 	ExpectationsRouteV1 = "/json/v1/expectations"
 	ExpectationsRouteV2 = "/json/v2/expectations"
 
-	// ExpectationsLegacyRoute exposes the same handler as ExpectationsRoute and will be kept around
-	// until all goldctl users have updated to a new version using the new route.
-	// TODO(lovisolo): Remove this when goldctl is fully migrated.
-	ExpectationsLegacyRoute = "/json/expectations/commit/{commit_hash}"
-
 	// KnownHashesRoute serves the list of known hashes.
 	KnownHashesRoute   = "/json/hashes"
 	KnownHashesRouteV1 = "/json/v1/hashes"

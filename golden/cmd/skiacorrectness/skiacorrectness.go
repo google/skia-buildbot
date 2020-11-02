@@ -800,8 +800,6 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add(shared.ExpectationsRoute, handlers.BaselineHandlerV1, "GET")
 	add(shared.ExpectationsRouteV1, handlers.BaselineHandlerV1, "GET")
 	add(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2, "GET")
-	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
-	add(shared.ExpectationsLegacyRoute, handlers.BaselineHandlerV1, "GET")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.
