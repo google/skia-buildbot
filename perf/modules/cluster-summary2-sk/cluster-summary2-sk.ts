@@ -54,23 +54,12 @@ import {
   Commit,
   CommitNumber,
   Status,
-  SkPerfConfig,
   ColumnHeader,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
-
-// Handle the sk namespace attached to window.
-//
-// TODO(jcgregorio) SkPerfConfig handling should be moved into its own module.
-declare global {
-  interface Window {
-    sk: {
-      perf: SkPerfConfig;
-    };
-  }
-}
+import '../window/window';
 
 function trunc(value: number) {
   return (+value).toPrecision(3);
