@@ -16,6 +16,24 @@
       "message": "nit: better to be outside the repeat?",
       "revId": "3f11f44631d82df66d48e63ec827722ac74aec09",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1f02745_ec7add86",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-02T18:21:22Z",
+      "side": 1,
+      "message": "Whoops, done.",
+      "parentUuid": "ee7551b2_f7ccc017",
+      "revId": "3f11f44631d82df66d48e63ec827722ac74aec09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
