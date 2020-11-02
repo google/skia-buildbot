@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13d36cc1_903cafef",
+        "filename": "golden/modules/rpc_types.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-02T20:16:48Z",
+      "side": 1,
+      "message": "I don\u0027t quite understand why this is necessary.",
+      "range": {
+        "startLine": 3,
+        "startChar": 17,
+        "endLine": 3,
+        "endChar": 37
+      },
+      "revId": "bac675ab7ad45d9c1067b1fe28c6cc1aabf9c226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
