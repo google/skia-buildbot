@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "20575dab_d7e18b3a",
+        "filename": "perf/go/frontend/frontend.go",
+        "patchSetId": 47
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-02T19:03:56Z",
+      "side": 1,
+      "message": "nit: move this down to 478 (just before we actually start encoding things) because we don\u0027t necessarily want this to be set if we are returning errors.",
+      "range": {
+        "startLine": 467,
+        "startChar": 3,
+        "endLine": 467,
+        "endChar": 9
+      },
+      "revId": "fbf1609095f2fba26dd25dbfdb8e06b43d425970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5393c6d4_fd8d0056",
+        "filename": "perf/modules/trybot-page-sk/trybot-page-sk.ts",
+        "patchSetId": 47
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-02T19:03:56Z",
+      "side": 1,
+      "message": "Possible future-proofing, including the code review system (CRS) like gerrit or github in case you need to update TryJob support to include data tracked from multiple places.\n\nGold needs to track tryjobs from gerrit-internal and gerrit in the Chrome repo and adding these CRS fields all over later was a bit of a pain.",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 78,
+        "endChar": 11
+      },
+      "revId": "fbf1609095f2fba26dd25dbfdb8e06b43d425970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45c6461f_f517d860",
+        "filename": "perf/modules/trybot-page-sk/trybot-page-sk.ts",
+        "patchSetId": 47
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-02T19:03:56Z",
+      "side": 1,
+      "message": "This would probably be good to have a title explaining what it means. Here and/or on the table below.",
+      "range": {
+        "startLine": 163,
+        "startChar": 34,
+        "endLine": 163,
+        "endChar": 40
+      },
+      "revId": "fbf1609095f2fba26dd25dbfdb8e06b43d425970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cb0b210d_3afddb63",
+        "filename": "perf/modules/trybot-page-sk/trybot-page-sk_test.ts",
+        "patchSetId": 47
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-02T19:03:56Z",
+      "side": 1,
+      "message": "Delete or TODO?",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 6
+      },
+      "revId": "fbf1609095f2fba26dd25dbfdb8e06b43d425970",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
