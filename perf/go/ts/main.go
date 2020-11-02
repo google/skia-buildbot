@@ -36,10 +36,10 @@ func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
 	return nil
 }
 
-// IgnoreNil is a utitlity struct that allows specifying which structs should
+// IgnoreNil is a utility struct that allows specifying which structs should
 // have go2ts:"ignorenil" applied.
 type IgnoreNil struct {
-	ParamSet paramtools.ParamSet `json:"paramset" go2ts:"ignorenil"`
+	ParamSet paramtools.ParamSet `go2ts:"ignorenil"`
 }
 
 func main() {
