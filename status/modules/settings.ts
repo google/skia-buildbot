@@ -7,6 +7,8 @@
 
 class StatusSettings {
   public swarmingUrl: string = '';
+  // Url with '{{TaskID}}' as a placeholder.
+  public logsUrlTemplate: string = '';
   public taskSchedulerUrl: string = '';
   public defaultRepo: string = '';
   public repos: Map<string, string> = new Map();
@@ -24,6 +26,22 @@ export function swarmingUrl() {
 // taskSchedulerUrl: Base URL for linking to Task Scheduler data.
 export function taskSchedulerUrl() {
   return settings()?.taskSchedulerUrl;
+}
+
+// logsUrl: Returns a logsUrl for the given taskId.
+export function logsUrl(taskId: string): string {
+  const temp = settings()?.logsUrlTemplate;
+  if (!temp) {
+    return '#';
+  }
+  if (temp.includes('annotations')) {
+    if (!taskId.endsWith('0')) {
+      return '#';
+    }
+    // Hack because chromium logs replaces a persistent trailing '0' with a '1' for log urls.
+    taskId = taskId.slice(0, -1) + '1';
+  }
+  return temp.replace('{{TaskID}}', taskId);
 }
 
 // defaultRepo: Repo to use on initial load.
