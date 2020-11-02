@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d8d04a3c_7d9b30b9",
+        "filename": "perf/go/ts/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-02T18:39:00Z",
+      "side": 1,
+      "message": "Nit: utility",
+      "range": {
+        "startLine": 39,
+        "startChar": 18,
+        "endLine": 39,
+        "endChar": 26
+      },
+      "revId": "b2d7ce690af77133828523f51d8eaa380a883d3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9904a81e_d98343f6",
+        "filename": "perf/go/ts/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-02T18:39:00Z",
+      "side": 1,
+      "message": "We can probably remove this, I think.",
+      "range": {
+        "startLine": 42,
+        "startChar": 31,
+        "endLine": 42,
+        "endChar": 47
+      },
+      "revId": "b2d7ce690af77133828523f51d8eaa380a883d3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
