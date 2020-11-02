@@ -10,9 +10,7 @@
     "includeTbrLine": true,
     "includeTests": true
   },
-  "contacts": [
-    "radial-bots+tint-roll@google.com"
-  ],
+  "contacts": ["radial-bots+tint-roll@google.com"],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
     "project": "chromium/src",
@@ -28,9 +26,7 @@
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
   ],
-  "sheriffBackup": [
-    "radial-bots+tint-roll@google.com"
-  ],
+  "sheriffBackup": ["radial-bots+tint-roll@google.com"],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
@@ -47,5 +43,5 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0s"
+  "maxRollFrequency": "24h"
 }
