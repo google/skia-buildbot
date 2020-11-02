@@ -35,7 +35,7 @@ export class HistogramSk extends ElementSk {
   private static template = (ele: HistogramSk) =>
     html`
 <details title="A table of the number of occurrences of each command." open>
-  <summary>Histogram</summary>
+  <summary><b>Histogram</b></summary>
   <table>
     <tr>
       <td title="Occurrences of command in current frame (or single frame skp file).">frame</td>
