@@ -267,7 +267,7 @@ export class SearchPageSk extends ElementSk {
       sendBeginTask(this);
       const statusResponse: StatusResponse =
         await fetch('/json/v1/trstatus', {method: 'GET'}).then(jsonOrThrow);
-      this._corpora = statusResponse.corpStatus!.map((corpus) => corpus!.name);
+      this._corpora = statusResponse.corpStatus.map((corpus) => corpus.name);
       this._render();
       sendEndTask(this);
     } catch(e) {

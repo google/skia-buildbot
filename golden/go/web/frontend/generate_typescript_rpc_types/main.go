@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/skia-dev/go2ts"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -34,6 +35,15 @@ func main() {
 }
 
 func addTypes(generator *go2ts.Go2TS) error {
+
+	// Ensure go2ts sees the ParamSet type for the first time with the go2ts:"ignorenil" annotation.
+	type ignoreNil struct {
+		ParamSet paramtools.ParamSet `go2ts:"ignorenil"`
+	}
+	if err := generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE"); err != nil {
+		return skerr.Wrap(err)
+	}
+
 	// Response for the /json/v1/changelist/{system}/{id} RPC endpoint.
 	if err := generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse"); err != nil {
 		return skerr.Wrap(err)

@@ -37,7 +37,7 @@ export class ChangelistControlsSk extends ElementSk {
 
       <div class=inputs>
         <select @input=${ele._onSelectPS}>
-          ${ele._summary.patch_sets?.map(
+          ${ele._summary.patch_sets.map(
             (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`)}
         </select>
         <span class=spacer></span>
@@ -58,7 +58,7 @@ export class ChangelistControlsSk extends ElementSk {
       </div>
 
       <div class=tryjob-container>
-        ${ps?.try_jobs?.map((tj) => ChangelistControlsSk.tryJobTemplate(tj))}
+        ${ps?.try_jobs.map((tj) => ChangelistControlsSk.tryJobTemplate(tj))}
       </div>
     `;
   };
@@ -130,7 +130,7 @@ export class ChangelistControlsSk extends ElementSk {
 
   _onSelectPS(e: InputEvent) {
     const selectedIndex = (e.target! as HTMLSelectElement).selectedIndex;
-    const xps = this._summary!.patch_sets!;
+    const xps = this._summary!.patch_sets;
     const ps = xps[selectedIndex];
     this.ps_order = ps.order; // calls _render()
     this._sendUpdateEvent();
@@ -141,7 +141,7 @@ export class ChangelistControlsSk extends ElementSk {
    * will be updated to whatever the latest order is.
    */
   _getSelectedPatchSet() {
-    if (!this._summary || !this._summary.patch_sets || !this._summary.patch_sets.length) {
+    if (!this._summary?.patch_sets?.length) {
       return null;
     }
     const xps = this._summary.patch_sets;

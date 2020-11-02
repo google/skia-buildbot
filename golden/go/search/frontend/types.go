@@ -18,7 +18,7 @@ import (
 // SearchResponse is the structure returned by the Search(...) function of SearchAPI and intended
 // to be returned as JSON in an HTTP response.
 type SearchResponse struct {
-	Results []*SearchResult `json:"digests"`
+	Results []*SearchResult `json:"digests" go2ts:"ignorenil"`
 	// Offset is the offset of the digest into the total list of digests.
 	Offset int `json:"offset"`
 	// Size is the total number of Digests that match the current query.

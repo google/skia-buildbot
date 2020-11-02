@@ -57,7 +57,7 @@ func ConvertChangeList(cl code_review.ChangeList, system, urlTempl string) Chang
 type ChangeListSummary struct {
 	CL ChangeList `json:"cl"`
 	// these are only those patchsets with data.
-	PatchSets         []PatchSet `json:"patch_sets"`
+	PatchSets         []PatchSet `json:"patch_sets" go2ts:"ignorenil"`
 	NumTotalPatchSets int        `json:"num_total_patch_sets"`
 }
 
@@ -65,7 +65,7 @@ type ChangeListSummary struct {
 type PatchSet struct {
 	SystemID string   `json:"id"`
 	Order    int      `json:"order"`
-	TryJobs  []TryJob `json:"try_jobs"`
+	TryJobs  []TryJob `json:"try_jobs" go2ts:"ignorenil"`
 }
 
 // TryJob represents the data the frontend needs for TryJobs.
