@@ -18,6 +18,7 @@ SetupMocks()
   .expectGetAutorollerStatuses(getAutorollerStatusesResponse);
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
+  logsUrlTemplate: 'https://ci.chromium.org/raw/build/logs.chromium.org/skia/TASKID/+/annotations',
   taskSchedulerUrl: 'example.com/ts',
   defaultRepo: 'skia',
   repos: new Map([
