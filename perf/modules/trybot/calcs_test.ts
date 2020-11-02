@@ -45,15 +45,25 @@ describe('trybot', () => {
       });
 
       // We expect that along the test=1 axes to average the two stddevRatio values.
-      assert.deepEqual(
-        res.map((r) => r.aveStdDevRatio),
-        [2.0, 1.5, 1.0],
-      );
-
-      assert.deepEqual(
-        res.map((r) => r.keyValue),
-        ['model=GCE', 'test=1', 'model=Nexus5x'],
-      );
+      assert.deepEqual(res, [{
+        keyValue: 'model=GCE',
+        aveStdDevRatio: 2.0,
+        n: 1,
+        high: 1,
+        low: 0,
+      }, {
+        keyValue: 'test=1',
+        aveStdDevRatio: 1.5,
+        n: 2,
+        high: 2,
+        low: 0,
+      }, {
+        keyValue: 'model=Nexus5x',
+        aveStdDevRatio: 1.0,
+        n: 1,
+        high: 1,
+        low: 0,
+      }]);
     });
 
     it('sorts the results by descending aveStdDevRatio', () => {
