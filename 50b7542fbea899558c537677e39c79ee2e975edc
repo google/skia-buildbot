@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "29951d51_b629926d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-02T19:25:49Z",
+      "side": 1,
+      "message": "Nits will be done in a follow-up CL.",
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9902877d_214b8844",
@@ -37,6 +54,30 @@
       "writtenOn": "2020-11-02T18:36:47Z",
       "side": 1,
       "message": "Suggestion:\n  return this._lineData.map(line \u003d\u003e line.name).filter(name \u003d\u003e !name.startsWith(SPECIAL));",
+      "range": {
+        "startLine": 941,
+        "startChar": 3,
+        "endLine": 948,
+        "endChar": 15
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "928a9861_5721c326",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 948,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-02T19:25:49Z",
+      "side": 1,
+      "message": "I thought of that, but it represents two passes through the array, while the forEach is just one pass.",
+      "parentUuid": "a4700848_413e655f",
       "range": {
         "startLine": 941,
         "startChar": 3,
