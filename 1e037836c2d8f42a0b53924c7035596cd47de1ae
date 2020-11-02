@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "894cd215_7e80a102",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-02T14:39:54Z",
+      "side": 1,
+      "message": "Nit: Technically, this is Milo",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 180,
+        "endChar": 34
+      },
+      "revId": "1e037836c2d8f42a0b53924c7035596cd47de1ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1de53198_9424ce76",
+        "filename": "status/modules/settings.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-02T14:39:54Z",
+      "side": 1,
+      "message": "Nit: Can we do something more templatey?  eg. ${TaskID} or {{TaskID}} ?",
+      "range": {
+        "startLine": 44,
+        "startChar": 23,
+        "endLine": 44,
+        "endChar": 29
+      },
+      "revId": "1e037836c2d8f42a0b53924c7035596cd47de1ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
