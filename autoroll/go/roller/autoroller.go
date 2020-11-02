@@ -335,6 +335,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 
 	// Update the current sheriff in a loop.
 	cleanup.Repeat(30*time.Minute, func(ctx context.Context) {
+		lv := metrics2.NewLiveness("last_successful_sheriff_retrieval", map[string]string{"roller": r.roller})
 		emails, err := GetSheriff(r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
@@ -348,6 +349,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 				sklog.Errorf("Failed to reload configs: %s", err)
 				return
 			}
+			lv.Reset()
 		}
 	}, nil)
 
@@ -695,6 +697,8 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	}); err != nil {
 		return err
 	}
+	// Log the current sheriff(s).
+	sklog.Infof("Current sheriff: %v", r.GetEmails())
 	return r.status.Update(ctx)
 }
 
