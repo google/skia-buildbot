@@ -243,10 +243,11 @@ export class BugsCentralSk extends ElementSk {
     clientKeys.sort();
     for (let i = 0; i < clientKeys.length; i++) {
       const clientKey = clientKeys[i];
+      const clientKeyTokens = breakupClientKey(clientKey);
       const clientCounts = this.clients_to_counts[clientKey];
       rowsHTML.push(html`
         <tr>
-          <td @click=${() => this.clickClient(clientKey)}>
+          <td @click=${() => this.clickClient(clientKeyTokens.client, clientKeyTokens.source, clientKeyTokens.query)}>
             <span class=client-link>${clientKey}</span>
           </td>
           <td>
@@ -270,7 +271,7 @@ export class BugsCentralSk extends ElementSk {
     : html`${clientCounts.p3_count + clientCounts.p4_count + clientCounts.p5_count + clientCounts.p6_count}`}
           </td>
           <td>
-            ${this.displaySLOTemplate(clientCounts)}
+            ${this.displaySLOTemplate(clientKeyTokens.client, clientKeyTokens.source, clientKeyTokens.query, clientCounts)}
           </td>
           <td>
             ${clientCounts.untriaged_query_link
@@ -288,25 +289,24 @@ export class BugsCentralSk extends ElementSk {
     return rowsHTML;
   }
 
-  private displaySLOTemplate(clientCounts: CountsData): TemplateResult {
+  private displaySLOTemplate(client: string, source: string, query: string, clientCounts: CountsData): TemplateResult {
     const sloTotal = clientCounts.p0_slo_count + clientCounts.p1_slo_count + clientCounts.p2_slo_count + clientCounts.p3_slo_count;
-    if (!this.state.client || !this.state.source || sloTotal === 0) {
-      // Do not make clickable if we do not have client+source or if the total is 0.
+    if (!client || !source || !query || sloTotal === 0) {
+      // Do not make clickable if we do not have client+source+query or if the total is 0.
       return html`${sloTotal}`;
     }
-    return html`<span class=slo-link @click=${() => this.displaySLOPopup()}>${sloTotal}</span>`;
+    return html`<span class=slo-link @click=${() => this.displaySLOPopup(client, source, query)}>${sloTotal}</span>`;
   }
 
-  private async displaySLOPopup() {
-    const priToSLOIssues = await this.getSLOIssues(this.state.client, this.state.source, this.state.query);
+  private async displaySLOPopup(client: string, source: string, query: string) {
+    const priToSLOIssues = await this.getSLOIssues(client, source, query);
     this.sloPopup!.open(priToSLOIssues);
   }
 
-  private clickClient(clientKey: string) {
-    const tokens = breakupClientKey(clientKey);
-    this.state.client = tokens.client ? tokens.client : '';
-    this.state.source = tokens.source ? tokens.source : '';
-    this.state.query = tokens.query ? tokens.query : '';
+  private clickClient(client: string, source: string, query: string) {
+    this.state.client = client || '';
+    this.state.source = source || '';
+    this.state.query = query || '';
     this.stateHasChanged();
     this.populateDataAndRender();
   }
