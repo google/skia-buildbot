@@ -4,7 +4,7 @@ export interface Go2TS {
 }
 
 export interface IgnoreNil {
-	paramset: ParamSet;
+	ParamSet: ParamSet;
 }
 
 export interface Alert {
