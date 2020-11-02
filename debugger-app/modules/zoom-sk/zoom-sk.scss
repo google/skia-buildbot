@@ -1,0 +1,56 @@
+zoom-sk {
+  .light-checkerboard  {
+    border: solid lightgray 1px;
+    background-position: 0px 0px, 10px 10px;
+    background-size: 20px 20px;
+    background-image: linear-gradient(
+      45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+                      linear-gradient(
+      45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+  }
+
+  .dark-checkerboard  {
+    border: solid lightgray 1px;
+    background-position: 0px 0px, 10px 10px;
+    background-size: 20px 20px;
+    background-image: linear-gradient(
+      45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
+                      linear-gradient(
+      45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
+  }
+
+  .shrink {
+    display: inline-block;
+    margin-top: 1em;
+    margin-bottom: 2em;
+    box-shadow: 5px 5px 18px grey;
+  }
+
+  .zoom-canvas {
+    margin: 0;
+    padding: 0;
+  }
+
+  .shortcuts {
+    margin-left: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  .shortcuts td {
+    padding-left: 0.5em;
+  }
+
+  .shortcuts tr {
+    padding-bottom: 0.25em;
+  }
+
+  .color-preview {
+    width: 10px;
+    height: 10px;
+    margin: 0;
+    margin-right: 6px;
+    padding: 0;
+    display: inline-block;
+    border: 1px solid black;
+  }
+}
