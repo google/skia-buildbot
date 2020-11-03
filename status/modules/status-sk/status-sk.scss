@@ -33,6 +33,29 @@ status-sk {
         margin: 0;
         height: auto;
       }
+
+      .table {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.darkmode status-sk {
+  app-sk {
+    --header-background-color: var(--primary);
+    --header-font-color: var(--on-primary);
+
+    login-sk a,
+    tree-status-sk a {
+      color: var(--on-primary) !important;
+    }
+
+    aside {
+      background-color: var(--surface-1dp);
+      > * {
+        border: 1px solid var(--grey-700);
+      }
     }
   }
 }

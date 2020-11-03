@@ -33,8 +33,6 @@ html {
 }
 
 .table {
-  background-color: var(--surface);
-  color: var(--on-surface);
   display: table;
   border-collapse: collapse;
 
@@ -78,28 +76,41 @@ html {
 }
 
 :root {
-  --primary: var(--light-green-700);
   // TODO(westont): Move to named colors, unify theme.
+  --primary: var(--light-green-700);
+  --on-primary: var(--white);
   --secondary: #e6ab02;
+  --on-secondary: var(--black);
 
   --success: rgb(102, 166, 30);
-  --success-alpha: rgba(102, 166, 30, 0.3);
+  --success-alpha: rgba(102, 166, 30, 0.5);
   --warning: var(--orange-400);
   --warning-alpha: var(--orange-a200);
   --failure: rgb(217, 95, 2);
-  --failure-alpha: rgba(217, 95, 2, 0.3);
-  --on-failure: var(--black);
+  --failure-alpha: rgba(217, 95, 2, 0.7);
+  --on-failure: var(--white);
   --on-warning: var(--black);
   --unexpected: rgb(117, 112, 179);
-  --unexpected-alpha: rgba(117, 112, 179, 0.3);
+  --unexpected-alpha: rgba(117, 112, 179, 0.7);
   --disabled: var(--grey-500);
-  --disabled-alpha: rgba(117, 117, 117, 0.3);
+  --disabled-alpha: rgba(117, 117, 117, 0.5);
+  --success-on-surface: var(--success);
+  --warning-on-surface: var(--warning);
+  --failure-on-surface: var(--failure);
+  --unexpected-on-surface: var(--unexpected);
 
   .darkmode {
+    --primary: var(--light-green-700);
+    --on-primary: var(--white);
+    --secondary: #e6ab02;
+    --on-secondary: var(--black);
     --success-alpha: rgba(102, 166, 30, 0.9);
     --failure-alpha: rgba(217, 95, 2, 0.9);
-    --on-failure: var(--white);
     --unexpected-alpha: rgba(117, 112, 179, 0.9);
     --disabled-alpha: rgba(117, 117, 117, 0.9);
+    --success-on-surface: var(--light-green-200);
+    --warning-on-surface: var(--warning);
+    --failure-on-surface: var(--red-100);
+    --unexpected-on-surface: var(--purple-50);
   }
 }
