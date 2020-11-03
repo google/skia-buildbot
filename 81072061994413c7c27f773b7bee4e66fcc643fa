@@ -46,6 +46,30 @@
       },
       "revId": "81072061994413c7c27f773b7bee4e66fcc643fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "17dde0ac_93c69fb4",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-03T19:01:40Z",
+      "side": 1,
+      "message": "Gotcha, thanks.  I just wanted clarification since the name of the script suggests that it wants to do all of the work.",
+      "parentUuid": "a0e40bd5_7e993d95",
+      "range": {
+        "startLine": 290,
+        "startChar": 58,
+        "endLine": 290,
+        "endChar": 67
+      },
+      "revId": "81072061994413c7c27f773b7bee4e66fcc643fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
