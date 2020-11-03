@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "820e63b3_07f9d699",
+        "filename": "task_scheduler/modules/colors.css",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T14:57:29Z",
+      "side": 0,
+      "message": "Artifact of switching upstream or something?\n\nHere and below.",
+      "range": {
+        "startLine": 54,
+        "startChar": 2,
+        "endLine": 54,
+        "endChar": 57
+      },
+      "revId": "18a6464dec551a2abc2fcff8713c46ab02c729a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
