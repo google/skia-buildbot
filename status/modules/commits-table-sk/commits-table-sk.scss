@@ -105,6 +105,9 @@ commits-table-sk {
       line-height: 16px;
       pointer-events: none;
     }
+    span.icons * {
+      pointer-events: auto;
+    }
   }
 
   .commit.highlight-revert {
@@ -297,7 +300,7 @@ div.hidden.task {
 .darkmode {
   .rowUnderlay {
     div:nth-child(odd) {
-      background-color: var(--surface-2dp);
+      background-color: var(--surface-1dp);
     }
   }
   .commit-container {
@@ -308,6 +311,12 @@ div.hidden.task {
     .time-underline {
       color: var(--white);
       border-color: var(--grey-300);
+    }
+  }
+
+  .commit-container:hover {
+    .highlight-row {
+      border-bottom: 3px solid var(--primary);
     }
   }
 }
