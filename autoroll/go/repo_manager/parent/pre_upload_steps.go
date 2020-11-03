@@ -46,6 +46,7 @@ var preUploadSteps = map[string]PreUploadStep{
 	"FlutterLicenseScripts":           FlutterLicenseScripts,
 	"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
 	"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
+	"AngleGnToBp":                     AngleGnToBp,
 	"SkiaGnToBp":                      SkiaGnToBp,
 	"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
 }
@@ -279,6 +280,15 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 		Env:  envSlice,
 	}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// AngleGnToBp runs Angle's scripts to roll into Android.
+func AngleGnToBp(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+	angleDir := filepath.Join(parentRepoDir, "external", "angle")
+	if _, scriptErr := exec.RunCwd(ctx, angleDir, "./scripts/roll_aosp.sh"); scriptErr != nil {
+		return fmt.Errorf("./scripts/roll_aosp.sh error: %s", scriptErr)
 	}
 	return nil
 }

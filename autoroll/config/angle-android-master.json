@@ -1,0 +1,62 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "ANGLE",
+  "commitMsg": {
+    "bugProject": "buganizer",
+    "childLogURLTmpl": "https://chromium.googlesource.com/angle/angle.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "template": "android"
+  },
+  "contacts": [
+    "geofflang@google.com",
+    "rmistry@google.com"
+  ],
+  "gerrit": {
+    "url": "https://android-review.googlesource.com",
+    "project": "platform/external/angle",
+    "config": "android"
+  },
+  "isInternal": false,
+  "ownerPrimary": "rmistry",
+  "ownerSecondary": "borenet",
+  "parentDisplayName": "Android (master)",
+  "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_master/grid",
+  "rollerName": "angle-android-autoroll",
+  "serviceAccount": "android-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "geofflang@google.com"
+  ],
+  "supportsManualRolls": true,
+  "androidRepoManager": {
+    "childBranch": "master",
+    "childPath": "external/angle",
+    "childRepoURL": "https://chromium.googlesource.com/angle/angle.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://android.googlesource.com/platform/external/angle/",
+    "preUploadSteps": [
+      "AngleGnToBp"
+    ]
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "200Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "geofflang@google.com",
+          "rmistry@google.com"
+        ]
+      }
+    }
+  ]
+}
