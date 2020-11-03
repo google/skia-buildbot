@@ -55,11 +55,41 @@ import {
   CommitNumber,
   Status,
   ColumnHeader,
+  Alert,
+  StepDetection,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
+
+interface Labels {
+  regression: string;
+  stepSize: string;
+}
+
+const LabelsForStepDetection: {[key: StepDetection]: Labels } = {
+  '': {
+    regression: 'Regression',
+    stepSize: 'Step Size,',
+  },
+  absolute: {
+    regression: 'Step Size',
+    stepSize: 'Step Size,',
+  },
+  percent: {
+    regression: 'Step Size',
+    stepSize: 'Step Size,',
+  },
+  cohen: {
+    regression: 'Step Size',
+    stepSize: 'Step Size,',
+  },
+  mannwhitneyu: {
+    regression: 'Step Size',
+    stepSize: 'Step Size,',
+  },
+};
 
 function trunc(value: number) {
   return (+value).toPrecision(3);
@@ -95,6 +125,8 @@ export class ClusterSummary2Sk extends ElementSk {
   private frame: FrameResponse | null = null;
 
   private fullSummary: FullSummary | null = null;
+
+  private _alert: Alert | null = null;
 
   constructor() {
     super(ClusterSummary2Sk.template);
@@ -204,7 +236,7 @@ export class ClusterSummary2Sk extends ElementSk {
     return html``;
   };
 
-  connectedCallback(): void{
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('full_summary');
     this._upgradeProperty('triage');
@@ -256,7 +288,6 @@ export class ClusterSummary2Sk extends ElementSk {
     );
   }
 
-
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     const commitNumber = this.frame!.dataframe!.header![e.detail.x]?.offset;
     ClusterSummary2Sk.lookupCids([commitNumber!])
@@ -301,7 +332,7 @@ export class ClusterSummary2Sk extends ElementSk {
    *  }
    *
    */
-  get full_summary(): FullSummary | null{
+  get full_summary(): FullSummary | null {
     return this.fullSummary;
   }
 
@@ -412,6 +443,16 @@ export class ClusterSummary2Sk extends ElementSk {
       return;
     }
     this.triageStatus = val;
+    this._render();
+  }
+
+  /** The configured Alert that found this regression. */
+  get alert(): Alert | null {
+    return this._alert;
+  }
+
+  set alert(val) {
+    this._alert = val;
     this._render();
   }
 }
