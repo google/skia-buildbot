@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b8af502_d287366a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-03T15:11:32Z",
+      "side": 1,
+      "message": "Ok will do.",
+      "parentUuid": "9f75cbee_c2e20cfa",
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8334525d_7a408424",
@@ -31,6 +49,30 @@
       "writtenOn": "2020-11-03T09:10:44Z",
       "side": 1,
       "message": "Nit: prefer this._cmd.forEach((command, index) \u003d\u003e { ... });\n\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach",
+      "range": {
+        "startLine": 619,
+        "startChar": 0,
+        "endLine": 619,
+        "endChar": 42
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4dcbc63c_7a665583",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-03T15:11:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8334525d_7a408424",
       "range": {
         "startLine": 619,
         "startChar": 0,
@@ -66,6 +108,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "837cacfc_ac97fd66",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-03T15:11:32Z",
+      "side": 1,
+      "message": "Any idea why this defaulted to sorting a number[] as if they were strings?",
+      "parentUuid": "4f8f6339_020bf57f",
+      "range": {
+        "startLine": 631,
+        "startChar": 0,
+        "endLine": 631,
+        "endChar": 45
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "7d7d6416_c1db556f",
         "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
         "patchSetId": 7
@@ -77,6 +143,30 @@
       "writtenOn": "2020-11-03T09:10:44Z",
       "side": 1,
       "message": "Nit: prefer default parameter values, e.g.\n\n  resize(width\u003d400, height\u003d400): HTMLCanvasElement {\n   this._width \u003d width;\n   this._height \u003d height;\n    ...\n  }",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 33
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8c57cdb_33c15e90",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-03T15:11:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7d7d6416_c1db556f",
       "range": {
         "startLine": 89,
         "startChar": 0,
@@ -100,6 +190,30 @@
       "writtenOn": "2020-11-03T09:10:44Z",
       "side": 1,
       "message": "Nit:\n\n  const newCanvas: HTMLCanvasElement \u003d dvcanvas.cloneNode(true);\n\nOr if that doesn\u0027t work:\n\n  const newCanvas \u003d dcanvas.cloneNode(true) as HTMLCanvasElement;",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 67
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "06f4efd5_e8b5b984",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-03T15:11:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19e1ee93_e93f1c9e",
       "range": {
         "startLine": 94,
         "startChar": 0,
