@@ -116,7 +116,10 @@ export class CommandsSk extends ElementSk {
     html`
     <div>
       ${CommandsSk.filterTemplate(ele)}
-      <play-sk></play-sk>
+      <div class="horizontal-flex">
+        <button @click=${ele._opIdFilter} class="short">Show By Op-Id</button>
+        <play-sk></play-sk>
+      </div>
       <div class="list">
         ${ ele._filtered.map((i: number, filtPos: number) =>
           CommandsSk.opTemplate(ele, filtPos, ele._cmd[i])) }
@@ -143,7 +146,7 @@ export class CommandsSk extends ElementSk {
                 >Show image</button>`
             : ''
           }
-          ${ op.details.auditTrail.Ops
+          ${ (op.details.auditTrail && op.details.auditTrail.Ops)
             ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
                 CommandsSk.gpuOpIdTemplate(ele, gpuOp) )
             : ''
@@ -352,6 +355,12 @@ Command types can also be filted by clicking on their names in the histogram"
     this.querySelector<HTMLInputElement>('#text-filter')!.value = '';
     if (!this.count) { return; }
     this.range = [0, this._cmd.length-1]; // setter triggers _applyRangeFilter, follow that
+  }
+
+  // Stop playback and move by a given offset in the filtered list.
+  keyMove(offset: number) {
+    this._playSk!.mode = 'pause';
+    this.item = Math.max(0, Math.min(this._item + offset, this.countFiltered));
   }
 
   // filter change coming from histogram
@@ -599,6 +608,36 @@ doesn't appear to be a command name`);
     } else {
       this.item = this._filtered.length - 1;
     }
+  }
+
+  // Filters out all commands not having a GPU op id and sorts them by op id
+  // Experimental, probably breaks assumptions elsewhere, because something in
+  // DebugCanvas.cpp might depend on these never being out of order.
+  private _opIdFilter() {
+    this._filtered = [];
+
+    const commandsOfEachOp = new Map<number, number[]>();
+    this._cmd.forEach((command, index) => {
+      if (command.details.auditTrail &&
+          command.details.auditTrail.Ops) {
+        const opid = command.details.auditTrail.Ops[0].OpsTaskID;
+        if (!commandsOfEachOp.has(opid)) {
+          commandsOfEachOp.set(opid, []);
+        }
+        commandsOfEachOp.get(opid)!.push(index);
+      }
+    });
+    const sortedKeys: number[] = Array.from(commandsOfEachOp.keys());
+    sortedKeys.sort((a, b) => a - b); // force it to sort as a number, not a string
+    sortedKeys.forEach((k) => {
+      commandsOfEachOp.get(k)!.forEach((i) => {
+        this._filtered.push(i);
+      });
+    });
+
+
+    this._playSk!.size = this._filtered.length;
+    this.item = this._filtered.length - 1;
   }
 }
 
