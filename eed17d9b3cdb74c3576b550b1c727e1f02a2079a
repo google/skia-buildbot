@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe213886_f928dac7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T20:20:53Z",
+      "side": 1,
+      "message": "Missed this the first time around: Unfortunately the way task-driver-sk was integrated into the original Polymer based Status (https://source.corp.google.com/skia/buildbot/status/webpack/) makes puppeteer choke, I have the CL ready, but have to wait until after I gut the polymer code.\n\nhttps://skia-review.googlesource.com/c/buildbot/+/321458",
+      "parentUuid": "41298863_e6c26f84",
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "48fa9d10_52542279",
