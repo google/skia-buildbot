@@ -456,7 +456,7 @@ func (c *AutoRollerConfig) CreateRepoManager(ctx context.Context, cr codereview.
 	var rm repo_manager.RepoManager
 	var err error
 	if c.AndroidRepoManager != nil {
-		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, reg, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
+		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, reg, workdir, g, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
 	} else if c.CommandRepoManager != nil {
 		rm, err = repo_manager.NewCommandRepoManager(ctx, *c.CommandRepoManager, reg, workdir, g, serverURL, cr)
 	} else if c.CopyRepoManager != nil {

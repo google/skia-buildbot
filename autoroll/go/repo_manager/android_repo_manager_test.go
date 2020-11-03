@@ -133,7 +133,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -151,7 +151,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -169,7 +169,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
