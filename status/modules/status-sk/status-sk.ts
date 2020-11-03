@@ -12,6 +12,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../autoroller-status-sk';
+import '../bugs-status-sk';
 import '../commits-table-sk';
 import '../gold-status-sk';
 import '../navigation-sk';
@@ -30,6 +31,7 @@ import { RotationsSk } from '../rotations-sk/rotations-sk';
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
   private autorollersOpen: boolean = true;
+  private bugsOpen: boolean = true;
   private perfOpen: boolean = true;
   private goldOpen: boolean = true;
   private rotationsOpen: boolean = true;
@@ -100,6 +102,23 @@ export class StatusSk extends ElementSk {
             </button>
             <collapse-sk>
               <gold-status-sk></gold-status-sk>
+            </collapse-sk>
+          </div>
+          <div>
+            <button
+              class="collapser"
+              @click=${(e: Event) => {
+                el.bugsOpen = !el.bugsOpen;
+                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+              }}
+            >
+              ${el.bugsOpen
+                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              Untriaged Bugs
+            </button>
+            <collapse-sk>
+              <bugs-status-sk></bugs-status-sk>
             </collapse-sk>
           </div>
           <div>
