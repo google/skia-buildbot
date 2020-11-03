@@ -82,14 +82,17 @@ commits-table-sk {
     }
   }
 
-  .commit-container:hover {
-    .highlight-row {
-      border-bottom: 3px solid var(--secondary);
-      bottom: 6px;
-      left: 95%;
-      position: absolute;
-      right: -100vw;
-    }
+  .highlight-row {
+    pointer-events: none;
+    border-bottom-color: var(--secondary);
+    border-bottom-width: 3px;
+    border-bottom-style: solid;
+    margin-bottom: 7px;
+    visibility: hidden;
+  }
+
+  .commit-container:hover + .highlight-row {
+    visibility: visible;
   }
 
   .commit {
@@ -101,6 +104,10 @@ commits-table-sk {
     justify-content: space-between;
     height: 16px;
     width: 100%;
+    border-left-width: 3px;
+    border-left-style: solid;
+    border-left-color: transparent;
+    padding-left: 2px;
 
     span {
       line-height: 16px;
@@ -122,6 +129,23 @@ commits-table-sk {
     background-color: var(--primary);
     color: var(--on-primary);
     fill: var(--on-primary);
+  }
+
+  .commit.task-emphasize-success {
+    border-left-color: var(--success);
+  }
+  .commit.task-emphasize-warning {
+    border-left-color: var(--warning);
+  }
+  .commit.task-emphasize-failure {
+    border-left-color: var(--failure);
+  }
+  .commit.task-emphasize-mishap {
+    border-left-color: var(--unexpected);
+  }
+  .commit.task-emphasize-unknown,
+  .commit.task-emphasize- {
+    border-left-color: var(--primary);
   }
 
   .legend {
@@ -317,12 +341,6 @@ div.hidden.task {
     .time-underline {
       color: var(--white);
       border-color: var(--grey-300);
-    }
-  }
-
-  .commit-container:hover {
-    .highlight-row {
-      border-bottom: 3px solid var(--primary);
     }
   }
 }

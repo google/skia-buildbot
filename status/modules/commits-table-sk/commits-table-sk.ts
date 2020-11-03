@@ -1003,6 +1003,8 @@ export class CommitsTableSk extends ElementSk {
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}
               title=${taskTitle(task)}
               data-task-id=${task.id}
+              @mouseenter=${() => this.taskMouseInOut(task)}
+              @mouseleave=${() => this.taskMouseInOut(task)}
             >
               ${this.taskIcon(task)}
             </div>`
@@ -1014,6 +1016,8 @@ export class CommitsTableSk extends ElementSk {
           res.push(
             html`<div
               class="multicommit-task grow"
+              @mouseenter=${() => this.taskMouseInOut(task)}
+              @mouseleave=${() => this.taskMouseInOut(task)}
               style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}
             >
               ${this.multiCommitTaskSlots(displayTaskRows, rowStart, task)}
@@ -1024,6 +1028,13 @@ export class CommitsTableSk extends ElementSk {
     }
   }
 
+  private taskMouseInOut(task: Task) {
+    task.commits!.forEach((hash) => {
+      $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)!.classList.toggle(
+        `task-emphasize-${task.status.toLowerCase()}`
+      );
+    });
+  }
   // Return a time label if one should be used for the commit at the given index.
   private timeLabel(commits: Commit[], index: number, timePoints: { label: string; time: Date }[]) {
     if (index === commits.length - 1) {
@@ -1085,19 +1096,29 @@ export class CommitsTableSk extends ElementSk {
       }
       // Draw commits last so the span.highlight-row naturally renders above the tasks.
       res.push(
-        html` <div class="commit-container" style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
-          <div class="time-spacer">${timeLabel}</div>
-          <div
-            class="commit ${this.attributeStringFromHash(commit.hash)}"
-            title=${title}
-            data-commit-index=${i}
-          >
-            <span class="nowrap commit-text">${text}</span>
-            <span class="nowrap icons">${this.commitIcons(commit)}</span>
-            <span class="highlight-row"></span>
+        html`
+          <div class="commit-container" style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
+            <div class="time-spacer">${timeLabel}</div>
+            <div
+              class="commit ${this.attributeStringFromHash(commit.hash)}"
+              title=${title}
+              data-commit-index=${i}
+            >
+              <span class="nowrap commit-text">${text}</span>
+              <span class="nowrap icons">${this.commitIcons(commit)}</span>
+            </div>
+            ${timeLabel ? html`<span class="time-underline"></span>` : html``}
           </div>
-          ${timeLabel ? html`<span class="time-underline"></span>` : html``}
-        </div>`
+          <span
+            class="highlight-row"
+            style=${this.gridLocation(
+              rowStart,
+              COMMIT_START_COL + 1,
+              rowStart + 1,
+              this.lastColumn
+            )}
+          ></span>
+        `
       );
     }
     // Add a single div covering the grid, behind everything, that highlights alternate rows.
