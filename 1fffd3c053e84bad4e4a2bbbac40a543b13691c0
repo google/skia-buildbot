@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94e50c36_0d20a3e9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-03T22:34:54Z",
+      "side": 1,
+      "message": "Ok, test is fixed.\n\nI added a \n```\n  afterEach(() \u003d\u003e {\n    expect(fetchMock.done()).to.be.true;\n    fetchMock.reset();\n  });\n\n```\n\nin the new module. I didn\u0027t see that in most other modules so something else might have bled through as well, but fixing it in the new module.",
+      "revId": "1fffd3c053e84bad4e4a2bbbac40a543b13691c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
