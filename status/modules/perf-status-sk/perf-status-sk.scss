@@ -1,10 +1,6 @@
 @import '../styles.scss';
 
 perf-status-sk {
-  .table {
-    width: 100%;
-  }
-
   .tr:hover {
     background-color: var(--primary);
     color: var(--on-primary);

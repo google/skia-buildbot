@@ -256,7 +256,9 @@ class Data {
     const remove = this.commits.slice(sliceIdx, this.commits.length);
     this.commits = newCommits.concat(keep);
 
-    this.branchHeads = update.branchHeads || this.branchHeads;
+    if (update.branchHeads && update.branchHeads.length > 0) {
+      this.branchHeads = update.branchHeads;
+    }
 
     // Map commits by hash.
     this.commits.forEach((commit: Commit) => {
@@ -1091,7 +1093,7 @@ export class CommitsTableSk extends ElementSk {
             data-commit-index=${i}
           >
             <span class="nowrap commit-text">${text}</span>
-            <span class="nowrap">${this.commitIcons(commit)}</span>
+            <span class="nowrap icons">${this.commitIcons(commit)}</span>
             <span class="highlight-row"></span>
           </div>
           ${timeLabel ? html`<span class="time-underline"></span>` : html``}
