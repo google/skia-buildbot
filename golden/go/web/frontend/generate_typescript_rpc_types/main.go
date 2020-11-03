@@ -1,3 +1,5 @@
+//go:generate go run . -o ../../../../modules/rpc_types.ts
+
 package main
 
 import (
