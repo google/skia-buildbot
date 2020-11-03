@@ -233,7 +233,6 @@ class Data {
   private clearData() {
     this.commits = [];
     this.commitsByHash = new Map();
-    this.branchHeads = [];
     this.tasks = new Map();
     this.tasksBySpec = new Map();
     this.tasksByCommit = new Map();
@@ -256,7 +255,9 @@ class Data {
     const remove = this.commits.slice(sliceIdx, this.commits.length);
     this.commits = newCommits.concat(keep);
 
-    this.branchHeads = update.branchHeads || this.branchHeads;
+    if (update.branchHeads && update.branchHeads.length > 0) {
+      this.branchHeads = update.branchHeads;
+    }
 
     // Map commits by hash.
     this.commits.forEach((commit: Commit) => {
@@ -296,7 +297,7 @@ class Data {
     // comments are only deleted in incremental updates if there is another comment in the
     // same category(e.g. A commit comment won't be recognized as deleted unless another
     // commit comment exists somewhere, to populate the commit_comments update field.)
-    // For now this just means deleted comments aren't conveyed to clients until they or the
+    // For now this aust means deleted comments aren't conveyed to clients until they or the
     // backend forces a full update.
 
     // Map comments.
@@ -1091,7 +1092,7 @@ export class CommitsTableSk extends ElementSk {
             data-commit-index=${i}
           >
             <span class="nowrap commit-text">${text}</span>
-            <span class="nowrap">${this.commitIcons(commit)}</span>
+            <span class="nowrap icons">${this.commitIcons(commit)}</span>
             <span class="highlight-row"></span>
           </div>
           ${timeLabel ? html`<span class="time-underline"></span>` : html``}

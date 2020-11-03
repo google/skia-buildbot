@@ -12,3 +12,24 @@ autoroller-status-sk {
     background-color: var(--failure);
   }
 }
+
+.darkmode autoroller-status-sk {
+  .table {
+    border-collapse: initial;
+  }
+
+  .bg-success {
+    background-color: inherit;
+    color: var(--light-green-200);
+  }
+
+  .bg-warning {
+    background-color: inherit;
+    color: var(--warning);
+  }
+
+  .bg-failure {
+    background-color: inherit;
+    color: var(--red-100);
+  }
+}
