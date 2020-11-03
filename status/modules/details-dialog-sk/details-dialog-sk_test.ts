@@ -41,7 +41,7 @@ describe('details-dialog-sk', () => {
   });
 
   it('displays tasks with taskdriver', async () => {
-    fetchMock.getOnce('path:/json/td/99999', taskDriverData);
+    fetchMock.getOnce('path:/json/td/999990', taskDriverData);
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
 
