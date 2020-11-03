@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f75cbee_c2e20cfa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-03T09:10:44Z",
+      "side": 1,
+      "message": "Thanks!\n\nSuggestion for speedier and more thorough reviews moving forward. With refactors such as inlining a component, consider splitting that into an initial CL that can be reviewed as a self-contained change (e.g. inline component X into Y), followed by any other changes in subsequent CLs that build on top of that initial change.",
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8334525d_7a408424",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-03T09:10:44Z",
+      "side": 1,
+      "message": "Nit: prefer this._cmd.forEach((command, index) \u003d\u003e { ... });\n\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach",
+      "range": {
+        "startLine": 619,
+        "startChar": 0,
+        "endLine": 619,
+        "endChar": 42
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4f8f6339_020bf57f",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-03T09:10:44Z",
+      "side": 1,
+      "message": "Ubernit: sortedKeys.sort((a, b) \u003d\u003e a - b);",
+      "range": {
+        "startLine": 631,
+        "startChar": 0,
+        "endLine": 631,
+        "endChar": 45
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7d7d6416_c1db556f",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-03T09:10:44Z",
+      "side": 1,
+      "message": "Nit: prefer default parameter values, e.g.\n\n  resize(width\u003d400, height\u003d400): HTMLCanvasElement {\n   this._width \u003d width;\n   this._height \u003d height;\n    ...\n  }",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 33
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "19e1ee93_e93f1c9e",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-03T09:10:44Z",
+      "side": 1,
+      "message": "Nit:\n\n  const newCanvas: HTMLCanvasElement \u003d dvcanvas.cloneNode(true);\n\nOr if that doesn\u0027t work:\n\n  const newCanvas \u003d dcanvas.cloneNode(true) as HTMLCanvasElement;",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 67
+      },
+      "revId": "768244a965355336249786608e0093e00f878bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
