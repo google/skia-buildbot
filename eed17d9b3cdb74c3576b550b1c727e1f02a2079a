@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7d6ddf6_bfc19773",
+        "filename": "status/modules/autoroller-status-sk/autoroller-status-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T16:39:08Z",
+      "side": 1,
+      "message": "Success fails text-on-background contrast accessibility.\n\nWent ahead and added \u0027success-on-surface\u0027, \u0027failure-on-surface\u0027 etc, and made these autoroller-status-sk\u0027 specific classes since \u0027bg\u0027 isn\u0027t valid in darkmode, as we aren\u0027t swetting the background.",
+      "parentUuid": "48fa9d10_52542279",
+      "range": {
+        "startLine": 23,
+        "startChar": 15,
+        "endLine": 23,
+        "endChar": 32
+      },
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "078394cd_858b6b8c",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-11-03T15:10:43Z",
       "side": 1,
       "message": "Shouldn\u0027t this be --warning?",
+      "range": {
+        "startLine": 33,
+        "startChar": 3,
+        "endLine": 33,
+        "endChar": 26
+      },
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "062b5068_26563841",
+        "filename": "status/modules/autoroller-status-sk/autoroller-status-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T16:39:08Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "078394cd_858b6b8c",
       "range": {
         "startLine": 33,
         "startChar": 3,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b1b5cb9c_0759bdcb",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T16:39:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "545a8b1e_886c5051",
+      "range": {
+        "startLine": 104,
+        "startChar": 4,
+        "endLine": 104,
+        "endChar": 8
+      },
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7e4422c4_d5bdf316",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-11-03T15:10:43Z",
       "side": 1,
       "message": "blank line before",
+      "range": {
+        "startLine": 108,
+        "startChar": 3,
+        "endLine": 108,
+        "endChar": 8
+      },
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1104fd2e_3b03a290",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T16:39:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7e4422c4_d5bdf316",
       "range": {
         "startLine": 108,
         "startChar": 3,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2a46a08_a3a7be31",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T16:39:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "35f285c8_e6d03d2e",
+      "range": {
+        "startLine": 118,
+        "startChar": 2,
+        "endLine": 118,
+        "endChar": 5
+      },
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2413e5fd_27800314",
@@ -146,6 +266,30 @@
       "writtenOn": "2020-11-03T15:10:43Z",
       "side": 1,
       "message": "blank line before",
+      "range": {
+        "startLine": 311,
+        "startChar": 4,
+        "endLine": 311,
+        "endChar": 9
+      },
+      "revId": "eed17d9b3cdb74c3576b550b1c727e1f02a2079a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e9518b87_bde1cc1e",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-03T16:39:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2413e5fd_27800314",
       "range": {
         "startLine": 311,
         "startChar": 4,
