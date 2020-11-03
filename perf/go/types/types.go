@@ -100,6 +100,9 @@ const (
 
 	// CohenStep uses Cohen's d method to detect a change. https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
 	CohenStep StepDetection = "cohen"
+
+	// MannWhitneyU uses the Mann-Whitney U test to detect a change. https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+	MannWhitneyU StepDetection = "mannwhitneyu"
 )
 
 var (

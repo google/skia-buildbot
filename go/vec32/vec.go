@@ -401,3 +401,12 @@ func FillStep(a []float32) {
 		a[i] = step
 	}
 }
+
+// ToFloat64 creates a slice of float64 from the given slice of float32.
+func ToFloat64(in []float32) []float64 {
+	ret := make([]float64, len(in))
+	for i, x := range in {
+		ret[i] = float64(x)
+	}
+	return ret
+}

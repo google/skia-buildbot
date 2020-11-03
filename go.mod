@@ -60,6 +60,7 @@ require (
 	github.com/OneOfOne/struct2ts v1.0.4 // indirect
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/a8m/envsubst v1.2.0
+	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect

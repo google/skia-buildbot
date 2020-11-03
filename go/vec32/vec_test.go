@@ -669,3 +669,10 @@ func TestStdDevRatio(t *testing.T) {
 		})
 	}
 }
+
+func TestToFloat64(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, []float64{}, ToFloat64(nil))
+	assert.Equal(t, []float64{}, ToFloat64([]float32{}))
+	assert.Equal(t, []float64{1.0, 2.0}, ToFloat64([]float32{1.0, 2.0}))
+}
