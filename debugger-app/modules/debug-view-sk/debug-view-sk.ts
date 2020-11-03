@@ -31,8 +31,10 @@ export class DebugViewSk extends ElementSk {
       </button>
     </div>
     <div id="backdrop" class="${ele._backdropStyle} grid">
-      <canvas id="main-canvas" class=${ele._fitStyle}
-              width=${ele._width} height=${ele._height}></canvas>
+      ${ ele._renderCanvas
+      ? html`<canvas id="main-canvas" class=${ele._fitStyle}
+              width=${ele._width} height=${ele._height}></canvas>`
+      : '' }
       <canvas id="crosshair-canvas" class=${ele._fitStyle}
               width=${ele._width} height=${ele._height}
               @click=${ele._canvasClicked}
@@ -50,6 +52,7 @@ export class DebugViewSk extends ElementSk {
   private _fitStyle: FitStyle = 'fit';
   private _backdropStyle = 'light-checkerboard';
   private _crossHairActive = false;
+  private _renderCanvas = true;
 
   constructor() {
     super(DebugViewSk.template);
@@ -85,7 +88,9 @@ export class DebugViewSk extends ElementSk {
     this._render();
     return this.querySelector<HTMLCanvasElement>('#main-canvas')!
   }
+
   // Replace the main canvas element, changing its native size
+<<<<<<< HEAD
   resize(width = 400, height = 400) : HTMLCanvasElement {
     const dvcanvas = this.querySelector<HTMLCanvasElement>('#main-canvas')!;
     this._width = width;
@@ -98,6 +103,16 @@ export class DebugViewSk extends ElementSk {
     this._render();
     this._visibleSize();
     return newCanvas;
+=======
+  resize(width = 400, height = 400): HTMLCanvasElement {
+    this._width = width;
+    this._height = height;
+    this._renderCanvas = false;
+    this._render(); // delete it to clear it's rendering context.
+    this._renderCanvas = true;
+    this._render(); // template makes a fresh one.
+    return this.querySelector('canvas')!;
+>>>>>>> 6daed017b (Add timeline module to control frame playback)
   }
 
   private _visibleSize() {
