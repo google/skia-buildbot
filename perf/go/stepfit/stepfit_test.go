@@ -145,3 +145,45 @@ func TestStepFit_Cohen_StepWithLargeStandardDeviation(t *testing.T) {
 		&StepFit{LeastSquares: InvalidLeastSquaresError, TurningPoint: 2, StepSize: -2.828427, Regression: -2.828427, Status: "High"},
 		GetStepFitAtMid([]float32{1, 2, 3, 4, x}, minStdDev, 0.2, types.CohenStep))
 }
+
+func TestStepFit_MannWhitneyU_StepHigh(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: 0, TurningPoint: 4, StepSize: -10, Regression: -0.028571428571428577 /* value copied from stats/utest_test.go:49 */, Status: "High"},
+		GetStepFitAtMid([]float32{2, 1, 3, 5, 12, 11, 13, 15, x}, minStdDev, 0.05, types.MannWhitneyU))
+}
+
+func TestStepFit_MannWhitneyU_StepLow(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: 16, TurningPoint: 4, StepSize: 10, Regression: 0.028571428571428577 /* value copied from stats/utest_test.go:49 */, Status: "Low"},
+		GetStepFitAtMid([]float32{12, 11, 13, 15, 2, 1, 3, 5, x}, minStdDev, 0.05, types.MannWhitneyU))
+}
+
+func TestStepFit_MannWhitneyU_UninterestingBecauseInterestingThreshholdTooLow(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: 16, TurningPoint: 4, StepSize: 10, Regression: 0.028571428571428577 /* value copied from stats/utest_test.go:49 */, Status: "Uninteresting"},
+		GetStepFitAtMid([]float32{12, 11, 13, 15, 2, 1, 3, 5, x}, minStdDev, 0.01, types.MannWhitneyU))
+}
+
+func TestStepFit_MannWhitneyU_UninterestingBecauseBothSidesAreEqual(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: 8, TurningPoint: 4, StepSize: 0, Regression: 1, Status: "Uninteresting"},
+		GetStepFitAtMid([]float32{2, 1, 3, 5, 2, 1, 3, 5, x}, minStdDev, 0.01, types.MannWhitneyU))
+}
+
+func TestStepFit_MannWhitneyU_UninterestingBecauseBothSidesAreConstant(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: 0, TurningPoint: 0, StepSize: 0, Regression: 0, Status: "Uninteresting"},
+		GetStepFitAtMid([]float32{1, 1, 1, 1, 1, 1, 1, 1, x}, minStdDev, 0.01, types.MannWhitneyU))
+}
+
+func TestStepFit_MannWhitneyU_UninterestingBecauseNotEnoughData(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{LeastSquares: 0, TurningPoint: 0, StepSize: 0, Regression: 0, Status: "Uninteresting"},
+		GetStepFitAtMid([]float32{2, 2, x}, minStdDev, 0.01, types.MannWhitneyU))
+}

@@ -3,6 +3,7 @@ package stepfit
 import (
 	"math"
 
+	"github.com/aclements/go-moremath/stats"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -150,7 +151,7 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 			stepSize = 0
 			regression = stepSize
 		}
-	} else /* Cohen's d */ {
+	} else if stepDetection == types.CohenStep {
 		// https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
 		if len(trace) < 4 {
 			// The math for Cohen's d only makes sense for len(trace) >= 4.
@@ -167,12 +168,39 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 			}
 			regression = stepSize
 		}
+	} else /* types.MannWhitneyU  */ {
+		s1 := vec32.ToFloat64(trace[:i])
+		s2 := vec32.ToFloat64(trace[i:])
+		mwResults, err := stats.MannWhitneyUTest(s1, s2, stats.LocationDiffers)
+		if err != nil {
+			return ret
+		}
+		stepSize = (y0 - y1)
+		regression = float32(mwResults.P)
+		lse = float32(mwResults.U)
 	}
+
 	status := UNINTERESTING
-	if regression >= interesting {
-		status = LOW
-	} else if regression <= -interesting {
-		status = HIGH
+	if stepDetection == types.MannWhitneyU {
+		// There is a different interpretation of regression for MannWhitneyU,
+		// where regression = p. That is, when doing a hypothesis test we want
+		// to see if p < 0.05, for example. So that only tells us if a
+		// regression has occurred, i.e. we rejected the null hypothesis, so we
+		// need to use the sign of stepSize to determine the direction (status).
+		if regression <= interesting {
+			if stepSize < 0 {
+				status = HIGH
+				regression *= -1
+			} else {
+				status = LOW
+			}
+		}
+	} else {
+		if regression >= interesting {
+			status = LOW
+		} else if regression <= -interesting {
+			status = HIGH
+		}
 	}
 	ret.Status = status
 	ret.LeastSquares = lse
