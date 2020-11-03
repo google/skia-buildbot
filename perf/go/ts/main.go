@@ -27,13 +27,10 @@ type unionAndName struct {
 	typeName string
 }
 
-func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
+func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) {
 	for _, u := range unions {
-		if err := generator.AddUnionWithName(u.v, u.typeName); err != nil {
-			return err
-		}
+		generator.AddUnionWithName(u.v, u.typeName)
 	}
-	return nil
 }
 
 // IgnoreNil is a utility struct that allows specifying which structs should
@@ -44,7 +41,7 @@ type IgnoreNil struct {
 
 func main() {
 	generator := go2ts.New()
-	err := generator.AddMultiple(generator,
+	generator.AddMultiple(generator,
 		IgnoreNil{}, // Goes first to ensure the ignorenil version of structs are seen first.
 		alerts.Alert{},
 		alerts.AlertsStatus{},
@@ -78,13 +75,10 @@ func main() {
 		results.TryBotRequest{},
 		results.TryBotResponse{},
 	)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
 	// TODO(jcgregorio) Switch to generator.AddMultipleUnions() once all the
 	// names are harmonized between backend and frontend.
-	err = addMultipleUnions(generator, []unionAndName{
+	addMultipleUnions(generator, []unionAndName{
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},
 		{dataframe.AllRequestType, "RequestType"},
@@ -96,7 +90,7 @@ func main() {
 		{types.AllStepDetections, "StepDetection"},
 		{results.AllRequestKind, "TryBotRequestKind"},
 	})
-	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
+	err := util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
 	})
 	if err != nil {

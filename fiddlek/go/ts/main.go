@@ -13,13 +13,12 @@ import (
 
 func main() {
 	generator := go2ts.New()
-	if err := generator.AddMultiple(
+	generator.AddMultiple(
 		types.Options{},
 		types.RunResults{},
 		types.FiddleContext{},
-	); err != nil {
-		sklog.Fatal(err)
-	}
+	)
+
 	err := util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
 	})

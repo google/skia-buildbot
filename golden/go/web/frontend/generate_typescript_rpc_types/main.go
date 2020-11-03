@@ -6,7 +6,6 @@ import (
 
 	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
@@ -22,9 +21,7 @@ func main() {
 	flag.Parse()
 
 	generator := go2ts.New()
-	if err := addTypes(generator); err != nil {
-		sklog.Fatal(err)
-	}
+	addTypes(generator)
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)
@@ -34,48 +31,28 @@ func main() {
 	}
 }
 
-func addTypes(generator *go2ts.Go2TS) error {
-
+func addTypes(generator *go2ts.Go2TS) {
 	// Ensure go2ts sees the ParamSet type for the first time with the go2ts:"ignorenil" annotation.
 	type ignoreNil struct {
 		ParamSet paramtools.ParamSet `go2ts:"ignorenil"`
 	}
-	if err := generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE"); err != nil {
-		return skerr.Wrap(err)
-	}
+	generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE")
 
 	// Response for the /json/v1/changelist/{system}/{id} RPC endpoint.
-	if err := generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse"); err != nil {
-		return skerr.Wrap(err)
-	}
+	generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse")
 
 	// Response for the /json/v1/paramset RPC endpoint.
-	if err := generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse"); err != nil {
-		return skerr.Wrap(err)
-	}
+	generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse")
 
 	// Response for the /json/v1/search RPC endpoint.
-	if err := generator.AddWithName(search_frontend.SearchResponse{}, "SearchResponse"); err != nil {
-		return skerr.Wrap(err)
-	}
+	generator.AddWithName(search_frontend.SearchResponse{}, "SearchResponse")
 
 	// Request for the /json/v1/triage RPC endpoint.
-	if err := generator.Add(frontend.TriageRequest{}); err != nil {
-		return skerr.Wrap(err)
-	}
+	generator.Add(frontend.TriageRequest{})
 
 	// Response for the /json/v1/trstatus RPC endpoint.
-	if err := generator.AddWithName(status.GUIStatus{}, "StatusResponse"); err != nil {
-		return skerr.Wrap(err)
-	}
+	generator.AddWithName(status.GUIStatus{}, "StatusResponse")
 
-	if err := generator.AddUnionWithName(expectations.AllLabel, "Label"); err != nil {
-		return skerr.Wrap(err)
-	}
-
-	if err := generator.AddUnionWithName(common.AllRefClosest, "RefClosest"); err != nil {
-		return skerr.Wrap(err)
-	}
-
-	return nil
+	generator.AddUnionWithName(expectations.AllLabel, "Label")
+	generator.AddUnionWithName(common.AllRefClosest, "RefClosest")
 }

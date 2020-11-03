@@ -13,7 +13,7 @@ import (
 
 func main() {
 	generator := go2ts.New()
-	err := generator.AddMultiple(
+	generator.AddMultiple(
 		types.IssueCountsData{},
 		types.Issue{},
 		types.ClientSourceQueryRequest{},
@@ -21,11 +21,8 @@ func main() {
 		types.GetClientsResponse{},
 		types.GetClientCountsResponse{},
 		types.GetChartsDataResponse{})
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
-	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
+	err := util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
 	})
 	if err != nil {
