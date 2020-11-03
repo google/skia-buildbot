@@ -1,15 +1,3 @@
-VULCANIZE1=true
-
-BOWER_DIR=third_party/bower_components
-
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_compoents via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-	third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-	$(BOWER_DIR)/d3/d3.js \
-	../res/js/common.js
-
 include ../kube/kube.mk
 
 # First create a list of all the modules that ./go/rpc depends upon.
@@ -32,9 +20,9 @@ $(rpcOutputFiles): $(rpcDependentFiles)
 
 pages := $(shell find ./pages -type f)
 modules := $(shell find ./modules -type f)
-frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./node_modules/lastupdate-webpack
+frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./node_modules/lastupdate-webpack ./res/img/favicon.ico
 pageBaseNames := $(sort $(basename $(notdir $(pages))))
-distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames))
+distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames)) favicon.ico
 dist := $(addprefix ./dist/,$(distNames))
 
 $(dist): $(frontendInputFiles)
@@ -67,20 +55,12 @@ task-scheduler-be:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-be
 
 .PHONY: task-scheduler-fe
-task-scheduler-fe: $(dist) core_js elements_html
+task-scheduler-fe: $(dist)
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
 .PHONY: task-scheduler-jc
 task-scheduler-jc:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-jc
-
-# Build debug versions of core.js and elements.html.
-.PHONY: debug
-debug: clean_webtools debug_core_js debug_elements_html
-
-.PHONY: task-scheduler-fe-debug
-task-scheduler-fe-debug: debug
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
 .PHONY: release-be
 release-be: task-scheduler-be build_base_cipd_release
@@ -110,5 +90,3 @@ push-jc: release-jc
 .PHONY: validate_db
 validate_db:
 	go install -v ./go/db/validate_db
-
-include ../webtools/webtools.mk
