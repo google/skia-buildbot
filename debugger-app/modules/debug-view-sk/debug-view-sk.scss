@@ -1,13 +1,29 @@
 debug-view-sk {
 
+  // copied this trick from https://css-tricks.com/how-to-stack-elements-in-css/
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  // Put the crosshair canvas directly on top of the debug canvas by putting it in the same
+  // grid cell
+  canvas {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+
+  // Four sizing options for the debug canvas.
+  // if one of these is applied to the debug canvas, it must also be applied
+  // to the crosshair canvas.
   .bottom {
     width: auto;
-    height: 80vh;
+    height: 88vh;
   }
 
   .fit {
     max-width: 100%;
-    max-height: 80vh;
+    max-height: 88vh;
     width: auto;
     height: auto;
   }
@@ -27,16 +43,20 @@ debug-view-sk {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;
     background-size: 20px 20px;
-    background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
-                      linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+    background-image: linear-gradient(
+      45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+                      linear-gradient(
+      45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
   }
 
   .dark-checkerboard  {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;
     background-size: 20px 20px;
-    background-image: linear-gradient(45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
-                      linear-gradient(45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
+    background-image: linear-gradient(
+      45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
+                      linear-gradient(
+      45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
   }
 
   button {
