@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45d4293c_986124fe",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-03T18:57:27Z",
+      "side": 1,
+      "message": "How does this interact with the roller\u0027s changes?",
+      "range": {
+        "startLine": 290,
+        "startChar": 58,
+        "endLine": 290,
+        "endChar": 67
+      },
+      "revId": "81072061994413c7c27f773b7bee4e66fcc643fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
