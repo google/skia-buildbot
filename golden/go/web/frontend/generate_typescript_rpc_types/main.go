@@ -1,3 +1,5 @@
+//go:generate go run . -o ../../../../modules/rpc_types.ts
+
 package main
 
 import (
@@ -8,7 +10,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/search/common"
 	search_frontend "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/status"
@@ -53,6 +54,6 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v1/trstatus RPC endpoint.
 	generator.AddWithName(status.GUIStatus{}, "StatusResponse")
 
-	generator.AddUnionWithName(expectations.AllLabel, "Label")
+	// generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName(common.AllRefClosest, "RefClosest")
 }
