@@ -51,29 +51,24 @@ a.visited {
 /* Background and foreground colors. */
 .bg-canceled {
   background-color: var(--color-canceled);
-  /* We use rects as divs, so fill == background-color */
   fill: var(--color-canceled);
 }
 .bg-failure {
   background-color: var(--color-failure);
-  /* We use rects as divs, so fill == background-color */
   fill: var(--color-failure);
 }
 .bg-in-progress {
   background-color: var(--color-in-progress);
-  /* We use rects as divs, so fill == background-color */
   fill: var(--color-in-progress);
   /* It's hard to see white on yellow, so invert the color. */
   color: black;
 }
 .bg-mishap {
   background-color: var(--color-mishap);
-  /* We use rects as divs, so fill == background-color */
   fill: var(--color-mishap);
 }
 .bg-success {
   background-color: var(--color-success);
-  /* We use rects as divs, so fill == background-color */
   fill: var(--color-success);
 }
 
