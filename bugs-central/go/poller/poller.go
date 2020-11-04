@@ -92,8 +92,8 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	androidQueryConfig := &issuetracker.IssueTrackerQueryConfig{
 		Query:               "componentid:1346 status:open",
 		Client:              AndroidClient,
-		UntriagedPriorities: []string{"P4"},
-		UntriagedAliases:    []string{"skia-android-triage@google.com"},
+		UntriagedPriorities: []string{},
+		UntriagedAliases:    []string{"skia-android-triage@google.com", "none"},
 	}
 	androidIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, androidQueryConfig)
 	if err != nil {
