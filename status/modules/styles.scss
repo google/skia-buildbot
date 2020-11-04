@@ -9,6 +9,10 @@ html {
   min-height: 100vh;
 }
 
+body {
+  font-size: 12px;
+}
+
 .bg-success {
   background-color: var(--success-alpha);
 }
@@ -108,6 +112,9 @@ html {
     --failure-alpha: rgba(217, 95, 2, 0.9);
     --unexpected-alpha: rgba(117, 112, 179, 0.9);
     --disabled-alpha: rgba(117, 117, 117, 0.9);
+    --on-background: var(--grey-300);
+    --on-surface: var(--grey-400);
+    --on-primary: var(--grey-200);
     --success-on-surface: var(--light-green-200);
     --warning-on-surface: var(--warning);
     --failure-on-surface: var(--red-100);
