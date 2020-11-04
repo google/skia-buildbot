@@ -43,6 +43,13 @@ describe('formatAndLinkify', function() {
       '<br> and <a href="http://www.example.com/cool/thing?special=true" '+
       'target="_blank" rel="noopener">http://www.example.com/cool/thing?special=true</a>');
   })
+
+  it('handles newline following link', function () {
+    test(
+      `Reviewed-on: https://skia-review.googlesource.com/c/skia/+/123\nfoo`,
+      'Reviewed-on: <a href="https://skia-review.googlesource.com/c/skia/+/123" target="_blank" rel="noopener">https://skia-review.googlesource.com/c/skia/+/123</a><br>foo'
+    );
+  });
 });
 
 const test = (input, output) => {
