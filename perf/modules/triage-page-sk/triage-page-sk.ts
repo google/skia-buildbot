@@ -197,6 +197,7 @@ export class TriagePageSk extends ElementSk {
         @triaged=${ele.triaged}
         .full_summary=${ele.dialogState!.full_summary}
         .triage=${ele.dialogState!.triage}
+        .alert=${ele.dialogState!.alert}
       ></cluster-summary2-sk>
       <div class="buttons">
         <button @click=${ele.close}>Close</button>
