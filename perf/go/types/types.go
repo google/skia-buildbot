@@ -118,6 +118,7 @@ var (
 		AbsoluteStep,
 		PercentStep,
 		CohenStep,
+		MannWhitneyU,
 	}
 )
 

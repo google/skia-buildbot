@@ -161,6 +161,7 @@ export class ClusterLastNPageSk extends ElementSk {
       <cluster-summary2-sk
         .full_summary=${ele.dialogState!.full_summary}
         .triage=${ele.dialogState!.triage}
+        .alert=${ele.state}
         notriage
       ></cluster-summary2-sk>
       <div class="buttons">

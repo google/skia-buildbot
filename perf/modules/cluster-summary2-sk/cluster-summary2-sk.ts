@@ -55,15 +55,84 @@ import {
   CommitNumber,
   Status,
   ColumnHeader,
+  Alert,
+  StepDetection,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
 
-function trunc(value: number) {
-  return (+value).toPrecision(3);
+/** Defines a func that takes a number and formats it as a string. */
+type Formatter = (n: number)=> string;
+
+/**
+ * Each type of step detection gives different meaning to the regression,
+ * stepSize, and least_squares values in the cluster summary, so we create a
+ * mapping to describe each of their labels and how the values should be
+ * formatted.
+ */
+interface LabelsAndFormatters {
+  regression: string;
+  stepSize: string;
+  lse: string;
+  regressionFormatter: Formatter;
+  stepSizeFormatter: Formatter;
+  lseFormatter: Formatter;
 }
+
+// Oddly this seems to be the only way to retrieve the Intl locale for the
+// browser.
+const locale = Intl.NumberFormat().resolvedOptions().locale;
+
+// These are different number formatters used in labelsForStepDetection.
+const percentFormatter = Intl.NumberFormat(locale, { style: 'percent', maximumSignificantDigits: 4 }).format;
+const decimalFormatter = Intl.NumberFormat(locale, { style: 'decimal', maximumSignificantDigits: 4 }).format;
+const emptyFormatter = () => '';
+
+/** Map each StepDetection to the labels and formatters used for that type. */
+const labelsForStepDetection: Record<StepDetection, LabelsAndFormatters> = {
+  '': {
+    regression: 'Regression Factor:',
+    regressionFormatter: decimalFormatter,
+    stepSize: 'Step Size:',
+    stepSizeFormatter: decimalFormatter,
+    lse: 'Least Squares Error:',
+    lseFormatter: decimalFormatter,
+  },
+  absolute: {
+    regression: 'Absolute Change:',
+    regressionFormatter: decimalFormatter,
+    stepSize: '',
+    stepSizeFormatter: emptyFormatter,
+    lse: '',
+    lseFormatter: emptyFormatter,
+  },
+  percent: {
+    regression: 'Percentage Change:',
+    regressionFormatter: percentFormatter,
+    stepSize: '',
+    stepSizeFormatter: emptyFormatter,
+    lse: '',
+    lseFormatter: emptyFormatter,
+  },
+  cohen: {
+    regression: 'Standard Deviations:',
+    regressionFormatter: decimalFormatter,
+    stepSize: '',
+    stepSizeFormatter: emptyFormatter,
+    lse: '',
+    lseFormatter: emptyFormatter,
+  },
+  mannwhitneyu: {
+    regression: 'p:',
+    regressionFormatter: percentFormatter,
+    stepSize: '',
+    stepSizeFormatter: emptyFormatter,
+    lse: 'U:',
+    lseFormatter: decimalFormatter,
+  },
+};
 
 export interface ClusterSummary2SkTriagedEventDetail {
   columnHeader: ColumnHeader;
@@ -95,6 +164,10 @@ export class ClusterSummary2Sk extends ElementSk {
   private frame: FrameResponse | null = null;
 
   private fullSummary: FullSummary | null = null;
+
+  private _alert: Alert | null = null;
+
+  private labels: LabelsAndFormatters = labelsForStepDetection['']
 
   constructor() {
     super(ClusterSummary2Sk.template);
@@ -137,8 +210,8 @@ export class ClusterSummary2Sk extends ElementSk {
 
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">
-      Regression:
-      <span>${trunc(ele.summary!.step_fit!.regression)}</span>
+      ${ele.labels.regression}
+      <span>${ele.labels.regressionFormatter(ele.summary!.step_fit!.regression)}</span>
     </div>
     <div class="stats">
       <div class="labelled">
@@ -147,8 +220,8 @@ export class ClusterSummary2Sk extends ElementSk {
       </div>
       ${ClusterSummary2Sk.leastSquares(ele)}
       <div class="labelled">
-        Step Size:
-        <span>${trunc(ele.summary!.step_fit!.step_size)}</span>
+        ${ele.labels.stepSize}
+        <span>${ele.labels.stepSizeFormatter(ele.summary!.step_fit!.step_size)}</span>
       </div>
     </div>
     <plot-simple-sk
@@ -192,22 +265,18 @@ export class ClusterSummary2Sk extends ElementSk {
     </collapse-sk>
   `;
 
-  private static leastSquares = (ele: ClusterSummary2Sk) => {
-    if (ele.summary!.step_fit!.least_squares >= 0) {
-      return html`
+  private static leastSquares = (ele: ClusterSummary2Sk) => html`
         <div class="labelled">
-          Least Squares Error:
-          <span>${trunc(ele.summary!.step_fit!.least_squares)}</span>
+          ${ele.labels.lse}
+          <span>${ele.labels.lseFormatter(ele.summary!.step_fit!.least_squares)}</span>
         </div>
       `;
-    }
-    return html``;
-  };
 
-  connectedCallback(): void{
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('full_summary');
     this._upgradeProperty('triage');
+    this._upgradeProperty('alert');
     this._render();
     this.wordCloud = this.querySelector('.wordCloudCollapse');
     this.status = this.querySelector('#status');
@@ -256,7 +325,6 @@ export class ClusterSummary2Sk extends ElementSk {
     );
   }
 
-
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     const commitNumber = this.frame!.dataframe!.header![e.detail.x]?.offset;
     ClusterSummary2Sk.lookupCids([commitNumber!])
@@ -301,7 +369,7 @@ export class ClusterSummary2Sk extends ElementSk {
    *  }
    *
    */
-  get full_summary(): FullSummary | null{
+  get full_summary(): FullSummary | null {
     return this.fullSummary;
   }
 
@@ -412,6 +480,20 @@ export class ClusterSummary2Sk extends ElementSk {
       return;
     }
     this.triageStatus = val;
+    this._render();
+  }
+
+  /** The configured Alert that found this regression. */
+  get alert(): Alert | null {
+    return this._alert;
+  }
+
+  set alert(val: Alert | null) {
+    if (!val) {
+      return;
+    }
+    this._alert = val;
+    this.labels = labelsForStepDetection[val!.step];
     this._render();
   }
 }
