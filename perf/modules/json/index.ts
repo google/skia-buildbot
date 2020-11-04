@@ -279,7 +279,7 @@ export type ParamSet = { [key: string]: string[] };
 
 export type ClusterAlgo = "kmeans" | "stepfit";
 
-export type StepDetection = "" | "absolute" | "percent" | "cohen";
+export type StepDetection = "" | "absolute" | "percent" | "cohen" | "mannwhitneyu";
 
 export type ConfigState = "ACTIVE" | "DELETED";
 
