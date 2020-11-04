@@ -496,3 +496,17 @@ func TestURLFromParts_DefaultCommitURL_Success(t *testing.T) {
 	}
 	assert.Equal(t, "https://skia.googlesource.com/skia/+show/6079a7810530025d9877916895dd14eb8bb454c0", urlFromParts(instanceConfig, commit))
 }
+
+func TestCommit_Display(t *testing.T) {
+	unittest.SmallTest(t)
+
+	c := Commit{
+		CommitNumber: 10223,
+		GitHash:      "d261e1075a93677442fdf7fe72aba7e583863664",
+		Timestamp:    1498176000,
+		Author:       "Robert Phillips <robertphillips@google.com>",
+		Subject:      "Re-enable opList dependency tracking",
+		URL:          "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
+	}
+	assert.Equal(t, "d261e10 -  2y 40w - Re-enable opList dependency tracking", c.Display(time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC)))
+}
