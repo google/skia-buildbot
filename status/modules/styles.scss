@@ -52,7 +52,7 @@ body {
 
 .tr {
   display: table-row;
-  border-bottom: 1px solid var(--grey-200);
+  border-bottom: 1px solid var(--surface);
 }
 
 .td,
@@ -85,39 +85,61 @@ body {
   --on-primary: var(--white);
   --secondary: #e6ab02;
   --on-secondary: var(--black);
-
+  --surface: var(--grey-200);
+  --surface-1dp: var(--grey-300);
+  --surface-1dp: var(--grey-400);
   --success: rgb(102, 166, 30);
   --success-alpha: rgba(102, 166, 30, 0.5);
-  --warning: var(--orange-400);
-  --warning-alpha: var(--orange-a200);
+  --warning: rgb(255, 167, 38);
+  --warning-alpha: rgb(255, 171, 64, 0.8);
   --failure: rgb(217, 95, 2);
-  --failure-alpha: rgba(217, 95, 2, 0.7);
-  --on-failure: var(--white);
-  --on-warning: var(--black);
+  --failure-alpha: rgba(217, 95, 2, 0.8);
+  --on-success: var(--on-surface);
+  --on-failure: var(--on-surface);
+  --on-warning: var(--on-surface);
+  --on-unexpected: var(--on-surface);
   --unexpected: rgb(117, 112, 179);
-  --unexpected-alpha: rgba(117, 112, 179, 0.7);
+  --unexpected-alpha: rgba(117, 112, 179, 1);
   --disabled: var(--grey-500);
-  --disabled-alpha: rgba(117, 117, 117, 0.5);
-  --success-on-surface: var(--success);
-  --warning-on-surface: var(--warning);
-  --failure-on-surface: var(--failure);
-  --unexpected-on-surface: var(--unexpected);
+  --disabled-alpha: rgba(117, 117, 117, 1);
 
   .darkmode {
+    --grey-850: #303030;
     --primary: var(--light-green-700);
-    --on-primary: var(--white);
-    --secondary: #e6ab02;
-    --on-secondary: var(--black);
-    --success-alpha: rgba(102, 166, 30, 0.9);
-    --failure-alpha: rgba(217, 95, 2, 0.9);
-    --unexpected-alpha: rgba(117, 112, 179, 0.9);
-    --disabled-alpha: rgba(117, 117, 117, 0.9);
+    --on-primary: var(--grey-200);
+    --secondary: #9a7200;
+    --on-secondary: var(--grey-200);
+    --success-alpha: rgba(102, 166, 30, 0.3);
+    --warning-alpha: rgb(255, 171, 64, 0.5);
+    --failure-alpha: rgba(217, 95, 2, 0.5);
+    --unexpected-alpha: rgba(117, 112, 179, 1);
+    --disabled-alpha: rgba(117, 117, 117, 1);
     --on-background: var(--grey-300);
     --on-surface: var(--grey-400);
     --on-primary: var(--grey-200);
-    --success-on-surface: var(--light-green-200);
-    --warning-on-surface: var(--warning);
-    --failure-on-surface: var(--red-100);
-    --unexpected-on-surface: var(--purple-50);
+    --background: var(--grey-900);
+    --on-background: var(--grey-300);
+    --surface: var(--grey-850);
+    --on-surface: var(--grey-200);
+    --error: var(--amber-900);
+
+    /* Redefine these, otherwise they take variable values from light mode.*/
+    --on-success: var(--on-surface);
+    --on-failure: var(--on-surface);
+    --on-warning: var(--on-surface);
+    --on-unexpected: var(--on-surface);
+
+    input {
+      background-color: var(--surface);
+      color: var(--on-surface);
+    }
+    input-sk {
+      .underline-background {
+        background-color: var(--surface-2dp);
+      }
+      input {
+        background-color: var(--surface);
+      }
+    }
   }
 }

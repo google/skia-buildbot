@@ -6,6 +6,8 @@ status-sk {
     --sidebar-horiz-padding: 0;
     --content-horiz-padding: 5px;
     --content-vert-padding: 5px;
+    --header-background-color: var(--success-alpha);
+    --header-font-color: var(--on-success);
 
     header {
       a {
@@ -19,14 +21,21 @@ status-sk {
     }
 
     aside {
+      background-color: var(--background);
+      border: none;
       z-index: 2;
       > * {
-        border: 1px solid var(--primary);
+        background-color: var(--background);
+        border: 1px solid var(--surface-1dp);
         padding: 1px;
         margin: 5px;
       }
 
       .collapser {
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom-color: var(--surface-1dp);
         width: 100%;
         text-transform: none;
         padding: 0 0.5em 0 0;
@@ -38,24 +47,10 @@ status-sk {
         width: 100%;
       }
     }
-  }
-}
 
-.darkmode status-sk {
-  app-sk {
-    --header-background-color: var(--primary);
-    --header-font-color: var(--on-primary);
-
-    login-sk a,
-    tree-status-sk a {
-      color: var(--on-primary) !important;
-    }
-
-    aside {
-      background-color: var(--surface-1dp);
-      > * {
-        border: 1px solid var(--grey-700);
-      }
+    login-sk *,
+    tree-status-sk * {
+      color: var(--header-font-color) !important;
     }
   }
 }
