@@ -23,7 +23,9 @@ export class PerfStatusSk extends ElementSk {
         title="Active Perf Alerts"
       >
         <div class="td">regressions</div>
-        <div class="td number"><span class="value">${el.resp.alerts}</span></div>
+        <div class="td number">
+          <span class="value">${el.resp.alerts}</span>
+        </div>
       </a>
     </div>
   `;
