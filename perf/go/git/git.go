@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -45,6 +46,11 @@ type Commit struct {
 	Author       string             `json:"author"`
 	Subject      string             `json:"message"`
 	URL          string             `json:"url"`
+}
+
+// Display returns a display string that describes the commit.
+func (c Commit) Display(now time.Time) string {
+	return fmt.Sprintf("%s - %s - %s", c.GitHash[:7], human.Duration(now.Sub(time.Unix(c.Timestamp, 0))), c.Subject)
 }
 
 // statement is an SQL statement identifier.
