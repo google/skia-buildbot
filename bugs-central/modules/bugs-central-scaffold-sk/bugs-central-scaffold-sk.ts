@@ -17,16 +17,11 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/android-icon-sk';
-import 'elements-sk/icon/bug-report-icon-sk';
 import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/gesture-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
+import 'elements-sk/icon/insert-chart-icon-sk';
 import 'elements-sk/icon/person-pin-icon-sk';
-import 'elements-sk/icon/star-icon-sk';
-import 'elements-sk/nav-button-sk';
-import 'elements-sk/nav-links-sk';
 import 'elements-sk/spinner-sk';
 
 import '../../../infra-sk/modules/app-sk';
@@ -82,10 +77,13 @@ export class BugsCentralScaffoldSk extends ElementSk {
       <a href="/?client=Skia" tab-index=0 >
         <person-pin-icon-sk></person-pin-icon-sk><span>Skia Client</span>
       </a>
-      <a href="http://go/skia-bugs-central" tab-index=0>
+      <a href="https://estado.googleplex.com/dashboard/140965800253573027/buganizer" target="_blank" tab-index=0>
+        <insert-chart-icon-sk></insert-chart-icon-sk><span>Estado Dashboard</span>
+      </a>
+      <a href="http://go/skia-bugs-central" target="_blank" tab-index=0>
         <help-icon-sk></help-icon-sk><span>Help</span>
       </a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/bugs-central" tab-index=0>
+      <a href="https://github.com/google/skia-buildbot/tree/master/bugs-central" target="_blank" tab-index=0>
         <folder-icon-sk></folder-icon-sk><span>Code</span>
       </a>
     </nav>
