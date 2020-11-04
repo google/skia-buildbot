@@ -1,0 +1,268 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6513e7c6_b849bdc8",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Can these be deleted?",
+      "range": {
+        "startLine": 295,
+        "startChar": 6,
+        "endLine": 302,
+        "endChar": 52
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "19032676_4e42d4ce",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 304,
+        "startChar": 5,
+        "endLine": 306,
+        "endChar": 5
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "50b331c4_99adfb47",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Delete?",
+      "range": {
+        "startLine": 346,
+        "startChar": 0,
+        "endLine": 346,
+        "endChar": 67
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ff3ef50a_85e0cfc2",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Delete?",
+      "range": {
+        "startLine": 397,
+        "startChar": 0,
+        "endLine": 397,
+        "endChar": 52
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1b896757_b2fac139",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "No need for this - this information is inferred by the TypeScript compiler and reflected in the method documentation shown by editors such as VSCode and IntelliJ.",
+      "range": {
+        "startLine": 78,
+        "startChar": 5,
+        "endLine": 78,
+        "endChar": 28
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1683398f_4f2ca8de",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Suggestion: If play-sk is only ever going to be used from a lit-html template, consider making this a regular property (as opposed to an attribute), then use it from lit-html as so:\n\n  \u003cplay-sk .visual\u003d${\u0027full\u0027}\u003e...\u003c/play-sk\u003e",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 0
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c19a8ee6_306c7a7d",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Please delete if not used.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 23
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "971a2059_9ead4ce5",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Please delete or replace with an event listener for the event or events of interest.",
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "59689aa9_be59cd3c",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "General comment - feel free to drop the underscore in private fields and methods. We used this convention to indicate field/method visibility back when we still wrote plain JavaScript, but for new code written in TypeScript the \"private\" keyword is sufficient.",
+      "range": {
+        "startLine": 39,
+        "startChar": 10,
+        "endLine": 39,
+        "endChar": 16
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "adf1df67_b56a5a52",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Are these setters (item and count) part of the TimelineSk\u0027s public API? If not, please mark them as private.\n\n  private set item(i: number) { ... }",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 23
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e096e0a_e03603e4",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "I think this type assertion can be deleted because this._playSk is already of type PlaySk | null.",
+      "range": {
+        "startLine": 77,
+        "startChar": 56,
+        "endLine": 77,
+        "endChar": 57
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b1d4a575_5b66b7ba",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-04T20:23:45Z",
+      "side": 1,
+      "message": "Please delete or add some tests.",
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
