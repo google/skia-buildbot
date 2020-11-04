@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a0438316_1fe73df2",
+        "filename": "status/modules/status-sk/status-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-04T19:55:09Z",
+      "side": 1,
+      "message": "It\u0027d be nice to refactor this container-with-collapse along with the CSS as its own element, or at least as a function call here.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 16
+      },
+      "revId": "543b6c91fd7ffbc398bc9718dddfc2c3ccd14abd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
