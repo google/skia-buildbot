@@ -30,7 +30,7 @@ commits-table-sk {
     }
 
     div:nth-child(odd) {
-      background-color: #efefef;
+      background-color: var(--surface);
     }
   }
 
@@ -125,7 +125,6 @@ commits-table-sk {
   }
 
   .legend {
-    border-right: 1px solid;
     font-size: 10px;
     min-width: 100px;
 
@@ -300,29 +299,6 @@ div.hidden.task {
   visibility: hidden;
 }
 
-// Darkmode overrides
-.darkmode {
-  .rowUnderlay {
-    div:nth-child(odd) {
-      background-color: var(--surface-1dp);
-    }
-  }
-
-  .commit-container {
-    .time-spacer .time-label {
-      background-color: var(--grey-300);
-      color: var(--black);
-    }
-
-    .time-underline {
-      color: var(--white);
-      border-color: var(--grey-300);
-    }
-  }
-
-  .commit-container:hover {
-    .highlight-row {
-      border-bottom: 3px solid var(--primary);
-    }
-  }
+tabs-sk > button {
+  border-bottom-color: var(--surface-2dp);
 }

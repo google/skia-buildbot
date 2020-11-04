@@ -48,7 +48,7 @@ html {
 
 .tr {
   display: table-row;
-  border-bottom: 1px solid var(--grey-200);
+  border-bottom: 1px solid var(--surface);
 }
 
 .td,
@@ -88,8 +88,10 @@ html {
   --warning-alpha: var(--orange-a200);
   --failure: rgb(217, 95, 2);
   --failure-alpha: rgba(217, 95, 2, 0.7);
-  --on-failure: var(--white);
-  --on-warning: var(--black);
+  --on-success: var(--on-surface);
+  --on-failure: var(--on-surface);
+  --on-warning: var(--on-surface);
+  --on-unexpected: var(--on-surface);
   --unexpected: rgb(117, 112, 179);
   --unexpected-alpha: rgba(117, 112, 179, 0.7);
   --disabled: var(--grey-500);
@@ -100,6 +102,7 @@ html {
   --unexpected-on-surface: var(--unexpected);
 
   .darkmode {
+    --grey-850: #303030;
     --primary: var(--light-green-700);
     --on-primary: var(--white);
     --secondary: #e6ab02;
@@ -112,5 +115,15 @@ html {
     --warning-on-surface: var(--warning);
     --failure-on-surface: var(--red-100);
     --unexpected-on-surface: var(--purple-50);
+    --background: var(--grey-900);
+    --on-background: var(--grey-300);
+    --surface: var(--grey-850);
+    --on-surface: var(--grey-200);
+    --error: var(--amber-900);
+
+    input {
+      background-color: var(--surface-2dp);
+      color: var(--on-surface);
+    }
   }
 }
