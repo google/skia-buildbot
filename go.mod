@@ -61,7 +61,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/a8m/envsubst v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
-	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
@@ -77,7 +76,6 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/go-python/gpython v0.0.3
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
@@ -107,14 +105,11 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgconn v1.7.0 // indirect
 	github.com/jackc/pgx/v4 v4.9.0
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
-	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kisielk/errcheck v1.2.0
 	github.com/klauspost/compress v1.11.2 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lib/pq v1.8.0 // indirect
@@ -133,7 +128,6 @@ require (
 	github.com/nxadm/tail v1.4.5 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.3 // indirect
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.1 // indirect
@@ -189,7 +183,6 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.86
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 	k8s.io/api v0.19.3
 	k8s.io/apimachinery v0.19.3
