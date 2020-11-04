@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48f21d1a_e967537f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-04T21:11:53Z",
+      "side": 1,
+      "message": "Apparently my editor has a different idea about what valid JSON5 looks like.",
+      "revId": "9d3ec5c34218362cef94568927eae4f128ef6220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
