@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d8f71481_661aa305",
+        "filename": "status/modules/autoroller-status-sk/autoroller-status-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-04T17:22:22Z",
+      "side": 0,
+      "message": "I thought you mentioned liking the status conveyed in text color rather than background in darkmode here.  I get the appeal of simplifying the css by keeping the background form though, just making a note.\n\nAlso, please remove the --\u003cstatus\u003e-on-surface vars in styles.scss, I think this was their only usage.",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 40
+      },
+      "revId": "9f29f9e1b7510e88a8c93dfc60a6a3c84adc6b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
