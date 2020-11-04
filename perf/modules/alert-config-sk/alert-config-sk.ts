@@ -16,7 +16,10 @@ import 'elements-sk/styles/buttons';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { SelectSkSelectionChangedEventDetail } from 'elements-sk/select-sk/select-sk';
+import {
+  SelectSk,
+  SelectSkSelectionChangedEventDetail,
+} from 'elements-sk/select-sk/select-sk';
 import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
@@ -37,21 +40,11 @@ import '../query-chooser-sk';
 const toDirection = (val: string | null): Direction => {
   if (val === 'UP') {
     return 'UP';
-  } if (val === 'DOWN') {
+  }
+  if (val === 'DOWN') {
     return 'DOWN';
   }
   return 'BOTH';
-};
-
-const stepDetections: StepDetection[] = ['', 'absolute', 'percent', 'cohen'];
-const toStepDetection = (s: string | null): StepDetection => {
-  if (s === null) {
-    return '';
-  }
-  if (stepDetections.indexOf(s as StepDetection) !== -1) {
-    return s as StepDetection;
-  }
-  return '';
 };
 
 const toConfigState = (s: string | null): ConfigState => {
@@ -59,6 +52,38 @@ const toConfigState = (s: string | null): ConfigState => {
     return 'ACTIVE';
   }
   return 'DELETED';
+};
+
+interface Labels {
+  name: string;
+  description: string;
+}
+
+const threshholdLabels: Record<StepDetection, Labels> = {
+  '': {
+    name: 'R',
+    description:
+      'Consider change significant if |(x-y)/σ²| > R. This is the original regression factor. Values in the range of 10-50 are suggested.',
+  },
+  percent: {
+    name: 'percent',
+    description:
+      'Consider change significant if |(x-y)/x| > percent. Values between 0.1 and 1.0 work well.',
+  },
+  absolute: {
+    name: 'magnitude',
+    description: 'Consider change significant if |(x-y)| > magnitude',
+  },
+  cohen: {
+    name: 'standard deviations',
+    description:
+      'Consider change significant if the mean has changed by this many standard deviations. That is |(x-y)/σ| > standard deviations. Values from 2.0 to 3.0 work well.',
+  },
+  mannwhitneyu: {
+    name: 'alpha (α)',
+    description:
+      'Consider change significant if p < α. A typical value is 0.05.',
+  },
 };
 
 export class AlertConfigSk extends ElementSk {
@@ -73,6 +98,8 @@ export class AlertConfigSk extends ElementSk {
   private bugSpinner: SpinnerSk | null = null;
 
   private alertSpinner: SpinnerSk | null = null;
+
+  private stepSelectSk: SelectSk | null = null;
 
   constructor() {
     super(AlertConfigSk.template);
@@ -153,51 +180,29 @@ export class AlertConfigSk extends ElementSk {
     <h4>Step Detection</h4>
     <label for="step">
       Choose the algorithm used to determine if a regression has occurred. The
-      actual value is set in
-      <em>Threshold</em>
-      .
+      <em>Threshold</em> units will change based on the algorithm selection. .
     </label>
     <select-sk
       id="step"
-      @selection-changed=${(
-    e: CustomEvent<SelectSkSelectionChangedEventDetail>,
-  ) => (ele._config.step = toStepDetection(
-    (e.target! as HTMLDivElement).children[
-      e.detail.selection
-    ].getAttribute('value'),
-  ))}
+      @selection-changed=${ele.stepSelectionChanged}
+      .selection=${ele.indexFromStep()}
     >
-      <div value="" ?selected=${ele._config.step === ''}>
-        Regression = Step Size/Variance. This is the original regression factor.
-      </div>
-      <div value="absolute" ?selected=${ele._config.step === 'absolute'}>
-        A change in absolute magnitude. Threshold is the minimum difference to
-        trigger an alert.
-      </div>
-      <div value="percent" ?selected=${ele._config.step === 'percent'}>
-        A change by percent. Threshold is a value in [0.0, 1.0] and the minimum
-        difference to trigger an alert.
-      </div>
-      <div value="cohen" ?selected=${ele._config.step === 'cohen'}>
-        Use Cohen's d method to detect a change. Threshold is the standard
-        deviations that the mean must move to trigger an alert.
-      </div>
+      <div value="" }>Original Regression Factor</div>
+      <div value="absolute" }>Absolute</div>
+      <div value="percent" }>Percent</div>
+      <div value="cohen" }>Cohen's d</div>
+      <div value="mannwhitneyu" }>Mann-Whitney U (Wilcoxon rank-sum)</div>
     </select-sk>
-    <h4>Threshold</h4>
+    <h4>Threshhold</h4>
     <label for="threshold">
-      The threshold for Step Detection to trigger an alert. The meaning of the
-      value and meaningful range depends on the algorithm chosen for
-      <em>Step Detection</em>
-      .
+      ${threshholdLabels[ele._config.step].description}
     </label>
     <input
       id="threshold"
-      type="number"
-      min="1"
-      max="500"
-      .value=${ele._config.interesting}
+      .value=${ele._config.interesting.toString()}
       @input=${(e: InputEvent) => (ele._config.interesting = +(e.target! as HTMLInputElement).value)}
     />
+    ${threshholdLabels[ele._config.step].name}
 
     <h4>K</h4>
     <label for="k">
@@ -208,7 +213,7 @@ export class AlertConfigSk extends ElementSk {
       id="k"
       type="number"
       min="0"
-      .value=${ele._config.k}
+      .value=${ele._config.k.toString()}
       @input=${(e: InputEvent) => (ele._config.k = +(e.target! as HTMLInputElement).value)}
     />
 
@@ -221,7 +226,7 @@ export class AlertConfigSk extends ElementSk {
       id="radius"
       type="number"
       min="0"
-      .value=${ele._config.radius}
+      .value=${ele._config.radius.toString()}
       @input=${(e: InputEvent) => (ele._config.radius = +(e.target! as HTMLInputElement).value)}
     />
 
@@ -253,7 +258,7 @@ export class AlertConfigSk extends ElementSk {
     <input
       id="min"
       type="number"
-      .value=${ele._config.minimum_num}
+      .value=${ele._config.minimum_num.toString()}
       @input=${(e: InputEvent) => (ele._config.minimum_num = +(e.target! as HTMLInputElement).value)}
     />
 
@@ -339,7 +344,6 @@ export class AlertConfigSk extends ElementSk {
     );
   };
 
-
   connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('config');
@@ -350,6 +354,34 @@ export class AlertConfigSk extends ElementSk {
     this._render();
     this.bugSpinner = this.querySelector('#bugSpinner');
     this.alertSpinner = this.querySelector('#alertSpinner');
+    this.stepSelectSk = this.querySelector('#step');
+  }
+
+  /**
+   * Returns the index of the select-sk child that should be selected based on
+   * the value of _config.step.
+   */
+  private indexFromStep(): number {
+    if (!this.stepSelectSk) {
+      return -1;
+    }
+    const children = this.stepSelectSk!.children;
+    for (let i = 0; i < children.length; i++) {
+      if (children[i].getAttribute('value') === this._config.step) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private stepSelectionChanged(
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>,
+  ) {
+    const valueAsString = (e.target! as HTMLDivElement).children[
+      e.detail.selection
+    ].getAttribute('value');
+    this._config.step = valueAsString as StepDetection;
+    this._render();
   }
 
   private testBugTemplate() {
