@@ -283,8 +283,8 @@ func ConvertUpdate(u *incremental.Update, podID string) *GetIncrementalCommitsRe
 				Deleted:       c.Deleted != nil && *c.Deleted})
 		}
 	}
-	for _, commitComments := range u.TaskComments {
-		for hash, srcComments := range commitComments {
+	for hash, commitComments := range u.TaskComments {
+		for _, srcComments := range commitComments {
 			for _, c := range srcComments {
 				update.Comments = append(update.Comments, &Comment{
 					Commit:       hash,
