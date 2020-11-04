@@ -3,11 +3,21 @@
  * @description <h2><code>autoroller-status-sk</code></h2>
  *
  * Custom element for displaying status of Skia autorollers.
+ *
+ * @event rollers-update: Periodic event for updated roller status. Detail
+ * is of type Array<AutorollerStatus>
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { StatusService, GetStatusService, AutorollerStatus } from '../rpc';
+
+// Type of rollers-update event.detail.
+declare global {
+  interface DocumentEventMap {
+    'rollers-update': CustomEvent<Array<AutorollerStatus>>;
+  }
+}
 
 function colorClass(status: AutorollerStatus) {
   // Find a color class for the roller.
@@ -77,6 +87,12 @@ export class AutorollerStatusSk extends ElementSk {
       .then((resp) => {
         this.rollers = resp.rollers || [];
         this._render();
+        this.dispatchEvent(
+          new CustomEvent<Array<AutorollerStatus>>('rollers-update', {
+            bubbles: true,
+            detail: this.rollers.slice(),
+          })
+        );
       })
       .finally(() => {
         // Updates happen periodically on the backend, this being configurable provides no benefit.

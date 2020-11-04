@@ -55,6 +55,10 @@ export function repos() {
   return r ? [...r.keys()] : [];
 }
 
+export function repoUrl(r: string) {
+  return settings()?.repos.get(r) || '';
+}
+
 // revisionUrlTemplate: Returns the base url for a repo's revisions. Can be
 // concatenated with a hash to form a valid url.
 export function revisionUrlTemplate(repo: string) {
