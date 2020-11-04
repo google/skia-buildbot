@@ -59,6 +59,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "05e46400_2ca67818",
+        "filename": "status/modules/status-sk/status-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-04T18:41:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7b6d3ae_e8bf6de4",
+      "range": {
+        "startLine": 9,
+        "startChar": 37,
+        "endLine": 9,
+        "endChar": 44
+      },
+      "revId": "4e1a5b926902f9899ed3a6b8cd8124ffa03fced9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "87f2b4ad_cd77a539",
@@ -72,6 +96,30 @@
       "writtenOn": "2020-11-04T17:22:22Z",
       "side": 1,
       "message": "Can you flip the color on these two darkmode header items? https://screenshot.googleplex.com/BeSnCguPqfKTrna\n\nI believe the  login-sk was a miss on my part previously, but the legacy banner needs a flip as well I think.",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 5
+      },
+      "revId": "4e1a5b926902f9899ed3a6b8cd8124ffa03fced9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf9422bb_7b4b16a4",
+        "filename": "status/modules/status-sk/status-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-04T18:41:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87f2b4ad_cd77a539",
       "range": {
         "startLine": 51,
         "startChar": 4,

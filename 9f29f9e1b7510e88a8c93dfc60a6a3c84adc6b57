@@ -22,6 +22,30 @@
       },
       "revId": "9f29f9e1b7510e88a8c93dfc60a6a3c84adc6b57",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a118f519_bc8b88b7",
+        "filename": "status/modules/autoroller-status-sk/autoroller-status-sk.scss",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-04T18:41:40Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "d8f71481_661aa305",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 40
+      },
+      "revId": "9f29f9e1b7510e88a8c93dfc60a6a3c84adc6b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
