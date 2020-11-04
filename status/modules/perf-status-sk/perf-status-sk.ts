@@ -14,7 +14,7 @@ import { AlertsStatus } from '../../../perf/modules/json';
 export class PerfStatusSk extends ElementSk {
   private resp: AlertsStatus = { alerts: 0 };
   private static template = (el: PerfStatusSk) => html`
-    <div class="table">
+    <div class="table navbar-table">
       <a
         class="tr"
         href="https://perf.skia.org/t/?filter=cat%3AProd"
@@ -23,7 +23,9 @@ export class PerfStatusSk extends ElementSk {
         title="Active Perf Alerts"
       >
         <div class="td">regressions</div>
-        <div class="td number"><span class="value">${el.resp.alerts}</span></div>
+        <div class="td number">
+          <span class="value">${el.resp.alerts}</span>
+        </div>
       </a>
     </div>
   `;

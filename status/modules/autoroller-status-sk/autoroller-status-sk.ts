@@ -20,13 +20,13 @@ function colorClass(status: AutorollerStatus) {
     badness = badnessBehind;
   }
   if (status.mode === 'stopped') {
-    return 'autoroller-stopped';
+    return 'bg-unexpected';
   } else if (badness < 0.5) {
-    return 'autoroller-success';
+    return 'bg-success';
   } else if (badness < 1.0) {
-    return 'autoroller-warning';
+    return 'bg-warning';
   } else {
-    return 'autoroller-failure';
+    return 'bg-failure';
   }
 }
 
@@ -36,7 +36,7 @@ export class AutorollerStatusSk extends ElementSk {
 
   private static template = (el: AutorollerStatusSk) =>
     html`
-      <div class="table">
+      <div class="table navbar-table">
         <div class="tr">
           <div class="th">Roller</div>
           <div class="th">Mode</div>
