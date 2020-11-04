@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b6d14eec_0720efba",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-04T17:41:14Z",
+      "side": 1,
+      "message": "Can we also soften the different between the input-sk backgrounds and what they\u0027re sitting on? it really highlights that the inputs aren\u0027t quite what you think they are.  I\u0027d also be fine if you fiddle with padding/margin/width to make the background color match the sort of \u0027assumed\u0027 size of the inputs.",
+      "revId": "4e1a5b926902f9899ed3a6b8cd8124ffa03fced9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "87f2b4ad_cd77a539",
