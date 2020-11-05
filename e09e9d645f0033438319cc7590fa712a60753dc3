@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9dc71cfc_dd4aef8c",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T19:52:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9032568_84fa50cd",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 37
+      },
+      "revId": "e09e9d645f0033438319cc7590fa712a60753dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "84632075_afa4dbf0",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-11-05T19:06:44Z",
       "side": 1,
       "message": "opDiv.querySelector\u003cHTMLElement\u003e(\u0027summary\u0027).click();",
+      "range": {
+        "startLine": 426,
+        "startChar": 4,
+        "endLine": 426,
+        "endChar": 60
+      },
+      "revId": "e09e9d645f0033438319cc7590fa712a60753dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "31c057d2_81a1a15f",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T19:52:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84632075_afa4dbf0",
       "range": {
         "startLine": 426,
         "startChar": 4,
