@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce5f98d5_7f65ada8",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6513e7c6_b849bdc8",
+      "range": {
+        "startLine": 295,
+        "startChar": 6,
+        "endLine": 302,
+        "endChar": 52
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "19032676_4e42d4ce",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-04T20:23:45Z",
       "side": 1,
       "message": "Same here.",
+      "range": {
+        "startLine": 304,
+        "startChar": 5,
+        "endLine": 306,
+        "endChar": 5
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ce3d75ac_6c4b77f7",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19032676_4e42d4ce",
       "range": {
         "startLine": 304,
         "startChar": 5,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a0194500_8134d00e",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50b331c4_99adfb47",
+      "range": {
+        "startLine": 346,
+        "startChar": 0,
+        "endLine": 346,
+        "endChar": 67
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ff3ef50a_85e0cfc2",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-11-04T20:23:45Z",
       "side": 1,
       "message": "Delete?",
+      "range": {
+        "startLine": 397,
+        "startChar": 0,
+        "endLine": 397,
+        "endChar": 52
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "650b8ef2_0baa3f6a",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff3ef50a_85e0cfc2",
       "range": {
         "startLine": 397,
         "startChar": 0,
@@ -116,6 +212,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "266f2c02_231cfdcb",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b896757_b2fac139",
+      "range": {
+        "startLine": 78,
+        "startChar": 5,
+        "endLine": 78,
+        "endChar": 28
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1683398f_4f2ca8de",
@@ -129,6 +249,30 @@
       "writtenOn": "2020-11-04T20:23:45Z",
       "side": 1,
       "message": "Suggestion: If play-sk is only ever going to be used from a lit-html template, consider making this a regular property (as opposed to an attribute), then use it from lit-html as so:\n\n  \u003cplay-sk .visual\u003d${\u0027full\u0027}\u003e...\u003c/play-sk\u003e",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 0
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "156d0ddb_24fac5b6",
+        "filename": "debugger-app/modules/play-sk/play-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1683398f_4f2ca8de",
       "range": {
         "startLine": 77,
         "startChar": 0,
@@ -162,6 +306,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8712139b_34f927c6",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c19a8ee6_306c7a7d",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 23
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "971a2059_9ead4ce5",
@@ -179,6 +347,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e7cf1e90_bdb877c8",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "971a2059_9ead4ce5",
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "59689aa9_be59cd3c",
@@ -192,6 +378,30 @@
       "writtenOn": "2020-11-04T20:23:45Z",
       "side": 1,
       "message": "General comment - feel free to drop the underscore in private fields and methods. We used this convention to indicate field/method visibility back when we still wrote plain JavaScript, but for new code written in TypeScript the \"private\" keyword is sufficient.",
+      "range": {
+        "startLine": 39,
+        "startChar": 10,
+        "endLine": 39,
+        "endChar": 16
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "86046ff8_1bc0c79d",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Ok, but now I\u0027ve done it everywhere. I hope you don\u0027t mind if I put that off.",
+      "parentUuid": "59689aa9_be59cd3c",
       "range": {
         "startLine": 39,
         "startChar": 10,
@@ -225,6 +435,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "30ed01ce_0a3a8a6f",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Yes, they are public. debugger-page-sk will set them when loading a new file.",
+      "parentUuid": "adf1df67_b56a5a52",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 23
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e096e0a_e03603e4",
@@ -248,6 +482,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f3b94ceb_c0d88689",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e096e0a_e03603e4",
+      "range": {
+        "startLine": 77,
+        "startChar": 56,
+        "endLine": 77,
+        "endChar": 57
+      },
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b1d4a575_5b66b7ba",
@@ -261,6 +519,24 @@
       "writtenOn": "2020-11-04T20:23:45Z",
       "side": 1,
       "message": "Please delete or add some tests.",
+      "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b8cd804d_c0ecce1c",
+        "filename": "debugger-app/modules/timeline-sk/timeline-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-05T16:41:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b1d4a575_5b66b7ba",
       "revId": "a4e179019c9ae09e8193d21c753761aab2488226",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
