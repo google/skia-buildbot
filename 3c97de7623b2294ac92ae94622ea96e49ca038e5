@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "512f3f93_78530eb0",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-05T12:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "478714be_8fcace50",
+      "range": {
+        "startLine": 328,
+        "startChar": 0,
+        "endLine": 330,
+        "endChar": 3
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4f11b820_1f82d574",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-05T12:25:29Z",
       "side": 1,
       "message": "Nit: \"let\" instead of \"var\", here and elsewhere.",
+      "range": {
+        "startLine": 336,
+        "startChar": 6,
+        "endLine": 336,
+        "endChar": 9
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d4764ffc_ebeab609",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-05T12:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f11b820_1f82d574",
       "range": {
         "startLine": 336,
         "startChar": 6,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b25e4018_d12dcdb3",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-05T12:48:42Z",
+      "side": 1,
+      "message": "Yeah, I just copied this stuff and made it compile. TS let me down!",
+      "parentUuid": "661d0481_23537a91",
+      "range": {
+        "startLine": 338,
+        "startChar": 8,
+        "endLine": 338,
+        "endChar": 11
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3d3e7d75_667bd733",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d8b2c694_fefb3163",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-05T12:48:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d3e7d75_667bd733",
+      "range": {
+        "startLine": 370,
+        "startChar": 17,
+        "endLine": 370,
+        "endChar": 24
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b2792da9_173f862b",
@@ -106,6 +202,30 @@
       "writtenOn": "2020-11-05T12:25:29Z",
       "side": 1,
       "message": "This feels pretty unnatural.  There\u0027s no way we can just use anchor tags for this?",
+      "range": {
+        "startLine": 378,
+        "startChar": 0,
+        "endLine": 406,
+        "endChar": 3
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "acd6412c_2e903d44",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-05T12:48:42Z",
+      "side": 1,
+      "message": "This is just ported from https://source.corp.google.com/skia/buildbot/status/res/imp/commits-canvas-sk.html\n\nI thought the same, and there may be a better way, but it isn\u0027t obvious to me since we\u0027re on a canvas element.  A quick search does\u0027t provide an easy answer: https://stackoverflow.com/questions/6215841/create-links-in-html-canvas",
+      "parentUuid": "b2792da9_173f862b",
       "range": {
         "startLine": 378,
         "startChar": 0,
