@@ -15,19 +15,18 @@
  * The zoom element also contains a textural readout of the cursor position
  * and color of the selected pixel.
  *
- * @evt zoom-point emitted when the user changes the cursor position by clicking
+ * @evt move-cursor emitted when the user changes the cursor position by clicking
  *   the zoom view. The position is a coordinate in the source canvas.
+ *   See debugger-page-sk for more info on move-cursor and render-cursor
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { DebuggerPageSkLightDarkEventDetail } from '../debugger-page-sk/debugger-page-sk';
-
-export type Point = [number, number];
-
-export interface ZoomSkPointEventDetail {
-  position: Point,
-}
+import {
+  DebuggerPageSkLightDarkEventDetail,
+  DebuggerPageSkCursorEventDetail,
+  Point,
+} from '../debugger-page-sk/debugger-page-sk';
 
 export class ZoomSk extends ElementSk {
   private static template = (ele: ZoomSk) =>
@@ -92,12 +91,16 @@ export class ZoomSk extends ElementSk {
 
     this._canvas = this.querySelector<HTMLCanvasElement>('canvas')!;
 
-    document.addEventListener('move-zoom-cursor', (e) => {
-      // It is intentional that the two events for communicating in both directions
-      // between zoom-sk and debug-view-sk use the same detail and differ only in name.
-      this._cursor = (e as CustomEvent<ZoomSkPointEventDetail>).detail.position;
+    document.addEventListener('render-cursor', (e) => {
+      const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
+      // these three steps cannot happen in any other order, hence the repeated condition.
+      if (!detail.onlyData) {
+        this._cursor = detail.position;
+      }
       this.update(); // to draw the canvas from the new cursor
-      this._render(); // to update the textual readout of the cursor in the template
+      if (!detail.onlyData) {
+        this._render(); // to update the textual readout of the cursor in the template
+      }
     });
 
     document.addEventListener('light-dark', (e) => {
@@ -110,12 +113,8 @@ export class ZoomSk extends ElementSk {
     this._source = newsource;
   }
 
-  get x(): number {
-    return this._cursor[0];
-  }
-
-  get y(): number {
-    return this._cursor[1];
+  get point(): Point {
+    return this._cursor;
   }
 
   /** Redraw the zoomed in canvas */
@@ -150,15 +149,14 @@ export class ZoomSk extends ElementSk {
     e.stopPropagation();
     const x = Math.floor((e.offsetX-1) / ZoomSk.ps) - ZoomSk.halfSize;
     const y = Math.floor(e.offsetY / ZoomSk.ps) - ZoomSk.halfSize;
-    this._cursor[0] = Math.min(Math.max(this._cursor[0] + x, 0), this._source!.width);
-    this._cursor[1] = Math.min(Math.max(this._cursor[1] + y, 0), this._source!.height);
-    this.update();
-    this._render();
+    const cx = Math.min(Math.max(this._cursor[0] + x, 0), this._source!.width);
+    const cy = Math.min(Math.max(this._cursor[1] + y, 0), this._source!.height);
+    // Don't render yet, just send the event, headquarters will tell you when to render.
     // Emit zoom-point
     this.dispatchEvent(
-      new CustomEvent<ZoomSkPointEventDetail>(
-        'zoom-point', {
-          detail: {position: this._cursor},
+      new CustomEvent<DebuggerPageSkCursorEventDetail>(
+        'move-cursor', {
+          detail: {position: [cx, cy], onlyData: false},
           bubbles: true,
         }));
   }

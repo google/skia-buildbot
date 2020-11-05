@@ -3,13 +3,16 @@
  * @description Container and manager of the wasm-linked main canvas for the debugger.
  *   Contains several CSS resizing buttons that do not alter the surface size.
  *
- * @evt move-zoom-cursor: informs zoom-sk that the user has moved the cursor
+ * @evt move-cursor: Emitted when the user has moved the cursor by clicking or hovering.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Point, ZoomSkPointEventDetail } from '../zoom-sk/zoom-sk';
-import { DebuggerPageSkLightDarkEventDetail } from '../debugger-page-sk/debugger-page-sk';
+import {
+  DebuggerPageSkLightDarkEventDetail,
+  DebuggerPageSkCursorEventDetail,
+  Point,
+} from '../debugger-page-sk/debugger-page-sk';
 
 export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
@@ -54,6 +57,10 @@ export class DebugViewSk extends ElementSk {
   private _crossHairActive = false;
   private _renderCanvas = true;
 
+  get crosshairActive(): boolean {
+    return this._crossHairActive;
+  }
+
   constructor() {
     super(DebugViewSk.template);
   }
@@ -62,12 +69,12 @@ export class DebugViewSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    // when the user moves the cursor using the zoom window
-    document.addEventListener('zoom-point', (e) => {
-      const cursor = (e as CustomEvent<ZoomSkPointEventDetail>).detail.position;
-      if (this._crossHairActive) {
-        this._drawCrossHairAt(cursor);
+    document.addEventListener('render-cursor', (e) => {
+      const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
+      if (!this._crossHairActive || detail.onlyData) {
+        return;
       }
+      this._drawCrossHairAt(detail.position);
     });
 
     document.addEventListener('light-dark', (e) => {
@@ -118,9 +125,9 @@ export class DebugViewSk extends ElementSk {
 
   private _sendCursorMove(p: Point) {
     this.dispatchEvent(
-      new CustomEvent<ZoomSkPointEventDetail>(
-        'move-zoom-cursor', {
-          detail: {position: p},
+      new CustomEvent<DebuggerPageSkCursorEventDetail>(
+        'move-cursor', {
+          detail: {position: p, onlyData: false},
           bubbles: true,
         }));
   }
@@ -141,15 +148,19 @@ export class DebugViewSk extends ElementSk {
   }
 
   private _canvasClicked(e: MouseEvent) {
+    // seems like I can never call this late enough, so here we are,
+    // recompute visual size right before it's used. Surely the canvas
+    // won't change size in the next few microseconds right?
+    this._visibleSize();
     if (e.offsetX < 0) { return; } // border
+    const coords = this._mouseOffsetToCanvasPoint(e);
     if (this._crossHairActive) {
       this._crossHairActive = false;
-      this._drawCrossHairAt([-5, -5]);
+      this._drawCrossHairAt([-5, -5]); // lazy clear
+      this._sendCursorMove(coords);
     } else {
       this._crossHairActive = true;
-      const coords = this._mouseOffsetToCanvasPoint(e);
-      this._drawCrossHairAt(coords);
-      this._sendCursorMove(this._mouseOffsetToCanvasPoint(e));
+      this._sendCursorMove(coords);
     }
   }
 

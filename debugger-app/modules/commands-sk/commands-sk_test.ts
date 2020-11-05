@@ -239,7 +239,7 @@ describe('commands-sk', () => {
 
     // set up event promise
     let ep = eventPromise<CustomEvent<CommandsSkMovePositionEventDetail>>(
-      'move-position', 200);
+      'move-command-position', 200);
 
     // click the play button
     commandsSk.querySelector<HTMLButtonElement>('#play-button')!.click();
