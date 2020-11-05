@@ -116,7 +116,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
-	urlPath := shared.ExpectationsRouteV1
+	urlPath := shared.ExpectationsRouteV2
 	if r.SharedConfig != nil && r.SharedConfig.ChangeListID != "" {
 		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
@@ -139,7 +139,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
 	}
 
-	r.Expectations = exp.DeprecatedExpectations
+	r.Expectations = exp.Expectations
 	return nil
 }
 
