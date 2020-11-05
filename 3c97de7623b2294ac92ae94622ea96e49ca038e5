@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "478714be_8fcace50",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-05T12:25:29Z",
+      "side": 1,
+      "message": "Nit: using this via \"this.canvas\" makes it appear that this has been cached.  I\u0027d recommend either caching it here and retrieving if it doesn\u0027t exist, or just removing \"get\" and using via \"this.canvas()\" (or \"this.getCanvas()\")",
+      "range": {
+        "startLine": 328,
+        "startChar": 0,
+        "endLine": 330,
+        "endChar": 3
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4f11b820_1f82d574",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-05T12:25:29Z",
+      "side": 1,
+      "message": "Nit: \"let\" instead of \"var\", here and elsewhere.",
+      "range": {
+        "startLine": 336,
+        "startChar": 6,
+        "endLine": 336,
+        "endChar": 9
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "661d0481_23537a91",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-05T12:25:29Z",
+      "side": 1,
+      "message": "This redefines \"name\" which would be a bug in sane languages but may work in javascript...",
+      "range": {
+        "startLine": 338,
+        "startChar": 8,
+        "endLine": 338,
+        "endChar": 11
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3d3e7d75_667bd733",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-05T12:25:29Z",
+      "side": 1,
+      "message": "Nit: Array.findIndex seems like a better fit",
+      "range": {
+        "startLine": 370,
+        "startChar": 17,
+        "endLine": 370,
+        "endChar": 24
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b2792da9_173f862b",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-05T12:25:29Z",
+      "side": 1,
+      "message": "This feels pretty unnatural.  There\u0027s no way we can just use anchor tags for this?",
+      "range": {
+        "startLine": 378,
+        "startChar": 0,
+        "endLine": 406,
+        "endChar": 3
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
