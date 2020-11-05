@@ -1,5 +1,5 @@
-import { ARBTableSk } from './arb-table-sk';
 import { SetupMocks } from '../rpc-mock';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 SetupMocks();
 
