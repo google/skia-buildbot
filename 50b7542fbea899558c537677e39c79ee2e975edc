@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "14892d18_8b77d52e",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 939,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-05T19:19:33Z",
+      "side": 1,
+      "message": "Marking as resolved.",
+      "parentUuid": "9902877d_214b8844",
+      "range": {
+        "startLine": 938,
+        "startChar": 0,
+        "endLine": 939,
+        "endChar": 14
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a4700848_413e655f",
@@ -88,6 +112,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e86040bf_ef82e0ac",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 948,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-05T19:19:33Z",
+      "side": 1,
+      "message": "Marking as resolved.",
+      "parentUuid": "928a9861_5721c326",
+      "range": {
+        "startLine": 941,
+        "startChar": 3,
+        "endLine": 948,
+        "endChar": 15
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4fba5830_c3ab5946",
@@ -101,6 +149,30 @@
       "writtenOn": "2020-11-02T18:36:47Z",
       "side": 1,
       "message": "Nit: delete if unused.",
+      "range": {
+        "startLine": 12,
+        "startChar": 26,
+        "endLine": 16,
+        "endChar": 5
+      },
+      "revId": "50b7542fbea899558c537677e39c79ee2e975edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c36a1c8c_012313cc",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-05T19:19:33Z",
+      "side": 1,
+      "message": "Marking as resolved.",
+      "parentUuid": "4fba5830_c3ab5946",
       "range": {
         "startLine": 12,
         "startChar": 26,
