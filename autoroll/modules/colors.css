@@ -25,10 +25,11 @@
   --surface: var(--grey-850);
   --on-surface: var(--grey-200);
   --error: var(--amber-900);
-  --link-color: hsl(199, 70%, 40%);
+  --link-color: hsl(199, 70%, 60%);
 }
 
-a,a.visited {
+a,
+a.visited {
   color: var(--link-color);
 }
 
