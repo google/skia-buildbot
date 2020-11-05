@@ -28,7 +28,8 @@
   --link-color: hsl(199, 70%, 40%);
 }
 
-a,a.visited {
+a,
+a.visited {
   color: var(--link-color);
 }
 
