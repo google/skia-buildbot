@@ -4,6 +4,24 @@
  *  Holds the loaded wasm module, pointer to the SkSurface in wasm, and SKP file state.
  *  Handles all the interaction and control of the application that does not cleanly fit
  *  within a submodule.
+ *
+ * @evt render-cursor: Emitted when the cursor changes position, or the data under it changes.
+ *      There are three modules which can both change, and render representatoins of the cursor.
+ *      - debugger-page-sk: Can change the cursor with keypresses, can change the data under
+ *                          the cursor, uses the cursor to provide a jump-to-command feature.
+ *      - debug-view-sk: Can change the cursor by clicking on the canvas, or mousing over the
+ *                       canvas. Shows a visual crosshair to represent the cursor.
+ *      - zoom-sk: Can change the cursor by clicking pixels on the zoom canvas. Shows data that
+ *                 depends on the cursor location and data under the cursor.
+ *      To solve this coordination problem, everything is sent through debugger-page-sk
+ *      When the zoom or debug-view modules move the cursor, they emit move-cursor but
+ *      don't render. debugger-page-sk receives this, renders itself, and re-emits render-cursor,
+ *      which zoom, and debug-view consume. If the change originates from debugger-page-sk,
+ *      it only emits render-cursor.
+ *
+ *       [               ] --- move-cursor --> [           ] <-- move-cursor --- [         ]
+ *       [ debug-view-sk ]                     [ debugger- ]                     [ zoom-sk ]
+ *       [               ] <- render-cursor -- [ page-sk   ] -- render-cursor -> [         ]
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -18,7 +36,7 @@ import {
 } from '../commands-sk/commands-sk';
 import { TimelineSk, TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
 import { PlaySk, PlaySkModeChangedManuallyEventDetail } from '../play-sk/play-sk';
-import { ZoomSk, ZoomSkPointEventDetail, Point } from '../zoom-sk/zoom-sk';
+import { ZoomSk } from '../zoom-sk/zoom-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import 'elements-sk/error-toast-sk';
 
@@ -46,6 +64,17 @@ interface FileContext {
 
 export interface DebuggerPageSkLightDarkEventDetail {
   mode: string;
+}
+
+export type Point = [number, number];
+
+// This event detail is used for both move-cursor and render-cursor
+export interface DebuggerPageSkCursorEventDetail {
+  // the position of the cursor.
+  position: Point,
+  // If true, indicates only the data under the cursor has changed.
+  // since some consumers don't need to update in this case.
+  onlyData: boolean,
 }
 
 export class DebuggerPageSk extends ElementSk {
@@ -80,6 +109,11 @@ export class DebuggerPageSk extends ElementSk {
           <!-- cursor position and color -->
           <!-- breakpoint controls -->
           <!-- hidable gpu op bounds legend-->
+          <div>Command which shaded the<br>selected pixel: ${ele._pointCommandIndex}
+            <button @click=${() => {
+              ele._jumpToCommand(ele._pointCommandIndex);
+            }}>Jump</button>
+          </div>
           <zoom-sk></zoom-sk>
           <!-- keyboard shortcuts legend -->
           <android-layers-sk></android-layers-sk>
@@ -167,6 +201,8 @@ export class DebuggerPageSk extends ElementSk {
   private _targetItem: number = 0; // current command playback index in filtered list
   // When turned on, always draw to the end of a frame
   private _drawToEnd: boolean = false;
+  // the index of the last command to alter the pixel under the crosshair
+  private _pointCommandIndex = 0;
 
   // The matrix and clip retrieved from the last draw
   private _info: MatrixClipInfo = {
@@ -210,10 +246,13 @@ export class DebuggerPageSk extends ElementSk {
 
     this._zoom.source = this._debugViewSk.canvas;
 
-    this._commandsSk.addEventListener('move-position', (e) => {
-      this._targetItem = (e as CustomEvent<CommandsSkMovePositionEventDetail>)
-        .detail.position;
+    this._commandsSk.addEventListener('move-command-position', (e) => {
+      const detail = (e as CustomEvent<CommandsSkMovePositionEventDetail>).detail;
+      this._targetItem = detail.position;
       this._updateDebuggerView();
+      if (detail.paused) {
+        this._updateJumpButton(this._zoom!.point);
+      }
     });
 
     this._timelineSk.querySelector<PlaySk>('play-sk')!.addEventListener(
@@ -221,6 +260,7 @@ export class DebuggerPageSk extends ElementSk {
       const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
       if (mode === 'pause') {
         this._setCommands();
+        this._updateJumpButton(this._zoom!.point);
       }
     });
 
@@ -231,6 +271,31 @@ export class DebuggerPageSk extends ElementSk {
 
     document.addEventListener('keydown', this._keyDownHandler.bind(this),
       true /* useCapture */);
+
+    document.addEventListener('move-cursor', (e) => {
+      const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
+      // Update this module's cursor-dependent element(s)
+      this._updateJumpButton(detail.position);
+      // re-emit event as render-cursor
+      this.dispatchEvent(
+        new CustomEvent<DebuggerPageSkCursorEventDetail>(
+          'render-cursor', {
+            detail: detail,
+            bubbles: true,
+          }));
+    });
+  }
+
+  // Searches for the command which left the given pixel in it's current color,
+  // Updates the Jump button with the result.
+  // Consider disabling this feature alltogether for CPU backed debugging, too slow.
+  private _updateJumpButton(p: Point) {
+    if (!this._debugViewSk!.crosshairActive)  {
+      return; // Too slow to do this on every mouse move.
+    }
+    this._pointCommandIndex = this._fileContext!.player.findCommandByPixel(
+      this._surface!, p[0], p[1], this._targetItem);
+    this._render();
   }
 
   // Template helper rendering a number[][] in a table
@@ -298,9 +363,8 @@ export class DebuggerPageSk extends ElementSk {
     }
 
     // Pull the command list for the first frame.
+    // triggers render
     this._setCommands();
-
-    this._render();
   }
 
   // Create a new drawing surface. this should be called when
@@ -354,7 +418,14 @@ export class DebuggerPageSk extends ElementSk {
     //               : this._player.jsonCommandList(this._surface));
     const json = this._fileContext!.player.jsonCommandList(this._surface!);
     const parsed = JSON.parse(json) as SkpJsonCommandList;
+    // this will eventually cause a move-command-position event
     this._commandsSk!.processCommands(parsed);
+  }
+
+  private _jumpToCommand(i: number) {
+    // TODO(nifong): less brittle method of jumping to command by it's unfiltered index.
+    const opDiv = this._commandsSk!.querySelector<HTMLElement>('#op-'+i)!;
+    opDiv.querySelector<HTMLElement>('summary').click();
   }
 
   // Asks the wasm module to draw to the provided surface.
@@ -372,8 +443,12 @@ export class DebuggerPageSk extends ElementSk {
     if (!this._gpuMode) {
       this._surface!.flush();
     }
-    // update zoom
-    this._zoom!.update();
+    this.dispatchEvent(
+      new CustomEvent<DebuggerPageSkCursorEventDetail>(
+        'render-cursor', {
+          detail: {position: [0, 0], onlyData: true},
+          bubbles: true,
+        }));
 
     const clipmatjson = this._fileContext.player.lastCommandInfo();
     this._info = JSON.parse(clipmatjson) as MatrixClipInfo;
@@ -439,22 +514,12 @@ export class DebuggerPageSk extends ElementSk {
     this._updateDebuggerView();
   }
 
-  // Emit both the event that updates zoom, and the one that updates crosshair
-  // they're not the same event because the two modules use them to communicate
-  // a change in opposite directions and I don't want either of them triggering
-  // themselves.
-  private _updateBothCursors(x: number, y: number) {
-    const p = [x, y] as Point;
+  private _updateCursor(x: number, y: number) {
+    this._updateJumpButton([x, y]);
     this.dispatchEvent(
-      new CustomEvent<ZoomSkPointEventDetail>(
-        'zoom-point', {
-          detail: {position: p},
-          bubbles: true,
-        }));
-    this.dispatchEvent(
-      new CustomEvent<ZoomSkPointEventDetail>(
-        'move-zoom-cursor', {
-          detail: {position: p},
+      new CustomEvent<DebuggerPageSkCursorEventDetail>(
+        'render-cursor', {
+          detail: {position: [x, y], onlyData: false},
           bubbles: true,
         }));
   }
@@ -464,21 +529,20 @@ export class DebuggerPageSk extends ElementSk {
       return; // don't interfere with the filter textbox.
     }
     let flen = this._commandsSk!.countFiltered;
-    const x = this._zoom!.x;
-    const y = this._zoom!.y;
+    const [x, y] = this._zoom!.point;
     // If adding a case here, document it in the user-visible keyboard shortcuts area.
     switch (e.keyCode) {
       case 74: // J
-        this._updateBothCursors(x, y+1);
+        this._updateCursor(x, y+1);
         break;
       case 75: // K
-        this._updateBothCursors(x, y-1);
+        this._updateCursor(x, y-1);
         break;
       case 72: // H
-        this._updateBothCursors(x-1, y);
+        this._updateCursor(x-1, y);
         break;
       case 76: // L
-        this._updateBothCursors(x+1, y);
+        this._updateCursor(x+1, y);
         break;
       case 190: // Period, step command forward
         this._commandsSk!.keyMove(1);
