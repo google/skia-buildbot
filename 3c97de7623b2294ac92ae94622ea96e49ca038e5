@@ -234,6 +234,30 @@
       },
       "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fcaa7ff_a16a5921",
+        "filename": "status/modules/branches-sk/branches-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-05T13:05:23Z",
+      "side": 1,
+      "message": "Ok. I wonder if SVG would be simpler, but it\u0027s not worth looking into now.",
+      "parentUuid": "acd6412c_2e903d44",
+      "range": {
+        "startLine": 378,
+        "startChar": 0,
+        "endLine": 406,
+        "endChar": 3
+      },
+      "revId": "3c97de7623b2294ac92ae94622ea96e49ca038e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
