@@ -797,8 +797,6 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 	add(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy, "GET")
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
-	add(shared.ExpectationsRoute, handlers.BaselineHandlerV1, "GET")
-	add(shared.ExpectationsRouteV1, handlers.BaselineHandlerV1, "GET")
 	add(shared.ExpectationsRouteV2, handlers.BaselineHandlerV2, "GET")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
