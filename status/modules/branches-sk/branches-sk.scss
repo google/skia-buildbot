@@ -6,6 +6,9 @@ branches-sk {
   --branch-color-2: var(--light-blue-300);
   --branch-color-3: var(--deep-purple-200);
   --branch-color-4: var(--deep-orange-300);
+  .pointer {
+    cursor: pointer;
+  }
 }
 .darkmode branches-sk {
   --branch-color-3: var(--amber-600);

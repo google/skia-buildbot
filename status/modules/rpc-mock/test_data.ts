@@ -257,7 +257,7 @@ export const getAutorollerStatusesResponse: GetAutorollerStatusesResponse = {
       numBehind: 0,
       numFailed: 0,
       currentRollRev: 'abc123',
-      lastRollRev: 'def456',
+      lastRollRev: 'parentofabc123',
       url: 'https://autoroll.skia.org/r/angle-skia-autoroll',
     },
     {
@@ -265,8 +265,8 @@ export const getAutorollerStatusesResponse: GetAutorollerStatusesResponse = {
       mode: 'running',
       numBehind: 0,
       numFailed: 1,
-      currentRollRev: 'abc123',
-      lastRollRev: 'def456',
+      currentRollRev: 'parentofabc123',
+      lastRollRev: 'bad',
       url: 'https://autoroll.skia.org/r/android-skia-autoroll',
     },
     {
@@ -275,7 +275,7 @@ export const getAutorollerStatusesResponse: GetAutorollerStatusesResponse = {
       numBehind: 0,
       numFailed: 1,
       currentRollRev: 'abc123',
-      lastRollRev: 'def456',
+      lastRollRev: 'jsjewwkr',
       url: 'https://autoroll.skia.org/r/chrome-skia-autoroll',
     },
     {

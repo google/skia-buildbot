@@ -10,7 +10,7 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncate } from '../../../infra-sk/modules/string';
 import { Commit } from '../commits-table-sk/commits-table-sk';
-import { Branch } from '../rpc';
+import { AutorollerStatus, Branch } from '../rpc';
 
 const MIN_CANVAS_WIDTH = 175;
 const commitY = 20; // Vertical pixels used by each commit.
@@ -245,17 +245,30 @@ class DisplayCommit {
 }
 
 export class BranchesSk extends ElementSk {
+  private _repoUrl: string = '';
   private _commits: Array<Commit> = [];
   private _branchHeads: Array<Branch> = [];
+  private _rolls: Array<AutorollerStatus> = [];
+  // Artificial 'Branches' we use to label autorollers, derived from the above.
+  private rollLabels: Array<Branch> = [];
   private displayCommits: Map<string, DisplayCommit> = new Map();
   private canvasWidth: number = 0;
   private canvasHeight: number = 0;
+  // Map of commit index -> link to branch  or roller.
+  private linkMap: Map<number, string> = new Map();
+  // Map of commit index -> title containing branches and rollers.
+  private titleMap: Map<number, string> = new Map();
+  private canvas?: HTMLCanvasElement;
 
-  private static template = (ele: BranchesSk) =>
+  private static template = (el: BranchesSk) =>
     html`
       <!-- The tap event (which was originally used) does not always produce offsetY.
       on-click works for the Pixels (even when touching), so we use that.-->
-      <canvas id="commitCanvas" on-click="handleclick" on-mousemove="handlemouseover"></canvas>
+      <canvas
+        id="commitCanvas"
+        @click=${(e: MouseEvent) => el.handleClick(e)}
+        @mousemove=${(e: MouseEvent) => el.handleMousemove(e)}
+      ></canvas>
     `;
 
   constructor() {
@@ -266,6 +279,7 @@ export class BranchesSk extends ElementSk {
     super.connectedCallback();
     document.addEventListener('theme-chooser-toggle', this.draw);
     this._render();
+    this.canvas = $$<HTMLCanvasElement>('#commitCanvas', this)!;
     this.draw();
   }
   disconnectedCallback() {
@@ -290,10 +304,103 @@ export class BranchesSk extends ElementSk {
     this.draw();
   }
 
+  get rolls(): Array<AutorollerStatus> {
+    return this._rolls;
+  }
+
+  set rolls(value) {
+    this._rolls = value;
+    this.rollLabels = [
+      ...this.rolls.map((roll) => {
+        return { name: roll.name + ' rolled', head: roll.lastRollRev };
+      }),
+      ...this.rolls.map((roll) => {
+        return { name: roll.name + ' rolling', head: roll.currentRollRev };
+      }),
+    ];
+  }
+  get repoUrl(): string {
+    return this._repoUrl;
+  }
+
+  set repoUrl(value) {
+    this._repoUrl = value;
+  }
+
+  private computeLinkMap() {
+    this.linkMap.clear();
+    // Link to generic branch heads.
+    for (const branch of this.branchHeads) {
+      let name = branch.name;
+      if (branch.name.startsWith(BRANCH_PREFIX)) {
+        name = branch.name.slice(BRANCH_PREFIX.length);
+      }
+      // If the commit is not found in the range of commits, we will just be
+      // overwriting the value at key "-1", which won't actually get used.
+      const idx = this._indexOfRevision(branch.head);
+      this.linkMap.set(idx, this.repoUrl + name);
+    }
+
+    // Link to rolls.
+    for (const roller of this.rolls) {
+      let idx = this._indexOfRevision(roller.currentRollRev);
+      this.linkMap.set(idx, roller.url);
+      idx = this._indexOfRevision(roller.lastRollRev);
+      this.linkMap.set(idx, roller.url);
+    }
+  }
+
+  private computeTitleMap() {
+    this.titleMap.clear();
+    for (const branch of [...this.branchHeads, ...this.rollLabels]) {
+      const name = branch.name;
+      const idx = this._indexOfRevision(branch.head);
+      if (this.titleMap.has(idx)) {
+        this.titleMap.set(idx, this.titleMap.get(idx) + ',' + name);
+      } else {
+        this.titleMap.set(idx, name);
+      }
+    }
+  }
+
+  _indexOfRevision(revision: string) {
+    return this.commits.findIndex((c) => c.hash === revision);
+  }
+
+  private handleClick(e: MouseEvent) {
+    if (!this.linkMap) {
+      return;
+    }
+    const y = (e && e.offsetY) || 1;
+    const commitIdx = Math.floor(y / commitY);
+
+    const link = this.linkMap.get(commitIdx);
+    if (link) {
+      window.open(link);
+    }
+  }
+
+  private handleMousemove(e: MouseEvent) {
+    if (!this.linkMap) {
+      return;
+    }
+    const commitIdx = Math.floor(e.offsetY / commitY);
+    const link = this.linkMap.get(commitIdx);
+    if (link) {
+      this.canvas!.classList.add('pointer');
+    } else {
+      this.canvas!.classList.remove('pointer');
+    }
+    const title = this.titleMap.get(commitIdx);
+    if (title) {
+      this.canvas!.title = title;
+    }
+  }
+
   private draw = () => {
     console.time('draw');
     // Initialize all commits.
-    this.displayCommits = prepareCommitsForDisplay(this.commits, this.branchHeads);
+    this.displayCommits = prepareCommitsForDisplay(this.commits, this.branchHeads, this.rollLabels);
 
     // Calculate the required canvas width based on the commit columns and
     // labels.
@@ -313,7 +420,7 @@ export class BranchesSk extends ElementSk {
 
     // Redraw the canvas.
     const scale = window.devicePixelRatio || 1.0;
-    const canvas = $$<HTMLCanvasElement>('#commitCanvas', this)!;
+    const canvas = this.canvas!;
     this.canvasWidth = Math.max(longestWidth + paddingX, MIN_CANVAS_WIDTH);
     this.canvasHeight = commitY * this.commits.length;
     canvas.style.width = Math.floor(this.canvasWidth) + 'px';
@@ -339,6 +446,9 @@ export class BranchesSk extends ElementSk {
       this.displayCommits.get(commit.hash)!.draw(ctx, this.displayCommits);
     }
 
+    this.computeLinkMap();
+    this.computeTitleMap();
+
     console.timeEnd('draw');
   };
 }
@@ -347,7 +457,8 @@ export class BranchesSk extends ElementSk {
 // commit to assist in producing a nice layout.
 function prepareCommitsForDisplay(
   commits: Array<Commit>,
-  branch_heads: Array<Branch>
+  branch_heads: Array<Branch>,
+  rolls: Array<Branch>
 ): Map<string, DisplayCommit> {
   // Create a Commit object for each commit.
   const displayCommits: Map<string, DisplayCommit> = new Map(); // Commit objects by hash.
@@ -373,6 +484,8 @@ function prepareCommitsForDisplay(
       branches.push(branch);
     }
   }
+  // Add Autoroller labels.
+  branches.push(...rolls);
 
   // Trace each branch, placing commits on that branch in an associated column.
   let column = 0;
