@@ -30,13 +30,13 @@ function colorClass(status: AutorollerStatus) {
     badness = badnessBehind;
   }
   if (status.mode === 'stopped') {
-    return 'autoroller-stopped';
+    return 'bg-unexpected';
   } else if (badness < 0.5) {
-    return 'autoroller-success';
+    return 'bg-success';
   } else if (badness < 1.0) {
-    return 'autoroller-warning';
+    return 'bg-warning';
   } else {
-    return 'autoroller-failure';
+    return 'bg-failure';
   }
 }
 
