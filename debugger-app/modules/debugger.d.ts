@@ -41,10 +41,12 @@ export interface SkpDebugPlayer {
   setOriginVisible(visible: boolean): void;
   setOverdrawVis(visible: boolean): void;
   setAndroidClipViz(visible: boolean): void;
+  TRANSPARENT: number;
 };
 export interface SkSurface {
   dispose(): void;
   flush(): void;
+  clear(color: Color): void;
 };
 export interface SimpleImageInfo {
 

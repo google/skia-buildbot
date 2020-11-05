@@ -16,7 +16,8 @@ import { DebugViewSk } from '../debug-view-sk/debug-view-sk';
 import {
   CommandsSk, PrefixItem, Command, CommandsSkMovePositionEventDetail
 } from '../commands-sk/commands-sk';
-import { PlaySk } from '../play-sk/play-sk';
+import { TimelineSk, TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
+import { PlaySk, PlaySkModeChangedManuallyEventDetail } from '../play-sk/play-sk';
 import { ZoomSk, ZoomSkPointEventDetail, Point } from '../zoom-sk/zoom-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import 'elements-sk/error-toast-sk';
@@ -31,6 +32,7 @@ import {
 import '../commands-sk';
 import '../debug-view-sk';
 import '../histogram-sk';
+import '../timeline-sk';
 import '../zoom-sk';
 
 // TODO(nifong): find a way to move this declaration outside this file
@@ -39,6 +41,7 @@ declare function DebuggerInit(opts: DebuggerInitOptions): Promise<Debugger>;
 interface FileContext {
   player: SkpDebugPlayer;
   version: number;
+  frameCount: number;
 };
 
 export interface DebuggerPageSkLightDarkEventDetail {
@@ -62,9 +65,9 @@ export class DebuggerPageSk extends ElementSk {
         <input type="file" @change=${ele._fileInputChanged}
          ?disabled=${ele._debugger === null} />
         <a href="https://skia.org/dev/tools/debugger">User Guide</a>
-        <p>File version: ${ele._fileContext?.version}</p>
+        <p class="file-version">File version: ${ele._fileContext?.version}</p>
       </div>
-      <multi-frame-controls-sk></multi-frame-controls-sk>
+      <timeline-sk></timeline-sk>
       <div class="horizontal-flex">
         <commands-sk></commands-sk>
         <div id=center>
@@ -157,7 +160,7 @@ export class DebuggerPageSk extends ElementSk {
   // submodules are null until first template render
   private _debugViewSk: DebugViewSk | null = null;
   private _commandsSk: CommandsSk | null = null;
-  private _playSk: PlaySk | null = null;
+  private _timelineSk: TimelineSk | null = null;
   private _zoom: ZoomSk | null = null
 
   // application state
@@ -202,7 +205,7 @@ export class DebuggerPageSk extends ElementSk {
     this._render();
     this._debugViewSk = this.querySelector<DebugViewSk>('debug-view-sk')!;
     this._commandsSk = this.querySelector<CommandsSk>('commands-sk')!;
-    this._playSk = this.querySelector<PlaySk>('play-sk')!;
+    this._timelineSk = this.querySelector<TimelineSk>('timeline-sk')!;
     this._zoom = this.querySelector<ZoomSk>('zoom-sk')!;
 
     this._zoom.source = this._debugViewSk.canvas;
@@ -211,6 +214,19 @@ export class DebuggerPageSk extends ElementSk {
       this._targetItem = (e as CustomEvent<CommandsSkMovePositionEventDetail>)
         .detail.position;
       this._updateDebuggerView();
+    });
+
+    this._timelineSk.querySelector<PlaySk>('play-sk')!.addEventListener(
+      'mode-changed-manually', (e) => {
+      const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
+      if (mode === 'pause') {
+        this._setCommands();
+      }
+    });
+
+    this._timelineSk.addEventListener('move-frame', (e) => {
+      const frame = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
+      this._moveFrameTo(frame);
     });
 
     document.addEventListener('keydown', this._keyDownHandler.bind(this),
@@ -258,6 +274,7 @@ export class DebuggerPageSk extends ElementSk {
     this._fileContext = {
       player: p,
       version: p.fileVersion(),
+      frameCount: p.getFrameCount(),
     };
     this._replaceSurface();
     if (!this._surface) {
@@ -271,8 +288,17 @@ export class DebuggerPageSk extends ElementSk {
     this._showClip = false;
     p.setClipVizColor(0);
 
+    console.log(`Loaded SKP file with ${this._fileContext.frameCount} frames`);
+
+    // Determine if we loaded a single-frame or multi-frame SKP.
+    if (this._fileContext.frameCount > 1) {
+      this._timelineSk!.count = this._fileContext.frameCount;
+    } else {
+      this._timelineSk!.hidden = true;
+    }
+
+    // Pull the command list for the first frame.
     this._setCommands();
-    // TODO(nifong): Draw the rest of the owl
 
     this._render();
   }
@@ -305,6 +331,19 @@ export class DebuggerPageSk extends ElementSk {
       this._surface = this._debugger.MakeSWCanvasSurface(canvas);
     }
     this._zoom!.source = canvas;
+  }
+
+  private _moveFrameTo(n: number) {
+    // Clear the surface back to transparent.
+    this._surface!.clear(0);
+    this._fileContext!.player.changeFrame(n);
+    // If the frame moved and the state is paused, also update the command list
+    const mode = this._timelineSk!.querySelector<PlaySk>('play-sk')!.mode;
+    if (mode === 'pause') {
+      this._setCommands();
+    } else {
+      this._updateDebuggerView();
+    }
   }
 
   // Fetch the list of commands for the frame or layer the debugger is currently showing
@@ -346,6 +385,11 @@ export class DebuggerPageSk extends ElementSk {
   private _gpuHandler(e: Event) {
     this._gpuMode = (e.target as CheckOrRadio).checked;
     this._replaceSurface();
+    if (!this._surface) {
+      // TODO(nifong): get error toast working
+      console.log("Could not create SkSurface.");
+      return;
+    }
     this._setCommands();
   }
 

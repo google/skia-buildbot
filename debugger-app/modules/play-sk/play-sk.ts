@@ -20,6 +20,7 @@ import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/keyboard-arrow-right-icon-sk';
 import 'elements-sk/icon/skip-next-icon-sk';
+import 'elements-sk/icon/video-library-icon-sk';
 
 export type PlayMode = 'play' | 'pause';
 export interface PlaySkMoveToEventDetail {
@@ -30,7 +31,16 @@ export interface PlaySkModeChangedManuallyEventDetail {
 };
 
 export class PlaySk extends ElementSk {
-  private static template = (ele: PlaySk) =>
+
+  private static template = (ele: PlaySk) => {
+    if (ele.visual === 'simple') {
+      return PlaySk.simpleTemplate(ele);
+    } else {
+      return PlaySk.fullTemplate(ele);
+    }
+  }
+
+  private static fullTemplate = (ele: PlaySk) =>
     html`
     <div class="horizontal-flex">
       <div class='filler'></div>
@@ -48,6 +58,10 @@ export class PlaySk extends ElementSk {
         ></input>
     </div>`;
 
+  private static simpleTemplate = (ele: PlaySk) =>
+    html`<video-library-icon-sk title="Play/Pause" @click=${ele._togglePlay}
+        id='play-button'></video-library-icon-sk>`;
+
   private _mode: PlayMode = 'pause';
   // current position in sequence
   private _item: number = 0;
@@ -59,6 +73,14 @@ export class PlaySk extends ElementSk {
   private _lastMoveTime: number = 0;
   // reference to a timeout we set so we can cancel it if necessary
   private _timeout: number = 0;
+
+  /**
+   * Specifies the visual style of the playback element.
+   * Possible values include:
+   *  'full': shows all five buttons and a textbox for controlling delay.
+   *  'simple': shows only a play button, using a distinct icon.
+   */
+  public visual = 'full';
 
   constructor() {
     super(PlaySk.template);
