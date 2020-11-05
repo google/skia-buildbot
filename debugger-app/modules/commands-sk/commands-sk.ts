@@ -16,7 +16,7 @@
  * @evt histogram-update: An event containing the list of histogram entries.
  *      Emitted every time the histogram is recomputed.
  *
- * @evt move-position: When the play-sk module or user selects a different
+ * @evt move-command-position: When the play-sk module or user selects a different
  * command, this event is emitted, and it's detail contains the command index in
  * the unfiltered command list for this frame.
  *
@@ -38,6 +38,8 @@ import '../play-sk';
 export interface CommandsSkMovePositionEventDetail {
   // the index of a command in the frame to which the wasm view should move.
   position: number,
+  // true if we're currently paused
+  paused: boolean,
 }
 
 export type CommandRange = [number, number];
@@ -127,7 +129,8 @@ export class CommandsSk extends ElementSk {
     </div>`;
 
   private static opTemplate = (ele: CommandsSk, filtpos: number, op: Command) =>
-    html`<div class="op" id="op-${op.index}" @click=${() => {ele.item = filtpos}}>
+    html`<div class="op" id="op-${op.index}" @click=${
+      (e: MouseEvent) => {ele._clickItem(e, filtpos)}}>
       <details>
         <summary class=${ ele.position == op.index ? 'selected' : ''}>
           <span class="index">${op.index}</span>
@@ -229,8 +232,8 @@ Command types can also be filted by clicking on their names in the histogram"
     // notify debugger-page-sk that it needs to draw this.position
     this.dispatchEvent(
       new CustomEvent<CommandsSkMovePositionEventDetail>(
-        'move-position', {
-          detail: {position: this.position},
+        'move-command-position', {
+          detail: {position: this.position, paused: this._playSk!.mode === 'pause'},
           bubbles: true,
         }));
     this._playSk!.movedTo(this._item);
@@ -361,6 +364,14 @@ Command types can also be filted by clicking on their names in the histogram"
   keyMove(offset: number) {
     this._playSk!.mode = 'pause';
     this.item = Math.max(0, Math.min(this._item + offset, this.countFiltered));
+  }
+
+  private _clickItem(e: MouseEvent, filtIndex: number) {
+    if (this._item !== filtIndex) {
+      // Don't open the dropdown unless you click the already selected item again
+      e.preventDefault();
+    }
+    this.item = filtIndex;
   }
 
   // filter change coming from histogram
