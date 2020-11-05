@@ -15,7 +15,7 @@ describe('navigation-sk', () => {
 
   describe('display', () => {
     it('navigation items', () => {
-      expect($('.item', element)).to.have.length(2);
+      expect($('.tr', element)).to.have.length(2);
     });
   });
 });

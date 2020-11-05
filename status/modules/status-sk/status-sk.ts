@@ -36,25 +36,46 @@ export class StatusSk extends ElementSk {
   private bugsOpen: boolean = true;
   private perfOpen: boolean = true;
   private goldOpen: boolean = true;
+  private navOpen: boolean = true;
   private rotationsOpen: boolean = true;
   private static template = (el: StatusSk) =>
     html`
       <app-sk>
         <header>
           <h1>Status: ${el.repo}</h1>
-          <a id="legacy" class="secondary-container-themes-sk" href="/repo/${el.repo.toLowerCase()}"
+          <a
+            id="legacy"
+            class="secondary-container-themes-sk"
+            href="/repo/${el.repo.toLowerCase()}"
             ><p>Return to Legacy Status page</p></a
           >
           <div class="spacer">
             <tree-status-sk
-              @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
+              @tree-status-update=${(e: CustomEvent<TreeStatus>) =>
+                el.updateTreeStatus(e.detail)}
             ></tree-status-sk>
           </div>
           <login-sk></login-sk>
           <theme-chooser-sk></theme-chooser-sk>
         </header>
         <aside>
-          <div><navigation-sk></navigation-sk></div>
+          <div>
+            <button
+              class="collapser"
+              @click=${(e: Event) => {
+                el.navOpen = !el.navOpen;
+                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
+              }}
+            >
+              ${el.navOpen
+                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              Navigation
+            </button>
+            <collapse-sk>
+              <navigation-sk></navigation-sk>
+            </collapse-sk>
+          </div>
           <div>
             <button
               class="collapser"

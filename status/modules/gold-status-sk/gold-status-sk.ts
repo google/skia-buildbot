@@ -28,7 +28,9 @@ export class GoldStatusSk extends ElementSk {
                 title="Skia Gold: Untriaged ${c!.name} image count"
               >
                 <div class="td">${c!.name}</div>
-                <div class="td number"><span class="value">${c!.untriagedCount}</span></div>
+                <div class="td number">
+                  <span class="value">${c!.untriagedCount}</span>
+                </div>
               </a>
             `
           )
@@ -51,7 +53,9 @@ export class GoldStatusSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json: StatusResponse) => {
         this.resp = json;
-        this.resp.corpStatus?.sort((a, b) => b!.untriagedCount - a!.untriagedCount);
+        this.resp.corpStatus?.sort(
+          (a, b) => b!.untriagedCount - a!.untriagedCount
+        );
         this._render();
       })
       .catch(errorMessage)

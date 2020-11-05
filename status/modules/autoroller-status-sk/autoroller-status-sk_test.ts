@@ -7,7 +7,9 @@ import { expect } from 'chai';
 import { getAutorollerStatusesResponse, SetupMocks } from '../rpc-mock';
 
 describe('autoroller-status-sk', () => {
-  const newInstance = setUpElementUnderTest<AutorollerStatusSk>('autoroller-status-sk');
+  const newInstance = setUpElementUnderTest<AutorollerStatusSk>(
+    'autoroller-status-sk'
+  );
 
   let element: AutorollerStatusSk;
   beforeEach(async () => {
@@ -19,9 +21,9 @@ describe('autoroller-status-sk', () => {
   describe('display', () => {
     it('statuses', () => {
       expect($('.roller', element)).to.have.length(7);
-      expect($('.autoroller-failure', element)).to.have.length(1);
-      expect($('.autoroller-success', element)).to.have.length(4);
-      expect($('.autoroller-warning', element)).to.have.length(2);
+      expect($('.bg-failure', element)).to.have.length(1);
+      expect($('.bg-success', element)).to.have.length(4);
+      expect($('.bg-warning', element)).to.have.length(2);
     });
   });
 });

@@ -5,8 +5,8 @@ details-dialog-sk {
   z-index: 5;
   .dialog {
     position: fixed;
-    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12),
-      0 8px 10px -5px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14),
+      0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
     padding: 15px;
     border-radius: 10px;
     border: none;
@@ -16,7 +16,7 @@ details-dialog-sk {
     width: 40vw;
     overflow: auto;
     margin: 0;
-    background-color: var(--surface-1dp);
+    background-color: var(--surface);
     color: var(--on-surface);
     fill: var(--on-surface);
     a {
@@ -38,11 +38,11 @@ details-dialog-sk {
     justify-content: space-between;
   }
   .task-success {
-    background-color: rgb(102, 166, 30);
-    color: var(--white);
+    background-color: var(--success);
+    color: var(--on-success);
   }
   .task-failure {
-    background-color: #d95f02;
-    color: var(--white);
+    background-color: var(--failure);
+    color: var(--on-failure);
   }
 }

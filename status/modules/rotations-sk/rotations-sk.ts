@@ -13,16 +13,25 @@ import { Rotation } from '../tree-status-sk/tree-status-sk';
 export class RotationsSk extends ElementSk {
   private _rotations: Array<Rotation> = [];
   private static template = (el: RotationsSk) => html`
-    ${el._rotations.map(
-      (rotation) => html`
-        <div>
-          <a href=${rotation.docLink} target="_blank" rel="noopener noreferrer">
-            ${unsafeHTML(`<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`)} ${rotation.role}:
-            ${rotation.name}
+    <div class="table">
+      ${el._rotations.map(
+        (rotation) => html`
+          <a
+            class="tr"
+            href=${rotation.docLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="td">
+              ${unsafeHTML(
+                `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`
+              )}
+              ${rotation.role}: ${rotation.name}
+            </div>
           </a>
-        </div>
-      `
-    )}
+        `
+      )}
+    </div>
   `;
 
   constructor() {
