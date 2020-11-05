@@ -4,6 +4,7 @@ import 'elements-sk/error-toast-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { mockIncrementalResponse, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
+import { sameTimestamp } from './test_data';
 
 declare global {
   interface Window {
@@ -14,8 +15,9 @@ window.Login = Promise.resolve({
   Email: 'user@google.com',
   LoginURL: 'https://accounts.google.com/',
 });
-
-SetupMocks().expectGetIncrementalCommits(mockIncrementalResponse);
+const resp = mockIncrementalResponse;
+resp.update!.commits = sameTimestamp;
+SetupMocks().expectGetIncrementalCommits(resp);
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
   taskSchedulerUrl: 'example.com/ts',
