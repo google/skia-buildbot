@@ -23,10 +23,12 @@ import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
-import { defaultRepo } from '../settings';
+import { defaultRepo, repos, repoUrl } from '../settings';
 import { TreeStatus } from '../tree-status-sk/tree-status-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { RotationsSk } from '../rotations-sk/rotations-sk';
+import { AutorollerStatus, Branch } from '../rpc';
+import { BranchesSk } from '../branches-sk/branches-sk';
 
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
@@ -67,7 +69,9 @@ export class StatusSk extends ElementSk {
               AutoRollers
             </button>
             <collapse-sk>
-              <autoroller-status-sk></autoroller-status-sk>
+              <autoroller-status-sk
+                @rollers-update=${(e: CustomEvent) => el.updateRollerLabels(e.detail)}
+              ></autoroller-status-sk>
             </collapse-sk>
           </div>
           <div>
@@ -168,6 +172,12 @@ export class StatusSk extends ElementSk {
   private updateRepo(r: string) {
     this.repo = r.charAt(0).toUpperCase() + r.slice(1);
     this._render();
+  }
+
+  private updateRollerLabels(rolls: Array<AutorollerStatus>) {
+    const branchSk = $$<BranchesSk>('branches-sk', this)!;
+    branchSk.rolls = rolls;
+    branchSk.repoUrl = repoUrl(this.repo.toLowerCase());
   }
 
   private updateTreeStatus(r: TreeStatus) {
