@@ -1,0 +1,90 @@
+timeline-sk {
+  * {
+    font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    font-size: 12px;
+  }
+
+  div.horizontal {
+    display: flex;
+    flex-direction: row;
+  }
+
+  play-sk {
+    margin: 8px;
+  }
+
+  play-sk:hover {
+    margin: 8px;
+    fill: #B44;
+  }
+
+  div.outer {
+    margin: 4px;
+    padding: 0px;
+    flex-grow: 1;
+  }
+
+  div.hallway {
+    background-color: #222;
+    display: flex;
+    flex-direction: row;
+    padding: 1px;
+    height: 20px;
+    width: 100%;
+    border:none;
+  }
+
+  div.room {
+    background-color: #445;
+    border-left: 1px solid #888;
+    padding: 1px;
+    flex-grow: 1;
+    overflow: clip;
+  }
+
+  div.room:hover {
+    background-color: #B44;
+  }
+
+  div.not-selected {
+    background-color: #445;
+  }
+
+  div.selected {
+    background-color: #DDD;
+  }
+
+
+  div.room.selected:hover {
+    background-color: #FDD;
+  }
+
+  div.basement {
+    background-color: #AAA;
+    height: 14px;
+    width: 100%;
+    margin:0px;
+    padding: 0px;
+    border: 1px solid #445;
+    border-top: none;
+  }
+
+  // the labels are spans in absolute divs, in relative divs.
+  // This lets them inherit a relative position from the rooms,
+  // but have no effect on their size.
+  div.rel-point {
+    position: relative;
+    width: 0;
+    height: 0
+  }
+
+  span.label {
+    // The labels are drawn on top of the basement background color.
+    color: #222;
+    position: absolute;
+    top: 20px;
+    left: -2px;
+    border-left: 1px solid #445;
+    padding-left: 2px;
+  }
+}

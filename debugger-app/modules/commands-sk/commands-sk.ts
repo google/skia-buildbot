@@ -118,7 +118,7 @@ export class CommandsSk extends ElementSk {
       ${CommandsSk.filterTemplate(ele)}
       <div class="horizontal-flex">
         <button @click=${ele._opIdFilter} class="short">Show By Op-Id</button>
-        <play-sk></play-sk>
+        <play-sk .visual=${'full'}></play-sk>
       </div>
       <div class="list">
         ${ ele._filtered.map((i: number, filtPos: number) =>
@@ -610,9 +610,8 @@ doesn't appear to be a command name`);
     }
   }
 
-  // Filters out all commands not having a GPU op id and sorts them by op id
-  // Experimental, probably breaks assumptions elsewhere, because something in
-  // DebugCanvas.cpp might depend on these never being out of order.
+  // Filters out all but the last command of each gpu op group
+  // Experimental, probably breaks assumptions elsewhere
   private _opIdFilter() {
     this._filtered = [];
 
