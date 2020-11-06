@@ -147,7 +147,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"sort"
-	"strings"
 	"text/template"
 	"time"
 
@@ -188,6 +187,10 @@ const readTracesChunkSize = 1000
 // Number of parallel requests sent to the database when servicing a single
 // query. 30 matches the max number of cores we use on a clustering instance.
 const readPoolSize = 30
+
+// queryTraceIDsBatchSize is the number of traceids we try to resolve into
+// Params at one time.
+const queryTraceIDsBatchSize = 100
 
 const queryTracesIDOnlyByIndexChannelSize = 1000
 
@@ -250,6 +253,8 @@ const (
 	getSource
 	traceCount
 	queryTracesIDOnly
+	queryTraceIDs
+	convertTraceIDs
 	readTraces
 )
 
@@ -267,11 +272,13 @@ var templates = map[statement]string{
         DO NOTHING
         `,
 	queryTracesIDOnly: `
-        {{ $tileNumber := .TileNumber }}
+		{{ $tileNumber := .TileNumber }}
+		{{ $asOf := .AsOf }}
         SELECT
             key_value, trace_id
         FROM
-            Postings@by_trace_id
+			Postings@by_trace_id
+			{{ $asOf }}
         WHERE
             tile_number = {{ $tileNumber }}
             AND trace_id IN (
@@ -280,7 +287,8 @@ var templates = map[statement]string{
                 SELECT
                     trace_id
                 FROM
-                    Postings
+					Postings
+					{{ $asOf }}
                 WHERE
                     tile_number = {{ $tileNumber }}
                     AND key_value IN
@@ -293,7 +301,42 @@ var templates = map[statement]string{
             {{ end }}
             )
         ORDER BY
-            trace_id`,
+			trace_id`,
+	convertTraceIDs: `
+		{{ $tileNumber := .TileNumber }}
+		{{ $asOf := .AsOf }}
+        SELECT
+            key_value, trace_id
+        FROM
+			Postings@by_trace_id
+			{{ $asOf }}
+        WHERE
+            tile_number = {{ $tileNumber }}
+            AND trace_id IN (
+				{{ range $index, $trace_id :=  .TraceIDs -}}
+					{{ if $index }},{{end}}
+					'{{ $trace_id }}'
+				{{ end }}
+            )
+        ORDER BY
+			trace_id
+	`,
+	queryTraceIDs: `
+		SELECT
+			trace_id
+		FROM
+			Postings
+			{{ $asOf }}
+		WHERE
+			tile_number = {{ .TileNumber }}
+			AND key_value IN
+			(
+				{{ range $index, $value :=  .KeyValues -}}
+					{{ if $index }},{{end}}
+					'{{ .Key }}={{ $value }}'
+				{{ end }}
+			)
+		ORDER BY trace_id`,
 	readTraces: `
         SELECT
             trace_id,
@@ -372,10 +415,26 @@ type queryPlanContext struct {
 	Values []string
 }
 
-// queryTracesContext is the context for the queryTraces template.
-type queryTracesContext struct {
+// queryTracesIDOnlyContext is the context for the queryTracesIDOnly template.
+type queryTracesIDOnlyContext struct {
 	TileNumber types.TileNumber
 	QueryPlan  []queryPlanContext
+	AsOf       string
+}
+
+// queryTraceIDsContext is the context for the queryTraceIDsContext template.
+type queryTraceIDsContext struct {
+	TileNumber types.TileNumber
+	Key        string
+	Values     []string
+	AsOf       string
+}
+
+// convertTracesContext is the context for the convertTraceIDs template.
+type convertTraceIDsContext struct {
+	TileNumber types.TileNumber
+	TraceIDs   []traceIDForSQL
+	AsOf       string
 }
 
 // readTracesContext is the context for the readTraces template.
@@ -493,6 +552,12 @@ type SQLTraceStore struct {
 	// tileSize is the number of commits per Tile.
 	tileSize int32
 
+	// enableFollowerReads, if true, means older data in the database can be
+	// used to respond to queries.
+	// See https://www.cockroachlabs.com/docs/v20.1/as-of-system-time
+	// and https://www.cockroachlabs.com/docs/v20.1/follower-reads#run-queries-that-use-follower-reads
+	enableFollowerReads bool
+
 	// metrics
 	writeTracesMetric               metrics2.Float64SummaryMetric
 	writeTracesMetricSQL            metrics2.Float64SummaryMetric
@@ -539,6 +604,7 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 		tileSize:                        datastoreConfig.TileSize,
 		cache:                           cache,
 		orderedParamSetCache:            paramSetCache,
+		enableFollowerReads:             datastoreConfig.EnableFollowerReads,
 		writeTracesMetric:               metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
 		writeTracesMetricSQL:            metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
 		buildTracesContextsMetric:       metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
@@ -724,88 +790,141 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		return nil, skerr.Wrapf(err, "invalid query %#v", *q)
 	}
 
-	// Prepare the template context.
-	context := queryTracesContext{
-		TileNumber: tileNumber,
-		QueryPlan:  []queryPlanContext{},
-	}
+	// This query is done in two parts because the CDB query planner seems to
+	// pick a really bad plan a large percentage of the time.
 
+	// First find the encoded trace ids that match the query. Break apary the
+	// QueryPlan and do each group of OR's as indivdual queries to the database,
+	// but then stream the results and do the ANDs here on the server. That's
+	// because CDB complains about the amount of RAM that the doing the AND can
+	// require. For example, the query 'source_type=svg&sub_result=min_ms'
+	// requires merging two lists that are both over 200k.
+
+	unionChannels := []<-chan traceIDForSQL{}
+	i := 0
 	for key, values := range plan {
-		context.QueryPlan = append(context.QueryPlan, queryPlanContext{
-			Key:    key,
-			Values: values,
-		})
-	}
+		context := queryTraceIDsContext{
+			TileNumber: tileNumber,
+			Key:        key,
+			Values:     values,
+			AsOf:       "",
+		}
+		if s.enableFollowerReads {
+			context.AsOf = "AS OF SYSTEM TIME '-5s'"
+		}
 
-	// Expand the template for the SQL.
-	var b bytes.Buffer
-	if err := s.unpreparedStatements[queryTracesIDOnly].Execute(&b, context); err != nil {
-		return nil, skerr.Wrapf(err, "failed to expand trace names template")
-	}
+		// Expand the template for the SQL.
+		var b bytes.Buffer
+		if err := s.unpreparedStatements[queryTraceIDs].Execute(&b, context); err != nil {
+			return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
+		}
+		sql := b.String()
+		rows, err := s.db.Query(ctx, sql)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		ch := make(chan traceIDForSQL)
+		unionChannels = append(unionChannels, ch)
 
-	sql := b.String()
-	// Execute the query.
-	rows, err := s.db.Query(ctx, sql)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+		go func(ch chan traceIDForSQL, rows pgx.Rows) {
+			defer close(ch)
+
+			for rows.Next() {
+				var traceIDAsBytes []byte
+				if err := rows.Scan(&traceIDAsBytes); err != nil {
+					sklog.Errorf("Failed to scan traceIDAsBytes: %s", skerr.Wrap(err))
+					return
+				}
+				if err := rows.Err(); err != nil {
+					if err == pgx.ErrNoRows {
+						return
+					}
+					sklog.Errorf("Failed while reading traceIDAsBytes: %s", skerr.Wrap(err))
+					return
+				}
+				ch <- traceIDForSQLFromTraceIDAsBytes(traceIDAsBytes)
+			}
+		}(ch, rows)
+		i++
 	}
+	// Now convert those encoded trace ids to Params.
+	traceIDsCh := newIntersect(ctx, unionChannels)
 
 	go func() {
 		defer close(outParams)
-
-		p := paramtools.Params{}
-
-		// We build up the Params for each matching trace id row-by-row. That
-		// is, each row contains the trace_id of a trace that matches the query,
-		// and a single key=value pair from the trace name.
-
-		// As we scan we keep track of the current trace_id we are on, since the
-		// query returns rows ordered by trace_id we know they are all grouped
-		// together.
-		var currentTraceID []byte = nil
-		for rows.Next() {
-			var keyValue string
-			var traceIDAsBytes []byte
-			if err := rows.Scan(&keyValue, &traceIDAsBytes); err != nil {
-				sklog.Errorf("Failed to scan traceName: %s", skerr.Wrap(err))
-				return
+		// Use ChunkIterParallelPool here.
+		currentBatch := []traceIDForSQL{}
+		for hexEncodedTraceID := range traceIDsCh {
+			currentBatch = append(currentBatch, hexEncodedTraceID)
+			if len(currentBatch) > queryTraceIDsBatchSize {
+				s.convertHexTraceIdsToParams(ctx, currentBatch, outParams)
 			}
-			// If we hit a new trace_id then emit the current Params we have
-			// built so far and start on a fresh Params.
-			if !bytes.Equal(currentTraceID, traceIDAsBytes) {
-				// Don't emit on the first row, i.e. before we've actually done
-				// any work.
-				if currentTraceID != nil {
-					outParams <- p
-				} else {
-					currentTraceID = make([]byte, len(traceIDAsBytes))
-				}
-				p = paramtools.Params{}
-				copy(currentTraceID, traceIDAsBytes)
-			}
-
-			// Add to the current Params.
-			parts := strings.SplitN(keyValue, "=", 2)
-			if len(parts) != 2 {
-				sklog.Warningf("Found invalid key=value pair in Postings: %q", keyValue)
-				continue
-			}
-			p[parts[0]] = parts[1]
 		}
-		if err := rows.Err(); err != nil {
-			if err == pgx.ErrNoRows {
-				return
-			}
-			sklog.Errorf("Failed while reading traceNames: %s", skerr.Wrap(err))
-			return
-		}
-		// Make sure to emit the last trace id.
-		if currentTraceID != nil {
-			outParams <- p
-		}
+		// Now handle any remaining batch.
+		s.convertHexTraceIdsToParams(ctx, currentBatch, outParams)
 	}()
 
 	return outParams, nil
+}
+
+func (s *SQLTraceStore) convertHexTraceIdsToParams(ctx context.Context, currentBatch []traceIDForSQL, outParams chan paramtools.Params) {
+
+	/*
+
+
+		p := paramtools.Params{}
+
+
+			// We build up the Params for each matching trace id row-by-row. That
+			// is, each row contains the trace_id of a trace that matches the query,
+			// and a single key=value pair from the trace name.
+
+			// As we scan we keep track of the current trace_id we are on, since the
+			// query returns rows ordered by trace_id we know they are all grouped
+			// together.
+			var currentTraceID []byte = nil
+			for rows.Next() {
+				var keyValue string
+				var traceIDAsBytes []byte
+				if err := rows.Scan(&keyValue, &traceIDAsBytes); err != nil {
+					sklog.Errorf("Failed to scan traceName: %s", skerr.Wrap(err))
+					return
+				}
+				// If we hit a new trace_id then emit the current Params we have
+				// built so far and start on a fresh Params.
+				if !bytes.Equal(currentTraceID, traceIDAsBytes) {
+					// Don't emit on the first row, i.e. before we've actually done
+					// any work.
+					if currentTraceID != nil {
+						outParams <- p
+					} else {
+						currentTraceID = make([]byte, len(traceIDAsBytes))
+					}
+					p = paramtools.Params{}
+					copy(currentTraceID, traceIDAsBytes)
+				}
+
+				// Add to the current Params.
+				parts := strings.SplitN(keyValue, "=", 2)
+				if len(parts) != 2 {
+					sklog.Warningf("Found invalid key=value pair in Postings: %q", keyValue)
+					continue
+				}
+				p[parts[0]] = parts[1]
+			}
+			if err := rows.Err(); err != nil {
+				if err == pgx.ErrNoRows {
+					return
+				}
+				sklog.Errorf("Failed while reading traceNames: %s", skerr.Wrap(err))
+				return
+			}
+
+			// Make sure to emit the last trace id.
+			if currentTraceID != nil {
+				outParams <- p
+			}
+	*/
 }
 
 // ReadTraces implements the tracestore.TraceStore interface.
