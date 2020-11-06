@@ -250,6 +250,8 @@ const (
 	getSource
 	traceCount
 	queryTracesIDOnly
+	queryTraceIDs
+	convertTraceIDs
 	readTraces
 )
 
@@ -267,11 +269,13 @@ var templates = map[statement]string{
         DO NOTHING
         `,
 	queryTracesIDOnly: `
-        {{ $tileNumber := .TileNumber }}
+		{{ $tileNumber := .TileNumber }}
+		{{ $asOf := .AsOf }}
         SELECT
             key_value, trace_id
         FROM
-            Postings@by_trace_id
+			Postings@by_trace_id
+			{{ $asOf }}
         WHERE
             tile_number = {{ $tileNumber }}
             AND trace_id IN (
@@ -280,7 +284,8 @@ var templates = map[statement]string{
                 SELECT
                     trace_id
                 FROM
-                    Postings
+					Postings
+					{{ $asOf }}
                 WHERE
                     tile_number = {{ $tileNumber }}
                     AND key_value IN
@@ -293,7 +298,42 @@ var templates = map[statement]string{
             {{ end }}
             )
         ORDER BY
-            trace_id`,
+			trace_id`,
+	convertTraceIDs: `
+		{{ $tileNumber := .TileNumber }}
+		{{ $asOf := .AsOf }}
+        SELECT
+            key_value, trace_id
+        FROM
+			Postings@by_trace_id
+			{{ $asOf }}
+        WHERE
+            tile_number = {{ $tileNumber }}
+            AND trace_id IN (
+				{{ range $index, $trace_id :=  .TraceIDs -}}
+					{{ if $index }},{{end}}
+					'{{ $trace_id }}'
+				{{ end }}
+            )
+        ORDER BY
+			trace_id
+	`,
+	queryTraceIDs: `
+		SELECT
+			trace_id
+		FROM
+			Postings
+			{{ $asOf }}
+		WHERE
+			tile_number = {{ .TileNumber }}
+			AND key_value IN
+			(
+				{{ range $index, $value :=  .KeyValues -}}
+					{{ if $index }},{{end}}
+					'{{ .Key }}={{ $value }}'
+				{{ end }}
+			)
+		ORDER BY trace_id`,
 	readTraces: `
         SELECT
             trace_id,
@@ -372,10 +412,26 @@ type queryPlanContext struct {
 	Values []string
 }
 
-// queryTracesContext is the context for the queryTraces template.
-type queryTracesContext struct {
+// queryTracesIDOnlyContext is the context for the queryTracesIDOnly template.
+type queryTracesIDOnlyContext struct {
 	TileNumber types.TileNumber
 	QueryPlan  []queryPlanContext
+	AsOf       string
+}
+
+// queryTraceIDsContext is the context for the queryTraceIDsContext template.
+type queryTraceIDsContext struct {
+	TileNumber types.TileNumber
+	Key        string
+	Values     []string
+	AsOf       string
+}
+
+// convertTracesContext is the context for the convertTraceIDs template.
+type convertTraceIDsContext struct {
+	TileNumber types.TileNumber
+	TraceIDs   []traceIDForSQL
+	AsOf       string
 }
 
 // readTracesContext is the context for the readTraces template.
@@ -493,6 +549,12 @@ type SQLTraceStore struct {
 	// tileSize is the number of commits per Tile.
 	tileSize int32
 
+	// enableFollowerReads, if true, means older data in the database can be
+	// used to respond to queries.
+	// See https://www.cockroachlabs.com/docs/v20.1/as-of-system-time
+	// and https://www.cockroachlabs.com/docs/v20.1/follower-reads#run-queries-that-use-follower-reads
+	enableFollowerReads bool
+
 	// metrics
 	writeTracesMetric               metrics2.Float64SummaryMetric
 	writeTracesMetricSQL            metrics2.Float64SummaryMetric
@@ -539,6 +601,7 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 		tileSize:                        datastoreConfig.TileSize,
 		cache:                           cache,
 		orderedParamSetCache:            paramSetCache,
+		enableFollowerReads:             datastoreConfig.EnableFollowerReads,
 		writeTracesMetric:               metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
 		writeTracesMetricSQL:            metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
 		buildTracesContextsMetric:       metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
@@ -724,10 +787,57 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		return nil, skerr.Wrapf(err, "invalid query %#v", *q)
 	}
 
+	// This query is done in two parts because the CDB query planner seems to
+	// pick a really bad plan a large percentage of the time.
+
+	// First find the encoded trace ids that match the query. Break apary the
+	// QueryPlan and do each group of OR's as indivdual queries to the database,
+	// but then stream the results and do the ANDs here on the server. That's
+	// because CDB complains about the amount of RAM that the doing the AND can
+	// require. For example, the query 'source_type=svg&sub_result=min_ms'
+	// requires merging two lists that are both over 200k.
+
+	for key, values := range plan {
+		context := queryTraceIDsContext{
+			TileNumber: tileNumber,
+			QueryPlan:  []queryPlanContext{},
+			AsOf:       "",
+		}
+		if s.enableFollowerReads {
+			context.AsOf = "AS OF SYSTEM TIME '-5s'"
+		}
+		for key, values := range plan {
+			context.QueryPlan = append(context.QueryPlan, queryPlanContext{
+				Key:    key,
+				Values: values,
+			})
+		}
+
+		// Expand the template for the SQL.
+		var b bytes.Buffer
+		if err := s.unpreparedStatements[queryTraceIDs].Execute(&b, context); err != nil {
+			return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
+		}
+
+		sql := b.String()
+		fmt.Println(sql)
+		// Execute the query.
+		rows, err := s.db.Query(ctx, sql)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+	}
+	// Now convert those encoded trace ids to Params.
+
 	// Prepare the template context.
-	context := queryTracesContext{
+	context := queryTracesIDOnlyContext{
 		TileNumber: tileNumber,
 		QueryPlan:  []queryPlanContext{},
+		AsOf:       "",
+	}
+	if s.enableFollowerReads {
+		context.AsOf = "AS OF SYSTEM TIME '-5s'"
 	}
 
 	for key, values := range plan {
@@ -744,6 +854,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	}
 
 	sql := b.String()
+	fmt.Println(sql)
 	// Execute the query.
 	rows, err := s.db.Query(ctx, sql)
 	if err != nil {
