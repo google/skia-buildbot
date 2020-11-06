@@ -73,6 +73,11 @@ type DataStoreConfig struct {
 
 	// CacheConfig is the config for LRU caches in the trace store.
 	CacheConfig CacheConfig
+
+	// EnableFollowerReads, if true, means older data in the database can be
+	// used to respond to queries, which is faster, but is not appropriate if
+	// data recency is imperative. The age of the data should only be 5s older.
+	EnableFollowerReads bool `json:"enable_follower_reads"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
