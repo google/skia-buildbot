@@ -323,14 +323,14 @@ class Data {
   }
 
   // Returns true if c is a child of possibleAncestor.
-  private childOf(c: Commit, possibleAncestor: Commit | undefined) {
+  private childOf(c: Commit | undefined, possibleAncestor: Commit) {
     let curr = c;
-    while (possibleAncestor) {
-      if (c.parents!.includes(possibleAncestor.hash)) {
+    while (curr) {
+      if (curr.parents!.includes(possibleAncestor.hash)) {
         return true;
       }
-      curr = possibleAncestor;
-      possibleAncestor = this.commitsByHash.get(curr.hash);
+      const parentHash = curr.parents!.length > 0 ? curr.parents![0] : '';
+      curr = this.commitsByHash.get(parentHash);
     }
     return false;
   }
