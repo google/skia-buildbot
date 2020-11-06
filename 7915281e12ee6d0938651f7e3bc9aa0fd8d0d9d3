@@ -45,6 +45,29 @@
       },
       "revId": "7915281e12ee6d0938651f7e3bc9aa0fd8d0d9d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ecd65a3b_08a4e30b",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-06T13:26:25Z",
+      "side": 1,
+      "message": "FTR I think something like this would give us an always-correct solution:\n\nconst current \u003d this.branchHeads.map((bh) \u003d\u003e this.commits[bh.hash]);\nconst sorted \u003d [];\nwhile (current.length \u003e 0) {\n  let nextCommit \u003d undefined;\n  let nextCommitIndex \u003d undefined;\n  current.forEach((commit, index) \u003d\u003e {\n    if (!nextCommit || nextCommit.timestamp \u003c commit.timestamp) {\n      nextCommit \u003d commit;\n      nextCommitIndex \u003d index;\n    }\n  });\n  sorted.push(nextCommit);\n  current.splice(nextCommitIndex, 1);\n  nextCommit.parents.forEach((hash) \u003d\u003e {\n    current.push(this.commits[hash]);\n  });\n}",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 349,
+        "endChar": 7
+      },
+      "revId": "7915281e12ee6d0938651f7e3bc9aa0fd8d0d9d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
