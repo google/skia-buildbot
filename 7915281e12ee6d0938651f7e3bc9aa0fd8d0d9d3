@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4861d41f_0ac08b69",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-06T13:16:43Z",
+      "side": 1,
+      "message": "Nit: this is more like descendantOf",
+      "range": {
+        "startLine": 326,
+        "startChar": 10,
+        "endLine": 326,
+        "endChar": 17
+      },
+      "revId": "7915281e12ee6d0938651f7e3bc9aa0fd8d0d9d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d811bf48_752256bd",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-06T13:16:43Z",
+      "side": 1,
+      "message": "Nit: this should be rare, but if we only follow the first parent, we may get things wrong in the case of a merge.",
+      "range": {
+        "startLine": 332,
+        "startChar": 66,
+        "endLine": 332,
+        "endChar": 67
+      },
+      "revId": "7915281e12ee6d0938651f7e3bc9aa0fd8d0d9d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
