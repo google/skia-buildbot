@@ -74,25 +74,25 @@ func New() (baseapp.App, error) {
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL, datastore.ScopeDatastore)
 	dbClient, err := db.New(ctx, ts, *fsNamespace, *fsProjectID)
 	if err != nil {
-		sklog.Fatal("Could not init DB: %s", err)
+		sklog.Fatalf("Could not init DB: %s", err)
 	}
 
 	// Instantiate poller and turn it on.
 	pollerClient, err := poller.New(ctx, ts, *serviceAccountFile, dbClient)
 	if err != nil {
-		sklog.Fatal("Could not init poller: %s", err)
+		sklog.Fatalf("Could not init poller: %s", err)
 	}
 	if err := pollerClient.Start(ctx, *pollInterval); err != nil {
-		sklog.Fatal("Could not start poller: %s", err)
+		sklog.Fatalf("Could not start poller: %s", err)
 	}
 
 	// Instantiate aliases_watcher and turn it on.
 	aliasesWatcher, err := aliases_watcher.New(ctx, ts, *serviceAccountFile)
 	if err != nil {
-		sklog.Fatal("Could not init watcher: %s", err)
+		sklog.Fatalf("Could not init watcher: %s", err)
 	}
 	if err := aliasesWatcher.Start(ctx, *aliasesWatcherInterval); err != nil {
-		sklog.Fatal("Could not start aliases watcher: %s", err)
+		sklog.Fatalf("Could not start aliases watcher: %s", err)
 	}
 
 	srv := &Server{
