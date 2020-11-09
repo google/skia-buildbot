@@ -16,7 +16,6 @@ const (
 	CHROMIUM_BUILDS_DIR_NAME         = "chromium_builds"
 	PAGESETS_DIR_NAME                = "page_sets"
 	WEB_ARCHIVES_DIR_NAME            = "webpage_archives"
-	SKPS_DIR_NAME                    = "skps"
 	STORAGE_DIR_NAME                 = "storage"
 	REPO_DIR_NAME                    = "skia-repo"
 	TASKS_DIR_NAME                   = "tasks"
@@ -50,7 +49,6 @@ const (
 	BINARY_ANALYZE_METRICS = "analyze_metrics_ct.py"
 	BINARY_GCLIENT         = "gclient"
 	BINARY_NINJA           = "ninja"
-	BINARY_SKPINFO         = "skpinfo"
 	BINARY_ADB             = "adb"
 	BINARY_MAIL            = "mail"
 
@@ -60,7 +58,6 @@ const (
 	PLATFORM_WINDOWS = "Windows"
 
 	// Benchmarks supported by CT.
-	BENCHMARK_SKPICTURE_PRINTER        = "skpicture_printer_ct"
 	BENCHMARK_RR                       = "rasterize_and_record_micro_ct"
 	BENCHMARK_REPAINT                  = "repaint_ct"
 	BENCHMARK_LOADING                  = "loading.cluster_telemetry"
@@ -124,9 +121,6 @@ const (
 	// Capture Archives
 	CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK = "rasterize_and_record_micro_ct"
 
-	// Capture SKPs
-	REMOVE_INVALID_SKPS_TIMEOUT = 3 * time.Hour
-
 	// Run Chromium Perf
 	ADB_VERSION_TIMEOUT            = 5 * time.Minute
 	ADB_ROOT_TIMEOUT               = 5 * time.Minute
@@ -150,15 +144,12 @@ const (
 	// Isolate files for master scripts.
 	CREATE_PAGESETS_MASTER_ISOLATE   = "create_pagesets_on_workers.isolate"
 	CAPTURE_ARCHIVES_MASTER_ISOLATE  = "capture_archives_on_workers.isolate"
-	CAPTURE_SKPS_MASTER_ISOLATE      = "capture_skps_on_workers.isolate"
 	CHROMIUM_ANALYSIS_MASTER_ISOLATE = "run_chromium_analysis_on_workers.isolate"
 	CHROMIUM_PERF_MASTER_ISOLATE     = "run_chromium_perf_on_workers.isolate"
 	METRICS_ANALYSIS_MASTER_ISOLATE  = "metrics_analysis_on_workers.isolate"
-	BUILD_CHROMIUM_MASTER_ISOLATE    = "build_chromium.isolate"
 	// Isolate files for worker scripts.
 	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
 	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
-	CAPTURE_SKPS_ISOLATE      = "capture_skps.isolate"
 	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
 	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
@@ -198,7 +189,6 @@ type PagesetTypeInfo struct {
 	UserAgent                  string
 	CaptureArchivesTimeoutSecs int
 	CreatePagesetsTimeoutSecs  int
-	CaptureSKPsTimeoutSecs     int
 	RunChromiumPerfTimeoutSecs int
 	Description                string
 }
@@ -229,7 +219,6 @@ var (
 	GCSTokenPath           = filepath.Join(StorageDir, "google_storage_token.data")
 	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
-	SkpsDir                = filepath.Join(StorageDir, SKPS_DIR_NAME)
 	ApkName                = "ChromePublic.apk"
 	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
@@ -252,7 +241,6 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
@@ -262,7 +250,6 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with desktop user-agent)",
 		},
@@ -272,7 +259,6 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
@@ -282,7 +268,6 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
@@ -292,7 +277,6 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
@@ -302,7 +286,6 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Volt 10K (with mobile user-agent)",
 		},
@@ -312,7 +295,6 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (with desktop user-agent, for testing, hidden from Runs History by default)",
 		},
@@ -322,7 +304,6 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  1800,
 			CaptureArchivesTimeoutSecs: 300,
-			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (with mobile user-agent, for testing, hidden from Runs History by default)",
 		},
