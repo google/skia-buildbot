@@ -98,9 +98,7 @@ export class ZoomSk extends ElementSk {
         this._cursor = detail.position;
       }
       this.update(); // to draw the canvas from the new cursor
-      if (!detail.onlyData) {
-        this._render(); // to update the textual readout of the cursor in the template
-      }
+      this._render(); // to update the textual readout of the cursor in the template
     });
 
     document.addEventListener('light-dark', (e) => {
