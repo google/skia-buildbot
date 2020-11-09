@@ -20,9 +20,9 @@ describe('admin-task-runs-sk', () => {
 
   fetchMock.config.overwriteRoutes = false;
 
-  let captureSkpRuns;
+  let adminRuns;
   beforeEach(async () => {
-    await expectReload(() => captureSkpRuns = newInstance(
+    await expectReload(() => adminRuns = newInstance(
       (el) => {
         el.taskType = taskType;
         el.getUrl = getUrl;
@@ -47,10 +47,10 @@ describe('admin-task-runs-sk', () => {
     await event;
   };
 
-  const confirmDialog = () => $$('dialog', captureSkpRuns).querySelectorAll('button')[1].click();
+  const confirmDialog = () => $$('dialog', adminRuns).querySelectorAll('button')[1].click();
 
   it('shows table entries', async () => {
-    expect($('table.runssummary>tbody>tr', captureSkpRuns)).to.have.length(11);
+    expect($('table.runssummary>tbody>tr', adminRuns)).to.have.length(11);
     expect(fetchMock.lastUrl()).to.contain('exclude_dummy_page_sets=true');
     expect(fetchMock.lastUrl()).to.contain('offset=0');
     expect(fetchMock.lastUrl()).to.contain('size=10');
@@ -59,13 +59,13 @@ describe('admin-task-runs-sk', () => {
 
   it('filters by user', async () => {
     expect(fetchMock.lastUrl()).to.not.contain('filter_by_logged_in_user=true');
-    await expectReload(() => $$('#userFilter', captureSkpRuns).click());
+    await expectReload(() => $$('#userFilter', adminRuns).click());
     expect(fetchMock.lastUrl()).to.contain('filter_by_logged_in_user=true');
   });
 
   it('filters by tests', async () => {
     expect(fetchMock.lastUrl()).to.contain('exclude_dummy_page_sets=true');
-    await expectReload(() => $$('#testFilter', captureSkpRuns).click());
+    await expectReload(() => $$('#testFilter', adminRuns).click());
     expect(fetchMock.lastUrl()).to.not.contain('exclude_dummy_page_sets=true');
   });
 
@@ -75,20 +75,20 @@ describe('admin-task-runs-sk', () => {
     result.pagination.offset = 10;
     // 'Next page' button.
     await expectReload(
-      () => $('pagination-sk button.action', captureSkpRuns)[2].click(), result);
+      () => $('pagination-sk button.action', adminRuns)[2].click(), result);
     expect(fetchMock.lastUrl()).to.contain('offset=10');
-    expect($('table.runssummary>tbody>tr', captureSkpRuns)).to.have.length(5);
+    expect($('table.runssummary>tbody>tr', adminRuns)).to.have.length(5);
   });
 
   it('deletes tasks', async () => {
-    $$('delete-icon-sk', captureSkpRuns).click();
+    $$('delete-icon-sk', adminRuns).click();
     fetchMock.post(`begin:${deleteUrl}`, 200);
     await expectReload(confirmDialog);
     expect(fetchMock.lastOptions('begin:/_/delete').body).to.contain('"id":66');
   });
 
   it('reschedules tasks', async () => {
-    $$('redo-icon-sk', captureSkpRuns).click();
+    $$('redo-icon-sk', adminRuns).click();
     fetchMock.post(`begin:${redoUrl}`, 200);
     await expectReload(confirmDialog);
     expect(fetchMock.lastOptions('begin:/_/redo').body).to.contain('"id":66');
