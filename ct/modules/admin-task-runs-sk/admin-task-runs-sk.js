@@ -20,9 +20,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   getFormattedTimestamp,
   formatRepeatAfterDays,
-  shortHash,
-  chromiumCommitUrl,
-  skiaCommitUrl,
 } from '../ctfe_utils';
 
 const template = (el) => html`
@@ -92,19 +89,6 @@ const taskRowTemplate = (el, task, index) => html`
         <td>PageSet:</td>
         <td>${task.PageSets}</td>
       </tr>
-      ${el.taskType === 'RecreateWebpageArchives' ? html`
-      <tr>
-        <td>ChromiumBuild:</td>
-        <td class=nowrap>
-          <a href="${chromiumCommitUrl(task.ChromiumRev)}">
-            ${shortHash(task.ChromiumRev)}
-          </a>
-          -
-          <a href="${skiaCommitUrl(task.SkiaRev)}">
-            ${shortHash(task.SkiaRev)}
-          </a>
-        </td>
-      </tr>` : ''}
     </table>
   </td>
   <!-- Results col -->

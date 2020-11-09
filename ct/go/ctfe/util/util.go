@@ -35,28 +35,12 @@ const (
 	DELETE_CHROMIUM_ANALYSIS_TASK_POST_URI = "_/delete_chromium_analysis_task"
 	REDO_CHROMIUM_ANALYSIS_TASK_POST_URI   = "_/redo_chromium_analysis_task"
 
-	CAPTURE_SKPS_URI                  = "capture_skps/"
-	CAPTURE_SKPS_RUNS_URI             = "capture_skp_runs/"
-	ADD_CAPTURE_SKPS_TASK_POST_URI    = "_/add_capture_skps_task"
-	GET_CAPTURE_SKPS_TASKS_POST_URI   = "_/get_capture_skp_tasks"
-	DELETE_CAPTURE_SKPS_TASK_POST_URI = "_/delete_capture_skps_task"
-	REDO_CAPTURE_SKPS_TASK_POST_URI   = "_/redo_capture_skps_task"
-
 	METRICS_ANALYSIS_URI                  = "metrics_analysis/"
 	METRICS_ANALYSIS_RUNS_URI             = "metrics_analysis_runs/"
 	ADD_METRICS_ANALYSIS_TASK_POST_URI    = "_/add_metrics_analysis_task"
 	GET_METRICS_ANALYSIS_TASKS_POST_URI   = "_/get_metrics_analysis_tasks"
 	DELETE_METRICS_ANALYSIS_TASK_POST_URI = "_/delete_metrics_analysis_task"
 	REDO_METRICS_ANALYSIS_TASK_POST_URI   = "_/redo_metrics_analysis_task"
-
-	CHROMIUM_BUILD_URI                  = "chromium_builds/"
-	CHROMIUM_BUILD_RUNS_URI             = "chromium_builds_runs/"
-	CHROMIUM_REV_DATA_POST_URI          = "_/chromium_rev_data"
-	SKIA_REV_DATA_POST_URI              = "_/skia_rev_data"
-	ADD_CHROMIUM_BUILD_TASK_POST_URI    = "_/add_chromium_build_task"
-	GET_CHROMIUM_BUILD_TASKS_POST_URI   = "_/get_chromium_build_tasks"
-	DELETE_CHROMIUM_BUILD_TASK_POST_URI = "_/delete_chromium_build_task"
-	REDO_CHROMIUM_BUILD_TASK_POST_URI   = "_/redo_chromium_build_task"
 
 	ADMIN_TASK_URI = "admin_tasks/"
 

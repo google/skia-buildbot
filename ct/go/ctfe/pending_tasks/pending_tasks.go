@@ -16,9 +16,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
-	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
-	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
@@ -161,9 +159,7 @@ func GetGCEPendingTaskCount(ctx context.Context) (int, error) {
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
-	CaptureSkps             *capture_skps.DatastoreTask
 	ChromiumAnalysis        *chromium_analysis.DatastoreTask
-	ChromiumBuild           *chromium_builds.DatastoreTask
 	ChromiumPerf            *chromium_perf.DatastoreTask
 	MetricsAnalysis         *metrics_analysis.DatastoreTask
 	RecreatePageSets        *admin_tasks.RecreatePageSetsDatastoreTask
@@ -182,12 +178,8 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 		oldestTaskJsonRepr.RecreatePageSets = task
 	case *admin_tasks.RecreateWebpageArchivesDatastoreTask:
 		oldestTaskJsonRepr.RecreateWebpageArchives = task
-	case *capture_skps.DatastoreTask:
-		oldestTaskJsonRepr.CaptureSkps = task
 	case *chromium_analysis.DatastoreTask:
 		oldestTaskJsonRepr.ChromiumAnalysis = task
-	case *chromium_builds.DatastoreTask:
-		oldestTaskJsonRepr.ChromiumBuild = task
 	case *chromium_perf.DatastoreTask:
 		oldestTaskJsonRepr.ChromiumPerf = task
 	case *metrics_analysis.DatastoreTask:
@@ -207,12 +199,8 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 		return nil, err
 	}
 	switch {
-	case pending.CaptureSkps != nil:
-		return pending.CaptureSkps, nil
 	case pending.ChromiumAnalysis != nil:
 		return pending.ChromiumAnalysis, nil
-	case pending.ChromiumBuild != nil:
-		return pending.ChromiumBuild, nil
 	case pending.ChromiumPerf != nil:
 		return pending.ChromiumPerf, nil
 	case pending.MetricsAnalysis != nil:

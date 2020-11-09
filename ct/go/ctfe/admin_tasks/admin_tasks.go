@@ -15,7 +15,6 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
@@ -191,10 +190,7 @@ func (task RecreateWebpageArchivesDatastoreTask) GetPopulatedAddTaskVars() (task
 	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
-
 	taskVars.PageSets = task.PageSets
-	taskVars.ChromiumBuild.ChromiumRev = task.ChromiumRev
-	taskVars.ChromiumBuild.SkiaRev = task.SkiaRev
 	return taskVars, nil
 }
 
@@ -326,8 +322,7 @@ func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
 type AddRecreateWebpageArchivesTaskVars struct {
 	AddTaskVars
-	PageSets      string                        `json:"page_sets"`
-	ChromiumBuild chromium_builds.DatastoreTask `json:"chromium_build"`
+	PageSets string `json:"page_sets"`
 }
 
 func (task *AddRecreateWebpageArchivesTaskVars) GetDatastoreKind() ds.Kind {
@@ -335,20 +330,13 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetDatastoreKind() ds.Kind {
 }
 
 func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
-	if task.PageSets == "" ||
-		task.ChromiumBuild.ChromiumRev == "" ||
-		task.ChromiumBuild.SkiaRev == "" {
+	if task.PageSets == "" {
 		return nil, fmt.Errorf("Invalid parameters")
-	}
-	if err := chromium_builds.Validate(ctx, task.ChromiumBuild); err != nil {
-		return nil, err
 	}
 
 	t := &RecreateWebpageArchivesDatastoreTask{
 		PageSets:      task.PageSets,
 		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
-		ChromiumRev:   task.ChromiumBuild.ChromiumRev,
-		SkiaRev:       task.ChromiumBuild.SkiaRev,
 	}
 	return t, nil
 }

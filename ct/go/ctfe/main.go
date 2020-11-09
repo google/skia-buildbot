@@ -18,9 +18,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
-	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
-	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
@@ -76,9 +74,7 @@ func reloadTemplates() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 	admin_tasks.ReloadTemplates(*resourcesDir)
-	capture_skps.ReloadTemplates(*resourcesDir)
 	chromium_analysis.ReloadTemplates(*resourcesDir)
-	chromium_builds.ReloadTemplates(*resourcesDir)
 	chromium_perf.ReloadTemplates(*resourcesDir)
 	metrics_analysis.ReloadTemplates(*resourcesDir)
 	pending_tasks.ReloadTemplates(*resourcesDir)
@@ -107,9 +103,7 @@ func runServer(serverURL string) {
 	externalRouter.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	admin_tasks.AddHandlers(externalRouter)
-	capture_skps.AddHandlers(externalRouter)
 	chromium_analysis.AddHandlers(externalRouter)
-	chromium_builds.AddHandlers(externalRouter)
 	chromium_perf.AddHandlers(externalRouter) // Note: chromium_perf adds a handler for "/".
 	metrics_analysis.AddHandlers(externalRouter)
 	pending_tasks.AddHandlers(externalRouter)

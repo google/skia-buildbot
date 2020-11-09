@@ -10,7 +10,6 @@ import 'elements-sk/toast-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
 import '../../../infra-sk/modules/confirm-dialog-sk';
-import '../chromium-build-selector-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../pageset-selector-sk';
@@ -43,7 +42,7 @@ const template = (el) => html`
 </div>
 `;
 
-const tabTemplate = (el, showChromeBuild) => html`
+const tabTemplate = (el) => html`
 <table class=options>
   <tr>
     <td>PageSets Type</td>
@@ -52,13 +51,6 @@ const tabTemplate = (el, showChromeBuild) => html`
       </pageset-selector-sk>
     </td>
   </tr>
-   ${showChromeBuild ? html`
-  <tr>
-    <td>Chromium Build</td>
-    <td>
-      <chromium-build-selector-sk id=chromium_build></chromium-build-selector-sk>
-    </td>
-  </tr>` : html``}
   <tr>
     <td>Repeat this task</td>
     <td>
@@ -107,12 +99,6 @@ define('admin-tasks-sk', class extends ElementSk {
       $$('#pageset_selector', this).focus();
       return;
     }
-    if (this._activeTab.id === 'archives'
-    && !$$('#chromium_build', this._activeTab).build) {
-      errorMessage('Please select a Chromium build');
-      $$('#chromium_build', this).focus();
-      return;
-    }
     if (this._moreThanThreeActiveTasks()) {
       return;
     }
@@ -131,7 +117,6 @@ define('admin-tasks-sk', class extends ElementSk {
 
     let url = '/_/add_recreate_page_sets_task';
     if (this._activeTab.id === 'archives') {
-      params.chromium_build = $$('#chromium_build', this).build;
       url = '/_/add_recreate_webpage_archives_task';
     }
 

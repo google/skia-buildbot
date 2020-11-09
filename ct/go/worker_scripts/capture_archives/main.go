@@ -92,7 +92,7 @@ func captureArchives() error {
 		// Increment the WaitGroup counter.
 		wg.Add(1)
 
-		// Create and run a goroutine closure that captures SKPs.
+		// Create and run a goroutine closure that captures archives.
 		go func() {
 			// Decrement the WaitGroup counter when the goroutine completes.
 			defer wg.Done()

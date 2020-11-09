@@ -107,8 +107,8 @@ index 1c5c273..34ceb3a 100644
         defer util.CleanTmpDir()
         // Finish with glog flush and how long the task took.
 ```
-- Master scripts include `build_chromium`, `capture_archives_on_workers`,
-  `capture_skps_on_workers`, `create_pagesets_on_workers`,
+- Master scripts include `capture_archives_on_workers`,
+  `create_pagesets_on_workers`,
   `run_chromium_perf_on_workers`.
 
 You can run the poller as:
@@ -130,9 +130,9 @@ TODO(benjaminwagner): Add local flag and kill e2e_tests from Makefile.
 ### Frontend
 
 The CTFE production datastore instance is
-[here](https://console.cloud.google.com/datastore/entities/query?organizationId=433637338589&project=google.com:skia-buildbots&ns=cluster-telemetry&kind=CaptureSkpsTasks).
+[here](https://console.cloud.google.com/datastore/entities;kind=ChromiumPerfTasks;ns=cluster-telemetry/query/kind?project=skia-public).
 The staging datastore instance is
-[here](https://console.cloud.google.com/datastore/entities/query?organizationId=433637338589&project=google.com:skia-buildbots&ns=cluster-telemetry-staging&kind=CaptureSkpsTasks).
+[here](https://console.cloud.google.com/datastore/entities;kind=ChromiumPerfTasks;ns=cluster-telemetry-staging/query/kind?project=skia-public).
 
 The frontend runs on a Google Cloud Kubernetes service named
 [ctfe](https://console.cloud.google.com/kubernetes/service/us-central1-a/skia-public/default/ctfe?project=skia-public&organizationId=433637338589).

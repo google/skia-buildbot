@@ -8,8 +8,6 @@ import (
 	expect "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
-	"go.skia.org/infra/ct/go/ctfe/capture_skps"
-	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/go/ds"
@@ -52,26 +50,6 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		Description:          "description",
 		ChromiumPatchGSPath:  "patches/abc.patch",
 		SkiaPatchGSPath:      "patches/xyz.patch",
-	})
-	test(&capture_skps.DatastoreTask{
-		CommonCols: task_common.CommonCols{
-			DatastoreKey: &datastore.Key{
-				ID:   17,
-				Kind: string(ds.CAPTURE_SKPS_TASKS),
-			},
-			TsAdded:  20080726180513,
-			Username: "nobody@chromium.org",
-		},
-		PageSets:    "All",
-		ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
-		SkiaRev:     "586101c79b0490b50623e76c71a5fd67d8d92b08",
-		Description: "description",
-	})
-	test(&chromium_builds.DatastoreTask{
-		CommonCols:    getCommonCols(ds.CHROMIUM_BUILD_TASKS),
-		ChromiumRev:   "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
-		ChromiumRevTs: 20080726180513,
-		SkiaRev:       "586101c79b0490b50623e76c71a5fd67d8d92b08",
 	})
 	test(&admin_tasks.RecreatePageSetsDatastoreTask{
 		CommonCols: getCommonCols(ds.RECREATE_PAGESETS_TASKS),

@@ -74,12 +74,6 @@ const template = (ele) => html`
       <a href="/metrics_analysis/" tab-index=0>
         <assessment-icon-sk></assessment-icon-sk><span>Metrics Analysis<span>
       </a>
-      <a href="/capture_skps/" tab-index=0>
-        <photo-camera-icon-sk></photo-camera-icon-sk><span>SKPictures</span>
-      </a>
-      <a href="/chromium_builds/" tab-index=0>
-        <build-icon-sk></build-icon-sk><span>Builds</span>
-      </a>
       <a href="/admin_tasks/" tab-index=0>
         <person-icon-sk></person-icon-sk><span>Admin Tasks</span>
       </a>
