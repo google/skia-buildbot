@@ -3,7 +3,6 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import { pageSets } from '../pageset-selector-sk/test_data';
-import { buildsJson } from '../chromium-build-selector-sk/test_data';
 import {
   eventPromise,
   setUpElementUnderTest,
@@ -18,7 +17,6 @@ describe('admin-tasks-sk', () => {
   const newInstance = async (activeTasks, init) => {
     mockActiveTasks(activeTasks);
     fetchMock.post('begin:/_/page_sets/', pageSets, { repeat: 2 });
-    fetchMock.postOnce('begin:/_/get_chromium_build_tasks', buildsJson);
 
     const wrappedInit = (ele) => {
       if (init) {
@@ -65,7 +63,6 @@ describe('admin-tasks-sk', () => {
     adminTasks = await newInstance();
     expect($('#repeat_after_days', adminTasks)).to.have.length(2);
     expect($('#pageset_selector', adminTasks)).to.have.length(2);
-    expect($('#chromium_build', adminTasks)).to.have.length(1);
     expect(adminTasks._activeTab).to.have.property('id', 'pagesets');
   });
 
@@ -98,7 +95,6 @@ describe('admin-tasks-sk', () => {
     await fetchMock.flush(true);
     const taskJson = JSON.parse(fetchMock.lastOptions().body);
     const expectation = {
-      chromium_build: buildsJson.data[0],
       page_sets: '100k',
       repeat_after_days: '0',
     };
