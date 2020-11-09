@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ad767a02_0ea86d26",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-09T16:17:08Z",
+      "side": 1,
+      "message": "Script LGTM, but I was able to do this by adding to ~/.ssh/config:\n\nHost skia-e-gce-* skia-ct-gce-* skia-d-gce-*\n  ProxyCommand corp-ssh-helper $(gcloud compute instances describe %h --format\u003d\u0027get(networkInterfaces[0].accessConfigs[0].natIP)\u0027 --project skia-swarming-bots --zone us-central1-c) %p\n  User default\n  IdentityFile ~/.ssh/google_compute_engine\n\nHost skia-i-gce-*\n  ProxyCommand corp-ssh-helper $(gcloud compute instances describe %h --format\u003d\u0027get(networkInterfaces[0].accessConfigs[0].natIP)\u0027 --project skia-swarming-bots-internal --zone us-central1-c) %p\n  User default\n  IdentityFile ~/.ssh/google_compute_engine\n",
+      "revId": "e48f3918bb9f04a6b54952218a199c8295041d03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
