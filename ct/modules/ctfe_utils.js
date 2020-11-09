@@ -201,16 +201,6 @@ export const taskDescriptors = [
     delete_url: '/_/delete_metrics_analysis_task',
   },
   {
-    type: 'CaptureSkps',
-    get_url: '/_/get_capture_skp_tasks',
-    delete_url: '/_/delete_capture_skps_task',
-  },
-  {
-    type: 'ChromiumBuild',
-    get_url: '/_/get_chromium_build_tasks',
-    delete_url: '/_/delete_chromium_build_task',
-  },
-  {
     type: 'RecreatePageSets',
     get_url: '/_/get_recreate_page_sets_tasks',
     delete_url: '/_/delete_recreate_page_sets_task',

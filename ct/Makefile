@@ -46,10 +46,6 @@ push_staging: release
 	pushk ctfe-staging
 
 # Master scripts.
-.PHONY: build_chromium
-build_chromium:
-	go install -v ./go/master_scripts/build_chromium/
-
 .PHONY: create_pagesets_on_workers
 create_pagesets_on_workers:
 	go install -v ./go/master_scripts/create_pagesets_on_workers/
@@ -57,10 +53,6 @@ create_pagesets_on_workers:
 .PHONY: capture_archives_on_workers
 capture_archives_on_workers:
 	go install -v ./go/master_scripts/capture_archives_on_workers/
-
-.PHONY: capture_skps_on_workers
-capture_skps_on_workers:
-	go install -v ./go/master_scripts/capture_skps_on_workers/
 
 .PHONY: run_chromium_perf_on_workers
 run_chromium_perf_on_workers:
@@ -93,10 +85,6 @@ isolate_telemetry:
 capture_archives:
 	go install -v ./go/worker_scripts/capture_archives/
 
-.PHONY: capture_skps
-capture_skps:
-	go install -v ./go/worker_scripts/capture_skps/
-
 .PHONY: run_chromium_perf
 run_chromium_perf:
 	go install -v ./go/worker_scripts/run_chromium_perf/
@@ -121,64 +109,18 @@ test: test_js puppeteer-tests
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: build_chromium \
-	create_pagesets_on_workers capture_archives_on_workers \
-	capture_skps_on_workers \
+master_scripts: create_pagesets_on_workers capture_archives_on_workers \
         run_chromium_perf_on_workers \
         run_chromium_analysis_on_workers metrics_analysis_on_workers
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets capture_archives capture_skps \
+worker_scripts: create_pagesets capture_archives \
                 run_chromium_perf \
                 run_chromium_analysis build_repo metrics_analysis \
                 isolate_telemetry
 
 .PHONY: all
 all: ctfe master_scripts worker_scripts testgo
-
-.PHONY: e2e_tests
-e2e_tests:
-	@echo "Running create_pagesets"
-	go run go/worker_scripts/create_pagesets/main.go -logtostderr --worker_num=1 --pageset_type=Dummy1k
-	@echo "Completed create_pagests. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
-
-	@echo "Running capture_archives"
-	go run go/worker_scripts/capture_archives/main.go -logtostderr --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr
-	@echo "Completed capture_archives. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
-
-	@echo "Running skpicture_printer"
-	go run go/worker_scripts/capture_skps/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --target_platform=Linux
-	@echo "Completed skpicture_printer. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
-
-	@echo "Running smoothness"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=smoothness --repeat_benchmark=2 --target_platform=Linux
-	@echo "Completed smoothness. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
-
-	@echo "Running rasterize_and_record_micro"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=rasterize_and_record_micro --repeat_benchmark=2 --target_platform=Linux
-	@echo "Completed rasterize_and_record_micro. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
-
-	@echo "Running repaint"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=repaint --repeat_benchmark=2 --target_platform=Linux
-	@echo "Completed repaint. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
