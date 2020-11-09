@@ -1,0 +1,36 @@
+#!/usr/bin/bash
+#
+# This script creates an SSH connection to a swarming machine. Firewall rules
+# are in place to prevent SSH access except from corp/prod. go/gce-enforcer
+# Therefore, connections must be proxied using the corp-ssh-helper for use
+# from home.
+#
+# Prerequisites:
+#   1) Have created a set of SSH credentials to use with GCE. These are
+#      expected to be stored in ~/.ssh/google_compute_engine(.pub)?
+#   2) Stored these SSH keys to the project metadata, where they will propagate
+#      to all instances. SSH keys can be viewed at go/skia-swarm-ssh-keys
+#
+# Both of these Prerequisites can be achieved by running:
+# gcloud compute ssh --project skia-swarming-bots chrome-bot@skia-e-gce-313
+# (where skia-e-gce-313 was chosen arbitrarily).
+# This command is expected to fail due with "Connection timed out" due to the
+# firewall rules, but it will create the SSH keys and upload them to the project
+# metadata as required. Even though we specify a single instance here, the
+# project metadata is used by all instances for this project.
+#
+# Usage: ssh_swarm MACHINE [USER]
+#
+# MACHINE is something like skia-e-gce-123
+# USER defaults to chrome-bot, but can be supplied if needed. Note that
+#      supplying a user here may require an additional upload of SSH metadata.
+
+USER=$2
+USER=${USER+"chrome-bot"}
+
+# See https://cloud.google.com/compute/docs/troubleshooting/troubleshooting-ssh#test_network
+IP=`gcloud compute instances describe $1 --format='get(networkInterfaces[0].accessConfigs[0].natIP)' --project skia-swarming-bots`
+
+echo "Connecting to $USER@$IP"
+
+ssh $USER@$IP -o ProxyCommand="corp-ssh-helper %h %p" -i ~/.ssh/google_compute_engine
