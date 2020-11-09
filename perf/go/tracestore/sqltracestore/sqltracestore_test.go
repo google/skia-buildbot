@@ -1,10 +1,12 @@
 package sqltracestore
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/rand"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -66,7 +68,7 @@ func TestUpdateSourceFile(t *testing.T) {
 }
 
 func TestReadTraces(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
@@ -74,14 +76,14 @@ func TestReadTraces(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(0, keys)
+	ts, err := s.ReadTraces(ctx, 0, keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(1, keys)
+	ts, err = s.ReadTraces(ctx, 1, keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
@@ -90,7 +92,7 @@ func TestReadTraces(t *testing.T) {
 }
 
 func TestReadTraces_InvalidKey(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
@@ -98,19 +100,19 @@ func TestReadTraces_InvalidKey(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	_, err := s.ReadTraces(0, keys)
+	_, err := s.ReadTraces(ctx, 0, keys)
 	require.Error(t, err)
 }
 
 func TestReadTraces_NoResults(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
 		",arch=unknown,",
 	}
 
-	ts, err := s.ReadTraces(0, keys)
+	ts, err := s.ReadTraces(ctx, 0, keys)
 	require.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=unknown,": {e, e, e, e, e, e, e, e},
@@ -118,7 +120,7 @@ func TestReadTraces_NoResults(t *testing.T) {
 }
 
 func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
@@ -127,7 +129,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 	}
 
 	// Reading from a tile we haven't written to should succeed and return no data.
-	ts, err := s.ReadTraces(2, keys)
+	ts, err := s.ReadTraces(ctx, 2, keys)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, e, e, e, e, e, e, e},
@@ -546,13 +548,46 @@ func populatedTestDB(t *testing.T, store *SQLTraceStore) {
 func Test_traceIDForSQLFromTraceName_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	/*
-		$ python3
-		Python 3.7.3 (default, Dec 20 2019, 18:57:59)
-		[GCC 8.3.0] on linux
-		Type "help", "copyright", "credits" or "license" for more information.
-		>>> import hashlib
-		>>> hashlib.md5(b",arch=x86,config=8888,").hexdigest()
-		'fe385b159ff55dca481069805e5ff050'
+	   $ python3
+	   Python 3.7.3 (default, Dec 20 2019, 18:57:59)
+	   [GCC 8.3.0] on linux
+	   Type "help", "copyright", "credits" or "license" for more information.
+	   >>> import hashlib
+	   >>> hashlib.md5(b",arch=x86,config=8888,").hexdigest()
+	   'fe385b159ff55dca481069805e5ff050'
 	*/
 	assert.Equal(t, traceIDForSQL(`\xfe385b159ff55dca481069805e5ff050`), traceIDForSQLFromTraceName(",arch=x86,config=8888,"))
+}
+
+func Test_ExpandConvertTraceIDs_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	context := convertTraceIDsContext{
+		TileNumber: 12,
+		TraceIDs:   []traceIDForSQL{"foo", "bar", "baz"},
+		AsOf:       "AS OF SYSTEM TIME '-5s'",
+	}
+
+	tmpl, err := template.New("").Parse(templates[convertTraceIDs])
+	require.NoError(t, err)
+	var b bytes.Buffer
+	err = tmpl.Execute(&b, context)
+	require.NoError(t, err)
+	expected := `
+        
+        SELECT
+            key_value, trace_id
+        FROM
+            Postings@by_trace_id
+            AS OF SYSTEM TIME '-5s'
+        WHERE
+            tile_number = 12
+            AND trace_id IN (
+                'foo'
+                ,'bar'
+                ,'baz'
+                )
+        ORDER BY
+            trace_id
+    `
+	assert.Equal(t, expected, b.String())
 }
