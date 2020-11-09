@@ -16,8 +16,8 @@ This alert indicates there are many tasks in the
 [queue](https://ct.skia.org/queue/). There are several possibilities:
 
 - CT may not have enough capacity to handle the current task requests. If there
-  are many bare-metal tasks (these currently include all CaptureSKPs and
-  ChromiumPerf tasks as well as ChromiumAnalysis tasks where `RunOnGCE` is
+  are many bare-metal tasks (these currently include ChromiumPerf tasks as well
+  as ChromiumAnalysis tasks where `RunOnGCE` is
   `false`) requested in a short period of time, it may take a while to complete
   all tasks.
 - Check the "Task Details" of each task in the
