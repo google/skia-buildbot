@@ -172,7 +172,7 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 		Instance:          "skia",
 		Query:             "is:open",
 		Client:            SkiaClient,
-		UntriagedStatuses: []string{"New"},
+		UntriagedStatuses: []string{"Untriaged"},
 	}
 	skMonorail, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, skQueryConfig)
 	if err != nil {
