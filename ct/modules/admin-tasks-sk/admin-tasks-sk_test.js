@@ -3,7 +3,6 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import { pageSets } from '../pageset-selector-sk/test_data';
-import { buildsJson } from '../chromium-build-selector-sk/test_data';
 import {
   eventPromise,
   setUpElementUnderTest,
@@ -18,7 +17,6 @@ describe('admin-tasks-sk', () => {
   const newInstance = async (activeTasks, init) => {
     mockActiveTasks(activeTasks);
     fetchMock.post('begin:/_/page_sets/', pageSets, { repeat: 2 });
-    fetchMock.postOnce('begin:/_/get_chromium_build_tasks', buildsJson);
 
     const wrappedInit = (ele) => {
       if (init) {

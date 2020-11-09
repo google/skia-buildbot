@@ -10,7 +10,6 @@ import 'elements-sk/toast-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
 import '../../../infra-sk/modules/confirm-dialog-sk';
-import '../chromium-build-selector-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../pageset-selector-sk';
@@ -43,7 +42,7 @@ const template = (el) => html`
 </div>
 `;
 
-const tabTemplate = (el, showChromeBuild) => html`
+const tabTemplate = (el) => html`
 <table class=options>
   <tr>
     <td>PageSets Type</td>
@@ -52,13 +51,6 @@ const tabTemplate = (el, showChromeBuild) => html`
       </pageset-selector-sk>
     </td>
   </tr>
-   ${showChromeBuild ? html`
-  <tr>
-    <td>Chromium Build</td>
-    <td>
-      <chromium-build-selector-sk id=chromium_build></chromium-build-selector-sk>
-    </td>
-  </tr>` : html``}
   <tr>
     <td>Repeat this task</td>
     <td>
