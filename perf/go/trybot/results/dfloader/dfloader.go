@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -51,6 +52,8 @@ func (p sortableTryBotResults) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Load implements the results.Loader interface.
 func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "dfloader.Load")
+	defer span.End()
 	timestamp := time.Now()
 	if request.Kind == results.Commit {
 		commit, err := l.git.CommitFromCommitNumber(ctx, request.CommitNumber)
