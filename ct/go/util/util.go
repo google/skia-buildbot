@@ -41,8 +41,6 @@ const (
 
 	TS_FORMAT = "20060102150405"
 
-	REMOVE_INVALID_SKPS_WORKER_POOL = 20
-
 	MAX_SIMULTANEOUS_SWARMING_TASKS_PER_RUN = 10000
 
 	PATCH_LIMIT = 1 << 26
@@ -133,24 +131,6 @@ func runSkiaGnGen(ctx context.Context, clangLocation, gnExtraArgs string) error 
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	return nil
-}
-
-// BuildSkiaSKPInfo builds "skpinfo" in the Skia trunk directory.
-// Returns the directory that contains the binary.
-func BuildSkiaSKPInfo(ctx context.Context, runningOnSwarming bool) (string, error) {
-	if err := os.Chdir(SkiaTreeDir); err != nil {
-		return "", fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
-	}
-	// Run gn gen
-	clangDir := filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "clang_linux")
-	if err := runSkiaGnGen(ctx, clangDir, "" /* gnExtraArgs */); err != nil {
-		return "", fmt.Errorf("Error while running gn: %s", err)
-	}
-	// Run "ninja -C out/Release -j100 skpinfo".
-	// Use the full system env when building.
-	outPath := filepath.Join(SkiaTreeDir, "out", "Release")
-	args := []string{"-C", outPath, "-j100", BINARY_SKPINFO}
-	return outPath, ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 // GetCipdPackageFromAsset returns a string of the format "path:package_name:version".
@@ -277,111 +257,6 @@ func ReadPageset(pagesetPath string) (PagesetVars, error) {
 		return decodedPageset, fmt.Errorf("Could not JSON decode %s: %s", pagesetPath, err)
 	}
 	return decodedPageset, nil
-}
-
-// ValidateSKPs moves all root_dir/index/dir_name/*.skp into the root_dir/index
-// and validates them. SKPs that fail validation are logged and deleted.
-func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles, pathToSkpinfo string) error {
-	// This slice will be used to run remove_invalid_skp.py.
-	skps := []string{}
-	// List all directories in pathToSkps and copy out the skps.
-	indexDirs, err := filepath.Glob(path.Join(pathToSkps, "*"))
-	if err != nil {
-		return fmt.Errorf("Unable to read %s: %s", pathToSkps, err)
-	}
-	for _, indexDir := range indexDirs {
-		index := path.Base(indexDir)
-		skpFileInfos, err := ioutil.ReadDir(indexDir)
-		if err != nil {
-			return fmt.Errorf("Unable to read %s: %s", indexDir, err)
-		}
-		for _, fileInfo := range skpFileInfos {
-			if !fileInfo.IsDir() {
-				// We are only interested in directories.
-				continue
-			}
-			skpName := fileInfo.Name()
-			// Find the largest layer in this directory.
-			layerInfos, err := ioutil.ReadDir(filepath.Join(pathToSkps, index, skpName))
-			if err != nil {
-				sklog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, index, skpName), err)
-			}
-			if len(layerInfos) > 0 {
-				largestLayerInfo := layerInfos[0]
-				for _, layerInfo := range layerInfos {
-					if layerInfo.Size() > largestLayerInfo.Size() {
-						largestLayerInfo = layerInfo
-					}
-				}
-				// Only save SKPs greater than 6000 bytes. Less than that are probably
-				// malformed.
-				if largestLayerInfo.Size() > 6000 {
-					layerPath := filepath.Join(pathToSkps, index, skpName, largestLayerInfo.Name())
-					destSKP := filepath.Join(pathToSkps, index, skpName+".skp")
-					Rename(layerPath, destSKP)
-					skps = append(skps, destSKP)
-				} else {
-					sklog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
-				}
-			}
-			// We extracted what we needed from the directory, now delete it.
-			util.RemoveAll(filepath.Join(pathToSkps, index, skpName))
-		}
-	}
-
-	// Create channel that contains all SKP file paths. This channel will
-	// be consumed by the worker pool below to run remove_invalid_skp.py in
-	// parallel.
-	skpsChannel := make(chan string, len(skps))
-	for _, skp := range skps {
-		skpsChannel <- skp
-	}
-	close(skpsChannel)
-
-	sklog.Info("Calling remove_invalid_skp.py")
-
-	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
-
-	var wg sync.WaitGroup
-
-	// Loop through workers in the worker pool.
-	for i := 0; i < REMOVE_INVALID_SKPS_WORKER_POOL; i++ {
-		// Increment the WaitGroup counter.
-		wg.Add(1)
-
-		// Create and run a goroutine closure that captures SKPs.
-		go func(i int) {
-			// Decrement the WaitGroup counter when the goroutine completes.
-			defer wg.Done()
-
-			for skpPath := range skpsChannel {
-				args := []string{
-					pathToRemoveSKPs,
-					"--path_to_skp=" + skpPath,
-					"--path_to_skpinfo=" + pathToSkpinfo,
-				}
-				sklog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
-				// Execute the command with stdout not logged. It otherwise outputs
-				// tons of log msgs.
-				util.LogErr(exec.Run(ctx, &exec.Command{
-					Name:        "python",
-					Args:        args,
-					Env:         []string{},
-					InheritPath: true,
-					Timeout:     REMOVE_INVALID_SKPS_TIMEOUT,
-					LogStdout:   false,
-					Stdout:      nil,
-					LogStderr:   true,
-					Stderr:      nil,
-				}))
-			}
-		}(i)
-	}
-
-	// Wait for all spawned goroutines to complete.
-	wg.Wait()
-
-	return nil
 }
 
 // GetStartRange returns the range worker should start processing at based on its num and how many

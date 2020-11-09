@@ -154,33 +154,6 @@ export function moreThanThreeActiveTasksChecker() {
   };
 }
 
-export function shortHash(commitHash) {
-  return commitHash.substr(0, 7);
-}
-
-/**
- * Return a URL with details about the given Chromium commit hash.
- * @param {string} commitHash - Skia commit hash.
- */
-export function chromiumCommitUrl(commitHash) {
-  return `https://chromium.googlesource.com/chromium/src.git/+show/${commitHash}`;
-}
-
-/**
- * Return a URL with details about the given Skia commit hash.
- * @param {string} commitHash - Skia commit hash.
- */
-export function skiaCommitUrl(commitHash) {
-  return `https://skia.googlesource.com/skia/+show/${commitHash}`;
-}
-
-/**
- * Returns a short description for the given build.
- */
-export function chromiumBuildDescription(build) {
-  return `${shortHash(build.ChromiumRev)}-${shortHash(build.SkiaRev)} (Chromium rev created on ${getFormattedTimestamp(build.ChromiumRevTs)})`;
-}
-
 /**
  * List of task types and the associated urls to fetch and delete them.
  */
@@ -199,16 +172,6 @@ export const taskDescriptors = [
     type: 'MetricsAnalysis',
     get_url: '/_/get_metrics_analysis_tasks',
     delete_url: '/_/delete_metrics_analysis_task',
-  },
-  {
-    type: 'CaptureSkps',
-    get_url: '/_/get_capture_skp_tasks',
-    delete_url: '/_/delete_capture_skps_task',
-  },
-  {
-    type: 'ChromiumBuild',
-    get_url: '/_/get_chromium_build_tasks',
-    delete_url: '/_/delete_chromium_build_task',
   },
   {
     type: 'RecreatePageSets',

@@ -43,7 +43,7 @@ var (
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark during the nopatch run.")
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark during the withpatch run.")
-	repeatBenchmark           = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
+	repeatBenchmark           = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated.")
 	runInParallel             = flag.Bool("run_in_parallel", false, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer        = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this worker.")
@@ -208,7 +208,7 @@ func runChromiumPerf() error {
 		// Increment the WaitGroup counter.
 		wg.Add(1)
 
-		// Create and run a goroutine closure that captures SKPs.
+		// Create and run a goroutine closure that runs the benchmark.
 		go func() {
 			// Decrement the WaitGroup counter when the goroutine completes.
 			defer wg.Done()
