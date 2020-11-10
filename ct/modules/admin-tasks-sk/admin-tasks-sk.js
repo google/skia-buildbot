@@ -96,7 +96,7 @@ define('admin-tasks-sk', class extends ElementSk {
   _validateTask() {
     if (!$$('#pageset_selector', this._activeTab).selected) {
       errorMessage('Please select a page set type');
-      $$('#pageset_selector', this).focus();
+      $$('#pageset_selector', this._activeTab).focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
@@ -112,8 +112,8 @@ define('admin-tasks-sk', class extends ElementSk {
   _queueTask() {
     this._triggeringTask = true;
     const params = {};
-    params.page_sets = $$('#pageset_selector', this).selected;
-    params.repeat_after_days = $$('#repeat_after_days', this).frequency;
+    params.page_sets = $$('#pageset_selector', this._activeTab).selected;
+    params.repeat_after_days = $$('#repeat_after_days', this._activeTab).frequency;
 
     let url = '/_/add_recreate_page_sets_task';
     if (this._activeTab.id === 'archives') {
