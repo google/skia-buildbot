@@ -42,11 +42,26 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type RecreatePageSetsDatastoreTask struct {
-	task_common.CommonCols
+type AdminTestDatastoreTask struct {
+	// task_common.CommonCols
 
 	PageSets      string
 	IsTestPageSet bool
+	// ChromiumRev   string
+	// SkiaRev       string
+}
+
+type AdminDatastoreTask struct {
+	task_common.CommonCols
+
+	PageSets      string `json:"page_sets"`
+	IsTestPageSet bool   `json:"is_test_page_set"`
+	// ChromiumRev   string
+	// SkiaRev       string
+}
+
+type RecreatePageSetsDatastoreTask struct {
+	AdminDatastoreTask
 }
 
 func (task RecreatePageSetsDatastoreTask) GetTaskName() string {
@@ -164,12 +179,13 @@ func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Reques
 }
 
 type RecreateWebpageArchivesDatastoreTask struct {
-	task_common.CommonCols
+	AdminDatastoreTask
+	// task_common.CommonCols
 
-	PageSets      string
-	IsTestPageSet bool
-	ChromiumRev   string
-	SkiaRev       string
+	// PageSets      string
+	// IsTestPageSet bool
+	// // ChromiumRev   string
+	// // SkiaRev       string
 }
 
 func (task RecreateWebpageArchivesDatastoreTask) GetTaskName() string {
@@ -309,8 +325,10 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 	}
 
 	t := &RecreatePageSetsDatastoreTask{
-		PageSets:      task.PageSets,
-		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		AdminDatastoreTask{
+			PageSets:      task.PageSets,
+			IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		},
 	}
 	return t, nil
 }
@@ -335,8 +353,10 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 	}
 
 	t := &RecreateWebpageArchivesDatastoreTask{
-		PageSets:      task.PageSets,
-		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		AdminDatastoreTask{
+			PageSets:      task.PageSets,
+			IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		},
 	}
 	return t, nil
 }
