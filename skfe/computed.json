@@ -2787,17 +2787,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations"
-                          },
-                          "route": {
-                            "cluster": "gold-flutter-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "safe_regex": {
                               "google_re2": {},
                               "regex": "/json/v\\d+/hashes"
@@ -2855,17 +2844,6 @@
                         {
                           "match": {
                             "prefix": "/json/hashes"
-                          },
-                          "route": {
-                            "cluster": "gold-chrome-gpu-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-chrome-gpu-baselineserver",
@@ -2943,17 +2921,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations"
-                          },
-                          "route": {
-                            "cluster": "gold-angle-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "safe_regex": {
                               "google_re2": {},
                               "regex": "/json/v\\d+/hashes"
@@ -3011,17 +2978,6 @@
                         {
                           "match": {
                             "prefix": "/json/hashes"
-                          },
-                          "route": {
-                            "cluster": "gold-chrome-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-chrome-baselineserver",
@@ -3127,17 +3083,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations"
-                          },
-                          "route": {
-                            "cluster": "gold-flutter-engine-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "safe_regex": {
                               "google_re2": {},
                               "regex": "/json/v\\d+/hashes"
@@ -3205,17 +3150,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/json/expectations"
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "safe_regex": {
                               "google_re2": {},
                               "regex": "/json/v\\d+/hashes"
@@ -3273,17 +3207,6 @@
                         {
                           "match": {
                             "prefix": "/json/hashes"
-                          },
-                          "route": {
-                            "cluster": "gold-skia-infra-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/json/expectations"
                           },
                           "route": {
                             "cluster": "gold-skia-infra-baselineserver",
