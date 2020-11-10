@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a43e92b6_250e6cae",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Thanks! All suggestions are optional.",
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad5ce483_22a9ae5b",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Please delete if not used.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 5
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d14eb512_28ac592d",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Nit: consider a name like \"layerSummary\" or maybe just \"summary\" for better readability.",
+      "range": {
+        "startLine": 19,
+        "startChar": 2,
+        "endLine": 19,
+        "endChar": 3
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e16e89e2_6e32b607",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Ubernit: lowercase, e.g. _inspectLayer",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 12
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa04b7ac_8a0540d4",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Delete or add some tests?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 33
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8069a369_7b9b2075",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Suggestion: consider dropping the \"layer\" prefix in these fields, as this info is already present in the interface name.",
+      "range": {
+        "startLine": 103,
+        "startChar": 2,
+        "endLine": 103,
+        "endChar": 10
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "90c6371e_cadef7a1",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Ubernit: remove this extra space",
+      "range": {
+        "startLine": 265,
+        "startChar": 17,
+        "endLine": 265,
+        "endChar": 18
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "89ef908f_aed2d448",
+        "filename": "debugger-app/modules/cycler-button-sk/cycler-button-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-10T18:28:32Z",
+      "side": 1,
+      "message": "Suggestion: Since this element is essentially a \u003cbutton\u003e, I suggest using the same conventions as a regular \u003cbutton\u003e, namely emitting a \"click\" event, but with the item number in the event details.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 55
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
