@@ -606,7 +606,10 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 
 // GetOrderedParamSet implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
 
+	sklog.Infof("GetOrderedParamSet %d", tileNumber)
 	now := s.timeNow()
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
 	if ok {

@@ -31,7 +31,7 @@ type request struct {
 // mergeWorker merges the data in requests into a traceSet and paramSet.
 type mergeWorker struct {
 	ch       chan *request
-	wg       *sync.WaitGroup // A pointer to the single sync.WaitGroup that TraceSetBuilder holds.
+	wg       *sync.WaitGroup // A pointer to the single sync.WaitGroup that TraceSetBuilder holds. Counts the number of 'request's that have been processed.
 	traceSet types.TraceSet
 	paramSet paramtools.ParamSet
 }

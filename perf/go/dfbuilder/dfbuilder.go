@@ -116,7 +116,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	mapper := buildTileMapOffsetToIndex(indices, b.store)
 
 	traceSetBuilder := tracesetbuilder.New(len(indices))
-	defer traceSetBuilder.Close()
+	//defer traceSetBuilder.Close()
 
 	var mutex sync.Mutex // mutex protects stepsCompleted.
 	stepsCompleted := 0

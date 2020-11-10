@@ -6,7 +6,8 @@ package builders
 
 import (
 	"context"
-	"runtime"
+	"sync"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -45,6 +46,10 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 	}
 }
 
+var singletonPool *pgxpool.Pool
+
+var initSingletonPool sync.Once
+
 // newCockroachDBFromConfig opens an existing CockroachDB database.
 //
 // No migrations are applied automatically, they must be applied by the
@@ -54,9 +59,23 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to parse database config: %q", instanceConfig.DataStoreConfig.ConnectionString)
 	}
-	cfg.MaxConns = int32(runtime.NumCPU())
-	cfg.ConnConfig.Logger = pgxLogAdaptor{}
-	return pgxpool.ConnectConfig(ctx, cfg)
+	sklog.Infof("%#v", *cfg)
+
+	initSingletonPool.Do(func() {
+		//cfg.MaxConns = int32(runtime.NumCPU())
+		cfg.MaxConns = int32(300)
+		cfg.ConnConfig.Config.ConnectTimeout = time.Minute
+		cfg.HealthCheckPeriod = 5 * time.Second
+		cfg.MaxConnLifetime = 10 * time.Minute
+		cfg.MaxConnIdleTime = 5 * time.Minute
+		cfg.MinConns = 10
+		cfg.ConnConfig.Logger = pgxLogAdaptor{}
+		singletonPool, err = pgxpool.ConnectConfig(ctx, cfg)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return singletonPool, nil
 }
 
 // NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
