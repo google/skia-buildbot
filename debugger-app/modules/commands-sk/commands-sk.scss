@@ -2,7 +2,7 @@ commands-sk {
 
   .list {
     overflow-y: scroll;
-    height: 88vh;
+    height: 85vh;
     display: block;
   }
 
@@ -20,20 +20,23 @@ commands-sk {
   }
 
   .count {
-    margin-left: -0.7em;
+    display: inline-block;
+    margin-left: -1em;
     font-weight: bold;
     top: 0.5em;
+    left: -0.5em;
     position: relative;
+    width: 0.7em;
   }
 
   .index {
     margin-right: 0.5em;
   }
 
+  // makes the button only as tall as necessary to hold text
   button {
-    font-size: 12px;
-    padding: 0;
-    margin: 0 1em;
+    margin-top: auto;
+    margin-bottom: auto;
   }
 
   pre {
@@ -63,17 +66,40 @@ commands-sk {
   }
 
   summary {
-    display: block;
+    display: flex;
+    flex-diection: row;
+  }
+
+  // flex box was happy to shrink this thing, which looked terrible.
+  details summary::-webkit-details-marker {
+    width: 9px;
+  }
+
+  .command-icons-group {
+    margin-left: -0.4em;
+    white-space: nowrap;
+  }
+
+  .command-title {
+    font-size: 13px;
+    padding: 4px;
+  }
+
+  code.short-desc {
+    overflow: hidden;
+    white-space: nowrap;
+    flex-grow: 6;
+    padding-top: 4px;
   }
 
   .gpu-op-id {
-    float: right;
     background: #1B9E77;
     color: white;
     border-radius: 5px;
-    padding: 0.2em 0.4em;
-    margin-right: 0.5em;
-    margin-top: 0.2em;
+    padding: 2px 4px;
+    margin: 1px;
+    position: relative;
+    top: 5px;
   }
 
   checkbox-sk {
@@ -91,11 +117,5 @@ commands-sk {
 
   #text-filter {
     flex-grow: 2;
-  }
-
-  .short {
-    height: 16px;
-    margin-top: auto;
-    margin-bottom: auto;
   }
 }
