@@ -284,9 +284,9 @@ export class DetailsDialogSk extends ElementSk {
     if (job.indexOf(uploadPrefix) == 0) {
       job = job.substring(uploadPrefix.length);
     }
-    fetch(`${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${task.revision}`).catch(
-      errorMessage
-    );
+    const url = `${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${task.revision}`;
+    const win = window.open(url, '_blank') as Window;
+    win.focus();
   }
 
   private revertCommit(commit: Commit) {
