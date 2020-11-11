@@ -219,7 +219,7 @@ export class CommentsSk extends ElementSk {
     this.client
       .deleteComment({
         timestamp: comment.timestamp,
-        repo: comment.repo,
+        repo: this.commentData.repo,
         taskId: comment.taskId,
         taskSpec: comment.taskSpecName,
         commit: comment.commit,
