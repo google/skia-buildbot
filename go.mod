@@ -71,6 +71,7 @@ require (
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible // indirect
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/containerd/containerd v1.4.1 // indirect
+	github.com/coreos/go-systemd/v22 v22.1.0
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -145,7 +146,6 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
-	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/skia-dev/go2ts v1.4.0
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/smartystreets/assertions v1.2.0 // indirect
