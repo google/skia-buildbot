@@ -48,6 +48,12 @@ status-sk {
       }
     }
 
+    // TODO(westont): Make table row underlays non-interactive overlays so as to avoid z-index
+    // difficulties on everything else.
+    footer {
+      z-index: 3;
+    }
+
     login-sk *,
     tree-status-sk * {
       color: var(--header-font-color) !important;

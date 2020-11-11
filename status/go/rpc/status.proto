@@ -94,12 +94,11 @@ message ResponseMetadata {
 // Request for adding a comment. this, along with timestamp, represent the comment in the DB.
 message AddCommentRequest {
   string repo = 1;
-  // Only one of the below will be set, based on if the comment is for a commit, task spec, or task.
-  oneof type {
-    string commit = 2;
-    string task_spec = 3;
-    string task_id = 4;
-  }
+  // Only one of commit, task_spec, and task_id will be set, based on if the comment is for a
+  // commit, task spec, or task. Oneof not used since TypeScript doesn't support it.
+  string commit = 2;
+  string task_spec = 3;
+  string task_id = 4;
   string message = 5;
   bool flaky = 6; // Only valid when task_spec is set.
   bool ignore_failure = 7;
