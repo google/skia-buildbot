@@ -52,7 +52,7 @@ import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 const numHeadTail = 10;
 
 // The maximum number of traces to plot in the By Params results.
-const maxByParamsPlot = 10;
+const maxByParamsPlot = 350;
 
 export class TrybotPageSk extends ElementSk {
   private queryCount: QueryCountSk | null = null;
