@@ -544,7 +544,7 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 	defer span.End()
 
 	g.commitSliceFromCommitNumberRangeCalled.Inc(1)
-	rows, err := g.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
+	rows, err := g.db.Query(context.TODO(), statements[getCommitsFromCommitNumberRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
