@@ -6,7 +6,7 @@ package builders
 
 import (
 	"context"
-	"runtime"
+	"sync"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -45,18 +45,42 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 	}
 }
 
+// maxPoolConnections is the MaxConns our pgxPool will maintain.
+//
+// TODO(jcgregorio) This is a guess of a good number, once later CLs land I can
+// experiment with how this affects performance.
+const maxPoolConnections = 300
+
+// singletonPool is the one and only instance of *pgxpool.Pool that an
+// application should have, used in newCockroachDBFromConfig.
+var singletonPool *pgxpool.Pool
+
+// singletonPoolMutex is used to enforce the singleton nature of singletonPool,
+// used in newCockroachDBFromConfig
+var singletonPoolMutex sync.Mutex
+
 // newCockroachDBFromConfig opens an existing CockroachDB database.
 //
 // No migrations are applied automatically, they must be applied by the
 // 'migrate' command line application. See COCKROACHDB.md for more details.
 func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (*pgxpool.Pool, error) {
+	singletonPoolMutex.Lock()
+	defer singletonPoolMutex.Unlock()
+
+	if singletonPool != nil {
+		return singletonPool, nil
+	}
+
 	cfg, err := pgxpool.ParseConfig(instanceConfig.DataStoreConfig.ConnectionString)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to parse database config: %q", instanceConfig.DataStoreConfig.ConnectionString)
 	}
-	cfg.MaxConns = int32(runtime.NumCPU())
+
+	sklog.Infof("%#v", *cfg)
+	cfg.MaxConns = maxPoolConnections
 	cfg.ConnConfig.Logger = pgxLogAdaptor{}
-	return pgxpool.ConnectConfig(ctx, cfg)
+	singletonPool, err = pgxpool.ConnectConfig(ctx, cfg)
+	return singletonPool, err
 }
 
 // NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
