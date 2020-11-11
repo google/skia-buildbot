@@ -43,33 +43,33 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DatastoreTask struct {
+type MetricsAnalysisDatastoreTask struct {
 	task_common.CommonCols
 
-	MetricName          string
-	AnalysisTaskId      string
-	AnalysisOutputLink  string
-	BenchmarkArgs       string
-	Description         string
-	CustomTracesGSPath  string
-	ChromiumPatchGSPath string
-	CatapultPatchGSPath string
-	RawOutput           string
-	ValueColumnName     string
-	CCList              []string
-	TaskPriority        int
+	MetricName          string   `json:"metric_name"`
+	AnalysisTaskId      string   `json:"analysis_task_id"`
+	AnalysisOutputLink  string   `json:"analysis_output_link"`
+	BenchmarkArgs       string   `json:"benchmark_args"`
+	Description         string   `json:"description"`
+	CustomTracesGSPath  string   `json:"custom_traces_gspath"`
+	ChromiumPatchGSPath string   `json:"chromium_patch_gspath"`
+	CatapultPatchGSPath string   `json:"catapult_patch_gspath"`
+	RawOutput           string   `json:"raw_output"`
+	ValueColumnName     string   `json:"value_column_name"`
+	CCList              []string `json:"cc_list"`
+	TaskPriority        int      `json:"task_priority"`
 }
 
-func (task DatastoreTask) GetTaskName() string {
+func (task MetricsAnalysisDatastoreTask) GetTaskName() string {
 	return "MetricsAnalysis"
 }
 
-func (task DatastoreTask) GetDescription() string {
+func (task MetricsAnalysisDatastoreTask) GetDescription() string {
 	return task.Description
 }
 
-func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
-	taskVars := &AddTaskVars{}
+func (task MetricsAnalysisDatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
+	taskVars := &MetricsAnalysisAddTaskVars{}
 	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
@@ -99,22 +99,22 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	return taskVars, nil
 }
 
-func (task DatastoreTask) GetResultsLink() string {
+func (task MetricsAnalysisDatastoreTask) GetResultsLink() string {
 	return task.RawOutput
 }
 
-func (task DatastoreTask) RunsOnGCEWorkers() bool {
+func (task MetricsAnalysisDatastoreTask) RunsOnGCEWorkers() bool {
 	return true
 }
 
-func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+func (task MetricsAnalysisDatastoreTask) GetDatastoreKind() ds.Kind {
 	return ds.METRICS_ANALYSIS_TASKS
 }
 
-func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
-	tasks := []*DatastoreTask{}
+func (task MetricsAnalysisDatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*MetricsAnalysisDatastoreTask{}
 	for {
-		t := &DatastoreTask{}
+		t := &MetricsAnalysisDatastoreTask{}
 		_, err := it.Next(t)
 		if err == iterator.Done {
 			break
@@ -127,15 +127,15 @@ func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 	return tasks, nil
 }
 
-func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
-	t := &DatastoreTask{}
+func (task MetricsAnalysisDatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
+	t := &MetricsAnalysisDatastoreTask{}
 	if err := ds.DS.Get(c, key, t); err != nil {
 		return nil, err
 	}
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
+func (task MetricsAnalysisDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	cmd := []string{
@@ -168,7 +168,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmi
 	return nil
 }
 
-func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
+func (task MetricsAnalysisDatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	emailSubject := fmt.Sprintf("Metrics analysis cluster telemetry task has completed (#%d)", task.DatastoreKey.ID)
@@ -212,7 +212,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	return nil
 }
 
-func (task *DatastoreTask) SetCompleted(success bool) {
+func (task *MetricsAnalysisDatastoreTask) SetCompleted(success bool) {
 	if success {
 		runID := task_common.GetRunID(task)
 		task.RawOutput = ctutil.GetMetricsAnalysisOutputLink(runID)
@@ -226,7 +226,7 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
-type AddTaskVars struct {
+type MetricsAnalysisAddTaskVars struct {
 	task_common.AddTaskCommonVars
 
 	MetricName         string   `json:"metric_name"`
@@ -242,11 +242,11 @@ type AddTaskVars struct {
 	TaskPriority       string   `json:"task_priority"`
 }
 
-func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+func (task *MetricsAnalysisAddTaskVars) GetDatastoreKind() ds.Kind {
 	return ds.METRICS_ANALYSIS_TASKS
 }
 
-func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
+func (task *MetricsAnalysisAddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
 	if task.MetricName == "" {
 		return nil, fmt.Errorf("Must specify metric name")
 	}
@@ -265,7 +265,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 			return nil, fmt.Errorf("%s is not an int64: %s", task.AnalysisTaskId, err)
 		}
 		key.ID = id
-		analysisTask := &chromium_analysis.DatastoreTask{}
+		analysisTask := &chromium_analysis.ChromiumAnalysisDatastoreTask{}
 		if err := ds.DS.Get(ctx, key, analysisTask); err != nil {
 			return nil, fmt.Errorf("Unable to find requested analysis task id.")
 		}
@@ -285,7 +285,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		return nil, fmt.Errorf("Could not save catapult patch to storage: %s", err)
 	}
 
-	t := &DatastoreTask{
+	t := &MetricsAnalysisDatastoreTask{
 		MetricName:         task.MetricName,
 		AnalysisTaskId:     task.AnalysisTaskId,
 		AnalysisOutputLink: task.AnalysisOutputLink,
@@ -315,19 +315,19 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.AddTaskHandler(w, r, &AddTaskVars{})
+	task_common.AddTaskHandler(w, r, &MetricsAnalysisAddTaskVars{})
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
+	task_common.GetTasksHandler(&MetricsAnalysisDatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
+	task_common.DeleteTaskHandler(&MetricsAnalysisDatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
+	task_common.RedoTaskHandler(&MetricsAnalysisDatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
