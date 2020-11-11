@@ -1,10 +1,12 @@
 package sqltracestore
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/rand"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -546,13 +548,46 @@ func populatedTestDB(t *testing.T, store *SQLTraceStore) {
 func Test_traceIDForSQLFromTraceName_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	/*
-		$ python3
-		Python 3.7.3 (default, Dec 20 2019, 18:57:59)
-		[GCC 8.3.0] on linux
-		Type "help", "copyright", "credits" or "license" for more information.
-		>>> import hashlib
-		>>> hashlib.md5(b",arch=x86,config=8888,").hexdigest()
-		'fe385b159ff55dca481069805e5ff050'
+	   $ python3
+	   Python 3.7.3 (default, Dec 20 2019, 18:57:59)
+	   [GCC 8.3.0] on linux
+	   Type "help", "copyright", "credits" or "license" for more information.
+	   >>> import hashlib
+	   >>> hashlib.md5(b",arch=x86,config=8888,").hexdigest()
+	   'fe385b159ff55dca481069805e5ff050'
 	*/
 	assert.Equal(t, traceIDForSQL(`\xfe385b159ff55dca481069805e5ff050`), traceIDForSQLFromTraceName(",arch=x86,config=8888,"))
+}
+
+func Test_ExpandConvertTraceIDs_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	context := convertTraceIDsContext{
+		TileNumber: 12,
+		TraceIDs:   []traceIDForSQL{"foo", "bar", "baz"},
+		AsOf:       "AS OF SYSTEM TIME '-5s'",
+	}
+
+	tmpl, err := template.New("").Parse(templates[convertTraceIDs])
+	require.NoError(t, err)
+	var b bytes.Buffer
+	err = tmpl.Execute(&b, context)
+	require.NoError(t, err)
+	expected := `
+        
+        SELECT
+            key_value, trace_id
+        FROM
+            Postings@by_trace_id
+            AS OF SYSTEM TIME '-5s'
+        WHERE
+            tile_number = 12
+            AND trace_id IN (
+                'foo'
+                ,'bar'
+                ,'baz'
+                )
+        ORDER BY
+            trace_id
+    `
+	assert.Equal(t, expected, b.String())
 }
