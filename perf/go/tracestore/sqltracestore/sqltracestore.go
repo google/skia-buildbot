@@ -148,12 +148,14 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -184,7 +186,7 @@ const cacheMetricsRefreshDuration = 15 * time.Second
 const writeTracesChunkSize = 100
 
 // See writeTracesChunkSize.
-const readTracesChunkSize = 1000
+const readTracesChunkSize = 100
 
 // queryTraceIDsChunkSize is the number of traceids we try to resolve into
 // Params at one time.
@@ -694,30 +696,47 @@ func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) 
 
 // QueryTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
-	traceNames := []string{}
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTraces")
+	defer span.End()
+
+	traceNames := make(chan string)
 	pChan, err := s.QueryTracesIDOnly(ctx, tileNumber, q)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get list of traceIDs matching query.")
 	}
 
-	t := timer.New("QueryTracesIDOnlyByIndex - Complete")
-	for p := range pChan {
-		traceName, err := query.MakeKey(p)
-		if err != nil {
-			sklog.Warningf("Invalid trace name found in query response: %s", err)
-			continue
+	go func() {
+		t := timer.New("QueryTracesIDOnlyByIndex - Complete")
+		for p := range pChan {
+			traceName, err := query.MakeKey(p)
+			if err != nil {
+				sklog.Warningf("Invalid trace name found in query response: %s", err)
+				continue
+			}
+			traceNames <- traceName
 		}
-		traceNames = append(traceNames, traceName)
-	}
-	t.Stop()
-	if len(traceNames) == 0 {
-		return nil, nil
-	}
-	return s.ReadTraces(tileNumber, traceNames)
+		close(traceNames)
+		t.Stop()
+	}()
+	/*
+		if len(traceNames) == 0 {
+			return nil, nil
+		}
+	*/
+	// TODO(jcgregorio) This is the bottleneck, we need to read ALL the trace
+	// ids before we start reading the values. We need to have a ReadTraces that
+	// takes a channel as an input.
+
+	//return s.ReadTraces(ctx, tileNumber, traceNames)
+	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
+	return s.readTracesByChannelForCommitRange(ctx, traceNames, beginCommit, endCommit)
 }
 
 // QueryTracesIDOnly implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly")
+	defer span.End()
+
 	defer timer.New("QueryTracesIDOnlyByIndex").Stop()
 	outParams := make(chan paramtools.Params, queryTracesIDOnlyByIndexChannelSize)
 	if q.Empty() {
@@ -789,6 +808,9 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		unionChannels = append(unionChannels, ch)
 
 		go func(ch chan traceIDForSQL, rows pgx.Rows) {
+			_, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.PerKeyWorker")
+			defer span.End()
+
 			defer close(ch)
 
 			for rows.Next() {
@@ -823,11 +845,14 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		g, eCtx := errgroup.WithContext(ctx)
 		for i := 0; i < poolSize; i++ {
 			g.Go(func() error {
+				ctx, span := trace.StartSpan(eCtx, "sqltracestore.QueryTracesIDOnly.convertToParamsWorker")
+				defer span.End()
+
 				for chunk := range chunkChannel {
-					if err := eCtx.Err(); err != nil {
+					if err := ctx.Err(); err != nil {
 						return skerr.Wrap(err)
 					}
-					if err := s.convertHexTraceIdsToParams(eCtx, chunk, tileNumber, outParams); err != nil {
+					if err := s.convertHexTraceIdsToParams(ctx, chunk, tileNumber, outParams); err != nil {
 						// Drain the channel before returning the err.
 						for range chunkChannel {
 						}
@@ -863,6 +888,9 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 // that make up the currentBatch of traceIDs, build Params for each trace id,
 // and then emits those Params on the 'outParams' channel.
 func (s *SQLTraceStore) convertHexTraceIdsToParams(ctx context.Context, currentBatch []traceIDForSQL, tileNumber types.TileNumber, outParams chan paramtools.Params) error {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.convertHexTraceIdsToParams")
+	defer span.End()
+
 	context := convertTraceIDsContext{
 		TileNumber: tileNumber,
 		TraceIDs:   currentBatch,
@@ -938,16 +966,39 @@ func (s *SQLTraceStore) convertHexTraceIdsToParams(ctx context.Context, currentB
 }
 
 // ReadTraces implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, traceNames []string) (types.TraceSet, error) {
+func (s *SQLTraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumber, traceNames []string) (types.TraceSet, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces")
+	defer span.End()
+
 	defer timer.New("ReadTraces").Stop()
 
 	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
-	return s.ReadTracesForCommitRange(context.TODO(), traceNames, beginCommit, endCommit)
+	return s.ReadTracesForCommitRange(ctx, traceNames, beginCommit, endCommit)
 }
 
 // ReadTracesForCommitRange implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames []string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTracesForCommitRange")
+	defer span.End()
+
 	defer timer.New("ReadTraces").Stop()
+
+	traceNamesChannel := make(chan string, len(traceNames))
+
+	for _, traceName := range traceNames {
+		traceNamesChannel <- traceName
+	}
+	close(traceNamesChannel)
+
+	return s.readTracesByChannelForCommitRange(ctx, traceNamesChannel, beginCommit, endCommit)
+}
+
+// readTracesByChannelForCommitRange reads the traceNames from a channel so we
+// don't have to wait for the full list of trace ids to be ready first.
+func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, traceNames <-chan string, beginCommit types.CommitNumber, endCommit types.CommitNumber) (types.TraceSet, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.readTracesByChannelForCommitRange")
+	defer span.End()
+
 	ret := types.TraceSet{}
 
 	// Validate the begin and end commit numbers.
@@ -959,72 +1010,103 @@ func (s *SQLTraceStore) ReadTracesForCommitRange(ctx context.Context, traceNames
 	traceLength := endCommit - beginCommit + 1
 
 	// Get the traceIDs for the given keys.
-	traceIDs := make([]traceIDForSQL, 0, len(traceNames))
+	traceIDs := []traceIDForSQL{}
 
 	// Map from the [md5.Size]byte representation of a trace id to the trace name.
 	traceNameMap := map[traceIDForSQLInBytes]string{}
-	for _, key := range traceNames {
-		if !query.ValidateKey(key) {
-			return nil, skerr.Fmt("Invalid key stored in shortcut: %q", key)
-		}
 
-		ret[key] = vec32.New(int(traceLength))
+	// Protects traceNameMap and ret.
+	var mutex sync.Mutex
 
-		traceNameMap[traceIDForSQLInBytesFromTraceName(key)] = key
-		traceIDs = append(traceIDs, traceIDForSQLFromTraceName(key))
+	// chunkChannel is used to distribute work to the workers.
+	chunkChannel := make(chan []traceIDForSQL)
+
+	// Start the workers that do the actual querying when given chunks of trace ids.
+	g, eCtx := errgroup.WithContext(ctx)
+	for i := 0; i < poolSize; i++ {
+		g.Go(func() error {
+			ctx, span := trace.StartSpan(eCtx, "sqltracestore.ReadTraces.Worker")
+			defer span.End()
+
+			for chunk := range chunkChannel {
+				// Populate the context for the SQL template.
+				readTracesContext := readTracesContext{
+					BeginCommitNumber: beginCommit,
+					EndCommitNumber:   endCommit,
+					TraceIDs:          chunk,
+				}
+
+				// Expand the template for the SQL.
+				var b bytes.Buffer
+				if err := s.unpreparedStatements[readTraces].Execute(&b, readTracesContext); err != nil {
+					return skerr.Wrapf(err, "failed to expand readTraces template")
+				}
+
+				sql := b.String()
+				// Execute the query.
+				rows, err := s.db.Query(ctx, sql)
+				if err != nil {
+					return skerr.Wrapf(err, "SQL: %q", sql)
+				}
+
+				var traceIDArray traceIDForSQLInBytes
+				for rows.Next() {
+					var traceIDInBytes []byte
+					var commitNumber types.CommitNumber
+					var val float64
+					if err := rows.Scan(&traceIDInBytes, &commitNumber, &val); err != nil {
+						return skerr.Wrap(err)
+					}
+
+					if err != nil {
+						sklog.Warningf("Invalid trace name found in query response: %s", err)
+						continue
+					}
+					// pgx can't Scan into an array, but Go can't use a slice as a map key, so
+					// we Scan into a byte slice and then copy into a byte array to use
+					// as the index into the map.
+					copy(traceIDArray[:], traceIDInBytes)
+					mutex.Lock()
+					ret[traceNameMap[traceIDArray]][commitNumber-beginCommit] = float32(val)
+					mutex.Unlock()
+				}
+				if err := rows.Err(); err != nil {
+					return skerr.Wrap(err)
+				}
+			}
+			return nil
+		})
 	}
 
-	err := util.ChunkIterParallelPool(context.TODO(), len(traceIDs), readTracesChunkSize, poolSize, func(ctx context.Context, startIdx, endIdx int) error {
-
-		// Populate the context for the SQL template.
-		readTracesContext := readTracesContext{
-			BeginCommitNumber: beginCommit,
-			EndCommitNumber:   endCommit,
-			TraceIDs:          traceIDs[startIdx:endIdx],
+	// Now break up the incoming trace ids into chuck for the workers.
+	currentChunk := []traceIDForSQL{}
+	for key := range traceNames {
+		if !query.ValidateKey(key) {
+			return nil, skerr.Fmt("Invalid key: %q", key)
 		}
 
-		// Expand the template for the SQL.
-		var b bytes.Buffer
-		if err := s.unpreparedStatements[readTraces].Execute(&b, readTracesContext); err != nil {
-			return skerr.Wrapf(err, "failed to expand readTraces template")
-		}
+		mutex.Lock()
+		ret[key] = vec32.New(int(traceLength))
+		traceNameMap[traceIDForSQLInBytesFromTraceName(key)] = key
+		mutex.Unlock()
 
-		sql := b.String()
-		// Execute the query.
-		rows, err := s.db.Query(ctx, sql)
-		if err != nil {
-			return skerr.Wrapf(err, "SQL: %q", sql)
+		trID := traceIDForSQLFromTraceName(key)
+		traceIDs = append(traceIDs, trID)
+		currentChunk = append(currentChunk, trID)
+		if len(chunkChannel) > queryTraceIDsChunkSize {
+			chunkChannel <- currentChunk
+			currentChunk = []traceIDForSQL{}
 		}
+	}
+	// Now handle any remaining values in the currentChunk.
+	chunkChannel <- currentChunk
+	close(chunkChannel)
 
-		var traceIDArray traceIDForSQLInBytes
-		for rows.Next() {
-			var traceIDInBytes []byte
-			var commitNumber types.CommitNumber
-			var val float64
-			if err := rows.Scan(&traceIDInBytes, &commitNumber, &val); err != nil {
-				return skerr.Wrap(err)
-			}
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
 
-			if err != nil {
-				sklog.Warningf("Invalid trace name found in query response: %s", err)
-				continue
-			}
-			// pgx can't Scan into an array, but Go can't use a slice as a map key, so
-			// we Scan into a byte slice and then copy into a byte array to use
-			// as the index into the map.
-			copy(traceIDArray[:], traceIDInBytes)
-			ret[traceNameMap[traceIDArray]][commitNumber-beginCommit] = float32(val)
-		}
-		if err == pgx.ErrNoRows {
-			return nil
-		}
-		if err := rows.Err(); err != nil {
-			return skerr.Wrap(err)
-		}
-		return nil
-	})
-
-	return ret, err
+	return ret, nil
 }
 
 // TileNumber implements the tracestore.TraceStore interface.
