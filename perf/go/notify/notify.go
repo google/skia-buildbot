@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"regexp"
-	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
@@ -14,8 +13,6 @@ import (
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/stepfit"
 )
-
-var timeNow = time.Now
 
 const (
 	fromAddress = "alertserver@skia.org"
@@ -34,11 +31,7 @@ const (
 </p>
 <p>
 	With {{.Cluster.Num}} matching traces.
-</p>
-<p>
-   And direction {{.Cluster.StepFit.Status}}.
-</p>
-`
+</p>`
 )
 
 var (
@@ -120,7 +113,7 @@ func (n *Notifier) Send(c perfgit.Commit, alert *alerts.Alert, cl *clustering2.C
 	if err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("%s - Regression found for %s", alert.DisplayName, c.Display(timeNow()))
+	subject := fmt.Sprintf("%s - Regression found for %q", alert.DisplayName, c.Subject)
 	if _, err := n.email.Send(fromAddress, splitEmails(alert.Alert), subject, body, ""); err != nil {
 		return fmt.Errorf("Failed to send email: %s", err)
 	}
@@ -131,10 +124,9 @@ func (n *Notifier) Send(c perfgit.Commit, alert *alerts.Alert, cl *clustering2.C
 // ExampleSend sends an example for dummy data for the given alerts.Config.
 func (n *Notifier) ExampleSend(alert *alerts.Alert) error {
 	c := perfgit.Commit{
-		Subject:   "Re-enable opList dependency tracking",
-		URL:       "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
-		GitHash:   "d261e1075a93677442fdf7fe72aba7e583863664",
-		Timestamp: 1498176000,
+		Subject: "Re-enable opList dependency tracking",
+		URL:     "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
+		GitHash: "d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	cl := &clustering2.ClusterSummary{
 		Num: 10,

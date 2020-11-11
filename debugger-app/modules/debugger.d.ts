@@ -21,7 +21,6 @@ export interface SkpDebugPlayer {
   draw(surface: SkSurface): void;
   drawTo(surface: SkSurface, index: number): void;
   fileVersion(): number;
-  findCommandByPixel(surface: SkSurface, x: number, y: number, upperBound: number): number;
   getBounds(): SkIRect;
   getFrameCount(): number;
   getImageResource(index: number): string;
@@ -42,12 +41,10 @@ export interface SkpDebugPlayer {
   setOriginVisible(visible: boolean): void;
   setOverdrawVis(visible: boolean): void;
   setAndroidClipViz(visible: boolean): void;
-  TRANSPARENT: number;
 };
 export interface SkSurface {
   dispose(): void;
   flush(): void;
-  clear(color: Color): void;
 };
 export interface SimpleImageInfo {
 

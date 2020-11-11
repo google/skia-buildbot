@@ -1,5 +1,3 @@
-//go:generate go run . -o ../../../../modules/rpc_types.ts
-
 package main
 
 import (
@@ -8,6 +6,7 @@ import (
 
 	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
@@ -23,7 +22,9 @@ func main() {
 	flag.Parse()
 
 	generator := go2ts.New()
-	addTypes(generator)
+	if err := addTypes(generator); err != nil {
+		sklog.Fatal(err)
+	}
 
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)
@@ -33,28 +34,48 @@ func main() {
 	}
 }
 
-func addTypes(generator *go2ts.Go2TS) {
+func addTypes(generator *go2ts.Go2TS) error {
+
 	// Ensure go2ts sees the ParamSet type for the first time with the go2ts:"ignorenil" annotation.
 	type ignoreNil struct {
 		ParamSet paramtools.ParamSet `go2ts:"ignorenil"`
 	}
-	generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE")
+	if err := generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE"); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Response for the /json/v1/changelist/{system}/{id} RPC endpoint.
-	generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse")
+	if err := generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Response for the /json/v1/paramset RPC endpoint.
-	generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse")
+	if err := generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Response for the /json/v1/search RPC endpoint.
-	generator.AddWithName(search_frontend.SearchResponse{}, "SearchResponse")
+	if err := generator.AddWithName(search_frontend.SearchResponse{}, "SearchResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Request for the /json/v1/triage RPC endpoint.
-	generator.Add(frontend.TriageRequest{})
+	if err := generator.Add(frontend.TriageRequest{}); err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Response for the /json/v1/trstatus RPC endpoint.
-	generator.AddWithName(status.GUIStatus{}, "StatusResponse")
+	if err := generator.AddWithName(status.GUIStatus{}, "StatusResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
 
-	generator.AddUnionWithName(expectations.AllLabel, "Label")
-	generator.AddUnionWithName(common.AllRefClosest, "RefClosest")
+	if err := generator.AddUnionWithName(expectations.AllLabel, "Label"); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	if err := generator.AddUnionWithName(common.AllRefClosest, "RefClosest"); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	return nil
 }

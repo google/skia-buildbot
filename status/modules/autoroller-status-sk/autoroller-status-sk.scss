@@ -1,1 +1,52 @@
 @import '../styles.scss';
+
+autoroller-status-sk {
+  .tr.roller:hover {
+    background-color: var(--primary);
+    color: var(--on-primary);
+    fill: var(--on-primary);
+  }
+
+  a.autoroller-success {
+    background-color: var(--success-alpha);
+  }
+
+  a.autoroller-warning {
+    background-color: var(--warning-alpha);
+  }
+
+  a.autoroller-failure {
+    background-color: var(--failure);
+    color: var(--on-failure);
+  }
+
+  a.autoroller-stopped {
+    background-color: var(--unexpected-alpha);
+  }
+}
+
+.darkmode autoroller-status-sk {
+  .table {
+    border-collapse: initial;
+  }
+
+  a.autoroller-success {
+    background-color: inherit;
+    color: var(--success-on-surface);
+  }
+
+  a.autoroller-warning {
+    background-color: inherit;
+    color: var(--warning-on-surface);
+  }
+
+  a.autoroller-failure {
+    background-color: inherit;
+    color: var(--failure-on-surface);
+  }
+
+  a.autoroller-stopped {
+    background-color: inherit;
+    color: var(--unexpected-on-surface);
+  }
+}

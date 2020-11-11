@@ -77,8 +77,9 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 	}
 	message := req.Message
 	now := time.Now().UTC()
-	switch req.Type.(type) {
-	case *AddCommentRequest_TaskId:
+	// We don't use a oneof typeswitch since the current TS generated code sets all fields (ignores
+	// oneof).
+	if req.GetTaskId() != "" {
 		task, err := s.taskDb.GetTaskById(req.GetTaskId())
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain task details: %v", err)
@@ -95,7 +96,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 		if err := s.taskDb.PutTaskComment(&c); err != nil {
 			return nil, fmt.Errorf("failed to add task comment: %v", err)
 		}
-	case *AddCommentRequest_TaskSpec:
+	} else if req.GetTaskSpec() != "" {
 		c := types.TaskSpecComment{
 			Repo:          repoURL,
 			Name:          req.GetTaskSpec(),
@@ -108,7 +109,7 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 		if err := s.taskDb.PutTaskSpecComment(&c); err != nil {
 			return nil, fmt.Errorf("failed to add task spec  comment: %v", err)
 		}
-	case *AddCommentRequest_Commit:
+	} else if req.GetCommit() != "" {
 		c := types.CommitComment{
 			Repo:          repoURL,
 			Revision:      req.GetCommit(),
@@ -120,10 +121,8 @@ func (s *statusServerImpl) AddComment(ctx context.Context,
 		if err := s.taskDb.PutCommitComment(&c); err != nil {
 			return nil, fmt.Errorf("failed to add commit comment: %v", err)
 		}
-	case nil:
+	} else {
 		return nil, fmt.Errorf("no Task ID, Task Spec, or Commit given")
-	default:
-		return nil, fmt.Errorf("unsupported comment type given")
 	}
 	if err := s.iCache.Update(context.Background(), false); err != nil {
 		return nil, fmt.Errorf("failed to update cache: %s", err)
@@ -283,8 +282,8 @@ func ConvertUpdate(u *incremental.Update, podID string) *GetIncrementalCommitsRe
 				Deleted:       c.Deleted != nil && *c.Deleted})
 		}
 	}
-	for hash, commitComments := range u.TaskComments {
-		for _, srcComments := range commitComments {
+	for _, commitComments := range u.TaskComments {
+		for hash, srcComments := range commitComments {
 			for _, c := range srcComments {
 				update.Comments = append(update.Comments, &Comment{
 					Commit:       hash,

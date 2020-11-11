@@ -26,8 +26,8 @@ export class TaskGraphSk extends HTMLElement {
     const taskDims: Map<TaskName, string[]> = new Map();
     jobs.forEach((job: Job) => {
       job.dependencies?.forEach((dep: TaskDependencies) => {
-        if (!graph.get(dep.task)) {
-          graph.set(dep.task, dep.dependencies || []);
+        if (dep.dependencies && !graph.get(dep.task)) {
+          graph.set(dep.task, dep.dependencies);
         }
       });
       job.taskDimensions?.forEach((dims: TaskDimensions) => {

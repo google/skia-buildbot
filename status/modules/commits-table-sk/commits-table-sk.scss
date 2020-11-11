@@ -30,14 +30,15 @@ commits-table-sk {
     }
 
     div:nth-child(odd) {
-      background-color: var(--surface);
+      background-color: #efefef;
     }
   }
 
   .task-spec {
-    background-color: var(--surface);
+    background-color: var(--surface-1dp);
     border-radius: 5px;
     border: 1px solid;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);
     cursor: pointer;
     height: 20px;
     min-width: 20px;
@@ -74,7 +75,7 @@ commits-table-sk {
     .time-underline {
       border-bottom: 2px solid var(--grey-700);
       bottom: -2px;
-      height: 10px;
+      height: 0;
       left: 20px;
       position: absolute;
       right: -3px;
@@ -148,6 +149,7 @@ commits-table-sk {
   }
 
   .legend {
+    border-right: 1px solid;
     font-size: 10px;
     min-width: 100px;
 
@@ -239,16 +241,13 @@ commits-table-sk {
   }
 
   .category {
-    border: solid 1px var(--surface-1dp);
+    border: solid 1px;
     padding: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .task {
     border-radius: 3px;
-    border: solid 1px var(--surface-1dp);
+    border: solid 1px var(--on-background);
     cursor: pointer;
     text-align: center;
   }
@@ -291,13 +290,6 @@ commits-table-sk {
     cursor: pointer;
   }
 
-  .task.bg-failure {
-    background-color: var(--failure);
-  }
-  .task.bg-mishap {
-    background-color: var(--unexpected);
-  }
-
   .grow:hover {
     transform: scale(1.1);
     opacity: 1;
@@ -332,6 +324,23 @@ div.hidden.task {
   visibility: hidden;
 }
 
-tabs-sk > button {
-  border-bottom-color: var(--surface-2dp);
+// Darkmode overrides
+.darkmode {
+  .rowUnderlay {
+    div:nth-child(odd) {
+      background-color: var(--surface-1dp);
+    }
+  }
+
+  .commit-container {
+    .time-spacer .time-label {
+      background-color: var(--grey-300);
+      color: var(--black);
+    }
+
+    .time-underline {
+      color: var(--white);
+      border-color: var(--grey-300);
+    }
+  }
 }

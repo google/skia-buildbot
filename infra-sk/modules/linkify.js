@@ -16,9 +16,11 @@ export function escapeAndLinkify(s) {
   if (!s) {
     return '';
   }
-  // sanitize the incoming string, so we aren't vulnerable to XSS.
-  s = s.replace(/</g, '&lt');
-  s = s.replace(/>/g, '&gt');
+  const div = document.createElement('div');
+  // sanitize the incoming string, so we aren't vulnerable to XSS. This has the effect of
+  // replacing '<' and '>' with '&lt;' and '&rt;', which mitigates the threat.
+  div.innerText = s;
+  s = div.innerHTML;
 
   // Replace http://... with actual links
   const sub = '<a href="$&" target=_blank rel=noopener>$&</a>';
@@ -38,7 +40,6 @@ export function escapeAndLinkify(s) {
                                   target=_blank rel=noopener>${foundBug}</a>`);
     }
   }
-  const div = document.createElement('div');
   div.innerHTML = s;
   return div;
 }

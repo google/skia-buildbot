@@ -45,7 +45,7 @@ tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/
 tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}' )
 
 ./modules/json/index.ts: $(tsDependentFiles)
-	go generate ./go/ts
+	go run ./go/ts
 
 MODULES = $(shell find ./modules -type f)
 

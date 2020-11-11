@@ -1,8 +1,6 @@
 import './index';
 import { ClusterSummary2Sk } from './cluster-summary2-sk';
-import {
-  FullSummary, ClusterSummary, TriageStatus, Alert,
-} from '../json';
+import { FullSummary, ClusterSummary, TriageStatus } from '../json';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
 
@@ -32,27 +30,6 @@ ClusterSummary2Sk.lookupCids = () => new Promise((resolve) => {
   ]);
 });
 
-const alert: Alert = {
-  id_as_string: '-1',
-  display_name: '',
-  radius: 6,
-  query: 'config=565',
-  k: 0,
-  algo: 'stepfit',
-  interesting: 0.05,
-  sparse: false,
-  step: '',
-  alert: '',
-  bug_uri_template: '',
-  state: 'ACTIVE',
-  owner: '',
-  step_up_only: false,
-  direction: 'BOTH',
-  group_by: '',
-  minimum_num: 0,
-  category: '',
-};
-
 const summary: ClusterSummary = {
   centroid: [
     -1.0826576,
@@ -79,7 +56,7 @@ const summary: ClusterSummary = {
     least_squares: 0.12262289,
     turning_point: 1,
     step_size: -1.1909344,
-    regression: -200.712171,
+    regression: -199.712171,
     status: 'Low',
   },
   step_point: {
@@ -132,22 +109,18 @@ const fullSummary: FullSummary = {
 
 const cluster = document.querySelector<ClusterSummary2Sk>(
   'cluster-summary2-sk.cluster',
-)!;
-cluster.full_summary = fullSummary;
-cluster.alert = alert;
+);
+cluster!.full_summary = fullSummary;
 
-const alert2 = JSON.parse(JSON.stringify(alert)) as Alert;
-alert2.step = 'mannwhitneyu';
 const summary2: FullSummary = JSON.parse(JSON.stringify(fullSummary));
 summary2.summary.step_fit!.status = 'High';
-summary2.summary.step_fit!.regression = 0.06732;
-summary2.summary.step_fit!.least_squares = 12;
+summary2.summary.step_fit!.regression = 201;
+summary2.summary.step_fit!.least_squares = -1; // Should be hidden.
 const nostatus = document.querySelector<ClusterSummary2Sk>(
   'cluster-summary2-sk.nostatus',
-)!;
-nostatus.full_summary = summary2;
-nostatus.triage = triage;
-nostatus.alert = alert2;
+);
+nostatus!.full_summary = summary2;
+nostatus!.triage = triage;
 
 document.body.addEventListener('triaged', (e) => {
   document.querySelector('code.events')!.textContent = JSON.stringify(

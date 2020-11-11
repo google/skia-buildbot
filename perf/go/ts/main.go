@@ -1,11 +1,8 @@
-// Program to generate TypeScript definition files for Golang structs that are
+// Program to generate TypeScript definition files for Goland structs that are
 // serialized to JSON for the web UI.
-//
-//go:generate go run . -o ../../modules/json/index.ts
 package main
 
 import (
-	"flag"
 	"io"
 
 	"github.com/skia-dev/go2ts"
@@ -30,10 +27,13 @@ type unionAndName struct {
 	typeName string
 }
 
-func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) {
+func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
 	for _, u := range unions {
-		generator.AddUnionWithName(u.v, u.typeName)
+		if err := generator.AddUnionWithName(u.v, u.typeName); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // IgnoreNil is a utility struct that allows specifying which structs should
@@ -43,11 +43,8 @@ type IgnoreNil struct {
 }
 
 func main() {
-	var outputPath = flag.String("o", "", "Path to the output TypeScript file.")
-	flag.Parse()
-
 	generator := go2ts.New()
-	generator.AddMultiple(generator,
+	err := generator.AddMultiple(generator,
 		IgnoreNil{}, // Goes first to ensure the ignorenil version of structs are seen first.
 		alerts.Alert{},
 		alerts.AlertsStatus{},
@@ -81,10 +78,13 @@ func main() {
 		results.TryBotRequest{},
 		results.TryBotResponse{},
 	)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// TODO(jcgregorio) Switch to generator.AddMultipleUnions() once all the
 	// names are harmonized between backend and frontend.
-	addMultipleUnions(generator, []unionAndName{
+	err = addMultipleUnions(generator, []unionAndName{
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},
 		{dataframe.AllRequestType, "RequestType"},
@@ -96,7 +96,7 @@ func main() {
 		{types.AllStepDetections, "StepDetection"},
 		{results.AllRequestKind, "TryBotRequestKind"},
 	})
-	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
+	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
 	})
 	if err != nil {

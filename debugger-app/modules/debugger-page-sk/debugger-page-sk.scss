@@ -19,17 +19,9 @@ debugger-page-sk {
     justify-content: space-between;
   }
 
-  .file-version {
-    margin: 2px;
-  }
-
   header h2 {
     font-size: 1.5em;
     margin: 0;
-  }
-
-  commands-sk {
-    width: 32em;
   }
 
   #content {
@@ -49,23 +41,4 @@ debugger-page-sk {
     width: 20em;
   }
 
-  #center {
-    margin-left: 20px;
-    margin-right: 20px;
-  }
-
-  .gpuDrawBoundColor {
-    color: #E31A1C;
-    opacity: 0.75;
-  }
-
-  .gpuOpBoundColor {
-    color: #FF7F00;
-    opacity: 0.75;
-  }
-
-  .gpuTotalOpColor {
-    color: #6A3D9A;
-    opacity: 0.75;
-  }
 }

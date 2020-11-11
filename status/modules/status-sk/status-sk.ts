@@ -12,7 +12,6 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 import '../autoroller-status-sk';
-import '../bugs-status-sk';
 import '../commits-table-sk';
 import '../gold-status-sk';
 import '../navigation-sk';
@@ -23,59 +22,35 @@ import 'elements-sk/collapse-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/expand-less-icon-sk';
 import 'elements-sk/icon/expand-more-icon-sk';
-import { defaultRepo, repos, repoUrl } from '../settings';
+import { defaultRepo } from '../settings';
 import { TreeStatus } from '../tree-status-sk/tree-status-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { RotationsSk } from '../rotations-sk/rotations-sk';
-import { AutorollerStatus, Branch } from '../rpc';
-import { BranchesSk } from '../branches-sk/branches-sk';
 
 export class StatusSk extends ElementSk {
   private repo: string = defaultRepo();
   private autorollersOpen: boolean = true;
-  private bugsOpen: boolean = true;
   private perfOpen: boolean = true;
   private goldOpen: boolean = true;
-  private navOpen: boolean = true;
   private rotationsOpen: boolean = true;
   private static template = (el: StatusSk) =>
     html`
       <app-sk>
         <header>
           <h1>Status: ${el.repo}</h1>
-          <a
-            id="legacy"
-            class="secondary-container-themes-sk"
-            href="/repo/${el.repo.toLowerCase()}"
+          <a id="legacy" class="secondary-container-themes-sk" href="/repo/${el.repo.toLowerCase()}"
             ><p>Return to Legacy Status page</p></a
           >
           <div class="spacer">
             <tree-status-sk
-              @tree-status-update=${(e: CustomEvent<TreeStatus>) =>
-                el.updateTreeStatus(e.detail)}
+              @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
             ></tree-status-sk>
           </div>
           <login-sk></login-sk>
           <theme-chooser-sk></theme-chooser-sk>
         </header>
         <aside>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-                el.navOpen = !el.navOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
-            >
-              ${el.navOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Navigation
-            </button>
-            <collapse-sk>
-              <navigation-sk></navigation-sk>
-            </collapse-sk>
-          </div>
+          <div><navigation-sk></navigation-sk></div>
           <div>
             <button
               class="collapser"
@@ -90,9 +65,7 @@ export class StatusSk extends ElementSk {
               AutoRollers
             </button>
             <collapse-sk>
-              <autoroller-status-sk
-                @rollers-update=${(e: CustomEvent) => el.updateRollerLabels(e.detail)}
-              ></autoroller-status-sk>
+              <autoroller-status-sk></autoroller-status-sk>
             </collapse-sk>
           </div>
           <div>
@@ -127,23 +100,6 @@ export class StatusSk extends ElementSk {
             </button>
             <collapse-sk>
               <gold-status-sk></gold-status-sk>
-            </collapse-sk>
-          </div>
-          <div>
-            <button
-              class="collapser"
-              @click=${(e: Event) => {
-                el.bugsOpen = !el.bugsOpen;
-                el.toggle((<HTMLButtonElement>e.target).nextElementSibling);
-              }}
-            >
-              ${el.bugsOpen
-                ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-                : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Untriaged Bugs
-            </button>
-            <collapse-sk>
-              <bugs-status-sk></bugs-status-sk>
             </collapse-sk>
           </div>
           <div>
@@ -193,12 +149,6 @@ export class StatusSk extends ElementSk {
   private updateRepo(r: string) {
     this.repo = r.charAt(0).toUpperCase() + r.slice(1);
     this._render();
-  }
-
-  private updateRollerLabels(rolls: Array<AutorollerStatus>) {
-    const branchSk = $$<BranchesSk>('branches-sk', this)!;
-    branchSk.rolls = rolls;
-    branchSk.repoUrl = repoUrl(this.repo.toLowerCase());
   }
 
   private updateTreeStatus(r: TreeStatus) {

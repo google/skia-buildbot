@@ -91,15 +91,14 @@ func (r *AndroidRepoManagerConfig) ValidStrategies() []string {
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
-	androidRemoteName string
-	childRepoURL      string
-	parentRepoURL     string
-	repoToolPath      string
+	childRepoURL  string
+	parentRepoURL string
+	repoToolPath  string
 
 	projectMetadataFileConfig *ProjectMetadataFileConfig
 }
 
-func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
+func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -130,13 +129,8 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 	if err != nil {
 		return nil, err
 	}
-	androidRemoteName := "aosp"
-	if isInternal {
-		androidRemoteName = "goog"
-	}
 	r := &androidRepoManager{
 		commonRepoManager:         crm,
-		androidRemoteName:         androidRemoteName,
 		parentRepoURL:             g.GetRepoUrl(),
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.ProjectMetadataFileConfig,
@@ -169,7 +163,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	}
 
 	// Fix the review config to a URL which will work outside prod.
-	if _, err := r.childRepo.Git(ctx, "config", fmt.Sprintf("remote.%s.review", r.androidRemoteName), fmt.Sprintf("%s/", r.parentRepoURL)); err != nil {
+	if _, err := r.childRepo.Git(ctx, "config", "remote.goog.review", fmt.Sprintf("%s/", r.parentRepoURL)); err != nil {
 		return err
 	}
 
@@ -223,7 +217,7 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 
 // getLastRollRev returns the last-completed DEPS roll Revision.
 func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := r.childRepo.Git(ctx, "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/%s/%s", r.androidRemoteName, r.parentBranch))
+	output, err := r.childRepo.Git(ctx, "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
 	if err != nil {
 		return nil, err
 	}

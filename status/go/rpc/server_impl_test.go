@@ -117,8 +117,8 @@ func TestConvertUpdate(t *testing.T) {
 		},
 	}
 	src.TaskComments = map[string]map[string][]*incremental.TaskComment{
-		"abc123": {
-			"My_Task_Spec": {
+		"My_Task_Spec": {
+			"abc123": {
 				{
 					TaskComment: types.TaskComment{
 						Repo:      "skia",

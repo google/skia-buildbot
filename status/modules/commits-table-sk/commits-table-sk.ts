@@ -255,7 +255,6 @@ class Data {
     const keep = this.commits.slice(0, sliceIdx);
     const remove = this.commits.slice(sliceIdx, this.commits.length);
     this.commits = newCommits.concat(keep);
-    this.validateCommits();
 
     if (update.branchHeads && update.branchHeads.length > 0) {
       this.branchHeads = update.branchHeads;
@@ -322,32 +321,6 @@ class Data {
     }
   }
 
-  // Returns true if c is a child of possibleAncestor.
-  private childOf(c: Commit | undefined, possibleAncestor: Commit) {
-    let curr = c;
-    while (curr) {
-      if (curr.parents!.includes(possibleAncestor.hash)) {
-        return true;
-      }
-      const parentHash = curr.parents!.length > 0 ? curr.parents![0] : '';
-      curr = this.commitsByHash.get(parentHash);
-    }
-    return false;
-  }
-
-  private validateCommits() {
-    this.commits.sort((a, b) => {
-      const diff = new Date(b.timestamp!).valueOf() - new Date(a.timestamp!).valueOf();
-      if (diff !== 0) {
-        return diff;
-      }
-      // Timestamps are the same, attempt to sort by lineage.
-      if (this.childOf(a, b)) {
-        return -1;
-      }
-      return 1;
-    });
-  }
   /**
    * processCommits adds metadata to commit objects, maps reverts and relands, and gathers
    * taskspecs references by commits.

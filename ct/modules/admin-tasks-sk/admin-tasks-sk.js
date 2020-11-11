@@ -10,6 +10,7 @@ import 'elements-sk/toast-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
 import '../../../infra-sk/modules/confirm-dialog-sk';
+import '../chromium-build-selector-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../pageset-selector-sk';
@@ -42,7 +43,7 @@ const template = (el) => html`
 </div>
 `;
 
-const tabTemplate = (el) => html`
+const tabTemplate = (el, showChromeBuild) => html`
 <table class=options>
   <tr>
     <td>PageSets Type</td>
@@ -51,6 +52,13 @@ const tabTemplate = (el) => html`
       </pageset-selector-sk>
     </td>
   </tr>
+   ${showChromeBuild ? html`
+  <tr>
+    <td>Chromium Build</td>
+    <td>
+      <chromium-build-selector-sk id=chromium_build></chromium-build-selector-sk>
+    </td>
+  </tr>` : html``}
   <tr>
     <td>Repeat this task</td>
     <td>
@@ -96,7 +104,13 @@ define('admin-tasks-sk', class extends ElementSk {
   _validateTask() {
     if (!$$('#pageset_selector', this._activeTab).selected) {
       errorMessage('Please select a page set type');
-      $$('#pageset_selector', this._activeTab).focus();
+      $$('#pageset_selector', this).focus();
+      return;
+    }
+    if (this._activeTab.id === 'archives'
+    && !$$('#chromium_build', this._activeTab).build) {
+      errorMessage('Please select a Chromium build');
+      $$('#chromium_build', this).focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
@@ -112,11 +126,12 @@ define('admin-tasks-sk', class extends ElementSk {
   _queueTask() {
     this._triggeringTask = true;
     const params = {};
-    params.page_sets = $$('#pageset_selector', this._activeTab).selected;
-    params.repeat_after_days = $$('#repeat_after_days', this._activeTab).frequency;
+    params.page_sets = $$('#pageset_selector', this).selected;
+    params.repeat_after_days = $$('#repeat_after_days', this).frequency;
 
     let url = '/_/add_recreate_page_sets_task';
     if (this._activeTab.id === 'archives') {
+      params.chromium_build = $$('#chromium_build', this).build;
       url = '/_/add_recreate_webpage_archives_task';
     }
 

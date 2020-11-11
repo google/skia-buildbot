@@ -16,7 +16,7 @@
  * @evt histogram-update: An event containing the list of histogram entries.
  *      Emitted every time the histogram is recomputed.
  *
- * @evt move-command-position: When the play-sk module or user selects a different
+ * @evt move-position: When the play-sk module or user selects a different
  * command, this event is emitted, and it's detail contains the command index in
  * the unfiltered command list for this frame.
  *
@@ -38,8 +38,6 @@ import '../play-sk';
 export interface CommandsSkMovePositionEventDetail {
   // the index of a command in the frame to which the wasm view should move.
   position: number,
-  // true if we're currently paused
-  paused: boolean,
 }
 
 export type CommandRange = [number, number];
@@ -118,10 +116,7 @@ export class CommandsSk extends ElementSk {
     html`
     <div>
       ${CommandsSk.filterTemplate(ele)}
-      <div class="horizontal-flex">
-        <button @click=${ele._opIdFilter} class="short">Show By Op-Id</button>
-        <play-sk .visual=${'full'}></play-sk>
-      </div>
+      <play-sk></play-sk>
       <div class="list">
         ${ ele._filtered.map((i: number, filtPos: number) =>
           CommandsSk.opTemplate(ele, filtPos, ele._cmd[i])) }
@@ -129,8 +124,7 @@ export class CommandsSk extends ElementSk {
     </div>`;
 
   private static opTemplate = (ele: CommandsSk, filtpos: number, op: Command) =>
-    html`<div class="op" id="op-${op.index}" @click=${
-      (e: MouseEvent) => {ele._clickItem(e, filtpos)}}>
+    html`<div class="op" id="op-${op.index}" @click=${() => {ele.item = filtpos}}>
       <details>
         <summary class=${ ele.position == op.index ? 'selected' : ''}>
           <span class="index">${op.index}</span>
@@ -149,7 +143,7 @@ export class CommandsSk extends ElementSk {
                 >Show image</button>`
             : ''
           }
-          ${ (op.details.auditTrail && op.details.auditTrail.Ops)
+          ${ op.details.auditTrail.Ops
             ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
                 CommandsSk.gpuOpIdTemplate(ele, gpuOp) )
             : ''
@@ -232,8 +226,8 @@ Command types can also be filted by clicking on their names in the histogram"
     // notify debugger-page-sk that it needs to draw this.position
     this.dispatchEvent(
       new CustomEvent<CommandsSkMovePositionEventDetail>(
-        'move-command-position', {
-          detail: {position: this.position, paused: this._playSk!.mode === 'pause'},
+        'move-position', {
+          detail: {position: this.position},
           bubbles: true,
         }));
     this._playSk!.movedTo(this._item);
@@ -358,20 +352,6 @@ Command types can also be filted by clicking on their names in the histogram"
     this.querySelector<HTMLInputElement>('#text-filter')!.value = '';
     if (!this.count) { return; }
     this.range = [0, this._cmd.length-1]; // setter triggers _applyRangeFilter, follow that
-  }
-
-  // Stop playback and move by a given offset in the filtered list.
-  keyMove(offset: number) {
-    this._playSk!.mode = 'pause';
-    this.item = Math.max(0, Math.min(this._item + offset, this.countFiltered));
-  }
-
-  private _clickItem(e: MouseEvent, filtIndex: number) {
-    if (this._item !== filtIndex) {
-      // Don't open the dropdown unless you click the already selected item again
-      e.preventDefault();
-    }
-    this.item = filtIndex;
   }
 
   // filter change coming from histogram
@@ -619,35 +599,6 @@ doesn't appear to be a command name`);
     } else {
       this.item = this._filtered.length - 1;
     }
-  }
-
-  // Filters out all but the last command of each gpu op group
-  // Experimental, probably breaks assumptions elsewhere
-  private _opIdFilter() {
-    this._filtered = [];
-
-    const commandsOfEachOp = new Map<number, number[]>();
-    this._cmd.forEach((command, index) => {
-      if (command.details.auditTrail &&
-          command.details.auditTrail.Ops) {
-        const opid = command.details.auditTrail.Ops[0].OpsTaskID;
-        if (!commandsOfEachOp.has(opid)) {
-          commandsOfEachOp.set(opid, []);
-        }
-        commandsOfEachOp.get(opid)!.push(index);
-      }
-    });
-    const sortedKeys: number[] = Array.from(commandsOfEachOp.keys());
-    sortedKeys.sort((a, b) => a - b); // force it to sort as a number, not a string
-    sortedKeys.forEach((k) => {
-      commandsOfEachOp.get(k)!.forEach((i) => {
-        this._filtered.push(i);
-      });
-    });
-
-
-    this._playSk!.size = this._filtered.length;
-    this.item = this._filtered.length - 1;
   }
 }
 
