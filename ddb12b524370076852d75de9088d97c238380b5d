@@ -1,0 +1,134 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006074272",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/333696?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "bb00f931_04c53dd7",
+        "filename": "go/cas/rbe/rbe_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-11T18:05:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 122,
+        "startChar": 12,
+        "endLine": 122,
+        "endChar": 17
+      },
+      "revId": "ddb12b524370076852d75de9088d97c238380b5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006074272",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/333696?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "9dcd37b4_708a7c61",
+        "filename": "go/cas/rbe/rbe_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-11T18:05:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 127,
+        "startChar": 12,
+        "endLine": 127,
+        "endChar": 17
+      },
+      "revId": "ddb12b524370076852d75de9088d97c238380b5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006074272",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/333696?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "8147e8e2_a859e8af",
+        "filename": "go/cas/rbe/rbe_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-11T18:05:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 137,
+        "startChar": 20,
+        "endLine": 137,
+        "endChar": 25
+      },
+      "revId": "ddb12b524370076852d75de9088d97c238380b5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006074272",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/333696?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b4134060_5fff3a9c",
+        "filename": "go/cas/rbe/rbe_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-11T18:05:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 150,
+        "startChar": 19,
+        "endLine": 150,
+        "endChar": 24
+      },
+      "revId": "ddb12b524370076852d75de9088d97c238380b5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006074272",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/333696?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "493c2c7c_13ec5264",
+        "filename": "go/cas/rbe/rbe_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-11T18:05:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 171,
+        "startChar": 12,
+        "endLine": 171,
+        "endChar": 17
+      },
+      "revId": "ddb12b524370076852d75de9088d97c238380b5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
