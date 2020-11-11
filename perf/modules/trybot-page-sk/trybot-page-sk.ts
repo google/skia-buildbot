@@ -169,6 +169,8 @@ export class TrybotPageSk extends ElementSk {
             ${TrybotPageSk.individualResults(ele)}
           </table>
           <p class=tiny>Hold CTRL to add multiple traces to the graph.</p>
+          <p class=tiny>〃- The value is the same as the trace above it.</p>
+          <p class=tiny>∅ - The key doesn't appear on this trace.</p>
           <plot-simple-sk
             id=individual-plot
             ?hidden=${!ele.displayedTrace}
@@ -242,14 +244,14 @@ export class TrybotPageSk extends ElementSk {
       keys.forEach((key) => {
         const value = r.params[key];
         if (value) {
-          if (value !== lastParams[key] && i > 0) {
+          if (value !== lastParams[key] || i === 0) {
             // Highlight values that have changed, but not the first row.
-            keyValueDelta.push(html`<td class=changed>${value}</td>`);
-          } else {
             keyValueDelta.push(html`<td>${value}</td>`);
+          } else {
+            keyValueDelta.push(html`<td>〃</td>`);
           }
         } else {
-          keyValueDelta.push(html`<td></td>`);
+          keyValueDelta.push(html`<td title="Does not exists on this trace.">∅</td>`);
         }
       });
       ret.push(html`<tr><td>${i + 1}</td> <td>${r.stddevRatio}</td> <td class=link @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}><timeline-icon-sk></timeline-icon-sk></td> ${keyValueDelta}</tr>`);
