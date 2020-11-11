@@ -144,7 +144,7 @@ var statements = map[statement]string{
 			commit_number >= $1
 			AND commit_number <= $2
 		ORDER BY
-			commit_number ASC
+			commit_number ASC;
 		`,
 	getCommitFromCommitNumber: `
 		SELECT
@@ -544,7 +544,9 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 	defer span.End()
 
 	g.commitSliceFromCommitNumberRangeCalled.Inc(1)
-	rows, err := g.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
+	sql := statements[getCommitsFromCommitNumberRange]
+	fmt.Println(begin, end, sql)
+	rows, err := g.db.Query(context.TODO(), statements[getCommitsFromCommitNumberRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
