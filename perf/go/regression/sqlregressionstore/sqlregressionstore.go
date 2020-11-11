@@ -78,6 +78,7 @@ func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitN
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range: %d %d", begin, end)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var commitID types.CommitNumber
 		var alertID int64
