@@ -61,16 +61,16 @@ var (
 )
 
 type CommonCols struct {
-	DatastoreKey    *datastore.Key `datastore:"__key__"`
-	TsAdded         int64
-	TsStarted       int64
-	TsCompleted     int64
-	Username        string
-	Failure         bool
-	RepeatAfterDays int64
-	SwarmingLogs    string
-	TaskDone        bool
-	SwarmingTaskID  string
+	DatastoreKey    *datastore.Key `json:"-" datastore:"__key__"`
+	TsAdded         int64          `json:"ts_added"`
+	TsStarted       int64          `json:"ts_started"`
+	TsCompleted     int64          `json:"ts_completed"`
+	Username        string         `json:"username"`
+	Failure         bool           `json:"failure"`
+	RepeatAfterDays int64          `json:"repeat_after_days"`
+	SwarmingLogs    string         `json:"swarming_logs"`
+	TaskDone        bool           `json:"task_done"`
+	SwarmingTaskID  string         `json:"swarming_task_id"`
 }
 
 type Task interface {
@@ -143,8 +143,8 @@ func GetRunID(task Task) string {
 
 // Data included in all tasks; set by AddTaskHandler.
 type AddTaskCommonVars struct {
-	Username        string
-	TsAdded         string
+	Username        string `json:"username"`
+	TsAdded         string `json:"ts_added"`
 	RepeatAfterDays string `json:"repeat_after_days"`
 }
 
