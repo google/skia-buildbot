@@ -18,12 +18,12 @@ debug-view-sk {
   // to the crosshair canvas.
   .bottom {
     width: auto;
-    height: 86vh;
+    height: 82vh;
   }
 
   .fit {
     max-width: 100%;
-    max-height: 86vh;
+    max-height: 82vh;
     width: auto;
     height: auto;
   }
@@ -38,7 +38,6 @@ debug-view-sk {
     height: auto;
   }
 
-  // TODO(nifong): add the switch that toggles between these two backgrounds
   .light-checkerboard  {
     border: solid lightgray 1px;
     background-position: 0px 0px, 10px 10px;

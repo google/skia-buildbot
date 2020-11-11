@@ -113,6 +113,11 @@ export interface CommandsSkJumpEventDetail {
   unfilteredIndex: number;
 }
 
+// event issued when the user clicks 'Image' to jump to this image with this id.
+export interface CommandsSkSelectImageEventDetail {
+  id: number;
+}
+
 // Colors to use for gpu op ids
 const COLORS = [
     "#1B9E77",
@@ -177,7 +182,7 @@ export class CommandsSk extends ElementSk {
             : ''
           }
           ${ op.imageIndex
-            ? html`<button @click=${ele._jumpToImage(op.imageIndex)}
+            ? html`<button @click=${()=>{ele._jumpToImage(op.imageIndex!)}}
                 title="Show the image referenced by this command in the resource viewer"
                 >Image</button>`
             : ''
@@ -422,8 +427,6 @@ Command types can also be filted by clicking on their names in the histogram"
           this._layerInfo.layerNames.set(parseInt(found[1]), found[2]);
         }
       }
-      // TODO(nifong): extract image resource data
-
       // deep copy prefixes because we want a snapshot of the current list and counts
       out.prefixes = prefixes.map((p: PrefixItem) => this._copyPrefix(p));
 
@@ -487,8 +490,13 @@ Command types can also be filted by clicking on their names in the histogram"
     return html`<pre>${ JSON.stringify(op.details, null, 2) }</pre>`;
   }
 
-  // TODO(nifong): implement after adding resource tab
-  private _jumpToImage(index: number){}
+  private _jumpToImage(index: number){
+    this.dispatchEvent(new CustomEvent<CommandsSkSelectImageEventDetail>(
+      'select-image', {
+        detail: { id: index },
+        bubbles: true,
+      }));
+  }
 
   // (index is in the unfiltered list)
   private _toggleVisible(index: number){
