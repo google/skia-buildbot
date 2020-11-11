@@ -71,6 +71,7 @@ require (
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible // indirect
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/containerd/containerd v1.4.1 // indirect
+	github.com/coreos/go-systemd/v22 v22.1.0
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/davecgh/go-spew v1.1.1
