@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b16b3aad_9d88b8e8",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-11T13:42:37Z",
+      "side": 1,
+      "message": "Maybe https://golang.org/pkg/sync/#Once is a better fit for this?",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 22
+      },
+      "revId": "7af861ff65ffe6a73435c8f1588d2c7d78500221",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cc904dd7_4734795f",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-11T13:42:37Z",
+      "side": 1,
+      "message": "error gets lost?",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 82,
+        "endChar": 19
+      },
+      "revId": "7af861ff65ffe6a73435c8f1588d2c7d78500221",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
