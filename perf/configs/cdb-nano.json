@@ -11,7 +11,8 @@
         "perf-memcached-2.perf-memcached:11211"
       ],
       "namespace": "skia"
-    }
+    },
+    "enable_follower_reads": true
   },
   "ingestion_config": {
     "source_config": {
