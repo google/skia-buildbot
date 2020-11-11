@@ -7,6 +7,7 @@ package builders
 import (
 	"context"
 	"runtime"
+	"sync"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -45,6 +46,14 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 	}
 }
 
+// singletonPool is the one and only instance of *pgxpool.Pool that an
+// application should have, used in newCockroachDBFromConfig.
+var singletonPool *pgxpool.Pool
+
+// initSingletonPool is used to enforce the singleton nature of singletonPool,
+// used in newCockroachDBFromConfig
+var initSingletonPool sync.Once
+
 // newCockroachDBFromConfig opens an existing CockroachDB database.
 //
 // No migrations are applied automatically, they must be applied by the
@@ -54,9 +63,20 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to parse database config: %q", instanceConfig.DataStoreConfig.ConnectionString)
 	}
-	cfg.MaxConns = int32(runtime.NumCPU())
-	cfg.ConnConfig.Logger = pgxLogAdaptor{}
-	return pgxpool.ConnectConfig(ctx, cfg)
+
+	if singletonPool == nil {
+		initSingletonPool.Do(func() {
+			sklog.Infof("%#v", *cfg)
+			cfg.MaxConns = int32(runtime.NumCPU())
+			cfg.ConnConfig.Logger = pgxLogAdaptor{}
+			singletonPool, err = pgxpool.ConnectConfig(ctx, cfg)
+		})
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return singletonPool, nil
 }
 
 // NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
