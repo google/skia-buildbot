@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc1fc0e7_0e37c1f1",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-11T15:01:24Z",
+      "side": 1,
+      "message": "removed this anyway, comment in the proto file is better.",
+      "parentUuid": "75f13e6d_62e0f09a",
+      "range": {
+        "startLine": 80,
+        "startChar": 54,
+        "endLine": 80,
+        "endChar": 56
+      },
+      "revId": "61676e61c08c69201e9654deb19bde49659cc867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8f94d1ef_03269e37",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-11T14:16:05Z",
       "side": 1,
       "message": "Looks like you need to `go install go.larrymyers.com/protoc-gen-twirp_typescript`",
+      "range": {
+        "startLine": 1,
+        "startChar": 38,
+        "endLine": 1,
+        "endChar": 45
+      },
+      "revId": "61676e61c08c69201e9654deb19bde49659cc867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "591b7843_84388229",
+        "filename": "status/go/rpc/status.twirp.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-11T15:01:24Z",
+      "side": 1,
+      "message": "We need to pin this somehow, but that doesn\u0027t do anything for me? https://skia-review.googlesource.com/c/buildbot/+/330473 is your CL where you took it from v5.12.1 to v7.1.0 fwiw.",
+      "parentUuid": "8f94d1ef_03269e37",
       "range": {
         "startLine": 1,
         "startChar": 38,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "98514baa_aa36790a",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-11T15:01:24Z",
+      "side": 1,
+      "message": "yep, added note in the commit message.",
+      "parentUuid": "798d2054_21180c32",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 16
+      },
+      "revId": "61676e61c08c69201e9654deb19bde49659cc867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "682813c8_5ee756c4",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-11-11T14:16:05Z",
       "side": 1,
       "message": "Intentionally included?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 0
+      },
+      "revId": "61676e61c08c69201e9654deb19bde49659cc867",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d968c534_f1fdddf6",
+        "filename": "status/modules/status-sk/status-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-11T15:01:24Z",
+      "side": 1,
+      "message": "yep, added note int he commit message.",
+      "parentUuid": "682813c8_5ee756c4",
       "range": {
         "startLine": 50,
         "startChar": 0,
