@@ -20,6 +20,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitiles"
@@ -464,6 +465,9 @@ func urlFromParts(instanceConfig *config.InstanceConfig, commit Commit) string {
 
 // CommitFromCommitNumber returns all the stored details for a given CommitNumber.
 func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitFromCommitNumber")
+	defer span.End()
+
 	g.commitFromCommitNumberCalled.Inc(1)
 	if iCommit, ok := g.cache.Get(commitNumber); ok {
 		return iCommit.(Commit), nil
@@ -521,6 +525,7 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %s-%s", begin, end)
 	}
+	defer rows.Close()
 	ret := []Commit{}
 	for rows.Next() {
 		var c Commit
@@ -535,11 +540,15 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 // CommitSliceFromCommitNumberRange returns a slice of Commits that fall in the range
 // [begin, end], i.e  inclusive of both begin and end.
 func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]Commit, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberRange")
+	defer span.End()
+
 	g.commitSliceFromCommitNumberRangeCalled.Inc(1)
 	rows, err := g.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
+	defer rows.Close()
 	ret := []Commit{}
 	for rows.Next() {
 		var c Commit

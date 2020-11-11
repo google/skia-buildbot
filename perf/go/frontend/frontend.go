@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
 	"github.com/jcgregorio/logger"
 	"github.com/spf13/pflag"
@@ -276,6 +277,15 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		BundleDelayThreshold: time.Second / 10,
+		BundleCountThreshold: 10})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
 	// Record UID and GID.
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
 
@@ -315,7 +325,6 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	}
 	cfg := config.Config
 
-	var err error
 	ctx := context.Background()
 	f.distFileSystem, err = dist.New()
 	if err != nil {
@@ -463,7 +472,9 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "trybotLoadHandler")
+	defer span.End()
+
 	var req results.TryBotRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)

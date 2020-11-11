@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -68,6 +69,9 @@ func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceS
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
 func fromIndexRange(ctx context.Context, git *perfgit.Git, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.fromIndexRange")
+	defer span.End()
+
 	commits, err := git.CommitSliceFromCommitNumberRange(ctx, beginIndex, endIndex)
 	if err != nil {
 		return nil, nil, 0, skerr.Wrapf(err, "Failed to get headers and commit numbers from time range.")
@@ -110,6 +114,9 @@ func buildTileMapOffsetToIndex(indices []types.CommitNumber, store tracestore.Tr
 //
 // The progress callback is triggered once for every tile.
 func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []types.CommitNumber, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.new")
+	defer span.End()
+
 	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_new", b.newTimer).Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
@@ -254,6 +261,9 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.Co
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromQuery")
+	defer span.End()
+
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromQuery", b.newNFromQueryTimer).Stop()
 
 	sklog.Infof("Querying to: %v", end)
