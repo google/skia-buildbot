@@ -138,6 +138,7 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	ret := []*alerts.Alert{}
 	for rows.Next() {
 		var id int64

@@ -115,6 +115,7 @@ func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcu
 	if err != nil {
 		return ret, skerr.Wrapf(err, "Failed to query for all shortcuts.")
 	}
+	defer rows.Close()
 
 	go func() {
 		defer close(ret)
