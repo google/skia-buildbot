@@ -1,6 +1,6 @@
 package systemd
 
-import "github.com/skia-dev/go-systemd/dbus"
+import "github.com/coreos/go-systemd/v22/dbus"
 
 // UnitStatus describes the status of a single systemd service.
 //

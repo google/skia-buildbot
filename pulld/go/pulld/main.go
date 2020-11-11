@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/coreos/go-systemd/v22/dbus"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
