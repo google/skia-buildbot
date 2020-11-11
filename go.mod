@@ -65,12 +65,15 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
+	github.com/bazelbuild/remote-apis v0.0.0-20201030192148-aa8e718768c2
+	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201110004117-e776219c9bb7
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible // indirect
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/containerd/containerd v1.4.1 // indirect
+	github.com/coreos/go-systemd/v22 v22.1.0
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -80,7 +83,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/go-python/gpython v0.0.3
-	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -145,7 +147,6 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
-	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/skia-dev/go2ts v1.4.0
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/smartystreets/assertions v1.2.0 // indirect
