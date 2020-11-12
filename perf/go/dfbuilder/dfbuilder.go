@@ -213,7 +213,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 		traceMap := traceMap
 		g.Go(func() error {
 			// Read the traces for the given keys.
-			traces, err := b.store.ReadTraces(tileKey, keys)
+			traces, err := b.store.ReadTraces(ctx, tileKey, keys)
 			if err != nil {
 				return err
 			}
@@ -401,7 +401,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		traceSet := types.TraceSet{}
 		for tileKey, traceMap := range mapper {
 			// Read the traces for the given keys.
-			traces, err := b.store.ReadTraces(tileKey, keys)
+			traces, err := b.store.ReadTraces(ctx, tileKey, keys)
 			if err != nil {
 				return nil, err
 			}

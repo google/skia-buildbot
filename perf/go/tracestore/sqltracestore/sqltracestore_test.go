@@ -68,7 +68,7 @@ func TestUpdateSourceFile(t *testing.T) {
 }
 
 func TestReadTraces(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
@@ -76,14 +76,14 @@ func TestReadTraces(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(0, keys)
+	ts, err := s.ReadTraces(ctx, 0, keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(1, keys)
+	ts, err = s.ReadTraces(ctx, 1, keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
@@ -91,8 +91,8 @@ func TestReadTraces(t *testing.T) {
 	}, ts)
 }
 
-func TestReadTraces_InvalidKey(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
@@ -100,19 +100,22 @@ func TestReadTraces_InvalidKey(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	_, err := s.ReadTraces(0, keys)
-	require.Error(t, err)
+	ts, err := s.ReadTraces(ctx, 0, keys)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=565,": {e, 2.3, 3.3, e, e, e, e, e},
+	}, ts)
 }
 
 func TestReadTraces_NoResults(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
 		",arch=unknown,",
 	}
 
-	ts, err := s.ReadTraces(0, keys)
+	ts, err := s.ReadTraces(ctx, 0, keys)
 	require.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=unknown,": {e, e, e, e, e, e, e, e},
@@ -120,7 +123,7 @@ func TestReadTraces_NoResults(t *testing.T) {
 }
 
 func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	keys := []string{
@@ -129,7 +132,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 	}
 
 	// Reading from a tile we haven't written to should succeed and return no data.
-	ts, err := s.ReadTraces(2, keys)
+	ts, err := s.ReadTraces(ctx, 2, keys)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, e, e, e, e, e, e, e},
@@ -304,7 +307,7 @@ func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
 	assert.NoError(t, err)
 	ts, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
-	assert.Nil(t, ts)
+	assert.Empty(t, ts)
 }
 
 func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
@@ -316,7 +319,7 @@ func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
 	assert.NoError(t, err)
 	ts, err := s.QueryTraces(ctx, 2, q)
 	assert.NoError(t, err)
-	assert.Nil(t, ts)
+	assert.Empty(t, ts)
 }
 
 func TestTraceCount(t *testing.T) {

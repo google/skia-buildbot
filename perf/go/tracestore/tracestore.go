@@ -40,7 +40,7 @@ type TraceStore interface {
 	QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
 
 	// ReadTraces loads the traces for the given trace keys.
-	ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error)
+	ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, error)
 
 	// ReadTracesForCommitRange loads the traces for the given trace keys and
 	// between the begin and end commit, inclusive.
