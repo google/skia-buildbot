@@ -194,7 +194,7 @@ const queryTraceIDsChunkSize = 100
 
 // Number of parallel requests sent to the database when servicing a single
 // query. 30 matches the max number of cores we use on a clustering instance.
-const poolSize = 30
+const poolSize = 5
 
 const queryTracesIDOnlyByIndexChannelSize = 1000
 
@@ -315,7 +315,8 @@ var templates = map[statement]string{
             commit_number,
             val
         FROM
-            TraceValues
+			TraceValues
+			{{ .AsOf }}
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
             AND commit_number <= {{ .EndCommitNumber }}
@@ -407,6 +408,7 @@ type readTracesContext struct {
 	BeginCommitNumber types.CommitNumber
 	EndCommitNumber   types.CommitNumber
 	TraceIDs          []traceIDForSQL
+	AsOf              string
 }
 
 // getSourceContext is the context for the getSource template.
@@ -1019,59 +1021,19 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	var mutex sync.Mutex
 
 	// chunkChannel is used to distribute work to the workers.
-	chunkChannel := make(chan []traceIDForSQL)
+	chunkChannel := make(chan []traceIDForSQL, queryTracesIDOnlyByIndexChannelSize)
 
 	// Start the workers that do the actual querying when given chunks of trace ids.
-	g, eCtx := errgroup.WithContext(ctx)
+	g, ctx := errgroup.WithContext(ctx)
 	for i := 0; i < poolSize; i++ {
+		i := i
 		g.Go(func() error {
-			ctx, span := trace.StartSpan(eCtx, "sqltracestore.ReadTraces.Worker")
+			ctx, span := trace.StartSpan(ctx, fmt.Sprintf("sqltracestore.ReadTraces.Worker-%d", i))
 			defer span.End()
 
 			for chunk := range chunkChannel {
-				// Populate the context for the SQL template.
-				readTracesContext := readTracesContext{
-					BeginCommitNumber: beginCommit,
-					EndCommitNumber:   endCommit,
-					TraceIDs:          chunk,
-				}
-
-				// Expand the template for the SQL.
-				var b bytes.Buffer
-				if err := s.unpreparedStatements[readTraces].Execute(&b, readTracesContext); err != nil {
-					return skerr.Wrapf(err, "failed to expand readTraces template")
-				}
-
-				sql := b.String()
-				// Execute the query.
-				rows, err := s.db.Query(ctx, sql)
-				if err != nil {
-					return skerr.Wrapf(err, "SQL: %q", sql)
-				}
-
-				var traceIDArray traceIDForSQLInBytes
-				for rows.Next() {
-					var traceIDInBytes []byte
-					var commitNumber types.CommitNumber
-					var val float64
-					if err := rows.Scan(&traceIDInBytes, &commitNumber, &val); err != nil {
-						return skerr.Wrap(err)
-					}
-
-					if err != nil {
-						sklog.Warningf("Invalid trace name found in query response: %s", err)
-						continue
-					}
-					// pgx can't Scan into an array, but Go can't use a slice as a map key, so
-					// we Scan into a byte slice and then copy into a byte array to use
-					// as the index into the map.
-					copy(traceIDArray[:], traceIDInBytes)
-					mutex.Lock()
-					ret[traceNameMap[traceIDArray]][commitNumber-beginCommit] = float32(val)
-					mutex.Unlock()
-				}
-				if err := rows.Err(); err != nil {
-					return skerr.Wrap(err)
+				if err := s.readTracesChunk(ctx, beginCommit, endCommit, chunk, &mutex, traceNameMap, &ret, i); err != nil {
+					return err
 				}
 			}
 			return nil
@@ -1080,6 +1042,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 	// Now break up the incoming trace ids into chuck for the workers.
 	currentChunk := []traceIDForSQL{}
+	numChunks := 0
 	for key := range traceNames {
 		if !query.ValidateKey(key) {
 			sklog.Errorf("Invalid key: %q", key)
@@ -1099,13 +1062,22 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 		if len(chunkChannel) > queryTraceIDsChunkSize {
 			chunkChannel <- currentChunk
 			currentChunk = []traceIDForSQL{}
+			numChunks++
 		}
 	}
 	// Now handle any remaining values in the currentChunk.
-	chunkChannel <- currentChunk
+	if len(currentChunk) > 0 {
+		chunkChannel <- currentChunk
+		numChunks++
+	}
 	close(chunkChannel)
+	sklog.Infof("numChunks: %d", numChunks)
 
 	if err := g.Wait(); err != nil {
+		span.SetStatus(trace.Status{
+			Code:    trace.StatusCodeInternal,
+			Message: err.Error(),
+		})
 		// Empty the traceNames channel.
 		for range traceNames {
 		}
@@ -1113,6 +1085,60 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	}
 
 	return ret, nil
+}
+
+func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, chunk []traceIDForSQL, mutex *sync.Mutex, traceNameMap map[traceIDForSQLInBytes]string, ret *types.TraceSet, i int) error {
+	ctx, span := trace.StartSpan(ctx, fmt.Sprintf("sqltracestore.ReadTraces.Chunk-%d", i))
+	defer span.End()
+	// Populate the context for the SQL template.
+	readTracesContext := readTracesContext{
+		BeginCommitNumber: beginCommit,
+		EndCommitNumber:   endCommit,
+		TraceIDs:          chunk,
+		AsOf:              ",",
+	}
+	if s.enableFollowerReads {
+		readTracesContext.AsOf = followerReadsStatement
+	}
+
+	// Expand the template for the SQL.
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[readTraces].Execute(&b, readTracesContext); err != nil {
+		return skerr.Wrapf(err, "failed to expand readTraces template")
+	}
+
+	sql := b.String()
+	// Execute the query.
+	rows, err := s.db.Query(ctx, sql)
+	if err != nil {
+		return skerr.Wrapf(err, "SQL: %q", sql)
+	}
+
+	var traceIDArray traceIDForSQLInBytes
+	for rows.Next() {
+		var traceIDInBytes []byte
+		var commitNumber types.CommitNumber
+		var val float64
+		if err := rows.Scan(&traceIDInBytes, &commitNumber, &val); err != nil {
+			return skerr.Wrap(err)
+		}
+
+		if err != nil {
+			sklog.Warningf("Invalid trace name found in query response: %s", err)
+			continue
+		}
+		// pgx can't Scan into an array, but Go can't use a slice as a map key, so
+		// we Scan into a byte slice and then copy into a byte array to use
+		// as the index into the map.
+		copy(traceIDArray[:], traceIDInBytes)
+		mutex.Lock()
+		(*ret)[traceNameMap[traceIDArray]][commitNumber-beginCommit] = float32(val)
+		mutex.Unlock()
+	}
+	if err := rows.Err(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // TileNumber implements the tracestore.TraceStore interface.
