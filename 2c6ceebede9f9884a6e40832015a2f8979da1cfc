@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e320e77f_4e31267c",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T13:07:05Z",
+      "side": 1,
+      "message": "I don\u0027t quite understand why this is unbuffered. In readTracesByChannelForCommitRange, the reader of this channel blocks on the mutex. I would expect we don\u0027t want that to necessarily backup reading from pChan, right?\n\nIf an unbuffered channel was decided with a purpose in mind, it would be good to document that rationale.",
+      "range": {
+        "startLine": 702,
+        "startChar": 15,
+        "endLine": 702,
+        "endChar": 32
+      },
+      "revId": "2c6ceebede9f9884a6e40832015a2f8979da1cfc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6f34850d_42dfe322",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T13:07:05Z",
+      "side": 1,
+      "message": "skerr.Wrap(err)",
+      "range": {
+        "startLine": 1111,
+        "startChar": 14,
+        "endLine": 1111,
+        "endChar": 17
+      },
+      "revId": "2c6ceebede9f9884a6e40832015a2f8979da1cfc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
