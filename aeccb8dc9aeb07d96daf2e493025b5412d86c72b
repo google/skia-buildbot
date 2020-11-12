@@ -93,6 +93,30 @@
       },
       "revId": "aeccb8dc9aeb07d96daf2e493025b5412d86c72b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f7bd2cc5_be976234",
+        "filename": "go/cas/rbe/rbe.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-12T17:19:40Z",
+      "side": 1,
+      "message": "Doh! just didn\u0027t see it. sgtm.",
+      "parentUuid": "0fb72b6a_4be0a63f",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 115,
+        "endChar": 3
+      },
+      "revId": "aeccb8dc9aeb07d96daf2e493025b5412d86c72b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
