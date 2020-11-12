@@ -1106,6 +1106,10 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 	close(chunkChannel)
 
 	if err := g.Wait(); err != nil {
+		span.SetStatus(trace.Status{
+			Code:    trace.StatusCodeInternal,
+			Message: err.Error(),
+		})
 		// Empty the traceNames channel.
 		for range traceNames {
 		}
