@@ -46,13 +46,17 @@ export class TimelineSk extends ElementSk {
     this._item = i;
     this._render();
     // notify debugger-page-sk to change the frame
-    this.dispatchEvent(
+    window.setTimeout(() => {
+      // Unless we defer this until after the _render(), the timeline element always
+      // appears to be one frame late.
+      this.dispatchEvent(
       new CustomEvent<TimelineSkMoveFrameEventDetail>(
         'move-frame', {
           detail: {frame: this._item},
           bubbles: true,
         }));
-    this._playSk!.movedTo(this._item);
+    }, 0);
+
   }
 
   set count(c: number) {
@@ -65,6 +69,10 @@ export class TimelineSk extends ElementSk {
     const space = 70; // minimum pixels of space to give each label.
     this._modulo = Math.ceil(space * this._count / width);
     this._render();
+  }
+
+  get playsk(): PlaySk {
+    return this._playSk!;
   }
 
   constructor() {

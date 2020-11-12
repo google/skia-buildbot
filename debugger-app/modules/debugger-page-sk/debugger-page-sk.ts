@@ -32,13 +32,17 @@ import 'elements-sk/checkbox-sk';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { DebugViewSk } from '../debug-view-sk/debug-view-sk';
 import {
-  CommandsSk, PrefixItem, Command, CommandsSkMovePositionEventDetail
+  CommandsSk, PrefixItem, Command, CommandsSkMovePositionEventDetail, LayerInfo,
+  CommandsSkJumpEventDetail,
 } from '../commands-sk/commands-sk';
 import { TimelineSk, TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
 import { PlaySk, PlaySkModeChangedManuallyEventDetail } from '../play-sk/play-sk';
 import { ZoomSk } from '../zoom-sk/zoom-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import 'elements-sk/error-toast-sk';
+import {
+  AndroidLayersSk, AndroidLayersSkInspectLayerEventDetail
+} from '../android-layers-sk/android-layers-sk'
 
 // Types for the wasm bindings
 import {
@@ -47,6 +51,7 @@ import {
 } from '../debugger';
 
 // other modules from this application
+import '../android-layers-sk';
 import '../commands-sk';
 import '../debug-view-sk';
 import '../histogram-sk';
@@ -104,18 +109,13 @@ export class DebuggerPageSk extends ElementSk {
         </div>
         <div id=right>
           ${DebuggerPageSk.controlsTemplate(ele)}
-          <!-- hidable gpu op bounds legend-->
           <histogram-sk></histogram-sk>
-          <!-- cursor position and color -->
-          <!-- breakpoint controls -->
-          <!-- hidable gpu op bounds legend-->
           <div>Command which shaded the<br>selected pixel: ${ele._pointCommandIndex}
             <button @click=${() => {
               ele._jumpToCommand(ele._pointCommandIndex);
             }}>Jump</button>
           </div>
           <zoom-sk></zoom-sk>
-          <!-- keyboard shortcuts legend -->
           <android-layers-sk></android-layers-sk>
         </div>
       </div>
@@ -126,25 +126,27 @@ export class DebuggerPageSk extends ElementSk {
   private static controlsTemplate = (ele: DebuggerPageSk) =>
     html`
     <div>
-      <div class="horizontal-flex">
-        <checkbox-sk label="GPU" ?checked=${ele._gpuMode}
-                     title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and\
+      <table>
+        <tr>
+          <td><checkbox-sk label="GPU" ?checked=${ele._gpuMode}
+               title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and\
  copying the buffer into a Canvas2D element."
-                     @change=${ele._gpuHandler}></checkbox-sk>
-        <checkbox-sk label="Display GPU Op Bounds" ?disabled=${!ele._gpuMode}
-                     title="Show a visual representation of the GPU operations recorded in each\
+                       @change=${ele._gpuHandler}></checkbox-sk></td>
+          <td><checkbox-sk label="Display GPU Op Bounds" ?disabled=${!ele._gpuMode}
+               title="Show a visual representation of the GPU operations recorded in each\
  command's audit trail."
-                     @change=${ele._opBoundsHandler}></checkbox-sk>
-      </div>
-      <div class="horizontal-flex">
-        <checkbox-sk label="Light/Dark"
-                     title="Show transparency backrounds as light or dark"
-                     @change=${ele._lightDarkHandler}></checkbox-sk>
-        <checkbox-sk label="Display Overdraw Viz"
-                     title="Shades pixels redder in proportion to how many times they were written\
+                       @change=${ele._opBoundsHandler}></checkbox-sk></td>
+        </tr>
+        <tr>
+          <td><checkbox-sk label="Light/Dark"
+               title="Show transparency backrounds as light or dark"
+                       @change=${ele._lightDarkHandler}></checkbox-sk></td>
+          <td><checkbox-sk label="Display Overdraw Viz"
+               title="Shades pixels redder in proportion to how many times they were written\
  to in the current frame."
-                     @change=${ele._overdrawHandler}></checkbox-sk>
-      </div>
+                       @change=${ele._overdrawHandler}></checkbox-sk></td>
+        </tr>
+      </table>
       <details ?open=${ele._showOpBounds}>
         <summary><b> GPU Op Bounds Legend</b></summary>
         <p style="width: 200px">GPU op bounds are rectangles with a 1 pixel wide stroke. This may\
@@ -170,15 +172,21 @@ export class DebuggerPageSk extends ElementSk {
         <checkbox-sk label="Show Origin"
                      title="Show the origin of the coordinate space defined by the current matrix."
                      id=origin @change=${ele._originHandler}></checkbox-sk>
-        <h3>Clip</h3>
-        <table>
-          <tr><td>${ ele._info.ClipRect[0] }</td><td>${ ele._info.ClipRect[1] }</td></tr>
-          <tr><td>${ ele._info.ClipRect[2] }</td><td>${ ele._info.ClipRect[3] }</td></tr>
-        </table>
-        <h3>Matrix</h3>
-        <table>
-          ${ele._matrixTable(ele._info.ViewMatrix)}
-        </table>
+        <div class="horizontal-flex">
+          <div class="matrixClipBox">
+            <h3 class="compact">Clip</h3>
+            <table>
+              <tr><td>${ ele._info.ClipRect[0] }</td><td>${ ele._info.ClipRect[1] }</td></tr>
+              <tr><td>${ ele._info.ClipRect[2] }</td><td>${ ele._info.ClipRect[3] }</td></tr>
+            </table>
+          </div>
+          <div class="matrixClipBox">
+            <h3 class="compact">Matrix</h3>
+            <table>
+              ${ele._matrixTable(ele._info.ViewMatrix)}
+            </table>
+          </div>
+        </div>
     </div>`;
 
   private _skiaVersion: string = 'a url of some kind';
@@ -192,6 +200,7 @@ export class DebuggerPageSk extends ElementSk {
   private _surface: SkSurface | null = null;
 
   // submodules are null until first template render
+  private _androidLayersSk: AndroidLayersSk | null = null;
   private _debugViewSk: DebugViewSk | null = null;
   private _commandsSk: CommandsSk | null = null;
   private _timelineSk: TimelineSk | null = null;
@@ -203,6 +212,8 @@ export class DebuggerPageSk extends ElementSk {
   private _drawToEnd: boolean = false;
   // the index of the last command to alter the pixel under the crosshair
   private _pointCommandIndex = 0;
+  // A flag that's set when viewing layers to prevent invalid frame moving.
+  private _supressMove = false;
 
   // The matrix and clip retrieved from the last draw
   private _info: MatrixClipInfo = {
@@ -239,6 +250,7 @@ export class DebuggerPageSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    this._androidLayersSk = this.querySelector<AndroidLayersSk>('android-layers-sk')!;
     this._debugViewSk = this.querySelector<DebugViewSk>('debug-view-sk')!;
     this._commandsSk = this.querySelector<CommandsSk>('commands-sk')!;
     this._timelineSk = this.querySelector<TimelineSk>('timeline-sk')!;
@@ -255,18 +267,22 @@ export class DebuggerPageSk extends ElementSk {
       }
     });
 
-    this._timelineSk.querySelector<PlaySk>('play-sk')!.addEventListener(
+    this._timelineSk.playsk.addEventListener(
       'mode-changed-manually', (e) => {
       const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
-      if (mode === 'pause') {
+      if (!this._supressMove && mode === 'pause') {
         this._setCommands();
-        this._updateJumpButton(this._zoom!.point);
       }
     });
 
     this._timelineSk.addEventListener('move-frame', (e) => {
       const frame = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
       this._moveFrameTo(frame);
+    });
+
+    this._androidLayersSk.addEventListener('inspect-layer', (e) => {
+      const detail = (e as CustomEvent<AndroidLayersSkInspectLayerEventDetail>).detail;
+      this._inspectLayer(detail.id, detail.frame);
     });
 
     document.addEventListener('keydown', this._keyDownHandler.bind(this),
@@ -365,6 +381,8 @@ export class DebuggerPageSk extends ElementSk {
     // Pull the command list for the first frame.
     // triggers render
     this._setCommands();
+    this._androidLayersSk!.update(this._commandsSk!.layerInfo,
+      this._fileContext!.player.getLayerSummariesJs(), 0);
   }
 
   // Create a new drawing surface. this should be called when
@@ -397,17 +415,23 @@ export class DebuggerPageSk extends ElementSk {
     this._zoom!.source = canvas;
   }
 
+  // Moves the player to a frame and updates dependent elements
+  // Note that if you want to move the frame for the whole app, just as if a user did it,
+  // this is not the function you're looking for, instead set this._timelineSk.item
   private _moveFrameTo(n: number) {
     // Clear the surface back to transparent.
     this._surface!.clear(0);
     this._fileContext!.player.changeFrame(n);
     // If the frame moved and the state is paused, also update the command list
     const mode = this._timelineSk!.querySelector<PlaySk>('play-sk')!.mode;
-    if (mode === 'pause') {
+    if (!this._supressMove && mode === 'pause') {
       this._setCommands();
+      this._androidLayersSk!.update(this._commandsSk!.layerInfo,
+        this._fileContext!.player.getLayerSummariesJs(), 0);
     } else {
       this._updateDebuggerView();
     }
+    this._timelineSk!.playsk.movedTo(n);
   }
 
   // Fetch the list of commands for the frame or layer the debugger is currently showing
@@ -423,9 +447,13 @@ export class DebuggerPageSk extends ElementSk {
   }
 
   private _jumpToCommand(i: number) {
-    // TODO(nifong): less brittle method of jumping to command by it's unfiltered index.
-    const opDiv = this._commandsSk!.querySelector<HTMLElement>('#op-'+i)!;
-    opDiv.querySelector<HTMLElement>('summary').click();
+    // listened to by commands-sk
+    this.dispatchEvent(
+      new CustomEvent<CommandsSkJumpEventDetail>(
+        'jump-command', {
+          detail: {unfilteredIndex: i},
+          bubbles: true,
+        }));
   }
 
   // Asks the wasm module to draw to the provided surface.
@@ -565,6 +593,21 @@ export class DebuggerPageSk extends ElementSk {
         return;
     }
     e.stopPropagation();
+  }
+
+  private _inspectLayer(layerId: number, frame: number) {
+    // This method is called any time one of the Inspector/Exit buttons is pressed.
+    // if the the button was on the layer already being inspected, it says "exit"
+    // and -1 is passed to layerId
+    // TODO(nifong): Either disable the timeline or make it have some kind of layer-aware
+    // mode that would jump between updates. At the moment if you move the frame while viewing
+    // a layer, you'll bork the app.
+    this._supressMove = true;
+    this._timelineSk!.item = frame;
+    this._supressMove = false;
+    this._fileContext!.player.setInspectedLayer(layerId);
+    this._replaceSurface();
+    this._setCommands();
   }
 };
 

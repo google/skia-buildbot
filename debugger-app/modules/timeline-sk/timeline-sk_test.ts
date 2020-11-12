@@ -22,7 +22,7 @@ describe('timeline-sk', () => {
       expect((await promise1).detail.frame).to.equal(0);
       // click play
       const promise2 = eventPromise<CustomEvent<TimelineSkMoveFrameEventDetail>>('move-frame', 100);
-      const pb = timelineSk.querySelector<HTMLElement>('#play-button')!;
+      const pb = timelineSk.querySelector<HTMLElement>('#play-button-v')!;
       pb.click();
       expect((await promise2).detail.frame).to.equal(1);
       // click pause
