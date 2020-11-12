@@ -1032,7 +1032,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 			for chunk := range chunkChannel {
 				if err := s.readTracesChunk(ctx, beginCommit, endCommit, chunk, &mutex, traceNameMap, &ret); err != nil {
-					return err
+					return skerr.Wrap(err)
 				}
 			}
 			return nil
