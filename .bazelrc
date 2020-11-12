@@ -61,3 +61,6 @@ build:remote --remote_timeout=3600
 # default. You can use --google_credentials=some_file.json to use a service
 # account credential instead.
 build:remote --google_default_credentials=true
+
+# Use this project's RBE instance.
+build:remote --remote_instance_name projects/skia-public/instances/default_instance
