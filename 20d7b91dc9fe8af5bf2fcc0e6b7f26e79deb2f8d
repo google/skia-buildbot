@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e620da5_c6659811",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1034,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T19:02:49Z",
+      "side": 1,
+      "message": "If you find yourself needing to pass a mutex, perhaps consider using a https://golang.org/pkg/sync/#Map",
+      "range": {
+        "startLine": 1034,
+        "startChar": 69,
+        "endLine": 1034,
+        "endChar": 74
+      },
+      "revId": "20d7b91dc9fe8af5bf2fcc0e6b7f26e79deb2f8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d3666d57_11423cf1",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T19:02:49Z",
+      "side": 1,
+      "message": "skerr.Wrap(err)",
+      "range": {
+        "startLine": 1035,
+        "startChar": 12,
+        "endLine": 1035,
+        "endChar": 15
+      },
+      "revId": "20d7b91dc9fe8af5bf2fcc0e6b7f26e79deb2f8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8342b5ec_dc9a0163",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T19:02:49Z",
+      "side": 1,
+      "message": "Intentional comma?",
+      "range": {
+        "startLine": 1098,
+        "startChar": 22,
+        "endLine": 1098,
+        "endChar": 23
+      },
+      "revId": "20d7b91dc9fe8af5bf2fcc0e6b7f26e79deb2f8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
