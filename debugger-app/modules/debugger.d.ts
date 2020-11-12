@@ -29,7 +29,7 @@ export interface SkpDebugPlayer {
   getImageInfo(index: number): SimpleImageInfo;
   getLayerSummariesJs(): LayerSummary[];
   getSize(): number;
-  imageUseInfoForFrame(frame: number): string;
+  imageUseInfoForFrameJs(frame: number): ImageUseMap;
   jsonCommandList(surface: SkSurface): string;
   lastCommandInfo(): string;
   loadSkp(ptr: number, len: number): string;
@@ -48,7 +48,10 @@ export interface SkSurface {
   clear(color: Color): void;
 };
 export interface SimpleImageInfo {
-
+  width: number,
+  height: number,
+  colorType: number,
+  alphaType: number,
 };
 export interface SkIRect {
   fLeft: number;
@@ -56,9 +59,7 @@ export interface SkIRect {
   fRight: number;
   fBottom: number;
 }
-export interface Color {
-
-};
+export type Color = number;
 export type Matrix3x3 = [
   [number, number, number],
   [number, number, number],
@@ -107,3 +108,6 @@ export interface LayerSummary {
   layerWidth: number,
   layerHeight: number
 }
+// return type of imageUseInfoForFrame
+// Keys are image ids, values are lists of command indices
+export type ImageUseMap = Map<string, number[]>
