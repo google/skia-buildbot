@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "875b8652_982261fd",
+        "filename": "go/cas/rbe/rbe.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-12T11:33:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0dcc06c_cfe007a5",
+      "range": {
+        "startLine": 78,
+        "startChar": 20,
+        "endLine": 78,
+        "endChar": 28
+      },
+      "revId": "aeccb8dc9aeb07d96daf2e493025b5412d86c72b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "814ce8dd_9f561742",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-11T19:24:00Z",
       "side": 1,
       "message": "Are we guaranteed that these will be the same length? Unclear if defaults may be omitted etc.  I\u0027m guessing they\u0027re probably the same, but want to be sure, otherwise we could index out of range, or incorrectly think things are equal.",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 115,
+        "endChar": 3
+      },
+      "revId": "aeccb8dc9aeb07d96daf2e493025b5412d86c72b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0fb72b6a_4be0a63f",
+        "filename": "go/cas/rbe/rbe.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-12T11:33:55Z",
+      "side": 1,
+      "message": "There\u0027s a check on line 97.  It\u0027s done there as a shortcut to avoid the cost of creating and sorting the new slices in the case where they are different lengths.",
+      "parentUuid": "814ce8dd_9f561742",
       "range": {
         "startLine": 110,
         "startChar": 2,
