@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "38770fd1_185ce219",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad5ce483_22a9ae5b",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 5
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d14eb512_28ac592d",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-11-10T18:28:32Z",
       "side": 1,
       "message": "Nit: consider a name like \"layerSummary\" or maybe just \"summary\" for better readability.",
+      "range": {
+        "startLine": 19,
+        "startChar": 2,
+        "endLine": 19,
+        "endChar": 3
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b8f288a_000e1005",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d14eb512_28ac592d",
       "range": {
         "startLine": 19,
         "startChar": 2,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "243dbafe_53de7b4c",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e16e89e2_6e32b607",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 12
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "aa04b7ac_8a0540d4",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-11-10T18:28:32Z",
       "side": 1,
       "message": "Delete or add some tests?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 33
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "310540a6_b4d240f2",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa04b7ac_8a0540d4",
       "range": {
         "startLine": 9,
         "startChar": 0,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c811244_6609b263",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8069a369_7b9b2075",
+      "range": {
+        "startLine": 103,
+        "startChar": 2,
+        "endLine": 103,
+        "endChar": 10
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "90c6371e_cadef7a1",
@@ -156,6 +276,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e0c85eec_7af2a089",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90c6371e_cadef7a1",
+      "range": {
+        "startLine": 265,
+        "startChar": 17,
+        "endLine": 265,
+        "endChar": 18
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "89ef908f_aed2d448",
@@ -169,6 +313,30 @@
       "writtenOn": "2020-11-10T18:28:32Z",
       "side": 1,
       "message": "Suggestion: Since this element is essentially a \u003cbutton\u003e, I suggest using the same conventions as a regular \u003cbutton\u003e, namely emitting a \"click\" event, but with the item number in the event details.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 55
+      },
+      "revId": "de9a805e19b73bb6291df9a96bfdbc6ae0b92b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "faf59ed9_fabae1db",
+        "filename": "debugger-app/modules/cycler-button-sk/cycler-button-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-12T19:08:33Z",
+      "side": 1,
+      "message": "neat idea but I\u0027m going to have to play my \"it\u0027s optional\" card on this one.",
+      "parentUuid": "89ef908f_aed2d448",
       "range": {
         "startLine": 21,
         "startChar": 0,
