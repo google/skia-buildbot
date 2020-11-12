@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f2abef7b_7be585f0",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 775,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T12:57:35Z",
+      "side": 1,
+      "message": "suggestion: add a quick reminder here that 5 seconds is long enough ago that any replica can answer the query.",
+      "range": {
+        "startLine": 775,
+        "startChar": 39,
+        "endLine": 775,
+        "endChar": 41
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "112e97a1_85dac4c9",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T12:57:35Z",
+      "side": 1,
+      "message": "suggestion: call this ctx so it purposely shadows the outer context making it difficult to use \"the wrong context\" by accident.",
+      "range": {
+        "startLine": 823,
+        "startChar": 5,
+        "endLine": 823,
+        "endChar": 9
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "541c1aed_1d67d6c0",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 883,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T12:57:35Z",
+      "side": 1,
+      "message": "suggestion: include the sql in the error here for debugging purposes.",
+      "range": {
+        "startLine": 883,
+        "startChar": 20,
+        "endLine": 883,
+        "endChar": 23
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf22f529_a4ec250d",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 893,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T12:57:35Z",
+      "side": 1,
+      "message": "I believe \u003d nil is redundant and inconsistent with the other var declarations around here.",
+      "range": {
+        "startLine": 893,
+        "startChar": 27,
+        "endLine": 893,
+        "endChar": 32
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7a9791e_f58c26ac",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 929,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-12T12:57:35Z",
+      "side": 1,
+      "message": "Would you want to return skerr.Wrap(err) instead of just logging the wrapped version?",
+      "range": {
+        "startLine": 929,
+        "startChar": 9,
+        "endLine": 929,
+        "endChar": 12
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
