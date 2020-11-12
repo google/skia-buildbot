@@ -5,6 +5,12 @@
   "commitMsg": {
     "bugProject": "chromium",
     "childLogURLTmpl": "https://dawn.googlesource.com/tint.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chromium.try:dawn-linux-x64-deps-rel",
+      "luci.chromium.try:dawn-mac-x64-deps-rel",
+      "luci.chromium.try:dawn-win10-x64-deps-rel",
+      "luci.chromium.try:dawn-win10-x86-deps-rel"
+    ],
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true,
