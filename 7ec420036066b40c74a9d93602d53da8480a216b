@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "68592bf7_ca06b182",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 24
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T14:54:42Z",
+      "side": 1,
+      "message": "Changes landed on subsequent CL: https://skia-review.googlesource.com/c/buildbot/+/334200/10..11",
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f2abef7b_7be585f0",
@@ -14,6 +31,30 @@
       "writtenOn": "2020-11-12T12:57:35Z",
       "side": 1,
       "message": "suggestion: add a quick reminder here that 5 seconds is long enough ago that any replica can answer the query.",
+      "range": {
+        "startLine": 775,
+        "startChar": 39,
+        "endLine": 775,
+        "endChar": 41
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5b51aa6b_5a60b3f1",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 775,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T14:54:42Z",
+      "side": 1,
+      "message": "Instead I pulled out the statement as a const and added the comments to the const.",
+      "parentUuid": "f2abef7b_7be585f0",
       "range": {
         "startLine": 775,
         "startChar": 39,
@@ -47,6 +88,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "af7b9beb_b8b6ee51",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T14:54:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "112e97a1_85dac4c9",
+      "range": {
+        "startLine": 823,
+        "startChar": 5,
+        "endLine": 823,
+        "endChar": 9
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "541c1aed_1d67d6c0",
@@ -60,6 +125,30 @@
       "writtenOn": "2020-11-12T12:57:35Z",
       "side": 1,
       "message": "suggestion: include the sql in the error here for debugging purposes.",
+      "range": {
+        "startLine": 883,
+        "startChar": 20,
+        "endLine": 883,
+        "endChar": 23
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "278106e5_ffd3c9a8",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 883,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T14:54:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "541c1aed_1d67d6c0",
       "range": {
         "startLine": 883,
         "startChar": 20,
@@ -93,6 +182,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8368ab85_bf9a9e21",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 893,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T14:54:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf22f529_a4ec250d",
+      "range": {
+        "startLine": 893,
+        "startChar": 27,
+        "endLine": 893,
+        "endChar": 32
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d7a9791e_f58c26ac",
@@ -106,6 +219,30 @@
       "writtenOn": "2020-11-12T12:57:35Z",
       "side": 1,
       "message": "Would you want to return skerr.Wrap(err) instead of just logging the wrapped version?",
+      "range": {
+        "startLine": 929,
+        "startChar": 9,
+        "endLine": 929,
+        "endChar": 12
+      },
+      "revId": "7ec420036066b40c74a9d93602d53da8480a216b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "58be12a9_4a6e18a9",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 24
+      },
+      "lineNbr": 929,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T14:54:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7a9791e_f58c26ac",
       "range": {
         "startLine": 929,
         "startChar": 9,
