@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -82,8 +83,7 @@ func main() {
 		results.TryBotResponse{},
 	)
 
-	// TODO(jcgregorio) Switch to generator.AddMultipleUnions() once all the
-	// names are harmonized between backend and frontend.
+	// TODO(jcgregorio) Switch to generator.AddMultipleUnionToNamespace().
 	addMultipleUnions(generator, []unionAndName{
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},
@@ -96,6 +96,10 @@ func main() {
 		{types.AllStepDetections, "StepDetection"},
 		{results.AllRequestKind, "TryBotRequestKind"},
 	})
+
+	generator.AddUnionToNamespace(progress.AllStatus, "progress")
+	generator.AddToNamespace(progress.SerializedProgress{}, "progress")
+
 	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
 		return generator.Render(w)
 	})
