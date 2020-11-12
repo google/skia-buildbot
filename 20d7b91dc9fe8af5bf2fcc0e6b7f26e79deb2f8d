@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0abd4ba9_1925df7e",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1034,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T19:57:43Z",
+      "side": 1,
+      "message": "The mutex is actually protecting ret and traceNameMap, which sync.Map won\u0027t help with.",
+      "parentUuid": "3e620da5_c6659811",
+      "range": {
+        "startLine": 1034,
+        "startChar": 69,
+        "endLine": 1034,
+        "endChar": 74
+      },
+      "revId": "20d7b91dc9fe8af5bf2fcc0e6b7f26e79deb2f8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d3666d57_11423cf1",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bb37cdcc_1b0090aa",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1035,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T19:57:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d3666d57_11423cf1",
+      "range": {
+        "startLine": 1035,
+        "startChar": 12,
+        "endLine": 1035,
+        "endChar": 15
+      },
+      "revId": "20d7b91dc9fe8af5bf2fcc0e6b7f26e79deb2f8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8342b5ec_dc9a0163",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-11-12T19:02:49Z",
       "side": 1,
       "message": "Intentional comma?",
+      "range": {
+        "startLine": 1098,
+        "startChar": 22,
+        "endLine": 1098,
+        "endChar": 23
+      },
+      "revId": "20d7b91dc9fe8af5bf2fcc0e6b7f26e79deb2f8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d7a89c06_67195dea",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-12T19:57:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8342b5ec_dc9a0163",
       "range": {
         "startLine": 1098,
         "startChar": 22,
