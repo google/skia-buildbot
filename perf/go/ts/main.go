@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -81,6 +82,11 @@ func main() {
 		results.TryBotRequest{},
 		results.TryBotResponse{},
 	)
+	generator.AddMultipleUnionToNamespace("progress",
+		progress.AllStatus,
+	)
+	generator.AddMultipleToNamespace("progress",
+		progress.SerializedProgress{})
 
 	// TODO(jcgregorio) Switch to generator.AddMultipleUnions() once all the
 	// names are harmonized between backend and frontend.
