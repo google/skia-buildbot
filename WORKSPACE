@@ -7,7 +7,11 @@ workspace(
     },
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    "http_archive",
+    "http_file",
+)
 
 ##############################
 # Go rules and dependencies. #
@@ -2987,6 +2991,35 @@ rules_sass_dependencies()
 load("@io_bazel_rules_sass//:defs.bzl", "sass_repositories")
 sass_repositories()
 
+##################################
+# Docker rules and dependencies. #
+##################################
+
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "1698624e878b0607052ae6131aa216d45ebb63871ec497f26c67455b34119c80",
+    strip_prefix = "rules_docker-0.15.0",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.15.0/rules_docker-v0.15.0.tar.gz"],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+container_repositories()
+
+# This is required by the toolchain_container rule.
+load(
+    "@io_bazel_rules_docker//repositories:go_repositories.bzl",
+    container_go_deps = "go_deps",
+)
+container_go_deps()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+)
+
 ###########################
 # Remote Build Execution. #
 ###########################
@@ -3000,7 +3033,28 @@ http_archive(
         "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/3.7.0/bazel-toolchains-3.7.0.tar.gz",
     ],
 )
-
 load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
 
-rbe_autoconfig(name = "rbe_default")
+# Pulls the base container used to build the Skia Infrastructure custom RBE toolchain container.
+container_pull(
+    name = "rbe_ubuntu1604",
+    registry = "gcr.io",
+    repository = "cloud-marketplace/google/rbe-ubuntu16-04",
+    digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
+)
+
+# Downloads the Chrome GPG key necessary to install the Chrome .deb packages in our custom RBE
+# toolchain container.
+http_file(
+    name = "chrome_gpg",
+    downloaded_file_path = "chrome_gpg",
+    urls = ["https://dl-ssl.google.com/linux/linux_signing_key.pub"],
+)
+
+rbe_autoconfig(
+    name = "rbe_default",
+    base_container_digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
+    digest = "sha256:2fa481a11d7c5c7a457ee82232703e80afdccba4b76c4e8252806a30a86b0019",
+    registry = "gcr.io",
+    repository = "skia-public/rbe-container-skia-infra",
+)
