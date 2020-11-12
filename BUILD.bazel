@@ -6,6 +6,56 @@ gazelle(name = "gazelle")
 
 exports_files(["tsconfig.json"], visibility = ["//visibility:public"])
 
+############################################
+# Custom Remote Build Execution toolchain. #
+############################################
+
+load(
+    "@io_bazel_rules_docker//docker/toolchain_container:toolchain_container.bzl",
+    "toolchain_container",
+)
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+
+# Generates a custom toolchain container for Remote Build Execution which extends the default RBE
+# ubuntu16-04 container with any extra dependencies needed for Skia Infrastructure build targets.
+#
+# Reference:
+# https://cloud.google.com/remote-build-execution/docs/create-custom-toolchain#creating_a_custom_toolchain_container
+toolchain_container(
+    name = "rbe_container_skia_infra",
+    base = "@rbe_ubuntu1604//image",
+    packages = [
+        # Install Chrome and fonts to support major charsets.
+        #
+        # This is necessary for the karma_mocha_test rule to work, which runs web tests on a
+        # headless Chrome, and also for the bundled version of Chromium that Puppeteer installs to
+        # render fonts properly.
+        #
+        # Adapted from:
+        # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
+        "google-chrome-stable",
+        "fonts-ipafont-gothic",
+        "fonts-wqy-zenhei",
+        "fonts-thai-tlwg",
+        "fonts-kacst",
+        "fonts-freefont-ttf",
+    ],
+    additional_repos = [
+      "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main",
+    ],
+    keys = [
+      "@chrome_gpg//file",
+    ]
+)
+
+container_push(
+    name = "push_rbe_container_skia_infra",
+    image = ":rbe_container_skia_infra",
+    format = "Docker",
+    registry = "gcr.io",
+    repository = "skia-public/rbe-container-skia-infra",
+)
+
 ####################################################################################################
 # Support for "~"-prefixed Sass imports of elements-sk styles, e.g.:                               #
 #                                                                                                  #
