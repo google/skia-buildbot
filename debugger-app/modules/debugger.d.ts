@@ -27,9 +27,7 @@ export interface SkpDebugPlayer {
   getImageResource(index: number): string;
   getImageCount(): number;
   getImageInfo(index: number): SimpleImageInfo;
-  // This returns a built in emscripten binding of a std::vector<DebugLayerManager.LayerSummary>
-  // TODO(nifong) make debugger just return json here
-  //getLayerSummaries(): string;
+  getLayerSummariesJs(): LayerSummary[];
   getSize(): number;
   imageUseInfoForFrame(frame: number): string;
   jsonCommandList(surface: SkSurface): string;
@@ -100,3 +98,12 @@ export interface SkpJsonCommand {
 export interface SkpJsonCommandList {
   commands: SkpJsonCommand[],
 };
+// Info about layer events relevant to a particular layer and frame
+// struct from LayerManager.h
+export interface LayerSummary {
+  nodeId: number,
+  frameOfLastUpdate: number,
+  fullRedraw: boolean,
+  layerWidth: number,
+  layerHeight: number
+}

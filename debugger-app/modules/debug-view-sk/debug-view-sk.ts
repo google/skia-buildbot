@@ -47,10 +47,6 @@ export class DebugViewSk extends ElementSk {
   // the native width and height of the main canvas, before css is applied
   private _width: number = 400;
   private _height: number = 400;
-  // the size of the canvas in pixels after css is applied
-  // we need to know this because it's the coordinate space of mouse events.
-  private _visibleWidth = 400;
-  private _visibleHeight = 400;
   // the css class used to size the canvas.
   private _fitStyle: FitStyle = 'fit';
   private _backdropStyle = 'light-checkerboard';
@@ -88,7 +84,6 @@ export class DebugViewSk extends ElementSk {
   set fitStyle(fs: FitStyle) {
     this._fitStyle = fs;
     this._render();
-    this._visibleSize();
   }
 
   get canvas(): HTMLCanvasElement {
@@ -107,19 +102,20 @@ export class DebugViewSk extends ElementSk {
     return this.querySelector('canvas')!;
   }
 
-  private _visibleSize() {
+  private _mouseOffsetToCanvasPoint(e: MouseEvent): Point {
+    // seems like I can never do this late enough, so here we are,
+    // recompute visual size right before it's used. Surely the canvas
+    // won't change size in the next few microseconds right?
     const element = this.querySelector<HTMLCanvasElement>('#main-canvas')!;
     var strW = window.getComputedStyle(element, null).width;
     var strH = window.getComputedStyle(element, null).height;
     // Trim 'px' off the end of the style string and convert to a number.
-    this._visibleWidth = parseFloat(strW.substring(0, strW.length-2));
-    this._visibleHeight = parseFloat(strH.substring(0, strH.length-2));
-  }
+    const visibleWidth = parseFloat(strW.substring(0, strW.length-2));
+    const visibleHeight = parseFloat(strH.substring(0, strH.length-2));
 
-  private _mouseOffsetToCanvasPoint(e: MouseEvent): Point {
     return [
-      Math.round(e.offsetX / this._visibleWidth * this._width),
-      Math.round(e.offsetY / this._visibleHeight * this._height),
+      Math.round(e.offsetX / visibleWidth * this._width),
+      Math.round(e.offsetY / visibleHeight * this._height),
     ];
   }
 
@@ -148,10 +144,6 @@ export class DebugViewSk extends ElementSk {
   }
 
   private _canvasClicked(e: MouseEvent) {
-    // seems like I can never call this late enough, so here we are,
-    // recompute visual size right before it's used. Surely the canvas
-    // won't change size in the next few microseconds right?
-    this._visibleSize();
     if (e.offsetX < 0) { return; } // border
     const coords = this._mouseOffsetToCanvasPoint(e);
     if (this._crossHairActive) {

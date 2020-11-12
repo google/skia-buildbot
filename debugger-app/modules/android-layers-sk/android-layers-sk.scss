@@ -1,0 +1,15 @@
+android-layers-sk {
+  .androidlayerbox {
+    padding: 5px;
+    margin-bottom: 5px;
+    box-shadow: 5px 5px 18px grey;
+    background-color: #fff;
+  }
+  .layername {
+    color:#1f78b4;
+    font-size:16px;
+  }
+  .selected {
+    background-color: #b4d4f8;
+  }
+}

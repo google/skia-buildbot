@@ -60,7 +60,7 @@ export class PlaySk extends ElementSk {
 
   private static simpleTemplate = (ele: PlaySk) =>
     html`<video-library-icon-sk title="Play/Pause" @click=${ele._togglePlay}
-        id='play-button'></video-library-icon-sk>`;
+        id='play-button-v'></video-library-icon-sk>`;
 
   private _mode: PlayMode = 'pause';
   // current position in sequence
@@ -105,6 +105,7 @@ export class PlaySk extends ElementSk {
     if (m === 'play') {
       this._next();
     } else if (this._timeout) {
+      console.log('paused on '+this._item);
       window.clearTimeout(this._timeout);
     }
     this._render();

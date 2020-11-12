@@ -93,6 +93,26 @@ export interface CommandsSkHistogramEventDetail {
   included?: Set<string>;
 }
 
+// Information about layers collected by processCommands.
+// TODO(nifong): This could be collected in the C++ and returned from
+// getLayerSummaries and then commands-sk wouldn't have to be involved
+// with layer things at all.
+export interface LayerInfo {
+  // A Map from layer ids to command indices where they were drawn
+  // with a DrawImageRectLayer command. Includes only layer used this frame
+  uses: Map<number, number[]>;
+  // A map from layer ids to names that were provided in the render node annotations.
+  // This should be sufficient for it to always contain what we attempt to look up.
+  // Only valid for the duration of this frame.
+  names: Map<number, string>;
+}
+
+// Jumpting to a command by it's unfiltered index can be done by emitting
+// 'jump-command' with this event detail
+export interface CommandsSkJumpEventDetail {
+  unfilteredIndex: number;
+}
+
 // Colors to use for gpu op ids
 const COLORS = [
     "#1B9E77",
@@ -102,7 +122,18 @@ const COLORS = [
     "#66A61E",
     "#E6AB02",
     "#A6761D",
-    "#666666"
+    "#666666",
+    "#09c5d2",
+    "#064f77",
+    "#3a4ce4",
+    "#d256f0",
+    "#feb4c7",
+    "#fa3029",
+    "#ff6821",
+    "#a8ff21",
+    "#a5cf80",
+    "#36d511",
+    "#95f19c",
   ];
 // Commands that increase save/restore depth
 const INDENTERS: {[key: string]: PrefixItem} = {
@@ -132,12 +163,14 @@ export class CommandsSk extends ElementSk {
     html`<div class="op" id="op-${op.index}" @click=${
       (e: MouseEvent) => {ele._clickItem(e, filtpos)}}>
       <details>
-        <summary class=${ ele.position == op.index ? 'selected' : ''}>
-          <span class="index">${op.index}</span>
-          ${ op.prefixes.map((pre: PrefixItem) =>
-            CommandsSk.prefixItemTemplate(ele, pre)) }
-          <span>${ op.name }</span>
-          <code>${ op.details.shortDesc }</code>
+        <summary class="command-summary ${ ele.position == op.index ? 'selected' : ''}">
+          <div class="command-icons-group">
+            <span class="index">${op.index}</span>
+            ${ op.prefixes.map((pre: PrefixItem) =>
+              CommandsSk.prefixItemTemplate(ele, pre)) }
+          </div>
+          <div class="command-title">${ op.name }</div>
+          <code class="short-desc">${ op.details.shortDesc }</code>
           ${ op.range
             ? html`<button @click=${() => {ele.range = op.range!}}
         title="Range-filter the command list to this save/restore pair">Zoom</button>`
@@ -146,14 +179,16 @@ export class CommandsSk extends ElementSk {
           ${ op.imageIndex
             ? html`<button @click=${ele._jumpToImage(op.imageIndex)}
                 title="Show the image referenced by this command in the resource viewer"
-                >Show image</button>`
+                >Image</button>`
             : ''
           }
-          ${ (op.details.auditTrail && op.details.auditTrail.Ops)
-            ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
-                CommandsSk.gpuOpIdTemplate(ele, gpuOp) )
-            : ''
-          }
+          <div class="gpu-ops-group">
+            ${ (op.details.auditTrail && op.details.auditTrail.Ops)
+              ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
+                  CommandsSk.gpuOpIdTemplate(ele, gpuOp) )
+              : ''
+            }
+          </div>
         </summary>
         <div>
           <checkbox-sk title="Toggle command visibility" checked=${ op.visible }
@@ -168,14 +203,14 @@ export class CommandsSk extends ElementSk {
   private static prefixItemTemplate = (ele: CommandsSk, item: PrefixItem) =>
     html`${ ele._icon(item) }
       ${ item.count > 1
-        ? html`<span title="depth of indenting operation"
-          class=count>${ item.count }</span>`
+        ? html`<div title="depth of indenting operation"
+          class=count>${ item.count }</div>`
         : ''
       }`;
 
   private static gpuOpIdTemplate = (ele: CommandsSk, gpuOp: SkpJsonGpuOp) =>
     html`<span title="GPU Op ID - group of commands this was executed with on the GPU"
-            class=gpu-op-id style="background: ${ ele._gpuOpColor(gpuOp.OpsTaskID) }"
+            class="gpu-op-id" style="background: ${ ele._gpuOpColor(gpuOp.OpsTaskID) }"
       >${ gpuOp.OpsTaskID }</span>`;
 
   private static filterTemplate = (ele: CommandsSk) =>
@@ -212,6 +247,11 @@ Command types can also be filted by clicking on their names in the histogram"
   private _includedSet = new Set<string>();
   // Play bar submodule
   private _playSk: PlaySk | null = null;
+  // information about layers collected from commands
+  private _layerInfo: LayerInfo = {
+    uses: new Map<number, number[]>(),
+    names: new Map<number, string>(),
+  };
 
   // the command count with no filtering
   get count() {
@@ -220,6 +260,10 @@ Command types can also be filted by clicking on their names in the histogram"
   // the command count with all filters applied
   get countFiltered() {
     return this._filtered.length;
+  }
+
+  get layerInfo(): LayerInfo {
+    return this._layerInfo;
   }
 
   // set the current playback position in the list
@@ -277,37 +321,56 @@ Command types can also be filted by clicking on their names in the histogram"
     document.addEventListener('toggle-command-inclusion', (e) => {
       this._toggleName((e as CustomEvent<HistogramSkToggleEventDetail>).detail.name);
     });
+
+    // Jump to a command by it's unfiltered index.
+    document.addEventListener('jump-command', (e) => {
+      const i = (e as CustomEvent<CommandsSkJumpEventDetail>).detail.unfilteredIndex;
+      const filteredIndex = this._filtered.findIndex(e => e==i);
+      if (filteredIndex !== undefined) {
+        this.item = this._filtered.findIndex(e => e==i);
+      }
+    });
   }
 
   // _processCommands iterates over the commands to extract several things.
-  //  1. A depth at every command based on Save/Restore pairs.
-  //  2. A histogram showing how many times each type of command is used.
-  //  3. A map from layer node ids to the index of any layer use events in the
-  //     command list.
+  //  * A depth at every command based on Save/Restore pairs.
+  //  * A histogram showing how many times each type of command is used.
+  //  * A map from layer node ids to the index of any layer use events in the command list.
+  //  * The full set of command names that occur
   processCommands(cmd: SkpJsonCommandList) {
     const commands: Command[] = [];
     let depth = 0;
     const prefixes: PrefixItem[] = []; // A stack of indenting commands
-    const matchup: number[] = []; // Match up saves and restores, a stack of indices
-    // (not exhaustive)
-    const renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
-    // all available command types
+    // Match up saves and restores, a stack of indices
+    const matchup: number[] = [];
+    // All command types that occur in this frame
     this._available = new Set<string>();
-    for (let i = 0; i < cmd.commands.length; i++) {
-      const name = cmd.commands[i].command;
+    interface tally {
+      count_in_frame: number,
+      count_in_range_filter: number,
+    }
+
+    this._layerInfo.uses = new Map<number, number[]>();
+    this._layerInfo.names = new Map<number, string>();
+
+    // Finds things like "RenderNode(id=10, name='DecorView')"
+    const renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
+
+    cmd.commands.forEach((com, i) => {
+      const name = com.command;
       this._available.add(name.toLowerCase());
 
       const out: Command = {
         index: i,
         depth: depth,
-        details: cmd.commands[i], // unaltered object from json
+        details: com, // unaltered object from json
         name: name,
         prefixes: [],
         visible: true,
       };
 
-      if (cmd.commands[i].imageIndex) {
-        out.imageIndex = cmd.commands[i].imageIndex;
+      if (com.imageIndex) {
+        out.imageIndex = com.imageIndex;
       }
 
       if (name in INDENTERS) {
@@ -340,14 +403,32 @@ Command types can also be filted by clicking on their names in the histogram"
           prefixes.pop();
         }
         out.depth = depth;
+      } else if (name === 'DrawImageRectLayer') {
+        // A command indicating that a render node with an offscreen buffer (android only)
+        // was drawn as an image.
+        const node = com.layerNodeId!;
+        if (!this._layerInfo.uses.has(node)) {
+          this._layerInfo.uses.set(node, []);
+        }
+        this._layerInfo.uses.get(node)!.push(i);
+      } else if (name === 'DrawAnnotation') {
+        // DrawAnnotation is a bit of metadata added by the android view system.
+        // All render nodes have names, but not all of them are drawn with offscreen buffers
+        const annotationKey = com.key;
+        const found = com.key!.match(renderNodeRe);
+        if (found) {
+          // group 1 is the render node id
+          // group 2 is the name of the rendernode.
+          this._layerInfo.names.set(parseInt(found[1]), found[2]);
+        }
       }
-      // TODO(nifong): extract layer and image resource data
+      // TODO(nifong): extract image resource data
 
       // deep copy prefixes because we want a snapshot of the current list and counts
       out.prefixes = prefixes.map((p: PrefixItem) => this._copyPrefix(p));
 
       commands.push(out);
-    }
+    });
 
     this._cmd = commands;
     this.range = [0, this._cmd.length-1]; // this assignment also triggers render
@@ -482,8 +563,8 @@ Command types can also be filted by clicking on their names in the histogram"
               }));
             this._freeTextSearch(tokens);
             // TODO(nifong): need some visual feedback to let the user know
-            console.log(`Query interpreted as free text search becauuse ${token}
-doesn't appear to be a command name`);
+            console.log(`Query interpreted as free text search because ${token}\
+ doesn't appear to be a command name`);
             return;
           }
         }
