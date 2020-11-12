@@ -65,6 +65,7 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
+	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201111190908-172f2fcfc410 // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
@@ -80,7 +81,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/go-python/gpython v0.0.3
-	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -88,6 +88,7 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.2 // indirect
+	github.com/google/go-containerregistry v0.1.4 // indirect
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20201026145851-73411c8fa237
 	github.com/google/gofuzz v1.2.0 // indirect
