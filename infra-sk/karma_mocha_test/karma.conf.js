@@ -98,6 +98,10 @@ try {
       // https://superuser.com/questions/1094597/enable-user-namespaces-in-debian-kernel#1122977
       // https://github.com/karma-runner/karma-chrome-launcher/issues/158
       // https://github.com/angular/angular/pull/24906
+      if (fs.existsSync('/.dockerenv')) {
+        return false;
+      }
+
       try {
         const res = child_process.execSync('cat /proc/sys/kernel/unprivileged_userns_clone')
                         .toString()
@@ -324,7 +328,9 @@ try {
           const browser = process.env['DISPLAY'] ? 'Chrome' : 'ChromeHeadless';
           if (!supportChromeSandboxing()) {
             const launcher = 'CustomChromeWithoutSandbox';
-            conf.customLaunchers = {[launcher]: {base: browser, flags: ['--no-sandbox']}};
+            // These flags are needed to run Chrome from a Docker container, see
+            // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
+            conf.customLaunchers = {[launcher]: {base: browser, flags: ['--no-sandbox', '--disable-dev-shm-usage']}};
             conf.browsers.push(launcher);
           } else {
             conf.browsers.push(browser);
@@ -367,7 +373,16 @@ try {
     // configured above
     if (!conf.browsers || !conf.browsers.length) {
       console.warn('No browsers configured. Configuring Karma to use system Chrome.');
-      conf.browsers = [process.env['DISPLAY'] ? 'Chrome' : 'ChromeHeadless'];
+      const browser = process.env['DISPLAY'] ? 'Chrome' : 'ChromeHeadless';
+      if (!supportChromeSandboxing()) {
+        const launcher = 'CustomChromeWithoutSandbox';
+        // These flags are needed to run Chrome from a Docker container, see
+        // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
+        conf.customLaunchers = {[launcher]: {base: browser, flags: ['--no-sandbox', '--disable-dev-shm-usage']}};
+        conf.browsers = [launcher];
+      } else {
+        conf.browsers = [browser];
+      }
     }
   }
 
