@@ -158,6 +158,11 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		})
 	}
 	if err := g.Wait(); err != nil {
+		span.SetStatus(trace.Status{
+			Code:    trace.StatusCodeInternal,
+			Message: err.Error(),
+		})
+
 		return nil, fmt.Errorf("Failed while querying: %s", err)
 	}
 	traceSet, paramSet := traceSetBuilder.Build(ctx)
