@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78ab1be5_fc4d6fef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-13T20:49:52Z",
+      "side": 1,
+      "message": "Thanks! Just nits.",
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bfd1ac34_b532f774",
+        "filename": "debugger-app/modules/resources-sk/resources-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-13T20:49:52Z",
+      "side": 1,
+      "message": "Delete if unused.",
+      "range": {
+        "startLine": 4,
+        "startChar": 33,
+        "endLine": 10,
+        "endChar": 6
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d7c9c0ed_185fd645",
+        "filename": "debugger-app/modules/resources-sk/resources-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-13T20:49:52Z",
+      "side": 1,
+      "message": "No need to ignore newlines with a backslash; the browser will reflow the text contents of \u003cp\u003e elements ignoring any newlines.",
+      "range": {
+        "startLine": 30,
+        "startChar": 93,
+        "endLine": 30,
+        "endChar": 94
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5846cd4f_2cc482ad",
+        "filename": "debugger-app/modules/resources-sk/resources-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-13T20:49:52Z",
+      "side": 1,
+      "message": "Ubernit: Indentation, e.g.\n\n  private static template \u003d (ele: ResourcesSk) \u003d\u003e\n    html`\n      \u003cp\u003e...\u003c/p\u003e\n      \u003cdiv\u003e...\u003c/div\u003e\n      ...\n    `;",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 94
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "88dc1303_28712e8e",
+        "filename": "debugger-app/modules/resources-sk/resources-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-13T20:49:52Z",
+      "side": 1,
+      "message": "Nit: selectItem",
+      "range": {
+        "startLine": 122,
+        "startChar": 2,
+        "endLine": 122,
+        "endChar": 12
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "41e65d58_db5ca610",
+        "filename": "debugger-app/modules/resources-sk/resources-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-13T20:49:52Z",
+      "side": 1,
+      "message": "Please add tests or delete.",
+      "range": {
+        "startLine": 10,
+        "startChar": 27,
+        "endLine": 23,
+        "endChar": 3
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
