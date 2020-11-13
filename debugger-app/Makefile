@@ -49,3 +49,15 @@ build-frontend-ci: wasm_libs
 test-frontend-ci: wasm_libs
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+release: wasm_libs
+	npx webpack --mode=production
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-app
+	./build_release
+
+.PHONY: release_ci
+release_ci:
+	npm ci
+	npx webpack --mode=production
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
+	./build_docker_release
