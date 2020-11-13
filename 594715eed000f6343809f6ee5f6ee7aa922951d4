@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6f588912_927493f6",
+        "filename": "perf/go/progress/progress.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-13T16:45:43Z",
+      "side": 1,
+      "message": "LOL, I copied that right off the Perf UI. Also fixed in the format string that generated it to begin with.",
+      "parentUuid": "d1f099c5_b7fb1dac",
+      "range": {
+        "startLine": 15,
+        "startChar": 61,
+        "endLine": 15,
+        "endChar": 66
+      },
+      "revId": "594715eed000f6343809f6ee5f6ee7aa922951d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "51e717c8_f970f64c",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-13T13:10:14Z",
       "side": 1,
       "message": "Typo",
+      "range": {
+        "startLine": 15,
+        "startChar": 63,
+        "endLine": 15,
+        "endChar": 68
+      },
+      "revId": "594715eed000f6343809f6ee5f6ee7aa922951d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5723ef02_425e1d00",
+        "filename": "perf/go/progress/progress_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-13T16:45:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51e717c8_f970f64c",
       "range": {
         "startLine": 15,
         "startChar": 63,
