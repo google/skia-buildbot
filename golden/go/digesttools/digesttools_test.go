@@ -62,7 +62,7 @@ func TestClosestDigest(t *testing.T) {
 	// First test against a test that has positive digests.
 	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Positive)
 	require.NoError(t, err)
-	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
+	require.InDelta(t, 1.234, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
 	require.Equal(t, [4]int{5, 3, 4, 0}, c.MaxRGBA)
 
@@ -72,7 +72,7 @@ func TestClosestDigest(t *testing.T) {
 	// Now test against negative digests.
 	c, err = cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Negative)
 	require.NoError(t, err)
-	require.InDelta(t, 0.0558, float64(c.Diff), 0.01)
+	require.InDelta(t, 1.234, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestB, c.Digest)
 	require.Equal(t, [4]int{2, 7, 1, 3}, c.MaxRGBA)
 }
@@ -123,7 +123,7 @@ func TestClosestDigest_TestHasNoDigest_ReturnsNoDigestFound(t *testing.T) {
 
 	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Positive)
 	require.NoError(t, err)
-	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
+	require.InDelta(t, 1.234, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
 	require.Equal(t, [4]int{5, 3, 4, 0}, c.MaxRGBA)
 
@@ -154,14 +154,17 @@ func diffEIsClosest() map[types.Digest]*diff.DiffMetrics {
 		mockDigestE: {
 			PixelDiffPercent: 0.1,
 			MaxRGBADiffs:     [4]int{5, 3, 4, 0},
+			CombinedMetric:   1.234,
 		},
 		mockDigestA: {
 			PixelDiffPercent: 10,
 			MaxRGBADiffs:     [4]int{15, 13, 14, 10},
+			CombinedMetric:   2.345,
 		},
 		mockDigestB: {
 			PixelDiffPercent: 20,
 			MaxRGBADiffs:     [4]int{25, 23, 24, 20},
+			CombinedMetric:   3.456,
 		},
 	}
 }
@@ -172,14 +175,17 @@ func diffBIsClosest() map[types.Digest]*diff.DiffMetrics {
 		mockDigestE: {
 			PixelDiffPercent: 30,
 			MaxRGBADiffs:     [4]int{35, 33, 34, 30},
+			CombinedMetric:   2.345,
 		},
 		mockDigestA: {
 			PixelDiffPercent: 10,
 			MaxRGBADiffs:     [4]int{15, 13, 14, 10},
+			CombinedMetric:   3.456,
 		},
 		mockDigestB: {
 			PixelDiffPercent: .2,
 			MaxRGBADiffs:     [4]int{2, 7, 1, 3},
+			CombinedMetric:   1.234,
 		},
 	}
 }
