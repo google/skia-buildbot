@@ -5,7 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -100,5 +103,62 @@ func TestTime(t *testing.T) {
 		err = json.Unmarshal(b, &got)
 		require.NoError(t, err)
 		require.Equal(t, tc.in.UTC(), time.Time(got).UTC())
+	}
+}
+func TestMarshalStringMap_MatchesBuiltInImpl(t *testing.T) {
+	unittest.MediumTest(t)
+	input := map[string]string{}
+	testutils.MustReadJsonFile("mediumparams.json", &input)
+	actual := MarshalStringMap(input)
+	expected, err := json.Marshal(input)
+	require.NoError(t, err)
+	assert.Equal(t, string(expected), string(actual))
+}
+
+func BenchmarkMarshalStringMap_Small(b *testing.B) {
+	input := map[string]string{}
+	testutils.MustReadJsonFile("smallparams.json", &input)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b := MarshalStringMap(input)
+		if b[0] == 'N' {
+			panic("this is to keep the call from being optimized out")
+		}
+	}
+}
+
+func BenchmarkMarshalStringMap_Medium(b *testing.B) {
+	input := map[string]string{}
+	testutils.MustReadJsonFile("mediumparams.json", &input)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b := MarshalStringMap(input)
+		if b[0] == 'N' {
+			panic("this is to keep the call from being optimized out")
+		}
+	}
+}
+
+func BenchmarkBuiltInJSONDecode_Small(b *testing.B) {
+	input := map[string]string{}
+	testutils.MustReadJsonFile("smallparams.json", &input)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b, _ := json.Marshal(input)
+		if b[0] == 'N' {
+			panic("this is to keep the call from being optimized out")
+		}
+	}
+}
+
+func BenchmarkBuiltInJSONDecode_Medium(b *testing.B) {
+	input := map[string]string{}
+	testutils.MustReadJsonFile("mediumparams.json", &input)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b, _ := json.Marshal(input)
+		if b[0] == 'N' {
+			panic("this is to keep the call from being optimized out")
+		}
 	}
 }
