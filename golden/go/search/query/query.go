@@ -8,7 +8,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -16,9 +15,15 @@ import (
 const (
 	// SortAscending indicates that we want to sort in ascending order.
 	SortAscending = "asc"
-
 	// SortDescending indicates that we want to sort in descending order.
 	SortDescending = "desc"
+
+	// CombinedMetric corresponds to diff.DiffMetric.CombinedMetric
+	CombinedMetric = "combined"
+	// PercentMetric corresponds to diff.DiffMetric.PixelDiffPercent
+	PercentMetric = "percent"
+	// PixelMetric corresponds to diff.DiffMetric.NumDiffPixels
+	PixelMetric = "pixel"
 )
 
 // ParseSearch parses the request parameters from the URL query string or from the
@@ -49,7 +54,7 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.Offset = int32(validate.Int64FormValue(r, "offset", 0))
 	q.Offset = util.MaxInt32(q.Offset, 0)
 
-	validate.StrFormValue(r, "metric", &q.Metric, diff.GetDiffMetricIDs(), diff.CombinedMetric)
+	validate.StrFormValue(r, "metric", &q.Metric, []string{CombinedMetric, PercentMetric, PixelMetric}, CombinedMetric)
 	validate.StrFormValue(r, "sort", &q.Sort, []string{SortDescending, SortAscending}, SortDescending)
 
 	// Parse and validate the filter values.

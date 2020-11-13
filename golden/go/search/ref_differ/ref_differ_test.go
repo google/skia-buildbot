@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
@@ -16,6 +17,7 @@ import (
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -67,7 +69,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.CombinedMetric
+	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
 	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
@@ -77,22 +79,24 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	require.Equal(t, common.PositiveRef, input.ClosestRef)
-	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
-		common.PositiveRef: {
-			DiffMetrics:       makeDiffMetric(2),
-			Digest:            gammaPositiveDigest,
-			Status:            "positive",
-			ParamSet:          makeGammaParamSet(),
-			OccurrencesInTile: 93, // These are the arbitrary numbers from DigestCountsByTest
-		},
-		common.NegativeRef: {
-			DiffMetrics:       makeDiffMetric(9),
-			Digest:            betaNegativeDigest,
-			Status:            "negative",
-			ParamSet:          makeBetaParamSet(),
-			OccurrencesInTile: 8, // These are the arbitrary numbers from DigestCountsByTest
-		},
+	assert.Equal(t, common.PositiveRef, input.ClosestRef)
+	pos := frontend.SRDiffDigest{
+		Digest:            gammaPositiveDigest,
+		Status:            "positive",
+		ParamSet:          makeGammaParamSet(),
+		OccurrencesInTile: 93, // These are the arbitrary numbers from DigestCountsByTest
+	}
+	addDiffMetrics(&pos, makeDiffMetric(2))
+	neg := frontend.SRDiffDigest{
+		Digest:            betaNegativeDigest,
+		Status:            "negative",
+		ParamSet:          makeBetaParamSet(),
+		OccurrencesInTile: 8, // These are the arbitrary numbers from DigestCountsByTest
+	}
+	addDiffMetrics(&neg, makeDiffMetric(9))
+	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+		common.PositiveRef: &pos,
+		common.NegativeRef: &neg,
 	}, input.RefDiffs)
 }
 
@@ -144,7 +148,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.CombinedMetric
+	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
 	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
@@ -154,22 +158,24 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	err := rd.FillRefDiffs(context.Background(), &input, metric, matches, matchAll, types.ExcludeIgnoredTraces)
 
 	require.NoError(t, err)
-	require.Equal(t, common.PositiveRef, input.ClosestRef)
-	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
-		common.PositiveRef: {
-			DiffMetrics:       makeDiffMetric(2),
-			Digest:            gammaPositiveDigest,
-			Status:            "positive",
-			ParamSet:          makeGammaParamSet(),
-			OccurrencesInTile: 93, // These are the arbitrary numbers from DigestCountsByTest
-		},
-		common.NegativeRef: {
-			DiffMetrics:       makeDiffMetric(9),
-			Digest:            betaNegativeDigest,
-			Status:            "negative",
-			ParamSet:          makeBetaParamSet(),
-			OccurrencesInTile: 8, // These are the arbitrary numbers from DigestCountsByTest
-		},
+	assert.Equal(t, common.PositiveRef, input.ClosestRef)
+	pos := frontend.SRDiffDigest{
+		Digest:            gammaPositiveDigest,
+		Status:            "positive",
+		ParamSet:          makeGammaParamSet(),
+		OccurrencesInTile: 93, // These are the arbitrary numbers from DigestCountsByTest
+	}
+	addDiffMetrics(&pos, makeDiffMetric(2))
+	neg := frontend.SRDiffDigest{
+		Digest:            betaNegativeDigest,
+		Status:            "negative",
+		ParamSet:          makeBetaParamSet(),
+		OccurrencesInTile: 8, // These are the arbitrary numbers from DigestCountsByTest
+	}
+	addDiffMetrics(&neg, makeDiffMetric(9))
+	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+		common.PositiveRef: &pos,
+		common.NegativeRef: &neg,
 	}, input.RefDiffs)
 }
 
@@ -210,7 +216,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.CombinedMetric
+	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField}
 	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
@@ -245,7 +251,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.CombinedMetric
+	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField}
 	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
@@ -301,7 +307,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.CombinedMetric
+	metric := query.CombinedMetric
 	matches := []string{"arch", types.PrimaryKeyField} // Only Gamma has x86 in the "arch" values.
 	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
@@ -312,14 +318,15 @@ func TestGetRefDiffsMatches(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, common.PositiveRef, input.ClosestRef)
+	pos := frontend.SRDiffDigest{
+		Digest:            gammaPositiveDigest,
+		Status:            "positive",
+		ParamSet:          makeGammaParamSet(),
+		OccurrencesInTile: 93, // These are the arbitrary numbers from DigestCountsByTest
+	}
+	addDiffMetrics(&pos, makeDiffMetric(2))
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
-		common.PositiveRef: {
-			DiffMetrics:       makeDiffMetric(2),
-			Digest:            gammaPositiveDigest,
-			Status:            "positive",
-			ParamSet:          makeGammaParamSet(),
-			OccurrencesInTile: 93, // These are the arbitrary numbers from DigestCountsByTest
-		},
+		common.PositiveRef: &pos,
 		common.NegativeRef: nil,
 	}, input.RefDiffs)
 }
@@ -368,7 +375,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 
 	rd := New(es, mds, mis)
 
-	metric := diff.CombinedMetric
+	metric := query.CombinedMetric
 	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
@@ -381,14 +388,15 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, common.PositiveRef, input.ClosestRef)
+	pos := frontend.SRDiffDigest{
+		Digest:            alphaPositiveDigest,
+		Status:            "positive",
+		ParamSet:          makeAlphaParamSet(),
+		OccurrencesInTile: 117, // These are the arbitrary numbers from DigestCountsByTest
+	}
+	addDiffMetrics(&pos, makeDiffMetric(2))
 	require.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
-		common.PositiveRef: {
-			DiffMetrics:       makeDiffMetric(2),
-			Digest:            alphaPositiveDigest,
-			Status:            "positive",
-			ParamSet:          makeAlphaParamSet(),
-			OccurrencesInTile: 117, // These are the arbitrary numbers from DigestCountsByTest
-		},
+		common.PositiveRef: &pos,
 		common.NegativeRef: nil,
 	}, input.RefDiffs)
 }
@@ -415,12 +423,17 @@ func makeDiffMetric(n int) *diff.DiffMetrics {
 		PixelDiffPercent: float32(n) / 10.0,
 		MaxRGBADiffs:     [4]int{3 * n, 2 * n, n, n},
 		DimDiffer:        false,
-		Diffs: map[string]float32{
-			diff.CombinedMetric: float32(n),
-			"percent":           float32(n) / 10.0,
-			"pixel":             float32(n) * 100,
-		},
+		CombinedMetric:   float32(n),
 	}
+}
+
+func addDiffMetrics(s *frontend.SRDiffDigest, d *diff.DiffMetrics) {
+	s.CombinedMetric = d.CombinedMetric
+	s.PixelDiffPercent = d.PixelDiffPercent
+	s.MaxRGBADiffs = d.MaxRGBADiffs
+	s.DimDiffer = d.DimDiffer
+	s.NumDiffPixels = d.NumDiffPixels
+	s.QueryMetric = d.CombinedMetric
 }
 
 // makeAlphaParamSet returns the ParamSet for the alphaPositiveDigest

@@ -52,11 +52,7 @@ func TestNetDiffStoreIntegration(t *testing.T) {
 		NumDiffPixels:    5,
 		PixelDiffPercent: 0.0010146104,
 		MaxRGBADiffs:     [4]int{255, 255, 255, 0},
-		Diffs: map[string]float32{
-			"combined": 0.02964251,
-			"percent":  0.0010146104,
-			"pixel":    5,
-		},
+		CombinedMetric:   0.02964251,
 	}
 
 	// Start the server that wraps around the MemDiffStore.

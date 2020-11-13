@@ -92,9 +92,10 @@ func (i *Impl) ClosestDigest(ctx context.Context, test types.TestName, digest ty
 		return nil, skerr.Wrapf(err, "getting diffs for %s and %d comparisons", digest, len(selected))
 	} else {
 		for digest, dm := range diffMetrics {
-			if delta := diff.CombinedDiffMetric(dm, nil, nil); delta < ret.Diff {
+			// We warm based on CombinedMetric because that's the default setting.
+			if dm.CombinedMetric < ret.Diff {
 				ret.Digest = digest
-				ret.Diff = delta
+				ret.Diff = dm.CombinedMetric
 				ret.DiffPixels = dm.PixelDiffPercent
 				ret.MaxRGBA = dm.MaxRGBADiffs
 			}

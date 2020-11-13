@@ -725,9 +725,8 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 		// 3b) Compare each of the images to the given image, looking for the smallest combined
 		//     diff metric.
 		dm, diffImg := diff.PixelDiff(leftImg, rightImg)
-		cdm := diff.CombinedDiffMetric(dm, nil, nil)
-		if cdm < smallestCombined {
-			smallestCombined = cdm
+		if dm.CombinedMetric < smallestCombined {
+			smallestCombined = dm.CombinedMetric
 			closestDiffImg = diffImg
 			closestRightImg = db
 			closestRightDigest = d

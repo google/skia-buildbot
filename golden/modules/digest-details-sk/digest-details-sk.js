@@ -100,7 +100,7 @@ const detailsAndTriage = (ele) => {
   <div class=size_warning ?hidden=${!ele.right.dimDiffer}>Images differ in size!</div>
   <div class=metric>
     <span>Diff metric:</span>
-    <span>${ele.right.diffs.combined.toFixed(3)}</span>
+    <span>${ele.right.combinedMetric.toFixed(3)}</span>
   </div>
   <div class=metric>
     <span>Diff %:</span>

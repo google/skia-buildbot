@@ -59,11 +59,11 @@ export interface TraceGroup {
 }
 
 export interface SRDiffDigest {
-	numDiffPixels?: number;
-	pixelDiffPercent?: number;
-	maxRGBADiffs?: number[];
-	dimDiffer?: boolean;
-	diffs?: { [key: string]: number };
+	numDiffPixels: number;
+	combinedMetric: number;
+	pixelDiffPercent: number;
+	maxRGBADiffs: number[];
+	dimDiffer: boolean;
 	digest: Digest;
 	status: Label;
 	paramset: ParamSet;

@@ -61,19 +61,44 @@ func deltaOffset(n int) int {
 // DiffMetrics contains the diff information between two images.
 type DiffMetrics struct {
 	// NumDiffPixels is the absolute number of pixels that are different.
-	NumDiffPixels int `json:"numDiffPixels"`
+	NumDiffPixels int
+
+	// CombinedMetric is a value in [0, 10] that represents how large the diff is between two
+	// images. It is based off the MaxRGBADiffs and PixelDiffPercent.
+	CombinedMetric float32
 
 	// PixelDiffPercent is the percentage of pixels that are different.
-	PixelDiffPercent float32 `json:"pixelDiffPercent"`
+	PixelDiffPercent float32
 
 	// MaxRGBADiffs contains the maximum difference of each channel.
-	MaxRGBADiffs [4]int `json:"maxRGBADiffs"`
+	MaxRGBADiffs [4]int
 
 	// DimDiffer is true if the dimensions between the two images are different.
-	DimDiffer bool `json:"dimDiffer"`
+	DimDiffer bool
+}
 
-	// Diffs contains different diff metrics for the two images.
-	Diffs map[string]float32 `json:"diffs"`
+// ComputeDiffMetrics computes and returns the diff metrics between two given images.
+func ComputeDiffMetrics(leftImg *image.NRGBA, rightImg *image.NRGBA) *DiffMetrics {
+	defer metrics2.FuncTimer().Stop()
+	ret, _ := PixelDiff(leftImg, rightImg)
+	ret.CombinedMetric = CombinedDiffMetric(ret.MaxRGBADiffs, ret.PixelDiffPercent)
+	return ret
+}
+
+// CombinedDiffMetric returns a value in [0, 10] that represents how large
+// the diff is between two images. Implements the MetricFn signature.
+func CombinedDiffMetric(channelDiffs [4]int, pixelDiffPercent float32) float32 {
+	// Turn maxRGBA into a percent by taking the root mean square difference from
+	// [0, 0, 0, 0].
+	sum := 0.0
+	for _, c := range channelDiffs {
+		sum += float64(c) * float64(c)
+	}
+	normalizedRGBA := math.Sqrt(sum/float64(len(channelDiffs))) / 255.0
+	// We take the sqrt of (pixelDiffPercent * normalizedRGBA) to straighten out
+	// the curve, i.e. think about what a plot of x^2 would look like in the
+	// range [0, 1].
+	return float32(math.Sqrt(float64(pixelDiffPercent) * normalizedRGBA))
 }
 
 // DiffStore defines an interface for a type that retrieves, stores and

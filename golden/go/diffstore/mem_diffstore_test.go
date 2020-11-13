@@ -74,21 +74,13 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 		NumDiffPixels:    5,
 		PixelDiffPercent: 100,
 		MaxRGBADiffs:     [4]int{1, 1, 1, 1},
-		Diffs: map[string]float32{
-			"combined": 0.6262243,
-			"percent":  100,
-			"pixel":    5,
-		},
+		CombinedMetric:   0.6262243,
 	}
 	dm1_3 := &diff.DiffMetrics{
 		NumDiffPixels:    4,
 		PixelDiffPercent: 80,
 		MaxRGBADiffs:     [4]int{2, 0, 1, 2},
-		Diffs: map[string]float32{
-			"combined": 0.6859943,
-			"percent":  80,
-			"pixel":    4,
-		},
+		CombinedMetric:   0.6859943,
 	}
 
 	// Assume everything is a cache miss
@@ -142,11 +134,7 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 		NumDiffPixels:    5,
 		PixelDiffPercent: 0.0010146104,
 		MaxRGBADiffs:     [4]int{255, 255, 255, 0},
-		Diffs: map[string]float32{
-			"combined": 0.02964251,
-			"percent":  0.0010146104,
-			"pixel":    5,
-		},
+		CombinedMetric:   0.02964251,
 	}
 
 	diffStore, err := NewMemDiffStore(gcsClient, gcsImageBaseDir, 1, fsMetrics)
@@ -182,21 +170,13 @@ func TestMemDiffStoreGetPartialCacheMatch(t *testing.T) {
 		NumDiffPixels:    5,
 		PixelDiffPercent: 100,
 		MaxRGBADiffs:     [4]int{1, 1, 1, 1},
-		Diffs: map[string]float32{
-			"combined": 0.6262243,
-			"percent":  100,
-			"pixel":    5,
-		},
+		CombinedMetric:   0.6262243,
 	}
 	dm1_3 := &diff.DiffMetrics{
 		NumDiffPixels:    4,
 		PixelDiffPercent: 80,
 		MaxRGBADiffs:     [4]int{2, 0, 1, 2},
-		Diffs: map[string]float32{
-			"combined": 0.6859943,
-			"percent":  80,
-			"pixel":    4,
-		},
+		CombinedMetric:   0.6859943,
 	}
 
 	// One cache hit, one cache miss.
@@ -236,21 +216,13 @@ func TestMemDiffStoreGetIdentity(t *testing.T) {
 		NumDiffPixels:    5,
 		PixelDiffPercent: 100,
 		MaxRGBADiffs:     [4]int{1, 1, 1, 1},
-		Diffs: map[string]float32{
-			"combined": 0.6262243,
-			"percent":  100,
-			"pixel":    5,
-		},
+		CombinedMetric:   0.6262243,
 	}
 	dm1_3 := &diff.DiffMetrics{
 		NumDiffPixels:    4,
 		PixelDiffPercent: 80,
 		MaxRGBADiffs:     [4]int{2, 0, 1, 2},
-		Diffs: map[string]float32{
-			"combined": 0.6859943,
-			"percent":  80,
-			"pixel":    4,
-		},
+		CombinedMetric:   0.6859943,
 	}
 
 	// Assume everything is a cache hit
@@ -319,11 +291,7 @@ func TestMetricsStoreFlakiness(t *testing.T) {
 		NumDiffPixels:    5,
 		PixelDiffPercent: 100,
 		MaxRGBADiffs:     [4]int{1, 1, 1, 1},
-		Diffs: map[string]float32{
-			"combined": 0.6262243,
-			"percent":  100,
-			"pixel":    5,
-		},
+		CombinedMetric:   0.6262243,
 	}
 
 	// Assume we can't read or write to metricsstore

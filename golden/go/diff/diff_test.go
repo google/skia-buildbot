@@ -4,24 +4,17 @@ import (
 	"bytes"
 	"image"
 	"image/png"
-	"io"
 	"math"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/image/text"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
-)
-
-const (
-	TESTDATA_DIR = "testdata"
 )
 
 func TestDiffMetrics(t *testing.T) {
@@ -30,12 +23,14 @@ func TestDiffMetrics(t *testing.T) {
 	assertDiffs(t, "4029959456464745507", "16465366847175223174",
 		&DiffMetrics{
 			NumDiffPixels:    16,
+			CombinedMetric:   0.04604,
 			PixelDiffPercent: 0.0064,
 			MaxRGBADiffs:     [4]int{54, 100, 125, 0},
 			DimDiffer:        false})
 	assertDiffs(t, "5024150605949408692", "11069776588985027208",
 		&DiffMetrics{
 			NumDiffPixels:    2233,
+			CombinedMetric:   0.04185,
 			PixelDiffPercent: 0.8932,
 			MaxRGBADiffs:     [4]int{0, 0, 1, 0},
 			DimDiffer:        false})
@@ -43,6 +38,7 @@ func TestDiffMetrics(t *testing.T) {
 	assertDiffs(t, "5024150605949408692", "5024150605949408692",
 		&DiffMetrics{
 			NumDiffPixels:    0,
+			CombinedMetric:   0,
 			PixelDiffPercent: 0,
 			MaxRGBADiffs:     [4]int{0, 0, 0, 0},
 			DimDiffer:        false})
@@ -50,13 +46,15 @@ func TestDiffMetrics(t *testing.T) {
 	assertDiffs(t, "ffce5042b4ac4a57bd7c8657b557d495", "fffbcca7e8913ec45b88cc2c6a3a73ad",
 		&DiffMetrics{
 			NumDiffPixels:    571674,
-			PixelDiffPercent: 89.324066,
+			CombinedMetric:   8.79528,
+			PixelDiffPercent: 89.32407,
 			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        true})
 	// Assert with images that match in dimensions but where all pixels differ.
 	assertDiffs(t, "4029959456464745507", "4029959456464745507-inverted",
 		&DiffMetrics{
 			NumDiffPixels:    250000,
+			CombinedMetric:   9.30605,
 			PixelDiffPercent: 100.0,
 			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        false})
@@ -65,14 +63,16 @@ func TestDiffMetrics(t *testing.T) {
 	assertDiffs(t, "fffbcca7e8913ec45b88cc2c6a3a73ad", "fffbcca7e8913ec45b88cc2c6a3a73ad-rotated",
 		&DiffMetrics{
 			NumDiffPixels:    172466,
-			PixelDiffPercent: 74.8550347222,
+			CombinedMetric:   8.05148,
+			PixelDiffPercent: 74.85503,
 			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        true})
 	// Make sure the metric is symmetric.
 	assertDiffs(t, "fffbcca7e8913ec45b88cc2c6a3a73ad-rotated", "fffbcca7e8913ec45b88cc2c6a3a73ad",
 		&DiffMetrics{
 			NumDiffPixels:    172466,
-			PixelDiffPercent: 74.8550347222,
+			CombinedMetric:   8.05148,
+			PixelDiffPercent: 74.85503,
 			MaxRGBADiffs:     [4]int{255, 255, 255, 0},
 			DimDiffer:        true})
 
@@ -80,7 +80,8 @@ func TestDiffMetrics(t *testing.T) {
 	assertDiffs(t, "b716a12d5b98d04b15db1d9dd82c82ea", "df1591dde35907399734ea19feb76663",
 		&DiffMetrics{
 			NumDiffPixels:    8750,
-			PixelDiffPercent: 2.8483074,
+			CombinedMetric:   1.41919,
+			PixelDiffPercent: 2.84831,
 			MaxRGBADiffs:     [4]int{255, 2, 255, 0},
 			DimDiffer:        false})
 
@@ -88,7 +89,8 @@ func TestDiffMetrics(t *testing.T) {
 	assertDiffs(t, "df1591dde35907399734ea19feb76663", "df1591dde35907399734ea19feb76663-6-alpha-diff",
 		&DiffMetrics{
 			NumDiffPixels:    6,
-			PixelDiffPercent: 0.001953125,
+			CombinedMetric:   0.03,
+			PixelDiffPercent: 0.00195,
 			MaxRGBADiffs:     [4]int{0, 0, 0, 235},
 			DimDiffer:        false})
 }
@@ -163,17 +165,19 @@ func TestDiffImages(t *testing.T) {
 // assertDiffs asserts that the DiffMetrics reported by Diffing the two images
 // matches the expected DiffMetrics.
 func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) {
-	img1, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, d1+".png"))
-	if err != nil {
-		t.Fatal("Failed to open test file: ", err)
-	}
-	img2, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, d2+".png"))
-	if err != nil {
-		t.Fatal("Failed to open test file: ", err)
-	}
-
-	diffMetrics, _ := PixelDiff(img1, img2)
+	img1 := openNRGBAFromFile(t, d1+".png")
+	img2 := openNRGBAFromFile(t, d2+".png")
+	diffMetrics := ComputeDiffMetrics(img1, img2)
+	diffMetrics.PixelDiffPercent = roundToDecimalPlace(diffMetrics.PixelDiffPercent, 5)
+	diffMetrics.CombinedMetric = roundToDecimalPlace(diffMetrics.CombinedMetric, 5)
 	assert.Equal(t, expectedDiffMetrics, diffMetrics)
+}
+
+func roundToDecimalPlace(num float32, places int) float32 {
+	exp := math.Pow(10, float64(places))
+	scaledUp := float64(num) * exp
+	scaledUp = math.Round(scaledUp)
+	return float32(scaledUp / exp)
 }
 
 func TestDeltaOffset(t *testing.T) {
@@ -218,24 +222,9 @@ func TestDeltaOffset(t *testing.T) {
 
 func TestCombinedDiffMetric(t *testing.T) {
 	unittest.SmallTest(t)
-	dm := &DiffMetrics{
-		MaxRGBADiffs:     [4]int{255, 255, 255, 255},
-		PixelDiffPercent: 1.0,
-	}
-	assert.InDelta(t, 1.0, CombinedDiffMetric(dm, nil, nil), 0.000001)
-	dm = &DiffMetrics{
-		MaxRGBADiffs:     [4]int{255, 255, 255, 255},
-		PixelDiffPercent: 0.5,
-	}
-	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric(dm, nil, nil), 0.000001)
-}
-
-func loadBenchmarkImage(fileName string) image.Image {
-	img, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, fileName))
-	if err != nil {
-		sklog.Fatal("Failed to open test file: ", err)
-	}
-	return img
+	assert.InDelta(t, 10.0, CombinedDiffMetric([4]int{255, 255, 255, 255}, 100.0), 0.000001)
+	assert.InDelta(t, 1.0, CombinedDiffMetric([4]int{255, 255, 255, 255}, 1.0), 0.000001)
+	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric([4]int{255, 255, 255, 255}, 0.5), 0.000001)
 }
 
 func benchmarkDiff(b *testing.B, img1, img2 image.Image) {
@@ -252,30 +241,22 @@ const (
 )
 
 func BenchmarkDiffIdentical(b *testing.B) {
-	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img1))
+	benchmarkDiff(b, openNRGBAFromFile(b, img1), openNRGBAFromFile(b, img1))
 }
 
 func BenchmarkDiffSameSize(b *testing.B) {
-	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img2))
+	benchmarkDiff(b, openNRGBAFromFile(b, img1), openNRGBAFromFile(b, img2))
 }
 
 func BenchmarkDiffDifferentSize(b *testing.B) {
-	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img3))
+	benchmarkDiff(b, openNRGBAFromFile(b, img1), openNRGBAFromFile(b, img3))
 }
 
 // openNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
-func openNRGBAFromFile(fileName string) (*image.NRGBA, error) {
-	var img *image.NRGBA
-	err := util.WithReadFile(fileName, func(r io.Reader) error {
-		im, err := png.Decode(r)
-		if err != nil {
-			return err
-		}
-		img = GetNRGBA(im)
-		return nil
-	})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return img, nil
+func openNRGBAFromFile(t testing.TB, fileName string) *image.NRGBA {
+	b, err := testutils.ReadFileBytes(fileName)
+	require.NoError(t, err, "Failed to read test image %s", fileName)
+	im, err := png.Decode(bytes.NewReader(b))
+	require.NoError(t, err, "invalid png file %s", fileName)
+	return GetNRGBA(im)
 }
