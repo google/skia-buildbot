@@ -37,7 +37,7 @@ wasm_libs:
 	mkdir build
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
 	       --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
-	       sh -c "cp -r /tmp/* /OUT"
+	       sh -c "cp -r /tmp/debugger /OUT"
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 .PHONY: build-frontend-ci
@@ -49,3 +49,6 @@ build-frontend-ci: wasm_libs
 test-frontend-ci: wasm_libs
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+push: build-frontend-ci
+	pushk debugger-app
