@@ -86,11 +86,7 @@ export const typicalDetails = {
         0,
       ],
       dimDiffer: true,
-      diffs: {
-        combined: 9.306038,
-        percent: 99.99976,
-        pixel: 1689996,
-      },
+      combinedMetric: 9.306038,
       digest: 'ec3b8f27397d99581e06eaa46d6d5837',
       status: 'negative',
       paramset: {
@@ -119,11 +115,7 @@ export const typicalDetails = {
         0,
       ],
       dimDiffer: false,
-      diffs: {
-        combined: 0.082530275,
-        percent: 0.22284023,
-        pixel: 3766,
-      },
+      combinedMetric: 0.082530275,
       digest: '99c58c7002073346ff55f446d47d6311',
       status: 'positive',
       paramset: {
@@ -212,11 +204,7 @@ export const negativeOnly = {
         0,
       ],
       dimDiffer: true,
-      diffs: {
-        combined: 9.306038,
-        percent: 99.99976,
-        pixel: 1689996,
-      },
+      combinedMetric: 9.306038,
       digest: 'ec3b8f27397d99581e06eaa46d6d5837',
       status: 'negative',
       paramset: {
@@ -336,11 +324,7 @@ export const noTraces = {
         0,
       ],
       dimDiffer: true,
-      diffs: {
-        combined: 9.306038,
-        percent: 99.99976,
-        pixel: 1689996,
-      },
+      combinedMetric: 9.306038,
       digest: 'ec3b8f27397d99581e06eaa46d6d5837',
       status: 'negative',
       paramset: {
@@ -369,11 +353,7 @@ export const noTraces = {
         0,
       ],
       dimDiffer: false,
-      diffs: {
-        combined: 0.082530275,
-        percent: 0.22284023,
-        pixel: 3766,
-      },
+      combinedMetric: 0.082530275,
       digest: '99c58c7002073346ff55f446d47d6311',
       status: 'positive',
       paramset: {

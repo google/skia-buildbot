@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/comment/trace"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/tiling"
@@ -72,7 +71,26 @@ type SearchResult struct {
 // The primary digest is generally shown on the left in the frontend UI, and the data here
 // represents a digest on the right that the primary digest is being compared to.
 type SRDiffDigest struct {
-	*diff.DiffMetrics
+	// NumDiffPixels is the absolute number of pixels that are different.
+	NumDiffPixels int `json:"numDiffPixels"`
+
+	// CombinedMetric is a value in [0, 10] that represents how large the diff is between two
+	// images. It is based off the MaxRGBADiffs and PixelDiffPercent.
+	CombinedMetric float32 `json:"combinedMetric"`
+
+	// PixelDiffPercent is the percentage of pixels that are different.
+	PixelDiffPercent float32 `json:"pixelDiffPercent"`
+
+	// MaxRGBADiffs contains the maximum difference of each channel.
+	MaxRGBADiffs [4]int `json:"maxRGBADiffs"`
+
+	// One of CombinedMetric, PixelDiffPercent, or NumDiffPixels depending on the requested
+	// metric name (see query.go). Used internally in search.
+	QueryMetric float32 `json:"-"`
+
+	// DimDiffer is true if the dimensions between the two images are different.
+	DimDiffer bool `json:"dimDiffer"`
+
 	// Digest identifies which image we are comparing the primary digest to. Put another way, what
 	// is the image on the right side of the comparison.
 	Digest types.Digest `json:"digest"`
