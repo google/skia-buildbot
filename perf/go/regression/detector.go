@@ -379,7 +379,7 @@ func (p *regressionDetectionProcess) run() {
 		// on either side of the target commit.
 		df.FilterOut(tooMuchMissingData)
 		after := len(df.TraceSet)
-		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Detla: %d", before, after, before-after)
+		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Delta: %d", before, after, before-after)
 		sklog.Info(message)
 
 		k := p.request.Alert.K

@@ -275,6 +275,22 @@ export interface TryBotResponse {
 	paramset: ParamSet;
 }
 
+export namespace progress {
+	export interface Message {
+		key: string;
+		value: string;
+	}
+}
+
+export namespace progress {
+	export interface SerializedProgress {
+		status: progress.Status;
+		messages: (progress.Message | null)[] | null;
+		results?: any;
+		url: string;
+	}
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type ClusterAlgo = "kmeans" | "stepfit";
@@ -306,3 +322,5 @@ export type TryBotRequestKind = "trybot" | "commit";
 export type CL = string;
 
 export type Params = { [key: string]: string };
+
+export namespace progress { export type Status = "Running" | "Finished"; }
