@@ -86,8 +86,11 @@ func testUploadDownload(ctx context.Context, t *testing.T, client *Client, work 
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	work(wd)
-	digest, err := client.Upload(ctx, wd, []string{"."})
-	require.NoError(t, err)
+	is := &InputSpec{
+		Root:  wd,
+		Paths: []string{"."},
+	}
+	digest, err := client.Upload(ctx, is)
 	dest, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, dest)
@@ -161,7 +164,11 @@ func TestMerge(t *testing.T) {
 		require.NoError(t, err)
 		defer testutils.RemoveAll(t, wd)
 		work(wd)
-		digest, err := client.Upload(ctx, wd, []string{"."})
+		is := &InputSpec{
+			Root:  wd,
+			Paths: []string{"."},
+		}
+		digest, err := client.Upload(ctx, is)
 		require.NoError(t, err)
 		return digest, readTree(t, wd)
 	}

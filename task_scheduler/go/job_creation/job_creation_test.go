@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/cas/mocks"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/gerrit"
@@ -281,8 +282,9 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	require.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-
-	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", jc.taskCfgCache, jc.isolateCache, nil, mem_gcsclient.New("fake"), "testing")
+	cas := &mocks.CAS{}
+	cas.On("Close").Return(nil)
+	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, isolateClient, cas, "fake-rbe-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", jc.taskCfgCache, jc.isolateCache, nil, mem_gcsclient.New("fake"), "testing")
 	require.NoError(t, err)
 
 	jc.Start(ctx, false)
