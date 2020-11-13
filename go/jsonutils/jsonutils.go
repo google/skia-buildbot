@@ -3,6 +3,7 @@ package jsonutils
 import (
 	"bytes"
 	"encoding/json"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -38,4 +39,46 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	}
 	*t = Time(time.Unix(0, int64(timeN)*int64(time.Microsecond)).UTC())
 	return nil
+}
+
+func MarshalStringMap(m map[string]string) (data []byte) {
+	keyValues := make([]string, 0, len(m))
+	byteCount := 0
+	var buf bytes.Buffer
+	for k, v := range m {
+		buf.WriteRune('"')
+		buf.WriteString(k)
+		buf.WriteString(`":"`)
+		buf.WriteString(v)
+		buf.WriteRune('"')
+		keyValues = append(keyValues, buf.String())
+		byteCount += buf.Len()
+		buf.Reset()
+	}
+	// sort for determinism and to match the default impl
+	// We go with insertion sort unless there are a lot of values.
+	if len(keyValues) <= 50 {
+		for i := 0; i < len(keyValues); i++ {
+			for j := i; j > 0 && keyValues[j] < keyValues[j-1]; j-- {
+				keyValues[j], keyValues[j-1] = keyValues[j-1], keyValues[j]
+			}
+		}
+	} else {
+		sort.Strings(keyValues)
+	}
+
+	// Need to account for an open and closed curly brace, and n-1 commas
+	result := make([]byte, 2+byteCount+len(keyValues)-1)
+	result[0] = '{'
+	byteIdx := 1
+	for i := range keyValues {
+		if i != 0 {
+			result[byteIdx] = ','
+			byteIdx++
+		}
+		copy(result[byteIdx:], keyValues[i])
+		byteIdx += len(keyValues[i])
+	}
+	result[byteIdx] = '}'
+	return result
 }
