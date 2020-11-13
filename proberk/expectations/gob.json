@@ -33,6 +33,11 @@
     "clone_url": "https://skia.googlesource.com/external/github.com/BinomialLLC/basis_universal",
     "mirrored_from_url": "https://github.com/BinomialLLC/basis_universal.git"
   },
+  "external/github.com/google/brotli": {
+    "name": "external/github.com/google/brotli",
+    "clone_url": "https://skia.googlesource.com/external/github.com/google/brotli",
+    "mirrored_from_url": "https://github.com/google/brotli.git"
+  },
   "external/github.com/google/wuffs": {
     "name": "external/github.com/google/wuffs",
     "clone_url": "https://skia.googlesource.com/external/github.com/google/wuffs",
