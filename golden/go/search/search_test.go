@@ -71,7 +71,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -130,9 +130,15 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				ClosestRef: common.PositiveRef,
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 					common.PositiveRef: {
-						DiffMetrics: makeSmallDiffMetric(),
-						Digest:      data.AlphaPositiveDigest,
-						Status:      "positive",
+						// Small diff
+						NumDiffPixels:    8,
+						PixelDiffPercent: 0.02,
+						MaxRGBADiffs:     [4]int{0, 48, 12, 0},
+						DimDiffer:        false,
+						CombinedMetric:   0.0005,
+						QueryMetric:      0.0005,
+						Digest:           data.AlphaPositiveDigest,
+						Status:           "positive",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.CrosshatchDevice},
 							types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -142,9 +148,15 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						OccurrencesInTile: 2,
 					},
 					common.NegativeRef: {
-						DiffMetrics: makeBigDiffMetric(),
-						Digest:      data.AlphaNegativeDigest,
-						Status:      "negative",
+						// Big Diff
+						NumDiffPixels:    88812,
+						PixelDiffPercent: 98.68,
+						MaxRGBADiffs:     [4]int{102, 51, 13, 0},
+						DimDiffer:        true,
+						CombinedMetric:   4.7,
+						QueryMetric:      4.7,
+						Digest:           data.AlphaNegativeDigest,
+						Status:           "negative",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 							types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -190,9 +202,15 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				ClosestRef: common.PositiveRef,
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 					common.PositiveRef: {
-						DiffMetrics: makeBigDiffMetric(),
-						Digest:      data.BetaPositiveDigest,
-						Status:      "positive",
+						// Big Diff
+						NumDiffPixels:    88812,
+						PixelDiffPercent: 98.68,
+						MaxRGBADiffs:     [4]int{102, 51, 13, 0},
+						DimDiffer:        true,
+						CombinedMetric:   4.7,
+						QueryMetric:      4.7,
+						Digest:           data.BetaPositiveDigest,
+						Status:           "positive",
 						ParamSet: paramtools.ParamSet{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
@@ -237,7 +255,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 		Offset: 0,
 		Limit:  1,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -341,7 +359,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -367,7 +385,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 50,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -387,7 +405,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 50,
 		DiffMaxFilter: -1,
@@ -406,7 +424,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: 1,
@@ -425,7 +443,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.PercentMetric,
+		Metric:        query.PercentMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: 1,
@@ -444,7 +462,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.PixelMetric,
+		Metric:        query.PixelMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: 10,
@@ -463,7 +481,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.PixelMetric,
+		Metric:        query.PixelMetric,
 		RGBAMinFilter: 50,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: 10,
@@ -475,7 +493,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		OnlyIncludeDigestsProducedAtHead: true,
 		MustIncludeReferenceFilter:       true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -502,7 +520,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		OnlyIncludeDigestsProducedAtHead: true,
 		CommitBeginFilter:                data.MakeTestCommits()[1].Hash,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -522,7 +540,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		OnlyIncludeDigestsProducedAtHead: false,
 		CommitBeginFilter:                data.MakeTestCommits()[1].Hash,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -549,7 +567,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 		OnlyIncludeDigestsProducedAtHead: true,
 		CommitEndFilter:                  data.MakeTestCommits()[1].Hash,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -571,7 +589,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 			"blubber": {"nothing"},
 		},
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -646,7 +664,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 		IncludeNegativeDigests:           true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -835,7 +853,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:        diff.CombinedMetric,
+		Metric:        query.CombinedMetric,
 		RGBAMinFilter: 0,
 		RGBAMaxFilter: 255,
 		DiffMaxFilter: -1,
@@ -906,9 +924,15 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				ClosestRef: common.PositiveRef,
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 					common.PositiveRef: {
-						DiffMetrics: makeSmallDiffMetric(),
-						Digest:      data.BetaPositiveDigest,
-						Status:      "positive",
+						// Small diff
+						NumDiffPixels:    8,
+						PixelDiffPercent: 0.02,
+						MaxRGBADiffs:     [4]int{0, 48, 12, 0},
+						DimDiffer:        false,
+						CombinedMetric:   0.0005,
+						QueryMetric:      0.0005,
+						Digest:           data.BetaPositiveDigest,
+						Status:           "positive",
 						ParamSet: map[string][]string{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
@@ -1119,9 +1143,15 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 			RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
 				common.PositiveRef: nil,
 				common.NegativeRef: {
-					DiffMetrics: makeBigDiffMetric(),
-					Digest:      data.AlphaNegativeDigest,
-					Status:      "negative",
+					// Big Diff
+					NumDiffPixels:    88812,
+					PixelDiffPercent: 98.68,
+					MaxRGBADiffs:     [4]int{102, 51, 13, 0},
+					DimDiffer:        true,
+					CombinedMetric:   4.7,
+					QueryMetric:      4.7,
+					Digest:           data.AlphaNegativeDigest,
+					Status:           "negative",
 					ParamSet: map[string][]string{
 						"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 						types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -1206,9 +1236,15 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 	assert.Equal(t, testWeWantDetailsAbout, d.Result.Test)
 	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
-			DiffMetrics: makeSmallDiffMetric(),
-			Digest:      data.BetaPositiveDigest,
-			Status:      "positive",
+			// Small diff
+			NumDiffPixels:    8,
+			PixelDiffPercent: 0.02,
+			MaxRGBADiffs:     [4]int{0, 48, 12, 0},
+			DimDiffer:        false,
+			CombinedMetric:   0.0005,
+			QueryMetric:      0.0005,
+			Digest:           data.BetaPositiveDigest,
+			Status:           "positive",
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.BullheadDevice},
 				types.PrimaryKeyField: []string{string(data.BetaTest)},
@@ -1482,9 +1518,15 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 	}, result.Result.ParamSet)
 	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.NegativeRef: {
-			DiffMetrics: makeBigDiffMetric(),
-			Digest:      data.AlphaNegativeDigest,
-			Status:      expectations.Negative,
+			// Big Diff
+			NumDiffPixels:    88812,
+			PixelDiffPercent: 98.68,
+			MaxRGBADiffs:     [4]int{102, 51, 13, 0},
+			DimDiffer:        true,
+			CombinedMetric:   4.7,
+			QueryMetric:      4.7,
+			Digest:           data.AlphaNegativeDigest,
+			Status:           expectations.Negative,
 			ParamSet: paramtools.ParamSet{
 				"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -1524,9 +1566,14 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 			},
 		},
 		Right: &frontend.SRDiffDigest{
-			Digest:      rightDigest,
-			Status:      expectations.Positive,
-			DiffMetrics: makeSmallDiffMetric(),
+			Digest: rightDigest,
+			Status: expectations.Positive,
+			// Small diff
+			NumDiffPixels:    8,
+			PixelDiffPercent: 0.02,
+			MaxRGBADiffs:     [4]int{0, 48, 12, 0},
+			DimDiffer:        false,
+			CombinedMetric:   0.0005,
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: []string{string(data.AlphaTest)},
@@ -2368,11 +2415,7 @@ func makeSmallDiffMetric() *diff.DiffMetrics {
 		PixelDiffPercent: 0.02,
 		MaxRGBADiffs:     [4]int{0, 48, 12, 0},
 		DimDiffer:        false,
-		Diffs: map[string]float32{
-			diff.CombinedMetric: 0.0005,
-			"percent":           0.02,
-			"pixel":             8,
-		},
+		CombinedMetric:   0.0005,
 	}
 }
 
@@ -2382,11 +2425,7 @@ func makeBigDiffMetric() *diff.DiffMetrics {
 		PixelDiffPercent: 98.68,
 		MaxRGBADiffs:     [4]int{102, 51, 13, 0},
 		DimDiffer:        true,
-		Diffs: map[string]float32{
-			diff.CombinedMetric: 4.7,
-			"percent":           98.68,
-			"pixel":             88812,
-		},
+		CombinedMetric:   4.7,
 	}
 }
 
