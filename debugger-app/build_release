@@ -1,0 +1,15 @@
+#!/bin/bash
+APPNAME=debugger-app
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+${INSTALL} --mode=755 -T ./Dockerfile             ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/${APPNAME}/res/img
+${INSTALL} --mode=644    ./dist/*                 ${ROOT}/usr/local/share/${APPNAME}/
+}
+
+source ../bash/docker_build.sh
