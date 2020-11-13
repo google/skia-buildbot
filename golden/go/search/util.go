@@ -210,7 +210,7 @@ type srDigestSlice struct {
 
 // newSRDigestSlice creates a new instance of srDigestSlice that wraps around
 // a slice of result digests.
-func newSRDigestSlice(metric string, slice []*frontend.SearchResult) *srDigestSlice {
+func newSRDigestSlice(slice []*frontend.SearchResult) *srDigestSlice {
 	// Sort by increasing by diff metric. Not having a diff metric puts the item at the bottom
 	// of the list.
 	lessFn := func(i, j *frontend.SearchResult) bool {
@@ -224,8 +224,8 @@ func newSRDigestSlice(metric string, slice []*frontend.SearchResult) *srDigestSl
 		if j.ClosestRef == "" {
 			return true
 		}
-		iDiff := i.RefDiffs[i.ClosestRef].Diffs[metric]
-		jDiff := j.RefDiffs[j.ClosestRef].Diffs[metric]
+		iDiff := i.RefDiffs[i.ClosestRef].QueryMetric
+		jDiff := j.RefDiffs[j.ClosestRef].QueryMetric
 
 		// If they are the same then sort by digest to make the result stable.
 		if iDiff == jDiff {

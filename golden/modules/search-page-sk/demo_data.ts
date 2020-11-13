@@ -263,11 +263,7 @@ export const searchResponse: SearchResponse = {
               "pixelDiffPercent": 0.25010416,
               "maxRGBADiffs": [10, 10, 10, 0],
               "dimDiffer": false,
-              "diffs": {
-                  "combined": 0.0921628,
-                  "percent": 0.25010416,
-                  "pixel": 2401
-              },
+              "combinedMetric": 0.0921628,
               "digest": "5d8c80eda80e015d633a4125ab0232dc",
               "status": "positive",
               "paramset": {
@@ -341,11 +337,7 @@ export const searchResponse: SearchResponse = {
               "pixelDiffPercent": 0.110857144,
               "maxRGBADiffs": [33, 33, 33, 0],
               "dimDiffer": false,
-              "diffs": {
-                  "combined": 0.11146385,
-                  "percent": 0.110857144,
-                  "pixel": 3880
-              },
+              "combinedMetric": 0.11146385,
               "digest": "ed4a8cf9ea9fbb57bf1f302537e07572",
               "status": "untriaged",
               "paramset": {
@@ -419,11 +411,7 @@ export const searchResponse: SearchResponse = {
               "pixelDiffPercent": 0.110857144,
               "maxRGBADiffs": [33, 33, 33, 0],
               "dimDiffer": false,
-              "diffs": {
-                  "combined": 0.11146385,
-                  "percent": 0.110857144,
-                  "pixel": 3880
-              },
+              "combinedMetric": 0.11146385,
               "digest": "2fa58aa430e9c815755624ca6cca4a72",
               "status": "negative",
               "paramset": {
