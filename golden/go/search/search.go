@@ -285,7 +285,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	// We wrap the result in a slice so we can re-use the search functions.
 	results := []*frontend.SearchResult{&result}
 	addExpectations(results, exp)
-	err = s.getReferenceDiffs(ctx, results, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.IncludeIgnoredTraces, exp, idx)
+	err = s.getReferenceDiffs(ctx, results, query.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.IncludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}
@@ -636,6 +636,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 
 	history := s.makeTriageHistoryGetter(crs, clID)
 
+	d := diffResult[right]
 	return &frontend.DigestComparison{
 		Left: frontend.SearchResult{
 			Test:          test,
@@ -645,10 +646,14 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 			ParamSet:      psLeft,
 		},
 		Right: &frontend.SRDiffDigest{
-			Digest:      right,
-			Status:      exp.Classification(test, right),
-			ParamSet:    psRight,
-			DiffMetrics: diffResult[right],
+			Digest:           right,
+			Status:           exp.Classification(test, right),
+			ParamSet:         psRight,
+			NumDiffPixels:    d.NumDiffPixels,
+			CombinedMetric:   d.CombinedMetric,
+			PixelDiffPercent: d.PixelDiffPercent,
+			MaxRGBADiffs:     d.MaxRGBADiffs,
+			DimDiffer:        d.DimDiffer,
 		},
 	}, nil
 }
@@ -775,7 +780,7 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 		}
 
 		// Filter all digests where the diff is below the given threshold.
-		if filterDiffMax && (!ok || (ref.Diffs[q.Metric] > q.DiffMaxFilter)) {
+		if filterDiffMax && (!ok || (ref.QueryMetric > q.DiffMaxFilter)) {
 			continue
 		}
 
@@ -799,7 +804,7 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 		return []*frontend.SearchResult{}, 0
 	}
 
-	sortSlice := sort.Interface(newSRDigestSlice(q.Metric, digestInfo))
+	sortSlice := sort.Interface(newSRDigestSlice(digestInfo))
 	if q.Sort == query.SortDescending {
 		sortSlice = sort.Reverse(sortSlice)
 	}

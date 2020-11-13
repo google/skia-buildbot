@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -78,15 +79,27 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 			srdd.OccurrencesInTile = dCount[srdd.Digest]
 
 			// Find the minimum.
-			if srdd.DiffMetrics.Diffs[metric] < minDiff {
+			if srdd.QueryMetric < minDiff {
 				closest = ref
-				minDiff = srdd.DiffMetrics.Diffs[metric]
+				minDiff = srdd.QueryMetric
 			}
 		}
 	}
 	d.ClosestRef = closest
 	d.RefDiffs = ret
 	return nil
+}
+
+func getMetric(d *diff.DiffMetrics, metric string) float32 {
+	switch metric {
+	case query.CombinedMetric:
+		return d.CombinedMetric
+	case query.PercentMetric:
+		return d.PixelDiffPercent
+	case query.PixelMetric:
+		return float32(d.NumDiffPixels)
+	}
+	return d.CombinedMetric
 }
 
 // getDigestsWithLabel return all digests within the given test that
@@ -127,15 +140,20 @@ func (r *DiffImpl) getClosestDiff(ctx context.Context, metric string, digest typ
 	minDiff := float32(math.Inf(1))
 	minDigest := types.Digest("")
 	for resultDigest, diffMetrics := range diffs {
-		if diffMetrics.Diffs[metric] < minDiff {
-			minDiff = diffMetrics.Diffs[metric]
+		if m := getMetric(diffMetrics, metric); m < minDiff {
+			minDiff = m
 			minDigest = resultDigest
 		}
 	}
-
+	d := diffs[minDigest]
 	return &frontend.SRDiffDigest{
-		DiffMetrics: diffs[minDigest],
-		Digest:      minDigest,
+		NumDiffPixels:    d.NumDiffPixels,
+		CombinedMetric:   d.CombinedMetric,
+		PixelDiffPercent: d.PixelDiffPercent,
+		MaxRGBADiffs:     d.MaxRGBADiffs,
+		DimDiffer:        d.DimDiffer,
+		QueryMetric:      minDiff,
+		Digest:           minDigest,
 	}, nil
 }
 
