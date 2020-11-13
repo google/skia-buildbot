@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d1f099c5_b7fb1dac",
+        "filename": "perf/go/progress/progress.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-13T13:10:14Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 15,
+        "startChar": 61,
+        "endLine": 15,
+        "endChar": 66
+      },
+      "revId": "594715eed000f6343809f6ee5f6ee7aa922951d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "51e717c8_f970f64c",
+        "filename": "perf/go/progress/progress_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-13T13:10:14Z",
+      "side": 1,
+      "message": "Typo",
+      "range": {
+        "startLine": 15,
+        "startChar": 63,
+        "endLine": 15,
+        "endChar": 68
+      },
+      "revId": "594715eed000f6343809f6ee5f6ee7aa922951d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
