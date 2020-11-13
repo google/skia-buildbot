@@ -372,10 +372,37 @@ export class DebuggerPageSk extends ElementSk {
     reader.readAsArrayBuffer(file);
   }
 
+  // Finds the version number from the binary SKP or MSKP file format
+  // This is done in JS because to avoid any chance of SkpFilePlayer crashing on old
+  // versions and not reporting back with a version number.
+  // Overall it was just a lot simpler to do it here.
+  private _skpFileVersion(fileContents: ArrayBuffer): number {
+    const utf8decoder = new TextDecoder();
+    // only check up to 2000 bytes
+    // MSKP files have a variable sized header before the internal SKP with the version
+    // number we're looking for.
+    const head = new Uint8Array(fileContents).subarray(0, 2000);
+    function isMagicWord(element: number, index: number, array: Uint8Array) {
+      return utf8decoder.decode(array.subarray(index, index + 8)) === 'skiapict';
+    }
+    // Note that we want to locate the offset in a Uint8Array, not in a string that
+    // might interpret binary stuff before "skiapict" as multi-byte code points.
+    const magicOffset = head.findIndex(isMagicWord);
+    // The unint32 after the first occurance of "skiapict" is the SKP version
+    const version = new Uint32Array(head.subarray(magicOffset+8, magicOffset+12))[0];
+    return version;
+  }
+
   // Open an SKP or MSKP file. fileContents is expected to be an arraybuffer
   // with the file's contents
   private _openSkpFile(fileContents: ArrayBuffer) {
     if (!this._debugger) { return; }
+    const version = this._skpFileVersion(fileContents);
+    const minVersion = this._debugger.MinVersion();
+    if (version < minVersion) {
+      errorMessage(`File version (${version}) is older than this skia build's minimum\
+ supported version (${minVersion}). Debugger may crash if the file contains unreadable sections.`);
+    }
     // Create the instance of SkpDebugPlayer and load the file.
     // This function is provided by helper.js in the JS bundled with the wasm module.
     const playerResult = this._debugger.SkpFilePlayer(fileContents);
@@ -386,7 +413,7 @@ export class DebuggerPageSk extends ElementSk {
     const p = playerResult.player;
     this._fileContext = {
       player: p,
-      version: p.fileVersion(),
+      version: version,
       frameCount: p.getFrameCount(),
     };
     this._replaceSurface();

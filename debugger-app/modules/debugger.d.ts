@@ -9,6 +9,7 @@ export interface Debugger {
   SkpFilePlayer(ab: ArrayBuffer): SkpFilePlayerResult;
   MakeWebGLCanvasSurface(canvas: HTMLCanvasElement): SkSurface;
   MakeSWCanvasSurface(canvas: HTMLCanvasElement): SkSurface;
+  MinVersion(): number;
 };
 // An object containing either the successfully loaded file player or an error.
 export interface SkpFilePlayerResult {
@@ -20,7 +21,6 @@ export interface SkpDebugPlayer {
   deleteCommand(index: number): void;
   draw(surface: SkSurface): void;
   drawTo(surface: SkSurface, index: number): void;
-  fileVersion(): number;
   findCommandByPixel(surface: SkSurface, x: number, y: number, upperBound: number): number;
   getBounds(): SkIRect;
   getFrameCount(): number;
