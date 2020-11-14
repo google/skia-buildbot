@@ -56,7 +56,6 @@ func main() {
 		clustering2.ValuePercent{},
 		dataframe.FrameRequest{},
 		dataframe.FrameResponse{},
-		dryrun.DryRunStatus{},
 		dryrun.StartDryRunResponse{},
 		frontend.AlertUpdateResponse{},
 		frontend.ClusterStartResponse{},
