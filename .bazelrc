@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This .bazelrc file contains all of the flags required for the provided
-# toolchain with Remote Build Execution.
-# Note your WORKSPACE must contain an rbe_autoconfig target with
-# name="rbe_default" to use these flags as-is.
+common --workspace_status_command=bazel/get_workspace_status.sh
 
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
