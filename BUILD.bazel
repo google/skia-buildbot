@@ -45,7 +45,8 @@ toolchain_container(
     ],
     keys = [
       "@chrome_gpg//file",
-    ]
+    ],
+    stamp = True,
 )
 
 container_push(
@@ -54,6 +55,7 @@ container_push(
     format = "Docker",
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
+    tag = "{STABLE_DOCKER_TAG}"
 )
 
 ####################################################################################################
