@@ -85,39 +85,6 @@ export interface FrameResponse {
 	msg: string;
 }
 
-export interface Commit {
-	offset: CommitNumber;
-	hash: string;
-	ts: number;
-	author: string;
-	message: string;
-	url: string;
-}
-
-export interface TriageStatus {
-	status: Status;
-	message: string;
-}
-
-export interface Regression {
-	low: ClusterSummary | null;
-	high: ClusterSummary | null;
-	frame: FrameResponse | null;
-	low_status: TriageStatus;
-	high_status: TriageStatus;
-}
-
-export interface RegressionAtCommit {
-	cid: Commit;
-	regression: Regression | null;
-}
-
-export interface DryRunStatus {
-	finished: boolean;
-	message: string;
-	regressions: (RegressionAtCommit | null)[] | null;
-}
-
 export interface StartDryRunResponse {
 	id: string;
 }
@@ -174,6 +141,28 @@ export interface RegressionRangeRequest {
 	end: number;
 	subset: Subset;
 	alert_filter: string;
+}
+
+export interface Commit {
+	offset: CommitNumber;
+	hash: string;
+	ts: number;
+	author: string;
+	message: string;
+	url: string;
+}
+
+export interface TriageStatus {
+	status: Status;
+	message: string;
+}
+
+export interface Regression {
+	low: ClusterSummary | null;
+	high: ClusterSummary | null;
+	frame: FrameResponse | null;
+	low_status: TriageStatus;
+	high_status: TriageStatus;
 }
 
 export interface RegressionRow {
@@ -311,11 +300,11 @@ export type Trace = number[] | null;
 
 export type TraceSet = { [key: string]: Trace };
 
-export type Status = "" | "positive" | "negative" | "untriaged";
-
 export type ProcessState = "Running" | "Success" | "Error";
 
 export type Subset = "all" | "regressions" | "untriaged";
+
+export type Status = "" | "positive" | "negative" | "untriaged";
 
 export type TryBotRequestKind = "trybot" | "commit";
 
@@ -323,4 +312,4 @@ export type CL = string;
 
 export type Params = { [key: string]: string };
 
-export namespace progress { export type Status = "Running" | "Finished"; }
+export namespace progress { export type Status = "Running" | "Finished" | "Error"; }

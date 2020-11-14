@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/trybot/store"
 	"go.skia.org/infra/perf/go/types"
@@ -51,7 +52,7 @@ func (p sortableTryBotResults) Less(i, j int) bool { return p[i].StdDevRatio > p
 func (p sortableTryBotResults) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Load implements the results.Loader interface.
-func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
+func (l Loader) Load(ctx context.Context, request results.TryBotRequest, prog progress.Progress) (results.TryBotResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "dfloader.Load")
 	defer span.End()
 	timestamp := time.Now()
@@ -86,7 +87,7 @@ func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progres
 		// represents either the commit under inspection or a placeholder for the
 		// trybot value, which lets us avoid a second memory allocation, which we'd
 		// get if we had only queried for TraceHistorySize values.
-		df, err = l.dfb.NewNFromQuery(ctx, timestamp, q, TraceHistorySize+1, progress)
+		df, err = l.dfb.NewNFromQuery(ctx, timestamp, q, TraceHistorySize+1, prog)
 		if err != nil {
 			return results.TryBotResponse{}, skerr.Wrap(err)
 		}
@@ -101,7 +102,7 @@ func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progres
 			traceNames = append(traceNames, results.TraceName)
 		}
 		// Query for all traces that match up with the trybot results.
-		df, err = l.dfb.NewNFromKeys(ctx, timestamp, traceNames, TraceHistorySize+1, progress)
+		df, err = l.dfb.NewNFromKeys(ctx, timestamp, traceNames, TraceHistorySize+1, prog)
 		if err != nil {
 			return results.TryBotResponse{}, skerr.Wrap(err)
 		}

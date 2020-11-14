@@ -593,20 +593,14 @@ type frameStatus struct {
 func (f *Frontend) frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
-	state, message, percent, err := f.frameRequests.Status(id)
+	prog, err := f.frameRequests.Status(id)
 	if err != nil {
-		httputils.ReportError(w, err, message, http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Not found.", http.StatusInternalServerError)
 		return
 	}
 
-	resp := frameStatus{
-		State:   state,
-		Message: message,
-		Percent: percent,
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode response: %s %#v", err, resp)
+	if err := prog.JSON(w); err != nil {
+		sklog.Errorf("Failed to encode response: %s", err)
 	}
 }
 
@@ -716,7 +710,7 @@ type ClusterStartResponse struct {
 func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	req := &regression.RegressionDetectionRequest{}
+	req := regression.NewRequest()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return

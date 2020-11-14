@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfiter"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -95,6 +96,16 @@ type RegressionDetectionRequest struct {
 	// TotalQueries is the number of sub-queries to be processed based on the
 	// GroupBy setting in the Alert.
 	TotalQueries int `json:"total_queries"`
+
+	// The current state of the detection process.
+	Progress progress.Progress `json:"-"`
+}
+
+// NewRequest returns a new RegressionDetectionRequest.
+func NewRequest() *RegressionDetectionRequest {
+	return &RegressionDetectionRequest{
+		Progress: progress.New(),
+	}
 }
 
 // Id returns a unique identifier for the request.
@@ -116,6 +127,7 @@ type regressionDetectionProcess struct {
 	iter                      dfiter.DataFrameIterator
 	detectorResponseProcessor DetectorResponseProcessor
 	shortcutStore             shortcut.Store
+	prog                      progress.Progress
 	ctx                       context.Context
 
 	// mutex protects access to the remaining struct members.
@@ -159,6 +171,7 @@ func (d *detector) newRunningProcess(
 	ctx context.Context,
 	req *RegressionDetectionRequest,
 	detectorResponseProcessor DetectorResponseProcessor,
+	prog progress.Progress,
 ) (*regressionDetectionProcess, error) {
 	ret := &regressionDetectionProcess{
 		request:                   req,
@@ -169,10 +182,11 @@ func (d *detector) newRunningProcess(
 		state:                     ProcessRunning,
 		message:                   "Running",
 		shortcutStore:             d.shortcutStore,
+		prog:                      prog,
 		ctx:                       ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := dfiter.NewDataFrameIterator(ctx, ret.progress, d.dfBuilder, d.perfGit, nil, req.Query, req.Domain, req.Alert)
+	iter, err := dfiter.NewDataFrameIterator(ctx, prog, d.dfBuilder, d.perfGit, nil, req.Query, req.Domain, req.Alert)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}
@@ -232,7 +246,7 @@ func (d *detector) Add(ctx context.Context, detectorResponseProcessor DetectorRe
 		detectorResponseProcessor = func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse, _ string) {}
 	}
 	if _, ok := d.inProcess[id]; !ok {
-		proc, err := d.newRunningProcess(ctx, req, detectorResponseProcessor)
+		proc, err := d.newRunningProcess(ctx, req, detectorResponseProcessor, req.Progress)
 		if err != nil {
 			return "", err
 		}

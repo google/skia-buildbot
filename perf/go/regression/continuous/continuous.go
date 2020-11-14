@@ -404,12 +404,11 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.flags.NumContinuous),
 				End: time.Time{},
 			}
-			req := regression.RegressionDetectionRequest{
-				Alert:  cfg,
-				Domain: domain,
-				Query:  cfg.Query,
-			}
-			id, err := c.detector.Add(ctx, clusterResponseProcessor, &req)
+			req := regression.NewRequest()
+			req.Alert = cfg
+			req.Domain = domain
+			req.Query = cfg.Query
+			id, err := c.detector.Add(ctx, clusterResponseProcessor, req)
 			if err != nil {
 				sklog.Errorf("Failed to add detection request to detector: %s", err)
 				continue
