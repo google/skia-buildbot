@@ -76,4 +76,30 @@ func TestProgress_FinishProcess_StatusChangesToFinished(t *testing.T) {
 			SomeResult: "foo",
 		},
 	}, p.state)
+	assert.Equal(t, Finished, p.Status())
+}
+
+func TestProgress_CallError_StatusChangesToError(t *testing.T) {
+	unittest.SmallTest(t)
+	p := New()
+	p.Error()
+	assert.Equal(t, SerializedProgress{
+		Status:    Error,
+		Messsages: []*Message{},
+	}, p.state)
+	assert.Equal(t, Error, p.Status())
+}
+
+func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *testing.T) {
+	unittest.SmallTest(t)
+	p := New()
+	p.IntermediateResult(testResults{SomeResult: "foo"})
+	assert.Equal(t, SerializedProgress{
+		Status:    Running,
+		Messsages: []*Message{},
+		Results: testResults{
+			SomeResult: "foo",
+		},
+	}, p.state)
+	assert.Equal(t, Running, p.Status())
 }
