@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -113,7 +114,7 @@ func buildTileMapOffsetToIndex(indices []types.CommitNumber, store tracestore.Tr
 // new builds a DataFrame for the given columns and populates it with traces that match the given query.
 //
 // The progress callback is triggered once for every tile.
-func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []types.CommitNumber, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
+func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []types.CommitNumber, q *query.Query, prog progress.Progress, skip int) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.new")
 	defer span.End()
 
@@ -131,9 +132,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		mutex.Lock()
 		defer mutex.Unlock()
 		stepsCompleted += 1
-		if progress != nil {
-			progress(stepsCompleted, len(mapper))
-		}
+		prog.Message("Progress", fmt.Sprintf("%d", 100*stepsCompleted/len(mapper)))
 	}
 
 	var g errgroup.Group
@@ -177,7 +176,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress progress.Progress) (*dataframe.DataFrame, error) {
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromQueryAndRange", b.newFromQueryAndRangeTimer).Stop()
 
 	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
@@ -188,7 +187,7 @@ func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, prog progress.Progress) (*dataframe.DataFrame, error) {
 	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromKeysAndRange", b.newFromKeysAndRangeTimer).Stop()
 	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
@@ -206,9 +205,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 	// triggerProgress must only be called when the caller has mutex locked.
 	triggerProgress := func() {
 		stepsCompleted += 1
-		if progress != nil {
-			progress(stepsCompleted, len(mapper))
-		}
+		prog.Message("Progress", fmt.Sprintf("%d", 100*stepsCompleted/len(mapper)))
 	}
 
 	var g errgroup.Group
@@ -265,7 +262,7 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.Co
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, prog progress.Progress) (*dataframe.DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromQuery")
 	defer span.End()
 
@@ -346,10 +343,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if total == n {
 			break
 		}
-
-		if progress != nil {
-			progress(steps, steps+1)
-		}
+		prog.Message("Progress", fmt.Sprintf("%d", 100*steps/(steps+1)))
 		steps += 1
 
 		// Now step back a full tile.
@@ -377,7 +371,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, prog progress.Progress) (*dataframe.DataFrame, error) {
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromKeys", b.newNFromKeysTimer).Stop()
 
 	endIndex, err := b.findIndexForTime(ctx, end)
@@ -478,9 +472,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 			break
 		}
 
-		if progress != nil {
-			progress(steps, steps+1)
-		}
+		prog.Message("Progress", fmt.Sprintf("%d", 100*steps/(steps+1)))
 		steps += 1
 
 		endIndex = types.CommitNumber(int32(endIndex) - b.tileSize)
