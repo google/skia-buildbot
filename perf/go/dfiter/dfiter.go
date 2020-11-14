@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -59,7 +60,7 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 // of size domain.N.
 func NewDataFrameIterator(
 	ctx context.Context,
-	progress types.Progress,
+	prog progress.Progress,
 	dfBuilder dataframe.DataFrameBuilder,
 	perfGit *perfgit.Git,
 	regressionStateCallback types.ProgressCallback,
@@ -79,7 +80,7 @@ func NewDataFrameIterator(
 	}
 	var df *dataframe.DataFrame
 	if domain.Offset == 0 {
-		df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
+		df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, prog)
 		if err != nil {
 			if regressionStateCallback != nil {
 				regressionStateCallback("Failed querying the data due to an internal error.")
@@ -118,7 +119,7 @@ func NewDataFrameIterator(
 
 			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request")
 		}
-		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, n, progress)
+		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, n, prog)
 		if err != nil {
 			if regressionStateCallback != nil {
 				regressionStateCallback("Failed querying the data due to an internal error.")

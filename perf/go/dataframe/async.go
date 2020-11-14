@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -84,6 +85,8 @@ type FrameRequestProcess struct {
 	// request is read-only, it should not be modified.
 	request *FrameRequest
 
+	prog progress.Progress
+
 	// TODO(jcgregorio) Remove ctx from struct.
 	ctx context.Context
 
@@ -113,6 +116,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		perfGit:       fr.perfGit,
 		request:       req,
 		lastUpdate:    time.Now(),
+		prog:          progress.New(),
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 		dfBuilder:     fr.dfBuilder,
@@ -190,13 +194,13 @@ func (fr *RunningFrameRequests) Add(ctx context.Context, req *FrameRequest) stri
 
 // Status returns the ProcessingState, the message, and the percent complete of
 // a FrameRequestProcess of the given 'id'.
-func (fr *RunningFrameRequests) Status(id string) (ProcessState, string, float32, error) {
+func (fr *RunningFrameRequests) Status(id string) (progress.Progress, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if p, ok := fr.inProcess[id]; !ok {
-		return PROCESS_ERROR, "", 0.0, errorNotFound
+		return nil, errorNotFound
 	} else {
-		return p.Status()
+		return p.Status(), nil
 	}
 }
 
@@ -221,18 +225,6 @@ func (p *FrameRequestProcess) reportError(err error, message string) {
 	p.lastUpdate = time.Now()
 }
 
-// progress records the progress of a FrameRequestProcess.
-func (p *FrameRequestProcess) progress(step, totalSteps int) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	if p.totalSearches != 0 && totalSteps != 0 {
-		p.percent = (float32(p.search) + (float32(step) / float32(totalSteps))) / float32(p.totalSearches)
-	} else {
-		p.percent = 0
-	}
-	p.lastUpdate = time.Now()
-}
-
 // searchInc records the progress of a FrameRequestProcess as it completes each
 // Query or Formula.
 func (p *FrameRequestProcess) searchInc() {
@@ -250,10 +242,8 @@ func (p *FrameRequestProcess) Response() *FrameResponse {
 
 // Status returns the ProcessingState, the message, and the percent complete of
 // a FrameRequestProcess of the given 'id'.
-func (p *FrameRequestProcess) Status() (ProcessState, string, float32, error) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	return p.state, p.message, p.percent, nil
+func (p *FrameRequestProcess) Status() progress.Progress {
+	return p.prog
 }
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
@@ -324,6 +314,7 @@ func (p *FrameRequestProcess) Run() {
 	defer p.mutex.Unlock()
 	p.state = PROCESS_SUCCESS
 	p.response = resp
+	p.prog.Finished(resp)
 }
 
 // getSkps returns the indices where the SKPs have been updated given
@@ -404,9 +395,9 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
+		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.prog)
 	} else {
-		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.prog)
 	}
 }
 
@@ -418,9 +409,9 @@ func (p *FrameRequestProcess) doKeys(ctx context.Context, keyID string, begin, e
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
+		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.prog)
 	} else {
-		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.prog)
 	}
 }
 
@@ -443,9 +434,9 @@ func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
+			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.prog)
 		} else {
-			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.prog)
 		}
 		if err != nil {
 			return nil, err
@@ -464,9 +455,9 @@ func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
+			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.prog)
 		} else {
-			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.prog)
 		}
 		if err != nil {
 			return nil, err
