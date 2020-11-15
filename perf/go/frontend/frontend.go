@@ -549,7 +549,7 @@ type frameStartResponse struct {
 //  * Finally return the constructed DataFrame (_/frame/results/{id}).
 func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fr := &dataframe.FrameRequest{}
+	fr := dataframe.NewFrameRequest()
 	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -571,20 +571,12 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
 	defer span.End()
-	resp := frameStartResponse{
-		ID: f.frameRequests.Add(ctx, fr),
-	}
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	id := f.frameRequests.Add(ctx, fr)
+	fr.Progress.URL(fmt.Sprintf("/_/frame/status/%s", id))
+	if err := fr.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
-}
-
-// frameStatus is used to serialize a JSON response in frameStatusHandler.
-type frameStatus struct {
-	State   dataframe.ProcessState `json:"state"`
-	Message string                 `json:"message"`
-	Percent float32                `json:"percent"`
 }
 
 // frameStatusHandler returns the status of a pending FrameRequest.
@@ -593,36 +585,13 @@ type frameStatus struct {
 func (f *Frontend) frameStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
-	state, message, percent, err := f.frameRequests.Status(id)
+	prog, err := f.frameRequests.Status(id)
 	if err != nil {
-		httputils.ReportError(w, err, message, http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Not found.", http.StatusInternalServerError)
 		return
 	}
 
-	resp := frameStatus{
-		State:   state,
-		Message: message,
-		Percent: percent,
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode response: %s %#v", err, resp)
-	}
-}
-
-// frameResultsHandler returns the results of a pending FrameRequest.
-//
-// See frameStatusHandler for more details.
-func (f *Frontend) frameResultsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-	df, err := f.frameRequests.Response(id)
-	if err != nil {
-		httputils.ReportError(w, err, "Async processing of frame failed.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(df); err != nil {
+	if err := prog.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode response: %s", err)
 	}
 }
@@ -716,22 +685,22 @@ type ClusterStartResponse struct {
 func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	req := &regression.RegressionDetectionRequest{}
+	req := regression.NewRequest()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "cluster", req)
+
+	// TODO Replace the nil with a callback func that updates the req.Progress.
 	id, err := f.regressionDetector.Add(context.Background(), nil, req)
 	sklog.Infof("Added to clusterRequests")
 	if err != nil {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
 		return
 	}
-	resp := ClusterStartResponse{
-		ID: id,
-	}
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	req.Progress.URL(fmt.Sprintf("/_/cluster/status/%s", id))
+	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
@@ -756,6 +725,9 @@ func (f *Frontend) clusterStatusHandler(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
 		return
+	}
+	if err := state.JSON(w); err != nil {
+		sklog.Errorf("Failed to encode cluster status: %s", err)
 	}
 	status.State = state
 	status.Message = msg
@@ -1534,7 +1506,6 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/keys/", f.keysHandler).Methods("POST")
 	router.HandleFunc("/_/frame/start", f.frameStartHandler).Methods("POST")
 	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", f.frameStatusHandler).Methods("GET")
-	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", f.frameResultsHandler).Methods("GET")
 	router.HandleFunc("/_/cluster/start", f.clusterStartHandler).Methods("POST")
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", f.clusterStatusHandler).Methods("GET")
 
