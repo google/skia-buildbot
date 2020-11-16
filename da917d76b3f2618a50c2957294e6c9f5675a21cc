@@ -51,6 +51,24 @@
       "parentUuid": "8150c860_28f94b03",
       "revId": "da917d76b3f2618a50c2957294e6c9f5675a21cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "700a2ad8_74265c98",
+        "filename": "debugger-app/modules/zoom-sk/zoom-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-16T22:17:40Z",
+      "side": 1,
+      "message": "That does work. I\u0027ll document it in the comment.",
+      "parentUuid": "3a9fc67f_efb6ff53",
+      "revId": "da917d76b3f2618a50c2957294e6c9f5675a21cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
