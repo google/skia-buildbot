@@ -506,12 +506,15 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 
 // See DataFrameBuilder.
 func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuiler..PreflightQuery")
+	defer span.End()
+
 	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
 
 	var count int64
 	ps := paramtools.ParamSet{}
 
-	tileNumber, err := b.store.GetLatestTile()
+	tileNumber, err := b.store.GetLatestTile(ctx)
 	if err != nil {
 		return -1, nil, err
 	}

@@ -93,7 +93,7 @@ func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
 
 	store, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
 	require.NoError(t, err)
-	err = store.WriteTraces(types.CommitNumber(0), []paramtools.Params{{"config": "8888"}}, []float32{1.2}, nil, "gs://foobar", time.Now())
+	err = store.WriteTraces(ctx, types.CommitNumber(0), []paramtools.Params{{"config": "8888"}}, []float32{1.2}, nil, "gs://foobar", time.Now())
 	assert.NoError(t, err)
 }
 

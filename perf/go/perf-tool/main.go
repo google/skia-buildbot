@@ -756,7 +756,7 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 
 func tilesLastAction(c *cobra.Command, args []string) error {
 	updateInstanceConfigWithOverride(c)
-	tileNumber, err := mustGetStore().GetLatestTile()
+	tileNumber, err := mustGetStore().GetLatestTile(context.Background())
 	if err != nil {
 		return err
 	}
@@ -769,7 +769,7 @@ func tilesListAction(c *cobra.Command, args []string) error {
 	updateInstanceConfigWithOverride(c)
 	store := mustGetStore()
 
-	latestTileNumber, err := store.GetLatestTile()
+	latestTileNumber, err := store.GetLatestTile(ctx)
 	if err != nil {
 		return err
 	}
@@ -790,7 +790,7 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	store := mustGetStore()
 	if tracesTileFlag == -1 {
 		var err error
-		tileNumber, err = store.GetLatestTile()
+		tileNumber, err = store.GetLatestTile(context.Background())
 		if err != nil {
 			return err
 		}
