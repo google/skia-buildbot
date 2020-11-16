@@ -26,6 +26,9 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import 'elements-sk/tabs-sk';
+import 'elements-sk/tabs-panel-sk';
+import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
 // Import the checkbox element used in in the template
 import 'elements-sk/checkbox-sk';
 // import the type of the chckbox element
@@ -33,7 +36,7 @@ import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import { DebugViewSk } from '../debug-view-sk/debug-view-sk';
 import {
   CommandsSk, PrefixItem, Command, CommandsSkMovePositionEventDetail, LayerInfo,
-  CommandsSkJumpEventDetail,
+  CommandsSkJumpEventDetail, CommandsSkSelectImageEventDetail,
 } from '../commands-sk/commands-sk';
 import { TimelineSk, TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
 import { PlaySk, PlaySkModeChangedManuallyEventDetail } from '../play-sk/play-sk';
@@ -43,6 +46,7 @@ import 'elements-sk/error-toast-sk';
 import {
   AndroidLayersSk, AndroidLayersSkInspectLayerEventDetail
 } from '../android-layers-sk/android-layers-sk'
+import { ResourcesSk } from '../resources-sk/resources-sk';
 
 // Types for the wasm bindings
 import {
@@ -55,6 +59,7 @@ import '../android-layers-sk';
 import '../commands-sk';
 import '../debug-view-sk';
 import '../histogram-sk';
+import '../resources-sk';
 import '../timeline-sk';
 import '../zoom-sk';
 
@@ -105,7 +110,18 @@ export class DebuggerPageSk extends ElementSk {
       <div class="horizontal-flex">
         <commands-sk></commands-sk>
         <div id=center>
-          <debug-view-sk></debug-view-sk>
+          <tabs-sk id='center-tabs'>
+            <button class=selected>SKP</button>
+            <button>Image Resources</button>
+          </tabs-sk>
+          <tabs-panel-sk>
+            <div>
+              <debug-view-sk></debug-view-sk>
+            </div>
+            <div>
+              <resources-sk></resources-sk>
+            </div>
+          </tabs-panel>
         </div>
         <div id=right>
           ${DebuggerPageSk.controlsTemplate(ele)}
@@ -203,6 +219,7 @@ export class DebuggerPageSk extends ElementSk {
   private _androidLayersSk: AndroidLayersSk | null = null;
   private _debugViewSk: DebugViewSk | null = null;
   private _commandsSk: CommandsSk | null = null;
+  private _resourcesSk: ResourcesSk | null = null;
   private _timelineSk: TimelineSk | null = null;
   private _zoom: ZoomSk | null = null
 
@@ -253,6 +270,7 @@ export class DebuggerPageSk extends ElementSk {
     this._androidLayersSk = this.querySelector<AndroidLayersSk>('android-layers-sk')!;
     this._debugViewSk = this.querySelector<DebugViewSk>('debug-view-sk')!;
     this._commandsSk = this.querySelector<CommandsSk>('commands-sk')!;
+    this._resourcesSk = this.querySelector<ResourcesSk>('resources-sk')!;
     this._timelineSk = this.querySelector<TimelineSk>('timeline-sk')!;
     this._zoom = this.querySelector<ZoomSk>('zoom-sk')!;
 
@@ -275,9 +293,23 @@ export class DebuggerPageSk extends ElementSk {
       }
     });
 
+    // this is the timeline, which owns the frame position, telling this element to update
     this._timelineSk.addEventListener('move-frame', (e) => {
       const frame = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
       this._moveFrameTo(frame);
+    });
+
+    // this is the resource viewer telling this element to tell the timeline to jump to a frame
+    this._resourcesSk.addEventListener('set-frame', (e) => {
+      this.querySelector<TabsSk>('tabs-sk')!.select(0);
+      this._timelineSk!.item = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
+    });
+
+    // this is the command list telling us to show the resource viewer and select an image
+    this._commandsSk.addEventListener('select-image', (e) => {
+      this.querySelector<TabsSk>('tabs-sk')!.select(1);
+      const id = (e as CustomEvent<CommandsSkSelectImageEventDetail>).detail.id;
+      this._resourcesSk!.selectItem(id, true);
     });
 
     this._androidLayersSk.addEventListener('inspect-layer', (e) => {
@@ -374,6 +406,8 @@ export class DebuggerPageSk extends ElementSk {
     // Determine if we loaded a single-frame or multi-frame SKP.
     if (this._fileContext.frameCount > 1) {
       this._timelineSk!.count = this._fileContext.frameCount;
+      // shared images deserialproc only used with mskps
+      this._resourcesSk!.update(p);
     } else {
       this._timelineSk!.hidden = true;
     }
@@ -400,7 +434,6 @@ export class DebuggerPageSk extends ElementSk {
       let bounds = this._fileContext.player.getBounds();
       width = bounds.fRight - bounds.fLeft;
       height = bounds.fBottom - bounds.fTop;
-      console.log(`SKP width ${width} height ${height}`);
       // Still ok to proceed if no skp, the toggle still should work before a file
       // is picked.
     }
@@ -489,8 +522,7 @@ export class DebuggerPageSk extends ElementSk {
     this._gpuMode = (e.target as CheckOrRadio).checked;
     this._replaceSurface();
     if (!this._surface) {
-      // TODO(nifong): get error toast working
-      console.log("Could not create SkSurface.");
+      errorMessage("Could not create SkSurface.");
       return;
     }
     this._setCommands();
@@ -578,17 +610,15 @@ export class DebuggerPageSk extends ElementSk {
       case 188: // Comma, step command back
         this._commandsSk!.keyMove(-1);
         break;
-      // case 87: // w
-      //   if (this.$.frames_slider.disabled) { return; }
-      //   this._moveFrameTo(this.frameIndex-1);
-      //   break;
-      // case 83: // s
-      //   if (this.$.frames_slider.disabled) { return; }
-      //   this._moveFrameTo(this.frameIndex+1);
-      //   break;
-      // case 80: // p
-      //   this._toggleFramePlay();
-      //   break;
+      case 87: // w
+        this._timelineSk!.playsk.prev();
+        break;
+      case 83: // s
+        this._timelineSk!.playsk.next();
+        break;
+      case 80: // p
+        this._timelineSk!.playsk.togglePlay();
+        break;
       default:
         return;
     }
@@ -608,6 +638,7 @@ export class DebuggerPageSk extends ElementSk {
     this._fileContext!.player.setInspectedLayer(layerId);
     this._replaceSurface();
     this._setCommands();
+    this._commandsSk!.end();
   }
 };
 
