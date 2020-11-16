@@ -585,14 +585,31 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 		orderedParamSetCacheLen:         metrics2.GetInt64Metric("perfserver_sqltracestore_ordered_paramset_cache_len"),
 	}
 
-	// Track the number of items in the caches.
+	// Update metrics periodically.
 	go func() {
 		for range time.Tick(cacheMetricsRefreshDuration) {
 			ret.orderedParamSetCacheLen.Update(int64(ret.orderedParamSetCache.Len()))
+			ctx := context.Background()
+			tileNumber, err := ret.GetLatestTile()
+			if err != nil {
+				sklog.Errorf("Failed to load latest tile when calculating metrics: %s")
+				continue
+			}
+			ret.updateParamSetMetricsForTile(ctx, tileNumber)
+			ret.updateParamSetMetricsForTile(ctx, tileNumber-1)
 		}
 	}()
 
 	return ret, nil
+}
+
+func (s *SQLTraceStore) updateParamSetMetricsForTile(ctx context.Context, tileNumber types.TileNumber) {
+	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	if err != nil {
+		sklog.Errorf("Failed to load ParamSet when calculating metrics: %s")
+		return
+	}
+	metrics2.GetInt64Metric("perfserver_sqltracestore_paramset_size", map[string]string{"tileNumber": fmt.Sprintf("%d", tileNumber)}).Update(int64(ops.ParamSet.Size()))
 }
 
 // CommitNumberOfTileStart implements the tracestore.TraceStore interface.
