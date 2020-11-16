@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -65,8 +66,20 @@ type FrameRequest struct {
 	TZ          string      `json:"tz"`          // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
 	NumCommits  int32       `json:"num_commits"` // If RequestType is REQUEST_COMPACT, then the number of commits to show before End, and Begin is ignored.
 	RequestType RequestType `json:"request_type"`
+
+	Progress progress.Progress `json:"-"`
 }
 
+// NewFrameRequest returns a new FrameRequest instance.
+func NewFrameRequest() *FrameRequest {
+	return &FrameRequest{
+		Progress: progress.New(),
+	}
+}
+
+// Id returns a unique ID for a FrameRequest.
+//
+// TODO(jcgregorio) Remove this after we've fully migrated to Progress.
 func (f *FrameRequest) Id() string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *f))))
 }
@@ -219,6 +232,8 @@ func (p *FrameRequestProcess) reportError(err error, message string) {
 	p.message = message
 	p.state = PROCESS_ERROR
 	p.lastUpdate = time.Now()
+	p.request.Progress.Error()
+	p.request.Progress.Message("Error", message)
 }
 
 // progress records the progress of a FrameRequestProcess.
@@ -231,6 +246,7 @@ func (p *FrameRequestProcess) progress(step, totalSteps int) {
 		p.percent = 0
 	}
 	p.lastUpdate = time.Now()
+	p.request.Progress.Message("Percent", fmt.Sprintf("%d", int64(p.percent*100.0)))
 }
 
 // searchInc records the progress of a FrameRequestProcess as it completes each
@@ -324,6 +340,8 @@ func (p *FrameRequestProcess) Run() {
 	defer p.mutex.Unlock()
 	p.state = PROCESS_SUCCESS
 	p.response = resp
+
+	p.request.Progress.Finished(resp)
 }
 
 // getSkps returns the indices where the SKPs have been updated given
