@@ -33,6 +33,24 @@
       "message": "Out of curiosity, aren\u0027t Javascript numbers doubles?  That ought to have plenty enough precision to represent 0xffffffff.",
       "revId": "da917d76b3f2618a50c2957294e6c9f5675a21cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3a9fc67f_efb6ff53",
+        "filename": "debugger-app/modules/zoom-sk/zoom-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2020-11-16T21:44:46Z",
+      "side": 1,
+      "message": "Oh, I see... the numbers have plenty of precision, but the shift and logical-or operations are done on 32-bit ints?\n\nOut of curiosity, would it work if you multiply and add instead of shift and or?\n\n   (c[0] * (1\u003c\u003c24)) + (c[1] * (1\u003c\u003c16)) + ...",
+      "parentUuid": "8150c860_28f94b03",
+      "revId": "da917d76b3f2618a50c2957294e6c9f5675a21cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
