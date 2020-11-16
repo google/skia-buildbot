@@ -159,9 +159,9 @@ func GetGCEPendingTaskCount(ctx context.Context) (int, error) {
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
-	ChromiumAnalysis        *chromium_analysis.DatastoreTask
-	ChromiumPerf            *chromium_perf.DatastoreTask
-	MetricsAnalysis         *metrics_analysis.DatastoreTask
+	ChromiumAnalysis        *chromium_analysis.ChromiumAnalysisDatastoreTask
+	ChromiumPerf            *chromium_perf.ChromiumPerfDatastoreTask
+	MetricsAnalysis         *metrics_analysis.MetricsAnalysisDatastoreTask
 	RecreatePageSets        *admin_tasks.RecreatePageSetsDatastoreTask
 	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDatastoreTask
 }
@@ -178,11 +178,11 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 		oldestTaskJsonRepr.RecreatePageSets = task
 	case *admin_tasks.RecreateWebpageArchivesDatastoreTask:
 		oldestTaskJsonRepr.RecreateWebpageArchives = task
-	case *chromium_analysis.DatastoreTask:
+	case *chromium_analysis.ChromiumAnalysisDatastoreTask:
 		oldestTaskJsonRepr.ChromiumAnalysis = task
-	case *chromium_perf.DatastoreTask:
+	case *chromium_perf.ChromiumPerfDatastoreTask:
 		oldestTaskJsonRepr.ChromiumPerf = task
-	case *metrics_analysis.DatastoreTask:
+	case *metrics_analysis.MetricsAnalysisDatastoreTask:
 		oldestTaskJsonRepr.MetricsAnalysis = task
 	default:
 		return fmt.Errorf("Missing case for %T", oldestTask)

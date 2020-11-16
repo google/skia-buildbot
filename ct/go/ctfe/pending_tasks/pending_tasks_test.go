@@ -38,7 +38,7 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		require.NoError(t, err)
 		expect.Equal(t, task, newTask)
 	}
-	test(&chromium_perf.DatastoreTask{
+	test(&chromium_perf.ChromiumPerfDatastoreTask{
 		CommonCols:           getCommonCols(ds.CHROMIUM_PERF_TASKS),
 		Benchmark:            "benchmark",
 		Platform:             "Linux",
@@ -52,13 +52,15 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		SkiaPatchGSPath:      "patches/xyz.patch",
 	})
 	test(&admin_tasks.RecreatePageSetsDatastoreTask{
-		CommonCols: getCommonCols(ds.RECREATE_PAGESETS_TASKS),
-		PageSets:   "All",
+		AdminDatastoreTask: admin_tasks.AdminDatastoreTask{
+			CommonCols: getCommonCols(ds.RECREATE_PAGESETS_TASKS),
+			PageSets:   "All",
+		},
 	})
 	test(&admin_tasks.RecreateWebpageArchivesDatastoreTask{
-		CommonCols:  getCommonCols(ds.RECREATE_WEBPAGE_ARCHIVES_TASKS),
-		PageSets:    "All",
-		ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
-		SkiaRev:     "586101c79b0490b50623e76c71a5fd67d8d92b08",
+		AdminDatastoreTask: admin_tasks.AdminDatastoreTask{
+			CommonCols: getCommonCols(ds.RECREATE_WEBPAGE_ARCHIVES_TASKS),
+			PageSets:   "All",
+		},
 	})
 }
