@@ -321,7 +321,8 @@ func TestLazyTempGitRepo(t *testing.T) {
 	err = ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
 	})
-	require.EqualError(t, notSyncError, err.Error())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), notSyncError.Error())
 	require.Equal(t, 3, syncCount)
 	// ... but we should still be able to run other funcs.
 	ran = false

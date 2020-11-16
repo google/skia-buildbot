@@ -13,6 +13,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
@@ -53,6 +54,7 @@ var (
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	rbeInstance       = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
@@ -100,6 +102,10 @@ func main() {
 	isolateClient, err = isolate.NewClientWithServiceAccount(wdAbs, isolateServerUrl, os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 	if err != nil {
 		sklog.Fatal(err)
+	}
+	cas, err := rbe.NewClient(ctx, *rbeInstance, tokenSource)
+	if err != nil {
+		sklog.Fatalf("Failed to create RBE-CAS client: %s", err)
 	}
 	gitcookiesPath := "/tmp/.gitcookies"
 	if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
@@ -172,7 +178,7 @@ func main() {
 
 	// Create and start the JobCreator.
 	sklog.Infof("Creating JobCreator.")
-	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, httpClient, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, isolateCache, tokenSource)
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, cas, httpClient, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, isolateCache, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}

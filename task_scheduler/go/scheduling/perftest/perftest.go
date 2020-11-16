@@ -23,6 +23,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -43,7 +44,8 @@ import (
 )
 
 var (
-	fsInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"testing\"")
+	fsInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"testing\"")
+	rbeInstance = flag.String("rbe_instance", "projects/chromium-swarm-dev/instances/default_instance", "CAS instance to use")
 )
 
 func assertNoError(err error) {
@@ -305,7 +307,9 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create isolate cache: %s", err)
 	}
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
+	cas, err := rbe.NewClient(ctx, *rbeInstance, ts)
+	assertNoError(err)
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, *rbeInstance, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

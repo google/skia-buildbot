@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -30,7 +29,6 @@ const (
 // Syncer is a struct used for syncing code to particular RepoStates.
 type Syncer struct {
 	depotToolsDir string
-	isolate       *isolate.Client
 	repos         repograph.Map
 	queue         chan func(int)
 	workdir       string
@@ -80,13 +78,13 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*g
 		cacheDir := path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
 		gr, err := tempGitRepoGclient(ctx, rs, s.depotToolsDir, cacheDir, tmp)
 		if err != nil {
-			rvErr <- err
+			rvErr <- skerr.Wrap(err)
 			return
 		}
 		defer gr.Delete()
-		rvErr <- fn(gr)
+		rvErr <- skerr.Wrap(fn(gr))
 	}
-	return <-rvErr
+	return skerr.Wrap(<-rvErr)
 }
 
 // LazyTempGitRepo is a struct which performs a TempGitRepo only when requested.
@@ -154,14 +152,14 @@ func (r *LazyTempGitRepo) Do(ctx context.Context, fn func(*git.TempCheckout) err
 		if err != nil {
 			// We have a sync error. Return it without running the
 			// passed-in func.
-			rvErr <- err
+			rvErr <- skerr.Wrap(err)
 		} else {
 			// Run the passed-in func, returning any error.
-			rvErr <- fn(co)
+			rvErr <- skerr.Wrap(fn(co))
 		}
 	}
 	// Wait for our passed-in func to run (or not, if there was an error).
-	return <-rvErr
+	return skerr.Wrap(<-rvErr)
 }
 
 // Done frees up the worker goroutine used by this LazyTempGitRepo. Done must be
