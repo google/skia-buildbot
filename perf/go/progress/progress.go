@@ -35,10 +35,13 @@ const (
 
 	// Finished means the process has finished.
 	Finished Status = "Finished"
+
+	// Error means the process has finished with and error.
+	Error Status = "Error"
 )
 
 // AllStatus contains all values of type State.
-var AllStatus = []Status{Running, Finished}
+var AllStatus = []Status{Running, Finished, Error}
 
 // Message is a key value pair of strings, used in SerializedProgress.
 type Message struct {
@@ -63,9 +66,22 @@ type Progress interface {
 	// matches an existing message it will replace that key's value.
 	Message(key, value string)
 
-	// When the process is complete call Finished with the Results that are to
-	// be serialized via SerializedProgress.
+	// Finished is called with the Results that are to be serialized via
+	// SerializedProgress. This puts the Progress into the Finished state.
 	Finished(interface{})
+
+	// IntermediateResult allows setting an intermediate result, as opposed to
+	// the final result which is set by calling Finished.
+	IntermediateResult(interface{})
+
+	// Error sets the Progress status to Error.
+	Error()
+
+	// Status returns the current Status.
+	Status() Status
+
+	// URL sets the URL for the next progress update.
+	URL(string)
 
 	// JSON writes the data serialized as JSON. The shape is SerializedProgress.
 	JSON(w io.Writer) error
@@ -109,6 +125,34 @@ func (p *progress) Finished(results interface{}) {
 	defer p.mutex.Unlock()
 	p.state.Status = Finished
 	p.state.Results = results
+}
+
+// IntermediateResult implements the Progress interface.
+func (p *progress) IntermediateResult(res interface{}) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.state.Results = res
+}
+
+// Error implements the Progress interface.
+func (p *progress) Error() {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.state.Status = Error
+}
+
+// Status implements the Progress interface.
+func (p *progress) Status() Status {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.state.Status
+}
+
+// URL implements the Progress interface.
+func (p *progress) URL(url string) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.state.URL = url
 }
 
 // Message implements the Progress interface.
