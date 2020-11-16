@@ -137,7 +137,12 @@ export class ZoomSk extends ElementSk {
     // gives a UInt8ClampedArray of RGBA
     const c = ctx.getImageData(ZoomSk.viewSize/2, ZoomSk.viewSize/2, 1, 1).data;
     this._rgb = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`;
-    this._hex = ((c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3]).toString(16);
+    // Note that javascript bit shift operations are done on signed 32-bit ints.
+    // We can't shift c[0] 24 bits without it overflowing, but we can multiply by 1<<24
+    // because that converts it to a double.
+    // 225 << 24 = -520093696
+    // 255 * (1<<24) = 4278190080
+    this._hex = (c[0] * (1<<24) + c[1] * (1<<16) + c[2] * (1<<8) + c[3]).toString(16);
   }
 
   // convert click in zoomed view to coordinates in source canvas
