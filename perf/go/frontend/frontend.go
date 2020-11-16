@@ -51,6 +51,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
@@ -124,6 +125,8 @@ type Frontend struct {
 	distFileSystem http.FileSystem
 
 	flags *config.FrontendFlags
+
+	progressTracker progress.Tracker
 }
 
 // New returns a new Frontend instance.
@@ -305,6 +308,12 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
+	// Add tracker for long running requests.
+	f.progressTracker, err = progress.NewTracker("/_/status/")
+	if err != nil {
+		sklog.Fatalf("Failed to initialize Tracker: %s", err)
+	}
+
 	// Keep HTTP request metrics.
 	severities := sklog_impl.AllSeverities()
 	metricLookup := make([]metrics2.Counter, len(severities))
@@ -480,13 +489,22 @@ func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to load results.", http.StatusInternalServerError)
-		return
-	}
+	prog := progress.New()
+	f.progressTracker.Add(prog)
+	go func() {
+		ctx, cancel := context.WithTimeout(ctx, 20*time.Minute)
+		defer cancel()
+		resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
+		if err != nil {
+			prog.Error()
+			prog.Message("Error", "Failed to load results.")
+			sklog.Errorf("trybot failed to load results: %s", err)
+			return
+		}
+		prog.Finished(resp)
+	}()
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	if err := prog.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode trybot results: %s", err)
 	}
 }
@@ -1527,6 +1545,10 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	// JSON handlers.
+
+	// Common endpoint for all long-running requests.
+	router.HandleFunc("/_/status/", f.progressTracker.Handler).Methods("GET")
+
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
 	router.HandleFunc("/_/cidRange/", f.cidRangeHandler).Methods("POST")
 	router.HandleFunc("/_/count/", f.countHandler).Methods("POST")
