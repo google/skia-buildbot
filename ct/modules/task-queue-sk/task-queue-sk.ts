@@ -8,7 +8,6 @@ import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/toast-sk';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 
 import { $$, DomReady } from 'common-sk/modules/dom';
 import { fromObject } from 'common-sk/modules/query';
@@ -22,60 +21,11 @@ import {
   getFormattedTimestamp, taskDescriptors, getTimestamp, getCtDbTimestamp,
 } from '../ctfe_utils';
 
-const template = (el) => html`
-<table class="runssummary surface-themes-sk secondary-links" id=queue>
-  <tr class=primary-variant-container-themes-sk>
-    <th>Queue Position</th>
-    <th>Added</th>
-    <th>Task Type</th>
-    <th>User</th>
-    <th>Swarming Logs</th>
-    <th>Request</th>
-  </tr>
-  ${el._pendingTasks.map((task, index) => taskRowTemplate(el, task, index))}
- </table>
-${el._pendingTasks.map((task, index) => taskDetailDialogTemplate(task, index))}
-<confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
-<toast-sk id=confirm_toast class=primary-variant-container-themes-sk duration=5000></toast-sk>
-`;
+import {
+  CommonCols,
+} from '../json';
 
-const taskRowTemplate = (el, task, index) => html`
-<tr>
-  <td class=nowrap>
-    ${index + 1}
-    <delete-icon-sk title="Delete this task" alt=Delete ?hidden=${!task.canDelete}
-      @click=${() => el.confirmDeleteTask(index)}></delete-icon-sk>
-  </td>
-  <td>
-    ${getFormattedTimestamp(task.TsAdded)}
-    ${task.FutureDate
-    ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
-    : ''}
-  </td>
-  <td>${task.TaskType}</td>
-  <td>${task.Username}</td>
-  <td class=nowrap>${
-  task.FutureDate
-    ? html`N/A`
-    : task.SwarmingLogs
-      ? html`<a href="${task.SwarmingLogs}" rel=noopener target=_blank>Swarming Logs</a>`
-      : html`No Swarming Logs`}</td>
-  <td class=nowrap>
-    <a href=# class=details
-      @click=${() => el.showDetailsDialog(index)}>Task Details</a>
-  </td>
-</tr>`;
-
-const taskDetailDialogTemplate = (task, index) => html`
-<div id=${`detailsDialog${index}`} class="dialog-background hidden overlay-themes-sk"
-  @click=${hideDialog}>
-  <div class="dialog-content surface-themes-sk">
-    <pre>${formatTask(task)}</pre>
-  </div>
-</div>
-`;
-
-function hideDialog(e) {
+function hideDialog(e: Event) {
   if (e.target.classList.contains('dialog-background')) {
     e.target.classList.add('hidden');
   }
@@ -85,14 +35,69 @@ function formatTask(task) {
   return JSON.stringify(task, null, 4);
 }
 
-define('task-queue-sk', class extends ElementSk {
+export class TaskQueueSk extends ElementSk {
+  private _pendingTasks: CommonCols[] = [];
+
+  private _running: boolean = false;
+
+
   constructor() {
-    super(template);
-    this._pendingTasks = [];
-    this._running = false;
+    super(TaskQueueSk.template);
   }
 
-  connectedCallback() {
+  private static template = (el: TaskQueueSk) => html`
+  <table class="runssummary surface-themes-sk secondary-links" id=queue>
+    <tr class=primary-variant-container-themes-sk>
+      <th>Queue Position</th>
+      <th>Added</th>
+      <th>Task Type</th>
+      <th>User</th>
+      <th>Swarming Logs</th>
+      <th>Request</th>
+    </tr>
+    ${el._pendingTasks.map((task: CommonCols, index: number) => taskRowTemplate(el, task, index))}
+   </table>
+  ${el._pendingTasks.map((task, index) => taskDetailDialogTemplate(task, index))}
+  <toast-sk id=confirm_toast class=primary-variant-container-themes-sk duration=5000></toast-sk>
+  `;
+
+  private static taskRowTemplate = (el: TaskQueueSk, task: CommonCols, index: number) => html`
+  <tr>
+    <td class=nowrap>
+      ${index + 1}
+      <delete-icon-sk title="Delete this task" alt=Delete ?hidden=${!task.can_delete}
+        @click=${() => el.confirmDeleteTask(index)}></delete-icon-sk>
+    </td>
+    <td>
+      ${getFormattedTimestamp(task.ts_added)}
+      ${task.future_date
+    ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
+    : ''}
+    </td>
+    <td>${task.task_type}</td>
+    <td>${task.username}</td>
+    <td class=nowrap>${
+    task.future_date
+      ? html`N/A`
+      : task.swarming_logs
+        ? html`<a href="${task.swarming_logs}" rel=noopener target=_blank>Swarming Logs</a>`
+        : html`No Swarming Logs`}</td>
+    <td class=nowrap>
+      <a href=# class=details
+        @click=${() => el.showDetailsDialog(index)}>Task Details</a>
+    </td>
+  </tr>`;
+
+  private static taskDetailDialogTemplate = (task: CommonCols, index: number) => html`
+  <div id=${`detailsDialog${index}`} class="dialog-background hidden overlay-themes-sk"
+    @click=${hideDialog}>
+    <div class="dialog-content surface-themes-sk">
+      <pre>${formatTask(task)}</pre>
+    </div>
+  </div>
+  `;
+
+  connectedCallback(): void {
     super.connectedCallback();
     if (this._running) {
       return;
@@ -111,13 +116,13 @@ define('task-queue-sk', class extends ElementSk {
     });
   }
 
-  showDetailsDialog(index) {
-    $$(`#detailsDialog${index}`, this).classList.remove('hidden');
+  showDetailsDialog(index: number): void {
+    ($$(`#detailsDialog${index}`, this) as HTMLElement).classList.remove('hidden');
   }
 
   // Dispatch requests to fetch tasks in queue. Returns a promise that resolves
   // when all task data fetching/updating is complete.
-  loadTaskQueue() {
+  loadTaskQueue(): Promise<void[]> {
     this._pendingTasks = [];
     let queryParams = {
       size: 100,
@@ -204,4 +209,6 @@ define('task-queue-sk', class extends ElementSk {
       })
       .catch(errorMessage);
   }
-});
+}
+
+define('task-queue-sk', TaskQueueSk);
