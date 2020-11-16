@@ -51,6 +51,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
@@ -80,6 +81,9 @@ const (
 	// defaultBugURLTemplate is the URL template to use if the user
 	// doesn't supply one.
 	defaultBugURLTemplate = "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster_url}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit_url}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
+
+	// longRunningRequestTimeout is a limit on long running processes.
+	longRunningRequestTimeout = 20 * time.Minute
 )
 
 // Frontend is the server for the Perf web UI.
@@ -124,6 +128,9 @@ type Frontend struct {
 	distFileSystem http.FileSystem
 
 	flags *config.FrontendFlags
+
+	// progressTracker tracks long running web requests.
+	progressTracker progress.Tracker
 }
 
 // New returns a new Frontend instance.
@@ -305,6 +312,12 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
+	// Add tracker for long running requests.
+	f.progressTracker, err = progress.NewTracker("/_/status/")
+	if err != nil {
+		sklog.Fatalf("Failed to initialize Tracker: %s", err)
+	}
+
 	// Keep HTTP request metrics.
 	severities := sklog_impl.AllSeverities()
 	metricLookup := make([]metrics2.Counter, len(severities))
@@ -472,21 +485,31 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "trybotLoadHandler")
-	defer span.End()
-
 	var req results.TryBotRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to load results.", http.StatusInternalServerError)
-		return
-	}
+	prog := progress.New()
+	f.progressTracker.Add(prog)
+	go func() {
+		ctx, span := trace.StartSpan(context.Background(), "trybotLoadHandler")
+		defer span.End()
+
+		ctx, cancel := context.WithTimeout(ctx, longRunningRequestTimeout)
+		defer cancel()
+
+		resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
+		if err != nil {
+			prog.Error()
+			prog.Message("Error", "Failed to load results.")
+			sklog.Errorf("trybot failed to load results: %s", err)
+			return
+		}
+		prog.Finished(resp)
+	}()
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	if err := prog.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode trybot results: %s", err)
 	}
 }
@@ -1527,6 +1550,10 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	// JSON handlers.
+
+	// Common endpoint for all long-running requests.
+	router.HandleFunc("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler).Methods("GET")
+
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
 	router.HandleFunc("/_/cidRange/", f.cidRangeHandler).Methods("POST")
 	router.HandleFunc("/_/count/", f.countHandler).Methods("POST")
