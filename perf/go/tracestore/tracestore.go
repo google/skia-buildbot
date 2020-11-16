@@ -18,7 +18,7 @@ type TraceStore interface {
 	CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber
 
 	// GetLatestTile returns the latest, i.e. the newest tile.
-	GetLatestTile() (types.TileNumber, error)
+	GetLatestTile(context.Context) (types.TileNumber, error)
 
 	// GetOrderedParamSet returns the OPS for the given tile.
 	GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error)
@@ -65,5 +65,5 @@ type TraceStore interface {
 	//
 	// Note that 'params' and 'values' are parallel slices and thus need to
 	// match.
-	WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error
+	WriteTraces(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error
 }

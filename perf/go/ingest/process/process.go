@@ -121,7 +121,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		i := 0
 		for {
 			// Write data to the trace store.
-			err := store.WriteTraces(commitNumber, params, values, ps, f.Name, time.Now())
+			err := store.WriteTraces(ctx, commitNumber, params, values, ps, f.Name, time.Now())
 			if err == nil {
 				break
 			}

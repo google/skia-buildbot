@@ -14,7 +14,7 @@ import (
 
 // OPSProvider allows access to OrdererParamSets. TraceStore implements this interface.
 type OPSProvider interface {
-	GetLatestTile() (types.TileNumber, error)
+	GetLatestTile(context.Context) (types.TileNumber, error)
 	GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error)
 }
 
@@ -53,7 +53,7 @@ func (pf *ParamSetRefresher) Start(period time.Duration) error {
 func (pf *ParamSetRefresher) oneStep() error {
 	ctx := context.Background()
 
-	tileKey, err := pf.traceStore.GetLatestTile()
+	tileKey, err := pf.traceStore.GetLatestTile(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get starting tile.")
 	}

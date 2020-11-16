@@ -41,28 +41,28 @@ func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTr
 	require.NoError(t, err)
 
 	if populateTraces {
-		populatedTestDB(t, store)
+		populatedTestDB(t, ctx, store)
 	}
 
 	return ctx, store, cleanup
 }
 
 func TestUpdateSourceFile(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, false)
+	ctx, s, cleanup := commonTestSetup(t, false)
 	defer cleanup()
 
 	// Do each update twice to ensure the IDs don't change.
-	id, err := s.updateSourceFile("foo.txt")
+	id, err := s.updateSourceFile(ctx, "foo.txt")
 	assert.NoError(t, err)
 
-	id2, err := s.updateSourceFile("foo.txt")
+	id2, err := s.updateSourceFile(ctx, "foo.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, id, id2)
 
-	id, err = s.updateSourceFile("bar.txt")
+	id, err = s.updateSourceFile(ctx, "bar.txt")
 	assert.NoError(t, err)
 
-	id2, err = s.updateSourceFile("bar.txt")
+	id2, err = s.updateSourceFile(ctx, "bar.txt")
 	assert.NoError(t, err)
 	assert.Equal(t, id, id2)
 }
@@ -340,10 +340,10 @@ func TestTraceCount(t *testing.T) {
 }
 
 func TestParamSetForTile(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
-	ps, err := s.paramSetForTile(1)
+	ps, err := s.paramSetForTile(ctx, 1)
 	assert.NoError(t, err)
 	expected := paramtools.ParamSet{
 		"arch":   []string{"x86"},
@@ -353,30 +353,30 @@ func TestParamSetForTile(t *testing.T) {
 }
 
 func TestParamSetForTile_Empty(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, false)
+	ctx, s, cleanup := commonTestSetup(t, false)
 	defer cleanup()
 
 	// Test the empty case where there is no data in the store.
-	ps, err := s.paramSetForTile(1)
+	ps, err := s.paramSetForTile(ctx, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, paramtools.ParamSet{}, ps)
 }
 
 func TestGetLatestTile(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, true)
+	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
-	tileNumber, err := s.GetLatestTile()
+	tileNumber, err := s.GetLatestTile(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, types.TileNumber(1), tileNumber)
 }
 
 func TestGetLatestTile_Empty(t *testing.T) {
-	_, s, cleanup := commonTestSetup(t, false)
+	ctx, s, cleanup := commonTestSetup(t, false)
 	defer cleanup()
 
 	// Test the empty case where there is no data in datastore.
-	tileNumber, err := s.GetLatestTile()
+	tileNumber, err := s.GetLatestTile(ctx)
 	assert.Error(t, err)
 	assert.Equal(t, types.BadTileNumber, tileNumber)
 }
@@ -433,7 +433,7 @@ func TestGetOrderedParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 		{"config": "8888", "arch": "risc-v"},
 		{"config": "565", "arch": "risc-v"},
 	}
-	err = s.WriteTraces(types.CommitNumber(1), traceNames,
+	err = s.WriteTraces(ctx, types.CommitNumber(1), traceNames,
 		[]float32{1.5, 2.3},
 		paramtools.ParamSet{
 			"config": {"565", "8888"},
@@ -518,7 +518,7 @@ func TestCommitNumberOfTileStart(t *testing.T) {
 	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(9))
 }
 
-func populatedTestDB(t *testing.T, store *SQLTraceStore) {
+func populatedTestDB(t *testing.T, ctx context.Context, store *SQLTraceStore) {
 	traceNames := []paramtools.Params{
 		{"config": "8888", "arch": "x86"},
 		{"config": "565", "arch": "x86"},
@@ -528,19 +528,19 @@ func populatedTestDB(t *testing.T, store *SQLTraceStore) {
 		"arch":   {"x86"},
 	}
 
-	err := store.WriteTraces(types.CommitNumber(1), traceNames,
+	err := store.WriteTraces(ctx, types.CommitNumber(1), traceNames,
 		[]float32{1.5, 2.3},
 		ps,
 		"gs://perf-bucket/2020/02/08/11/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
-	err = store.WriteTraces(types.CommitNumber(2), traceNames,
+	err = store.WriteTraces(ctx, types.CommitNumber(2), traceNames,
 		[]float32{2.5, 3.3},
 		ps,
 		"gs://perf-bucket/2020/02/08/12/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
-	err = store.WriteTraces(types.CommitNumber(8), traceNames,
+	err = store.WriteTraces(ctx, types.CommitNumber(8), traceNames,
 		[]float32{3.5, 4.3},
 		ps,
 		"gs://perf-bucket/2020/02/08/13/testdata.json",

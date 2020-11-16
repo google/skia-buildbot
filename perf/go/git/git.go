@@ -337,6 +337,9 @@ func parseGitRevLogStream(r io.ReadCloser, f parseGitRevLogStreamProcessSingleCo
 
 // pull does a git pull on the git repo.
 func pull(ctx context.Context, gitFullPath, dir string) error {
+	ctx, span := trace.StartSpan(ctx, "perfgit.pull")
+	defer span.End()
+
 	cmd := exec.CommandContext(ctx, gitFullPath, "pull")
 	cmd.Dir = dir
 	if err := cmd.Run(); err != nil {
@@ -369,6 +372,9 @@ func pull(ctx context.Context, gitFullPath, dir string) error {
 //
 // Note also that CommitNumber starts at 0 for the first commit in a repo.
 func (g *Git) Update(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "perfgit.Update")
+	defer span.End()
+
 	sklog.Infof("perfgit: Update called.")
 	g.updateCalled.Inc(1)
 	if err := pull(ctx, g.gitFullPath, g.instanceConfig.GitRepoConfig.Dir); err != nil {
@@ -431,6 +437,9 @@ func (g *Git) Update(ctx context.Context) error {
 
 // getMostRecentCommit as seen in the database.
 func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.getMostRecentCommit")
+	defer span.End()
+
 	var gitHash string
 	var commitNumber types.CommitNumber
 	if err := g.db.QueryRow(ctx, statements[getMostRecentGitHashAndCommitNumber]).Scan(&gitHash, &commitNumber); err != nil {
@@ -442,6 +451,9 @@ func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumb
 
 // CommitNumberFromGitHash looks up the commit number given the git hash.
 func (g *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumberFromGitHash")
+	defer span.End()
+
 	g.commitNumberFromGitHashCalled.Inc(1)
 	ret := types.BadCommitNumber
 	if err := g.db.QueryRow(ctx, statements[getCommitNumberFromGitHash], githash).Scan(&ret); err != nil {
@@ -485,6 +497,9 @@ func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.Com
 
 // CommitSliceFromCommitNumberSlice returns all the stored details for a given slice of CommitNumbers.
 func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]Commit, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromCommitNumberSlice")
+	defer span.End()
+
 	g.commitSliceFromCommitNumberSlice.Inc(1)
 	ret := make([]Commit, len(commitNumberSlice))
 	for i, commitNumber := range commitNumberSlice {
@@ -504,6 +519,9 @@ func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumber
 // Pass in zero time, i.e. time.Time{} to indicate to just get the most recent
 // commit.
 func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumberFromTime")
+	defer span.End()
+
 	g.commitNumberFromTimeCalled.Inc(1)
 	ret := types.BadCommitNumber
 
@@ -520,6 +538,9 @@ func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Comm
 // CommitSliceFromTimeRange returns a slice of Commits that fall in the range
 // [begin, end), i.e  inclusive of begin and exclusive of end.
 func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]Commit, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitSliceFromTimeRange")
+	defer span.End()
+
 	g.commitSliceFromTimeRangeCalled.Inc(1)
 	rows, err := g.db.Query(ctx, statements[getCommitsFromTimeRange], begin.Unix(), end.Unix())
 	if err != nil {
@@ -562,6 +583,9 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 
 // GitHashFromCommitNumber returns the git hash of the given commit number.
 func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.GitHashFromCommitNumber")
+	defer span.End()
+
 	g.gitHashFromCommitNumberCalled.Inc(1)
 	var ret string
 	if err := g.db.QueryRow(ctx, statements[getHashFromCommitNumber], commitNumber).Scan(&ret); err != nil {
@@ -574,6 +598,9 @@ func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.Co
 // numbers when the given file has changed between [begin, end], i.e. the given
 // range is exclusive of the begin commit and inclusive of the end commit.
 func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Context, begin, end types.CommitNumber, filename string) ([]types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "perfgit.CommitNumbersWhenFileChangesInCommitNumberRange")
+	defer span.End()
+
 	g.commitNumbersWhenFileChangesInCommitNumberRangeCalled.Inc(1)
 	var revisionRange string
 	endHash, err := g.GitHashFromCommitNumber(ctx, end)
