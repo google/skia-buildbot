@@ -178,6 +178,9 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 
 // See DataFrameBuilder.
 func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewFromQueryAndRange")
+	defer span.End()
+
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromQueryAndRange", b.newFromQueryAndRangeTimer).Stop()
 
 	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
@@ -189,6 +192,9 @@ func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time
 
 // See DataFrameBuilder.
 func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewFromKeysAndRange")
+	defer span.End()
+
 	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromKeysAndRange", b.newFromKeysAndRangeTimer).Stop()
 	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
@@ -261,6 +267,9 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 //
 // Pass in zero time, i.e. time.Time{} to indicate to just get the most recent commit.
 func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.CommitNumber, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.findIndexForTime")
+	defer span.End()
+
 	return b.git.CommitNumberFromTime(ctx, end)
 }
 
@@ -378,6 +387,9 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromKeys")
+	defer span.End()
+
 	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromKeys", b.newNFromKeysTimer).Stop()
 
 	endIndex, err := b.findIndexForTime(ctx, end)
@@ -506,12 +518,15 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 
 // See DataFrameBuilder.
 func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuiler.PreflightQuery")
+	defer span.End()
+
 	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
 
 	var count int64
 	ps := paramtools.ParamSet{}
 
-	tileNumber, err := b.store.GetLatestTile()
+	tileNumber, err := b.store.GetLatestTile(ctx)
 	if err != nil {
 		return -1, nil, err
 	}

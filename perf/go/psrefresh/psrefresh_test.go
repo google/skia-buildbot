@@ -19,7 +19,7 @@ func TestRefresher(t *testing.T) {
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
 	tileNumber2 := tileNumber.Prev()
-	op.On("GetLatestTile").Return(tileNumber, nil)
+	op.On("GetLatestTile", mock.Anything).Return(tileNumber, nil)
 
 	ps1 := paramtools.NewOrderedParamSet()
 	ps1.Update(paramtools.ParamSet{
@@ -43,7 +43,7 @@ func TestRefresherFailure(t *testing.T) {
 
 	op := &mocks.OPSProvider{}
 	tileNumber := types.TileNumber(100)
-	op.On("GetLatestTile").Return(tileNumber, fmt.Errorf("Something happened"))
+	op.On("GetLatestTile", mock.Anything).Return(tileNumber, fmt.Errorf("Something happened"))
 
 	pf := NewParamSetRefresher(op)
 	err := pf.Start(time.Minute)
