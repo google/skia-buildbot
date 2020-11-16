@@ -1539,6 +1539,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", f.clusterStatusHandler).Methods("GET")
 
 	router.HandleFunc("/_/trybot/load/", f.trybotLoadHandler).Methods("POST")
+	router.HandleFunc("/_/trybot/status/{id:[a-zA-Z0-9]+}", f.trybotStatusHandler).Methods("GET")
 
 	router.HandleFunc("/_/dryrun/start", f.dryrunRequests.StartHandler).Methods("POST")
 	router.HandleFunc("/_/dryrun/status/{id:[a-zA-Z0-9]+}", f.dryrunRequests.StatusHandler).Methods("GET")
