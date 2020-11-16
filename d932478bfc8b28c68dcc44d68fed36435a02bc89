@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "36f09a5c_ca6e7baf",
+        "filename": "debugger-app/modules/resources-sk/resources-sk-demo.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-16T14:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfd1ac34_b532f774",
+      "range": {
+        "startLine": 4,
+        "startChar": 33,
+        "endLine": 10,
+        "endChar": 6
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d7c9c0ed_185fd645",
@@ -87,6 +111,54 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fe69038_8e0667b1",
+        "filename": "debugger-app/modules/resources-sk/resources-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-16T14:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5846cd4f_2cc482ad",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 94
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea52ccdb_b8e5fe86",
+        "filename": "debugger-app/modules/resources-sk/resources-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-16T14:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7c9c0ed_185fd645",
+      "range": {
+        "startLine": 30,
+        "startChar": 93,
+        "endLine": 30,
+        "endChar": 94
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "88dc1303_28712e8e",
@@ -110,6 +182,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "31c4fd23_e805a3bb",
+        "filename": "debugger-app/modules/resources-sk/resources-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-16T14:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88dc1303_28712e8e",
+      "range": {
+        "startLine": 122,
+        "startChar": 2,
+        "endLine": 122,
+        "endChar": 12
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "41e65d58_db5ca610",
@@ -123,6 +219,30 @@
       "writtenOn": "2020-11-13T20:49:52Z",
       "side": 1,
       "message": "Please add tests or delete.",
+      "range": {
+        "startLine": 10,
+        "startChar": 27,
+        "endLine": 23,
+        "endChar": 3
+      },
+      "revId": "d932478bfc8b28c68dcc44d68fed36435a02bc89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "534ec2a6_2cf4dae7",
+        "filename": "debugger-app/modules/resources-sk/resources-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-16T14:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41e65d58_db5ca610",
       "range": {
         "startLine": 10,
         "startChar": 27,
