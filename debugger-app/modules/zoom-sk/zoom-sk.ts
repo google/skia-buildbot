@@ -137,7 +137,10 @@ export class ZoomSk extends ElementSk {
     // gives a UInt8ClampedArray of RGBA
     const c = ctx.getImageData(ZoomSk.viewSize/2, ZoomSk.viewSize/2, 1, 1).data;
     this._rgb = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`;
-    this._hex = ((c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3]).toString(16);
+    // Note that javascript numbers don't have enough bits to do this in one toString call
+    // Typescript doesn't allow it to be done with a map call either because the that
+    // must consume and produce the same type.
+    this._hex = c[0].toString(16) + c[1].toString(16) + c[2].toString(16) + c[3].toString(16);
   }
 
   // convert click in zoomed view to coordinates in source canvas
