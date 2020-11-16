@@ -1,0 +1,79 @@
+resources-sk {
+    .light-checkerboard  {
+    border: solid lightgray 1px;
+    background-position: 0px 0px, 10px 10px;
+    background-size: 20px 20px;
+    background-image: linear-gradient(
+      45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+                      linear-gradient(
+      45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+  }
+
+  .dark-checkerboard  {
+    border: solid lightgray 1px;
+    background-position: 0px 0px, 10px 10px;
+    background-size: 20px 20px;
+    background-image: linear-gradient(
+      45deg, #555 25%, transparent 25%, transparent 75%, #555 75%, #555 100%),
+                      linear-gradient(
+      45deg, #555 25%, #222 25%, #222 75%, #555 75%, #555 100%);
+  }
+
+  .main-box {
+    width: auto;
+    height: 70vh;
+    overflow: scroll;
+  }
+
+  .image-box {
+    display: inline-block;
+  }
+
+  .outline-on-hover {
+    border: solid;
+    border-color: transparent;
+  }
+
+  .outline-on-hover:hover {
+    border-color: #000;
+  }
+
+  .selected-image {
+    border-color: #00F;
+  }
+
+  .dark-text {
+    color: black;
+  }
+
+  .light-text {
+    color: white;
+  }
+
+  .selection-detail {
+    font-size: 14px;
+    padding: 20px;
+  }
+
+  table.usage-table {
+    //border-collapse: collapse;
+    font-size: 14px;
+    border: 1px solid #1f78b4;
+    margin: 10px;
+  }
+
+  td {
+    background-color: #EEE;
+    //border: 1px solid white;
+  }
+
+  td:not(.leftmost-cell):hover {
+    background-color: #1f78b4;
+    cursor: pointer;
+  }
+
+  td.leftmost-cell {
+    //border: none;
+    background-color: #FFF;
+  }
+}

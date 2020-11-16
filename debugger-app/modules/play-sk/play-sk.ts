@@ -44,14 +44,14 @@ export class PlaySk extends ElementSk {
     html`
     <div class="horizontal-flex">
       <div class='filler'></div>
-      <skip-previous-icon-sk title="Go to first" @click=${ele._begin}
+      <skip-previous-icon-sk title="Go to first" @click=${ele.begin}
         ></skip-previous-icon-sk>
-      <keyboard-arrow-left-icon-sk title="Step back one (,)" @click=${ele._prev}
+      <keyboard-arrow-left-icon-sk title="Step back one (,)" @click=${ele.prev}
         ></keyboard-arrow-left-icon-sk>
       ${ele._playPauseIcon(ele)}
-      <keyboard-arrow-right-icon-sk title="Step forward one (.)" @click=${ele._next}
+      <keyboard-arrow-right-icon-sk title="Step forward one (.)" @click=${ele.next}
         ></keyboard-arrow-right-icon-sk>
-      <skip-next-icon-sk title="Go to last" @click=${ele._end}></skip-next-icon-sk>
+      <skip-next-icon-sk title="Go to last" @click=${ele.end}></skip-next-icon-sk>
       <div class='filler'></div>
       <label>Delay in ms</label>
       <input value="${ele._playbackDelay}" class=delay-input @change=${ele._delayChanged}
@@ -59,7 +59,7 @@ export class PlaySk extends ElementSk {
     </div>`;
 
   private static simpleTemplate = (ele: PlaySk) =>
-    html`<video-library-icon-sk title="Play/Pause" @click=${ele._togglePlay}
+    html`<video-library-icon-sk title="Play/Pause" @click=${ele.togglePlay}
         id='play-button-v'></video-library-icon-sk>`;
 
   private _mode: PlayMode = 'pause';
@@ -103,7 +103,7 @@ export class PlaySk extends ElementSk {
   set mode(m: PlayMode) {
     this._mode = m;
     if (m === 'play') {
-      this._next();
+      this.next();
     } else if (this._timeout) {
       console.log('paused on '+this._item);
       window.clearTimeout(this._timeout);
@@ -143,22 +143,22 @@ export class PlaySk extends ElementSk {
       const elapsed = Date.now() - this._lastMoveTime;
       const remainingMs = Math.max(0, this._playbackDelay - elapsed);
       // Must be done with timeout, even if it's zero, or we exceed call stack size
-      this._timeout = window.setTimeout(() => {this._next()}, remainingMs);
+      this._timeout = window.setTimeout(() => {this.next()}, remainingMs);
     }
   }
 
   // template helper deciding which icon to show in the play button spot
   private _playPauseIcon(ele: PlaySk) {
     if (this._mode === 'pause') {
-      return html`<play-arrow-icon-sk title="Play/Pause" @click=${ele._togglePlay}
+      return html`<play-arrow-icon-sk title="Play/Pause" @click=${ele.togglePlay}
         id='play-button'></play-arrow-icon-sk>`;
     } else {
-      return html`<pause-icon-sk title="Play/Pause" @click=${ele._togglePlay}
+      return html`<pause-icon-sk title="Play/Pause" @click=${ele.togglePlay}
         ></pause-icon-sk>`;
     }
   }
 
-  private _togglePlay() {
+  togglePlay() {
     this.mode = (this._mode === 'play') ? 'pause' : 'play';
     this.dispatchEvent(
       new CustomEvent<PlaySkModeChangedManuallyEventDetail>(
@@ -182,17 +182,17 @@ export class PlaySk extends ElementSk {
         }));
   }
 
-  private _begin() {
+  begin() {
     this._item = 0;
     this._triggerEvent();
   }
 
-  private _end() {
+  end() {
     this._item = this._size - 1;
     this._triggerEvent();
   }
 
-  private _prev() {
+  prev() {
     this._item -= 1;
     if (this._item < 0) {
       this._item += this._size;
@@ -200,7 +200,7 @@ export class PlaySk extends ElementSk {
     this._triggerEvent();
   }
 
-  private _next() {
+  next() {
     this._item = (this._item + 1) % this._size;
     this._triggerEvent();
   }

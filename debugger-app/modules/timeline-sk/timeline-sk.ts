@@ -46,16 +46,15 @@ export class TimelineSk extends ElementSk {
     this._item = i;
     this._render();
     // notify debugger-page-sk to change the frame
-    window.setTimeout(() => {
-      // Unless we defer this until after the _render(), the timeline element always
-      // appears to be one frame late.
-      this.dispatchEvent(
-      new CustomEvent<TimelineSkMoveFrameEventDetail>(
-        'move-frame', {
-          detail: {frame: this._item},
-          bubbles: true,
-        }));
-    }, 0);
+    // TODO(nifong): the timeline element always appears to be one frame late during playback
+    // this could be fixed by deferring this event with window.setTimeout, but that would break
+    // pretty much any other code that sets timeline.item, such as the inspect button.
+    this.dispatchEvent(
+    new CustomEvent<TimelineSkMoveFrameEventDetail>(
+      'move-frame', {
+        detail: {frame: this._item},
+        bubbles: true,
+      }));
 
   }
 
