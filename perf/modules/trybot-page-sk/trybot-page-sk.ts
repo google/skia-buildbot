@@ -47,7 +47,7 @@ import 'elements-sk/icon/timeline-icon-sk';
 import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { addParamsToParamSet, fromKey, makeKey } from '../paramtools';
 import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
-import { startRequest } from '../progress/progress';
+import { messagesToErrorString, startRequest } from '../progress/progress';
 
 // Number of elements of a long lists head and tail to display.
 const numHeadTail = 10;
@@ -326,8 +326,7 @@ export class TrybotPageSk extends ElementSk {
         this.byParams = byParams(this.results!);
         this._render();
       } else {
-        // TODO(jcgregorio) Add a utility func for this.
-        throw new Error(prog.messages?.filter((msg) => msg?.key === 'Error').map((msg) => `${msg?.key}: ${msg?.value}`).join(''));
+        throw new Error(messagesToErrorString(prog.messages));
       }
     } catch (error) {
       errorMessage(error, 0);
