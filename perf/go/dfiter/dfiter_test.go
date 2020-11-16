@@ -39,7 +39,7 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 		params = append(params, p)
 		values = append(values, v)
 	}
-	return store.WriteTraces(index, params, values, ps, filename, ts)
+	return store.WriteTraces(context.Background(), index, params, values, ps, filename, ts)
 }
 
 type cleanupFunc func()
