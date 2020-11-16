@@ -323,4 +323,4 @@ export type CL = string;
 
 export type Params = { [key: string]: string };
 
-export namespace progress { export type Status = "Running" | "Finished"; }
+export namespace progress { export type Status = "Running" | "Finished" | "Error"; }
