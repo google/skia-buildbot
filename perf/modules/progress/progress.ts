@@ -53,6 +53,7 @@ export const startRequest = (
             );
           }, period);
         } else {
+          spinner.active = false;
           resolve(json);
         }
       })

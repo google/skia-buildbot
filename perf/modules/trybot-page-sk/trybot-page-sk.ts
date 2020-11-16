@@ -47,6 +47,7 @@ import 'elements-sk/icon/timeline-icon-sk';
 import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { addParamsToParamSet, fromKey, makeKey } from '../paramtools';
 import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
+import { startRequest } from '../progress/progress';
 
 // Number of elements of a long lists head and tail to display.
 const numHeadTail = 10;
@@ -319,21 +320,17 @@ export class TrybotPageSk extends ElementSk {
     this.byParamsTraceID!.innerText = '';
     this._render();
     try {
-      this.spinner!.active = true;
-      const resp = await fetch('/_/trybot/load/', {
-        method: 'POST',
-        body: JSON.stringify(this.state),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      this.results = await jsonOrThrow(resp);
-      this.byParams = byParams(this.results!);
-      this._render();
+      const prog = await startRequest('/_/trybot/load/', this.state, 200, this.spinner!, null);
+      if (prog.status === 'Finished') {
+        this.results = prog.results! as TryBotResponse;
+        this.byParams = byParams(this.results!);
+        this._render();
+      } else {
+        // TODO(jcgregorio) Add a utility func for this.
+        throw new Error(prog.messages?.filter((msg) => msg?.key === 'Error').map((msg) => `${msg?.key}: ${msg?.value}`).join(''));
+      }
     } catch (error) {
-      errorMessage(error);
-    } finally {
-      this.spinner!.active = false;
+      errorMessage(error, 0);
     }
   }
 
