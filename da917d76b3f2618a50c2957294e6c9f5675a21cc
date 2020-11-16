@@ -16,6 +16,23 @@
       "message": "anyone on the infra team that you can get to review this?  I\u0027m good with the intent, but am not able to give an educated review for correctness.",
       "revId": "da917d76b3f2618a50c2957294e6c9f5675a21cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8150c860_28f94b03",
+        "filename": "debugger-app/modules/zoom-sk/zoom-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2020-11-16T21:36:53Z",
+      "side": 1,
+      "message": "Out of curiosity, aren\u0027t Javascript numbers doubles?  That ought to have plenty enough precision to represent 0xffffffff.",
+      "revId": "da917d76b3f2618a50c2957294e6c9f5675a21cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
