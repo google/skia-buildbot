@@ -74,3 +74,17 @@ export const startRequest = (
     }),
   );
 });
+
+
+/** Utility function to convert Messages into an error string. */
+export const messagesToErrorString = (messages: (progress.Message)[]): string => {
+  if (!messages || messages.length === 0) {
+    return '(no error message available)';
+  }
+
+  const errorMessages = messages.filter((msg) => msg?.key === 'Error');
+  if (errorMessages.length === 1) {
+    return errorMessages.map((msg) => `${msg?.key}: ${msg?.value}`).join('');
+  }
+  return messages.map((msg) => `${msg?.key}: ${msg?.value}`).join(' ');
+};

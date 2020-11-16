@@ -52,7 +52,7 @@ type Message struct {
 // SerializedProgress is the shape of the JSON emitted from Progress.JSON().
 type SerializedProgress struct {
 	Status    Status      `json:"status"`
-	Messsages []*Message  `json:"messages"`
+	Messsages []*Message  `json:"messages" go2ts:"ignorenil"`
 	Results   interface{} `json:"results,omitempty"`
 
 	// URL to use in the next polling step.

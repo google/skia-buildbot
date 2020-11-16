@@ -285,7 +285,7 @@ export namespace progress {
 export namespace progress {
 	export interface SerializedProgress {
 		status: progress.Status;
-		messages: (progress.Message | null)[] | null;
+		messages: progress.Message[];
 		results?: any;
 		url: string;
 	}

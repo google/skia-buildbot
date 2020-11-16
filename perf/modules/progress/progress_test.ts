@@ -2,7 +2,7 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { startRequest } from './progress';
+import { messagesToErrorString, startRequest } from './progress';
 import { progress } from '../json';
 import 'elements-sk/spinner-sk';
 
@@ -70,5 +70,19 @@ describe('startRequest', () => {
     const res = await startRequest(startURL, {}, 1, spinner, cb);
     assert.deepEqual(res, finishedBody);
     assert.equal(index, 2);
+  });
+});
+
+describe('messageToErrorString', () => {
+  it('converts an empty messages into an error string', () => {
+    assert.equal('(no error message available)', messagesToErrorString([]));
+  });
+
+  it('uses the Error value if available', () => {
+    assert.equal('Error: This is my error', messagesToErrorString([{ key: 'Error', value: 'This is my error' }]));
+  });
+
+  it('falls back to using all the key/value pairs if Error is not present', () => {
+    assert.equal('Step: 1/2 Status: Querying database', messagesToErrorString([{ key: 'Step', value: '1/2' }, { key: 'Status', value: 'Querying database' }]));
   });
 });
