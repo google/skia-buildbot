@@ -14,7 +14,8 @@
 //     Commit: 51643
 //     Details: "Filtered Traces: Num Before: 95 Num After: 92 Delta: 3"
 //
-//
+// The Progress type is for tracking a single long running process, and Tracker
+// keeps track of multiple Progresses.
 package progress
 
 import (
@@ -76,4 +77,56 @@ func TestProgress_FinishProcess_StatusChangesToFinished(t *testing.T) {
 			SomeResult: "foo",
 		},
 	}, p.state)
+	assert.Equal(t, Finished, p.Status())
+}
+
+func TestProgress_CallError_StatusChangesToError(t *testing.T) {
+	unittest.SmallTest(t)
+	p := New()
+	p.Error()
+	assert.Equal(t, SerializedProgress{
+		Status:    Error,
+		Messsages: []*Message{},
+	}, p.state)
+	assert.Equal(t, Error, p.Status())
+}
+
+func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *testing.T) {
+	unittest.SmallTest(t)
+	p := New()
+	p.IntermediateResult(testResults{SomeResult: "foo"})
+	assert.Equal(t, SerializedProgress{
+		Status:    Running,
+		Messsages: []*Message{},
+		Results: testResults{
+			SomeResult: "foo",
+		},
+	}, p.state)
+	assert.Equal(t, Running, p.Status())
+}
+
+func TestProgress_CallURL_URLIsSet(t *testing.T) {
+	unittest.SmallTest(t)
+	p := New()
+	const url = "/_/next"
+	p.URL(url)
+	assert.Equal(t, SerializedProgress{
+		Status:    Running,
+		Messsages: []*Message{},
+		URL:       url,
+	}, p.state)
+	assert.Equal(t, Running, p.Status())
+}
+
+func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tr, err := NewTracker("/foo/")
+	require.NoError(t, err)
+	p := New()
+	p.Finished(make(chan int)) // Not JSON serializable.
+	tr.Add(p)
+
+	var buf bytes.Buffer
+	require.Error(t, p.JSON(&buf))
 }
