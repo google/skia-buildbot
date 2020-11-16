@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -160,6 +161,9 @@ func (d *detector) newRunningProcess(
 	req *RegressionDetectionRequest,
 	detectorResponseProcessor DetectorResponseProcessor,
 ) (*regressionDetectionProcess, error) {
+	ctx, span := trace.StartSpan(ctx, "detector.newRunningProcess")
+	defer span.End()
+
 	ret := &regressionDetectionProcess{
 		request:                   req,
 		perfGit:                   d.perfGit,
@@ -177,7 +181,7 @@ func (d *detector) newRunningProcess(
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}
 	ret.iter = iter
-	go ret.run()
+	go ret.run(ctx)
 
 	return ret, nil
 }
@@ -211,7 +215,9 @@ var _ Detector = (*detector)(nil)
 // the ID of the process to be used in calls to Status() and
 // Response().
 func (d *detector) Add(ctx context.Context, detectorResponseProcessor DetectorResponseProcessor, req *RegressionDetectionRequest) (string, error) {
-	sklog.Info("detector.Add")
+	ctx, span := trace.StartSpan(ctx, "detector.Add")
+	defer span.End()
+
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 
@@ -363,7 +369,10 @@ func (p *regressionDetectionProcess) shortcutFromKeys(summary *clustering2.Clust
 
 // run does the work in a RegressionDetectionProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *regressionDetectionProcess) run() {
+func (p *regressionDetectionProcess) run(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "regressionDetectionProcess.run")
+	defer span.End()
+
 	if p.request.Alert.Algo == "" {
 		p.request.Alert.Algo = types.KMeansGrouping
 	}

@@ -590,7 +590,7 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 		for range time.Tick(cacheMetricsRefreshDuration) {
 			ret.orderedParamSetCacheLen.Update(int64(ret.orderedParamSetCache.Len()))
 			ctx := context.Background()
-			tileNumber, err := ret.GetLatestTile()
+			tileNumber, err := ret.GetLatestTile(ctx)
 			if err != nil {
 				sklog.Errorf("Failed to load latest tile when calculating metrics: %s")
 				continue
@@ -620,18 +620,24 @@ func (s *SQLTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber)
 }
 
 // GetLatestTile implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) GetLatestTile() (types.TileNumber, error) {
+func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, error) {
 	defer timer.New("GetLatestTile").Stop()
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLatestTile")
+	defer span.End()
+
 	tileNumber := types.BadTileNumber
-	if err := s.db.QueryRow(context.TODO(), statements[getLatestTile]).Scan(&tileNumber); err != nil {
+	if err := s.db.QueryRow(ctx, statements[getLatestTile]).Scan(&tileNumber); err != nil {
 		return types.BadTileNumber, skerr.Wrap(err)
 	}
 	return tileNumber, nil
 }
 
-func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools.ParamSet, error) {
-	defer timer.New("GetOrderedParamSet").Stop()
-	rows, err := s.db.Query(context.TODO(), statements[paramSetForTile], tileNumber)
+func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
+	defer span.End()
+
+	defer timer.New("paramSetForTile").Stop()
+	rows, err := s.db.Query(ctx, statements[paramSetForTile], tileNumber)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed querying - tileNumber=%d", tileNumber)
 	}
@@ -661,6 +667,8 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 
 // GetOrderedParamSet implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
+	defer span.End()
 
 	now := s.timeNow()
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
@@ -671,7 +679,7 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 		}
 		_ = s.orderedParamSetCache.Remove(tileNumber)
 	}
-	ps, err := s.paramSetForTile(tileNumber)
+	ps, err := s.paramSetForTile(ctx, tileNumber)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1170,20 +1178,27 @@ func (s *SQLTraceStore) TileSize() int32 {
 
 // TraceCount implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.TraceCount")
+	defer span.End()
+
 	var ret int64
-	err := s.db.QueryRow(context.TODO(), statements[traceCount], tileNumber).Scan(&ret)
+	err := s.db.QueryRow(ctx, statements[traceCount], tileNumber).Scan(&ret)
+	span.AddAttributes(trace.Int64Attribute("count", ret))
 	return ret, skerr.Wrap(err)
 }
 
 // updateSourceFile writes the filename into the SourceFiles table and returns
 // the sourceFileIDFromSQL of that filename.
-func (s *SQLTraceStore) updateSourceFile(filename string) (sourceFileIDFromSQL, error) {
+func (s *SQLTraceStore) updateSourceFile(ctx context.Context, filename string) (sourceFileIDFromSQL, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.updateSourceFile")
+	defer span.End()
+
 	ret := badSourceFileIDFromSQL
-	_, err := s.db.Exec(context.TODO(), statements[insertIntoSourceFiles], filename)
+	_, err := s.db.Exec(ctx, statements[insertIntoSourceFiles], filename)
 	if err != nil {
 		return ret, skerr.Wrap(err)
 	}
-	err = s.db.QueryRow(context.TODO(), statements[getSourceFileID], filename).Scan(&ret)
+	err = s.db.QueryRow(ctx, statements[getSourceFileID], filename).Scan(&ret)
 	if err != nil {
 		return ret, skerr.Wrap(err)
 	}
@@ -1200,10 +1215,13 @@ func cacheKeyForParamSets(tileNumber types.TileNumber, paramKey, paramValue stri
 }
 
 // WriteTraces implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
+func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces")
+	defer span.End()
+
 	defer timer.NewWithSummary("perfserver_sqltracestore_write_traces", s.writeTracesMetric).Stop()
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 15*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	tileNumber := s.TileNumber(commitNumber)
@@ -1250,7 +1268,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	}
 
 	// Write the source file entry and the id.
-	sourceID, err := s.updateSourceFile(source)
+	sourceID, err := s.updateSourceFile(ctx, source)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

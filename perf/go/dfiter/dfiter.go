@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
@@ -67,6 +68,9 @@ func NewDataFrameIterator(
 	domain types.Domain,
 	alert *alerts.Alert,
 ) (DataFrameIterator, error) {
+	ctx, span := trace.StartSpan(ctx, "dfiter.NewDataFrameIterator")
+	defer span.End()
+
 	// Because of GroupBy the Alert query isn't the one we use, instead a
 	// sub-query is passed in.
 	u, err := url.ParseQuery(queryAsString)
