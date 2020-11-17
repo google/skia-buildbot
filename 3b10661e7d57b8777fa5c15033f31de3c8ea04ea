@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b11c967_28f10a82",
+        "filename": "perf/modules/progress/progress.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-17T13:11:06Z",
+      "side": 1,
+      "message": "I was initially confused why this was not errorMessages. Please add a comment describing the fallback behavior either here or in the doc string on line 79.",
+      "range": {
+        "startLine": 89,
+        "startChar": 9,
+        "endLine": 89,
+        "endChar": 17
+      },
+      "revId": "3b10661e7d57b8777fa5c15033f31de3c8ea04ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
