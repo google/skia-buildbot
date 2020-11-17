@@ -31,7 +31,7 @@ release: release_build
 release_ci:
 	cd ../infra-sk && npm ci
 	npm ci
-	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
+	# Assumes the environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
 	cp -r /OUT/* build
