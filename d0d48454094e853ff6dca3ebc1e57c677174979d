@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "18469c78_3983087b",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-17T15:13:09Z",
+      "side": 1,
+      "message": "Have you tried sort.Strings for everything? It uses ShellSort for slices \u003c\u003d 12 elements and falls back to quickSort for larger slices.",
+      "revId": "d0d48454094e853ff6dca3ebc1e57c677174979d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "25b19749_74a12d6a",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-17T15:13:09Z",
+      "side": 1,
+      "message": "Using strings.Builder would probably be just as fast and easier to read.\n\nvar b strings.Builder\nb.Grow(2+byteCount+len(keyValues)-1)",
+      "revId": "d0d48454094e853ff6dca3ebc1e57c677174979d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
