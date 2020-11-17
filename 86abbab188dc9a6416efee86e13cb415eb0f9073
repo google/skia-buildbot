@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7176db7e_54b36ac8",
+        "filename": "perf/go/psrefresh/psrefresh_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-17T13:28:19Z",
+      "side": 1,
+      "message": "testutils.AnyContext is more appropriate here. (and in other places)",
+      "range": {
+        "startLine": 22,
+        "startChar": 29,
+        "endLine": 22,
+        "endChar": 37
+      },
+      "revId": "86abbab188dc9a6416efee86e13cb415eb0f9073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
