@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "adbbc236_df7d06ab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-17T15:24:55Z",
+      "side": 1,
+      "message": "Follow-up CL on the way.",
+      "revId": "86abbab188dc9a6416efee86e13cb415eb0f9073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7176db7e_54b36ac8",
@@ -14,6 +31,30 @@
       "writtenOn": "2020-11-17T13:28:19Z",
       "side": 1,
       "message": "testutils.AnyContext is more appropriate here. (and in other places)",
+      "range": {
+        "startLine": 22,
+        "startChar": 29,
+        "endLine": 22,
+        "endChar": 37
+      },
+      "revId": "86abbab188dc9a6416efee86e13cb415eb0f9073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "28569b3f_f25d3eff",
+        "filename": "perf/go/psrefresh/psrefresh_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-17T15:24:55Z",
+      "side": 1,
+      "message": "I always forget that.",
+      "parentUuid": "7176db7e_54b36ac8",
       "range": {
         "startLine": 22,
         "startChar": 29,
