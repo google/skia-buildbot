@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfiter"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -96,6 +97,16 @@ type RegressionDetectionRequest struct {
 	// TotalQueries is the number of sub-queries to be processed based on the
 	// GroupBy setting in the Alert.
 	TotalQueries int `json:"total_queries"`
+
+	// Progress of the detection request.
+	Progress progress.Progress `json:"-"`
+}
+
+// NewRegressionDetectionRequest returns a new RegressionDetectionRequest.
+func NewRegressionDetectionRequest() *RegressionDetectionRequest {
+	return &RegressionDetectionRequest{
+		Progress: progress.New(),
+	}
 }
 
 // Id returns a unique identifier for the request.
@@ -175,6 +186,7 @@ func (d *detector) newRunningProcess(
 		shortcutStore:             d.shortcutStore,
 		ctx:                       ctx,
 	}
+	req.Progress.Message("Stage", "Loading data to analyze")
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 	iter, err := dfiter.NewDataFrameIterator(ctx, ret.progress, d.dfBuilder, d.perfGit, nil, req.Query, req.Domain, req.Alert)
 	if err != nil {
@@ -289,6 +301,8 @@ func (p *regressionDetectionProcess) reportError(err error, message string) {
 	p.message = fmt.Sprintf("%s: %s", message, err)
 	p.state = ProcessError
 	p.lastUpdate = time.Now()
+	p.request.Progress.Error()
+	p.request.Progress.Message("Error", fmt.Sprintf("%s: %s", message, err))
 }
 
 // progress records the progress of a RegressionDetectionProcess.
@@ -442,4 +456,5 @@ func (p *regressionDetectionProcess) run(ctx context.Context) {
 	defer p.mutex.Unlock()
 	p.message = ""
 	p.state = ProcessSuccess
+	p.request.Progress.Finish()
 }

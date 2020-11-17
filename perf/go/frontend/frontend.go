@@ -422,7 +422,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	f.configProvider = f.newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	f.dryrunRequests = dryrun.New(f.perfGit, f.regressionDetector)
+	f.dryrunRequests = dryrun.New(f.perfGit, f.regressionDetector, f.progressTracker)
 
 	if f.flags.DoClustering {
 		go func() {
@@ -1518,7 +1518,6 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/trybot/load/", f.trybotLoadHandler).Methods("POST")
 
 	router.HandleFunc("/_/dryrun/start", f.dryrunRequests.StartHandler).Methods("POST")
-	router.HandleFunc("/_/dryrun/status/{id:[a-zA-Z0-9]+}", f.dryrunRequests.StatusHandler).Methods("GET")
 
 	router.HandleFunc("/_/reg/", f.regressionRangeHandler).Methods("POST")
 	router.HandleFunc("/_/reg/count", f.regressionCountHandler).Methods("GET")

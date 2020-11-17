@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -44,15 +44,18 @@ type Requests struct {
 	detector regression.Detector
 	perfGit  *perfgit.Git
 
+	tracker progress.Tracker
+
 	mutex    sync.Mutex
 	inFlight map[string]*dryRun
 }
 
 // New create a new dryrun Request processor.
-func New(perfGit *perfgit.Git, detector regression.Detector) *Requests {
+func New(perfGit *perfgit.Git, detector regression.Detector, tracker progress.Tracker) *Requests {
 	ret := &Requests{
 		detector: detector,
 		perfGit:  perfGit,
+		tracker:  tracker,
 		inFlight: map[string]*dryRun{},
 	}
 	// Start a go routine to clean up old dry runs.
@@ -102,13 +105,14 @@ func (d *Requests) cleaner() {
 	}
 }
 
+// StartHandler starts a dryrun.
 func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	// Do not use r.Context() since this kicks off a background process.
 	ctx := context.Background()
 	w.Header().Set("Content-Type", "application/json")
 
-	var req regression.RegressionDetectionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	req := regression.NewRegressionDetectionRequest()
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
@@ -122,6 +126,8 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := req.Id()
+
+	d.tracker.Add(req.Progress)
 
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
@@ -154,6 +160,11 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nLooking for regressions in query results.\n  Commit: %d\n  Details: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.CommitNumber, message)
+				req.Progress.Message("Step", fmt.Sprintf("%d/%d", queryRequest.Step+1, queryRequest.TotalQueries))
+				req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query))
+				req.Progress.Message("Stage", "Looking for regressions in query results.")
+				req.Progress.Message("Commit", fmt.Sprintf("%d", c.CommitNumber))
+				req.Progress.Message("Details", message)
 				// We might not have found any regressions.
 				if reg.Low == nil && reg.High == nil {
 					continue
@@ -163,19 +174,42 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				} else {
 					running.Regressions[c.CommitNumber] = origReg.Merge(reg)
 				}
+
 			}
+
+			// Now update the Progress.
+			status := &DryRunStatus{
+				Finished:    running.Finished,
+				Message:     running.Message,
+				Regressions: []*RegressionAtCommit{},
+			}
+			commitNumbers := []types.CommitNumber{}
+			for id := range running.Regressions {
+				commitNumbers = append(commitNumbers, id)
+			}
+			sort.Sort(types.CommitNumberSlice(commitNumbers))
+
+			for _, commitNumber := range commitNumbers {
+				details, err := d.perfGit.CommitFromCommitNumber(ctx, commitNumber)
+				if err != nil {
+					sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
+					continue
+				}
+				status.Regressions = append(status.Regressions, &RegressionAtCommit{
+					CID:        details,
+					Regression: running.Regressions[commitNumber],
+				})
+			}
+			req.Progress.IntermediateResult(status.Regressions)
 		}
 
-		_, err := d.detector.Add(ctx, detectorResponseProcessor, &req)
+		_, err := d.detector.Add(ctx, detectorResponseProcessor, req)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to start Dry Run process.", http.StatusInternalServerError)
 			return
 		}
 	}
-	resp := StartDryRunResponse{
-		ID: id,
-	}
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
@@ -191,50 +225,4 @@ type DryRunStatus struct {
 	Finished    bool                  `json:"finished"`
 	Message     string                `json:"message"`
 	Regressions []*RegressionAtCommit `json:"regressions"`
-}
-
-func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-
-	// Grab the running dryrun.
-	running, ok := d.inFlight[id]
-	if !ok {
-		httputils.ReportError(w, fmt.Errorf("Invalid id: %q", id), "Invalid or expired dry run.", http.StatusInternalServerError)
-		return
-	}
-
-	status := &DryRunStatus{
-		Finished:    running.Finished,
-		Message:     running.Message,
-		Regressions: []*RegressionAtCommit{},
-	}
-
-	// Convert the Running.Regressions into a properly formed DryRunStatus response.
-	running.mutex.Lock()
-	defer running.mutex.Unlock()
-	commitNumbers := []types.CommitNumber{}
-	for id := range running.Regressions {
-		commitNumbers = append(commitNumbers, id)
-	}
-	sort.Sort(types.CommitNumberSlice(commitNumbers))
-
-	for _, commitNumber := range commitNumbers {
-		details, err := d.perfGit.CommitFromCommitNumber(ctx, commitNumber)
-		if err != nil {
-			sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
-			continue
-		}
-		status.Regressions = append(status.Regressions, &RegressionAtCommit{
-			CID:        details,
-			Regression: running.Regressions[commitNumber],
-		})
-	}
-	if err := json.NewEncoder(w).Encode(status); err != nil {
-		sklog.Errorf("Failed to encode paramset: %s", err)
-	}
 }
