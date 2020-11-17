@@ -60,7 +60,6 @@ func main() {
 		dryrun.StartDryRunResponse{},
 		frontend.AlertUpdateResponse{},
 		frontend.ClusterStartResponse{},
-		frontend.ClusterStatus{},
 		frontend.CommitDetailsRequest{},
 		frontend.CountHandlerRequest{},
 		frontend.CountHandlerResponse{},
