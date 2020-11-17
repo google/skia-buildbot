@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -54,6 +55,7 @@ var (
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	rbeInstance       = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	scoreDecay24Hr    = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	swarmingPools     = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use.")
@@ -105,6 +107,10 @@ func main() {
 	}
 	if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
 		sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	}
+	cas, err := rbe.NewClient(ctx, *rbeInstance, tokenSource)
+	if err != nil {
+		sklog.Fatalf("Failed to create RBE-CAS client: %s", err)
 	}
 
 	// Authenticated HTTP client.
@@ -174,7 +180,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, isolateClient, cas, *rbeInstance, swarm, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

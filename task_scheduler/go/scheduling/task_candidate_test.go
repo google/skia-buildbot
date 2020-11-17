@@ -18,8 +18,9 @@ func fullTaskCandidate() *taskCandidate {
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
 		Diagnostics:        &taskCandidateDiagnostics{},
-		IsolatedInput:      "lonely-parameter",
-		IsolatedHashes:     []string{"browns"},
+		CasInput:           "lonely-parameter",
+		CasDigests:         []string{"browns"},
+		CasUsesIsolate:     true,
 		Jobs: []*types.Job{{
 			Id: "dummy",
 		}},
