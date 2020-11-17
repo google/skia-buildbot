@@ -88,3 +88,16 @@ export const messagesToErrorString = (messages: (progress.Message)[]): string =>
   }
   return messages.map((msg) => `${msg?.key}: ${msg?.value}`).join(' ');
 };
+
+/** Utility function to extract on Message from an Array of Messages. */
+export const messageByName = (messages: (progress.Message)[], key: string, fallback: string = ''): string => {
+  if (!messages || messages.length === 0) {
+    return fallback;
+  }
+
+  const matching = messages.filter((msg) => msg?.key === key);
+  if (matching.length === 1) {
+    return matching[0].value;
+  }
+  return fallback;
+};

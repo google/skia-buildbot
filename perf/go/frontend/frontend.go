@@ -94,8 +94,6 @@ type Frontend struct {
 
 	loadTemplatesOnce sync.Once
 
-	frameRequests *dataframe.RunningFrameRequests
-
 	regressionDetector regression.Detector
 
 	regStore regression.Store
@@ -416,7 +414,6 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		f.notifier = notify.New(notify.NoEmail{}, config.Config.URL)
 	}
 
-	f.frameRequests = dataframe.NewRunningFrameRequests(f.perfGit, f.dfBuilder, f.shortcutStore)
 	f.regressionDetector = regression.NewDetector(f.perfGit, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)
 	if err != nil {
@@ -572,7 +569,7 @@ type frameStartResponse struct {
 //  * Finally return the constructed DataFrame (_/frame/results/{id}).
 func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fr := &dataframe.FrameRequest{}
+	fr := dataframe.NewFrameRequest()
 	if err := json.NewDecoder(r.Body).Decode(fr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -594,59 +591,12 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
 	defer span.End()
-	resp := frameStartResponse{
-		ID: f.frameRequests.Add(ctx, fr),
-	}
+	f.progressTracker.Add(fr.Progress)
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	dataframe.StartFrameRequestProcess(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+
+	if err := fr.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
-	}
-}
-
-// frameStatus is used to serialize a JSON response in frameStatusHandler.
-type frameStatus struct {
-	State   dataframe.ProcessState `json:"state"`
-	Message string                 `json:"message"`
-	Percent float32                `json:"percent"`
-}
-
-// frameStatusHandler returns the status of a pending FrameRequest.
-//
-// See frameStartHandler for more details.
-func (f *Frontend) frameStatusHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-	state, message, percent, err := f.frameRequests.Status(id)
-	if err != nil {
-		httputils.ReportError(w, err, message, http.StatusInternalServerError)
-		return
-	}
-
-	resp := frameStatus{
-		State:   state,
-		Message: message,
-		Percent: percent,
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode response: %s %#v", err, resp)
-	}
-}
-
-// frameResultsHandler returns the results of a pending FrameRequest.
-//
-// See frameStatusHandler for more details.
-func (f *Frontend) frameResultsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-	df, err := f.frameRequests.Response(id)
-	if err != nil {
-		httputils.ReportError(w, err, "Async processing of frame failed.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(df); err != nil {
-		sklog.Errorf("Failed to encode response: %s", err)
 	}
 }
 
@@ -1559,9 +1509,9 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/count/", f.countHandler).Methods("POST")
 	router.HandleFunc("/_/cid/", f.cidHandler).Methods("POST")
 	router.HandleFunc("/_/keys/", f.keysHandler).Methods("POST")
+
 	router.HandleFunc("/_/frame/start", f.frameStartHandler).Methods("POST")
-	router.HandleFunc("/_/frame/status/{id:[a-zA-Z0-9]+}", f.frameStatusHandler).Methods("GET")
-	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", f.frameResultsHandler).Methods("GET")
+
 	router.HandleFunc("/_/cluster/start", f.clusterStartHandler).Methods("POST")
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", f.clusterStatusHandler).Methods("GET")
 

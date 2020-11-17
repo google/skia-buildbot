@@ -14,6 +14,7 @@ import dialogPolyfill from 'dialog-polyfill';
 import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
 import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/checkbox-sk';
@@ -31,6 +32,7 @@ import '../domain-picker-sk';
 import '../json-source-sk';
 import '../plot-simple-sk';
 import '../query-count-sk';
+
 import {
   DataFrame,
   RequestType,
@@ -39,6 +41,7 @@ import {
   FrameResponse,
   ShiftRequest,
   ShiftResponse,
+  progress,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -57,6 +60,7 @@ import {
 import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
+import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
 
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
@@ -253,6 +257,8 @@ export class ExploreSk extends ElementSk {
   private range: DomainPickerSk | null = null;
 
   private simpleParamset: ParamSetSk | null = null;
+
+  private spinner: SpinnerSk | null = null;
 
   private summary: ParamSetSk | null = null;
 
@@ -453,6 +459,7 @@ export class ExploreSk extends ElementSk {
     this.queryCount = this.querySelector('query-count-sk');
     this.range = this.querySelector('#range');
     this.simpleParamset = this.querySelector('#simple_paramset');
+    this.spinner = this.querySelector('#spinner');
     this.summary = this.querySelector('#summary');
     this.traceID = this.querySelector('#trace_id');
     this.csvDownload = this.querySelector('#csv_download');
@@ -1259,57 +1266,29 @@ export class ExploreSk extends ElementSk {
    * The 'cb' callback function will be called with the decoded JSON body
    * of the response once it's available.
    */
-  private requestFrame(body: FrameRequest, cb: RequestFrameCallback) {
+  private async requestFrame(body: FrameRequest, cb: RequestFrameCallback) {
     body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (this._requestId !== '') {
       errorMessage('There is a pending query already running.');
       return;
     }
+
     this._requestId = 'About to make request';
-
     this.spinning = true;
-
-    fetch('/_/frame/start', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this._requestId = json.id;
-        this.checkFrameRequestStatus(cb);
-      })
-      .catch((msg) => this.catch(msg));
-  }
-
-  /**
-   * Periodically check the status of a pending FrameRequest, calling the 'cb'
-   * callback with the decoded JSON upon success.
-   */
-  private checkFrameRequestStatus(cb: RequestFrameCallback) {
-    fetch(`/_/frame/status/${this._requestId}`, {
-      method: 'GET',
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        if (json.state === 'Running') {
-          this.percent!.textContent = `${Math.floor(json.percent * 100)}%`;
-          window.setTimeout(() => this.checkFrameRequestStatus(cb), 300);
-        } else {
-          fetch(`/_/frame/results/${this._requestId}`, {
-            method: 'GET',
-          })
-            .then(jsonOrThrow)
-            .then((frameResponse: FrameResponse) => {
-              cb(frameResponse);
-              this.catch(frameResponse.msg);
-            })
-            .catch((msg) => this.catch(msg));
-        }
-      })
-      .catch((msg) => this.catch(msg));
+    try {
+      const finishedProg = await startRequest('/_/frame/start', body, 200, this.spinner!, (prog: progress.SerializedProgress) => {
+        this.percent!.textContent = `${messageByName(prog.messages, 'Percent', '0')}%`;
+      });
+      if (finishedProg.status !== 'Finished') {
+        throw (new Error(messagesToErrorString(finishedProg.messages)));
+      }
+      cb(finishedProg.results as FrameResponse);
+    } catch (msg) {
+      this.catch(msg);
+    } finally {
+      this.spinning = false;
+      this._requestId = '';
+    }
   }
 
   // Download all the displayed data as a CSV file.

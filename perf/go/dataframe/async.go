@@ -2,12 +2,9 @@ package dataframe
 
 import (
 	"context"
-	"crypto/md5"
-	"errors"
 	"fmt"
 	"net/url"
 	"sort"
-	"sync"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -19,19 +16,14 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
 
-type ProcessState string
-
 type RequestType int
 
 const (
-	PROCESS_RUNNING ProcessState = "Running"
-	PROCESS_SUCCESS ProcessState = "Success"
-	PROCESS_ERROR   ProcessState = "Error"
-
 	// Values for FrameRequest.RequestType.
 	REQUEST_TIME_RANGE RequestType = 0
 	REQUEST_COMPACT    RequestType = 1
@@ -44,14 +36,6 @@ var AllRequestType = []RequestType{REQUEST_TIME_RANGE, REQUEST_COMPACT}
 
 const (
 	MAX_TRACES_IN_RESPONSE = 350
-
-	// MAX_FINISHED_PROCESS_AGE is the amount of time to keep a finished
-	// FrameRequestProcess around before deleting it.
-	MAX_FINISHED_PROCESS_AGE = 10 * time.Minute
-)
-
-var (
-	errorNotFound = errors.New("Process not found.")
 )
 
 // FrameRequest is used to deserialize JSON frame requests.
@@ -65,10 +49,15 @@ type FrameRequest struct {
 	TZ          string      `json:"tz"`          // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
 	NumCommits  int32       `json:"num_commits"` // If RequestType is REQUEST_COMPACT, then the number of commits to show before End, and Begin is ignored.
 	RequestType RequestType `json:"request_type"`
+
+	Progress progress.Progress `json:"-"`
 }
 
-func (f *FrameRequest) Id() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *f))))
+// NewFrameRequest returns a new FrameRequest instance.
+func NewFrameRequest() *FrameRequest {
+	return &FrameRequest{
+		Progress: progress.New(),
+	}
 }
 
 // FrameResponse is serialized to JSON as the response to frame requests.
@@ -78,14 +67,11 @@ type FrameResponse struct {
 	Msg       string     `json:"msg"`
 }
 
-// FrameRequestProcess keeps track of a running Go routine that's
+// frameRequestProcess keeps track of a running Go routine that's
 // processing a FrameRequest to build a FrameResponse.
-type FrameRequestProcess struct {
+type frameRequestProcess struct {
 	// request is read-only, it should not be modified.
 	request *FrameRequest
-
-	// TODO(jcgregorio) Remove ctx from struct.
-	ctx context.Context
 
 	perfGit *perfgit.Git
 
@@ -94,172 +80,60 @@ type FrameRequestProcess struct {
 
 	shortcutStore shortcut.Store
 
-	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
-	lastUpdate    time.Time    // The last time this process was updated.
-	state         ProcessState // The current state of the process.
-	message       string       // A longer message if the process fails.
-	search        int          // The current search (either Formula or Query) being processed.
-	totalSearches int          // The total number of Formulas and Queries in the FrameRequest.
-	percent       float32      // The percentage of the searches complete [0.0-1.0].
+	search        int     // The current search (either Formula or Query) being processed.
+	totalSearches int     // The total number of Formulas and Queries in the FrameRequest.
+	percent       float32 // The percentage of the searches complete [0.0-1.0].
 }
 
-func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameRequest) *FrameRequestProcess {
+// StartFrameRequestProcess starts processing a FrameRequest.
+func StartFrameRequestProcess(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
 	}
-	ret := &FrameRequestProcess{
-		perfGit:       fr.perfGit,
-		request:       req,
-		lastUpdate:    time.Now(),
-		state:         PROCESS_RUNNING,
-		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
-		dfBuilder:     fr.dfBuilder,
-		shortcutStore: fr.shortcutStore,
-		ctx:           ctx,
-	}
-	go ret.Run()
-	return ret
-}
-
-// RunningFrameRequests keeps track of all the FrameRequestProcess's.
-//
-// Once a FrameRequestProcess is complete the results will be kept in memory
-// for MAX_FINISHED_PROCESS_AGE before being deleted.
-type RunningFrameRequests struct {
-	mutex sync.Mutex
-
-	perfGit *perfgit.Git
-
-	dfBuilder DataFrameBuilder
-
-	shortcutStore shortcut.Store
-
-	// inProcess maps a FrameRequest.Id() of the request to the FrameRequestProcess
-	// handling that request.
-	inProcess map[string]*FrameRequestProcess
-}
-
-func NewRunningFrameRequests(perfGit *perfgit.Git, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) *RunningFrameRequests {
-	fr := &RunningFrameRequests{
+	ret := &frameRequestProcess{
 		perfGit:       perfGit,
+		request:       req,
+		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 		dfBuilder:     dfBuilder,
 		shortcutStore: shortcutStore,
-
-		inProcess: map[string]*FrameRequestProcess{},
 	}
-	go fr.background()
-	return fr
-}
-
-// step does a single step in cleaning up old FrameRequestProcess's.
-func (fr *RunningFrameRequests) step() {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	now := time.Now()
-	for k, v := range fr.inProcess {
-		v.mutex.Lock()
-		if now.Sub(v.lastUpdate) > MAX_FINISHED_PROCESS_AGE {
-			delete(fr.inProcess, k)
-		}
-		v.mutex.Unlock()
-	}
-}
-
-// background periodically cleans up old FrameRequestProcess's.
-func (fr *RunningFrameRequests) background() {
-	fr.step()
-	for range time.Tick(time.Minute) {
-		fr.step()
-	}
-}
-
-// Add starts a new running FrameRequestProcess and returns
-// the ID of the process to be used in calls to Status() and
-// Response().
-func (fr *RunningFrameRequests) Add(ctx context.Context, req *FrameRequest) string {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	id := req.Id()
-	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = fr.newProcess(ctx, req)
-	}
-	return id
-}
-
-// Status returns the ProcessingState, the message, and the percent complete of
-// a FrameRequestProcess of the given 'id'.
-func (fr *RunningFrameRequests) Status(id string) (ProcessState, string, float32, error) {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	if p, ok := fr.inProcess[id]; !ok {
-		return PROCESS_ERROR, "", 0.0, errorNotFound
-	} else {
-		return p.Status()
-	}
-}
-
-// Response returns the FrameResponse of the completed FrameRequestProcess.
-func (fr *RunningFrameRequests) Response(id string) (*FrameResponse, error) {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	if p, ok := fr.inProcess[id]; !ok {
-		return nil, errorNotFound
-	} else {
-		return p.Response(), nil
-	}
+	go ret.Run(ctx)
 }
 
 // reportError records the reason a FrameRequestProcess failed.
-func (p *FrameRequestProcess) reportError(err error, message string) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+func (p *frameRequestProcess) reportError(err error, message string) {
 	sklog.Errorf("FrameRequest failed: %#v %s: %s", *(p.request), message, err)
-	p.message = message
-	p.state = PROCESS_ERROR
-	p.lastUpdate = time.Now()
+	p.request.Progress.Error()
+	p.request.Progress.Message("Error", message)
 }
 
 // progress records the progress of a FrameRequestProcess.
-func (p *FrameRequestProcess) progress(step, totalSteps int) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+func (p *frameRequestProcess) progress(step, totalSteps int) {
 	if p.totalSearches != 0 && totalSteps != 0 {
 		p.percent = (float32(p.search) + (float32(step) / float32(totalSteps))) / float32(p.totalSearches)
 	} else {
 		p.percent = 0
 	}
-	p.lastUpdate = time.Now()
+	p.request.Progress.Message("Percent", fmt.Sprintf("%d", int64(p.percent*100.0)))
 }
 
 // searchInc records the progress of a FrameRequestProcess as it completes each
 // Query or Formula.
-func (p *FrameRequestProcess) searchInc() {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+func (p *frameRequestProcess) searchInc() {
 	p.search += 1
 }
 
 // Response returns the FrameResponse of the completed FrameRequestProcess.
-func (p *FrameRequestProcess) Response() *FrameResponse {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+func (p *frameRequestProcess) Response() *FrameResponse {
 	return p.response
-}
-
-// Status returns the ProcessingState, the message, and the percent complete of
-// a FrameRequestProcess of the given 'id'.
-func (p *FrameRequestProcess) Status() (ProcessState, string, float32, error) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	return p.state, p.message, p.percent, nil
 }
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *FrameRequestProcess) Run() {
-	ctx, span := trace.StartSpan(p.ctx, "FrameRequestProcess.Run")
+func (p *frameRequestProcess) Run(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.Run")
 	defer span.End()
 
 	begin := time.Unix(int64(p.request.Begin), 0)
@@ -320,10 +194,9 @@ func (p *FrameRequestProcess) Run() {
 		p.reportError(err, "Failed to get skps.")
 		return
 	}
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	p.state = PROCESS_SUCCESS
 	p.response = resp
+
+	p.request.Progress.Finished(resp)
 }
 
 // getSkps returns the indices where the SKPs have been updated given
@@ -391,7 +264,7 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.
 
 // doSearch applies the given query and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, begin, end time.Time) (*DataFrame, error) {
+func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, begin, end time.Time) (*DataFrame, error) {
 	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.doSearch")
 	defer span.End()
 
@@ -412,21 +285,21 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 
 // doKeys returns a DataFrame that matches the given set of keys given
 // the time range [begin, end).
-func (p *FrameRequestProcess) doKeys(ctx context.Context, keyID string, begin, end time.Time) (*DataFrame, error) {
-	keys, err := p.shortcutStore.Get(p.ctx, keyID)
+func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, end time.Time) (*DataFrame, error) {
+	keys, err := p.shortcutStore.Get(ctx, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
 	} else {
-		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 	}
 }
 
 // doCalc applies the given formula and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin, end time.Time) (*DataFrame, error) {
+func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin, end time.Time) (*DataFrame, error) {
 	// During the calculation 'rowsFromQuery' will be called to load up data, we
 	// will capture the dataframe that's created at that time. We only really
 	// need df.Headers so it doesn't matter if the calculation has multiple calls
@@ -445,7 +318,7 @@ func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
 		}
 		if err != nil {
 			return nil, err
@@ -459,14 +332,14 @@ func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 	}
 
 	rowsFromShortcut := func(s string) (calc.Rows, error) {
-		keys, err := p.shortcutStore.Get(p.ctx, s)
+		keys, err := p.shortcutStore.Get(ctx, s)
 		if err != nil {
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 		}
 		if err != nil {
 			return nil, err

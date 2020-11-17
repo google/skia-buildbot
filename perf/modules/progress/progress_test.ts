@@ -2,7 +2,7 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { messagesToErrorString, startRequest } from './progress';
+import { messageByName, messagesToErrorString, startRequest } from './progress';
 import { progress } from '../json';
 import 'elements-sk/spinner-sk';
 
@@ -84,5 +84,20 @@ describe('messageToErrorString', () => {
 
   it('falls back to using all the key/value pairs if Error is not present', () => {
     assert.equal('Step: 1/2 Status: Querying database', messagesToErrorString([{ key: 'Step', value: '1/2' }, { key: 'Status', value: 'Querying database' }]));
+  });
+});
+
+describe('messageByName', () => {
+  it('converts an empty messages into the default string', () => {
+    const defaultValue = 'some-default-value';
+    assert.equal(defaultValue, messageByName([], 'SomeKeyName', defaultValue));
+  });
+
+  it('retrieves the message if it exists', () => {
+    assert.equal('This is the value', messageByName([{ key: 'SomeKey', value: 'This is the value' }], 'SomeKey'));
+  });
+
+  it('retrieves the default string if the key does not exist', () => {
+    assert.equal('', messageByName([{ key: 'SomeKey', value: 'This is the value' }], 'NotAKeyInTheMessages'));
   });
 });
