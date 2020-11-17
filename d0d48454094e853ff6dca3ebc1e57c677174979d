@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "41d08c8e_54f92fd4",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-17T15:35:00Z",
+      "side": 1,
+      "message": "Yes - it was consistently 10% slower for the 10 element slice. \nsort.Strings for everything:\nBenchmarkMarshalStringMap_10Items-48     \t 1712334\t      3427 ns/op\t     928 B/op\t      14 allocs/op\n\nInsertion sort for 30 or fewer items:\nBenchmarkMarshalStringMap_10Items-48     \t 1975723\t      3048 ns/op\t     896 B/op\t      13 allocs/op",
+      "parentUuid": "18469c78_3983087b",
+      "revId": "d0d48454094e853ff6dca3ebc1e57c677174979d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "25b19749_74a12d6a",
@@ -31,6 +49,24 @@
       "writtenOn": "2020-11-17T15:13:09Z",
       "side": 1,
       "message": "Using strings.Builder would probably be just as fast and easier to read.\n\nvar b strings.Builder\nb.Grow(2+byteCount+len(keyValues)-1)",
+      "revId": "d0d48454094e853ff6dca3ebc1e57c677174979d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "50d3204b_fb940cdf",
+        "filename": "go/jsonutils/jsonutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-17T15:35:00Z",
+      "side": 1,
+      "message": "Done. It adds a couple percent in overhead, but I think the readability is worth it.",
+      "parentUuid": "25b19749_74a12d6a",
       "revId": "d0d48454094e853ff6dca3ebc1e57c677174979d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
