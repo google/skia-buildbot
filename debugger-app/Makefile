@@ -57,7 +57,8 @@ release: wasm_libs
 
 .PHONY: release_ci
 release_ci:
+	cd ../infra-sk && npm ci
 	npm ci
 	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
-	./build_docker_release
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-app
+	./build_release
