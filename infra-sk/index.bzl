@@ -1,10 +1,35 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_web")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_web")
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library", "sass_binary")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
+
+# Runs a NodeJS unit test using the Mocha test runner.
+#
+# For tests that should run in the browser, please use karma_mocha_test instead.
+def nodejs_mocha_test(name, srcs=[], deps=[], args=None):
+    if args == None:
+        args = ["$(rootpath %s)" % l for l in srcs]
+
+    nodejs_test(
+        name = name,
+        entry_point = "@infra-sk_npm//:node_modules/mocha/bin/mocha",
+        data = srcs + deps + [
+            "@infra-sk_npm//chai",
+            "@infra-sk_npm//mocha",
+            "@infra-sk_npm//ts-node",
+            "@infra-sk_npm//@types/chai",
+            "@infra-sk_npm//@types/mocha",
+            "@infra-sk_npm//@types/node",
+            "//:tsconfig.json",
+        ],
+        templated_args = [
+            "--require ts-node/register",
+            "--timeout 60000",
+        ] + args,
+    )
 
 # Utility macro to copy a single file to a destination path, making parent directories as needed.
 def copy_file(name, src, dst):
