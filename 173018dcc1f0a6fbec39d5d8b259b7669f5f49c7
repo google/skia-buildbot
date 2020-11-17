@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "59d43d5d_532ccdb4",
+        "filename": "debugger-app/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5020
+      },
+      "writtenOn": "2020-11-17T15:12:13Z",
+      "side": 1,
+      "message": "do you still want these lines in the makefile script or were they just for debugging?",
+      "revId": "173018dcc1f0a6fbec39d5d8b259b7669f5f49c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
