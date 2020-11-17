@@ -58,6 +58,7 @@ release: wasm_libs
 .PHONY: release_ci
 release_ci:
 	cd ../infra-sk && npm ci
+	cd ../puppeteer-tests && npm ci
 	npm ci
 	# Don't docker pull here, as we are in the CI pipeline and it already has
 	# done the pull.
