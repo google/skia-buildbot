@@ -53,7 +53,7 @@ func main() {
 
 	if command == "upload" {
 		ctx, cas := setup()
-		digest, err := cas.Upload(ctx, root, args)
+		digest, err := cas.Upload(ctx, rbe.NewInputSpec(root, args))
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -12,7 +12,9 @@ import (
 	remoteexecution "github.com/bazelbuild/remote-apis/build/bazel/remote/execution/v2"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
 )
@@ -20,6 +22,11 @@ import (
 const (
 	rbeService = "remotebuildexecution.googleapis.com:443"
 )
+
+// SplitDigest splits the digest string into a digest.Digest instance.
+func SplitDigest(str string) (digest.Digest, error) {
+	return digest.NewFromString(str)
+}
 
 // Client is a struct used to interact with RBE-CAS.
 type Client struct {
@@ -45,7 +52,11 @@ func NewClient(ctx context.Context, instance string, ts oauth2.TokenSource) (*Cl
 }
 
 // Upload the given paths to RBE-CAS.
-func (c *Client) Upload(ctx context.Context, root string, paths []string) (string, error) {
+func (c *Client) Upload(ctx context.Context, inputSpec cas.InputSpec) (string, error) {
+	root, paths, err := inputSpec.GetPaths(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
 	is := command.InputSpec{
 		Inputs: paths,
 	}
@@ -369,3 +380,38 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 	}
 	return chunk.Digest().String(), nil
 }
+
+// Close implements cas.CAS.
+func (c *Client) Close() error {
+	return c.client.Close()
+}
+
+// InputSpec implements cas.InputSpec.
+type InputSpec struct {
+	Root  string
+	Paths []string
+}
+
+// Copy returns a deep copy of the InputSpec.
+func (s *InputSpec) Copy() *InputSpec {
+	return &InputSpec{
+		Root:  s.Root,
+		Paths: util.CopyStringSlice(s.Paths),
+	}
+}
+
+// GetPaths implements cas.InputSpec.
+func (s *InputSpec) GetPaths(ctx context.Context) (string, []string, error) {
+	return s.Root, s.Paths, nil
+}
+
+// NewInputSpec returns an InputSpec instance.
+func NewInputSpec(root string, paths []string) *InputSpec {
+	return &InputSpec{
+		Root:  root,
+		Paths: paths,
+	}
+}
+
+var _ cas.CAS = &Client{}
+var _ cas.InputSpec = &InputSpec{}
