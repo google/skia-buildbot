@@ -76,7 +76,12 @@ export const startRequest = (
 });
 
 
-/** Utility function to convert Messages into an error string. */
+/**
+ * Utility function to convert Messages into an error string.
+ *
+ * If there is no 'Error' message and all the key/value pairs in 'messages' are
+ * returned in a single string.
+ */
 export const messagesToErrorString = (messages: (progress.Message)[]): string => {
   if (!messages || messages.length === 0) {
     return '(no error message available)';
