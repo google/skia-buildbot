@@ -16,6 +16,24 @@
       "message": "Is this intended to be a link into skia.googlesource.com?",
       "revId": "690bc9cd7207917a8423f82a56701cca20ddc41a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "176da0b5_43614b50",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-17T16:54:42Z",
+      "side": 0,
+      "message": "I decided not to put the link here, just the commit hash and put the link in the template.",
+      "parentUuid": "685d76db_a6b87637",
+      "revId": "690bc9cd7207917a8423f82a56701cca20ddc41a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
