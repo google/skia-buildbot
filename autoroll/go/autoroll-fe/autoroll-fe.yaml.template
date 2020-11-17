@@ -52,6 +52,7 @@ spec:
             - "--prom_port=:20000"
             - "--resources_dir=/usr/local/share/autoroll-fe/dist"{{if eq .internal "true"}}
             - "--internal"{{end}}{{- range $index, $config := .configs}}
+            # {{$config.rollerName}}
             - "--config={{$config.base64}}"{{- end}}
           ports:
             - containerPort: 8000
