@@ -60,8 +60,12 @@ release_ci:
 	cd ../infra-sk && npm ci
 	cd ../puppeteer-tests && npm ci
 	npm ci
-	# Don't docker pull here, as we are in the CI pipeline and it already has
-	# done the pull.
+	# Assumes the environment mounts the wasm outputs to /OUT
+	rm -rf build
+	mkdir -p build/
+	cp -r /OUT/* build
+	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
+	# Now that we have the debugger.wasm etc, we can bundle it in with webpack.
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-app
 	./build_release
