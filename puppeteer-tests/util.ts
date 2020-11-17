@@ -6,6 +6,7 @@ import * as net from 'net';
 import puppeteer from 'puppeteer';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
+import {before, beforeEach, after, afterEach} from 'mocha';
 
 /** A DOM event name. */
 export type EventName = string;
@@ -82,6 +83,11 @@ export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eve
  * Returns true if running from within a Docker container, or false otherwise.
  */
 export const inDocker = () => fs.existsSync('/.dockerenv');
+
+/**
+ * Returns true if running from Bazel (e.g. with "bazel test"), or false otherwise.
+ */
+export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
 
 /**
  * Launches a Puppeteer browser with the right platform-specific arguments.
