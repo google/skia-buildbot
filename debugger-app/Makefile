@@ -29,6 +29,7 @@ puppeteer-test-debug:
 
 .PHONY: serve
 serve:
+	echo "const SKIA_VERSION = 'local';" > build/version.js
 	npx webpack-dev-server --watch-poll --mode=development
 
 .PHONY: wasm_libs
@@ -38,7 +39,7 @@ wasm_libs:
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
 	       --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
 	       sh -c "cp -r /tmp/* /OUT"
-	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
+	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs
