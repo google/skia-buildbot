@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fb2b96e8_54316d73",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-18T20:56:52Z",
+      "side": 1,
+      "message": "Made some changes to the Progress interface to make it more ergonomic based\non your feedback:\n  - Added FinishWithResults()\n  - Added an error message argument to Error()\n  - Added panics to all mutating methods if called after a Progress leaves the Running.\n",
+      "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
