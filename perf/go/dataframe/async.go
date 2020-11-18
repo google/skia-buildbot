@@ -80,7 +80,6 @@ type frameRequestProcess struct {
 
 	shortcutStore shortcut.Store
 
-	response      *FrameResponse
 	search        int     // The current search (either Formula or Query) being processed.
 	totalSearches int     // The total number of Formulas and Queries in the FrameRequest.
 	percent       float32 // The percentage of the searches complete [0.0-1.0].
@@ -123,11 +122,6 @@ func (p *frameRequestProcess) progress(step, totalSteps int) {
 // Query or Formula.
 func (p *frameRequestProcess) searchInc() {
 	p.search += 1
-}
-
-// Response returns the FrameResponse of the completed FrameRequestProcess.
-func (p *frameRequestProcess) Response() *FrameResponse {
-	return p.response
 }
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
@@ -186,7 +180,6 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 			p.reportError(err, "Failed to load dataframe.")
 			return
 		}
-
 	}
 
 	resp, err := ResponseFromDataFrame(ctx, df, p.perfGit, true)
@@ -194,9 +187,9 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 		p.reportError(err, "Failed to get skps.")
 		return
 	}
-	p.response = resp
 
-	p.request.Progress.Finished(resp)
+	p.request.Progress.Finished()
+	p.request.Progress.Results(resp)
 }
 
 // getSkps returns the indices where the SKPs have been updated given
