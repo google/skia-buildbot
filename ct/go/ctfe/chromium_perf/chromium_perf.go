@@ -41,48 +41,48 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type DatastoreTask struct {
+type ChromiumPerfDatastoreTask struct {
 	task_common.CommonCols
 
-	Benchmark                    string
-	Platform                     string
-	RunOnGCE                     bool
-	PageSets                     string
-	IsTestPageSet                bool
-	RepeatRuns                   int64
-	RunInParallel                bool
-	BenchmarkArgs                string
-	BrowserArgsNoPatch           string
-	BrowserArgsWithPatch         string
-	Description                  string
-	CustomWebpagesGSPath         string
-	ChromiumPatchGSPath          string
-	BlinkPatchGSPath             string
-	SkiaPatchGSPath              string
-	CatapultPatchGSPath          string
-	BenchmarkPatchGSPath         string
-	ChromiumPatchBaseBuildGSPath string
-	V8PatchGSPath                string
-	Results                      string
-	NoPatchRawOutput             string
-	WithPatchRawOutput           string
-	ChromiumHash                 string
-	CCList                       []string
-	TaskPriority                 int
-	GroupName                    string
-	ValueColumnName              string
+	Benchmark                    string   `json:"benchmark"`
+	Platform                     string   `json:"platform"`
+	RunOnGCE                     bool     `json:"run_on_gce"`
+	PageSets                     string   `json:"page_sets"`
+	IsTestPageSet                bool     `json:"is_test_page_set"`
+	RepeatRuns                   int64    `json:"repeat_runs"`
+	RunInParallel                bool     `json:"run_in_parallel"`
+	BenchmarkArgs                string   `json:"benchmark_args"`
+	BrowserArgsNoPatch           string   `json:"browser_args_no_patch"`
+	BrowserArgsWithPatch         string   `json:"browser_args_with_patch"`
+	Description                  string   `json:"description"`
+	CustomWebpagesGSPath         string   `json:"custom_webpages_gspath"`
+	ChromiumPatchGSPath          string   `json:"chromium_patch_gspath"`
+	BlinkPatchGSPath             string   `json:"blink_patch_gspath"`
+	SkiaPatchGSPath              string   `json:"skia_patch_gspath"`
+	CatapultPatchGSPath          string   `json:"catapult_patch_gspath"`
+	BenchmarkPatchGSPath         string   `json:"benchmark_patch_gspath"`
+	ChromiumPatchBaseBuildGSPath string   `json:"chromium_patch_base_build_gspath"`
+	V8PatchGSPath                string   `json:"v8_patch_gspath"`
+	Results                      string   `json:"results"`
+	NoPatchRawOutput             string   `json:"no_patch_raw_output"`
+	WithPatchRawOutput           string   `json:"with_patch_raw_output"`
+	ChromiumHash                 string   `json:"chromium_hash"`
+	CCList                       []string `json:"cc_list"`
+	TaskPriority                 int      `json:"task_priority"`
+	GroupName                    string   `json:"group_name"`
+	ValueColumnName              string   `json:"value_column_name"`
 }
 
-func (task DatastoreTask) GetTaskName() string {
+func (task ChromiumPerfDatastoreTask) GetTaskName() string {
 	return "ChromiumPerf"
 }
 
-func (task DatastoreTask) GetDescription() string {
+func (task ChromiumPerfDatastoreTask) GetDescription() string {
 	return task.Description
 }
 
-func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
-	taskVars := &AddTaskVars{}
+func (task ChromiumPerfDatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, error) {
+	taskVars := &ChromiumPerfAddTaskVars{}
 	taskVars.Username = task.Username
 	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
@@ -139,24 +139,24 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	return taskVars, nil
 }
 
-func (task DatastoreTask) GetResultsLink() string {
+func (task ChromiumPerfDatastoreTask) GetResultsLink() string {
 	return task.Results
 }
 
-func (task DatastoreTask) RunsOnGCEWorkers() bool {
+func (task ChromiumPerfDatastoreTask) RunsOnGCEWorkers() bool {
 	// Perf tasks should normally always run on bare-metal machines but we
 	// also have Windows GCE instances now.
 	return task.RunOnGCE
 }
 
-func (task DatastoreTask) GetDatastoreKind() ds.Kind {
+func (task ChromiumPerfDatastoreTask) GetDatastoreKind() ds.Kind {
 	return ds.CHROMIUM_PERF_TASKS
 }
 
-func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
-	tasks := []*DatastoreTask{}
+func (task ChromiumPerfDatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
+	tasks := []*ChromiumPerfDatastoreTask{}
 	for {
-		t := &DatastoreTask{}
+		t := &ChromiumPerfDatastoreTask{}
 		_, err := it.Next(t)
 		if err == iterator.Done {
 			break
@@ -169,15 +169,15 @@ func (task DatastoreTask) Query(it *datastore.Iterator) (interface{}, error) {
 	return tasks, nil
 }
 
-func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
-	t := &DatastoreTask{}
+func (task ChromiumPerfDatastoreTask) Get(c context.Context, key *datastore.Key) (task_common.Task, error) {
+	t := &ChromiumPerfDatastoreTask{}
 	if err := ds.DS.Get(c, key, t); err != nil {
 		return nil, err
 	}
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
+func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	cmd := []string{
@@ -223,7 +223,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmi
 	return nil
 }
 
-func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
+func (task ChromiumPerfDatastoreTask) SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (#%d)", task.DatastoreKey.ID)
@@ -272,7 +272,7 @@ func (task DatastoreTask) SendCompletionEmail(ctx context.Context, completedSucc
 	return nil
 }
 
-func (task *DatastoreTask) SetCompleted(success bool) {
+func (task *ChromiumPerfDatastoreTask) SetCompleted(success bool) {
 	if success {
 		runID := task_common.GetRunID(task)
 		task.Results = ctutil.GetPerfOutputLink(runID)
@@ -288,7 +288,7 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
-type AddTaskVars struct {
+type ChromiumPerfAddTaskVars struct {
 	task_common.AddTaskCommonVars
 
 	Benchmark            string   `json:"benchmark"`
@@ -317,11 +317,11 @@ type AddTaskVars struct {
 	ChromiumPatchBaseBuild string `json:"chromium_patch_base_build"`
 }
 
-func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
+func (task *ChromiumPerfAddTaskVars) GetDatastoreKind() ds.Kind {
 	return ds.CHROMIUM_PERF_TASKS
 }
 
-func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
+func (task *ChromiumPerfAddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_common.Task, error) {
 	if task.Benchmark == "" ||
 		task.Platform == "" ||
 		task.PageSets == "" ||
@@ -373,7 +373,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		return nil, fmt.Errorf("Could not save chromium patch for base build to storage: %s", err)
 	}
 
-	t := &DatastoreTask{
+	t := &ChromiumPerfDatastoreTask{
 		Benchmark:            task.Benchmark,
 		Platform:             task.Platform,
 		PageSets:             task.PageSets,
@@ -428,19 +428,19 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 }
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.AddTaskHandler(w, r, &AddTaskVars{})
+	task_common.AddTaskHandler(w, r, &ChromiumPerfAddTaskVars{})
 }
 
 func getTasksHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.GetTasksHandler(&DatastoreTask{}, w, r)
+	task_common.GetTasksHandler(&ChromiumPerfDatastoreTask{}, w, r)
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.DeleteTaskHandler(&DatastoreTask{}, w, r)
+	task_common.DeleteTaskHandler(&ChromiumPerfDatastoreTask{}, w, r)
 }
 
 func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.RedoTaskHandler(&DatastoreTask{}, w, r)
+	task_common.RedoTaskHandler(&ChromiumPerfDatastoreTask{}, w, r)
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
