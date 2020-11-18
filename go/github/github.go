@@ -53,6 +53,10 @@ const (
 	CHECK_STATE_ACTION_REQUIRED = "action_required"
 	CHECK_STATE_ERROR           = "error"
 	CHECK_STATE_PENDING         = "pending"
+
+	// Known checks.
+	CLA_CHECK             = "cla/google"
+	IMPORT_COPYBARA_CHECK = "import/copybara"
 )
 
 var (
@@ -127,6 +131,22 @@ func (g *GitHub) GetAuthenticatedUser() (*github.User, error) {
 		return nil, fmt.Errorf("Unexpected status code %d from users.get.", resp.StatusCode)
 	}
 	return user, nil
+}
+
+// See https://developer.github.com/v3/pulls/#list-pull-requests
+// for the API documentation.
+func (g *GitHub) ListOpenPullRequests() ([]*github.PullRequest, error) {
+	opts := &github.PullRequestListOptions{
+		State: "open",
+	}
+	pullRequests, resp, err := g.client.PullRequests.List(g.ctx, g.RepoOwner, g.RepoName, opts)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing pullrequests.list: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from pullrequests.list.", resp.StatusCode)
+	}
+	return pullRequests, nil
 }
 
 // See https://developer.github.com/v3/pulls/#get-a-single-pull-request
@@ -465,6 +485,19 @@ func (g *GitHub) GetChecks(ref string) ([]*Check, error) {
 	}
 
 	return totalChecks, nil
+}
+
+// See https://developer.github.com/v3/users/#get-a-user
+// for the API documentation.
+func (g *GitHub) GetUserEmail(username string) (string, error) {
+	user, resp, err := g.client.Users.Get(g.ctx, username)
+	if err != nil {
+		return "", fmt.Errorf("Failed doing users.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Unexpected status code %d from users.get.", resp.StatusCode)
+	}
+	return user.GetEmail(), nil
 }
 
 // See https://developer.github.com/v3/issues/#get-a-single-issue
