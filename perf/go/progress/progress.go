@@ -66,16 +66,16 @@ type Progress interface {
 	// matches an existing message it will replace that key's value.
 	Message(key, value string)
 
-	// Finished is called with the Results that are to be serialized via
-	// SerializedProgress. This puts the Progress into the Finished state.
-	Finished(interface{})
-
-	// IntermediateResult allows setting an intermediate result, as opposed to
-	// the final result which is set by calling Finished.
-	IntermediateResult(interface{})
+	// Results is called with the Results that are to be serialized via
+	// SerializedProgress. The Progress does not have to be in the Finished
+	// state to call this.
+	Results(interface{})
 
 	// Error sets the Progress status to Error.
 	Error()
+
+	// Finished sets the Progress status to Finished.
+	Finished()
 
 	// Status returns the current Status.
 	Status() Status
@@ -119,16 +119,15 @@ func (p *progress) Message(key, value string) {
 	})
 }
 
-// Message implements the Progress interface.
-func (p *progress) Finished(results interface{}) {
+// Finished implements the Progress interface.
+func (p *progress) Finished() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.state.Status = Finished
-	p.state.Results = results
 }
 
-// IntermediateResult implements the Progress interface.
-func (p *progress) IntermediateResult(res interface{}) {
+// Results implements the Progress interface.
+func (p *progress) Results(res interface{}) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.state.Results = res
