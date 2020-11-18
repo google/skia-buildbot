@@ -77,6 +77,9 @@ type Progress interface {
 	// Error sets the Progress status to Error.
 	Error()
 
+	// Finish sets the Progress status to Finished.
+	Finish()
+
 	// Status returns the current Status.
 	Status() Status
 
@@ -119,12 +122,19 @@ func (p *progress) Message(key, value string) {
 	})
 }
 
-// Message implements the Progress interface.
+// Finished implements the Progress interface.
 func (p *progress) Finished(results interface{}) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.state.Status = Finished
 	p.state.Results = results
+}
+
+// Finish implements the Progress interface.
+func (p *progress) Finish() {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.state.Status = Finished
 }
 
 // IntermediateResult implements the Progress interface.
