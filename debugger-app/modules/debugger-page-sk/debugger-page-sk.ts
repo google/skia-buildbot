@@ -63,8 +63,9 @@ import '../resources-sk';
 import '../timeline-sk';
 import '../zoom-sk';
 
-// TODO(nifong): find a way to move this declaration outside this file
+// Declarartions for variables defined in JS files included by main.html
 declare function DebuggerInit(opts: DebuggerInitOptions): Promise<Debugger>;
+declare const SKIA_VERSION: string;
 
 interface FileContext {
   player: SkpDebugPlayer;
@@ -205,8 +206,9 @@ export class DebuggerPageSk extends ElementSk {
         </div>
     </div>`;
 
-  private _skiaVersion: string = 'a url of some kind';
-  private _skiaVersionShort: string = '-1';
+  // defined by version.js which is included by main.html and generated in Makefile.
+  private _skiaVersion: string = SKIA_VERSION;
+  private _skiaVersionShort: string = SKIA_VERSION.substring(0, 7);
 
   // null as long as no file loaded.
   private _fileContext: FileContext | null = null;

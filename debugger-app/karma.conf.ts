@@ -13,6 +13,9 @@ export = function(karmaConfig: karma.Config) {
 
   karmaConfig.set({
     files: [
+      // debugger-page-sk.ts expects to find SKIA_VERSION defined
+      'build/version.js',
+
       // out debugger wasm products
       'build/debugger/debugger.js',
       { pattern: 'build/debugger/debugger.wasm', included:false, served:true},

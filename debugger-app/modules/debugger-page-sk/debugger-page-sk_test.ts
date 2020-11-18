@@ -13,6 +13,9 @@ function hasClass(e: HTMLElement, expected: string): boolean {
   return e.classList.contains(expected);
 }
 
+// debugger-page-sk expects to find this defined
+const SKIA_VERSION = 'test';
+
 describe('debugger-page-sk', () => {
   const newInstance = setUpElementUnderTest<DebuggerPageSk>('debugger-page-sk');
 

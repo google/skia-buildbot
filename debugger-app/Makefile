@@ -12,7 +12,7 @@ go-test:
 	go test ./go/...
 
 .PHONY: js-test
-js-test:
+js-test: version-file
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 .PHONY: js-test-debug
@@ -27,8 +27,11 @@ puppeteer-test:
 puppeteer-test-debug:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 
+.PHONY: version-file
+	echo "const SKIA_VERSION = 'local';" > build/version.js
+
 .PHONY: serve
-serve:
+serve: version-file
 	npx webpack-dev-server --watch-poll --mode=development
 
 .PHONY: wasm_libs
@@ -38,7 +41,7 @@ wasm_libs:
 	docker run -u $$(id -u ${USER}):$$(id -g ${USER}) --rm \
 	       --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
 	       sh -c "cp -r /tmp/* /OUT"
-	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
+	echo "const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 .PHONY: build-frontend-ci
 build-frontend-ci: wasm_libs
