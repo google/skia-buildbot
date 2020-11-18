@@ -369,6 +369,9 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	} else {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
+	// cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
+	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython)...)
+
 	if targetPlatform == PLATFORM_ANDROID {
 		// Add adb CIPD package for Android runs.
 		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
@@ -651,7 +654,10 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		env = append(env, e)
 	}
 
+	pythonExec := "vpython"
 	if targetPlatform == PLATFORM_ANDROID {
+		// vpython does not seem to work on these docker instances so use regular python instead.
+		pythonExec = "python"
 		// Reset android logcat prior to the run so that we can examine the logs later.
 		util.LogErr(ExecuteCmd(ctx, BINARY_ADB, []string{"logcat", "-c"}, []string{}, ADB_ROOT_TIMEOUT, nil, nil))
 	}
@@ -661,7 +667,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
 		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
+	if err := ExecuteCmdWithConfigurableLogging(ctx, pythonExec, args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
