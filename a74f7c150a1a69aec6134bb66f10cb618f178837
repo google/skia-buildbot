@@ -16,6 +16,29 @@
       "message": "We will probably need to discuss in more detail than a code review",
       "revId": "a74f7c150a1a69aec6134bb66f10cb618f178837",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6fb5d3e3_e2f14ea8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-11-18T18:49:03Z",
+      "side": 1,
+      "message": "nit: I feel like Close() should still best effort try to close everything, even if something early on fails to close, marginally more relevant than previously, since there are more things to close, even if it is a pattern carried forward.",
+      "range": {
+        "startLine": 183,
+        "startChar": 1,
+        "endLine": 191,
+        "endChar": 2
+      },
+      "revId": "a74f7c150a1a69aec6134bb66f10cb618f178837",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
