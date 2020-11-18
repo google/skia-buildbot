@@ -1,3 +1,7 @@
+// This executable builds the Docker images based off the executables in the
+// gcr.io/skia-public/infra image. It then issues a PubSub notification to have those apps
+// tagged and deployed by docker_pushes_watcher.
+// See //docker_pushes_watcher/README.md for more.
 package main
 
 import (
@@ -43,8 +47,8 @@ var (
 )
 
 const (
-	LEASING_IMAGE_NAME = "leasing"
-	CT_IMAGE_NAME      = "ctfe"
+	leasingImageName = "leasing"
+	ctImageName      = "ctfe"
 )
 
 var (
@@ -73,7 +77,7 @@ func buildPushCTImage(ctx context.Context, tag, repo, configDir string, changedF
 	if err != nil {
 		return err
 	}
-	image := fmt.Sprintf("gcr.io/skia-public/%s", CT_IMAGE_NAME)
+	image := fmt.Sprintf("gcr.io/skia-public/%s", ctImageName)
 	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/ct && make release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "CT", image, tag, repo, configDir, tempDir, tag, topic, cmd, volumes, infraCommonEnv, nil)
@@ -88,7 +92,7 @@ func buildPushLeasingImage(ctx context.Context, tag, repo, configDir string, cha
 	if err != nil {
 		return err
 	}
-	image := fmt.Sprintf("gcr.io/skia-public/%s", LEASING_IMAGE_NAME)
+	image := fmt.Sprintf("gcr.io/skia-public/%s", leasingImageName)
 	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/leasing && make release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "Leasing", image, tag, repo, configDir, tempDir, tag, topic, cmd, volumes, infraCommonEnv, nil)

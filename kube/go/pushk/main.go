@@ -44,9 +44,10 @@ func init() {
 		fmt.Printf(`pushk pushes a new version of an app.
 
 The command:
-  1. Modifies the kubernetes yaml files with the new image.
-  2. Commits the changes to the config repo.
+  1. Searches through the checked in kubernetes yaml files to determine which use the image(s).
+  2. Modifies the kubernetes yaml files with the new version of the image(s).
   3. Applies the changes with kubectl.
+  4. Commits the changes to the config repo.
 
 The config is stored in a separate repo that will automaticaly be checked out
 under /tmp by default, or the value of the PUSHK_GITDIR environment variable if set.
@@ -256,6 +257,7 @@ func main() {
 		return gcr.NewClient(tokenSource, containerRegistryProject, imageName).Tags()
 	}
 
+	// Search through the yaml files looking for those that use the provided image names.
 	changed := util.StringSet{}
 	for _, imageName := range imageNames {
 		image, err := imageFromCmdLineImage(imageName, gcrTagProvider)

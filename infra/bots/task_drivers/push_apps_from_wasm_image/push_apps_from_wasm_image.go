@@ -1,3 +1,7 @@
+// This executable builds the Docker images based off the WASM executables in the
+// gcr.io/skia-public/skia-wasm-release image. It then issues a PubSub notification to have those apps
+// tagged and deployed by docker_pushes_watcher.
+// See //docker_pushes_watcher/README.md for more.
 package main
 
 import (
