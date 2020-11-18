@@ -196,7 +196,7 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 	}
 	p.response = resp
 
-	p.request.Progress.Finished(resp)
+	p.request.Progress.Results(resp)
 }
 
 // getSkps returns the indices where the SKPs have been updated given
