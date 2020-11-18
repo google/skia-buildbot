@@ -42,7 +42,7 @@ export class DetailsDialogSk extends ElementSk {
         <button class=close @click=${() => el.close()}><close-icon-sk></close-icon-sk></button>
         </br>
         <div class="horizontal">
-          <div class="flex">${el.titleSection}</div>
+          <div class="flex titleContainer">${el.titleSection}</div>
           ${
             el.actionButton
               ? html`<button class="action" @click=${el.actionButton.handler}>
@@ -143,7 +143,7 @@ export class DetailsDialogSk extends ElementSk {
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .then((td) => {
-        return html`<task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`;
+        return html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`;
       });
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
