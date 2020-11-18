@@ -41,7 +41,13 @@
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "radial-bots+chrome-roll@google.com",
-    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:angle-wrangler"
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:angle-wrangler",
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
+  ],
+  "sheriffBackup": [
+    "cwallez@google.com",
+    "kainino@google.com",
+    "enga@google.com"
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
