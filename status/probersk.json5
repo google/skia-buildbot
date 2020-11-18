@@ -8,7 +8,7 @@
   },
   skiastatus_json: {
     urls: ['https://status.skia.org/twirp/status.StatusService/GetIncrementalCommits'],
-    method: 'GET',
+    method: 'POST',
     expected: [200],
     body: '',
     mimetype: 'application/json',
