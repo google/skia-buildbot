@@ -102,20 +102,22 @@ export class DebugViewSk extends ElementSk {
     return this.querySelector('canvas')!;
   }
 
-  private _mouseOffsetToCanvasPoint(e: MouseEvent): Point {
-    // seems like I can never do this late enough, so here we are,
-    // recompute visual size right before it's used. Surely the canvas
-    // won't change size in the next few microseconds right?
+  private _visibleSize(): Point {
     const element = this.querySelector<HTMLCanvasElement>('#main-canvas')!;
     var strW = window.getComputedStyle(element, null).width;
     var strH = window.getComputedStyle(element, null).height;
     // Trim 'px' off the end of the style string and convert to a number.
     const visibleWidth = parseFloat(strW.substring(0, strW.length-2));
     const visibleHeight = parseFloat(strH.substring(0, strH.length-2));
+    return [visibleWidth, visibleHeight];
+  }
 
+  private _mouseOffsetToCanvasPoint(e: MouseEvent): Point {
+    // The element changes size occasionally, compute visible size just before use.
+    const size = this._visibleSize();
     return [
-      Math.round(e.offsetX / visibleWidth * this._width),
-      Math.round(e.offsetY / visibleHeight * this._height),
+      Math.round(e.offsetX / size[0] * this._width),
+      Math.round(e.offsetY / size[1] * this._height),
     ];
   }
 
@@ -133,7 +135,7 @@ export class DebugViewSk extends ElementSk {
     const chx = chCanvas.getContext('2d')!;
     chx.clearRect(0, 0, chCanvas.width, chCanvas.height);
 
-    chx.lineWidth =  1;
+    chx.lineWidth = this._width / this._visibleSize()[0];
     chx.strokeStyle = '#F00';
     chx.beginPath();
     chx.moveTo(0, p[1]-0.5);
