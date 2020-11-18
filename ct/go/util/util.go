@@ -369,6 +369,9 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	} else {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
+	// cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
+	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython)...)
+
 	if targetPlatform == PLATFORM_ANDROID {
 		// Add adb CIPD package for Android runs.
 		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
@@ -661,7 +664,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
 		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
+	if err := ExecuteCmdWithConfigurableLogging(ctx, "vpython", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
@@ -669,6 +672,8 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		output, getErr := GetRunBenchmarkOutput(b)
 		util.LogErr(getErr)
 		fmt.Println(output)
+		fmt.Println("RAN THE BENCHMARK CMD NOW SLEEPING FOR 10 mins")
+		time.Sleep(10 * time.Minute)
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
 
