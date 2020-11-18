@@ -12,6 +12,7 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/spinner-sk';
@@ -33,8 +34,6 @@ import {
   RegressionDetectionRequest,
   ClusterAlgo,
   Commit,
-  ClusterStartResponse,
-  ClusterStatus,
   FullSummary,
   RegressionDetectionResponse,
 } from '../json';
@@ -42,6 +41,7 @@ import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-s
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
+import { messagesToErrorString, startRequest } from '../progress/progress';
 
 // The state that gets reflected to the URL.
 class State {
@@ -90,6 +90,9 @@ export class ClusterPageSk extends ElementSk {
   // The status of a running request.
   private status: string = '';
 
+  // The spinner we display when waiting for results.
+  private spinner: SpinnerSk | null = null;
+
   constructor() {
     super(ClusterPageSk.template);
   }
@@ -134,12 +137,12 @@ export class ClusterPageSk extends ElementSk {
           @click=${ele.start}
           class="action"
           id="start"
-          ?disabled=${!!ele.requestId}
+          ?disabled=${!!ele.requestId || ele.state.offset === -1}
         >
           Run
         </button>
         <div>
-          <spinner-sk ?active=${!!ele.requestId}></spinner-sk>
+          <spinner-sk id=run-spinner></spinner-sk>
           <span>${ele.status}</span>
         </div>
       </div>
@@ -203,6 +206,7 @@ export class ClusterPageSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
+    this.spinner = this.querySelector('#run-spinner');
 
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     fetch(`/_/initpage/?tz=${tz}`)
@@ -275,7 +279,6 @@ export class ClusterPageSk extends ElementSk {
     window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
-
   private commitSelected(
     e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>,
   ) {
@@ -292,27 +295,7 @@ export class ClusterPageSk extends ElementSk {
     this._render();
   }
 
-  private checkClusterRequestStatus(
-    cb: (summaries: RegressionDetectionResponse)=> void,
-  ) {
-    fetch(`/_/cluster/status/${this.requestId}`)
-      .then(jsonOrThrow)
-      .then((json: ClusterStatus) => {
-        if (json.state === 'Running') {
-          this.status = json.message;
-          this._render();
-          window.setTimeout(() => this.checkClusterRequestStatus(cb), 300);
-        } else {
-          if (json.value) {
-            cb(json.value);
-          }
-          this.catch(json.message);
-        }
-      })
-      .catch((msg) => this.catch(msg));
-  }
-
-  private start() {
+  private async start() {
     if (this.requestId) {
       errorMessage('There is a pending query already running.');
       return;
@@ -352,36 +335,33 @@ export class ClusterPageSk extends ElementSk {
     // another request too soon.
     this.requestId = 'pending';
     this._render();
-    fetch('/_/cluster/start', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json: ClusterStartResponse) => {
-        this.requestId = json.id;
-        this.checkClusterRequestStatus(
-          (regressionDetectionResponse: RegressionDetectionResponse) => {
-            this.summaries = [];
-            regressionDetectionResponse.summary!.Clusters!.forEach(
-              (clusterSummary) => {
-                this.summaries.push({
-                  summary: clusterSummary!,
-                  frame: regressionDetectionResponse.frame!,
-                  triage: {
-                    status: '',
-                    message: '',
-                  },
-                });
-              },
-            );
-            this._render();
-          },
-        );
-      })
-      .catch((msg) => this.catch(msg));
+
+    try {
+      const prog = await startRequest('/_/cluster/start', body, 300, this.spinner!, null);
+      if (prog.status === 'Error') {
+        throw new Error(messagesToErrorString(prog.messages));
+      }
+
+      this.summaries = [];
+      const regressionDetectionResponse = prog.results as RegressionDetectionResponse;
+      regressionDetectionResponse.summary!.Clusters!.forEach(
+        (clusterSummary) => {
+          this.summaries.push({
+            summary: clusterSummary!,
+            frame: regressionDetectionResponse.frame!,
+            triage: {
+              status: '',
+              message: '',
+            },
+          });
+        },
+      );
+    } catch (error) {
+      this.catch(error);
+    } finally {
+      this.requestId = '';
+      this._render();
+    }
   }
 }
 

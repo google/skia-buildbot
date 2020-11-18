@@ -28,18 +28,18 @@ import {
   Alert,
   FrameResponse,
   RegressionAtCommit,
-  DryRunStatus,
   Direction,
   ClusterSummary,
   RegressionDetectionRequest,
-  StartDryRunResponse,
   AlertUpdateResponse,
+  progress,
 } from '../json';
 import { DomainPickerState } from '../domain-picker-sk/domain-picker-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
 import { ClusterSummary2SkOpenKeysEventDetail } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
+import { messagesToErrorString, startRequest } from '../progress/progress';
 
 export class ClusterLastNPageSk extends ElementSk {
   // The range of commits over which we are clustering.
@@ -414,20 +414,18 @@ export class ClusterLastNPageSk extends ElementSk {
     this.hasError = true;
     this.requestId = '';
     this.runningStatus = msg;
-    this.runSpinner!.active = false;
     this._render();
     if (msg) {
       errorMessage(msg, 10000);
     }
   }
 
-  private run() {
+  private async run() {
     this.hasError = false;
     if (this.requestId) {
       errorMessage('There is a pending query already running.');
       return;
     }
-    this.runSpinner!.active = true;
     this.domain = this.querySelector<DomainPickerSk>('#range')!.state;
     const body: RegressionDetectionRequest = {
       domain: {
@@ -440,43 +438,27 @@ export class ClusterLastNPageSk extends ElementSk {
       step: 0,
       total_queries: 1,
     };
-    fetch('/_/dryrun/start', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json: StartDryRunResponse) => {
-        this.requestId = json.id;
-        this._render();
-        this.checkDryRunStatus((regressions: (RegressionAtCommit | null)[]) => {
-          this.regressions = regressions;
-          this._render();
-        });
-      })
-      .catch((msg) => this.catch(msg));
-  }
 
-  private checkDryRunStatus(
-    cb: (regressions: (RegressionAtCommit | null)[])=> void,
-  ) {
-    fetch(`/_/dryrun/status/${this.requestId}`)
-      .then(jsonOrThrow)
-      .then((json: DryRunStatus) => {
-        this.runningStatus = json.message;
-        if (!json.finished) {
-          window.setTimeout(() => this.checkDryRunStatus(cb), 300);
-        } else {
-          this.runSpinner!.active = false;
-          this.requestId = '';
+    try {
+      this.requestId = 'running';
+      const finalProg = await startRequest('/_/dryrun/start', body, 300, this.runSpinner!, (prog: progress.SerializedProgress) => {
+        if (prog.results) {
+          this.regressions = prog.results;
         }
-        // json.regressions will get filled in incrementally, so display them
-        // as they arrive.
-        cb(json.regressions!);
-      })
-      .catch((msg) => this.catch(msg));
+        this.runningStatus = prog.messages.map(((msg) => `${msg.key}: ${msg.value}`)).join('\n');
+        this._render();
+      });
+      if (finalProg.status !== 'Finished') {
+        throw (new Error(messagesToErrorString(finalProg.messages)));
+      }
+      this.regressions = finalProg.results;
+      this.runningStatus = '';
+    } catch (error) {
+      this.catch(error);
+    } finally {
+      this.requestId = '';
+      this._render();
+    }
   }
 }
 

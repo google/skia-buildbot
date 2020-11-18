@@ -621,7 +621,6 @@ func (s *SQLTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber)
 
 // GetLatestTile implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, error) {
-	defer timer.New("GetLatestTile").Stop()
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLatestTile")
 	defer span.End()
 
@@ -667,6 +666,7 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 
 // GetOrderedParamSet implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
+	defer timer.New("GetOrderedParamSet").Stop()
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
 	defer span.End()
 
