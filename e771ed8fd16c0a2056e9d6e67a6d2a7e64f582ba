@@ -16,6 +16,69 @@
       "message": "Made some changes to the Progress interface to make it more ergonomic based\non your feedback:\n  - Added FinishWithResults()\n  - Added an error message argument to Error()\n  - Added panics to all mutating methods if called after a Progress leaves the Running.\n",
       "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ecd1ecf5_ca1b3bfa",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-18T21:04:06Z",
+      "side": 1,
+      "message": "That looks much nicer, thanks.",
+      "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "628a759f_fd51f620",
+        "filename": "perf/go/progress/progress.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-18T21:04:06Z",
+      "side": 1,
+      "message": "nit: add \"callers should be sure to have the mutex\"",
+      "range": {
+        "startLine": 119,
+        "startChar": 55,
+        "endLine": 119,
+        "endChar": 60
+      },
+      "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c7b1a017_5b9b03a7",
+        "filename": "perf/go/progress/progress_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-18T21:04:06Z",
+      "side": 1,
+      "message": "https://godoc.org/github.com/stretchr/testify/assert#Panics might be more clear, especially if you wrap just the last line in the func (the one expected to panic).",
+      "range": {
+        "startLine": 143,
+        "startChar": 1,
+        "endLine": 143,
+        "endChar": 6
+      },
+      "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
