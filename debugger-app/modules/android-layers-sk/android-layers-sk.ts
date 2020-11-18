@@ -36,9 +36,12 @@ export interface AndroidLayersSkInspectLayerEventDetail {
 export class AndroidLayersSk extends ElementSk {
 
   private static template = (ele: AndroidLayersSk) =>
-    html`<div>${ele._layerList.map(
-      (l: LayerDescription) => AndroidLayersSk.layerTemplate(ele, l))}
-      </div>`;
+    html`
+      <details open>
+        <summary><b>Offscreen Buffers</b></summary>
+        ${ele._layerList.map(
+          (l: LayerDescription) => AndroidLayersSk.layerTemplate(ele, l))}
+      </details>`;
 
   private static layerTemplate = (ele: AndroidLayersSk, item: LayerDescription) =>
     html`
@@ -48,7 +51,9 @@ export class AndroidLayersSk extends ElementSk {
       Uses this frame = <b>${item.usesThisFrame.length}</b>
       Last update (<b>${item.fullRedraw ? 'full' : 'partial'}</b>) on frame
         <b>${item.frameOfLastUpdate}</b><br>
-      <cycler-button-sk .text=${'Show Use'} .list=${item.usesThisFrame} .fn=${ele._jumpCommand}
+      <cycler-button-sk .text=${'Show Use'} .list=${item.usesThisFrame} .fn=${
+          (i: number)=>{ele._jumpCommand(i)} // bind ele
+        }
         title="Cycle through drawImageRectLayer commands on this frame which used this surface as\
  a source.">
       </cycler-button-sk>
@@ -65,6 +70,7 @@ export class AndroidLayersSk extends ElementSk {
 
   private _layerList: LayerDescription[] = [];
   private _inspectedLayer: number = -1; // a nodeID, not an index
+  private _frame: number = 0;
 
   constructor() {
     super(AndroidLayersSk.template);
@@ -104,6 +110,8 @@ export class AndroidLayersSk extends ElementSk {
       id = -1; // means we are not inspecting any layer
     }
     this._inspectedLayer = id;
+    // save what frame we were on when we entered the inspector
+    this._frame = frame;
     // The current frame must be set to one which has an update for a layer before opening
     // the inspector for that layer. debugger-page-sk will move the frame if necessary.
     this.dispatchEvent(
@@ -116,6 +124,10 @@ export class AndroidLayersSk extends ElementSk {
   }
 
   private _jumpCommand(index: number) {
+    if (this._inspectedLayer !== -1) {
+      // if we are inspecting a layer, we must exit in order to show it's use in the top level skp
+      this._inspectLayer(this._inspectedLayer, this._frame);
+    }
     this.dispatchEvent(
       new CustomEvent<CommandsSkJumpEventDetail>(
         'jump-command', {

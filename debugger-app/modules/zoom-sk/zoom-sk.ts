@@ -28,6 +28,10 @@ import {
   Point,
 } from '../debugger-page-sk/debugger-page-sk';
 
+function clamp(c: number): number {
+  return Math.round(Math.max(0, Math.min(c || 0, 255)));
+}
+
 export class ZoomSk extends ElementSk {
   private static template = (ele: ZoomSk) =>
     html`
@@ -137,7 +141,11 @@ export class ZoomSk extends ElementSk {
     // gives a UInt8ClampedArray of RGBA
     const c = ctx.getImageData(ZoomSk.viewSize/2, ZoomSk.viewSize/2, 1, 1).data;
     this._rgb = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`;
-    this._hex = ((c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3]).toString(16);
+    this._hex = ((
+      (clamp(c[0]) << 24) |
+      (clamp(c[1]) << 16) |
+      (clamp(c[2]) << 8) |
+      (clamp(c[3]) << 0) & 0xFFFFFFF) >>> 0).toString(16);
   }
 
   // convert click in zoomed view to coordinates in source canvas
