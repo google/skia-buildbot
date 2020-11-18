@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7fbd5360_a4015542",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-18T18:53:45Z",
+      "side": 1,
+      "message": "Thanks for improving documentation!",
+      "revId": "7673acfcd68200c191d289398b72956bba1afa03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e3cced6_4b993773",
+        "filename": "docker_pushes_watcher/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-18T18:53:45Z",
+      "side": 1,
+      "message": "nit: bot-\u003ejob or change \"jobs\" above back to \"bots\"",
+      "range": {
+        "startLine": 62,
+        "startChar": 2,
+        "endLine": 62,
+        "endChar": 5
+      },
+      "revId": "7673acfcd68200c191d289398b72956bba1afa03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f5752ce_22e96f19",
+        "filename": "docker_pushes_watcher/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-18T18:53:45Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 64,
+        "startChar": 2,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "7673acfcd68200c191d289398b72956bba1afa03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
