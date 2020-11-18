@@ -1,17 +1,17 @@
 {
-   "skiastatus": {
-     "urls": ["https://status.skia.org"],
-     "method": "GET",
-     "expected": [302],
-     "body": "",
-     "mimetype": ""
-   },
-   "skiastatus_json": {
-     "urls": ["https://status.skia.org/json/skia/incremental"],
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": "application/json",
-     "responsetest": "validJSON"
-   },
+  skiastatus: {
+    urls: ['https://status.skia.org'],
+    method: 'GET',
+    expected: [200],
+    body: '',
+    mimetype: '',
+  },
+  skiastatus_json: {
+    urls: ['https://status.skia.org/twirp/status.StatusService/GetIncrementalCommits'],
+    method: 'GET',
+    expected: [200],
+    body: '',
+    mimetype: 'application/json',
+    responsetest: 'validJSON',
+  },
 }
