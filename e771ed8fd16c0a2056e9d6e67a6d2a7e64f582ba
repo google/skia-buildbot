@@ -58,6 +58,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5fb479d5_e6a96529",
+        "filename": "perf/go/progress/progress.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-18T21:12:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "628a759f_fd51f620",
+      "range": {
+        "startLine": 119,
+        "startChar": 55,
+        "endLine": 119,
+        "endChar": 60
+      },
+      "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c7b1a017_5b9b03a7",
@@ -71,6 +95,30 @@
       "writtenOn": "2020-11-18T21:04:06Z",
       "side": 1,
       "message": "https://godoc.org/github.com/stretchr/testify/assert#Panics might be more clear, especially if you wrap just the last line in the func (the one expected to panic).",
+      "range": {
+        "startLine": 143,
+        "startChar": 1,
+        "endLine": 143,
+        "endChar": 6
+      },
+      "revId": "e771ed8fd16c0a2056e9d6e67a6d2a7e64f582ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "12a70978_472fe744",
+        "filename": "perf/go/progress/progress_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-18T21:12:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c7b1a017_5b9b03a7",
       "range": {
         "startLine": 143,
         "startChar": 1,
