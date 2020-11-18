@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "67a45da4_6bbe8c1d",
+        "filename": "docker_pushes_watcher/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-18T19:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e3cced6_4b993773",
+      "range": {
+        "startLine": 62,
+        "startChar": 2,
+        "endLine": 62,
+        "endChar": 5
+      },
+      "revId": "7673acfcd68200c191d289398b72956bba1afa03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9f5752ce_22e96f19",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-11-18T18:53:45Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 64,
+        "startChar": 2,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "7673acfcd68200c191d289398b72956bba1afa03",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0b91e7f_e0c29edb",
+        "filename": "docker_pushes_watcher/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-18T19:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f5752ce_22e96f19",
       "range": {
         "startLine": 64,
         "startChar": 2,
