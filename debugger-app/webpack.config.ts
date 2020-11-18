@@ -15,6 +15,7 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
     { from: resolve(__dirname, 'static/favicon.png') },
     { from: resolve(__dirname, 'build/debugger/debugger.wasm') },
     { from: resolve(__dirname, 'build/debugger/debugger.js') },
+    { from: resolve(__dirname, 'build/version.js') },
   ];
 
   config.plugins!.push(
