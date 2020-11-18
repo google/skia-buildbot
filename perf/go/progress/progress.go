@@ -40,6 +40,10 @@ const (
 	Error Status = "Error"
 )
 
+// ErrorMessageKey is the key in Messages used to store the string passed to
+// Error().
+const ErrorMessageKey = "Error"
+
 // AllStatus contains all values of type State.
 var AllStatus = []Status{Running, Finished, Error}
 
@@ -61,21 +65,30 @@ type SerializedProgress struct {
 
 // Progress is the interface for reporting on the progress of a long running
 // process.
+//
+// Once a Progress has left the Running status it can no longer be modified, and
+// modifying methods like Error() and Results() will panic.
 type Progress interface {
 	// Message adds or updates a message in a progress recorder. If the key
 	// matches an existing message it will replace that key's value.
 	Message(key, value string)
 
-	// Finished is called with the Results that are to be serialized via
-	// SerializedProgress. This puts the Progress into the Finished state.
-	Finished(interface{})
-
-	// IntermediateResult allows setting an intermediate result, as opposed to
-	// the final result which is set by calling Finished.
-	IntermediateResult(interface{})
+	// Results is called with the Results that are to be serialized via
+	// SerializedProgress. Use this to store intermediate results or if results
+	// are accumulated incrementally before the process is Finished.
+	Results(interface{})
 
 	// Error sets the Progress status to Error.
-	Error()
+	//
+	// The passed in string is stored at ErrorMessageKey in Messages.
+	Error(string)
+
+	// Finished sets the Progress status to Finished.
+	Finished()
+
+	// FinishedWithResults sets the Progress status to Finished with the given
+	// result.
+	FinishedWithResults(interface{})
 
 	// Status returns the current Status.
 	Status() Status
@@ -103,10 +116,8 @@ func New() *progress {
 	}
 }
 
-// Message implements the Progress interface.
-func (p *progress) Message(key, value string) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+// message implements Message. Callers are expected to already have the mutex.
+func (p *progress) message(key, value string) {
 	for _, m := range p.state.Messsages {
 		if m.Key == key {
 			m.Value = value
@@ -120,25 +131,55 @@ func (p *progress) Message(key, value string) {
 }
 
 // Message implements the Progress interface.
-func (p *progress) Finished(results interface{}) {
+func (p *progress) Message(key, value string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	p.state.Status = Finished
-	p.state.Results = results
+	if p.state.Status != Running {
+		panic("Progress is already Finished")
+	}
+	p.message(key, value)
 }
 
-// IntermediateResult implements the Progress interface.
-func (p *progress) IntermediateResult(res interface{}) {
+// Finished implements the Progress interface.
+func (p *progress) Finished() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+	if p.state.Status != Running {
+		panic("Progress is already Finished")
+	}
+	p.state.Status = Finished
+}
+
+// Results implements the Progress interface.
+func (p *progress) Results(res interface{}) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if p.state.Status != Running {
+		panic("Progress is already Finished")
+	}
+	p.state.Results = res
+}
+
+// Results implements the Progress interface.
+func (p *progress) FinishedWithResults(res interface{}) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if p.state.Status != Running {
+		panic("Progress is already Finished")
+	}
+	p.state.Status = Finished
 	p.state.Results = res
 }
 
 // Error implements the Progress interface.
-func (p *progress) Error() {
+func (p *progress) Error(msg string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+	if p.state.Status != Running {
+		panic("Progress is already Finished")
+	}
 	p.state.Status = Error
+	p.message(ErrorMessageKey, msg)
 }
 
 // Status implements the Progress interface.
@@ -152,6 +193,9 @@ func (p *progress) Status() Status {
 func (p *progress) URL(url string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
+	if p.state.Status != Running {
+		panic("Progress is already Finished")
+	}
 	p.state.URL = url
 }
 
