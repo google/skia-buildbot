@@ -46,7 +46,7 @@ func TestTracker_ProgressIsFinished_ProgressStillAppearsInCacheAndMetrics(t *tes
 	unittest.SmallTest(t)
 
 	tr, p := setup(t)
-	p.Finished(nil)
+	p.Finished()
 
 	tr.singleStep()
 
@@ -59,7 +59,7 @@ func TestTracker_TimeAdvancesPastExpirationOfFinishedProgress_ProgressNoLongerAp
 	unittest.SmallTest(t)
 
 	tr, p := setup(t)
-	p.Finished(nil)
+	p.Finished()
 
 	// This pass will mark the time the Progress finished in the cache entry.
 	timeNow = func() time.Time {
@@ -115,7 +115,7 @@ func TestTracker_RequestForProgressWithUnSerializableResult_ReturnsError(t *test
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
-	p.Finished(make(chan int)) // Not JSON serializable.
+	p.Results(make(chan int)) // Not JSON serializable.
 	tr.Add(p)
 
 	r := httptest.NewRequest("GET", p.state.URL, nil)

@@ -1282,6 +1282,10 @@ export class ExploreSk extends ElementSk {
       if (finishedProg.status !== 'Finished') {
         throw (new Error(messagesToErrorString(finishedProg.messages)));
       }
+      const msg = messageByName(finishedProg.messages, 'Message');
+      if (msg) {
+        errorMessage(msg, 10000);
+      }
       cb(finishedProg.results as FrameResponse);
     } catch (msg) {
       this.catch(msg);

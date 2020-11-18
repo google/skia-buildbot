@@ -94,8 +94,6 @@ type Frontend struct {
 
 	loadTemplatesOnce sync.Once
 
-	regressionDetector regression.Detector
-
 	regStore regression.Store
 
 	continuous []*continuous.Continuous
@@ -414,7 +412,6 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		f.notifier = notify.New(notify.NoEmail{}, config.Config.URL)
 	}
 
-	f.regressionDetector = regression.NewDetector(f.perfGit, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
@@ -422,14 +419,14 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	f.configProvider = f.newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	f.dryrunRequests = dryrun.New(f.perfGit, f.regressionDetector)
+	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder)
 
 	if f.flags.DoClustering {
 		go func() {
 			for i := 0; i < f.flags.NumContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := continuous.New(f.regressionDetector, f.perfGit, f.configProvider, f.regStore, f.notifier, paramsProvider, f.dfBuilder,
+				c := continuous.New(f.perfGit, f.shortcutStore, f.configProvider, f.regStore, f.notifier, paramsProvider, f.dfBuilder,
 					cfg, f.flags)
 				f.continuous = append(f.continuous, c)
 				go c.Run(context.Background())
@@ -473,7 +470,6 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
 			ParamSet: f.paramsetRefresher.Get(),
 		},
 		Skps: []int{},
-		Msg:  "",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -498,12 +494,11 @@ func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
 
 		resp, err := f.trybotResultsLoader.Load(ctx, req, nil)
 		if err != nil {
-			prog.Error()
-			prog.Message("Error", "Failed to load results.")
+			prog.Error("Failed to load results.")
 			sklog.Errorf("trybot failed to load results: %s", err)
 			return
 		}
-		prog.Finished(resp)
+		prog.FinishedWithResults(resp)
 	}()
 	w.Header().Set("Content-Type", "application/json")
 	if err := prog.JSON(w); err != nil {
@@ -689,59 +684,21 @@ type ClusterStartResponse struct {
 func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	req := &regression.RegressionDetectionRequest{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	req := regression.NewRegressionDetectionRequest()
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "cluster", req)
-	id, err := f.regressionDetector.Add(context.Background(), nil, req)
-	sklog.Infof("Added to clusterRequests")
-	if err != nil {
-		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
-		return
-	}
-	resp := ClusterStartResponse{
-		ID: id,
-	}
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to encode paramset: %s", err)
-	}
-}
 
-// ClusterStatus is used to serialize a JSON response in clusterStatusHandler.
-type ClusterStatus struct {
-	State   regression.ProcessState                 `json:"state"`
-	Message string                                  `json:"message"`
-	Value   *regression.RegressionDetectionResponse `json:"value"`
-}
-
-// clusterStatusHandler is used to check on the status of a long running cluster
-// request. The ID of the routine is passed in via the URL path. A JSON
-// serialized ClusterStatus is returned, with ClusterStatus.Value being
-// populated only when the clustering process has finished.
-func (f *Frontend) clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
-
-	status := &ClusterStatus{}
-	state, msg, err := f.regressionDetector.Status(id)
-	if err != nil {
-		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
-		return
+	cb := func(_ *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, _ string) {
+		// We don't do GroupBy clustering, so there will only be one clusterResponse.
+		req.Progress.Results(clusterResponse[0])
 	}
-	status.State = state
-	status.Message = msg
-	if state == regression.ProcessSuccess {
-		value, err := f.regressionDetector.Response(id)
-		if err != nil {
-			httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
-			return
-		}
-		status.Value = value
-	}
+	f.progressTracker.Add(req.Progress)
 
-	if err := json.NewEncoder(w).Encode(status); err != nil {
+	regression.NewRunningProcess(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
@@ -1511,14 +1468,9 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/keys/", f.keysHandler).Methods("POST")
 
 	router.HandleFunc("/_/frame/start", f.frameStartHandler).Methods("POST")
-
 	router.HandleFunc("/_/cluster/start", f.clusterStartHandler).Methods("POST")
-	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", f.clusterStatusHandler).Methods("GET")
-
 	router.HandleFunc("/_/trybot/load/", f.trybotLoadHandler).Methods("POST")
-
 	router.HandleFunc("/_/dryrun/start", f.dryrunRequests.StartHandler).Methods("POST")
-	router.HandleFunc("/_/dryrun/status/{id:[a-zA-Z0-9]+}", f.dryrunRequests.StatusHandler).Methods("GET")
 
 	router.HandleFunc("/_/reg/", f.regressionRangeHandler).Methods("POST")
 	router.HandleFunc("/_/reg/count", f.regressionCountHandler).Methods("GET")

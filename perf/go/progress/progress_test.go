@@ -66,10 +66,10 @@ type testResults struct {
 	SomeResult string `json:"some_result"`
 }
 
-func TestProgress_FinishProcess_StatusChangesToFinished(t *testing.T) {
+func TestProgress_FinishProcessWithResults_StatusChangesToFinished(t *testing.T) {
 	unittest.SmallTest(t)
 	p := New()
-	p.Finished(testResults{SomeResult: "foo"})
+	p.FinishedWithResults(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
 		Status:    Finished,
 		Messsages: []*Message{},
@@ -83,10 +83,16 @@ func TestProgress_FinishProcess_StatusChangesToFinished(t *testing.T) {
 func TestProgress_CallError_StatusChangesToError(t *testing.T) {
 	unittest.SmallTest(t)
 	p := New()
-	p.Error()
+	const errorMessage = "My error message"
+	p.Error(errorMessage)
 	assert.Equal(t, SerializedProgress{
-		Status:    Error,
-		Messsages: []*Message{},
+		Status: Error,
+		Messsages: []*Message{
+			{
+				ErrorMessageKey,
+				errorMessage,
+			},
+		},
 	}, p.state)
 	assert.Equal(t, Error, p.Status())
 }
@@ -94,7 +100,7 @@ func TestProgress_CallError_StatusChangesToError(t *testing.T) {
 func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *testing.T) {
 	unittest.SmallTest(t)
 	p := New()
-	p.IntermediateResult(testResults{SomeResult: "foo"})
+	p.Results(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
 		Status:    Running,
 		Messsages: []*Message{},
@@ -124,9 +130,76 @@ func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
-	p.Finished(make(chan int)) // Not JSON serializable.
+	p.Results(make(chan int)) // Not JSON serializable.
 	tr.Add(p)
 
 	var buf bytes.Buffer
 	require.Error(t, p.JSON(&buf))
+}
+
+func TestProgress_FinishProgressTwice_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.Finished()
+	assert.Panics(t, p.Finished)
+
+}
+
+func TestProgress_FinishProgressThenSetMessage_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.Finished()
+	assert.Panics(t, func() {
+		p.Message("foo", "bar")
+	})
+}
+
+func TestProgress_FinishProgressThenCallError_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.Finished()
+	assert.Panics(t, func() {
+		p.Error("My error message")
+	})
+}
+
+func TestProgress_FinishProgressThenSetResults_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.Finished()
+	assert.Panics(t, func() {
+		p.Results(nil)
+	})
+}
+
+func TestProgress_FinishProgressThenFinishWithResults_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.Finished()
+	assert.Panics(t, func() {
+		p.FinishedWithResults(nil)
+	})
+}
+
+func TestProgress_FinishProgressThenURL_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.Finished()
+	assert.Panics(t, func() {
+		p.URL("/some/url")
+	})
+}
+
+func TestProgress_FinishWithResultsThenFinish_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	p := New()
+	p.FinishedWithResults(nil)
+	assert.Panics(t, p.Finished)
 }
