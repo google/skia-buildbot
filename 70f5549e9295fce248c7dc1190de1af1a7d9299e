@@ -140,6 +140,30 @@
       },
       "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f8d66ee_45b9b933",
+        "filename": "debugger-app/modules/zoom-sk/zoom-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-18T16:18:08Z",
+      "side": 1,
+      "message": "I would rather have one unreadable pattern done twice than two unreadable patterns.",
+      "parentUuid": "9d2ff83a_644b8ad7",
+      "range": {
+        "startLine": 145,
+        "startChar": 19,
+        "endLine": 145,
+        "endChar": 20
+      },
+      "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
