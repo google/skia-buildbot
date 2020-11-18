@@ -109,7 +109,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgconn v1.7.0 // indirect
+	github.com/jackc/pgconn v1.7.0
 	github.com/jackc/pgx/v4 v4.9.0
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
@@ -191,6 +191,7 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	gotest.tools/v3 v3.0.2
 	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 	k8s.io/api v0.19.3
 	k8s.io/apimachinery v0.19.3
