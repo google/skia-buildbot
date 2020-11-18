@@ -1,3 +1,7 @@
+// This executable builds the Docker images based off the Skia executables in the
+// gcr.io/skia-public/skia-release image. It then issues a PubSub notification to have those apps
+// tagged and deployed by docker_pushes_watcher.
+// See //docker_pushes_watcher/README.md for more.
 package main
 
 import (
@@ -39,9 +43,8 @@ var (
 )
 
 const (
-	FIDDLER_IMAGE_NAME  = "fiddler"
-	DEBUGGER_IMAGE_NAME = "debugger"
-	API_IMAGE_NAME      = "api"
+	fiddlerImageName = "fiddler"
+	apiImageName     = "api"
 )
 
 var (
@@ -59,21 +62,10 @@ func buildPushFiddlerImage(ctx context.Context, tag, repo, configDir string, top
 	if err != nil {
 		return err
 	}
-	image := fmt.Sprintf("gcr.io/skia-public/%s", FIDDLER_IMAGE_NAME)
+	image := fmt.Sprintf("gcr.io/skia-public/%s", fiddlerImageName)
 	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/fiddlek && ./build_fiddler_release"}
 	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
 	return docker.BuildPushImageFromInfraImage(ctx, "Fiddler", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, infraCommonBuildArgs)
-}
-
-func buildPushDebuggerImage(ctx context.Context, tag, repo, configDir string, topic *pubsub.Topic) error {
-	tempDir, err := os_steps.TempDir(ctx, "", "")
-	if err != nil {
-		return err
-	}
-	image := fmt.Sprintf("gcr.io/skia-public/%s", DEBUGGER_IMAGE_NAME)
-	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/debugger && make release_ci"}
-	volumes := []string{fmt.Sprintf("%s:/OUT", tempDir)}
-	return docker.BuildPushImageFromInfraImage(ctx, "Debugger", image, tag, repo, configDir, tempDir, "prod", topic, cmd, volumes, infraCommonEnv, infraCommonBuildArgs)
 }
 
 func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir string, topic *pubsub.Topic) error {
@@ -98,7 +90,7 @@ func buildPushApiImage(ctx context.Context, tag, repo, configDir, checkoutDir st
 		return err
 	}
 
-	image := fmt.Sprintf("gcr.io/skia-public/%s", API_IMAGE_NAME)
+	image := fmt.Sprintf("gcr.io/skia-public/%s", apiImageName)
 	cmd := []string{"/bin/sh", "-c", "cd /home/skia/golib/src/go.skia.org/infra/api && make release_ci"}
 	infraEnv := util.CopyStringSlice(infraCommonEnv)
 	infraEnv = append(infraEnv, "DOXYGEN_HTML=/OUT/html")
@@ -175,9 +167,6 @@ func main() {
 
 	// Build and push all apps of interest below.
 	if err := buildPushFiddlerImage(ctx, tag, rs.Repo, configDir, topic); err != nil {
-		td.Fatal(ctx, err)
-	}
-	if err := buildPushDebuggerImage(ctx, tag, rs.Repo, configDir, topic); err != nil {
 		td.Fatal(ctx, err)
 	}
 	if err := buildPushApiImage(ctx, tag, rs.Repo, configDir, co.Dir(), topic); err != nil {
