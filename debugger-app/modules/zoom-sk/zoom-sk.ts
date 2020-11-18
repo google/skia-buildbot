@@ -28,6 +28,10 @@ import {
   Point,
 } from '../debugger-page-sk/debugger-page-sk';
 
+function clamp(c: number): number {
+  return Math.round(Math.max(0, Math.min(c || 0, 255)));
+}
+
 export class ZoomSk extends ElementSk {
   private static template = (ele: ZoomSk) =>
     html`
@@ -137,7 +141,18 @@ export class ZoomSk extends ElementSk {
     // gives a UInt8ClampedArray of RGBA
     const c = ctx.getImageData(ZoomSk.viewSize/2, ZoomSk.viewSize/2, 1, 1).data;
     this._rgb = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`;
-    this._hex = ((c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3]).toString(16);
+    // Note that javascript bit shift operations are done on signed 32-bit ints.
+    // We can't shift c[0] 24 bits without it overflowing, but we can multiply by 1<<24
+    // because that converts it to a double.
+    // 225 << 24 = -520093696
+    // 255 * (1<<24) = 4278190080
+    // TODO(nifong): use CanvasKit.ColorAsInt after bindings sharing
+    //this._hex = (c[0] * (1<<24) + c[1] * (1<<16) + c[2] * (1<<8) + c[3]).toString(16);
+    this._hex = ((
+      (clamp(c[0]) << 24) |
+      (clamp(c[1]) << 16) |
+      (clamp(c[2]) << 8) |
+      (clamp(c[3]) << 0) & 0xFFFFFFF) >>> 0).toString(16);
   }
 
   // convert click in zoomed view to coordinates in source canvas
