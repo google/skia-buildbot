@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3594afb_57f42941",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-18T15:36:25Z",
+      "side": 1,
+      "message": "yes, Lovisolo suggested that. I\u0027ll put that in a CL of it\u0027s own.",
+      "parentUuid": "90e9c383_1800e5ea",
+      "range": {
+        "startLine": 54,
+        "startChar": 73,
+        "endLine": 54,
+        "endChar": 75
+      },
+      "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6321c59c_b5424a31",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b9c1ec7_beb0572f",
+        "filename": "debugger-app/modules/debug-view-sk/debug-view-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-18T15:36:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6321c59c_b5424a31",
+      "range": {
+        "startLine": 116,
+        "startChar": 32,
+        "endLine": 116,
+        "endChar": 44
+      },
+      "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "943bc11d_d2562a66",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-11-17T19:52:01Z",
       "side": 1,
       "message": "See https://github.com/google/skia/blob/75c38f94efd6b919b7636ff41883c45339219493/modules/canvaskit/helper.js#L30 for an alternative (\u003e\u003e\u003e 0)",
+      "range": {
+        "startLine": 145,
+        "startChar": 19,
+        "endLine": 145,
+        "endChar": 20
+      },
+      "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9d2ff83a_644b8ad7",
+        "filename": "debugger-app/modules/zoom-sk/zoom-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-18T15:36:25Z",
+      "side": 1,
+      "message": "Thank you, but this works fine and is no more readable.\n\nYet another thing I need to borrow from canvaskit so we don\u0027t keep trying to solve the same problems more than once! (I\u0027m working on pulling core sksurface bindings and wasm helpers from canvaskit for use in the debugger)",
+      "parentUuid": "943bc11d_d2562a66",
       "range": {
         "startLine": 145,
         "startChar": 19,
