@@ -5,8 +5,8 @@ details-dialog-sk {
   z-index: 5;
   .dialog {
     position: fixed;
-    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14),
-      0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12),
+      0 8px 10px -5px rgba(0, 0, 0, 0.4);
     padding: 15px;
     border-radius: 10px;
     border: none;
@@ -37,10 +37,21 @@ details-dialog-sk {
     flex-flow: row wrap;
     justify-content: space-between;
   }
+
+  // The title container is sometimes wide due to child elements farther down the dialog being wide
+  // (i.e. task-driver-sk). Don't let it get in the way of the close button.
+  .titleContainer {
+    pointer-events: none;
+    * {
+      pointer-events: auto;
+    }
+  }
+
   .task-success {
     background-color: var(--success);
     color: var(--on-success);
   }
+
   .task-failure {
     background-color: var(--failure);
     color: var(--on-failure);
