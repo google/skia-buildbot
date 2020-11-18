@@ -164,6 +164,30 @@
       },
       "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1dc90a60_9eac09e2",
+        "filename": "debugger-app/modules/zoom-sk/zoom-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-18T21:14:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f8d66ee_45b9b933",
+      "range": {
+        "startLine": 145,
+        "startChar": 19,
+        "endLine": 145,
+        "endChar": 20
+      },
+      "revId": "70f5549e9295fce248c7dc1190de1af1a7d9299e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
