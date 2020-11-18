@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dbe208a3_28d56e5a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2020-11-18T13:23:19Z",
+      "side": 1,
+      "message": "LGTM, thanks Eric. +Corentin FYI",
+      "revId": "9784360c394d1747852ec4409f53852fd55d4396",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
