@@ -80,7 +80,6 @@ type frameRequestProcess struct {
 
 	shortcutStore shortcut.Store
 
-	response      *FrameResponse
 	search        int     // The current search (either Formula or Query) being processed.
 	totalSearches int     // The total number of Formulas and Queries in the FrameRequest.
 	percent       float32 // The percentage of the searches complete [0.0-1.0].
@@ -123,11 +122,6 @@ func (p *frameRequestProcess) progress(step, totalSteps int) {
 // Query or Formula.
 func (p *frameRequestProcess) searchInc() {
 	p.search += 1
-}
-
-// Response returns the FrameResponse of the completed FrameRequestProcess.
-func (p *frameRequestProcess) Response() *FrameResponse {
-	return p.response
 }
 
 // Run does the work in a FrameRequestProcess. It does not return until all the
@@ -189,14 +183,14 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 
 	}
 
-	resp, err := ResponseFromDataFrame(ctx, df, p.perfGit, true)
+	resp, err := ResponseFromDataFrame(ctx, df, p.perfGit, true, p.request.Progress)
 	if err != nil {
 		p.reportError(err, "Failed to get skps.")
 		return
 	}
-	p.response = resp
 
-	p.request.Progress.Finished(resp)
+	p.request.Progress.Finished()
+	p.request.Progress.Results(resp)
 }
 
 // getSkps returns the indices where the SKPs have been updated given
@@ -227,7 +221,7 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git)
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.Git, truncate bool) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.Git, truncate bool, progress progress.Progress) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
@@ -239,9 +233,8 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.
 	}
 
 	// Truncate the result if it's too large.
-	msg := ""
 	if truncate && len(df.TraceSet) > MAX_TRACES_IN_RESPONSE {
-		msg = fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE)
+		progress.Message("Message", fmt.Sprintf("Response too large, the number of traces returned has been truncated from %d to %d.", len(df.TraceSet), MAX_TRACES_IN_RESPONSE))
 		keys := []string{}
 		for k := range df.TraceSet {
 			keys = append(keys, k)
@@ -258,7 +251,6 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.
 	return &FrameResponse{
 		DataFrame: df,
 		Skps:      skps,
-		Msg:       msg,
 	}, nil
 }
 

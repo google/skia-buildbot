@@ -3,6 +3,7 @@
 package continuous
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/rand"
@@ -23,7 +24,9 @@ import (
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -37,7 +40,7 @@ const (
 	// only when not doing event driven regression detection.
 	pollingClusteringDelay = 5 * time.Minute
 
-	checkIfRegressionIsDoneDuration = time.Second
+	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 )
 
 // Current state of looking for regressions, i.e. the current commit and alert
@@ -55,8 +58,8 @@ type ConfigProvider func() ([]*alerts.Alert, error)
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	detector       regression.Detector
 	perfGit        *perfgit.Git
+	shortcutStore  shortcut.Store
 	store          regression.Store
 	provider       ConfigProvider
 	notifier       *notify.Notifier
@@ -76,8 +79,8 @@ type Continuous struct {
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
 func New(
-	detector regression.Detector,
 	perfGit *perfgit.Git,
+	shortcutStore shortcut.Store,
 	provider ConfigProvider,
 	store regression.Store,
 	notifier *notify.Notifier,
@@ -86,7 +89,6 @@ func New(
 	instanceConfig *config.InstanceConfig,
 	flags *config.FrontendFlags) *Continuous {
 	return &Continuous{
-		detector:       detector,
 		perfGit:        perfGit,
 		store:          store,
 		provider:       provider,
@@ -404,24 +406,23 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.flags.NumContinuous),
 				End: time.Time{},
 			}
-			req := regression.RegressionDetectionRequest{
-				Alert:  cfg,
-				Domain: domain,
-				Query:  cfg.Query,
-			}
-			id, err := c.detector.Add(ctx, clusterResponseProcessor, &req)
-			if err != nil {
-				sklog.Errorf("Failed to add detection request to detector: %s", err)
-				continue
-			}
+			req := regression.NewRegressionDetectionRequest()
+			req.Alert = cfg
+			req.Domain = domain
+			req.Query = cfg.Query
+			regression.NewRunningProcess(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder)
 			configsCounter.Inc(1)
 			for range time.Tick(checkIfRegressionIsDoneDuration) {
-				state, msg, err := c.detector.Status(id)
-				if state == regression.ProcessError {
-					sklog.Errorf("Failed regression detection: %q: %s", msg, err)
+				status := req.Progress.Status()
+				if req.Progress.Status() == progress.Error {
+					var b bytes.Buffer
+					if err := req.Progress.JSON(&b); err != nil {
+						sklog.Errorf("Failed to encode Progress: %s", err)
+					}
+					sklog.Errorf("Failed regression detection: %q", b.String())
 					break
 				}
-				if state == regression.ProcessSuccess {
+				if status != progress.Running {
 					break
 				}
 			}

@@ -66,10 +66,11 @@ type testResults struct {
 	SomeResult string `json:"some_result"`
 }
 
-func TestProgress_FinishProcess_StatusChangesToFinished(t *testing.T) {
+func TestProgress_FinishProcessWithResults_StatusChangesToFinished(t *testing.T) {
 	unittest.SmallTest(t)
 	p := New()
-	p.Finished(testResults{SomeResult: "foo"})
+	p.Finished()
+	p.Results(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
 		Status:    Finished,
 		Messsages: []*Message{},
@@ -94,7 +95,7 @@ func TestProgress_CallError_StatusChangesToError(t *testing.T) {
 func TestProgress_SetIntermediateResult_ResultAppearsButStatusStaysRunning(t *testing.T) {
 	unittest.SmallTest(t)
 	p := New()
-	p.IntermediateResult(testResults{SomeResult: "foo"})
+	p.Results(testResults{SomeResult: "foo"})
 	assert.Equal(t, SerializedProgress{
 		Status:    Running,
 		Messsages: []*Message{},
@@ -124,7 +125,7 @@ func TestProgress_RequestForJSONWithUnSerializableResult_ReturnsError(t *testing
 	tr, err := NewTracker("/foo/")
 	require.NoError(t, err)
 	p := New()
-	p.Finished(make(chan int)) // Not JSON serializable.
+	p.Results(make(chan int)) // Not JSON serializable.
 	tr.Add(p)
 
 	var buf bytes.Buffer
