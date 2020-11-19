@@ -13,7 +13,6 @@ import 'elements-sk/multi-select-sk';
 import 'elements-sk/select-sk';
 import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import {
@@ -21,6 +20,7 @@ import {
   SelectSkSelectionChangedEventDetail,
 } from 'elements-sk/select-sk/select-sk';
 import { MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   ParamSet,

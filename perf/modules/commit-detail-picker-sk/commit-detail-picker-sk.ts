@@ -11,11 +11,11 @@ import 'elements-sk/styles/buttons';
 import 'elements-sk/spinner-sk';
 import '../day-range-sk';
 
-import { errorMessage } from 'elements-sk/errorMessage';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import dialogPolyfill from 'dialog-polyfill';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Commit, CommitNumber, RangeRequest } from '../json';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
@@ -140,7 +140,7 @@ export class CommitDetailPickerSk extends ElementSk {
       this.range.end = cids[0].ts;
       this._render();
     } catch (error) {
-      errorMessage(error, 10000);
+      errorMessage(error);
     } finally {
       this.updatingCommits = false;
       this._render();

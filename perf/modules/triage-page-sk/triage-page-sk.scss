@@ -24,11 +24,6 @@ triage-page-sk {
     margin-right: 8px;
   }
 
-  summary:focus {
-    outline: dashed 1px var(--primary);
-    outline-offset: 3px;
-  }
-
   tr:nth-child(even) {
     background-color: var(--surface);
   }

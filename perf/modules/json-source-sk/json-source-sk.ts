@@ -10,9 +10,9 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber } from '../json';
 

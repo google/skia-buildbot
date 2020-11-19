@@ -6,13 +6,13 @@
  *
  */
 import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject, toParamSet } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/spinner-sk';
@@ -290,7 +290,7 @@ export class ClusterPageSk extends ElementSk {
     this.requestId = '';
     this.status = '';
     if (msg) {
-      errorMessage(msg, 10000);
+      errorMessage(msg);
     }
     this._render();
   }

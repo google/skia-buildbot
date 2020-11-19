@@ -5,7 +5,6 @@
  * Main page of Perf, for exploring data.
  */
 import { define } from 'elements-sk/define';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
@@ -15,6 +14,7 @@ import { TabsSk } from 'elements-sk/tabs-sk/tabs-sk';
 import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/checkbox-sk';
@@ -61,6 +61,7 @@ import { QueryCountSk } from '../query-count-sk/query-count-sk';
 import { DomainPickerSk } from '../domain-picker-sk/domain-picker-sk';
 import { MISSING_DATA_SENTINEL } from '../plot-simple-sk/plot-simple-sk';
 import { messageByName, messagesToErrorString, startRequest } from '../progress/progress';
+
 
 // The trace id of the zero line, a trace of all zeros.
 const ZERO_NAME = 'special_zero';
@@ -1231,7 +1232,7 @@ export class ExploreSk extends ElementSk {
   private catch(msg: string) {
     this._requestId = '';
     if (msg) {
-      errorMessage(msg, 10000);
+      errorMessage(msg);
     }
     this.percent!.textContent = '';
     this.spinning = false;
@@ -1284,7 +1285,7 @@ export class ExploreSk extends ElementSk {
       }
       const msg = messageByName(finishedProg.messages, 'Message');
       if (msg) {
-        errorMessage(msg, 10000);
+        errorMessage(msg);
       }
       cb(finishedProg.results as FrameResponse);
     } catch (msg) {
