@@ -36,6 +36,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "56cb6ce1_f6bbe17d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-19T16:11:34Z",
+      "side": 1,
+      "message": "Any attacker wishing to open an arbitrary file with the debugger can already do so, using the choose file button.",
+      "parentUuid": "2099cad8_e43bc632",
+      "revId": "8a02201769bfedbe47470145b59e5a2ff78bdba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "552e4bee_3a2f9ec6",
@@ -49,6 +67,30 @@
       "writtenOn": "2020-11-19T15:10:24Z",
       "side": 1,
       "message": "Please use the more modern fetch API.\n\nhttps://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch",
+      "range": {
+        "startLine": 346,
+        "startChar": 22,
+        "endLine": 346,
+        "endChar": 36
+      },
+      "revId": "8a02201769bfedbe47470145b59e5a2ff78bdba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a24c3d3_686ebbb9",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-19T16:11:34Z",
+      "side": 1,
+      "message": "Thanks. forgot about that!",
+      "parentUuid": "552e4bee_3a2f9ec6",
       "range": {
         "startLine": 346,
         "startChar": 22,
