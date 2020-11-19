@@ -263,6 +263,8 @@ export class DebuggerPageSk extends ElementSk {
       this._debugger = loadedWasmModule;
       // File input element should now be enabled, so we need to render.
       this._render();
+      // It is now possible to load SKP files.
+      this._checkUrlParams();
     });
   }
 
@@ -334,6 +336,20 @@ export class DebuggerPageSk extends ElementSk {
             bubbles: true,
           }));
     });
+  }
+
+  private _checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('url')) {
+      const skpurl = params.get('url')!;
+      fetch(skpurl).then((response) => response.arrayBuffer()).then((ab) => {
+        if (ab) {
+          this._openSkpFile(ab);
+        } else {
+          errorMessage(`No data received from ${skpurl}`);
+        }
+      });
+    }
   }
 
   // Searches for the command which left the given pixel in it's current color,
