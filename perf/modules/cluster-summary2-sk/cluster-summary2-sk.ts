@@ -42,8 +42,8 @@ import '../plot-simple-sk';
 import '../triage2-sk';
 import '../word-cloud-sk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
 import {

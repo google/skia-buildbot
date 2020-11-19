@@ -20,7 +20,7 @@
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
     "dialog-polyfill": "^0.5.1",
-    "elements-sk": "^4.0.0",
+    "elements-sk": "^4.1.0",
     "elix": "^9.0.3",
     "fetch-mock": "^9.10.1",
     "lit-html": "^1.2.1",

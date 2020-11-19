@@ -9,11 +9,11 @@ import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { toParamSet } from 'common-sk/modules/query';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { TabSelectedSkEventDetail } from 'elements-sk/tabs-sk/tabs-sk';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
+import { errorMessage } from '../errorMessage';
 import { byParams, AveForParam } from '../trybot/calcs';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {

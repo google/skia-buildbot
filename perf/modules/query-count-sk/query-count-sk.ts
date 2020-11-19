@@ -14,8 +14,8 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CountHandlerRequest, CountHandlerResponse, ParamSet } from '../json';
 import 'elements-sk/spinner-sk';

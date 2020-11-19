@@ -10,12 +10,12 @@
 import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { equals, deepCopy } from 'common-sk/modules/object';
-import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   RegressionRangeRequest,
