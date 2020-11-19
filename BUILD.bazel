@@ -39,6 +39,9 @@ toolchain_container(
         "fonts-thai-tlwg",
         "fonts-kacst",
         "fonts-freefont-ttf",
+        # Prevent "error while loading shared libraries: libXss.so.1" in Puppeteer tests.
+        # See https://github.com/puppeteer/puppeteer/issues/6192.
+        "libxss1",
     ],
     additional_repos = [
       "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main",
