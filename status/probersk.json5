@@ -10,7 +10,7 @@
     urls: ['https://status.skia.org/twirp/status.StatusService/GetIncrementalCommits'],
     method: 'POST',
     expected: [200],
-    body: '',
+    body: '{"repo_path": "skia"}',
     mimetype: 'application/json',
     responsetest: 'validJSON',
   },
