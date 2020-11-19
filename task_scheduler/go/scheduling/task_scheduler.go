@@ -17,13 +17,11 @@ import (
 
 	multierror "github.com/hashicorp/go-multierror"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -32,7 +30,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -95,8 +92,6 @@ type TaskScheduler struct {
 	db                  db.DB
 	diagClient          gcs.GCSClient
 	diagInstance        string
-	isolateCache        *isolate_cache.Cache
-	isolateClient       *isolate.Client
 	rbeCas              cas.CAS
 	rbeCasInstance      string
 	jCache              cache.JobCache
@@ -124,7 +119,7 @@ type TaskScheduler struct {
 	window                *window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, rbeCas cas.CAS, rbeCasInstance string, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, rbeCas cas.CAS, rbeCasInstance string, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -155,8 +150,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		db:                    d,
 		diagClient:            diagClient,
 		diagInstance:          diagInstance,
-		isolateCache:          isolateCache,
-		isolateClient:         isolateClient,
 		jCache:                jCache,
 		pendingInsert:         map[string]bool{},
 		pools:                 pools,
@@ -181,9 +174,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 // Close cleans up resources used by the TaskScheduler.
 func (s *TaskScheduler) Close() error {
 	if err := s.taskCfgCache.Close(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.isolateCache.Close(); err != nil {
 		return skerr.Wrap(err)
 	}
 	if err := s.rbeCas.Close(); err != nil {
@@ -542,24 +532,20 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					sklog.Errorf("Job %s wants task %s which is not defined in %+v", j.Name, tsName, j.RepoState)
 					continue
 				}
+				casSpec, ok := taskCfg.CasSpecs[spec.CasSpec]
+				if !ok {
+					sklog.Errorf("Task %s depends on non-existent CasSpec %s", tsName, spec.CasSpec)
+					continue
+				}
 				c = &taskCandidate{
-					CasUsesIsolate: true,
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
 					BuildbucketBuildId: j.BuildbucketBuildId,
+					CasDigests:         []string{casSpec.Digest},
 					Jobs:               nil,
 					TaskKey:            key,
 					TaskSpec:           spec,
-				}
-				if len(taskCfg.CasSpecs) > 0 {
-					casSpec, ok := taskCfg.CasSpecs[spec.CasSpec]
-					if !ok {
-						sklog.Errorf("Task %s depends on non-existent CasSpec %s", tsName, spec.CasSpec)
-						continue
-					}
-					c.CasDigests = append(c.CasDigests, casSpec.Digest)
-					c.CasUsesIsolate = false
 				}
 				candidates[key] = c
 			}
@@ -1097,57 +1083,29 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	return rv
 }
 
-// isolateCandidates uploads inputs for the taskCandidates to the Isolate
-// server. Returns the list of candidates which were successfully isolated,
-// with their IsolatedInput hash set, and any error which occurred. Note that
-// the successful candidates AND an error may both be returned if some were
-// successfully isolated but others failed.
-func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*taskCandidate) ([]*taskCandidate, error) {
+// mergeCASInputs uploads inputs for the taskCandidates to content-addressed
+// storage. Returns the list of candidates which were successfully merged, with
+// their CasInput set, and any error which occurred. Note that the successful
+// candidates AND an error may both be returned if some were successfully merged
+// but others failed.
+func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*taskCandidate) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	isolatedCandidates := make([]*taskCandidate, 0, len(candidates))
-	isolatedFiles := make([]*isolated.Isolated, 0, len(candidates))
+	mergedCandidates := make([]*taskCandidate, 0, len(candidates))
 	var errs *multierror.Error
 	for _, c := range candidates {
-		if c.CasUsesIsolate {
-			isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
-			if err != nil {
-				errStr := err.Error()
-				c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
-				errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
-				continue
-			}
-			for _, inc := range c.CasDigests {
-				isolatedFile.Includes = append(isolatedFile.Includes, isolated.HexDigest(inc))
-			}
-			isolatedFiles = append(isolatedFiles, isolatedFile)
-			isolatedCandidates = append(isolatedCandidates, c)
-		} else {
-			digest, err := s.rbeCas.Merge(ctx, c.CasDigests)
-			if err != nil {
-				errStr := err.Error()
-				c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
-				errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
-				continue
-			}
-			c.CasInput = digest
-			isolatedCandidates = append(isolatedCandidates, c)
-		}
-	}
-	if len(isolatedFiles) > 0 {
-		hashes, err := s.isolateClient.ReUploadIsolatedFiles(ctx, isolatedFiles)
+		digest, err := s.rbeCas.Merge(ctx, c.CasDigests)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to re-upload Isolated files: %s", err)
+			errStr := err.Error()
+			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
+			errs = multierror.Append(errs, fmt.Errorf("Failed to merge CAS inputs: %s", errStr))
+			continue
 		}
-		if len(hashes) != len(isolatedFiles) {
-			return nil, fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(isolatedFiles))
-		}
-		for idx, c := range isolatedCandidates {
-			c.CasInput = hashes[idx]
-		}
+		c.CasInput = digest
+		mergedCandidates = append(mergedCandidates, c)
 	}
 
-	return isolatedCandidates, errs.ErrorOrNil()
+	return mergedCandidates, errs.ErrorOrNil()
 }
 
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
@@ -1174,7 +1132,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				return
 			}
 			diag.TaskId = t.Id
-			req, err := candidate.MakeTaskRequest(t.Id, s.rbeCasInstance, s.isolateClient.ServerURL(), s.pubsubTopic)
+			req, err := candidate.MakeTaskRequest(t.Id, s.rbeCasInstance, s.pubsubTopic)
 			if err != nil {
 				recordErr("Failed to create task request", err)
 				return
@@ -1244,16 +1202,16 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 	// Match free bots with tasks.
 	candidates := getCandidatesToSchedule(bots, queue)
 
-	// Isolate the tasks.
-	isolated, isolateErr := s.isolateCandidates(ctx, candidates)
-	if isolateErr != nil && len(isolated) == 0 {
-		return isolateErr
+	// Merge CAS inputs for the tasks.
+	merged, mergeErr := s.mergeCASInputs(ctx, candidates)
+	if mergeErr != nil && len(merged) == 0 {
+		return mergeErr
 	}
 
 	// Setup the error channel.
 	errs := []error{}
-	if isolateErr != nil {
-		errs = append(errs, isolateErr)
+	if mergeErr != nil {
+		errs = append(errs, mergeErr)
 	}
 	errCh := make(chan error)
 	var errWg sync.WaitGroup
@@ -1266,7 +1224,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 	}()
 
 	// Trigger Swarming tasks.
-	triggered := s.triggerTasks(isolated, errCh)
+	triggered := s.triggerTasks(merged, errCh)
 
 	// Collect the tasks we triggered.
 	numTriggered := 0

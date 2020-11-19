@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
@@ -32,7 +31,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
@@ -43,19 +41,24 @@ import (
 const (
 	repoBaseName = "skia.git"
 	testTasksCfg = `{
+  "casSpecs": {
+    "fake": {
+      "digest": "` + tcc_testutils.CompileCASDigest + `"
+    }
+  },
   "tasks": {
     "fake-task1": {
+      "casSpec": "fake",
       "dependencies": [],
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
-      "isolate": "fake1.isolate",
       "priority": 0.8
     },
     "fake-task2": {
+      "casSpec": "fake",
       "dependencies": ["fake-task1"],
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
-      "isolate": "fake2.isolate",
       "priority": 0.8
     }
   },
@@ -94,8 +97,6 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	require.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
 	gb.Add(ctx, tasksJson, testTasksCfg)
-	gb.Add(ctx, path.Join("infra", "bots", "fake1.isolate"), "{}")
-	gb.Add(ctx, path.Join("infra", "bots", "fake2.isolate"), "{}")
 	gb.Commit(ctx)
 
 	rs := types.RepoState{
@@ -137,13 +138,8 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DEFAULT_NUM_WORKERS)
-	isolateClient, err := isolate.NewClient(tmpDir, isolate.ISOLATE_SERVER_URL_FAKE)
-	require.NoError(t, err)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
-	require.NoError(t, err)
 	cas := &cas_mocks.CAS{}
-	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache, cas)
+	chr := cacher.New(s, taskCfgCache, cas)
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
@@ -152,7 +148,6 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 		testutils.AssertCloses(t, taskCfgCache)
 		testutils.RemoveAll(t, tmpDir)
 		gb.Cleanup()
-		btCleanupIsolate()
 		btCleanup()
 		require.NoError(t, s.Close())
 	}

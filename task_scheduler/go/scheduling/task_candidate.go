@@ -12,7 +12,6 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -31,7 +30,6 @@ type taskCandidate struct {
 	Commits            []string `json:"commits"`
 	CasInput           string   `json:"casInput"`
 	CasDigests         []string `json:"casDigests"`
-	CasUsesIsolate     bool     `json:"casUsesIsolate"`
 	// Jobs must be kept in sorted order; see AddJob.
 	Jobs           []*types.Job `json:"jobs"`
 	ParentTaskIds  []string     `json:"parentTaskIds"`
@@ -54,7 +52,6 @@ func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
 		Commits:            util.CopyStringSlice(c.Commits),
 		CasInput:           c.CasInput,
 		CasDigests:         util.CopyStringSlice(c.CasDigests),
-		CasUsesIsolate:     c.CasUsesIsolate,
 		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,
@@ -206,7 +203,7 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
+func (c *taskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var caches []*swarming_api.SwarmingRpcsCacheEntry
 	if len(c.TaskSpec.Caches) > 0 {
 		caches = make([]*swarming_api.SwarmingRpcsCacheEntry, 0, len(c.TaskSpec.Caches))
@@ -299,6 +296,10 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 		// Don't allow deduplication for forced jobs.
 		idempotent = false
 	}
+	hash, size, err := rbe.StringToDigest(c.CasInput)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	req := &swarming_api.SwarmingRpcsNewTaskRequest{
 		Name:           c.Name,
 		Priority:       swarming.RECOMMENDED_PRIORITY,
@@ -310,7 +311,14 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 			{
 				ExpirationSecs: expirationSecs,
 				Properties: &swarming_api.SwarmingRpcsTaskProperties{
-					Caches:               caches,
+					Caches: caches,
+					CasInputRoot: &swarming_api.SwarmingRpcsCASReference{
+						CasInstance: casInstance,
+						Digest: &swarming_api.SwarmingRpcsDigest{
+							Hash:      hash,
+							SizeBytes: size,
+						},
+					},
 					CipdInput:            cipdInput,
 					Command:              cmd,
 					Dimensions:           dims,
@@ -326,25 +334,6 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 			},
 		},
 		User: "skiabot@google.com",
-	}
-	if c.CasUsesIsolate {
-		req.TaskSlices[0].Properties.InputsRef = &swarming_api.SwarmingRpcsFilesRef{
-			Isolated:       c.CasInput,
-			Isolatedserver: isolateServer,
-			Namespace:      isolate.DEFAULT_NAMESPACE,
-		}
-	} else {
-		hash, size, err := rbe.StringToDigest(c.CasInput)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		req.TaskSlices[0].Properties.CasInputRoot = &swarming_api.SwarmingRpcsCASReference{
-			CasInstance: casInstance,
-			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:      hash,
-				SizeBytes: size,
-			},
-		}
 	}
 	return req, nil
 }
