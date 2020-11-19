@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dd905f18_ff81d2dc",
+        "filename": "debugger-app/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-19T16:16:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d56ec56_ab1604f0",
+      "range": {
+        "startLine": 14,
+        "startChar": 79,
+        "endLine": 14,
+        "endChar": 85
+      },
+      "revId": "988bb1761edaaceedf7add5dae532ae00722246f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ccfd438f_7e862eed",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dcfff124_96e018ca",
+        "filename": "debugger-app/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-19T16:16:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ccfd438f_7e862eed",
+      "range": {
+        "startLine": 8,
+        "startChar": 57,
+        "endLine": 8,
+        "endChar": 69
+      },
+      "revId": "988bb1761edaaceedf7add5dae532ae00722246f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c1761ef8_35530efa",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-11-19T16:06:16Z",
       "side": 1,
       "message": "This is not technically an autoroller. It\u0027s called a \"task_driver\"",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 22
+      },
+      "revId": "988bb1761edaaceedf7add5dae532ae00722246f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a29a684b_7afa8630",
+        "filename": "debugger-app/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-19T16:16:34Z",
+      "side": 1,
+      "message": "Thanks, I was going to call it magic, but this is nice.",
+      "parentUuid": "c1761ef8_35530efa",
       "range": {
         "startLine": 56,
         "startChar": 12,
