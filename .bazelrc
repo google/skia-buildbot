@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-common --workspace_status_command=bazel/get_workspace_status.sh
+build --workspace_status_command=bazel/get_workspace_status.sh
 
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.

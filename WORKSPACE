@@ -3054,7 +3054,7 @@ http_file(
 rbe_autoconfig(
     name = "rbe_default",
     base_container_digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
-    digest = "sha256:2fa481a11d7c5c7a457ee82232703e80afdccba4b76c4e8252806a30a86b0019",
+    digest = "sha256:3417c2e1d4aafc8e88664860277971df3dcbe6d3dd3082c8213f456291ff209d",
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
 )
