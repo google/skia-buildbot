@@ -1,7 +1,10 @@
 import './index';
 
+import sinon from 'sinon';
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
+import { TaskQueueSk } from './task-queue-sk';
 
 import {
   singleResultCanDelete, singleResultNoDelete, resultSetOneItem, resultSetTwoItems,
@@ -21,7 +24,7 @@ describe('task-queue-sk', () => {
     await event;
     return taskTableSk;
   };
-  const loadTableWithReplies = async (replies) => {
+  const loadTableWithReplies = async (replies: any[]) => {
     const kNumTaskQueries = 16;
     const replyCount = replies.length;
     expect(replyCount).to.be.most(kNumTaskQueries);
@@ -37,6 +40,7 @@ describe('task-queue-sk', () => {
     //  Check all mock fetches called at least once and reset.
     expect(fetchMock.done()).to.be.true;
     fetchMock.reset();
+    sinon.restore();
   });
 
   it('shows table entries', async () => {
@@ -63,20 +67,18 @@ describe('task-queue-sk', () => {
     const table = await loadTableWithReplies([singleResultCanDelete]);
 
     expect($$('dialog', table)).to.have.property('open', false);
-    $$('delete-icon-sk', table).click();
-    expect($$('dialog', table)).to.have.property('open', true);
     fetchMock.postOnce((url, options) => url.startsWith('/_/delete_') && options.body === JSON.stringify({ id: 1 }), 200);
-    // TODO(weston): Update common-sk/confirm-dialog-sk to make this less
-    // brittle.
-    $$('dialog', table).querySelectorAll('button')[1].click();
-    expect($$('dialog', table)).to.have.property('open', false);
+    sinon.stub(window, 'confirm').returns(true);
+    sinon.stub(window, 'alert').returns(true);
+    ($$('delete-icon-sk', table) as HTMLElement).click();
+    expect($$('dialog', table)).to.have.property('open', true);
   });
 
   it('task details works', async () => {
     const table = await loadTableWithReplies([resultSetOneItem]);
 
     expect($$('.dialog-background', table)).to.have.class('hidden');
-    $$('.details', table).click();
+    ($$('.details', table) as HTMLElement).click();
 
     expect($$('.dialog-background', table)).to.not.have.class('hidden');
   });
