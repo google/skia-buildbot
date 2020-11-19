@@ -21,16 +21,16 @@ export class DebugViewSk extends ElementSk {
     html`
     <div class="horizontal-flex">
       <button title="Original size." @click=${() => ele.fitStyle = 'natural'}>
-        <img src="https://debugger-assets.skia.org/res/img/image.png" />
+        <img src="/dist/image.png" />
       </button>
       <button title="Fit in page." @click=${() => ele.fitStyle = 'fit'}>
-        <img src="https://debugger-assets.skia.org/res/img/both.png" />
+        <img src="/dist/both.png" />
       </button>
       <button title="Fit to width." @click=${() => ele.fitStyle = 'right'}>
-        <img src="https://debugger-assets.skia.org/res/img/right.png" />
+        <img src="/dist/right.png" />
       </button>
       <button title="Fit to height." @click=${() => ele.fitStyle = 'bottom'}>
-        <img src="https://debugger-assets.skia.org/res/img/bottom.png" />
+        <img src="/dist/bottom.png" />
       </button>
     </div>
     <div id="backdrop" class="${ele._backdropStyle} grid">

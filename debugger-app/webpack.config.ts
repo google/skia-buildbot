@@ -12,7 +12,7 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   config.resolve.modules = [resolve(__dirname, 'node_modules'), 'node_modules'];
 
   let aliases = [
-    { from: resolve(__dirname, 'static/favicon.png') },
+    { from: resolve(__dirname, 'static') },
     { from: resolve(__dirname, 'build/debugger/debugger.wasm') },
     { from: resolve(__dirname, 'build/debugger/debugger.js') },
     { from: resolve(__dirname, 'build/version.js') },
