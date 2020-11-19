@@ -67,7 +67,7 @@ release_ci:
 	rm -rf build
 	mkdir -p build/
 	cp -r /OUT/* build
-	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
+	echo "const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
 	# Now that we have the debugger.wasm etc, we can bundle it in with webpack.
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-app
