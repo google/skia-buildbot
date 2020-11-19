@@ -11,8 +11,10 @@ test: go-test js-test
 go-test:
 	go test ./go/...
 
+# note that this will require you to have put the wasm binary in place by some method
+# e.g. make wasm-libs
 .PHONY: js-test
-js-test: version-file
+js-test:
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 .PHONY: js-test-debug
@@ -28,6 +30,7 @@ puppeteer-test-debug:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 
 .PHONY: version-file
+	mkdir build
 	echo "const SKIA_VERSION = 'local';" > build/version.js
 
 .PHONY: serve
