@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/periodic"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -179,6 +181,10 @@ type TasksCfg struct {
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
 	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
+
+	// CasSpecs is a map of named specifications for content-addressed inputs to
+	// tasks. If CasSpecs is not empty, RBE-CAS will be used instead of Isolate.
+	CasSpecs map[string]*CasSpec `json:"casSpecs,omitempty"`
 }
 
 // Copy returns a deep copy of the TasksCfg.
@@ -191,20 +197,57 @@ func (c *TasksCfg) Copy() *TasksCfg {
 	for name, task := range c.Tasks {
 		tasks[name] = task.Copy()
 	}
+	var casSpecs map[string]*CasSpec
+	if c.CasSpecs != nil {
+		casSpecs = make(map[string]*CasSpec, len(c.CasSpecs))
+		for name, spec := range c.CasSpecs {
+			casSpecs[name] = spec.Copy()
+		}
+	}
 	return &TasksCfg{
-		Jobs:  jobs,
-		Tasks: tasks,
+		Jobs:     jobs,
+		Tasks:    tasks,
+		CasSpecs: casSpecs,
 	}
 }
 
 // Validate returns an error if the TasksCfg is not valid.
 func (c *TasksCfg) Validate() error {
-	for _, t := range c.Tasks {
+	// Validate all tasks.
+	usedCasSpecs := make(map[string]bool, len(c.CasSpecs))
+	for name, t := range c.Tasks {
 		if err := t.Validate(c); err != nil {
 			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
+
+		// Ensure that any CAS inputs to the task exist.
+		if len(c.CasSpecs) > 0 && t.Isolate != "" {
+			return fmt.Errorf("Invalid TasksCfg: Task %q uses isolated input instead of CasSpec.", name)
+		}
+		if t.CasSpec != "" {
+			if name, ok := c.CasSpecs[t.CasSpec]; !ok {
+				return fmt.Errorf("Invalid TasksCfg: Task %q references non-existent CasSpec %q", name, t.CasSpec)
+			}
+			usedCasSpecs[t.CasSpec] = true
+		}
 	}
 
+	// Ensure all CasSpecs are used.
+	if len(usedCasSpecs) != len(c.CasSpecs) {
+		for casSpec := range c.CasSpecs {
+			if _, ok := usedCasSpecs[casSpec]; !ok {
+				return fmt.Errorf("CasSpec %q is not referenced by any task.", casSpec)
+			}
+		}
+	}
+
+	// Validate all jobs.
+	for _, j := range c.Jobs {
+		if err := j.Validate(); err != nil {
+			return fmt.Errorf("Invalid TasksCfg: %s", err)
+		}
+	}
+	// Ensure that the DAG is valid.
 	if err := findCycles(c.Tasks, c.Jobs); err != nil {
 		return fmt.Errorf("Invalid TasksCfg: %s", err)
 	}
@@ -217,6 +260,10 @@ func (c *TasksCfg) Validate() error {
 type TaskSpec struct {
 	// Caches are named Swarming caches which should be used for this task.
 	Caches []*Cache `json:"caches,omitempty"`
+
+	// CasSpec references a named input to the task from content-addressed
+	// storage.
+	CasSpec string `json:"casSpec,omitempty"`
 
 	// CipdPackages are CIPD packages which should be installed for the task.
 	CipdPackages []*CipdPackage `json:"cipd_packages,omitempty"`
@@ -306,8 +353,12 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 	}
 
 	// Isolate file is required.
-	if t.Isolate == "" {
-		return fmt.Errorf("Isolate file is required.")
+	if t.Isolate == "" && t.CasSpec == "" {
+		return fmt.Errorf("Isolate file or CasSpec is required.")
+	}
+	// Isolate and CasSpec are mutually exclusive.
+	if t.Isolate != "" && t.CasSpec != "" {
+		return fmt.Errorf("Only one of Isolate or CasSpec may be supplied.")
 	}
 
 	return nil
@@ -349,6 +400,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	outputs := util.CopyStringSlice(t.Outputs)
 	return &TaskSpec{
 		Caches:           caches,
+		CasSpec:          t.CasSpec,
 		CipdPackages:     cipdPackages,
 		Command:          cmd,
 		Dependencies:     deps,
@@ -401,6 +453,21 @@ type JobSpec struct {
 	TaskSpecs []string `json:"tasks"`
 	// One of the TRIGGER_* constants; see documentation above.
 	Trigger string `json:"trigger,omitempty"`
+}
+
+// Validate returns an error if the JobSpec is not valid.
+func (j *JobSpec) Validate() error {
+	// We can't validate j.TaskSpecs here because we don't know which are
+	// defined.  Therefore, that check needs to occur at a higher level.
+
+	switch j.Trigger {
+	case TRIGGER_ANY_BRANCH, TRIGGER_MASTER_ONLY, TRIGGER_NIGHTLY,
+		TRIGGER_ON_DEMAND, TRIGGER_WEEKLY:
+		break
+	default:
+		return fmt.Errorf("Invalid job trigger %q", j.Trigger)
+	}
+	return nil
 }
 
 // Copy returns a copy of the JobSpec.
@@ -516,6 +583,36 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 		if !v.visited {
 			return fmt.Errorf("Task %q is not reachable by any Job!", v.name)
 		}
+	}
+	return nil
+}
+
+// CasSpec describes a set of task inputs in content-addressed storage.
+type CasSpec struct {
+	Root   string   `json:"root,omitempty"`
+	Paths  []string `json:"paths,omitempty"`
+	Digest string   `json:"digest,omitempty"`
+}
+
+// Copy returns a deep copy of the CasSpec.
+func (s *CasSpec) Copy() *CasSpec {
+	return &CasSpec{
+		Root:   s.Root,
+		Paths:  util.CopyStringSlice(s.Paths),
+		Digest: s.Digest,
+	}
+}
+
+// Validate returns an error if the CasSpec is invalid.
+func (s *CasSpec) Validate() error {
+	if s.Root == "" && len(s.Paths) == 0 {
+		if _, _, err := rbe.StringToDigest(s.Digest); err != nil {
+			return skerr.Wrap(err)
+		}
+		return nil
+	}
+	if (s.Root != "") != (len(s.Paths) > 0) {
+		return skerr.Fmt("Root and Paths must be specified together.")
 	}
 	return nil
 }

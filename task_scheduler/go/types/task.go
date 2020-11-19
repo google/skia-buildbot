@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
@@ -289,10 +290,10 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	}
 
 	// Isolated output.
-	if s.OutputsRef == nil {
-		copy.IsolatedOutput = ""
-	} else {
+	if s.OutputsRef != nil {
 		copy.IsolatedOutput = s.OutputsRef.Isolated
+	} else if s.CasOutputRoot != nil && s.CasOutputRoot.Digest.Hash != "" {
+		copy.IsolatedOutput = rbe.DigestToString(s.CasOutputRoot.Digest.Hash, s.CasOutputRoot.Digest.SizeBytes)
 	}
 
 	// Bot.

@@ -23,9 +23,21 @@ const (
 	rbeService = "remotebuildexecution.googleapis.com:443"
 )
 
-// SplitDigest splits the digest string into a digest.Digest instance.
-func SplitDigest(str string) (digest.Digest, error) {
-	return digest.NewFromString(str)
+// StringToDigest splits the digest string into a digest.Digest instance.
+func StringToDigest(str string) (string, int64, error) {
+	digest, err := digest.NewFromString(str)
+	if err != nil {
+		return "", 0, skerr.Wrap(err)
+	}
+	return digest.Hash, digest.Size, nil
+}
+
+// DigestToString creates a string for the digest with the given hash and size.
+func DigestToString(hash string, size int64) string {
+	return digest.Digest{
+		Hash: hash,
+		Size: size,
+	}.String()
 }
 
 // Client is a struct used to interact with RBE-CAS.
