@@ -54,6 +54,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b377e340_a1fed445",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-19T16:16:44Z",
+      "side": 1,
+      "message": "My main concern was adding a potential vector for social engineering - e.g. \"go check out this innocent looking debugger page\" which actually loads data using the person\u0027s cookies, maybe fetching data that should normally be protected.\n\nIt seems unlikely to matter much, but I wanted to bring it up.",
+      "parentUuid": "56cb6ce1_f6bbe17d",
+      "revId": "8a02201769bfedbe47470145b59e5a2ff78bdba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "552e4bee_3a2f9ec6",

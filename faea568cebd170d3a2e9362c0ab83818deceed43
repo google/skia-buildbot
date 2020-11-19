@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f77b09f_13536024",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-19T16:16:44Z",
+      "side": 1,
+      "message": "Is this necessary for production code?",
+      "range": {
+        "startLine": 345,
+        "startChar": 14,
+        "endLine": 345,
+        "endChar": 17
+      },
+      "revId": "faea568cebd170d3a2e9362c0ab83818deceed43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d52bca52_a102bc17",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-19T16:16:44Z",
+      "side": 1,
+      "message": "style: always wrap the params of an arrow function with (), even if there is just one.",
+      "range": {
+        "startLine": 346,
+        "startChar": 25,
+        "endLine": 346,
+        "endChar": 33
+      },
+      "revId": "faea568cebd170d3a2e9362c0ab83818deceed43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
