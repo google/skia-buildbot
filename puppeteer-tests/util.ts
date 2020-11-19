@@ -84,6 +84,11 @@ export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eve
 export const inDocker = () => fs.existsSync('/.dockerenv');
 
 /**
+ * Returns true if running from Bazel (e.g. with "bazel test"), or false otherwise.
+ */
+export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
+
+/**
  * Launches a Puppeteer browser with the right platform-specific arguments.
  */
 export const launchBrowser = () => puppeteer.launch(
