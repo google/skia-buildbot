@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "db993bab_fe87f914",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-19T19:27:43Z",
+      "side": 1,
+      "message": "Github\u0027s HTML description does not carry over nicely but it\u0027s the same as https://github.com/google/skia-buildbot/pull/11\n\n(ignore the whitespace.txt change for now)",
+      "revId": "7752d237b41bbf2a1aab55f74173d40592661bdf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
