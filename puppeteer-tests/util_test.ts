@@ -7,6 +7,7 @@ import { expect } from 'chai';
 import {
   EventName,
   addEventListenersToPuppeteerPage,
+  inBazel,
   launchBrowser,
   startDemoPageServer,
 } from './util';
@@ -194,6 +195,10 @@ describe('utility functions for Puppeteer tests', async () => {
   });
 
   describe('startDemoPageServer', () => {
+    // Skip if this test is running from Bazel (e.g. "bazel test ...") because this depends on
+    // Webpack, and the Bazel build does not use Webpack.
+    if (inBazel()) return;
+
     let baseUrl: string;
     let stopDemoPageServer: () => Promise<void>;
 
