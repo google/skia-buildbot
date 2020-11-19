@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2099cad8_e43bc632",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-19T15:33:23Z",
+      "side": 1,
+      "message": "There are no real security concerns here, we fuzz skps.\n\nIf you wanted to be extra paranoid you could reject any URLs whose domain didn\u0027t match *.skia.org.\n\nIf we want to also allow loading skps from certain Google Cloud Storage buckets\nyou would also want to have an approved bucket list that filtered for URLs\nthat looked like:\n\n  https://storage.googleapis.com/bucket-name/*",
+      "parentUuid": "bee66c6c_e1238202",
+      "revId": "8a02201769bfedbe47470145b59e5a2ff78bdba5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "552e4bee_3a2f9ec6",
