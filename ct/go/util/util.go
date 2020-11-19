@@ -364,11 +364,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}()
 
 	cipdPkgs := []string{}
+	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython)...)
 	if targetPlatform == PLATFORM_WINDOWS {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	} else {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
+
 	if targetPlatform == PLATFORM_ANDROID {
 		// Add adb CIPD package for Android runs.
 		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
@@ -646,6 +648,9 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// Set the DISPLAY.
 		env = append(env, "DISPLAY=:0")
 	}
+	pythonExec := "vpython"
+	// Set VPYTHON_VIRTUALENV_ROOT for vpython
+	env = append(env, fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir()))
 	// Append the original environment as well.
 	for _, e := range os.Environ() {
 		env = append(env, e)
@@ -661,7 +666,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
 		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
+	if err := ExecuteCmdWithConfigurableLogging(ctx, pythonExec, args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))
@@ -669,6 +674,10 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		output, getErr := GetRunBenchmarkOutput(b)
 		util.LogErr(getErr)
 		fmt.Println(output)
+		if targetPlatform == PLATFORM_ANDROID {
+			fmt.Println("SLEEPING for one hour")
+			time.Sleep(1 * time.Hour)
+		}
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
 
@@ -685,6 +694,10 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	}
 	// Print the output and return.
 	fmt.Println(output)
+	if targetPlatform == PLATFORM_ANDROID {
+		fmt.Println("SLEEPING for one hour")
+		time.Sleep(1 * time.Hour)
+	}
 	return output, nil
 }
 
