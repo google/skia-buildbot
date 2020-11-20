@@ -2,7 +2,7 @@ load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("//infra-sk:index.bzl", "nodejs_mocha_test")
 
 ts_library(
-    name = "util",
+    name = "util_lib",
     srcs = [":util.ts"],
     deps = [
         "@infra-sk_npm//express",
@@ -16,13 +16,14 @@ ts_library(
         "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//@types/webpack",
         "@infra-sk_npm//@types/webpack-dev-middleware",
-    ]
+    ],
+    visibility = ["//visibility:public"],
 )
 
 nodejs_mocha_test(
     name = "util_test",
     srcs = [":util_test.ts"],
     deps = [
-        ":util",
+        ":util_lib",
     ]
 )
