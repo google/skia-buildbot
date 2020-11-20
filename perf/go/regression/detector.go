@@ -219,9 +219,8 @@ func (p *regressionDetectionProcess) run(ctx context.Context) {
 			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 		case types.StepFitGrouping:
 			summary, err = StepFit(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
-
 		default:
-			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Alert.Algo), "Invalid type of clustering.")
+			err = skerr.Fmt("Invalid type of clustering: %s", p.request.Alert.Algo)
 		}
 		if err != nil {
 			p.reportError(err, "Invalid regression detection.")
