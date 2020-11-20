@@ -763,7 +763,7 @@ export class CommitsTableSk extends ElementSk {
         return `${jobName}@${task.revision}`;
       }),
     };
-    return `${taskSchedulerUrl()}?${fromObject(jobStrings)}`;
+    return `${taskSchedulerUrl()}/trigger?${fromObject(jobStrings)}`;
   }
 
   private toggleCommitLabel() {
