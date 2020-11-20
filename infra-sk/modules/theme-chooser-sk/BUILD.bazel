@@ -4,7 +4,7 @@ load("@io_bazel_rules_sass//:defs.bzl", "sass_library", "sass_binary")
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_devserver", "ts_library")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
-load("//infra-sk:index.bzl", "sk_page")
+load("//infra-sk:index.bzl", "sk_page", "nodejs_mocha_test")
 load("//infra-sk/demo_page_server:index.bzl", "demo_page_server")
 
 #############################
@@ -71,4 +71,31 @@ sk_page(
 demo_page_server(
     name = "demo_page_server",
     sk_page = ":theme-chooser-sk-demo",
+)
+
+####################################
+# theme-chooser-sk Puppeteer test. #
+####################################
+
+load("//bazel:test_on_env.bzl", "test_on_env")
+
+nodejs_mocha_test(
+    name = "puppeteer_only_test",
+    srcs = [":theme-chooser-sk_puppeteer_test.ts"],
+    deps = [
+        ":theme-chooser-sk",
+        "//puppeteer-tests:util_lib",
+        "@infra-sk_npm//puppeteer",
+        "@infra-sk_npm//@types/puppeteer",
+    ],
+    tags = ["manual"],
+)
+
+
+
+
+test_on_env(
+    name = "puppeteer_test",
+    test = "puppeteer_only_test",
+    env = "demo_page_server",
 )
