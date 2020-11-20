@@ -1,5 +1,5 @@
 // Example Go test for the test_on_env Bazel rule.
-package main
+package example
 
 import (
 	"fmt"
