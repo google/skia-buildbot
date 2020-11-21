@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/timer"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -30,20 +31,20 @@ type DataFrameBuilder interface {
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
 	// periodically as the query is processed.
-	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error)
+	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress progress.Progress) (*DataFrame, error)
 
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
+	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress progress.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time that match the given query.
-	NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*DataFrame, error)
+	NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress progress.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time for the given keys.
-	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*DataFrame, error)
+	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress) (*DataFrame, error)
 
 	// PreflightQuery returns the number of traces that will match the query and
 	// the ParamSet of all the matching traces.

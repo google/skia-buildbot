@@ -107,16 +107,6 @@ func (p *frameRequestProcess) reportError(err error, message string) {
 	p.request.Progress.Error(message)
 }
 
-// progress records the progress of a FrameRequestProcess.
-func (p *frameRequestProcess) progress(step, totalSteps int) {
-	if p.totalSearches != 0 && totalSteps != 0 {
-		p.percent = (float32(p.search) + (float32(step) / float32(totalSteps))) / float32(p.totalSearches)
-	} else {
-		p.percent = 0
-	}
-	p.request.Progress.Message("Percent", fmt.Sprintf("%d", int64(p.percent*100.0)))
-}
-
 // searchInc records the progress of a FrameRequestProcess as it completes each
 // Query or Formula.
 func (p *frameRequestProcess) searchInc() {
@@ -267,9 +257,9 @@ func (p *frameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
+		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.request.Progress)
 	} else {
-		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
 	}
 }
 
@@ -281,9 +271,9 @@ func (p *frameRequestProcess) doKeys(ctx context.Context, keyID string, begin, e
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
+		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.request.Progress)
 	} else {
-		return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
 	}
 }
 
@@ -306,9 +296,9 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
+			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.request.Progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.request.Progress)
 		}
 		if err != nil {
 			return nil, err
@@ -327,9 +317,9 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
+			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.request.Progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromKeys(ctx, end, keys.Keys, p.request.NumCommits, p.request.Progress)
 		}
 		if err != nil {
 			return nil, err

@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/perf/go/dfbuilder"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
@@ -106,7 +107,7 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 		Offset: 0,
 	}
 	query := "arch=x86"
-	iter, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, query, domain, alert)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -138,7 +139,7 @@ func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing
 		Offset: 0,
 	}
 	query := "arch=x86"
-	iter, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, query, domain, alert)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, query, domain, alert)
 	require.NoError(t, err)
 
 	require.True(t, iter.Next())
@@ -176,7 +177,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 		Offset: 10,
 	}
 	q := "arch=x86"
-	_, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
@@ -194,7 +195,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 		Offset: 6, // Start at 6 with a radius of 1 to get the commit at 7.
 	}
 	q := "arch=x86"
-	iter, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
+	iter, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -222,7 +223,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 		Offset: -5,
 	}
 	q := "arch=x86"
-	_, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
@@ -244,6 +245,6 @@ func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(
 		Offset: 0,
 	}
 	q := "arch=x86"
-	_, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
+	_, err := NewDataFrameIterator(ctx, progress.New(), dfb, g, nil, q, domain, alert)
 	require.Contains(t, err.Error(), "Failed to build dataframe iterator")
 }

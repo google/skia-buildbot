@@ -66,9 +66,6 @@ func NewTrace(traceLen int) Trace {
 // TraceSet is a set of Trace's, keyed by trace id.
 type TraceSet map[string]Trace
 
-// Progress is a func that is called to update the progress on a computation.
-type Progress func(step, totalSteps int)
-
 // RegressionDetectionGrouping is how traces are grouped when regression detection is done.
 type RegressionDetectionGrouping string
 

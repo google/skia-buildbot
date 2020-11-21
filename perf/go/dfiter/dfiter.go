@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -60,7 +61,7 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 // of size domain.N.
 func NewDataFrameIterator(
 	ctx context.Context,
-	progress types.Progress,
+	progress progress.Progress,
 	dfBuilder dataframe.DataFrameBuilder,
 	perfGit *perfgit.Git,
 	regressionStateCallback types.ProgressCallback,
