@@ -9,7 +9,7 @@ load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attr
 # Runs a NodeJS unit test using the Mocha test runner.
 #
 # For tests that should run in the browser, please use karma_mocha_test instead.
-def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
+def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
     if args == None:
         args = ["$(rootpath %s)" % l for l in srcs]
 
@@ -29,6 +29,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
             "--require ts-node/register",
             "--timeout 60000",
         ] + args,
+        tags = tags,
     )
 
 # Utility macro to copy a single file to a destination path, making parent directories as needed.
