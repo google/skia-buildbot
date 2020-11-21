@@ -109,6 +109,7 @@ func NewRunningProcess(ctx context.Context,
 	iter, err := dfiter.NewDataFrameIterator(ctx, nil, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
 	if err != nil {
 		req.Progress.Error(fmt.Sprintf("Failed to create iterator: %s", err))
+		return
 	}
 	ret := &regressionDetectionProcess{
 		request:                   req,
@@ -168,7 +169,8 @@ func tooMuchMissingData(tr types.Trace) bool {
 func (p *regressionDetectionProcess) shortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 	var err error
 	for _, cs := range summary.Clusters {
-		if cs.Shortcut, err = p.shortcutStore.InsertShortcut(context.Background(), &shortcut.Shortcut{Keys: cs.Keys}); err != nil {
+		shortcutArg := &shortcut.Shortcut{Keys: cs.Keys}
+		if cs.Shortcut, err = p.shortcutStore.InsertShortcut(context.Background(), shortcutArg); err != nil {
 			return err
 		}
 	}
