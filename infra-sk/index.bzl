@@ -3,13 +3,13 @@ load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_library", "sass_binary")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", "sass_library")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
 
 # Runs a NodeJS unit test using the Mocha test runner.
 #
 # For tests that should run in the browser, please use karma_mocha_test instead.
-def nodejs_mocha_test(name, srcs=[], deps=[], args=None):
+def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
     if args == None:
         args = ["$(rootpath %s)" % l for l in srcs]
 
@@ -37,7 +37,7 @@ def copy_file(name, src, dst):
         name = name,
         srcs = [src],
         outs = [dst],
-        cmd = "mkdir -p $$(dirname $@) && cp $< $@"
+        cmd = "mkdir -p $$(dirname $@) && cp $< $@",
     )
 
 # This macro takes a page name, e.g. "mypage", assumes the existence of files mypage.html, mypage.ts
@@ -73,7 +73,7 @@ def copy_file(name, src, dst):
 #
 # This macro is designed to work side by side with the existing Webpack build without requiring any
 # major changes to the pages in question.
-def sk_page(name, deps, sass_deps, assets_serving_path="/", nonce=None):
+def sk_page(name, deps, sass_deps, assets_serving_path = "/", nonce = None):
     # Output directories.
     DEV_OUT_DIR = "development"
     PROD_OUT_DIR = "production"
@@ -221,18 +221,18 @@ def sk_page(name, deps, sass_deps, assets_serving_path="/", nonce=None):
     native.filegroup(
         name = "%s_dev" % name,
         srcs = [
-          "development/%s.html" % name,
-          "development/%s.js" % name,
-          "development/%s.css" % name,
-        ]
+            "development/%s.html" % name,
+            "development/%s.js" % name,
+            "development/%s.css" % name,
+        ],
     )
 
     # Generates the production bundle.
     native.filegroup(
         name = "%s_prod" % name,
         srcs = [
-          "production/%s.html" % name,
-          "production/%s.js" % name,
-          "production/%s.css" % name,
-        ]
+            "production/%s.html" % name,
+            "production/%s.js" % name,
+            "production/%s.css" % name,
+        ],
     )

@@ -172,6 +172,7 @@ require (
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
 	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20201012232926-5c91a3223921
 	go.opencensus.io v0.22.5
+	go.starlark.net v0.0.0-20201118183435-e55f603d8c79 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/net v0.0.0-20201029221708-28c70e62bb1d // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
