@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/trybot/store"
 	"go.skia.org/infra/perf/go/types"
@@ -51,7 +52,7 @@ func (p sortableTryBotResults) Less(i, j int) bool { return p[i].StdDevRatio > p
 func (p sortableTryBotResults) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Load implements the results.Loader interface.
-func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress types.Progress) (results.TryBotResponse, error) {
+func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progress progress.Progress) (results.TryBotResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "dfloader.Load")
 	defer span.End()
 	timestamp := time.Now()
