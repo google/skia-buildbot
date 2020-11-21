@@ -93,6 +93,7 @@ func New(
 		store:          store,
 		provider:       provider,
 		notifier:       notifier,
+		shortcutStore:  shortcutStore,
 		current:        &Current{},
 		paramsProvider: paramsProvider,
 		dfBuilder:      dfBuilder,
