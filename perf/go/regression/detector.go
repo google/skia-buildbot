@@ -199,6 +199,9 @@ func (p *regressionDetectionProcess) run(ctx context.Context) {
 		after := len(df.TraceSet)
 		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Delta: %d", before, after, before-after)
 		sklog.Info(message)
+		if after == 0 {
+			continue
+		}
 
 		k := p.request.Alert.K
 		if k <= 0 || k > maxK {
