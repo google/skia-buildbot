@@ -86,7 +86,7 @@ type frameRequestProcess struct {
 }
 
 // StartFrameRequestProcess starts processing a FrameRequest.
-func StartFrameRequestProcess(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) {
+func StartFrameRequestProcess(ctx context.Context, req *FrameRequest, perfGit *perfgit.Git, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -98,13 +98,13 @@ func StartFrameRequestProcess(ctx context.Context, req *FrameRequest, perfGit *p
 		dfBuilder:     dfBuilder,
 		shortcutStore: shortcutStore,
 	}
-	go ret.Run(ctx)
+	return ret.run(ctx)
 }
 
 // reportError records the reason a FrameRequestProcess failed.
-func (p *frameRequestProcess) reportError(err error, message string) {
+func (p *frameRequestProcess) reportError(err error, message string) error {
 	sklog.Errorf("FrameRequest failed: %#v %s: %s", *(p.request), message, err)
-	p.request.Progress.Error(message)
+	return skerr.Wrapf(err, message)
 }
 
 // searchInc records the progress of a FrameRequestProcess as it completes each
@@ -113,9 +113,9 @@ func (p *frameRequestProcess) searchInc() {
 	p.search += 1
 }
 
-// Run does the work in a FrameRequestProcess. It does not return until all the
+// run does the work in a FrameRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *frameRequestProcess) Run(ctx context.Context) {
+func (p *frameRequestProcess) run(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.Run")
 	defer span.End()
 
@@ -129,8 +129,7 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 	for _, q := range p.request.Queries {
 		newDF, err := p.doSearch(ctx, q, begin, end)
 		if err != nil {
-			p.reportError(err, "Failed to complete query.")
-			return
+			return p.reportError(err, "Failed to complete query for search.")
 		}
 		df = Join(df, newDF)
 		p.searchInc()
@@ -140,8 +139,7 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 	for _, formula := range p.request.Formulas {
 		newDF, err := p.doCalc(ctx, formula, begin, end)
 		if err != nil {
-			p.reportError(err, "Failed to complete query.")
-			return
+			return p.reportError(err, "Failed to complete query for calculations")
 		}
 		df = Join(df, newDF)
 		p.searchInc()
@@ -151,8 +149,7 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 	if p.request.Keys != "" {
 		newDF, err := p.doKeys(ctx, p.request.Keys, begin, end)
 		if err != nil {
-			p.reportError(err, "Failed to complete query.")
-			return
+			return p.reportError(err, "Failed to complete query for keys")
 		}
 		df = Join(df, newDF)
 	}
@@ -166,19 +163,18 @@ func (p *frameRequestProcess) Run(ctx context.Context) {
 		var err error
 		df, err = NewHeaderOnly(ctx, p.perfGit, begin, end, true)
 		if err != nil {
-			p.reportError(err, "Failed to load dataframe.")
-			return
+			return p.reportError(err, "Failed to load dataframe.")
 		}
 
 	}
 
 	resp, err := ResponseFromDataFrame(ctx, df, p.perfGit, true, p.request.Progress)
 	if err != nil {
-		p.reportError(err, "Failed to get skps.")
-		return
+		return p.reportError(err, "Failed to get skps.")
 	}
 
-	p.request.Progress.FinishedWithResults(resp)
+	p.request.Progress.Results(resp)
+	return nil
 }
 
 // getSkps returns the indices where the SKPs have been updated given

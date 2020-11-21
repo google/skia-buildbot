@@ -411,7 +411,14 @@ func (c *Continuous) Run(ctx context.Context) {
 			req.Alert = cfg
 			req.Domain = domain
 			req.Query = cfg.Query
-			regression.NewRunningProcess(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder)
+			go func() {
+				err := regression.NewRunningProcess(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder)
+				if err != nil {
+					req.Progress.Error(err.Error())
+				} else {
+					req.Progress.Finished()
+				}
+			}()
 			configsCounter.Inc(1)
 			for range time.Tick(checkIfRegressionIsDoneDuration) {
 				status := req.Progress.Status()
