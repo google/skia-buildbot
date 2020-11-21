@@ -109,6 +109,7 @@ func NewRunningProcess(ctx context.Context,
 	iter, err := dfiter.NewDataFrameIterator(ctx, nil, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
 	if err != nil {
 		req.Progress.Error(fmt.Sprintf("Failed to create iterator: %s", err))
+		return
 	}
 	ret := &regressionDetectionProcess{
 		request:                   req,
