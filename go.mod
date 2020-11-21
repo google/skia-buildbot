@@ -65,6 +65,7 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
+	github.com/bazelbuild/buildtools v0.0.0-20190731111112-f720930ceb60
 	github.com/bazelbuild/remote-apis v0.0.0-20201030192148-aa8e718768c2
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201110004117-e776219c9bb7
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
