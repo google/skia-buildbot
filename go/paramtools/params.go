@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -216,7 +217,8 @@ func (p ParamSet) MatchesParams(right Params) bool {
 // Size returns the total number of values in the ParamSet.
 func (p ParamSet) Size() int {
 	var ret int
-	for _, vals := range p {
+	for key, vals := range p {
+		sklog.Infof("%q: %d", key, len(vals))
 		ret += len(vals)
 	}
 	return ret
