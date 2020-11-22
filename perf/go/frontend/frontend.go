@@ -281,13 +281,20 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		BundleDelayThreshold: time.Second / 10,
-		BundleCountThreshold: 10})
+		TraceSpansBufferMaxBytes: 80_000_000,
+		DefaultTraceAttributes: map[string]interface{}{
+			"podName": os.Getenv("MY_POD_NAME"),
+		},
+	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	sampler := trace.ProbabilitySampler(0.2)
+	if f.flags.Local {
+		sampler = trace.AlwaysSample()
+	}
+	trace.ApplyConfig(trace.Config{DefaultSampler: sampler})
 
 	// Record UID and GID.
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
