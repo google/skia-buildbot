@@ -281,8 +281,8 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		BundleDelayThreshold: time.Second / 10,
-		BundleCountThreshold: 10})
+		TraceSpansBufferMaxBytes: 40_000_000,
+	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
