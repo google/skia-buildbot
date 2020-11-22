@@ -1,5 +1,4 @@
 """This module defines the demo_page_server macro."""
-
 _demo_page_server = "//infra-sk/demo_page_server:demo_page_server"
 
 _demo_server_script_template = """
