@@ -4,7 +4,7 @@ load(":index.bzl", "remove_css_imports_from_js")
 remove_css_imports_from_js(
     name = "actual_output",
     src = ":testdata/input.js",
-    out = ":testdata/actual_output.js"
+    out = ":testdata/actual_output.js",
 )
 
 generated_file_test(
