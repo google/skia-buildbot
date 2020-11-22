@@ -315,8 +315,8 @@ var templates = map[statement]string{
             commit_number,
             val
         FROM
-			TraceValues
-			{{ .AsOf }}
+            TraceValues
+            {{ .AsOf }}
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
             AND commit_number <= {{ .EndCommitNumber }}
@@ -357,6 +357,14 @@ var templates = map[statement]string{
             {{ end }}
         ON CONFLICT
         DO NOTHING`,
+	paramSetForTile: `
+        SELECT
+           param_key, param_value
+           {{ .AsOf }}
+        FROM
+            ParamSets
+        WHERE
+            tile_number = {{ .TileNumber }}`,
 }
 
 // replaceTraceValuesContext is the context for the replaceTraceValues template.
@@ -452,6 +460,12 @@ type insertIntoParamSetsContext struct {
 	cacheKey string
 }
 
+// paramSetForTileContext is the context for the paramSetForTile template.
+type paramSetForTileContext struct {
+	TileNumber types.TileNumber
+	AsOf       string
+}
+
 var statements = map[statement]string{
 	insertIntoSourceFiles: `
         INSERT INTO
@@ -476,13 +490,6 @@ var statements = map[statement]string{
             tile_number DESC
         LIMIT
             1;`,
-	paramSetForTile: `
-        SELECT
-           param_key, param_value
-        FROM
-            ParamSets
-        WHERE
-            tile_number = $1`,
 	traceCount: `
         SELECT
             COUNT(DISTINCT trace_id)
@@ -636,7 +643,24 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 	defer span.End()
 
 	defer timer.New("paramSetForTile").Stop()
-	rows, err := s.db.Query(ctx, statements[paramSetForTile], tileNumber)
+
+	context := paramSetForTileContext{
+		TileNumber: tileNumber,
+		AsOf:       "",
+	}
+
+	if s.enableFollowerReads {
+		context.AsOf = followerReadsStatement
+	}
+
+	// Expand the template for the SQL.
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[paramSetForTile].Execute(&b, context); err != nil {
+		return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
+	}
+	sql := b.String()
+
+	rows, err := s.db.Query(ctx, sql)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed querying - tileNumber=%d", tileNumber)
 	}
