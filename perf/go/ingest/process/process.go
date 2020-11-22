@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracing"
 	"google.golang.org/api/option"
 )
 
@@ -150,6 +151,9 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 // Except for file.Sources of type "dir" this function should never return
 // except on error.
 func Start(ctx context.Context, local bool, numParallelIngesters int, instanceConfig *config.InstanceConfig) error {
+	if err := tracing.Init(local); err != nil {
+		sklog.Fatalf("Failed to start tracing: %s", err)
+	}
 
 	var pubSubClient *pubsub.Client
 	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
