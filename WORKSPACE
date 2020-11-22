@@ -13,6 +13,16 @@ load(
     "http_file",
 )
 
+###############
+# Buildifier. #
+###############
+
+http_archive(
+    name = "com_github_bazelbuild_buildtools",
+    strip_prefix = "buildtools-master",
+    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+)
+
 ##############################
 # Go rules and dependencies. #
 ##############################
