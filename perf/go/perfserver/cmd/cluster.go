@@ -16,7 +16,7 @@ var clusterCmd = &cobra.Command{
 and looks for regressions as new data arrives.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Always to clustering.
+		// Always do clustering.
 		clusterFlags.DoClustering = true
 		f, err := frontend.New(&clusterFlags, cmd.LocalFlags())
 		if err != nil {

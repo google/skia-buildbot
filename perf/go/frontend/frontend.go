@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
 	"github.com/jcgregorio/logger"
 	"github.com/spf13/pflag"
@@ -57,6 +56,7 @@ import (
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/tracing"
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
@@ -280,14 +280,9 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		BundleDelayThreshold: time.Second / 10,
-		BundleCountThreshold: 10})
-	if err != nil {
-		sklog.Fatal(err)
+	if err := tracing.Init(f.flags.Local); err != nil {
+		sklog.Fatalf("Failed to start tracing: %s", err)
 	}
-	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	// Record UID and GID.
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
@@ -308,6 +303,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
+	var err error
 	// Add tracker for long running requests.
 	f.progressTracker, err = progress.NewTracker("/_/status/")
 	if err != nil {
