@@ -588,7 +588,14 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	f.progressTracker.Add(fr.Progress)
 
-	dataframe.StartFrameRequestProcess(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+	go func() {
+		err := dataframe.StartFrameRequestProcess(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+		if err != nil {
+			fr.Progress.Error(err.Error())
+		} else {
+			fr.Progress.Finished()
+		}
+	}()
 
 	if err := fr.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
@@ -697,7 +704,15 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	f.progressTracker.Add(req.Progress)
 
-	regression.NewRunningProcess(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+	go func() {
+		err := regression.NewRunningProcess(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+		if err != nil {
+			req.Progress.Error(err.Error())
+		} else {
+			req.Progress.Finished()
+		}
+	}()
+
 	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
