@@ -1117,8 +1117,10 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 	}
 
 	// Metadata downloads.
-	if err := g.InstallWget(ctx, vm); err != nil {
-		return err
+	if vm.Os != OS_WINDOWS {
+		if err := g.InstallWget(ctx, vm); err != nil {
+			return err
+		}
 	}
 	for dst, src := range vm.MetadataDownloads {
 		if err := g.GetFileFromMetadata(ctx, vm, src, dst); err != nil {
