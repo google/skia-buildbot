@@ -8,7 +8,7 @@ load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
 
-def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
+def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
     """Runs a NodeJS unit test using the Mocha test runner.
 
     For tests that should run in the browser, please use karma_mocha_test instead.
@@ -17,6 +17,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
       name: Name of the target.
       srcs: Labels for the test's TypeScript or JavaScript files.
       deps: Any ts_library dependencies.
+      tags: Tags for the generated nodjs_test rule.
       args: Additional command-line arguments for the mocha test runner.
     """
     if args == None:
@@ -38,6 +39,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
             "--require ts-node/register",
             "--timeout 60000",
         ] + args,
+        tags = tags,
     )
 
 def copy_file(name, src, dst):
