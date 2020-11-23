@@ -161,6 +161,7 @@ update-go-bazel-deps:
 
 # Known good Bazel build targets. Eventually this should be replaced with "bazel build all".
 BAZEL_BUILD_TARGETS=\
+	//bazel/... \
 	//infra-sk/... \
 	//machine/modules/... \
 	//machine/pages/... \
@@ -168,6 +169,7 @@ BAZEL_BUILD_TARGETS=\
 
 # Known good Bazel test targets. Eventually this should be replaced with "bazel test all".
 BAZEL_TEST_TARGETS=\
+	//bazel/... \
 	//infra-sk/... \
 	//machine/modules/...\
 	//puppeteer-tests/... \
