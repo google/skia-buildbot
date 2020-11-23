@@ -5,10 +5,14 @@ import (
 	"context"
 	"io"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/skerr"
 )
+
+// execTimeout is the timeout when we exec a command over SSH.
+const execTimeout = 10 * time.Second
 
 // The CommandRunner interface adds a layer of abstraction around sending commands to powercycle
 // Controllers. It is not meant to be a general purpose interface or a robust implementation beyond
@@ -52,11 +56,11 @@ func PasswordSSHCommandRunner(password string, sshArgs ...string) *stdinRunner {
 	}
 }
 
-// ExecCmds implements the CommandRunner interface. It makes a connection to the target and then
-// feeds the commands into standard in joined by newlines. It returns any output it receives and
-// any errors.
+// ExecCmds implements the CommandRunner interface. It makes a connection to the
+// target and then feeds the commands into standard in joined by newlines. It
+// returns any output it receives and any errors.
 func (s *stdinRunner) ExecCmds(ctx context.Context, cmds ...string) (string, error) {
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithTimeout(ctx, execTimeout)
 	defer cancel()
 	cmd := executil.CommandContext(ctx, s.executable, s.args...)
 	stdin, err := cmd.StdinPipe()
@@ -68,8 +72,8 @@ func (s *stdinRunner) ExecCmds(ctx context.Context, cmds ...string) (string, err
 	cmd.Stdout = &combined
 	cmd.Stderr = &combined
 
-	// start the command before sending to stdin just in case we try to send more data to standard
-	// input than it can take (~4k).
+	// Start the command before sending to stdin just in case we try to send
+	// more data to standard input than it can take (~4k).
 	if err := cmd.Start(); err != nil {
 		return "", skerr.Wrapf(err, "starting executable %s %s", s.executable, s.args)
 	}
