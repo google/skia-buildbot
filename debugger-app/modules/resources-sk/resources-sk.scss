@@ -67,13 +67,18 @@ resources-sk {
     //border: 1px solid white;
   }
 
-  td:not(.leftmost-cell):hover {
+  td.clickable-cell:hover {
     background-color: #1f78b4;
     cursor: pointer;
   }
 
-  td.leftmost-cell {
+  td.command-cell {
     //border: none;
+    background-color: #FFF;
+    padding-left: 12px;
+  }
+
+  td.layer-cell {
     background-color: #FFF;
   }
 }

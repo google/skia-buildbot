@@ -231,8 +231,6 @@ export class DebuggerPageSk extends ElementSk {
   private _drawToEnd: boolean = false;
   // the index of the last command to alter the pixel under the crosshair
   private _pointCommandIndex = 0;
-  // A flag that's set when viewing layers to prevent invalid frame moving.
-  private _supressMove = false;
 
   // The matrix and clip retrieved from the last draw
   private _info: MatrixClipInfo = {
@@ -290,7 +288,7 @@ export class DebuggerPageSk extends ElementSk {
     this._timelineSk.playsk.addEventListener(
       'mode-changed-manually', (e) => {
       const mode = (e as CustomEvent<PlaySkModeChangedManuallyEventDetail>).detail.mode;
-      if (!this._supressMove && mode === 'pause') {
+      if (mode === 'pause') {
         this._setCommands();
       }
     });
@@ -299,12 +297,6 @@ export class DebuggerPageSk extends ElementSk {
     this._timelineSk.addEventListener('move-frame', (e) => {
       const frame = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
       this._moveFrameTo(frame);
-    });
-
-    // this is the resource viewer telling this element to tell the timeline to jump to a frame
-    this._resourcesSk.addEventListener('set-frame', (e) => {
-      this.querySelector<TabsSk>('tabs-sk')!.select(0);
-      this._timelineSk!.item = (e as CustomEvent<TimelineSkMoveFrameEventDetail>).detail.frame;
     });
 
     // this is the command list telling us to show the resource viewer and select an image
@@ -317,6 +309,7 @@ export class DebuggerPageSk extends ElementSk {
     this._androidLayersSk.addEventListener('inspect-layer', (e) => {
       const detail = (e as CustomEvent<AndroidLayersSkInspectLayerEventDetail>).detail;
       this._inspectLayer(detail.id, detail.frame);
+      this.querySelector<TabsSk>('tabs-sk')!.select(0);
     });
 
     document.addEventListener('keydown', this._keyDownHandler.bind(this),
@@ -431,10 +424,11 @@ export class DebuggerPageSk extends ElementSk {
     p.setClipVizColor(0);
 
     console.log(`Loaded SKP file with ${this._fileContext.frameCount} frames`);
-
+    this._resourcesSk!.reset();
     // Determine if we loaded a single-frame or multi-frame SKP.
     if (this._fileContext.frameCount > 1) {
       this._timelineSk!.count = this._fileContext.frameCount;
+      this._timelineSk!.hidden = false;
       // shared images deserialproc only used with mskps
       this._resourcesSk!.update(p);
     } else {
@@ -486,10 +480,10 @@ export class DebuggerPageSk extends ElementSk {
     this._fileContext!.player.changeFrame(n);
     // If the frame moved and the state is paused, also update the command list
     const mode = this._timelineSk!.querySelector<PlaySk>('play-sk')!.mode;
-    if (!this._supressMove && mode === 'pause') {
+    if (mode === 'pause') {
       this._setCommands();
       this._androidLayersSk!.update(this._commandsSk!.layerInfo,
-        this._fileContext!.player.getLayerSummariesJs(), 0);
+        this._fileContext!.player.getLayerSummariesJs(), n);
     } else {
       this._updateDebuggerView();
     }
@@ -657,13 +651,12 @@ export class DebuggerPageSk extends ElementSk {
   private _inspectLayer(layerId: number, frame: number) {
     // This method is called any time one of the Inspector/Exit buttons is pressed.
     // if the the button was on the layer already being inspected, it says "exit"
-    // and -1 is passed to layerId
+    // and -1 is passed to layerId.
+    // It is also called from the jump action in the image resorce viewer.
     // TODO(nifong): Either disable the timeline or make it have some kind of layer-aware
     // mode that would jump between updates. At the moment if you move the frame while viewing
     // a layer, you'll bork the app.
-    this._supressMove = true;
     this._timelineSk!.item = frame;
-    this._supressMove = false;
     this._fileContext!.player.setInspectedLayer(layerId);
     this._replaceSurface();
     this._setCommands();

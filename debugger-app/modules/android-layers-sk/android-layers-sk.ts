@@ -6,12 +6,14 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LayerInfo, CommandsSkJumpEventDetail } from '../commands-sk/commands-sk'
+import { DefaultMap } from '../default-map';
 
 
 // Types for the wasm bindings
 import { LayerSummary } from '../debugger';
 
 import '../cycler-button-sk';
+import { CyclerButtonNextItemEventDetail } from '../cycler-button-sk/cycler-button-sk'
 
 export interface LayerDescription {
   nodeId: number,
@@ -51,8 +53,8 @@ export class AndroidLayersSk extends ElementSk {
       Uses this frame = <b>${item.usesThisFrame.length}</b>
       Last update (<b>${item.fullRedraw ? 'full' : 'partial'}</b>) on frame
         <b>${item.frameOfLastUpdate}</b><br>
-      <cycler-button-sk .text=${'Show Use'} .list=${item.usesThisFrame} .fn=${
-          (i: number)=>{ele._jumpCommand(i)} // bind ele
+      <cycler-button-sk .text=${'Show Use'} .list=${item.usesThisFrame} @next-item=${
+          (e: Event)=>{ele._jumpCommand(e)} // bind ele
         }
         title="Cycle through drawImageRectLayer commands on this frame which used this surface as\
  a source.">
@@ -79,6 +81,12 @@ export class AndroidLayersSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+
+    // An event from the image resource viewer, requesting the layer inspector to be opened.
+    document.addEventListener('jump-inspect-layer', (e) => {
+      const detail = (e as CustomEvent<AndroidLayersSkInspectLayerEventDetail>).detail;
+      this._inspectLayer(detail.id, detail.frame);
+    });
   }
 
   // Given layer info (maps from ids to names and uses) collected in processCommands
@@ -94,7 +102,7 @@ export class AndroidLayersSk extends ElementSk {
         layerWidth: item.layerWidth,
         layerHeight: item.layerHeight,
         name: maps.names.get(item.nodeId)!,
-        usesThisFrame: maps.uses.get(item.nodeId) || [],
+        usesThisFrame: maps.uses.getd(item.nodeId),
         updatedThisFrame: item.frameOfLastUpdate === frame,
       };
       // We only want to see it if it's updated or used this frame.
@@ -123,7 +131,8 @@ export class AndroidLayersSk extends ElementSk {
     this._render();
   }
 
-  private _jumpCommand(index: number) {
+  private _jumpCommand(e: Event) {
+    const index = (e as CustomEvent<CyclerButtonNextItemEventDetail>).detail.item;
     if (this._inspectedLayer !== -1) {
       // if we are inspecting a layer, we must exit in order to show it's use in the top level skp
       this._inspectLayer(this._inspectedLayer, this._frame);
