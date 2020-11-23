@@ -529,11 +529,11 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		// ParamSet by just using the OPS. In that case we only need to count
 		// encodedKeys to get the count.
 		for i := 0; i < 2; i++ {
-			ops, err := b.store.GetOrderedParamSet(ctx, tileNumber)
+			ps, err := b.store.GetParamSet(ctx, tileNumber)
 			if err != nil {
 				return -1, nil, err
 			}
-			ps.AddParamSet(ops.ParamSet)
+			ps.AddParamSet(ps)
 			tileNumber = tileNumber.Prev()
 			if tileNumber == types.BadTileNumber {
 				break
@@ -548,15 +548,15 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 	} else {
 		// Since the query isn't empty we'll have to run a partial query
 		// to build the ParamSet. Do so over the two most recent tiles.
-		var ops *paramtools.OrderedParamSet
+		var ps paramtools.ParamSet
 
 		// Record the OPS for the first tile.
-		opsOne, err := b.store.GetOrderedParamSet(ctx, tileNumber)
+		psOne, err := b.store.GetParamSet(ctx, tileNumber)
 		if err != nil {
 			return -1, nil, err
 		}
 
-		ops = opsOne
+		ps = psOne
 		// Count the matches and sum the params in the first tile.
 		out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 		if err != nil {
@@ -573,7 +573,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		tileNumber = tileNumber.Prev()
 		if tileNumber != types.BadTileNumber {
 			// Record the OPS for the second tile.
-			opsTwo, err := b.store.GetOrderedParamSet(ctx, tileNumber)
+			psTwo, err := b.store.GetParamSet(ctx, tileNumber)
 			if err != nil {
 				return -1, nil, err
 			}
@@ -593,8 +593,8 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 				count = tileTwoCount
 			}
 			// Use the larger of the two OPSs to work with.
-			if opsTwo.ParamSet.Size() > ops.ParamSet.Size() {
-				ops = opsTwo
+			if psTwo.Size() > ps.Size() {
+				ps = psTwo
 			}
 		}
 
@@ -602,13 +602,14 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		// key in the query we need to go back and put in all the values that
 		// appear for that key since the user can make more selections in that
 		// key.
-		queryPlan, err := q.QueryPlan(ops)
+		queryPlan, err := q.QueryPlan(ps)
 		if err != nil {
 			return -1, nil, err
 		}
 		for key := range queryPlan {
-			ps[key] = ops.ParamSet[key]
+			queryPlan[key] = ps[key]
 		}
+		ps = queryPlan
 	}
 
 	ps.Normalize()

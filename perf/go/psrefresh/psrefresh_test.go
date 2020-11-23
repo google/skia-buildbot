@@ -21,16 +21,14 @@ func TestRefresher(t *testing.T) {
 	tileNumber2 := tileNumber.Prev()
 	op.On("GetLatestTile", testutils.AnyContext).Return(tileNumber, nil)
 
-	ps1 := paramtools.NewOrderedParamSet()
-	ps1.Update(paramtools.ParamSet{
+	ps1 := paramtools.ParamSet{
 		"config": []string{"8888", "565"},
-	})
-	ps2 := paramtools.NewOrderedParamSet()
-	ps2.Update(paramtools.ParamSet{
-		"config": []string{"gles"},
-	})
-	op.On("GetOrderedParamSet", testutils.AnyContext, tileNumber).Return(ps1, nil)
-	op.On("GetOrderedParamSet", testutils.AnyContext, tileNumber2).Return(ps2, nil)
+	}
+	ps2 := paramtools.ParamSet{
+		"config": []string{"8888", "565", "gles"},
+	}
+	op.On("GetParamSet", testutils.AnyContext, tileNumber).Return(ps1, nil)
+	op.On("GetParamSet", testutils.AnyContext, tileNumber2).Return(ps2, nil)
 
 	pf := NewParamSetRefresher(op)
 	err := pf.Start(time.Minute)
