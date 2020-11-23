@@ -72,7 +72,6 @@ func (pf *ParamSetRefresher) oneStep() error {
 		return skerr.Wrapf(err, "Failed to paramset from second to latest tile.")
 	}
 	ps.AddParamSet(ops2.ParamSet)
-	ps.Normalize()
 
 	pf.mutex.Lock()
 	defer pf.mutex.Unlock()
