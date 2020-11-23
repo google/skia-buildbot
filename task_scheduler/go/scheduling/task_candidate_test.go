@@ -20,7 +20,6 @@ func fullTaskCandidate() *taskCandidate {
 		Diagnostics:        &taskCandidateDiagnostics{},
 		CasInput:           "lonely-parameter",
 		CasDigests:         []string{"browns"},
-		CasUsesIsolate:     true,
 		Jobs: []*types.Job{{
 			Id: "dummy",
 		}},
@@ -36,7 +35,7 @@ func fullTaskCandidate() *taskCandidate {
 			Name: "Build",
 		},
 		TaskSpec: &specs.TaskSpec{
-			Isolate: "confine",
+			CasSpec: "fake",
 		},
 	}
 }

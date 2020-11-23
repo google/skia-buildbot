@@ -28,13 +28,11 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -146,74 +144,50 @@ func main() {
 	assertNoError(err)
 
 	// Write some files.
-	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
-	addFile(ctx, repoDir, "a.txt", "dummy2")
-	addFile(ctx, repoDir, "somefile.txt", "dummy3")
+	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("placeholder"), os.ModePerm))
+	addFile(ctx, repoDir, "a.txt", "placeholder2")
+	addFile(ctx, repoDir, "somefile.txt", "placeholder3")
 	infraBotsSubDir := path.Join("infra", "bots")
 	infraBotsDir := path.Join(repoDir, infraBotsSubDir)
 	assertNoError(os.MkdirAll(infraBotsDir, os.ModePerm))
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "compile_skia.isolate"), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "perf_skia.isolate"), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "test_skia.isolate"), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "swarm_recipe.isolate"), `{
-  'variables': {
-    'command': [
-      'python', 'recipes.py', 'run',
-    ],
-    'files': [
-      '../../somefile.txt',
-    ],
-  },
-}`)
+
+	// CAS inputs.
+	casSpecs := map[string]*specs.CasSpec{
+		"compile": {
+			Root:  ".",
+			Paths: []string{"somefile.txt"},
+		},
+		"perf": {
+			Root:  ".",
+			Paths: []string{"somefile.txt"},
+		},
+		"test": {
+			Root:  ".",
+			Paths: []string{"somefile.txt"},
+		},
+	}
 
 	// Add tasks to the repo.
 	var tasks = map[string]*specs.TaskSpec{
 		"Build-Ubuntu-GCC-Arm7-Release-Android": {
+			CasSpec:      "compile",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
-			Isolate:      "compile_skia.isolate",
 			Priority:     0.9,
 		},
 		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+			CasSpec:      "test",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-			Isolate:      "test_skia.isolate",
 			Priority:     0.9,
 		},
 		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+			CasSpec:      "perf",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-			Isolate:      "perf_skia.isolate",
 			Priority:     0.9,
 		},
 	}
@@ -227,10 +201,10 @@ func main() {
 				deps = append(deps, fmt.Sprintf("%s%d", d, i))
 			}
 			newTask := &specs.TaskSpec{
+				CasSpec:      task.CasSpec,
 				CipdPackages: task.CipdPackages,
 				Dependencies: deps,
 				Dimensions:   task.Dimensions,
-				Isolate:      task.Isolate,
 				Priority:     task.Priority,
 			}
 			moarTasks[newName] = newTask
@@ -241,8 +215,9 @@ func main() {
 		}
 	}
 	cfg := specs.TasksCfg{
-		Tasks: moarTasks,
-		Jobs:  jobs,
+		CasSpecs: casSpecs,
+		Tasks:    moarTasks,
+		Jobs:     jobs,
 	}
 	assertNoError(util.WithWriteFile(path.Join(repoDir, specs.TASKS_CFG_FILE), func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(&cfg)
@@ -294,8 +269,6 @@ func main() {
 	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	assertNoError(err)
 
-	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
-	assertNoError(err)
 	swarmingClient := testutils.NewTestClient()
 
 	repos := repograph.Map{repoName: repo}
@@ -303,13 +276,9 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
-	isolateCache, err := isolate_cache.New(ctx, "test-project", "test-instance", nil)
-	if err != nil {
-		sklog.Fatalf("Failed to create isolate cache: %s", err)
-	}
 	cas, err := rbe.NewClient(ctx, *rbeInstance, ts)
 	assertNoError(err)
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, *rbeInstance, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, *rbeInstance, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, nil, "")
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

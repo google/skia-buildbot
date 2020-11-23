@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -25,7 +24,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -40,7 +38,7 @@ const (
 )
 
 // Common setup for JobCreator tests.
-func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.InMemoryDB, *JobCreator, *mockhttpclient.URLMock, func()) {
+func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.InMemoryDB, *JobCreator, *mockhttpclient.URLMock, *mocks.CAS, func()) {
 	unittest.LargeTest(t)
 
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
@@ -50,8 +48,6 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 	require.NoError(t, err)
 
 	d := memory.NewInMemoryDB()
-	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
-	require.NoError(t, err)
 	urlMock := mockhttpclient.NewURLMock()
 	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	require.NoError(t, err)
@@ -63,19 +59,20 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 	g, err := gerrit.NewGerrit(fakeGerritUrl, urlMock.Client())
 	require.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
-	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
-	require.NoError(t, err)
 	cas := &mocks.CAS{}
-	jc, err := NewJobCreator(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, cas, urlMock.Client(), tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, depotTools, g, taskCfgCache, isolateCache, nil)
+	// Go ahead and mock the single-input merge calls.
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.CompileCASDigest}).Return(tcc_testutils.CompileCASDigest, nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
+
+	jc, err := NewJobCreator(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, cas, urlMock.Client(), tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, depotTools, g, taskCfgCache, nil)
 	require.NoError(t, err)
-	return ctx, gb, d, jc, urlMock, func() {
+	return ctx, gb, d, jc, urlMock, cas, func() {
 		testutils.AssertCloses(t, jc)
 		testutils.RemoveAll(t, tmp)
 		gb.Cleanup()
-		btCleanupIsolate()
 		btCleanup()
 		cancel()
 	}
@@ -104,7 +101,7 @@ func makeDummyCommits(ctx context.Context, gb *git_testutils.GitBuilder, numComm
 }
 
 func TestGatherNewJobs(t *testing.T) {
-	ctx, gb, _, jc, _, cleanup := setup(t)
+	ctx, gb, _, jc, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	testGatherNewJobs := func(expectedJobs int) {
@@ -176,7 +173,7 @@ func TestGatherNewJobs(t *testing.T) {
 }
 
 func TestPeriodicJobs(t *testing.T) {
-	ctx, gb, _, jc, _, cleanup := setup(t)
+	ctx, gb, _, jc, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Rewrite tasks.json with a periodic job.
@@ -209,8 +206,13 @@ func TestPeriodicJobs(t *testing.T) {
 				ExecutionTimeout: 40 * time.Minute,
 				Expiration:       2 * time.Hour,
 				IoTimeout:        3 * time.Minute,
-				Isolate:          "compile_skia.isolate",
+				CasSpec:          "compile",
 				Priority:         1.0,
+			},
+		},
+		CasSpecs: map[string]*specs.CasSpec{
+			"compile": {
+				Digest: "abc123/45",
 			},
 		},
 	}
@@ -270,7 +272,7 @@ func TestPeriodicJobs(t *testing.T) {
 func TestTaskSchedulerIntegration(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, _, d, jc, _, cleanup := setup(t)
+	ctx, _, d, jc, _, cas, cleanup := setup(t)
 	defer cleanup()
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -279,13 +281,9 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
-	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
-	require.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-	cas := &mocks.CAS{}
-	cas.On("Close").Return(nil)
-	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, isolateClient, cas, "fake-rbe-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", jc.taskCfgCache, jc.isolateCache, nil, mem_gcsclient.New("fake"), "testing")
+	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, cas, "fake-rbe-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", jc.taskCfgCache, nil, mem_gcsclient.New("fake"), "testing")
 	require.NoError(t, err)
 
 	jc.Start(ctx, false)
