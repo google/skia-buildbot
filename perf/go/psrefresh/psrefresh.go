@@ -61,7 +61,11 @@ func (pf *ParamSetRefresher) oneStep() error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to paramset from latest tile.")
 	}
-	ps := ops.ParamSet
+
+	// TODO(jcgregorio) Need an option to mark a ParamSet as frozen.
+	ps := paramtools.NewParamSet()
+	ps.AddParamSet(ops.ParamSet)
+
 	tileKey = tileKey.Prev()
 	ops2, err := pf.traceStore.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
