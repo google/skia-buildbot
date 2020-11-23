@@ -39,6 +39,30 @@
       },
       "revId": "28d32d3c8d7aa0002da3d3de35dccb472637e07f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c471bae6_c566979a",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T13:45:17Z",
+      "side": 1,
+      "message": "All of these applications are really launched from a single executable, \u0027perfserver\u0027, but because they are all inside a Cobra command there are different sets of flags that get parsed depending on which sub-command is called. So the Init has to get pushed down to the point where flags are parsed.\n\nIn theory there\u0027s a common before-sub-command-callback that I could use to do this work, but it never gets called.\nIn the long run I want to migrate away from Cobra since this isn\u0027t the first time I\u0027ve run into an issue\nlike that in Cobra.",
+      "parentUuid": "229593dd_e259c94c",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 2
+      },
+      "revId": "28d32d3c8d7aa0002da3d3de35dccb472637e07f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
