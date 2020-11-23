@@ -410,81 +410,6 @@ func appendValueForFilter(key string, values []string, part queryParam, ret *par
 	return nil
 }
 
-// Regexp returns a *regexp.Regex that can be used against OrderedParamSet
-// encoded Params, which are structured keys of indicies.
-//
-// Note that the returned regexp is RE2 compliant
-// (https://github.com/google/re2/wiki/Syntax) and can be used in Cloud BigTable.
-//
-// That is, if you have a Params:
-//
-//    Params{"config":"8888", "arch":"x86"}
-//
-// And an OrderedParamSet:
-//
-//    ops := &paramtools.OrderedParamSet{
-//    	KeyOrder: []string{"config", "foo", "arch"},
-//    	ParamSet: paramtools.ParamSet{
-//    		"config": []string{"565", "8888", "gpu"},
-//    		"arch":   []string{"x86", "arm", "riscv"},
-//        "foo":    []string{"bar"},
-//    	},
-//    }
-//
-// It would encode that Params as:
-//
-//    ,0=1,2=0,
-//
-// Then a query of the form:
-//
-//    url.Values{"arch": []string{"x86", "riscv"}, "config": []string{"*"}}
-//
-// Would produce a Regexp using that OrderedParamSet:
-//
-//    ,0=[^,]+\b.*((,2=0\b)|(,2=2\b)).*
-//
-// Which does match the Encoded Params:
-//
-//    ,0=1,2=0,
-//
-func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) {
-	// ret is the strings that make up the regular expression we are building.
-	ret := []string{}
-	// Loop over KeyOrder, we don't care about the q.params order.
-	for index, key := range ops.KeyOrder {
-		for _, part := range q.params {
-			// Strip the , and = from part.keyMatch.
-			partKey := part.keyMatch[1 : len(part.keyMatch)-1]
-			if partKey == key {
-				// WildCard, Regex and Negative are all mutually exclusive.
-				keyIndex := strconv.Itoa(index)
-				values := ops.ParamSet[key]
-				var err error = nil
-				if part.isWildCard {
-					ret = append(ret, fmt.Sprintf(`,%s=[^,]+\b`, keyIndex))
-				} else if part.isRegex {
-					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
-						return part.reg.MatchString(value)
-					})
-				} else if part.isNegative {
-					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
-						return !util.In(value, part.values)
-					})
-				} else {
-					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
-						return util.In(value, part.values)
-					})
-				}
-				if err != nil {
-					return nil, err
-				}
-				continue
-			}
-		}
-	}
-	return regexp.Compile(strings.Join(ret, ""))
-}
-
 // QueryPlan returns a paramtools.ParamSet that can be used run a query using
 // trace indices.
 //
@@ -492,13 +417,12 @@ func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) 
 //
 //    Params{"config":"8888", "arch":"x86"}
 //
-// And an OrderedParamSet:
+// And a ParamSet:
 //
-//    ops := &paramtools.OrderedParamSet{
-//    	KeyOrder: []string{"config", "foo", "arch"},
+//    ps := &paramtools.ParamSet{
 //    	ParamSet: paramtools.ParamSet{
-//    		"config": []string{"565", "8888", "gpu"},
-//    		"arch":   []string{"x86", "arm", "riscv"},
+//    	  "config": []string{"565", "8888", "gpu"},
+//    	  "arch":   []string{"x86", "arm", "riscv"},
 //        "foo":    []string{"bar"},
 //    	},
 //    }
