@@ -364,6 +364,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}()
 
 	cipdPkgs := []string{}
+	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython)...)
 	if targetPlatform == PLATFORM_WINDOWS {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	} else {
@@ -646,14 +647,24 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// Set the DISPLAY.
 		env = append(env, "DISPLAY=:0")
 	}
+	pythonExec := "vpython"
+	// Set VPYTHON_VIRTUALENV_ROOT for vpython
+	env = append(env, fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir()))
 	// Append the original environment as well.
 	for _, e := range os.Environ() {
 		env = append(env, e)
 	}
-
-	if targetPlatform == PLATFORM_ANDROID {
+	if targetPlatform == PLATFORM_WINDOWS {
+		// Could not figure out how to make vpython work on windows so use python instead.
+		// The downside of this is that we might have to keep installing packages on win GCE
+		// instances.
+		pythonExec = "python"
+	} else if targetPlatform == PLATFORM_ANDROID {
+		env = append(env, "BOTO_CONFIG=/home/chrome-bot/.boto.puppet-bak")
 		// Reset android logcat prior to the run so that we can examine the logs later.
 		util.LogErr(ExecuteCmd(ctx, BINARY_ADB, []string{"logcat", "-c"}, []string{}, ADB_ROOT_TIMEOUT, nil, nil))
+	} else if targetPlatform == PLATFORM_LINUX {
+		env = append(env, "BOTO_CONFIG=/home/chrome-bot/.boto.puppet-bak")
 	}
 
 	// Create buffer for capturing the stdout and stderr of the benchmark run.
@@ -661,7 +672,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	if _, err := b.WriteString(fmt.Sprintf("========== Stdout and stderr for %s ==========\n", pagesetPath)); err != nil {
 		return "", fmt.Errorf("Error writing to output buffer: %s", err)
 	}
-	if err := ExecuteCmdWithConfigurableLogging(ctx, "python", args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
+	if err := ExecuteCmdWithConfigurableLogging(ctx, pythonExec, args, env, time.Duration(timeoutSecs)*time.Second, &b, &b, false, false); err != nil {
 		if targetPlatform == PLATFORM_ANDROID {
 			// Kill the port-forwarder to start from a clean slate.
 			util.LogErr(ExecuteCmdWithConfigurableLogging(ctx, "pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, &b, &b, false, false))

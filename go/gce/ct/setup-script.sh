@@ -39,6 +39,9 @@ if [ ! -d ~/depot_tools ]; then
 fi
 PATH=$PATH:~/depot_tools
 
+# To keep .boto file consistent with golo bots.
+cp ~/.boto ~/.boto.puppet-bak
+
 # CT uses this directory for storage of artifacts.
 mkdir -p /b/storage
 
