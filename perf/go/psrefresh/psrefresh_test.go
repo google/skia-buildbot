@@ -21,10 +21,10 @@ func TestRefresher(t *testing.T) {
 	tileNumber2 := tileNumber.Prev()
 	op.On("GetLatestTile", testutils.AnyContext).Return(tileNumber, nil)
 
-	ps1 := paramtools.ParamSet{
+	ps1 := paramtools.ReadOnlyParamSet{
 		"config": []string{"8888", "565"},
 	}
-	ps2 := paramtools.ParamSet{
+	ps2 := paramtools.ReadOnlyParamSet{
 		"config": []string{"8888", "565", "gles"},
 	}
 	op.On("GetParamSet", testutils.AnyContext, tileNumber).Return(ps1, nil)

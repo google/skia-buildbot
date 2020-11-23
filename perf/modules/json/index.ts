@@ -75,7 +75,7 @@ export interface FrameRequest {
 export interface DataFrame {
 	traceset: TraceSet;
 	header: (ColumnHeader | null)[] | null;
-	paramset: ParamSet;
+	paramset: ReadOnlyParamSet;
 	skip: number;
 }
 
@@ -133,7 +133,7 @@ export interface CountHandlerRequest {
 
 export interface CountHandlerResponse {
 	count: number;
-	paramset: ParamSet;
+	paramset: ReadOnlyParamSet;
 }
 
 export interface RangeRequest {
@@ -256,7 +256,7 @@ export interface TryBotResult {
 export interface TryBotResponse {
 	header: (ColumnHeader | null)[] | null;
 	results: TryBotResult[] | null;
-	paramset: ParamSet;
+	paramset: ReadOnlyParamSet;
 }
 
 export namespace progress {
@@ -294,6 +294,8 @@ export type RequestType = 0 | 1;
 export type Trace = number[] | null;
 
 export type TraceSet = { [key: string]: Trace };
+
+export type ReadOnlyParamSet = { [key: string]: string[] | null };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
 
