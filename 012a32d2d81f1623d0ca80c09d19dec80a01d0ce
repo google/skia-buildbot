@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc6d59e6_30dc5f9b",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T17:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "155d090b_1e7cacec",
+      "range": {
+        "startLine": 93,
+        "startChar": 5,
+        "endLine": 93,
+        "endChar": 29
+      },
+      "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c75c0d1d_7491bd06",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a8c9dd0_b15e9e19",
+        "filename": "perf/go/regression/detector.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T17:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c75c0d1d_7491bd06",
+      "range": {
+        "startLine": 100,
+        "startChar": 5,
+        "endLine": 100,
+        "endChar": 22
+      },
+      "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7400c6a0_fe7cee32",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-11-23T14:04:17Z",
       "side": 1,
       "message": "I see no _test.go files were updated - does that mean there are no tests of those top level functions? Could we at least add some to catch the quick error cases?",
+      "range": {
+        "startLine": 111,
+        "startChar": 15,
+        "endLine": 111,
+        "endChar": 20
+      },
+      "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "429c113c_dadec585",
+        "filename": "perf/go/regression/detector.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T17:02:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7400c6a0_fe7cee32",
       "range": {
         "startLine": 111,
         "startChar": 15,
