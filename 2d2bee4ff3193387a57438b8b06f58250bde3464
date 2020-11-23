@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c07e140_0899e973",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 1120,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-23T14:33:01Z",
+      "side": 1,
+      "message": "Bug fix from https://skia-review.googlesource.com/c/buildbot/+/280397 - Cannot install wget for Windows instances.",
+      "revId": "2d2bee4ff3193387a57438b8b06f58250bde3464",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
