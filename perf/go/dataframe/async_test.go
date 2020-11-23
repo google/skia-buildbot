@@ -1,6 +1,8 @@
 package dataframe
 
 import (
+	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,6 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
+	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -208,4 +211,19 @@ func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 		},
 	}, g)
 	require.Error(t, err)
+}
+
+func TestProcessFrameRequest(t *testing.T) {
+	unittest.SmallTest(t)
+
+	fr := &FrameRequest{
+		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
+		Progress: progress.New(),
+	}
+	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil)
+	require.Error(t, err)
+	var b bytes.Buffer
+	err = fr.Progress.JSON(&b)
+	require.NoError(t, err)
+	assert.Equal(t, "{\"status\":\"Running\",\"messages\":[],\"url\":\"\"}\n", b.String())
 }
