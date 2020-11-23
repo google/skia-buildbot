@@ -215,14 +215,14 @@ def sk_page(name, deps, sass_deps, assets_serving_path = "/", nonce = None):
 
     # Generates file development/<name>.html.
     copy_file(
-        name = "%s_html_dev",
+        name = "%s_html_dev" % name,
         src = instrumented_html,
         dst = "%s/%s.html" % (DEV_OUT_DIR, name),
     )
 
     # Generates file production/<name>.html.
     copy_file(
-        name = "%s_html_prod",
+        name = "%s_html_prod" % name,
         src = instrumented_html,
         dst = "%s/%s.html" % (PROD_OUT_DIR, name),
     )

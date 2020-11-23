@@ -1,0 +1,86 @@
+// This binary can be used to serve demo pages during development. It also serves as the test_on_env
+// environment for Puppeteer tests.
+package main
+
+import (
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"strconv"
+)
+
+const (
+	envPortFileBaseName = "port"
+)
+
+func main() {
+	var (
+		assetsDir = flag.String("directory", "", "Path to directory to serve.")
+		port      = flag.Int("port", 0, "TCP port (ignored / chosen by the OS if $ENV_DIR is set; see the test_on_env Bazel rule).")
+	)
+	flag.Parse()
+
+	// The ENV_DIR and ENV_READY_FILE environment variables are set by the test_on_env runner script.
+	// We detect whether we are running inside a test_on_env target based on said variables.
+	envDir := os.Getenv("ENV_DIR")
+	envReadyFile := os.Getenv("ENV_READY_FILE")
+	testOnEnv := envDir != "" && envReadyFile != ""
+
+	// If we're running inside a test_on_env target then we ignore the --port flag and let the OS
+	// choose a TCP port number for us. This prevents tests from failing with "address already in use"
+	// errors due to Bazel running multiple test targets in parallel.
+	if testOnEnv {
+		*port = 0
+	}
+
+	// If the port is unspecified (i.e. 0), an unused port will be chosen by the OS.
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	if err != nil {
+		panic(err)
+	}
+	actualPort := listener.Addr().(*net.TCPAddr).Port // Retrieve the port number chosen by the OS.
+
+	// Set up the HTTP server.
+	assetsDirAbs, err := filepath.Abs(*assetsDir)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Serving directory %s\n", assetsDirAbs)
+	http.Handle("/", http.FileServer(http.Dir(*assetsDir)))
+
+	// Build the demo page URL.
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+	url := fmt.Sprintf("http://%s:%d", hostname, actualPort)
+
+	// We need to signal the test_on_env runner script that we are ready to accept connections.
+	if testOnEnv {
+		// First, we write out the TCP port number. This will be read by the test target.
+		envPortFile := path.Join(envDir, envPortFileBaseName)
+		err = ioutil.WriteFile(envPortFile, []byte(strconv.Itoa(actualPort)), 0644)
+		if err != nil {
+			panic(err)
+		}
+
+		// Then, we write the ready file. This signals the test_on_env runner script that we are ready.
+		err = ioutil.WriteFile(envReadyFile, []byte{}, 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Start the server immediately after writing the ready file.
+	fmt.Printf("Serving demo page at: %s/\n", url)
+	err = http.Serve(listener, nil) // Always returns a non-nil error.
+
+	if err.Error() != "" {
+		panic(err)
+	}
+}
