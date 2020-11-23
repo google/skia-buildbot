@@ -381,26 +381,25 @@ func TestGetLatestTile_Empty(t *testing.T) {
 	assert.Equal(t, types.BadTileNumber, tileNumber)
 }
 
-func TestGetOrderedParamSet(t *testing.T) {
+func TestGetParamSet(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	tileNumber := types.TileNumber(1)
 	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
 
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	ps, err := s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	expected := paramtools.ParamSet{
 		"arch":   []string{"x86"},
 		"config": []string{"565", "8888"},
 	}
-	assert.Equal(t, expected, ops.ParamSet)
-	assert.Equal(t, []string{"arch", "config"}, ops.KeyOrder)
+	assert.Equal(t, expected, ps)
 
 	assert.True(t, s.orderedParamSetCache.Contains(tileNumber))
 }
 
-func TestGetOrderedParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
+func TestGetParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
 	_, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
@@ -411,21 +410,20 @@ func TestGetOrderedParamSet_CacheEntriesAreWrittenForParamSets(t *testing.T) {
 	assert.True(t, s.cache.Exists(cacheKeyForParamSets(tileNumber, "config", "8888")))
 }
 
-func TestGetOrderedParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
+func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	tileNumber := types.TileNumber(0)
 	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
 
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	ps, err := s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	expected := paramtools.ParamSet{
 		"arch":   []string{"x86"},
 		"config": []string{"565", "8888"},
 	}
-	assert.Equal(t, expected, ops.ParamSet)
-	assert.Equal(t, []string{"arch", "config"}, ops.KeyOrder)
+	assert.Equal(t, expected, ps)
 	assert.True(t, s.orderedParamSetCache.Contains(tileNumber))
 
 	// Add new points that will expand the ParamSet.
@@ -443,9 +441,9 @@ func TestGetOrderedParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 		time.Time{}) // time is unused in this impl of TraceStore.
 
 	// The cached version should be returned.
-	ops, err = s.GetOrderedParamSet(ctx, tileNumber)
+	ps, err = s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, ops.ParamSet)
+	assert.Equal(t, expected, ps)
 
 	// But if we query past the TTL we should get an updated OPS.
 	updatedExpected := paramtools.ParamSet{
@@ -457,19 +455,19 @@ func TestGetOrderedParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 	s.timeNow = func() time.Time {
 		return time.Now().Add(orderedParamSetCacheTTL * 2)
 	}
-	ops, err = s.GetOrderedParamSet(ctx, tileNumber)
+	ps, err = s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
-	assert.Equal(t, updatedExpected, ops.ParamSet)
+	assert.Equal(t, updatedExpected, ps)
 }
 
-func TestGetOrderedParamSet_Empty(t *testing.T) {
+func TestGetParamSet_Empty(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, false)
 	defer cleanup()
 
 	// Test the empty case where there is no data in datastore.
-	ops, err := s.GetOrderedParamSet(ctx, 1)
+	ps, err := s.GetParamSet(ctx, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, paramtools.ParamSet{}, ops.ParamSet)
+	assert.Equal(t, paramtools.ParamSet{}, ps)
 }
 
 func TestGetSource(t *testing.T) {
