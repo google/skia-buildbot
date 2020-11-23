@@ -26,6 +26,7 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { PlaySk, PlaySkMoveToEventDetail } from '../play-sk/play-sk';
 import { HistogramSkToggleEventDetail } from '../histogram-sk/histogram-sk'
+import { DefaultMap } from '../default-map';
 
 import 'elements-sk/icon/save-icon-sk';
 import 'elements-sk/icon/content-copy-icon-sk';
@@ -100,7 +101,7 @@ export interface CommandsSkHistogramEventDetail {
 export interface LayerInfo {
   // A Map from layer ids to command indices where they were drawn
   // with a DrawImageRectLayer command. Includes only layer used this frame
-  uses: Map<number, number[]>;
+  uses: DefaultMap<number, number[]>;
   // A map from layer ids to names that were provided in the render node annotations.
   // This should be sufficient for it to always contain what we attempt to look up.
   // Only valid for the duration of this frame.
@@ -254,7 +255,7 @@ Command types can also be filted by clicking on their names in the histogram"
   private _playSk: PlaySk | null = null;
   // information about layers collected from commands
   private _layerInfo: LayerInfo = {
-    uses: new Map<number, number[]>(),
+    uses: new DefaultMap<number, number[]>(() => []),
     names: new Map<number, string>(),
   };
 
@@ -332,7 +333,7 @@ Command types can also be filted by clicking on their names in the histogram"
       const i = (e as CustomEvent<CommandsSkJumpEventDetail>).detail.unfilteredIndex;
       const filteredIndex = this._filtered.findIndex(e => e==i);
       if (filteredIndex !== undefined) {
-        this.item = this._filtered.findIndex(e => e==i);
+        this.item = filteredIndex;
       }
     });
   }
@@ -355,7 +356,7 @@ Command types can also be filted by clicking on their names in the histogram"
       count_in_range_filter: number,
     }
 
-    this._layerInfo.uses = new Map<number, number[]>();
+    this._layerInfo.uses = new DefaultMap<number, number[]>(() => []);
     this._layerInfo.names = new Map<number, string>();
 
     // Finds things like "RenderNode(id=10, name='DecorView')"
@@ -374,6 +375,7 @@ Command types can also be filted by clicking on their names in the histogram"
         visible: true,
       };
 
+      // DrawCommand.cpp will write this field if the command references an image
       if (com.imageIndex) {
         out.imageIndex = com.imageIndex;
       }
@@ -412,10 +414,7 @@ Command types can also be filted by clicking on their names in the histogram"
         // A command indicating that a render node with an offscreen buffer (android only)
         // was drawn as an image.
         const node = com.layerNodeId!;
-        if (!this._layerInfo.uses.has(node)) {
-          this._layerInfo.uses.set(node, []);
-        }
-        this._layerInfo.uses.get(node)!.push(i);
+        this._layerInfo.uses.getd(node).push(i);
       } else if (name === 'DrawAnnotation') {
         // DrawAnnotation is a bit of metadata added by the android view system.
         // All render nodes have names, but not all of them are drawn with offscreen buffers
@@ -427,7 +426,6 @@ Command types can also be filted by clicking on their names in the histogram"
           this._layerInfo.names.set(parseInt(found[1]), found[2]);
         }
       }
-      // TODO(nifong): extract image resource data
 
       // deep copy prefixes because we want a snapshot of the current list and counts
       out.prefixes = prefixes.map((p: PrefixItem) => this._copyPrefix(p));
@@ -632,16 +630,13 @@ Command types can also be filted by clicking on their names in the histogram"
       count_in_frame: number,
       count_in_range_filter: number,
     }
-    const counts = new Map<string, tally>();
+    const counts = new DefaultMap<string, tally>(() => ({
+      count_in_frame: 0,
+      count_in_range_filter: 0
+    }));
     for (let i = 0; i < this._cmd.length; i++) {
       let c = this._cmd[i];
-      if (!counts.get(c.name)) {
-        counts.set(c.name, {
-          count_in_frame: 0,
-          count_in_range_filter: 0
-        });
-      }
-      counts.get(c.name)!.count_in_frame += 1; // always increment first count
+      counts.getd(c.name).count_in_frame += 1; // always increment first count
       if (i >= this._range[0] && i <= this._range[1]) {
         counts.get(c.name)!.count_in_range_filter += 1; // optionally increment filtered count.
       }
@@ -721,15 +716,12 @@ Command types can also be filted by clicking on their names in the histogram"
   private _opIdFilter() {
     this._filtered = [];
 
-    const commandsOfEachOp = new Map<number, number[]>();
+    const commandsOfEachOp = new DefaultMap<number, number[]>(() => []);
     this._cmd.forEach((command, index) => {
       if (command.details.auditTrail &&
           command.details.auditTrail.Ops) {
         const opid = command.details.auditTrail.Ops[0].OpsTaskID;
-        if (!commandsOfEachOp.has(opid)) {
-          commandsOfEachOp.set(opid, []);
-        }
-        commandsOfEachOp.get(opid)!.push(index);
+        commandsOfEachOp.getd(opid).push(index);
       }
     });
     const sortedKeys: number[] = Array.from(commandsOfEachOp.keys());
