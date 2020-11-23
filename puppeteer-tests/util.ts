@@ -7,6 +7,10 @@ import puppeteer from 'puppeteer';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 
+// File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
+// using the test_on_env rule.
+const ENV_PORT_FILE_BASE_NAME = 'port';
+
 /** A DOM event name. */
 export type EventName = string;
 
@@ -100,14 +104,6 @@ export const launchBrowser = () => puppeteer.launch(
 );
 
 /**
- * Returns the output directory where tests should e.g. save screenshots.
- * Screenshots saved in this directory will be uploaded to Gold.
- */
-export const outputDir = () => (exports.inDocker()
-  ? '/out'
-  : path.join(__dirname, 'output')); // Resolves to //puppeteer-tests/output for local development.
-
-/**
  * Type of the object returned by setUpPuppeteerAndDemoPageServer.
  *
  * A test suite should reuse this object in all its test cases. This object's
@@ -142,15 +138,25 @@ export const setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigTs: string): 
   const testBed: Partial<TestBed> = {};
 
   before(async () => {
-    let baseUrl;
-    ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToWebpackConfigTs));
-    testBed.baseUrl = baseUrl; // Make baseUrl available to tests.
+    if (inBazel()) {
+      // Read the demo page server's TCP port.
+      const envDir = process.env.ENV_DIR;
+      if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
+      const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
+      testBed.baseUrl = `http://localhost:${port}`
+    } else {
+      // Not in Bazel - Start the Webpack-based demo page server.
+      let baseUrl;
+      ({ baseUrl, stopDemoPageServer } = await startWebpackDemoPageServer(pathToWebpackConfigTs));
+      testBed.baseUrl = baseUrl; // Make baseUrl available to tests.
+    }
+
     browser = await exports.launchBrowser();
   });
 
   after(async () => {
     await browser.close();
-    await stopDemoPageServer();
+    if (!inBazel()) await stopDemoPageServer();
   });
 
   beforeEach(async () => {
@@ -185,7 +191,7 @@ export const setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigTs: string): 
  * requires custom element demo pages. The returned function stopDemoPageServer
  * should be called at the end of the test suite.
  */
-export const startDemoPageServer = async (pathToWebpackConfigTs: string) => {
+export const startWebpackDemoPageServer = async (pathToWebpackConfigTs: string) => {
   // Load Webpack configuration.
   const webpackConfigFactory = require(pathToWebpackConfigTs) as webpack.ConfigurationFactory;
   const configuration = webpackConfigFactory('', { mode: 'development' }) as webpack.Configuration;
@@ -221,6 +227,40 @@ export const startDemoPageServer = async (pathToWebpackConfigTs: string) => {
 };
 
 /**
+ * Returns the output directory where tests should e.g. save screenshots.
+ * Screenshots saved in this directory will be uploaded to Gold.
+ */
+export const outputDir = () => {
+  // When running via "bazel test", screenshots for e.g. //path/to/my:puppeteer_test will be found
+  // at //bazel-testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip. This is true when
+  // running on RBE as well (e.g. "bazel test --config=remote").
+  //
+  // See the following link for more:
+  // https://docs.bazel.build/versions/master/test-encyclopedia.html#test-interaction-with-the-filesystem.
+  if (exports.inBazel()) {
+    const undeclaredOutputsDir = process.env.TEST_UNDECLARED_OUTPUTS_DIR;
+    if (!undeclaredOutputsDir) {
+      throw new Error('required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset');
+    }
+    const outputDir = path.join(undeclaredOutputsDir, 'puppeteer-test-screenshots');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
+    return outputDir;
+  }
+
+  // In the pre-Bazel world, Puppeteer tests either run inside the puppeteer-tests Docker container
+  // (e.g. Infra-PerCommit-Puppeteer), or locally during development.
+  if (exports.inDocker()) {
+    return '/out';
+  }
+
+  // Resolves to //puppeteer-tests/output when running locally.
+  return path.join(__dirname, 'output');
+};
+
+
+/**
  * Takes a screenshot and saves it to the tests output directory to be uploaded
  * to Gold.
  *
@@ -229,6 +269,5 @@ export const startDemoPageServer = async (pathToWebpackConfigTs: string) => {
  * and increases consistency among test names.
  */
 export const takeScreenshot =
-  (handle: puppeteer.Page | puppeteer.ElementHandle, appName: string, testName: string) =>
-    handle.screenshot({path: path.join(exports.outputDir(), `${appName}_${testName}.png`),
-});
+    (handle: puppeteer.Page | puppeteer.ElementHandle, appName: string, testName: string) =>
+  handle.screenshot({path: path.join(exports.outputDir(), `${appName}_${testName}.png`)});

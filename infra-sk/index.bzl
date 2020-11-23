@@ -7,6 +7,7 @@ load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
+load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 
 def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
     """Runs a NodeJS unit test using the Mocha test runner.
@@ -40,6 +41,45 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
             "--timeout 60000",
         ] + args,
         tags = tags,
+    )
+
+def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):
+    """Defines a Puppeteer test for the demo page served by an sk_demo_page_server.
+
+    Puppeteer tests should save any screenshots inside the $TEST_UNDECLARED_OUTPUTS_DIR directory.
+    To reduce the chances of name collisions, tests must save their screenshots under the
+    $TEST_UNDECLARED_OUTPUTS_DIR/puppeteer-test-screenshots subdirectory. This convention will
+    allow us to recover screenshots from multiple tests in a consistent way.
+
+    Screenshots, and any other undeclared outputs of a test, can be found under //bazel-testlogs
+    bundled as a single .zip file per test target. For example, if we run a Puppeteer test with e.g.
+    "bazel test //path/to/my:puppeteer_test", any screenshots taken by this test will be found
+    inside //bazel-testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip.
+
+    To read more about undeclared test outputs, please see the following link:
+    https://docs.bazel.build/versions/master/test-encyclopedia.html#test-interaction-with-the-filesystem.
+
+    Args:
+      name: Name of the rule.
+      srcs: Labels for the test's TypeScript files.
+      sk_demo_page_server: Label for the sk_demo_page_server target.
+      deps: Any tss_library dependencies.
+    """
+    nodejs_mocha_test(
+        name = name + "_test_only",
+        srcs = srcs,
+        tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
+        deps = deps + [
+            "//puppeteer-tests:util_lib",
+            "@infra-sk_npm//@types/puppeteer",
+            "@infra-sk_npm//puppeteer",
+        ],
+    )
+
+    test_on_env(
+        name = name,
+        env = sk_demo_page_server,
+        test = name + "_test_only",
     )
 
 def copy_file(name, src, dst):

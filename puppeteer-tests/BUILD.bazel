@@ -2,8 +2,9 @@ load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("//infra-sk:index.bzl", "nodejs_mocha_test")
 
 ts_library(
-    name = "util",
+    name = "util_lib",
     srcs = [":util.ts"],
+    visibility = ["//visibility:public"],
     deps = [
         "@infra-sk_npm//@types/express",
         "@infra-sk_npm//@types/mocha",
@@ -23,6 +24,6 @@ nodejs_mocha_test(
     name = "util_test",
     srcs = [":util_test.ts"],
     deps = [
-        ":util",
+        ":util_lib",
     ],
 )
