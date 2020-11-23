@@ -315,8 +315,8 @@ var templates = map[statement]string{
             commit_number,
             val
         FROM
-			TraceValues
-			{{ .AsOf }}
+            TraceValues
+            {{ .AsOf }}
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
             AND commit_number <= {{ .EndCommitNumber }}
@@ -357,6 +357,14 @@ var templates = map[statement]string{
             {{ end }}
         ON CONFLICT
         DO NOTHING`,
+	paramSetForTile: `
+        SELECT
+           param_key, param_value
+        FROM
+            ParamSets
+            {{ .AsOf }}
+        WHERE
+            tile_number = {{ .TileNumber }}`,
 }
 
 // replaceTraceValuesContext is the context for the replaceTraceValues template.
@@ -452,6 +460,12 @@ type insertIntoParamSetsContext struct {
 	cacheKey string
 }
 
+// paramSetForTileContext is the context for the paramSetForTile template.
+type paramSetForTileContext struct {
+	TileNumber types.TileNumber
+	AsOf       string
+}
+
 var statements = map[statement]string{
 	insertIntoSourceFiles: `
         INSERT INTO
@@ -476,13 +490,6 @@ var statements = map[statement]string{
             tile_number DESC
         LIMIT
             1;`,
-	paramSetForTile: `
-        SELECT
-           param_key, param_value
-        FROM
-            ParamSets
-        WHERE
-            tile_number = $1`,
 	traceCount: `
         SELECT
             COUNT(DISTINCT trace_id)
@@ -609,7 +616,19 @@ func (s *SQLTraceStore) updateParamSetMetricsForTile(ctx context.Context, tileNu
 		sklog.Errorf("Failed to load ParamSet when calculating metrics: %s")
 		return
 	}
-	metrics2.GetInt64Metric("perfserver_sqltracestore_paramset_size", map[string]string{"tileNumber": fmt.Sprintf("%d", tileNumber)}).Update(int64(ops.ParamSet.Size()))
+	size := int64(ops.ParamSet.Size())
+	sklog.Infof("ParamSet Size %d tile-%d", size, tileNumber)
+	m := metrics2.GetInt64Metric("perfserver_sqltracestore_paramset_size", map[string]string{"tileNumber": fmt.Sprintf("%d", tileNumber)})
+	prev := m.Get()
+	next := size
+	if prev != next {
+		sklog.Infof("ParamSet size change for tile %d: %d -> %d", tileNumber, prev, next)
+		m.Update(next)
+		for key, values := range ops.ParamSet {
+			// TODO(jcgregorio) Make each one of these metrics?
+			sklog.Infof("paramsetcounts %q: %d", key, len(values))
+		}
+	}
 }
 
 // CommitNumberOfTileStart implements the tracestore.TraceStore interface.
@@ -635,12 +654,30 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
 	defer span.End()
 
-	defer timer.New("paramSetForTile").Stop()
-	rows, err := s.db.Query(ctx, statements[paramSetForTile], tileNumber)
+	defer timer.New(fmt.Sprintf("paramSetForTile-%d", tileNumber)).Stop()
+
+	context := paramSetForTileContext{
+		TileNumber: tileNumber,
+		AsOf:       "",
+	}
+
+	if s.enableFollowerReads {
+		context.AsOf = followerReadsStatement
+	}
+
+	// Expand the template for the SQL.
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[paramSetForTile].Execute(&b, context); err != nil {
+		return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
+	}
+	sql := b.String()
+
+	rows, err := s.db.Query(ctx, sql)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed querying - tileNumber=%d", tileNumber)
 	}
 	ret := paramtools.NewParamSet()
+	i := 0
 	for rows.Next() {
 		var key string
 		var value string
@@ -648,14 +685,17 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 			return nil, skerr.Wrapf(err, "Failed scanning row - tileNumber=%d", tileNumber)
 		}
 		ret.AddParams(paramtools.Params{key: value})
+		i++
 	}
+	sklog.Infof("paramSetForTile-%d read %d rows", tileNumber, i)
+	ret.Normalize()
 	if err == pgx.ErrNoRows {
 		return ret, nil
 	}
 	if err := rows.Err(); err != nil {
 		return nil, skerr.Wrapf(err, "Other failure - tileNumber=%d", tileNumber)
 	}
-	ret.Normalize()
+
 	return ret, nil
 }
 
@@ -670,19 +710,21 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
 	defer span.End()
 
+	sklog.Infof("orderedParamSetCache size: %d", s.orderedParamSetCache.Len())
 	now := s.timeNow()
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
 	if ok {
-		entry := iEntry.(orderedParamSetCacheEntry)
-		if entry.expires.After(now) {
+		if entry, ok := iEntry.(orderedParamSetCacheEntry); ok && entry.expires.After(now) {
 			return entry.orderedParamSet, nil
 		}
 		_ = s.orderedParamSetCache.Remove(tileNumber)
 	}
+	sklog.Info("Loading fresh ParamSet from database.")
 	ps, err := s.paramSetForTile(ctx, tileNumber)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	sklog.Infof("GetOrderedParamSet paramSetForTile Size %d  Tile-%d", ps.Size(), tileNumber)
 
 	keys := ps.Keys()
 	sort.Strings(keys)
@@ -695,6 +737,8 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 		expires:         now.Add(orderedParamSetCacheTTL),
 		orderedParamSet: ret,
 	})
+	sklog.Infof("GetOrderedParamSet Size %d  Tile-%d", ret.ParamSet.Size(), tileNumber)
+	sklog.Infof("GetOrderedParamSet Size %d  Tile-%d", ret.ParamSet.Size(), tileNumber)
 
 	return ret, nil
 }
