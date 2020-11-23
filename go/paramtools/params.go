@@ -20,6 +20,9 @@ type Params map[string]string
 // the []string should contain no duplicates.
 type ParamSet map[string][]string
 
+// ReadOnlyParamSet is a ParamSet that doesn't allow offer any mutating methods.
+type ReadOnlyParamSet map[string][]string
+
 // NewParams returns the parsed structured key (see query) as Params.
 //
 // It presumes a valid key, i.e. something that passed query.ValidateKey.
@@ -79,6 +82,59 @@ func (p Params) Keys() []string {
 	return ret
 }
 
+// NewReadOnlyParamSet returns a new ReadOnlyParamSet initialized with the given
+// maps of parameters.
+func NewReadOnlyParamSet(ps ...Params) ReadOnlyParamSet {
+	ret := ParamSet{}
+	for _, onePS := range ps {
+		ret.AddParams(onePS)
+	}
+	return ReadOnlyParamSet(ret)
+}
+
+// Keys returns the keys of the ParamSet.
+func (p ReadOnlyParamSet) Keys() []string {
+	ret := make([]string, 0, len(p))
+	for v := range p {
+		ret = append(ret, v)
+	}
+
+	return ret
+}
+
+// Size returns the total number of values in the ParamSet.
+func (p ReadOnlyParamSet) Size() int {
+	var ret int
+	for _, vals := range p {
+		ret += len(vals)
+	}
+	return ret
+}
+
+// Matches returns true if the params in 'p' match the sets given in 'right'.
+// For every key in 'p' there has to be a matching key in 'right' and
+// the intersection of their values must be not empty.
+func (p ReadOnlyParamSet) Matches(right ParamSet) bool {
+	for key, vals := range p {
+		rightVals, ok := right[key]
+		if !ok {
+			return false
+		}
+
+		found := false
+		for _, targetVal := range vals {
+			if util.In(targetVal, rightVals) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
 // NewParamSet returns a new ParamSet initialized with the given maps of parameters.
 func NewParamSet(ps ...Params) ParamSet {
 	ret := ParamSet{}
@@ -88,7 +144,14 @@ func NewParamSet(ps ...Params) ParamSet {
 	return ret
 }
 
-// Add the Params to this ParamSet.
+// Freeze returns the ReadOnlyParamSet version of the ParamSet.
+//
+// It is up to the caller to make sure the original ParamSet is not modified.
+func (p ParamSet) Freeze() ReadOnlyParamSet {
+	return ReadOnlyParamSet(p)
+}
+
+// AddParams adds the Params to this ParamSet.
 func (p ParamSet) AddParams(ps Params) {
 	for k, v := range ps {
 		// You might be tempted to replace this with
@@ -121,7 +184,7 @@ func (p ParamSet) AddParamsFromKey(key string) {
 	}
 }
 
-// Add the ParamSet to this ParamSet.
+// AddParamSet adds the ParamSet to this ParamSet.
 func (p ParamSet) AddParamSet(ps ParamSet) {
 	for k, arr := range ps {
 		if _, ok := p[k]; !ok {
@@ -156,6 +219,18 @@ func (p ParamSet) Copy() ParamSet {
 	}
 
 	return ret
+}
+
+// FrozenCopy returns a copy of the ParamSet as a ReadOnlyParamSet.
+func (p ParamSet) FrozenCopy() ReadOnlyParamSet {
+	ret := ParamSet{}
+	for k, v := range p {
+		newV := make([]string, len(v), len(v))
+		copy(newV, v)
+		ret[k] = newV
+	}
+
+	return ReadOnlyParamSet(ret)
 }
 
 // Normalize all the values by sorting them.
@@ -279,6 +354,7 @@ type OrderedParamSet struct {
 	paramsDecoder *paramsDecoder
 }
 
+// NewOrderedParamSet returns an instance of OrderedParamSet.
 func NewOrderedParamSet() *OrderedParamSet {
 	return &OrderedParamSet{
 		KeyOrder:      []string{},
@@ -288,6 +364,7 @@ func NewOrderedParamSet() *OrderedParamSet {
 	}
 }
 
+// Copy creates a copy of the OrderedParamSet.
 func (o *OrderedParamSet) Copy() *OrderedParamSet {
 	ret := &OrderedParamSet{
 		KeyOrder: make([]string, len(o.KeyOrder)),
