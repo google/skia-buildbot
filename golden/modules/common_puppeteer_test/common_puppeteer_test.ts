@@ -1,4 +1,4 @@
-import { launchBrowser, startDemoPageServer, TestBed } from '../../../puppeteer-tests/util';
+import { launchBrowser, startWebpackDemoPageServer, TestBed } from '../../../puppeteer-tests/util';
 import * as path from 'path';
 import puppeteer from 'puppeteer';
 
@@ -16,7 +16,7 @@ export async function loadGoldWebpack() {
 
     const pathToWebpackConfigTs = path.join(__dirname, '..', '..', 'webpack.config.ts');
     let baseUrl;
-    ({ baseUrl } = await startDemoPageServer(pathToWebpackConfigTs));
+    ({ baseUrl } = await startWebpackDemoPageServer(pathToWebpackConfigTs));
     newTestBed.baseUrl = baseUrl;
     browser = await launchBrowser();
     testBed = newTestBed;
