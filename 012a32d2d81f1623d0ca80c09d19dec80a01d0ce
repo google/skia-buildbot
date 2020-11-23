@@ -45,6 +45,29 @@
       },
       "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7400c6a0_fe7cee32",
+        "filename": "perf/go/regression/detector.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T14:04:17Z",
+      "side": 1,
+      "message": "I see no _test.go files were updated - does that mean there are no tests of those top level functions? Could we at least add some to catch the quick error cases?",
+      "range": {
+        "startLine": 111,
+        "startChar": 15,
+        "endLine": 111,
+        "endChar": 20
+      },
+      "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
