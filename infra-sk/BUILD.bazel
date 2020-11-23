@@ -2,7 +2,7 @@ load("@build_bazel_rules_nodejs//internal/npm_install:npm_umd_bundle.bzl", "npm_
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
 load("//infra-sk/remove_css_imports_from_js:index.bzl", "remove_css_imports_from_js")
 
-package(default_visibility=["//visibility:public"])
+package(default_visibility = ["//visibility:public"])
 
 exports_files(["rollup.config.js"])
 
@@ -24,9 +24,9 @@ sass_library(
 ##############################
 
 COMMON_SK_MODULES = [
-    filename                                             # node_modules/common-sk/modules/dom.js
+    filename  # node_modules/common-sk/modules/dom.js
         .replace("node_modules/common-sk/modules/", "")  # dom.js
-        .replace(".js", "")                              # dom
+        .replace(".js", "")  # dom
     for filename in glob(["node_modules/common-sk/modules/*.js"])
     if not filename.endswith("_test.js")
 ]
@@ -51,9 +51,9 @@ filegroup(
 ################################
 
 ELEMENTS_SK_MODULES = [
-    filename                                       # node_modules/elements-sk/icon/add-icon-sk.js
+    filename  # node_modules/elements-sk/icon/add-icon-sk.js
         .replace("node_modules/elements-sk/", "")  # icon/add-icon-sk.js
-        .replace(".js", "")                        # icon/add-icon-sk
+        .replace(".js", "")  # icon/add-icon-sk
     for filename in glob(["node_modules/elements-sk/**/*.js"])
     if not filename.endswith("_test.js")
 ]
@@ -63,7 +63,6 @@ ELEMENTS_SK_MODULES = [
         name = "elements-sk_%s_umd" % module.replace("/", "__"),
         package_name = "elements-sk/%s" % module,
         entry_point = "@infra-sk_npm//:node_modules/elements-sk/%s.js" % module,
-        package = "@infra-sk_npm//elements-sk",
         excluded = [
             # The npm_umd_bundle rule fails with e.g. "Error: Cannot find module './buttons.scss'"
             # when it encounters Sass/CSS modules imported from JavaScript code, e.g.
@@ -84,6 +83,7 @@ ELEMENTS_SK_MODULES = [
             "./tabs-sk.scss",
             "./toast-sk.scss",
         ],
+        package = "@infra-sk_npm//elements-sk",
     )
     for module in ELEMENTS_SK_MODULES
 ]

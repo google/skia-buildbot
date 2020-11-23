@@ -1,17 +1,26 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_web")
+"""This module defines rules for building Skia Infrastructure web applications."""
+
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test")
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_library", "sass_binary")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
 
-# Runs a NodeJS unit test using the Mocha test runner.
-#
-# For tests that should run in the browser, please use karma_mocha_test instead.
-def nodejs_mocha_test(name, srcs=[], deps=[], args=None):
+def nodejs_mocha_test(name, srcs = [], deps = [], args = None):
+    """Runs a NodeJS unit test using the Mocha test runner.
+
+    For tests that should run in the browser, please use karma_mocha_test instead.
+
+    Args:
+      name: Name of the target.
+      srcs: Labels for the test's TypeScript or JavaScript files.
+      deps: Any ts_library dependencies.
+      args: Additional command-line arguments for the mocha test runner.
+    """
     if args == None:
-        args = ["$(rootpath %s)" % l for l in srcs]
+        args = ["$(rootpath %s)" % src for src in srcs]
 
     nodejs_test(
         name = name,
@@ -31,49 +40,61 @@ def nodejs_mocha_test(name, srcs=[], deps=[], args=None):
         ] + args,
     )
 
-# Utility macro to copy a single file to a destination path, making parent directories as needed.
 def copy_file(name, src, dst):
+    """Copies a single file to a destination path, making parent directories as needed."""
     native.genrule(
         name = name,
         srcs = [src],
         outs = [dst],
-        cmd = "mkdir -p $$(dirname $@) && cp $< $@"
+        cmd = "mkdir -p $$(dirname $@) && cp $< $@",
     )
 
-# This macro takes a page name, e.g. "mypage", assumes the existence of files mypage.html, mypage.ts
-# and mypage.scss, and defines the necessary build targets to generate development and production
-# bundles for said page.
-#
-# Input files:
-#   <name>.html
-#   <name>.ts
-#   <name>.scss
-#
-# Generated files:
-#   development/<name>.html
-#   development/<name>.ts
-#   development/<name>.scss
-#   production/<name>.html
-#   production/<name>.ts
-#   production/<name>.scss
-#
-# For convenience, a target with the same name as the "name" argument is defined, which generates
-# all of the above files (e.g. bazel build //path/to:mypage).
-#
-# Tags <script> and <link> will be inserted into the output HTML pointing to the generated bundles.
-# The serving path for said bundles defaults to "/" and can be overriden via the
-# assets_serving_path argument.
-#
-# A timestamp will be appended to the URLs for any referenced assets for cache busting purposes,
-# e.g. <script src="/index.js?v=27396986"></script>.
-#
-# If the nonce argument is provided, a nonce attribute will be inserted to all <link> and <script>
-# tags. For example, if the nonce argument is set to "{% .Nonce %}", then the generated HTML will
-# contain tags such as <script nonce="{% .Nonce %}" src="/index.js?v=27396986"></script>.
-#
-# This macro is designed to work side by side with the existing Webpack build without requiring any
-# major changes to the pages in question.
-def sk_page(name, deps, sass_deps, assets_serving_path="/", nonce=None):
+def sk_page(name, deps, sass_deps, assets_serving_path = "/", nonce = None):
+    """Builds a static HTML page, and its CSS and JavaScript development and production bundles.
+
+    This macro takes a page name, e.g. "mypage", assumes the existence of files mypage.html,
+    mypage.ts and mypage.scss, and defines the necessary build targets to generate the development
+    and production bundles for said page.
+
+    Input files:
+      <name>.html
+      <name>.ts
+      <name>.scss
+
+    Generated files:
+      development/<name>.html
+      development/<name>.ts
+      development/<name>.scss
+      production/<name>.html
+      production/<name>.ts
+      production/<name>.scss
+
+    For convenience, a target with the same name as the "name" argument is defined, which generates
+    all of the above files (e.g. bazel build //path/to:mypage).
+
+    Tags <script> and <link> will be inserted into the output HTML pointing to the generated
+    bundles. The serving path for said bundles defaults to "/" and can be overriden via the
+    assets_serving_path argument.
+
+    A timestamp will be appended to the URLs for any referenced assets for cache busting purposes,
+    e.g. <script src="/index.js?v=27396986"></script>.
+
+    If the nonce argument is provided, a nonce attribute will be inserted to all <link> and <script>
+    tags. For example, if the nonce argument is set to "{% .Nonce %}", then the generated HTML will
+    contain tags such as <script nonce="{% .Nonce %}" src="/index.js?v=27396986"></script>.
+
+    This macro is designed to work side by side with the existing Webpack build without requiring
+    any major changes to the pages in question.
+
+    Args:
+      name: The name used as a prefix for all the targets generated by this macro.
+      deps: Any ts_library dependencies.
+      sass_deps: Any sass_library dependencies.
+      assets_serving_path: Path prefix for the inserted <script> and <link> tags.
+      nonce: If set, its contents will be added as a "nonce" attributes to any inserted <script> and
+        <link> tags.
+    """
+
     # Output directories.
     DEV_OUT_DIR = "development"
     PROD_OUT_DIR = "production"
@@ -221,18 +242,18 @@ def sk_page(name, deps, sass_deps, assets_serving_path="/", nonce=None):
     native.filegroup(
         name = "%s_dev" % name,
         srcs = [
-          "development/%s.html" % name,
-          "development/%s.js" % name,
-          "development/%s.css" % name,
-        ]
+            "development/%s.html" % name,
+            "development/%s.js" % name,
+            "development/%s.css" % name,
+        ],
     )
 
     # Generates the production bundle.
     native.filegroup(
         name = "%s_prod" % name,
         srcs = [
-          "production/%s.html" % name,
-          "production/%s.js" % name,
-          "production/%s.css" % name,
-        ]
+            "production/%s.html" % name,
+            "production/%s.js" % name,
+            "production/%s.css" % name,
+        ],
     )

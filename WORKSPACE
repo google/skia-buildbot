@@ -13,6 +13,22 @@ load(
     "http_file",
 )
 
+###############
+# Buildifier. #
+###############
+
+# We suffix this target's name with "_http_archive" because there's a go_repository target of the
+# same name defined below.
+#
+# See
+# https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md#setup-and-usage-via-bazel
+http_archive(
+    name = "com_github_bazelbuild_buildtools_http_archive",
+    sha256 = "1dbb1f39c17b1cbc011cc22394e6e88b0de13ad101eb40047c603297286c8398",
+    strip_prefix = "buildtools-master",
+    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+)
+
 ##############################
 # Go rules and dependencies. #
 ##############################
@@ -2980,15 +2996,17 @@ npm_install(
 
 http_archive(
     name = "io_bazel_rules_sass",
-    url = "https://github.com/bazelbuild/rules_sass/archive/1.26.10.zip",
-    strip_prefix = "rules_sass-1.26.10",
     sha256 = "aa53d3d2a3313462dae5b357354e00d187f3bb659e994eb9b96a6033c4da2cc2",
+    strip_prefix = "rules_sass-1.26.10",
+    url = "https://github.com/bazelbuild/rules_sass/archive/1.26.10.zip",
 )
 
 load("@io_bazel_rules_sass//:package.bzl", "rules_sass_dependencies")
+
 rules_sass_dependencies()
 
 load("@io_bazel_rules_sass//:defs.bzl", "sass_repositories")
+
 sass_repositories()
 
 ##################################
@@ -3006,6 +3024,7 @@ load(
     "@io_bazel_rules_docker//repositories:repositories.bzl",
     container_repositories = "repositories",
 )
+
 container_repositories()
 
 # This is required by the toolchain_container rule.
@@ -3013,6 +3032,7 @@ load(
     "@io_bazel_rules_docker//repositories:go_repositories.bzl",
     container_go_deps = "go_deps",
 )
+
 container_go_deps()
 
 load(
@@ -3033,14 +3053,15 @@ http_archive(
         "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/3.7.0/bazel-toolchains-3.7.0.tar.gz",
     ],
 )
+
 load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
 
 # Pulls the base container used to build the Skia Infrastructure custom RBE toolchain container.
 container_pull(
     name = "rbe_ubuntu1604",
+    digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
     registry = "gcr.io",
     repository = "cloud-marketplace/google/rbe-ubuntu16-04",
-    digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
 )
 
 # Downloads the Chrome GPG key necessary to install the Chrome .deb packages in our custom RBE

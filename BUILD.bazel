@@ -1,20 +1,28 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@bazel_gazelle//:def.bzl", "gazelle")
-
-# gazelle:prefix go.skia.org/infra
-gazelle(name = "gazelle")
-
-exports_files(["tsconfig.json"], visibility = ["//visibility:public"])
-
-############################################
-# Custom Remote Build Execution toolchain. #
-############################################
-
+load("@com_github_bazelbuild_buildtools_http_archive//buildifier:def.bzl", "buildifier")
 load(
     "@io_bazel_rules_docker//docker/toolchain_container:toolchain_container.bzl",
     "toolchain_container",
 )
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+
+# gazelle:prefix go.skia.org/infra
+gazelle(name = "gazelle")
+
+exports_files(
+    ["tsconfig.json"],
+    visibility = ["//visibility:public"],
+)
+
+buildifier(
+    name = "buildifier",
+    exclude_patterns = ["./**/node_modules/*"],
+    lint_mode = "warn",
+)
+
+############################################
+# Custom Remote Build Execution toolchain. #
+############################################
 
 # Generates a custom toolchain container for Remote Build Execution which extends the default RBE
 # ubuntu16-04 container with any extra dependencies needed for Skia Infrastructure build targets.
@@ -23,7 +31,13 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 # https://cloud.google.com/remote-build-execution/docs/create-custom-toolchain#creating_a_custom_toolchain_container
 toolchain_container(
     name = "rbe_container_skia_infra",
+    additional_repos = [
+        "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main",
+    ],
     base = "@rbe_ubuntu1604//image",
+    keys = [
+        "@chrome_gpg//file",
+    ],
     packages = [
         # Install Chrome and fonts to support major charsets.
         #
@@ -43,22 +57,16 @@ toolchain_container(
         # See https://github.com/puppeteer/puppeteer/issues/6192.
         "libxss1",
     ],
-    additional_repos = [
-      "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main",
-    ],
-    keys = [
-      "@chrome_gpg//file",
-    ],
     stamp = True,
 )
 
 container_push(
     name = "push_rbe_container_skia_infra",
-    image = ":rbe_container_skia_infra",
     format = "Docker",
+    image = ":rbe_container_skia_infra",
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
-    tag = "{STABLE_DOCKER_TAG}"
+    tag = "{STABLE_DOCKER_TAG}",
 )
 
 ####################################################################################################

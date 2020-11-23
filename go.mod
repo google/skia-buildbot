@@ -65,7 +65,7 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
-	github.com/bazelbuild/buildtools v0.0.0-20190731111112-f720930ceb60
+	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b
 	github.com/bazelbuild/remote-apis v0.0.0-20201030192148-aa8e718768c2
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201110004117-e776219c9bb7
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
@@ -172,6 +172,7 @@ require (
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
 	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20201012232926-5c91a3223921
 	go.opencensus.io v0.22.5
+	go.starlark.net v0.0.0-20201118183435-e55f603d8c79 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/net v0.0.0-20201029221708-28c70e62bb1d // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
