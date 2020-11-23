@@ -27,9 +27,10 @@ export interface SkpDebugPlayer {
   getImageResource(index: number): string;
   getImageCount(): number;
   getImageInfo(index: number): SimpleImageInfo;
+  getLayerKeys(): LayerKey[]
   getLayerSummariesJs(): LayerSummary[];
   getSize(): number;
-  imageUseInfoForFrameJs(frame: number): ImageUseMap;
+  imageUseInfo(frame: number, nodeid: number): ImageUseMap;
   jsonCommandList(surface: SkSurface): string;
   lastCommandInfo(): string;
   loadSkp(ptr: number, len: number): string;
@@ -99,6 +100,11 @@ export interface SkpJsonCommand {
 export interface SkpJsonCommandList {
   commands: SkpJsonCommand[],
 };
+// Indentifier of a layer update evenet
+export interface LayerKey {
+  frame: number,
+  nodeId: number,
+}
 // Info about layer events relevant to a particular layer and frame
 // struct from LayerManager.h
 export interface LayerSummary {
@@ -106,7 +112,7 @@ export interface LayerSummary {
   frameOfLastUpdate: number,
   fullRedraw: boolean,
   layerWidth: number,
-  layerHeight: number
+  layerHeight: number,
 }
 // return type of imageUseInfoForFrame
 // Keys are image ids, values are lists of command indices
