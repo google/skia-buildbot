@@ -16,6 +16,24 @@
       "message": "This will work for linux, are there similar solutions for Windows and Mac?",
       "revId": "59fcaa0920c489a1cb7f0eb5f19d1075da26746c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c406cb03_67b0df1e",
+        "filename": "bazel/test_on_env/test_on_env.sh",
+        "patchSetId": 16
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-23T19:34:03Z",
+      "side": 1,
+      "message": "I haven\u0027t tried that, but my guess is that it will work on macOS as is, or with minimal changes. As for Windows, Bazel does support Bash[1], so it might work if we add some conditional logic to detect the OS and use Windowss-specific commands where appropriate (\"kill -s SIGTERM\" vs. \"taskkill\", etc.).\n\nIn the worst case, we\u0027ll have three separate runner scripts for each OS, but that\u0027s OK since these scripts are pretty lightweight.\n\n[1] https://docs.bazel.build/versions/master/windows.html#running-bazel-msys2-shell-vs-command-prompt-vs-powershell",
+      "parentUuid": "7473da23_d1c46dbd",
+      "revId": "59fcaa0920c489a1cb7f0eb5f19d1075da26746c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
