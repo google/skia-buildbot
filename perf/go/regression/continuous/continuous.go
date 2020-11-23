@@ -121,7 +121,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 		}
 		for _, cl := range resp.Summary.Clusters {
 			// Zero out the DataFrame ParamSet since it is never used.
-			resp.Frame.DataFrame.ParamSet = paramtools.ParamSet{}
+			resp.Frame.DataFrame.ParamSet = paramtools.NewReadOnlyParamSet()
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == commitNumber {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
@@ -170,7 +170,7 @@ func (c *Continuous) progressCallback(message string) {
 // configsAndParamset is the type of channel that feeds Continuous.Run().
 type configsAndParamSet struct {
 	configs  []*alerts.Alert
-	paramset paramtools.ParamSet
+	paramset paramtools.ReadOnlyParamSet
 }
 
 // getPubSubSubscription returns a pubsub.Subscription or an error if the

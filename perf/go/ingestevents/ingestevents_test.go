@@ -25,14 +25,14 @@ func TestCreatePubSubBody(t *testing.T) {
 			name: "empty",
 			args: &IngestEvent{
 				TraceIDs: []string{},
-				ParamSet: paramtools.ParamSet{},
+				ParamSet: paramtools.NewReadOnlyParamSet(),
 			},
 		},
 		{
 			name: "some data",
 			args: &IngestEvent{
 				TraceIDs: []string{",foo=bar,baz=quux,"},
-				ParamSet: paramtools.ParamSet{"foo": {"bar"}, "baz": {"quux"}},
+				ParamSet: paramtools.NewReadOnlyParamSet(paramtools.Params{"foo": "bar", "baz": "quux"}),
 			},
 		},
 	}

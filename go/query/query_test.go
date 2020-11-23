@@ -447,14 +447,11 @@ func TestForceValue(t *testing.T) {
 func TestQueryPlan(t *testing.T) {
 	unittest.SmallTest(t)
 
-	ops := &paramtools.OrderedParamSet{
-		KeyOrder: []string{"arch", "config", "debug", "foo"},
-		ParamSet: paramtools.ParamSet{
-			"config": []string{"8888", "565", "gpu"},
-			"arch":   []string{"x86", "arm"},
-			"debug":  []string{"true", "false"},
-			"foo":    []string{"bar"},
-		},
+	rops := paramtools.ReadOnlyParamSet{
+		"config": []string{"8888", "565", "gpu"},
+		"arch":   []string{"x86", "arm"},
+		"debug":  []string{"true", "false"},
+		"foo":    []string{"bar"},
 	}
 
 	testCases := []struct {
@@ -560,7 +557,7 @@ func TestQueryPlan(t *testing.T) {
 	for _, tc := range testCases {
 		q, err := New(tc.query)
 		assert.NoError(t, err, tc.reason)
-		ps, err := q.QueryPlan(ops.ParamSet)
+		ps, err := q.QueryPlan(rops)
 		if tc.hasError {
 			assert.Error(t, err, tc.reason)
 		} else {

@@ -141,7 +141,7 @@ func TestSendPubSubEvent_Success(t *testing.T) {
 	}()
 
 	// Now we can finally send the message.
-	err = sendPubSubEvent(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, "somefile.json")
+	err = sendPubSubEvent(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), "somefile.json")
 	require.NoError(t, err)
 
 	// Wait for one message to be delivered.

@@ -27,8 +27,8 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 				},
 			}, nil
 		},
-		paramsProvider: func() paramtools.ParamSet {
-			return paramtools.ParamSet{
+		paramsProvider: func() paramtools.ReadOnlyParamSet {
+			return paramtools.ReadOnlyParamSet{
 				"config": []string{"8888", "565"},
 			}
 		},
