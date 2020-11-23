@@ -119,7 +119,15 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		req.Progress.Results(regressions)
 	}
 
-	regression.NewRunningProcess(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder)
+	go func() {
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder)
+		if err != nil {
+			req.Progress.Error(err.Error())
+		} else {
+			req.Progress.Finished()
+		}
+	}()
+
 	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}

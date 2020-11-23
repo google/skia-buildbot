@@ -3,7 +3,6 @@
 package continuous
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/rand"
@@ -24,7 +23,6 @@ import (
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
-	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -411,22 +409,11 @@ func (c *Continuous) Run(ctx context.Context) {
 			req.Alert = cfg
 			req.Domain = domain
 			req.Query = cfg.Query
-			regression.NewRunningProcess(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder)
-			configsCounter.Inc(1)
-			for range time.Tick(checkIfRegressionIsDoneDuration) {
-				status := req.Progress.Status()
-				if req.Progress.Status() == progress.Error {
-					var b bytes.Buffer
-					if err := req.Progress.JSON(&b); err != nil {
-						sklog.Errorf("Failed to encode Progress: %s", err)
-					}
-					sklog.Errorf("Failed regression detection: %q", b.String())
-					break
-				}
-				if status != progress.Running {
-					break
-				}
+
+			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder); err != nil {
+				sklog.Errorf("Failed regression detection: %s", err)
 			}
+			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)

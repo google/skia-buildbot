@@ -584,7 +584,14 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	f.progressTracker.Add(fr.Progress)
 
-	dataframe.StartFrameRequestProcess(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+	go func() {
+		err := dataframe.ProcessFrameRequest(ctx, fr, f.perfGit, f.dfBuilder, f.shortcutStore)
+		if err != nil {
+			fr.Progress.Error(err.Error())
+		} else {
+			fr.Progress.Finished()
+		}
+	}()
 
 	if err := fr.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
@@ -674,9 +681,10 @@ type ClusterStartResponse struct {
 }
 
 // clusterStartHandler takes a POST'd RegressionDetectionRequest and starts a
-// long running Go routine to do the actual regression detection. The ID of the
-// long running routine is returned to be used in subsequent calls to
-// clusterStatusHandler to check on the status of the work.
+// long running Go routine to do the actual regression detection.
+//
+// The results of the long running process are stored in the
+// RegressionDetectionProcess.Progress.Results.
 func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -693,7 +701,15 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	f.progressTracker.Add(req.Progress)
 
-	regression.NewRunningProcess(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+	go func() {
+		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+		if err != nil {
+			req.Progress.Error(err.Error())
+		} else {
+			req.Progress.Finished()
+		}
+	}()
+
 	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
