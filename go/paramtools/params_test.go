@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -511,4 +512,41 @@ func TestParamSet_Size(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReadOnlyParamSet_NewNonEmptyParamSet_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	ps := NewReadOnlyParamSet(Params{"a": "b"}, Params{"a": "c"}, Params{"b": "e"})
+	require.Equal(t, ReadOnlyParamSet{"a": []string{"b", "c"}, "b": []string{"e"}}, ps)
+}
+
+func TestReadOnlyParamSet_NewEmptyParamSet_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	require.Equal(t, ReadOnlyParamSet{}, NewReadOnlyParamSet())
+}
+
+func TestParamSet_Freeze_ReturnsReadOnlyParamSet(t *testing.T) {
+	unittest.SmallTest(t)
+	ps := NewParamSet(Params{"a": "b"}, Params{"a": "c"}, Params{"b": "e"})
+
+	require.Equal(t, ReadOnlyParamSet{"a": []string{"b", "c"}, "b": []string{"e"}}, ps.Freeze())
+}
+
+func TestParamSetFrozenCopy_NonEmptyParamSet_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	p := ParamSet{
+		"foo": []string{"bar", "baz"},
+		"qux": []string{"quux"},
+	}
+	cp := p.FrozenCopy()
+	assert.Equal(t, ReadOnlyParamSet(p), cp)
+
+	// Confirm we made a deep copy by modifying the original.
+	p["foo"] = []string{"fred"}
+	assert.NotEqual(t, ReadOnlyParamSet(p), cp)
+}
+
+func TestParamSetFrozenCopy_EmptyParamSet_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
 }
