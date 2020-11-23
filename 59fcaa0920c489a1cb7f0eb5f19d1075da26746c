@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7473da23_d1c46dbd",
+        "filename": "bazel/test_on_env/test_on_env.sh",
+        "patchSetId": 16
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T14:04:05Z",
+      "side": 1,
+      "message": "This will work for linux, are there similar solutions for Windows and Mac?",
+      "revId": "59fcaa0920c489a1cb7f0eb5f19d1075da26746c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
