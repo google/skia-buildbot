@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+
+exports_files(
+    ["demo_page_server.sh"],
+    visibility = ["//visibility:public"],
+)
+
+go_binary(
+    name = "demo_page_server",
+    srcs = ["demo_page_server.go"],
+    visibility = ["//visibility:public"],
+)
