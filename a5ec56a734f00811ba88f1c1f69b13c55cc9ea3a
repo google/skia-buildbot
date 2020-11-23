@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "87746ae1_04366dff",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-23T18:09:58Z",
+      "side": 1,
+      "message": "I didn\u0027t do this in the previous CL because I wanted to prove to myself that isolate still worked.",
+      "revId": "a5ec56a734f00811ba88f1c1f69b13c55cc9ea3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
