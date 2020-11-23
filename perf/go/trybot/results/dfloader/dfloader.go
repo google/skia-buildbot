@@ -160,7 +160,8 @@ func (l Loader) Load(ctx context.Context, request results.TryBotRequest, progres
 		for _, res := range ret.Results {
 			ps.AddParams(res.Params)
 		}
-		ret.ParamSet = ps
+		ps.Normalize()
+		ret.ParamSet = ps.Freeze()
 	}
 
 	return ret, nil

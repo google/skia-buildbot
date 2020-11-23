@@ -133,8 +133,8 @@ func (p ParamSet) AddParamsFromKey(key string) {
 	}
 }
 
-// AddParamSet adds the ParamSet to this ParamSet.
-func (p ParamSet) AddParamSet(ps ParamSet) {
+// AddReadOnlyParamSet adds the ReadOnlyParamSet to this ParamSet.
+func (p ParamSet) AddReadOnlyParamSet(ps ReadOnlyParamSet) {
 	for k, arr := range ps {
 		if _, ok := p[k]; !ok {
 			p[k] = append([]string{}, arr...)
@@ -146,6 +146,11 @@ func (p ParamSet) AddParamSet(ps ParamSet) {
 			}
 		}
 	}
+}
+
+// AddParamSet adds the ParamSet to this ParamSet.
+func (p ParamSet) AddParamSet(ps ParamSet) {
+	p.AddReadOnlyParamSet(ReadOnlyParamSet(ps))
 }
 
 // Keys returns the keys of the ReadOnlyParamSet.
