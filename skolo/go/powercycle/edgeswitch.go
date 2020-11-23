@@ -148,18 +148,14 @@ func softPowerCycle(ctx context.Context, machineName DeviceID) bool {
 	// The router or the host can have it in /etc/host.
 	machineRunner := PublicKeySSHCommandRunner("-T", string(machineName))
 
-	tCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
 	// First try to run a trivial command to see if we can access the machine via SSH.
-	if _, err := machineRunner.ExecCmds(tCtx, "time"); err != nil {
+	if _, err := machineRunner.ExecCmds(ctx, "time"); err != nil {
 		return false
 	}
 
-	tCtx, cancel2 := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel2()
 	// Do not bother checking error - this always fails because the command doesn't return after
 	// reboot.
-	out, _ := machineRunner.ExecCmds(tCtx, "sudo /sbin/reboot -f")
+	out, _ := machineRunner.ExecCmds(ctx, "sudo /sbin/reboot -f")
 	sklog.Infof("Soft reboot should have succeeded.  See logs: %s", out)
 	return true
 }
