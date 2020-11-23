@@ -68,6 +68,21 @@ type SerializedProgress struct {
 //
 // Once a Progress has left the Running status it can no longer be modified, and
 // modifying methods like Error() and Results() will panic.
+//
+// A Progress should only be finalized, by calling Error(), Finished(), or
+// FinishedWithResults() at the outermost calling level. For example, in an HTTP
+// handler function you can kick off a long running process like this:
+//
+//    prog := new Progress()
+//    go func() {
+//        err, value := SomeLongRunningFuncThatOnlyReturnsWhenItsDone(ctx, prog)
+//        if err != nil {
+//            prog.Error("Some failure message")
+//        } else {
+//            prog.FinishedWithResults(value)
+//        }
+//    }()
+//
 type Progress interface {
 	// Message adds or updates a message in a progress recorder. If the key
 	// matches an existing message it will replace that key's value.
@@ -83,7 +98,9 @@ type Progress interface {
 	// The passed in string is stored at ErrorMessageKey in Messages.
 	Error(string)
 
-	// Finished sets the Progress status to Finished.
+	// Finished sets the Progress status to Finished. Should only be used if
+	// Results() has been called to fill in intermediate results, otherwise use
+	// FinishedWithResults() to avoid race conditions.
 	Finished()
 
 	// FinishedWithResults sets the Progress status to Finished with the given

@@ -96,20 +96,19 @@ type regressionDetectionProcess struct {
 	shortcutStore             shortcut.Store
 }
 
-// NewRunningProcess starts a regression detection process.
-func NewRunningProcess(ctx context.Context,
+// ProcessRegressions detects regressions given the RegressionDetectionRequest.
+func ProcessRegressions(ctx context.Context,
 	req *RegressionDetectionRequest,
 	detectorResponseProcessor DetectorResponseProcessor,
 	perfGit *perfgit.Git,
 	shortcutStore shortcut.Store,
 	dfBuilder dataframe.DataFrameBuilder,
-) {
+) error {
 	req.Progress.Message("Stage", "Loading data to analyze")
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := dfiter.NewDataFrameIterator(ctx, nil, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
+	iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
 	if err != nil {
-		req.Progress.Error(fmt.Sprintf("Failed to create iterator: %s", err))
-		return
+		return skerr.Wrapf(err, "Failed to create iterator")
 	}
 	ret := &regressionDetectionProcess{
 		request:                   req,
@@ -119,13 +118,13 @@ func NewRunningProcess(ctx context.Context,
 		iter:                      iter,
 	}
 	ret.iter = iter
-	go ret.run(ctx)
+	return ret.run(ctx)
 }
 
 // reportError records the reason a RegressionDetectionProcess failed.
-func (p *regressionDetectionProcess) reportError(err error, message string) {
+func (p *regressionDetectionProcess) reportError(err error, message string) error {
 	sklog.Warningf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err)
-	p.request.Progress.Error(fmt.Sprintf("%s: %s", message, err))
+	return skerr.Wrapf(err, message)
 }
 
 // progress records the progress of a RegressionDetectionProcess.
@@ -178,7 +177,7 @@ func (p *regressionDetectionProcess) shortcutFromKeys(summary *clustering2.Clust
 
 // run does the work in a RegressionDetectionProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *regressionDetectionProcess) run(ctx context.Context) {
+func (p *regressionDetectionProcess) run(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "regressionDetectionProcess.run")
 	defer span.End()
 
@@ -188,8 +187,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) {
 	for p.iter.Next() {
 		df, err := p.iter.Value(ctx)
 		if err != nil {
-			p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
-			return
+			return p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
 		}
 		sklog.Infof("Next dataframe: %d traces", len(df.TraceSet))
 		before := len(df.TraceSet)
@@ -227,19 +225,16 @@ func (p *regressionDetectionProcess) run(ctx context.Context) {
 			err = skerr.Fmt("Invalid type of clustering: %s", p.request.Alert.Algo)
 		}
 		if err != nil {
-			p.reportError(err, "Invalid regression detection.")
-			return
+			return p.reportError(err, "Invalid regression detection.")
 		}
 		if err := p.shortcutFromKeys(summary); err != nil {
-			p.reportError(err, "Failed to write shortcut for keys.")
-			return
+			return p.reportError(err, "Failed to write shortcut for keys.")
 		}
 
 		df.TraceSet = types.TraceSet{}
 		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.perfGit, false, p.request.Progress)
 		if err != nil {
-			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
-			return
+			return p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 		}
 
 		cr := &RegressionDetectionResponse{
@@ -250,5 +245,5 @@ func (p *regressionDetectionProcess) run(ctx context.Context) {
 	}
 	// We Finish the process, but record Results. The detectorResponseProcessor
 	// callback should add the results to Progress if that's required.
-	p.request.Progress.Finished()
+	return nil
 }
