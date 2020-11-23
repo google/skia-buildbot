@@ -144,6 +144,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "29fa10d6_8c10825e",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-23T20:59:58Z",
+      "side": 1,
+      "message": "This is still important in the context of tests. The Karma test runner reuses the same page for all unit tests, so cleaning up any event listeners eliminates the possibility of these listeners from interfering with other tests.\n\nIf nothing else, removing the event listeners reduces cognitive load: leftover listeners force one to reason about the component lifecycle, the potential consequences of the leftover listeners, etc., so this alone makes removing the listeners worth it, IMO.",
+      "parentUuid": "1ffef787_4b93a73b",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 29
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "408e4089_afb8ec77",
         "filename": "debugger-app/modules/default-map.ts",
         "patchSetId": 2
