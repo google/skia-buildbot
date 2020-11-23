@@ -1,10 +1,10 @@
-package(default_visibility = ["//visibility:public"])
-
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
-load("//infra-sk:index.bzl", "sk_page")
+load("//infra-sk:index.bzl", "sk_element_puppeteer_test", "sk_page")
 load("//infra-sk/sk_demo_page_server:index.bzl", "sk_demo_page_server")
+
+package(default_visibility = ["//visibility:public"])
 
 #############################
 # theme-chooser-sk element. #
@@ -70,4 +70,15 @@ sk_page(
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":theme-chooser-sk-demo",
+)
+
+####################################
+# theme-chooser-sk Puppeteer test. #
+####################################
+
+sk_element_puppeteer_test(
+    name = "puppeteer_test",
+    srcs = [":theme-chooser-sk_puppeteer_test.ts"],
+    sk_demo_page_server = ":demo_page_server",
+    deps = [":theme-chooser-sk"],
 )
