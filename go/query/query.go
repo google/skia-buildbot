@@ -521,19 +521,19 @@ func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) 
 //      "config": ["8888", "565", "gpu"],
 //    }
 //
-func (q *Query) QueryPlan(ops *paramtools.OrderedParamSet) (paramtools.ParamSet, error) {
+func (q *Query) QueryPlan(ps paramtools.ParamSet) (paramtools.ParamSet, error) {
 	ret := paramtools.NewParamSet()
 	// Loop over KeyOrder, we don't care about the q.params order.
-	for _, key := range ops.KeyOrder {
+	for key := range ps {
 		for _, part := range q.params {
 			// Strip the , and = from part.keyMatch.
 			partKey := part.keyMatch[1 : len(part.keyMatch)-1]
 			if partKey == key {
 				// WildCard, Regex and Negative are all mutually exclusive.
-				values := ops.ParamSet[key]
+				values := ps[key]
 				var err error = nil
 				if part.isWildCard {
-					ret[key] = append([]string{}, ops.ParamSet[key]...)
+					ret[key] = append([]string{}, ps[key]...)
 				} else if part.isRegex {
 					err = appendValueForFilter(key, values, part, &ret, func(value string) bool {
 						return part.reg.MatchString(value)

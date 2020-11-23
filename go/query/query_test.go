@@ -583,7 +583,7 @@ func TestQueryPlan(t *testing.T) {
 	for _, tc := range testCases {
 		q, err := New(tc.query)
 		assert.NoError(t, err, tc.reason)
-		ps, err := q.QueryPlan(ops)
+		ps, err := q.QueryPlan(ops.ParamSet)
 		if tc.hasError {
 			assert.Error(t, err, tc.reason)
 		} else {

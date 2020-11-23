@@ -37,16 +37,16 @@ func (_m *OPSProvider) GetLatestTile(_a0 context.Context) (types.TileNumber, err
 	return r0, r1
 }
 
-// GetOrderedParamSet provides a mock function with given fields: ctx, tileNumber
-func (_m *OPSProvider) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
+// GetParamSet provides a mock function with given fields: ctx, tileNumber
+func (_m *OPSProvider) GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error) {
 	ret := _m.Called(ctx, tileNumber)
 
-	var r0 *paramtools.OrderedParamSet
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) *paramtools.OrderedParamSet); ok {
+	var r0 paramtools.ParamSet
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) paramtools.ParamSet); ok {
 		r0 = rf(ctx, tileNumber)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*paramtools.OrderedParamSet)
+			r0 = ret.Get(0).(paramtools.ParamSet)
 		}
 	}
 

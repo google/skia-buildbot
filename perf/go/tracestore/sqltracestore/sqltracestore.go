@@ -146,7 +146,6 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -206,8 +205,8 @@ const orderedParamSetCacheSize = 100
 const orderedParamSetCacheTTL = 5 * time.Minute
 
 type orderedParamSetCacheEntry struct {
-	expires         time.Time // When this entry expires.
-	orderedParamSet *paramtools.OrderedParamSet
+	expires  time.Time // When this entry expires.
+	paramSet paramtools.ParamSet
 }
 
 // traceIDForSQL is the type of the IDs that are used in the SQL queries,
@@ -611,12 +610,12 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 }
 
 func (s *SQLTraceStore) updateParamSetMetricsForTile(ctx context.Context, tileNumber types.TileNumber) {
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	ps, err := s.GetParamSet(ctx, tileNumber)
 	if err != nil {
 		sklog.Errorf("Failed to load ParamSet when calculating metrics: %s")
 		return
 	}
-	metrics2.GetInt64Metric("perfserver_sqltracestore_paramset_size", map[string]string{"tileNumber": fmt.Sprintf("%d", tileNumber)}).Update(int64(ops.ParamSet.Size()))
+	metrics2.GetInt64Metric("perfserver_sqltracestore_paramset_size", map[string]string{"tileNumber": fmt.Sprintf("%d", tileNumber)}).Update(int64(ps.Size()))
 }
 
 // CommitNumberOfTileStart implements the tracestore.TraceStore interface.
@@ -639,7 +638,7 @@ func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, er
 }
 
 func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error) {
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
 
 	defer timer.New(fmt.Sprintf("paramSetForTile-%d", tileNumber)).Stop()
@@ -689,17 +688,17 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 	s.orderedParamSetCache.Purge()
 }
 
-// GetOrderedParamSet implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
-	defer timer.New("GetOrderedParamSet").Stop()
-	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetOrderedParamSet")
+// GetParamSet implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error) {
+	defer timer.New("GetParamSet").Stop()
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
 
 	now := s.timeNow()
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
 	if ok {
 		if entry, ok := iEntry.(orderedParamSetCacheEntry); ok && entry.expires.After(now) {
-			return entry.orderedParamSet, nil
+			return entry.paramSet, nil
 		}
 		_ = s.orderedParamSetCache.Remove(tileNumber)
 	}
@@ -708,19 +707,12 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 		return nil, skerr.Wrap(err)
 	}
 
-	keys := ps.Keys()
-	sort.Strings(keys)
-	ret := &paramtools.OrderedParamSet{
-		ParamSet: ps,
-		KeyOrder: keys,
-	}
-
 	_ = s.orderedParamSetCache.Add(tileNumber, orderedParamSetCacheEntry{
-		expires:         now.Add(orderedParamSetCacheTTL),
-		orderedParamSet: ret,
+		expires:  now.Add(orderedParamSetCacheTTL),
+		paramSet: ps,
 	})
 
-	return ret, nil
+	return ps, nil
 }
 
 // GetSource implements the tracestore.TraceStore interface.
@@ -792,13 +784,13 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		return outParams, skerr.Fmt("Can't run QueryTracesIDOnlyByIndex for the empty query.")
 	}
 
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	ps, err := s.GetParamSet(ctx, tileNumber)
 	if err != nil {
 		close(outParams)
 		return outParams, skerr.Wrap(err)
 	}
 
-	plan, err := q.QueryPlan(ops)
+	plan, err := q.QueryPlan(ps)
 	if err != nil {
 		// Not an error, we just won't match anything in this tile.
 		//
