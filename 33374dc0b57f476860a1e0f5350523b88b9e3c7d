@@ -95,6 +95,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "668d5206_c381b886",
+        "filename": "debugger-app/modules/default-map.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-23T19:55:47Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "408e4089_afb8ec77",
+      "range": {
+        "startLine": 3,
+        "startChar": 13,
+        "endLine": 3,
+        "endChar": 23
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e1a6410e_ba617c54",
         "filename": "debugger-app/modules/default-map.ts",
         "patchSetId": 2
@@ -111,6 +135,29 @@
         "startChar": 2,
         "endLine": 13,
         "endChar": 6
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7904fbaf_7aaef940",
+        "filename": "debugger-app/modules/default-map.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-11-23T19:55:47Z",
+      "side": 1,
+      "message": "Suggestion #1: it might be less error prone to override Map\u0027s get() method with the new behavior instead of having a separate method, which the programmer might forget to use at the callsite.\n\nSuggestion #2: Do not set missing keys with the default value, because we\u0027ll lose the information of which keys were explicitly added. Instead, simply return the default if the key is absent.\n\n  get(key: K): V | undefined {\n    if (!this.has(key)) {\n      return this.defaultValueFn();\n    }\n    return super.get(key);\n  }",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 0
       },
       "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
