@@ -53,9 +53,14 @@ const (
 	CHECK_STATE_ACTION_REQUIRED = "action_required"
 	CHECK_STATE_ERROR           = "error"
 	CHECK_STATE_PENDING         = "pending"
+
+	// Known checks.
+	CLA_CHECK             = "cla/google"
+	IMPORT_COPYBARA_CHECK = "import/copybara"
 )
 
 var (
+	OPEN_STATE   = "open"
 	CLOSED_STATE = "closed"
 )
 
@@ -127,6 +132,22 @@ func (g *GitHub) GetAuthenticatedUser() (*github.User, error) {
 		return nil, fmt.Errorf("Unexpected status code %d from users.get.", resp.StatusCode)
 	}
 	return user, nil
+}
+
+// See https://developer.github.com/v3/pulls/#list-pull-requests
+// for the API documentation.
+func (g *GitHub) ListOpenPullRequests() ([]*github.PullRequest, error) {
+	opts := &github.PullRequestListOptions{
+		State: OPEN_STATE,
+	}
+	pullRequests, resp, err := g.client.PullRequests.List(g.ctx, g.RepoOwner, g.RepoName, opts)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing pullrequests.list: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from pullrequests.list.", resp.StatusCode)
+	}
+	return pullRequests, nil
 }
 
 // See https://developer.github.com/v3/pulls/#get-a-single-pull-request
@@ -272,7 +293,7 @@ func (g *GitHub) GetIssues(open bool, labels []string, maxResults int) ([]*githu
 		},
 	}
 	if open {
-		opts.State = "open"
+		opts.State = OPEN_STATE
 	}
 	issues, resp, err := g.client.Issues.ListByRepo(g.ctx, g.RepoOwner, g.RepoName, opts)
 	if err != nil {
