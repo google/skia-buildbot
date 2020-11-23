@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3e2402ea_f2010b6e",
+        "filename": "go/query/query.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T14:38:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c0e7718_4dcd56fc",
+      "range": {
+        "startLine": 526,
+        "startChar": 14,
+        "endLine": 526,
+        "endChar": 22
+      },
+      "revId": "d1a49d8a608664f27d6d2f18d9746e4b8d898836",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "236bdf0f_2edb1c8d",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-23T14:10:23Z",
       "side": 1,
       "message": "I would suggest 1) adding documentation here (or on the implementation) that a cache entry may be returned or 2) having this API just make a new copy every time to return to avoid misuse of the API\u0027s return value (and invalidate the cached entry).\n\nI would lean towards 2 unless there is a serious performance hit.\n\nYour read-only ParamSet idea is a 3rd possible choice.",
+      "range": {
+        "startLine": 23,
+        "startChar": 46,
+        "endLine": 23,
+        "endChar": 50
+      },
+      "revId": "d1a49d8a608664f27d6d2f18d9746e4b8d898836",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a926565e_6507bdfc",
+        "filename": "perf/go/tracestore/tracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-23T14:38:46Z",
+      "side": 1,
+      "message": "These ParamSets can be huge for Android instances, so I\u0027m going for #3, which I\u0027m already working on.",
+      "parentUuid": "236bdf0f_2edb1c8d",
       "range": {
         "startLine": 23,
         "startChar": 46,
