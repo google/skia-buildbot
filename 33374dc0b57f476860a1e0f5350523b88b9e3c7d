@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13e0dd17_24ab2ebd",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T17:49:07Z",
+      "side": 1,
+      "message": "you might just be able to do\n@next-item\u003d${ele._jumpCommand}",
+      "range": {
+        "startLine": 57,
+        "startChar": 10,
+        "endLine": 57,
+        "endChar": 42
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "55763253_93509438",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T17:49:07Z",
+      "side": 1,
+      "message": "You should remove event listeners in the disconnected callback.",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 29
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f71df09b_bfc5d4a4",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T17:49:07Z",
+      "side": 1,
+      "message": "This should probably have a type of Event, right?",
+      "range": {
+        "startLine": 86,
+        "startChar": 53,
+        "endLine": 86,
+        "endChar": 54
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "408e4089_afb8ec77",
+        "filename": "debugger-app/modules/default-map.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T17:49:07Z",
+      "side": 1,
+      "message": "There should be some tests for this type.",
+      "range": {
+        "startLine": 3,
+        "startChar": 13,
+        "endLine": 3,
+        "endChar": 23
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e1a6410e_ba617c54",
+        "filename": "debugger-app/modules/default-map.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T17:49:07Z",
+      "side": 1,
+      "message": "bikeshed: getdefault so getd doesn\u0027t look like a typo",
+      "range": {
+        "startLine": 13,
+        "startChar": 2,
+        "endLine": 13,
+        "endChar": 6
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
