@@ -27,7 +27,7 @@ func TestRefresher(t *testing.T) {
 	})
 	ps2 := paramtools.NewOrderedParamSet()
 	ps2.Update(paramtools.ParamSet{
-		"config": []string{"8888", "565", "gles"},
+		"config": []string{"gles"},
 	})
 	op.On("GetOrderedParamSet", testutils.AnyContext, tileNumber).Return(ps1, nil)
 	op.On("GetOrderedParamSet", testutils.AnyContext, tileNumber2).Return(ps2, nil)
@@ -35,7 +35,7 @@ func TestRefresher(t *testing.T) {
 	pf := NewParamSetRefresher(op)
 	err := pf.Start(time.Minute)
 	assert.NoError(t, err)
-	assert.Len(t, pf.Get()["config"], 3)
+	assert.Equal(t, []string{"565", "8888", "gles"}, pf.Get()["config"])
 }
 
 func TestRefresherFailure(t *testing.T) {
