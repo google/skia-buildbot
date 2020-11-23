@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2d3bc7bb_6ddf6822",
+        "filename": "go/cas/rbe/rbe.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-23T19:37:16Z",
+      "side": 1,
+      "message": "Alternatively, I could just add the actual (constant) hash here...",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 36
+      },
+      "revId": "95f8d6e12c62d4c9b6fdc92a4813e829ce41e75f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
