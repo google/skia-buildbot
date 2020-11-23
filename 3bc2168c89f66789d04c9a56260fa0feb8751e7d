@@ -16,6 +16,23 @@
       "message": "I am going to need to add some more mocks before fully testing those funcs.",
       "revId": "3bc2168c89f66789d04c9a56260fa0feb8751e7d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f6d77498_a8a39582",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T17:44:53Z",
+      "side": 1,
+      "message": "lgtm once the failing jobs are fixed.",
+      "revId": "3bc2168c89f66789d04c9a56260fa0feb8751e7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
