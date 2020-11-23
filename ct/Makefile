@@ -39,11 +39,11 @@ release: all
 
 .PHONY: push
 push: release
-	pushk ctfe
+	pushk --use-temp-checkout ctfe
 
 .PHONY: push_staging
 push_staging: release
-	pushk ctfe-staging
+	pushk --use-temp-checkout ctfe-staging
 
 # Master scripts.
 .PHONY: create_pagesets_on_workers
