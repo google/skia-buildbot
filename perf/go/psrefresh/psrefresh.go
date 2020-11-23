@@ -15,7 +15,7 @@ import (
 // OPSProvider allows access to OrdererParamSets. TraceStore implements this interface.
 type OPSProvider interface {
 	GetLatestTile(context.Context) (types.TileNumber, error)
-	GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error)
+	GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error)
 }
 
 // ParamSetRefresher keeps a fresh paramtools.ParamSet that represents all
@@ -25,14 +25,14 @@ type ParamSetRefresher struct {
 	period     time.Duration
 
 	mutex sync.Mutex // protects ps.
-	ps    paramtools.ParamSet
+	ps    paramtools.ReadOnlyParamSet
 }
 
 // NewParamSetRefresher builds a new *ParamSetRefresher.
 func NewParamSetRefresher(traceStore OPSProvider) *ParamSetRefresher {
 	return &ParamSetRefresher{
 		traceStore: traceStore,
-		ps:         paramtools.ParamSet{},
+		ps:         paramtools.ReadOnlyParamSet{},
 	}
 }
 
@@ -57,24 +57,25 @@ func (pf *ParamSetRefresher) oneStep() error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get starting tile.")
 	}
-	ps, err := pf.traceStore.GetParamSet(ctx, tileKey)
+	ps := paramtools.NewParamSet()
+	ps1, err := pf.traceStore.GetParamSet(ctx, tileKey)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to paramset from latest tile.")
 	}
 	// TODO(jcgregorio) Need an option to mark a ParamSet as frozen.
-	ps = ps.Copy()
+	ps.AddReadOnlyParamSet(ps1)
 
 	tileKey = tileKey.Prev()
 	ps2, err := pf.traceStore.GetParamSet(ctx, tileKey)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to paramset from second to latest tile.")
 	}
-	ps.AddParamSet(ps2)
+	ps.AddReadOnlyParamSet(ps2)
 	ps.Normalize()
 
 	pf.mutex.Lock()
 	defer pf.mutex.Unlock()
-	pf.ps = ps
+	pf.ps = ps.Freeze()
 	return nil
 }
 
@@ -91,7 +92,7 @@ func (pf *ParamSetRefresher) refresh() {
 // Get returns the fresh paramset.
 //
 // It is not a copy, do not modify it.
-func (pf *ParamSetRefresher) Get() paramtools.ParamSet {
+func (pf *ParamSetRefresher) Get() paramtools.ReadOnlyParamSet {
 	pf.mutex.Lock()
 	defer pf.mutex.Unlock()
 	return pf.ps

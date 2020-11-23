@@ -445,7 +445,7 @@ func appendValueForFilter(key string, values []string, part queryParam, ret *par
 //      "config": ["8888", "565", "gpu"],
 //    }
 //
-func (q *Query) QueryPlan(ps paramtools.ParamSet) (paramtools.ParamSet, error) {
+func (q *Query) QueryPlan(ps paramtools.ReadOnlyParamSet) (paramtools.ParamSet, error) {
 	ret := paramtools.NewParamSet()
 	// Loop over KeyOrder, we don't care about the q.params order.
 	for key := range ps {
