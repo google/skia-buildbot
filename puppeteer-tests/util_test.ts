@@ -9,7 +9,7 @@ import {
   addEventListenersToPuppeteerPage,
   inBazel,
   launchBrowser,
-  startDemoPageServer,
+  startWebpackDemoPageServer,
 } from './util';
 
 describe('utility functions for Puppeteer tests', async () => {
@@ -210,7 +210,7 @@ describe('utility functions for Puppeteer tests', async () => {
         'perf',
         'webpack.config.ts'
       );
-      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(
+      ({ baseUrl, stopDemoPageServer } = await startWebpackDemoPageServer(
         pathToPerfWebpackConfigTs
       ));
     });
