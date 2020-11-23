@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0c851ed6_cddec426",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-23T13:25:02Z",
+      "side": 1,
+      "message": "LGTM with the caveat that I\u0027m not at all familiar with stackdriver tracing.",
+      "revId": "28d32d3c8d7aa0002da3d3de35dccb472637e07f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "229593dd_e259c94c",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-11-23T13:25:02Z",
+      "side": 1,
+      "message": "The docstring for tracing.Init says, \"Init tracing for this application\".  Should this be done in main() instead?",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 2
+      },
+      "revId": "28d32d3c8d7aa0002da3d3de35dccb472637e07f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
