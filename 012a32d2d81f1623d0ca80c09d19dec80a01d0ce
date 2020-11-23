@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "155d090b_1e7cacec",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T14:03:52Z",
+      "side": 1,
+      "message": "nit: ProcessFrameRequest  \"Start\" to me (and I think is somewhat of a convention in Perf) indicates a new go routine is created.",
+      "range": {
+        "startLine": 93,
+        "startChar": 5,
+        "endLine": 93,
+        "endChar": 29
+      },
+      "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c75c0d1d_7491bd06",
+        "filename": "perf/go/regression/detector.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-11-23T14:03:52Z",
+      "side": 1,
+      "message": "Same suggestion here. Maybe just call it Process or ProcessRegressions. Be sure to update the docstring as well",
+      "range": {
+        "startLine": 100,
+        "startChar": 5,
+        "endLine": 100,
+        "endChar": 22
+      },
+      "revId": "012a32d2d81f1623d0ca80c09d19dec80a01d0ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
