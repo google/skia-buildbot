@@ -296,7 +296,7 @@ var templates = map[statement]string{
         SELECT
             trace_id
         FROM
-            Postings
+            Postings@primary
             {{ .AsOf }}
         WHERE
             tile_number = {{ .TileNumber }}
@@ -841,6 +841,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 			return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
 		}
 		sql := b.String()
+		fmt.Printf("%q", sql)
 		rows, err := s.db.Query(ctx, sql)
 		if err != nil {
 			return nil, skerr.Wrap(err)
