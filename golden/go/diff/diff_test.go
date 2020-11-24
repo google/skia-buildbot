@@ -2,6 +2,7 @@ package diff
 
 import (
 	"bytes"
+	testutils2 "go.skia.org/infra/golden/go/testutils"
 	"image"
 	"image/png"
 	"math"
@@ -168,16 +169,9 @@ func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) 
 	img1 := openNRGBAFromFile(t, d1+".png")
 	img2 := openNRGBAFromFile(t, d2+".png")
 	diffMetrics := ComputeDiffMetrics(img1, img2)
-	diffMetrics.PixelDiffPercent = roundToDecimalPlace(diffMetrics.PixelDiffPercent, 5)
-	diffMetrics.CombinedMetric = roundToDecimalPlace(diffMetrics.CombinedMetric, 5)
+	diffMetrics.PixelDiffPercent = testutils2.RoundFloat32ToDecimalPlace(diffMetrics.PixelDiffPercent, 5)
+	diffMetrics.CombinedMetric = testutils2.RoundFloat32ToDecimalPlace(diffMetrics.CombinedMetric, 5)
 	assert.Equal(t, expectedDiffMetrics, diffMetrics)
-}
-
-func roundToDecimalPlace(num float32, places int) float32 {
-	exp := math.Pow(10, float64(places))
-	scaledUp := float64(num) * exp
-	scaledUp = math.Round(scaledUp)
-	return float32(scaledUp / exp)
 }
 
 func TestDeltaOffset(t *testing.T) {
