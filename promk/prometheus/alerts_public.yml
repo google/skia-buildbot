@@ -109,7 +109,6 @@ groups:
     annotations:
       description: 'There are 10 CLs or more waiting in the CQ. Dry run queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D1+status:open and Commit queue: https://skia-review.googlesource.com/q/label:Commit-Queue%253D2+status:open Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
 
-  # Update CQ_TRYBOT_DURATION_SECS_THRESHOLD in go/cq/cq.go if the number below is changed.
   - alert: CQTrybotRunningTooLong
     expr: max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]) > 2700
     labels:
@@ -120,14 +119,13 @@ groups:
       abbr: '{{ $labels.trybot }}'
       description: '{{ $labels.trybot }} ran longer than 45 mins on {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold'
 
-  # Update CQ_TRYBOTS_COUNT_THRESHOLD in go/cq/cq.go if the number below is changed.
   - alert: TooManyCQTrybotsForCL
-    expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 50
+    expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 100
     labels:
       category: infra
       severity: warning
     annotations:
-      description: 'There are more than 50 CQ trybots triggered by {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered'
+      description: 'There are more than 100 CQ trybots triggered by {{ $labels.gerritURL }} Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered'
 
  # datatore backups
   - alert: BackupNotDone
