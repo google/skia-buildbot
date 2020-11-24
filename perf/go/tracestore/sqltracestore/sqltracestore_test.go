@@ -345,7 +345,7 @@ func TestParamSetForTile(t *testing.T) {
 
 	ps, err := s.paramSetForTile(ctx, 1)
 	assert.NoError(t, err)
-	expected := paramtools.ParamSet{
+	expected := paramtools.ReadOnlyParamSet{
 		"arch":   []string{"x86"},
 		"config": []string{"565", "8888"},
 	}
@@ -359,7 +359,7 @@ func TestParamSetForTile_Empty(t *testing.T) {
 	// Test the empty case where there is no data in the store.
 	ps, err := s.paramSetForTile(ctx, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, paramtools.ParamSet{}, ps)
+	assert.Equal(t, paramtools.NewReadOnlyParamSet(), ps)
 }
 
 func TestGetLatestTile(t *testing.T) {
@@ -390,7 +390,7 @@ func TestGetParamSet(t *testing.T) {
 
 	ps, err := s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
-	expected := paramtools.ParamSet{
+	expected := paramtools.ReadOnlyParamSet{
 		"arch":   []string{"x86"},
 		"config": []string{"565", "8888"},
 	}
@@ -419,7 +419,7 @@ func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 
 	ps, err := s.GetParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
-	expected := paramtools.ParamSet{
+	expected := paramtools.ReadOnlyParamSet{
 		"arch":   []string{"x86"},
 		"config": []string{"565", "8888"},
 	}
@@ -446,7 +446,7 @@ func TestGetParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 	assert.Equal(t, expected, ps)
 
 	// But if we query past the TTL we should get an updated OPS.
-	updatedExpected := paramtools.ParamSet{
+	updatedExpected := paramtools.ReadOnlyParamSet{
 		"arch":   []string{"risc-v", "x86"},
 		"config": []string{"565", "8888"},
 	}
@@ -467,7 +467,7 @@ func TestGetParamSet_Empty(t *testing.T) {
 	// Test the empty case where there is no data in datastore.
 	ps, err := s.GetParamSet(ctx, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, paramtools.ParamSet{}, ps)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{}, ps)
 }
 
 func TestGetSource(t *testing.T) {

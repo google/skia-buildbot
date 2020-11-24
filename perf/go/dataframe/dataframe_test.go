@@ -18,7 +18,7 @@ func TestBuildParamSet(t *testing.T) {
 	// Test the empty case first.
 	df := &DataFrame{
 		TraceSet: types.TraceSet{},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 	df.BuildParamSet()
 	assert.Equal(t, 0, len(df.ParamSet))
@@ -29,7 +29,7 @@ func TestBuildParamSet(t *testing.T) {
 			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
 			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 	df.BuildParamSet()
 	assert.Equal(t, 2, len(df.ParamSet))
@@ -49,7 +49,7 @@ func TestFilter(t *testing.T) {
 			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
 			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 	f := func(tr types.Trace) bool {
 		return tr[0] > 1.25
@@ -64,7 +64,7 @@ func TestFilter(t *testing.T) {
 			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
 			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 	f = func(tr types.Trace) bool {
 		return true
@@ -89,7 +89,7 @@ func TestSlice(t *testing.T) {
 			",arch=x86,config=8888,": types.Trace([]float32{1.1, 1.2, 1.3, 1.4, 1.5, 1.6}),
 			",arch=x86,config=gpu,":  types.Trace([]float32{2.1, 2.2, 2.3, 2.4, 2.5, 2.6}),
 		},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 
 	// Test error conditions.
@@ -116,7 +116,7 @@ func TestSlice(t *testing.T) {
 	}, sub.Header)
 	assert.Len(t, sub.TraceSet, 3)
 	assert.Equal(t, sub.TraceSet[",arch=x86,config=gpu,"], types.Trace([]float32{2.1, 2.2, 2.3}))
-	assert.Equal(t, sub.ParamSet, paramtools.ParamSet{"arch": []string{"x86"}, "config": []string{"565", "8888", "gpu"}})
+	assert.Equal(t, sub.ParamSet, paramtools.ReadOnlyParamSet{"arch": []string{"x86"}, "config": []string{"565", "8888", "gpu"}})
 
 	sub, err = df.Slice(1, 3)
 	assert.NoError(t, err)
@@ -127,7 +127,7 @@ func TestSlice(t *testing.T) {
 	}, sub.Header)
 	assert.Len(t, sub.TraceSet, 3)
 	assert.Equal(t, sub.TraceSet[",arch=x86,config=gpu,"], types.Trace([]float32{2.2, 2.3, 2.4}))
-	assert.Equal(t, sub.ParamSet, paramtools.ParamSet{"arch": []string{"x86"}, "config": []string{"565", "8888", "gpu"}})
+	assert.Equal(t, sub.ParamSet, paramtools.ReadOnlyParamSet{"arch": []string{"x86"}, "config": []string{"565", "8888", "gpu"}})
 
 }
 

@@ -67,9 +67,9 @@ type TryBotResult struct {
 
 // TryBotResponse is the response sent to a TryBotRequest.
 type TryBotResponse struct {
-	Header   []*dataframe.ColumnHeader `json:"header"`
-	Results  []TryBotResult            `json:"results"`
-	ParamSet paramtools.ParamSet       `json:"paramset"`
+	Header   []*dataframe.ColumnHeader   `json:"header"`
+	Results  []TryBotResult              `json:"results"`
+	ParamSet paramtools.ReadOnlyParamSet `json:"paramset"`
 }
 
 // Loader returns the data for the given TryBotRequest.

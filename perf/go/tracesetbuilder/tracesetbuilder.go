@@ -132,7 +132,7 @@ func (t *TraceSetBuilder) Add(traceMap map[int32]int32, traces types.TraceSet) {
 // Build returns the built TraceSet and ParamSet for that TraceSet.
 //
 // Don't call Build until Add() has been called for every tile to be added.
-func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools.ParamSet) {
+func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools.ReadOnlyParamSet) {
 	ctx, span := trace.StartSpan(ctx, "TraceSetBuilder.Build")
 	defer span.End()
 
@@ -149,7 +149,8 @@ func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools
 		}
 		paramSet.AddParamSet(mw.paramSet)
 	}
-	return traceSet, paramSet
+	paramSet.Normalize()
+	return traceSet, paramSet.Freeze()
 }
 
 // Close down all the workers.

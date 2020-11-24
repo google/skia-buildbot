@@ -133,8 +133,8 @@ func (p ParamSet) AddParamsFromKey(key string) {
 	}
 }
 
-// AddParamSet adds the ParamSet to this ParamSet.
-func (p ParamSet) AddParamSet(ps ParamSet) {
+// AddParamSet adds the ParamSet or ReadOnlyParamSet to this ParamSet.
+func (p ParamSet) AddParamSet(ps map[string][]string) {
 	for k, arr := range ps {
 		if _, ok := p[k]; !ok {
 			p[k] = append([]string{}, arr...)

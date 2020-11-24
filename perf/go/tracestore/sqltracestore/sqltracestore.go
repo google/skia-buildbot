@@ -206,7 +206,7 @@ const orderedParamSetCacheTTL = 5 * time.Minute
 
 type orderedParamSetCacheEntry struct {
 	expires  time.Time // When this entry expires.
-	paramSet paramtools.ParamSet
+	paramSet paramtools.ReadOnlyParamSet
 }
 
 // traceIDForSQL is the type of the IDs that are used in the SQL queries,
@@ -637,7 +637,7 @@ func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, er
 	return tileNumber, nil
 }
 
-func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error) {
+func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()
 
@@ -663,16 +663,17 @@ func (s *SQLTraceStore) paramSetForTile(ctx context.Context, tileNumber types.Ti
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed querying - tileNumber=%d", tileNumber)
 	}
-	ret := paramtools.NewParamSet()
+	ps := paramtools.NewParamSet()
 	for rows.Next() {
 		var key string
 		var value string
 		if err := rows.Scan(&key, &value); err != nil {
 			return nil, skerr.Wrapf(err, "Failed scanning row - tileNumber=%d", tileNumber)
 		}
-		ret.AddParams(paramtools.Params{key: value})
+		ps.AddParams(paramtools.Params{key: value})
 	}
-	ret.Normalize()
+	ps.Normalize()
+	ret := ps.Freeze()
 	if err == pgx.ErrNoRows {
 		return ret, nil
 	}
@@ -689,7 +690,7 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 }
 
 // GetParamSet implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error) {
+func (s *SQLTraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error) {
 	defer timer.New("GetParamSet").Stop()
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetParamSet")
 	defer span.End()

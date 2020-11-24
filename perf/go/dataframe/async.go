@@ -346,7 +346,7 @@ func (p *frameRequestProcess) doCalc(ctx context.Context, formula string, begin,
 	df.TraceSet = ts
 
 	// Clear the paramset since we are returning calculated values.
-	df.ParamSet = paramtools.ParamSet{}
+	df.ParamSet = paramtools.NewReadOnlyParamSet()
 
 	return df, nil
 }

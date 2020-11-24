@@ -50,7 +50,7 @@ const (
 type DetectorResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
 
 // ParamsetProvider is a function that's called to return the current paramset.
-type ParamsetProvider func() paramtools.ParamSet
+type ParamsetProvider func() paramtools.ReadOnlyParamSet
 
 // RegressionDetectionRequest is all the info needed to start a clustering run,
 // an Alert and the Domain over which to run that Alert.

@@ -238,7 +238,7 @@ func (f *Frontend) scriptHandler(name string) http.HandlerFunc {
 // for the current tiles.
 //
 func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetProvider {
-	return func() paramtools.ParamSet {
+	return func() paramtools.ReadOnlyParamSet {
 		return pf.Get()
 	}
 }
@@ -607,8 +607,8 @@ type CountHandlerRequest struct {
 
 // CountHandlerResponse is the JSON format if the countHandler response.
 type CountHandlerResponse struct {
-	Count    int                 `json:"count"`
-	Paramset paramtools.ParamSet `json:"paramset"`
+	Count    int                         `json:"count"`
+	Paramset paramtools.ReadOnlyParamSet `json:"paramset"`
 }
 
 // countHandler takes the POST'd query and runs that against the current

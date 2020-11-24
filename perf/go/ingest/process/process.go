@@ -30,7 +30,7 @@ const writeRetries = 10
 // sendPubSubEvent sends the unencoded params and paramset found in a single
 // ingested file to the PubSub topic specified in the selected Perf instances
 // configuration data.
-func sendPubSubEvent(ctx context.Context, pubSubClient *pubsub.Client, topicName string, params []paramtools.Params, paramset paramtools.ParamSet, filename string) error {
+func sendPubSubEvent(ctx context.Context, pubSubClient *pubsub.Client, topicName string, params []paramtools.Params, paramset paramtools.ReadOnlyParamSet, filename string) error {
 	if topicName == "" {
 		return nil
 	}
@@ -116,6 +116,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		for _, p := range params {
 			ps.AddParams(p)
 		}
+		ps.Normalize()
 
 		sklog.Info("WriteTraces")
 		const retries = writeRetries
@@ -136,7 +137,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 		successfulWrite.Inc(1)
 		successfulWriteCount.Inc(int64(len(params)))
 
-		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, f.Name); err != nil {
+		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), f.Name); err != nil {
 			sklog.Errorf("Failed to send pubsub event: %s", err)
 		} else {
 			sklog.Info("FileIngestionTopicName pubsub message sent.")

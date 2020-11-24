@@ -115,7 +115,7 @@ func (_m *DataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q 
 }
 
 // PreflightQuery provides a mock function with given fields: ctx, end, q
-func (_m *DataFrameBuilder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error) {
+func (_m *DataFrameBuilder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx, end, q)
 
 	var r0 int64
@@ -125,12 +125,12 @@ func (_m *DataFrameBuilder) PreflightQuery(ctx context.Context, end time.Time, q
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 paramtools.ParamSet
-	if rf, ok := ret.Get(1).(func(context.Context, time.Time, *query.Query) paramtools.ParamSet); ok {
+	var r1 paramtools.ReadOnlyParamSet
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time, *query.Query) paramtools.ReadOnlyParamSet); ok {
 		r1 = rf(ctx, end, q)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(paramtools.ParamSet)
+			r1 = ret.Get(1).(paramtools.ReadOnlyParamSet)
 		}
 	}
 

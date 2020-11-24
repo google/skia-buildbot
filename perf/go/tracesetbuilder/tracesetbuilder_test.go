@@ -51,8 +51,7 @@ func TestBuilder(t *testing.T) {
 		"name": []string{"bar", "baz", "foo"},
 	}
 	expectedParamSet.Normalize()
-	ops.Normalize()
-	assert.Equal(t, expectedParamSet, ops)
+	assert.Equal(t, expectedParamSet.Freeze(), ops)
 }
 
 func TestBuilderEmpty(t *testing.T) {
