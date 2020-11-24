@@ -559,9 +559,9 @@ func preSliceData(_ context.Context, state interface{}) error {
 				ID:    id,
 				Trace: trace,
 			}
-			// Pre-slice the data by IgnoreState, then by IgnoreState and Corpus, finally by all
-			// three of IgnoreState/Corpus/Test. We shouldn't allow queries by Corpus w/o specifying
-			// IgnoreState, nor should we allow queries by TestName w/o specifying a Corpus or
+			// Pre-slice the data by IgnoreState, then by IgnoreState and corpus, finally by all
+			// three of IgnoreState/corpus/Test. We shouldn't allow queries by corpus w/o specifying
+			// IgnoreState, nor should we allow queries by TestName w/o specifying a corpus or
 			// IgnoreState.
 			ignoreOnly := preSliceGroup{
 				IgnoreState: is,

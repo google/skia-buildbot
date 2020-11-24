@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"math"
 	"sync"
 
 	"github.com/stretchr/testify/mock"
@@ -31,4 +32,13 @@ func AsyncHelpers() (*sync.WaitGroup, func(c *mock.Call) *mock.Call, func(f func
 		}
 	}
 	return &wg, isAsync, asyncWrapper
+}
+
+// RoundFloat32ToDecimalPlace rounds the given float32 to the given number of places. This is handy for
+// cases where assert.InDelta or assert.InEpsilon don't work (e.g. structs with floats).
+func RoundFloat32ToDecimalPlace(num float32, places int) float32 {
+	exp := math.Pow(10, float64(places))
+	scaledUp := float64(num) * exp
+	scaledUp = math.Round(scaledUp)
+	return float32(scaledUp / exp)
 }
