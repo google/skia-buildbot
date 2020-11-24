@@ -633,19 +633,19 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := CountHandlerResponse{}
+	fullPS := f.paramsetRefresher.Get()
 	if cr.Q == "" {
-		ps := f.paramsetRefresher.Get()
 		resp.Count = 0
-		resp.Paramset = ps
+		resp.Paramset = fullPS
 	} else {
-		count, ps, err := f.dfBuilder.PreflightQuery(r.Context(), time.Now(), q)
+		count, ps, err := f.dfBuilder.PreflightQuery(r.Context(), q, fullPS)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
 			return
 		}
 
 		resp.Count = int(count)
-		resp.Paramset = ps
+		resp.Paramset = ps.Freeze()
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
