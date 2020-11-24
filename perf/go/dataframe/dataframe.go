@@ -46,9 +46,15 @@ type DataFrameBuilder interface {
 	// points ending at the given 'end' time for the given keys.
 	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress progress.Progress) (*DataFrame, error)
 
+	// NumMatches returns the number of traces that will match the query.
+	NumMatches(ctx context.Context, q *query.Query) (int64, error)
+
 	// PreflightQuery returns the number of traces that will match the query and
-	// the ParamSet of all the matching traces.
-	PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ReadOnlyParamSet, error)
+	// a refined ParamSet to use for further queries. The referenceParamSet
+	// should be a master ParamSet that includes all the Params that could
+	// appear in a query. For example, the ParamSet managed by
+	// ParamSetRefresher.
+	PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error)
 }
 
 // ColumnHeader describes each column in a DataFrame.

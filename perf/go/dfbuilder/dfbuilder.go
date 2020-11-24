@@ -513,15 +513,14 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	return ret, nil
 }
 
-// See DataFrameBuilder.
-func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ReadOnlyParamSet, error) {
+// PreflightQuery implements dataframe.DataFrameBuilder.
+func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuiler.PreflightQuery")
 	defer span.End()
 
 	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
 
 	var count int64
-	largestParamSet := paramtools.ReadOnlyParamSet{}
 
 	tileNumber, err := b.store.GetLatestTile(ctx)
 	if err != nil {
@@ -529,40 +528,13 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 	}
 
 	if q.Empty() {
-		// If the query is empty then we have a shortcut for building the
-		// ParamSet by just using the OPS. In that case we only need to count
-		// encodedKeys to get the count.
-		for i := 0; i < 2; i++ {
-			fullParamSet, err := b.store.GetParamSet(ctx, tileNumber)
-			if err != nil {
-				return -1, nil, err
-			}
-			largestParamSet = fullParamSet
-			tileNumber = tileNumber.Prev()
-			if tileNumber == types.BadTileNumber {
-				break
-			}
-		}
-
-		count, err = b.store.TraceCount(ctx, tileNumber)
-		if err != nil {
-			return -1, nil, err
-		}
-		return count, largestParamSet, nil
-
+		return -1, nil, skerr.Fmt("Can not pre-flight an empty query")
 	}
 
 	// Since the query isn't empty we'll have to run a partial query
 	// to build the ParamSet. Do so over the two most recent tiles.
 	ps := paramtools.NewParamSet()
 
-	// Record the OPS for the first tile.
-	psOne, err := b.store.GetParamSet(ctx, tileNumber)
-	if err != nil {
-		return -1, nil, err
-	}
-
-	largestParamSet = psOne
 	// Count the matches and sum the params in the first tile.
 	out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 	if err != nil {
@@ -578,12 +550,6 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 	// Now move to the previous tile.
 	tileNumber = tileNumber.Prev()
 	if tileNumber != types.BadTileNumber {
-		// Record the OPS for the second tile.
-		psTwo, err := b.store.GetParamSet(ctx, tileNumber)
-		if err != nil {
-			return -1, nil, err
-		}
-
 		// Count the matches and sum the params in the second tile.
 		out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 		if err != nil {
@@ -598,10 +564,6 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		if tileTwoCount > count {
 			count = tileTwoCount
 		}
-		// Use the larger of the two OPSs to work with.
-		if psTwo.Size() > ps.Size() {
-			largestParamSet = psTwo
-		}
 	}
 
 	// Now we have the ParamSet that corresponds to the query, but for each
@@ -613,11 +575,56 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		return -1, nil, err
 	}
 	for key := range queryPlan {
-		queryPlan[key] = ps[key]
+		ps[key] = referenceParamSet[key]
 	}
-	queryPlan.Normalize()
+	ps.Normalize()
 
-	return count, queryPlan.Freeze(), nil
+	return count, ps, nil
+}
+
+// NumMatches implements dataframe.DataFrameBuilder.
+func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuiler.NumMatches")
+	defer span.End()
+	defer timer.NewWithSummary("perfserver_dfbuilder_NumMatches", b.preflightQueryTimer).Stop()
+
+	var count int64
+
+	tileNumber, err := b.store.GetLatestTile(ctx)
+	if err != nil {
+		return -1, err
+	}
+
+	// Count the matches in the first tile.
+	out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+	if err != nil {
+		return -1, fmt.Errorf("Failed to query traces: %s", err)
+	}
+	var tileOneCount int64
+	for range out {
+		tileOneCount++
+	}
+	count = tileOneCount
+
+	// Now move to the previous tile.
+	tileNumber = tileNumber.Prev()
+	if tileNumber != types.BadTileNumber {
+		// Count the matches in the second tile.
+		out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+		if err != nil {
+			return -1, fmt.Errorf("Failed to query traces: %s", err)
+		}
+		var tileTwoCount int64
+		for range out {
+			tileTwoCount++
+		}
+		// Use the larger of the two counts as our result.
+		if tileTwoCount > count {
+			count = tileTwoCount
+		}
+	}
+
+	return count, nil
 }
 
 // Validate that *builder faithfully implements the DataFrameBuidler interface.
