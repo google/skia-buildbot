@@ -114,29 +114,50 @@ func (_m *DataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q 
 	return r0, r1
 }
 
-// PreflightQuery provides a mock function with given fields: ctx, end, q
-func (_m *DataFrameBuilder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ReadOnlyParamSet, error) {
-	ret := _m.Called(ctx, end, q)
+// NumMatches provides a mock function with given fields: ctx, q
+func (_m *DataFrameBuilder) NumMatches(ctx context.Context, q *query.Query) (int64, error) {
+	ret := _m.Called(ctx, q)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(context.Context, time.Time, *query.Query) int64); ok {
-		r0 = rf(ctx, end, q)
+	if rf, ok := ret.Get(0).(func(context.Context, *query.Query) int64); ok {
+		r0 = rf(ctx, q)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 paramtools.ReadOnlyParamSet
-	if rf, ok := ret.Get(1).(func(context.Context, time.Time, *query.Query) paramtools.ReadOnlyParamSet); ok {
-		r1 = rf(ctx, end, q)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *query.Query) error); ok {
+		r1 = rf(ctx, q)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PreflightQuery provides a mock function with given fields: ctx, q, referenceParamSet
+func (_m *DataFrameBuilder) PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error) {
+	ret := _m.Called(ctx, q, referenceParamSet)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, *query.Query, paramtools.ReadOnlyParamSet) int64); ok {
+		r0 = rf(ctx, q, referenceParamSet)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 paramtools.ParamSet
+	if rf, ok := ret.Get(1).(func(context.Context, *query.Query, paramtools.ReadOnlyParamSet) paramtools.ParamSet); ok {
+		r1 = rf(ctx, q, referenceParamSet)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(paramtools.ReadOnlyParamSet)
+			r1 = ret.Get(1).(paramtools.ParamSet)
 		}
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(context.Context, time.Time, *query.Query) error); ok {
-		r2 = rf(ctx, end, q)
+	if rf, ok := ret.Get(2).(func(context.Context, *query.Query, paramtools.ReadOnlyParamSet) error); ok {
+		r2 = rf(ctx, q, referenceParamSet)
 	} else {
 		r2 = ret.Error(2)
 	}

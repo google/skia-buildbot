@@ -296,7 +296,7 @@ var templates = map[statement]string{
         SELECT
             trace_id
         FROM
-            Postings
+            Postings@primary
             {{ .AsOf }}
         WHERE
             tile_number = {{ .TileNumber }}
