@@ -383,7 +383,7 @@ func (c *Continuous) Run(ctx context.Context) {
 					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
 					continue
 				}
-				matches, _, err := c.dfBuilder.PreflightQuery(context.Background(), time.Time{}, q)
+				matches, err := c.dfBuilder.NumMatches(context.Background(), q)
 				if err != nil {
 					sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)
 					continue

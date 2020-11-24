@@ -241,3 +241,230 @@ func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 	assert.Empty(t, columnHeaders)
 	assert.Empty(t, commitNumbers)
 }
+
+func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store)
+
+	// Add some points to the first tile.
+	err = addValuesAtIndex(store, 0, map[string]float32{
+		",arch=x86,config=8888,": 1.2,
+		",arch=x86,config=565,":  2.1,
+		",arch=arm,config=8888,": 100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	q, err := query.NewFromString("")
+	require.NoError(t, err)
+	_, _, err = builder.PreflightQuery(ctx, q, paramtools.NewReadOnlyParamSet())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Can not pre-flight an empty query")
+}
+
+func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store)
+
+	// Add some points to the first tile.
+	err = addValuesAtIndex(store, 0, map[string]float32{
+		",arch=x86,config=8888,": 1.2,
+		",arch=x86,config=565,":  2.1,
+		",arch=arm,config=8888,": 100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Create a query that will match two of the points.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	// The reference ParamSet contains values that should not appear in the
+	// returned ParamSet, and some that get retained.
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"arch":   {"x86", "arm", "should-disappear"},
+		"config": {"565", "8888", "should-be-retained"},
+		// 'should-be-retained' is retained because 'config' is in the query and
+		// so all 'config' values should be returned in the ParamSet.
+	}
+	count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+
+	expectedParamSet := paramtools.ParamSet{
+		"arch":   {"arm", "x86"},
+		"config": {"565", "8888", "should-be-retained"},
+	}
+	assert.Equal(t, expectedParamSet, ps)
+}
+
+func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetReflectsBothTiles(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store)
+
+	// Add some points to the first tile.
+	err = addValuesAtIndex(store, 0, map[string]float32{
+		",arch=x86,config=8888,": 1.2,
+		",arch=x86,config=565,":  2.1,
+		",arch=arm,config=8888,": 100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Add some points to the second tile.
+	err = addValuesAtIndex(store, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize), map[string]float32{
+		",arch=riscv,config=8888,": 1.2,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Create a query that will match two of the points in tile 0 and one of the points in tile 1.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	// The reference ParamSet contains values that should not appear in the
+	// returned ParamSet, and some that get retained.
+	referenceParamSet := paramtools.ReadOnlyParamSet{
+		"arch":   {"x86", "arm", "should-disappear"},
+		"config": {"565", "8888", "should-be-retained"},
+		// 'should-be-retained' is retained because 'config' is in the query and
+		// so all 'config' values should be returned in the ParamSet.
+	}
+	count, ps, err := builder.PreflightQuery(ctx, q, referenceParamSet)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+
+	expectedParamSet := paramtools.ParamSet{
+		"arch":   {"arm", "riscv", "x86"},
+		"config": {"565", "8888", "should-be-retained"},
+	}
+	assert.Equal(t, expectedParamSet, ps)
+}
+
+func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store)
+	q, err := query.NewFromString("")
+	require.NoError(t, err)
+	_, err = builder.NumMatches(ctx, q)
+	require.Error(t, err)
+}
+
+func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store)
+
+	// Add some points to the first tile.
+	err = addValuesAtIndex(store, 0, map[string]float32{
+		",arch=x86,config=8888,": 1.2,
+		",arch=x86,config=565,":  2.1,
+		",arch=arm,config=8888,": 100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Create a query that will match two of the points.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	count, err := builder.NumMatches(ctx, q)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+}
+
+func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCountsIsReturned(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.DataStoreConfig.TileSize = 6
+
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	require.NoError(t, err)
+
+	builder := NewDataFrameBuilderFromTraceStore(g, store)
+
+	// Add some points to the latest tile.
+	err = addValuesAtIndex(store, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize+1), map[string]float32{
+		",arch=x86,config=8888,": 1.2,
+		",arch=x86,config=565,":  2.1,
+		",arch=arm,config=8888,": 100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Add some points to the previous tile.
+	err = addValuesAtIndex(store, 1, map[string]float32{
+		",arch=x86,config=8888,":   1.2,
+		",arch=riscv,config=8888,": 2.1,
+		",arch=arm,config=8888,":   100.5,
+	}, "gs://foo.json", time.Now())
+	assert.NoError(t, err)
+
+	// Create a query that will match two of the points in tile 1, but three
+	// points in tile 0.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+
+	count, err := builder.NumMatches(ctx, q)
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), count)
+}
