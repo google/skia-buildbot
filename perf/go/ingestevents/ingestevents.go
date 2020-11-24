@@ -22,7 +22,7 @@ type IngestEvent struct {
 	TraceIDs []string
 
 	// ParamSet is the unencoded ParamSet summary of TraceIDs.
-	ParamSet paramtools.ParamSet
+	ParamSet paramtools.ReadOnlyParamSet
 
 	// Filename of the file ingested.
 	Filename string

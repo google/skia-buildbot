@@ -548,5 +548,16 @@ func TestParamSetFrozenCopy_NonEmptyParamSet_Success(t *testing.T) {
 
 func TestParamSetFrozenCopy_EmptyParamSet_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
+	assert.Equal(t, ReadOnlyParamSet{}, ParamSet{}.FrozenCopy())
+}
+
+func TestParamSetAddParamSet_NonEmptyReadOnlyParamSet_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	ps := NewParamSet()
+	rops := ReadOnlyParamSet{
+		"foo": []string{"bar", "baz"},
+		"qux": []string{"quux"},
+	}
+	ps.AddParamSet(rops)
+	assert.Equal(t, ReadOnlyParamSet(ps), rops)
 }

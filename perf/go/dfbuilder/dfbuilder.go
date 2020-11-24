@@ -165,7 +165,6 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		return nil, fmt.Errorf("Failed while querying: %s", err)
 	}
 	traceSet, paramSet := traceSetBuilder.Build(ctx)
-	paramSet.Normalize()
 	d := &dataframe.DataFrame{
 		TraceSet: traceSet,
 		Header:   colHeaders,
@@ -253,7 +252,7 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 	d := &dataframe.DataFrame{
 		TraceSet: traceSet,
 		Header:   colHeaders,
-		ParamSet: paramSet,
+		ParamSet: paramSet.Freeze(),
 		Skip:     skip,
 	}
 	triggerProgress()
@@ -280,6 +279,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	sklog.Infof("Querying to: %v", end)
 
 	ret := dataframe.NewEmpty()
+	ps := paramtools.NewParamSet()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
 	numStepsNoData := 0
@@ -326,7 +326,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 			break
 		}
 
-		ret.ParamSet.AddParamSet(df.ParamSet)
+		ps.AddParamSet(df.ParamSet)
 
 		// For each commit that has data, copy the data from df into ret.
 		// Move backwards down the trace since we are building the result from 'end' backwards.
@@ -369,6 +369,8 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 			beginIndex = 0
 		}
 	}
+	ps.Normalize()
+	ret.ParamSet = ps.Freeze()
 
 	if total < n {
 		// Trim down the traces so they are the same length as ret.Header.
@@ -397,6 +399,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	}
 
 	ret := dataframe.NewEmpty()
+	ps := paramtools.NewParamSet()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
 	numStepsNoData := 0
@@ -433,7 +436,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		df := &dataframe.DataFrame{
 			TraceSet: traceSet,
 			Header:   headers,
-			ParamSet: paramtools.ParamSet{},
+			ParamSet: paramtools.NewReadOnlyParamSet(),
 			Skip:     skip,
 		}
 		df.BuildParamSet()
@@ -457,7 +460,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 			break
 		}
 
-		ret.ParamSet.AddParamSet(df.ParamSet)
+		ps.AddParamSet(df.ParamSet)
 
 		// For each commit that has data, copy the data from df into ret.
 		// Move backwards down the trace since we are building the result from 'end' backwards.
@@ -496,8 +499,9 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		if beginIndex < 0 {
 			beginIndex = 0
 		}
-
 	}
+	ps.Normalize()
+	ret.ParamSet = ps.Freeze()
 
 	if total < n {
 		// Trim down the traces so they are the same length as ret.Header.
@@ -510,14 +514,14 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 }
 
 // See DataFrameBuilder.
-func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error) {
+func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ReadOnlyParamSet, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuiler.PreflightQuery")
 	defer span.End()
 
 	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
 
 	var count int64
-	ps := paramtools.ParamSet{}
+	largestParamSet := paramtools.ReadOnlyParamSet{}
 
 	tileNumber, err := b.store.GetLatestTile(ctx)
 	if err != nil {
@@ -529,11 +533,11 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		// ParamSet by just using the OPS. In that case we only need to count
 		// encodedKeys to get the count.
 		for i := 0; i < 2; i++ {
-			ps, err := b.store.GetParamSet(ctx, tileNumber)
+			fullParamSet, err := b.store.GetParamSet(ctx, tileNumber)
 			if err != nil {
 				return -1, nil, err
 			}
-			ps.AddParamSet(ps)
+			largestParamSet = fullParamSet
 			tileNumber = tileNumber.Prev()
 			if tileNumber == types.BadTileNumber {
 				break
@@ -544,76 +548,76 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		if err != nil {
 			return -1, nil, err
 		}
+		return count, largestParamSet, nil
 
-	} else {
-		// Since the query isn't empty we'll have to run a partial query
-		// to build the ParamSet. Do so over the two most recent tiles.
-		var ps paramtools.ParamSet
+	}
 
-		// Record the OPS for the first tile.
-		psOne, err := b.store.GetParamSet(ctx, tileNumber)
+	// Since the query isn't empty we'll have to run a partial query
+	// to build the ParamSet. Do so over the two most recent tiles.
+	ps := paramtools.NewParamSet()
+
+	// Record the OPS for the first tile.
+	psOne, err := b.store.GetParamSet(ctx, tileNumber)
+	if err != nil {
+		return -1, nil, err
+	}
+
+	largestParamSet = psOne
+	// Count the matches and sum the params in the first tile.
+	out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+	if err != nil {
+		return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
+	}
+	var tileOneCount int64
+	for p := range out {
+		tileOneCount++
+		ps.AddParams(p)
+	}
+	count = tileOneCount
+
+	// Now move to the previous tile.
+	tileNumber = tileNumber.Prev()
+	if tileNumber != types.BadTileNumber {
+		// Record the OPS for the second tile.
+		psTwo, err := b.store.GetParamSet(ctx, tileNumber)
 		if err != nil {
 			return -1, nil, err
 		}
 
-		ps = psOne
-		// Count the matches and sum the params in the first tile.
-		out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
+		// Count the matches and sum the params in the second tile.
+		out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 		if err != nil {
 			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
-		var tileOneCount int64
+		var tileTwoCount int64
 		for p := range out {
-			tileOneCount++
+			tileTwoCount++
 			ps.AddParams(p)
 		}
-		count = tileOneCount
-
-		// Now move to the previous tile.
-		tileNumber = tileNumber.Prev()
-		if tileNumber != types.BadTileNumber {
-			// Record the OPS for the second tile.
-			psTwo, err := b.store.GetParamSet(ctx, tileNumber)
-			if err != nil {
-				return -1, nil, err
-			}
-
-			// Count the matches and sum the params in the second tile.
-			out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
-			if err != nil {
-				return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
-			}
-			var tileTwoCount int64
-			for p := range out {
-				tileTwoCount++
-				ps.AddParams(p)
-			}
-			// Use the larger of the two counts as our result.
-			if tileTwoCount > count {
-				count = tileTwoCount
-			}
-			// Use the larger of the two OPSs to work with.
-			if psTwo.Size() > ps.Size() {
-				ps = psTwo
-			}
+		// Use the larger of the two counts as our result.
+		if tileTwoCount > count {
+			count = tileTwoCount
 		}
-
-		// Now we have the ParamSet that corresponds to the query, but for each
-		// key in the query we need to go back and put in all the values that
-		// appear for that key since the user can make more selections in that
-		// key.
-		queryPlan, err := q.QueryPlan(ps)
-		if err != nil {
-			return -1, nil, err
+		// Use the larger of the two OPSs to work with.
+		if psTwo.Size() > ps.Size() {
+			largestParamSet = psTwo
 		}
-		for key := range queryPlan {
-			queryPlan[key] = ps[key]
-		}
-		ps = queryPlan
 	}
 
-	ps.Normalize()
-	return count, ps, nil
+	// Now we have the ParamSet that corresponds to the query, but for each
+	// key in the query we need to go back and put in all the values that
+	// appear for that key since the user can make more selections in that
+	// key.
+	queryPlan, err := q.QueryPlan(ps.Freeze())
+	if err != nil {
+		return -1, nil, err
+	}
+	for key := range queryPlan {
+		queryPlan[key] = ps[key]
+	}
+	queryPlan.Normalize()
+
+	return count, queryPlan.Freeze(), nil
 }
 
 // Validate that *builder faithfully implements the DataFrameBuidler interface.

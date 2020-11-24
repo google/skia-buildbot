@@ -5,6 +5,7 @@ export interface Go2TS {
 
 export interface IgnoreNil {
 	ParamSet: ParamSet;
+	ReadOnlyParamSet: ReadOnlyParamSet;
 }
 
 export interface Alert {
@@ -75,7 +76,7 @@ export interface FrameRequest {
 export interface DataFrame {
 	traceset: TraceSet;
 	header: (ColumnHeader | null)[] | null;
-	paramset: ParamSet;
+	paramset: ReadOnlyParamSet;
 	skip: number;
 }
 
@@ -133,7 +134,7 @@ export interface CountHandlerRequest {
 
 export interface CountHandlerResponse {
 	count: number;
-	paramset: ParamSet;
+	paramset: ReadOnlyParamSet;
 }
 
 export interface RangeRequest {
@@ -256,7 +257,7 @@ export interface TryBotResult {
 export interface TryBotResponse {
 	header: (ColumnHeader | null)[] | null;
 	results: TryBotResult[] | null;
-	paramset: ParamSet;
+	paramset: ReadOnlyParamSet;
 }
 
 export namespace progress {
@@ -276,6 +277,8 @@ export namespace progress {
 }
 
 export type ParamSet = { [key: string]: string[] };
+
+export type ReadOnlyParamSet = { [key: string]: string[] };
 
 export type ClusterAlgo = "kmeans" | "stepfit";
 

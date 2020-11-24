@@ -158,7 +158,7 @@ func TestLoader_ZeroLengthResponseFromTryBotStore_LoadReturnsSuccess(t *testing.
 	dfb := &mocks.DataFrameBuilder{}
 	df := &dataframe.DataFrame{
 		Header:   []*dataframe.ColumnHeader{},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 	dfb.On("NewNFromKeys", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(df, nil)
 
@@ -198,7 +198,7 @@ func TestLoader_OneTraceTryBotHappyPath_LoadReturnsSuccess(t *testing.T) {
 			{Offset: 8, Timestamp: gittest.StartTime.Unix() + 8},
 			{Offset: 9, Timestamp: gittest.StartTime.Unix() + 9},
 		},
-		ParamSet: paramtools.ParamSet{"config": []string{"gpu"}},
+		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"gpu"}},
 		TraceSet: types.TraceSet{
 			",config=gpu,": []float32{1, 1, 0.9, 0.9, 1.1, 1.1, 0.8, 0.8, 1.2, 1.2},
 		},
@@ -254,7 +254,7 @@ func TestLoader_TwoTraces_LoadReturnsSuccessAndResultsAreSorted(t *testing.T) {
 			{Offset: 6, Timestamp: gittest.StartTime.Unix() + 6},
 			{Offset: 7, Timestamp: gittest.StartTime.Unix() + 7},
 		},
-		ParamSet: paramtools.ParamSet{"config": []string{"gpu", "cpu"}},
+		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"gpu", "cpu"}},
 		TraceSet: types.TraceSet{
 			",config=cpu,": []float32{1, 1, 1, 1, 2, 2, 2, 0},
 			",config=gpu,": []float32{1, 1, 1, 1, 2, 2, 2, 0},
@@ -329,7 +329,7 @@ func TestLoader_UnknownTracesAreIgnored_LoadReturnsSuccess(t *testing.T) {
 			{Offset: 8, Timestamp: gittest.StartTime.Unix() + 8},
 			{Offset: 9, Timestamp: gittest.StartTime.Unix() + 9},
 		},
-		ParamSet: paramtools.ParamSet{"config": []string{"565", "8888"}},
+		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"565", "8888"}},
 		TraceSet: types.TraceSet{
 			",config=8888,": []float32{1, 1, 0.9, 0.9, 1.1, 1.1, 0.8, 0.8, 1.2, 1.2},
 		},
@@ -370,7 +370,7 @@ func TestLoader_UnknownTracesAreIgnored_LoadReturnsSuccess(t *testing.T) {
 	assert.Len(t, resp.Results, 1)
 	assert.Equal(t, expected, resp.Results[0])
 	assert.Equal(t, types.BadCommitNumber, df.Header[len(df.Header)-1].Offset)
-	assert.Equal(t, paramtools.ParamSet{"config": []string{"8888"}}, resp.ParamSet)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{"config": []string{"8888"}}, resp.ParamSet)
 }
 
 func TestLoader_InsufficientNonMissingDataSentinel_ResultIsSkipped(t *testing.T) {
@@ -392,7 +392,7 @@ func TestLoader_InsufficientNonMissingDataSentinel_ResultIsSkipped(t *testing.T)
 			{Offset: 8, Timestamp: gittest.StartTime.Unix() + 8},
 			{Offset: 9, Timestamp: gittest.StartTime.Unix() + 9},
 		},
-		ParamSet: paramtools.ParamSet{"config": []string{"565", "8888"}},
+		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"565", "8888"}},
 		TraceSet: types.TraceSet{
 			",config=8888,": []float32{1, 1, 0.9, 0.9, 1.1, 1.1, 0.8, 0.8, 1.2, 1.2},
 			",config=565,":  []float32{e, e, e, e, e, e, e, e, e, 1.2}, // Should be dropped from results since there isn't enough valid data.
@@ -434,7 +434,7 @@ func TestLoader_InsufficientNonMissingDataSentinel_ResultIsSkipped(t *testing.T)
 	assert.Len(t, resp.Results, 1)
 	assert.Equal(t, expected, resp.Results[0])
 	assert.Equal(t, types.BadCommitNumber, df.Header[len(df.Header)-1].Offset)
-	assert.Equal(t, paramtools.ParamSet{"config": []string{"8888"}}, resp.ParamSet)
+	assert.Equal(t, paramtools.ReadOnlyParamSet{"config": []string{"8888"}}, resp.ParamSet)
 }
 
 func TestLoader_InvalidTraceKeysAreIgnored_LoadReturnsSuccess(t *testing.T) {
@@ -444,7 +444,7 @@ func TestLoader_InvalidTraceKeysAreIgnored_LoadReturnsSuccess(t *testing.T) {
 	dfb := &mocks.DataFrameBuilder{}
 	df := &dataframe.DataFrame{
 		Header:   []*dataframe.ColumnHeader{},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.ReadOnlyParamSet{},
 		TraceSet: types.TraceSet{
 			"this-isnt-a-valid-key": []float32{1, 1, 0.9, 0.9, 1.1, 1.1, 0.8, 0.8, 1.2, 1.2},
 		},

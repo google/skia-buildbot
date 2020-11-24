@@ -46,12 +46,15 @@ func TestStepFit(t *testing.T) {
 				Timestamp: now.Add(4 * time.Minute).Unix(),
 			},
 		},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 		Skip:     0,
 	}
+	ps := paramtools.NewParamSet()
 	for key := range df.TraceSet {
-		df.ParamSet.AddParamsFromKey(key)
+		ps.AddParamsFromKey(key)
 	}
+	ps.Normalize()
+	df.ParamSet = ps.Freeze()
 
 	sum, err := StepFit(df, 4, 0.01, nil, 50, types.OriginalStep)
 	assert.NoError(t, err)

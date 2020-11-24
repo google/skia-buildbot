@@ -48,7 +48,7 @@ type DataFrameBuilder interface {
 
 	// PreflightQuery returns the number of traces that will match the query and
 	// the ParamSet of all the matching traces.
-	PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error)
+	PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ReadOnlyParamSet, error)
 }
 
 // ColumnHeader describes each column in a DataFrame.
@@ -67,10 +67,10 @@ type ColumnHeader struct {
 //
 // The name DataFrame was gratuitously borrowed from R.
 type DataFrame struct {
-	TraceSet types.TraceSet      `json:"traceset"`
-	Header   []*ColumnHeader     `json:"header"`
-	ParamSet paramtools.ParamSet `json:"paramset"`
-	Skip     int                 `json:"skip"`
+	TraceSet types.TraceSet              `json:"traceset"`
+	Header   []*ColumnHeader             `json:"header"`
+	ParamSet paramtools.ReadOnlyParamSet `json:"paramset"`
+	Skip     int                         `json:"skip"`
 }
 
 // BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.
@@ -83,7 +83,7 @@ func (d *DataFrame) BuildParamSet() {
 		sort.Strings(values)
 	}
 	paramSet.Normalize()
-	d.ParamSet = paramSet
+	d.ParamSet = paramSet.Freeze()
 }
 
 func simpleMap(n int) map[int]int {
@@ -162,8 +162,11 @@ func Join(a, b *DataFrame) *DataFrame {
 		a.Header = b.Header
 	}
 	ret.Skip = b.Skip
-	ret.ParamSet.AddParamSet(a.ParamSet)
-	ret.ParamSet.AddParamSet(b.ParamSet)
+	ps := paramtools.NewParamSet()
+	ps.AddParamSet(a.ParamSet)
+	ps.AddParamSet(b.ParamSet)
+	ps.Normalize()
+	ret.ParamSet = ps.Freeze()
 	traceLen := len(ret.Header)
 	for key, sourceTrace := range a.TraceSet {
 		if _, ok := ret.TraceSet[key]; !ok {
@@ -251,7 +254,7 @@ func NewEmpty() *DataFrame {
 	return &DataFrame{
 		TraceSet: types.TraceSet{},
 		Header:   []*ColumnHeader{},
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 	}
 }
 
@@ -269,7 +272,7 @@ func NewHeaderOnly(ctx context.Context, git *perfgit.Git, begin, end time.Time, 
 	return &DataFrame{
 		TraceSet: types.TraceSet{},
 		Header:   colHeaders,
-		ParamSet: paramtools.ParamSet{},
+		ParamSet: paramtools.NewReadOnlyParamSet(),
 		Skip:     skip,
 	}, nil
 }

@@ -21,7 +21,7 @@ type TraceStore interface {
 	GetLatestTile(context.Context) (types.TileNumber, error)
 
 	// GetParamSet returns the OPS for the given tile.
-	GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ParamSet, error)
+	GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error)
 
 	// GetSource returns the full URL of the file that contained the point at
 	// 'index' of trace 'traceId'.
