@@ -166,6 +166,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "33fce7c6_7e4de457",
+        "filename": "debugger-app/modules/android-layers-sk/android-layers-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-11-24T14:49:35Z",
+      "side": 1,
+      "message": "I\u0027ve made all my modules inherit from a new subclass of ElementSk which does automated cleanup of document event listeners.",
+      "parentUuid": "29fa10d6_8c10825e",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 29
+      },
+      "revId": "33374dc0b57f476860a1e0f5350523b88b9e3c7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "408e4089_afb8ec77",
