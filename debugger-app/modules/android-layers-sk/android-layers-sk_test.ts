@@ -2,6 +2,7 @@ import './index';
 import { AndroidLayersSk } from './android-layers-sk';
 import { LayerInfo } from '../commands-sk/commands-sk'
 import { LayerSummary } from '../debugger';
+import { DefaultMap } from '../default-map';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
@@ -41,16 +42,15 @@ describe('android-layers-sk', () => {
         }
       ];
       const maps: LayerInfo = {
-        uses: new Map<number, number[]>([
-          [111, [0, 4]],
-          [222, [4]],
-        ]),
+        uses: new DefaultMap<number, number[]>(() => []),
         names: new Map<number, string>([
           [111, 'pie crust'],
           [222, 'marmalade'],
           [333, 'apples'],
         ]),
       };
+      maps.uses.set(111, [0, 4]);
+      maps.uses.set(222, [4]);
       // note that layer 333 is neither updated or used on frame 4
       const frame = 4;
 

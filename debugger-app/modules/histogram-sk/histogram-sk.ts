@@ -18,7 +18,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 
 import {
   CommandsSk, CommandsSkHistogramEventDetail, HistogramEntry,
@@ -31,7 +31,7 @@ export interface HistogramSkToggleEventDetail {
   name: string,
 }
 
-export class HistogramSk extends ElementSk {
+export class HistogramSk extends ElementDocSk {
   private static template = (ele: HistogramSk) =>
     html`
 <details title="A table of the number of occurrences of each command." open>
@@ -77,7 +77,7 @@ export class HistogramSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    document.addEventListener('histogram-update', (e) => {
+    this.addDocumentEventListener('histogram-update', (e) => {
       const detail = (e as CustomEvent<CommandsSkHistogramEventDetail>).detail;
       // event may update one or both items
       if (detail.hist) {

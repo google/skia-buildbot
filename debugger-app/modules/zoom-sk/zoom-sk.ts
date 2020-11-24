@@ -21,7 +21,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {
   DebuggerPageSkLightDarkEventDetail,
   DebuggerPageSkCursorEventDetail,
@@ -32,7 +32,7 @@ function clamp(c: number): number {
   return Math.round(Math.max(0, Math.min(c || 0, 255)));
 }
 
-export class ZoomSk extends ElementSk {
+export class ZoomSk extends ElementDocSk {
   private static template = (ele: ZoomSk) =>
     html`
 <dl>
@@ -95,7 +95,7 @@ export class ZoomSk extends ElementSk {
 
     this._canvas = this.querySelector<HTMLCanvasElement>('canvas')!;
 
-    document.addEventListener('render-cursor', (e) => {
+    this.addDocumentEventListener('render-cursor', (e) => {
       const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
       // these three steps cannot happen in any other order, hence the repeated condition.
       if (!detail.onlyData) {
@@ -105,7 +105,7 @@ export class ZoomSk extends ElementSk {
       this._render(); // to update the textual readout of the cursor in the template
     });
 
-    document.addEventListener('light-dark', (e) => {
+    this.addDocumentEventListener('light-dark', (e) => {
       this._backdropStyle = (e as CustomEvent<DebuggerPageSkLightDarkEventDetail>).detail.mode;
       this._render();
     });

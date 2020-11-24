@@ -7,7 +7,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import {
   DebuggerPageSkLightDarkEventDetail,
   DebuggerPageSkCursorEventDetail,
@@ -16,7 +16,7 @@ import {
 
 export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
-export class DebugViewSk extends ElementSk {
+export class DebugViewSk extends ElementDocSk {
   private static template = (ele: DebugViewSk) =>
     html`
     <div class="horizontal-flex">
@@ -65,7 +65,7 @@ export class DebugViewSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    document.addEventListener('render-cursor', (e) => {
+    this.addDocumentEventListener('render-cursor', (e) => {
       const detail = (e as CustomEvent<DebuggerPageSkCursorEventDetail>).detail;
       if (!this._crossHairActive || detail.onlyData) {
         return;
@@ -73,7 +73,7 @@ export class DebugViewSk extends ElementSk {
       this._drawCrossHairAt(detail.position);
     });
 
-    document.addEventListener('light-dark', (e) => {
+    this.addDocumentEventListener('light-dark', (e) => {
       this._backdropStyle = (e as CustomEvent<DebuggerPageSkLightDarkEventDetail>).detail.mode;
       this._render();
     });
