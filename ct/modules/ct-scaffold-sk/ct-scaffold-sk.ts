@@ -19,6 +19,7 @@ import { fromObject } from 'common-sk/modules/query';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import * as ctfe_utils from '../ctfe_utils';
 
@@ -50,8 +51,30 @@ import 'elements-sk/icon/person-icon-sk';
 import 'elements-sk/icon/reorder-icon-sk';
 import 'elements-sk/icon/history-icon-sk';
 
+/**
+ * Moves the elements from one NodeList to another NodeList.
+ *
+ * @param {NodeList} from - The list we are moving from.
+ * @param {NodeList} to - The list we are moving to.
+ */
+function move(from: HTMLCollection | NodeList, to: HTMLElement) {
+  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
+}
 
-const template = (ele) => html`
+export class CtScaffoldSk extends ElementSk {
+  private _main: HTMLElement | null = null;
+
+  private _busyTaskCount: number = 0;
+
+  private _spinner: SpinnerSk | null = null;
+
+  private _task_queue_length: number = 0;
+
+  constructor() {
+    super(CtScaffoldSk.template);
+  }
+
+  private static template = (ele: CtScaffoldSk) => html`
 <app-sk>
   <header class=primary-container-themes-sk>
     <h1>${ele.appTitle}</h1>
@@ -98,26 +121,7 @@ const template = (ele) => html`
 </app-sk>
 `;
 
-/**
- * Moves the elements from one NodeList to another NodeList.
- *
- * @param {NodeList} from - The list we are moving from.
- * @param {NodeList} to - The list we are moving to.
- */
-function move(from, to) {
-  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
-}
-
-define('ct-scaffold-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._main = null;
-    this._busyTaskCount = 0;
-    this._task_queue_length = 0;
-    this._spinner = null;
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     // Don't call more than once.
     if (this._main) {
@@ -127,7 +131,7 @@ define('ct-scaffold-sk', class extends ElementSk {
     this.addEventListener('end-task', this._finishedTask);
     this.addEventListener('fetch-error', this._fetchError);
 
-    const allFetches = [];
+    const allFetches: Promise<void>[] = [];
     ctfe_utils.taskDescriptors.forEach((obj) => {
       const queryParams = {
         size: 1,
@@ -157,12 +161,16 @@ define('ct-scaffold-sk', class extends ElementSk {
 
     // Move the old children back under main.
     this._main = this.querySelector('main');
-    move(div.children, this._main);
+    if (this._main) {
+      move(div.children, this._main);
+    }
 
     // Move all future children under main also.
     const observer = new MutationObserver((mutList) => {
       mutList.forEach((mut) => {
-        move(mut.addedNodes, this._main);
+        if (this._main) {
+          move(mut.addedNodes, this._main);
+        }
       });
     });
     observer.observe(this, { childList: true });
@@ -170,7 +178,7 @@ define('ct-scaffold-sk', class extends ElementSk {
     Promise.all(allFetches).then(() => this._render());
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
     this.removeEventListener('begin-task', this._addBusyTask);
     this.removeEventListener('end-task', this._finishedTask);
@@ -178,20 +186,20 @@ define('ct-scaffold-sk', class extends ElementSk {
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle() { return this.getAttribute('app_title'); }
+  get appTitle(): string { return this.getAttribute('app_title') || ''; }
 
-  set appTitle(val) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) { this.setAttribute('app_title', val); }
 
   /** @prop {boolean} busy Indicates if there any on-going tasks (e.g. RPCs).
    *                  This also mirrors the status of the embedded spinner-sk.
    *                  Read-only. */
-  get busy() { return !!this._busyTaskCount; }
+  get busy(): boolean { return !!this._busyTaskCount; }
 
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for ease of use.
    */
-  get testingOffline() { return this.hasAttribute('testing_offline'); }
+  get testingOffline(): boolean { return this.hasAttribute('testing_offline'); }
 
-  set testingOffline(val) {
+  set testingOffline(val: boolean) {
     if (val) {
       this.setAttribute('testing_offline', '');
     } else {
@@ -204,7 +212,7 @@ define('ct-scaffold-sk', class extends ElementSk {
    * and should be in the "busy" state, if it isn't already.
    *
    */
-  _addBusyTask() {
+  _addBusyTask(): void {
     this._busyTaskCount++;
     if (this._spinner && this._busyTaskCount > 0) {
       this._spinner.active = true;
@@ -216,7 +224,7 @@ define('ct-scaffold-sk', class extends ElementSk {
    * for, the app will leave the "busy" state and emit the "busy-end" event.
    *
    */
-  _finishedTask() {
+  _finishedTask(): void {
     this._busyTaskCount--;
     if (this._busyTaskCount <= 0) {
       this._busyTaskCount = 0;
@@ -231,7 +239,7 @@ define('ct-scaffold-sk', class extends ElementSk {
    *  error: the error given to fetch.
    *  loading: A string explaining what was being fetched.
    */
-  _fetchError(e) {
+  _fetchError(e: any): void {
     const loadingWhat = e.detail.loading;
     e = e.detail.error;
     if (e.name !== 'AbortError') {
@@ -243,4 +251,6 @@ define('ct-scaffold-sk', class extends ElementSk {
     }
     this._finishedTask();
   }
-});
+}
+
+define('ct-scaffold-sk', CtScaffoldSk);
