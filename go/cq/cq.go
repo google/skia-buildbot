@@ -41,7 +41,6 @@ const (
 
 	// Thresholds after which errors are logged.
 	CQ_TRYBOT_DURATION_SECS_THRESHOLD = 2700
-	CQ_TRYBOTS_COUNT_THRESHOLD        = 50
 )
 
 var (
@@ -307,9 +306,6 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucketpb.Build, ger
 
 	cqTryBotsMutex.RLock()
 	cqTryBotsMutex.RUnlock()
-	if totalTriggeredCQBots > CQ_TRYBOTS_COUNT_THRESHOLD {
-		sklog.Errorf("CQCLsCountError: %d trybots have been triggered by %s. Threshold is %d trybots.", totalTriggeredCQBots, gerritURL, CQ_TRYBOTS_COUNT_THRESHOLD)
-	}
 	trybotNumDurationMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", c.metricName, INFLIGHT_METRIC_NAME, INFLIGHT_TRYBOT_NUM), map[string]string{"gerritURL": gerritURL})
 	trybotNumDurationMetric.Update(int64(totalTriggeredCQBots))
 	reportedMetrics[trybotNumDurationMetric] = struct{}{}
