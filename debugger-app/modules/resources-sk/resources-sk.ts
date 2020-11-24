@@ -7,10 +7,14 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { DebuggerPageSkLightDarkEventDetail } from '../debugger-page-sk/debugger-page-sk';
 import { CommandsSkJumpEventDetail } from '../commands-sk/commands-sk';
 import { TimelineSkMoveFrameEventDetail } from '../timeline-sk/timeline-sk';
+import { DefaultMap } from '../default-map';
+import {
+  AndroidLayersSkInspectLayerEventDetail
+} from '../android-layers-sk/android-layers-sk'
 
 import { SkpDebugPlayer } from '../debugger';
 
@@ -21,10 +25,12 @@ interface ImageItem {
   height: number;
   pngUri: string;
   // A map from commands to lists of frames
-  uses: Map<number, number[]>;
+  uses: DefaultMap<number, number[]>;
+  // An image use map for every layer id.
+  layeruses: DefaultMap<number, DefaultMap<number, number[]>>;
 }
 
-export class ResourcesSk extends ElementSk {
+export class ResourcesSk extends ElementDocSk {
   private static template = (ele: ResourcesSk) =>
     html`
       <p>${ele._list.length} images were stored in this file. Note that image indices here are
@@ -32,7 +38,8 @@ export class ResourcesSk extends ElementSk {
          If an image appears more than once, that indicates there were multiple copies of it in
          memory at record time. These indices appear in the 'imageIndex' field of commands using
          them. This metadata is only recorded for multi frame (mskp) files from android, so
-         nothing is shown here for other skps.
+         nothing is shown here for other skps. All images in SKPs are serialized as PNG regardless
+         of their original encoding.
       </p>
       <div class="main-box ${ ele._backdropStyle }">
         ${ele._list.map((item) => ResourcesSk.templateImage(ele, item))}
@@ -47,7 +54,8 @@ export class ResourcesSk extends ElementSk {
   private static templateImage = (ele: ResourcesSk, item: ImageItem) =>
     html`
       <div class="image-box">
-        <span class="resource-name ${ele._textContrast()}">
+        <span class="resource-name ${ele._textContrast()}"
+         @click=${()=>{ele.selectItem(item.index)} /* makes it easier to select 1x1 images*/}>
           ${ele._displayName(item)}
         </span><br>
         <img src="${ item.pngUri }" id="res-img-${item.index}"
@@ -59,12 +67,18 @@ export class ResourcesSk extends ElementSk {
     html`
       <b>${ item.index }</b><br>
       size: (${ item.width }, ${ item.height })<br>
-      Usage: ${ item.uses.size > 0
-        ? html`<table class="usage-table">${ ele._usageTable(item) }</table>`
+      Usage in top-level skp
+      ${ item.uses.size > 0
+        ? html`<table class="usage-table">${ ele._usageTable(item.uses) }</table>`
         : html`<p>No uses found in any drawImage* commands. May occur in shaders.</p>`
+      }
+      Usage in offscreen buffers
+      ${ item.layeruses.size > 0
+        ? html`<table class="usage-table">${ ele._layerUsageTable(item.layeruses) }</table>`
+        : html`<p>Not used</p>`
       }`;
 
-  private _list: ImageItem[] = new Array<ImageItem>();
+  private _list: ImageItem[] = [];
   private _selection: number | null = null;
   private _backdropStyle = 'light-checkerboard';
 
@@ -76,10 +90,16 @@ export class ResourcesSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    document.addEventListener('light-dark', (e) => {
+    this.addDocumentEventListener('light-dark', (e) => {
       this._backdropStyle = (e as CustomEvent<DebuggerPageSkLightDarkEventDetail>).detail.mode;
       this._render();
     });
+  }
+
+  reset() {
+    this._list = [];
+    this._selection = null;
+    this._render();
   }
 
   // Load resource data for current file from player and build the array that
@@ -99,19 +119,33 @@ export class ResourcesSk extends ElementSk {
         width: info.width,
         height: info.height,
         pngUri: player.getImageResource(i),
-        uses: new Map<number, number[]>(), // this will be populated below
+        // this will be populated below
+        uses: new DefaultMap<number, number[]>(() => []),
+        // one use map for every layer.
+        layeruses: new DefaultMap<number, DefaultMap<number, number[]>>(
+          () => new DefaultMap<number, number[]>(() => [])),
       });
     }
 
+    // Collect uses at top level
     for (let fp = 0; fp < player.getFrameCount(); fp++) {
-      const oneFrameUseMap = player.imageUseInfoForFrameJs(fp);
+      const oneFrameUseMap = player.imageUseInfo(fp, -1);
       for (const [imageIdStr, listOfCommands] of Object.entries(oneFrameUseMap)) {
         const id = parseInt(imageIdStr);
         for (const com of (listOfCommands as number[])) {
-          if (!(this._list[id].uses.has(com))) {
-            this._list[id].uses.set(com, []);
-          }
-          this._list[id].uses.get(com)!.push(fp);
+          this._list[id].uses.get(com).push(fp);
+        }
+      }
+    }
+
+    // collect uses for every layer
+    const keys = player.getLayerKeys();
+    for (let key of keys) {
+      const useMap = player.imageUseInfo(key.frame, key.nodeId);
+      for (const [imageIdStr, listOfCommands] of Object.entries(useMap)) {
+        const id = parseInt(imageIdStr);
+        for (const com of (listOfCommands as number[])) {
+          this._list[id].layeruses.get(key.nodeId).get(com).push(key.frame);
         }
       }
     }
@@ -140,26 +174,43 @@ export class ResourcesSk extends ElementSk {
     }
   }
 
-  private _usageTable(item: ImageItem) {
+  // Supply a non-negative nodeId to make jump actions go to a particular layer
+  private _usageTable(uses: Map<number, number[]>, nodeId: number = -1) {
     const out = new Array();
-    item.uses.forEach((frames: number[], key: number) => {
+    uses.forEach((frames: number[], key: number) => {
       out.push(html`
       <tr>
-        <td class="leftmost-cell"> Command <b>${ key }</b> on frames: </td>
+        <td class="command-cell"> Command <b>${ key }</b> on frames: </td>
         ${ frames.map((f : number) => html`
-          <td title="Jump to command ${ key } frame ${ f }"
-            @click=${()=>{this._jump(f, key)}}>${ f }</td>`) }
+          <td title="Jump to command ${ key } frame ${ f } ${
+              nodeId >= 0 ? 'on layer '+nodeId : ''
+            }"
+            class="clickable-cell"
+            @click=${()=>{this._jump(f, key, nodeId)}}>${ f }</td>`) }
       </tr>`)
     })
     return out;
   }
 
-  private _jump(frame: number, command: number) {
-    console.log(`Jump to command ${ command } frame ${ frame }`);
+  private _layerUsageTable(layeruses: DefaultMap<number, DefaultMap<number, number[]>>) {
+    const out = new Array();
+    layeruses.forEach((usemap: DefaultMap<number, number[]>, nodeid: number) => {
+      out.push(html`
+      <tr><td class="layer-cell"><b>Layer ${ nodeid }</b></td></tr>
+      ${ this._usageTable(usemap, nodeid) }`)
+    })
+    return out;
+  }
+
+  private _jump(frame: number, command: number, nodeId: number) {
+    // Note that the app may already be in the inspector for a layer.
+    // even for non-layer jumps, this is an appropriate way to get there,
+    // becuase it will close the inspector if needed.
+    // debugger-page-sk will move the frame when handling this event.
     this.dispatchEvent(
-      new CustomEvent<TimelineSkMoveFrameEventDetail>(
-        'set-frame', {
-          detail: {frame: frame},
+      new CustomEvent<AndroidLayersSkInspectLayerEventDetail>(
+        'jump-inspect-layer', {
+          detail: {id: nodeId, frame: frame},
           bubbles: true,
         }));
     this.dispatchEvent(
