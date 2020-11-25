@@ -14,7 +14,7 @@ import { Description } from '../json';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
