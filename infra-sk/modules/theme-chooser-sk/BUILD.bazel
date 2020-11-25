@@ -23,6 +23,9 @@ karma_test(
 
 sk_page(
     name = "theme-chooser-sk-demo",
+    html_file = "theme-chooser-sk-demo.html",
+    ts_entry_point = "theme-chooser-sk-demo.ts",
+    scss_entry_point = "theme-chooser-sk-demo.scss",
     sk_element_deps = [":theme-chooser-sk"],
 )
 
