@@ -1,2 +1,2 @@
-import './query-values-sk.ts'
-import './query-values-sk.scss'
+import './query-values-sk';
+import './query-values-sk.scss';

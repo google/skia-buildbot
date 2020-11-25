@@ -1,5 +1,4 @@
 import './index';
-
 import { QuerySk, QuerySkQueryChangeEventDetail } from './query-sk';
 
 const q = document.querySelectorAll<QuerySk>('query-sk')!;
