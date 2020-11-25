@@ -8,7 +8,9 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
  *
  * Without this, Rollup chokes when it sees Webpack-style imports such as:
  *
- *   import './styles.scss';
+ *     import './styles.scss';
+ *
+ * We should delete this plugin once we're off Webpack and all such imports have been removed.
  *
  * See https://rollupjs.org/guide/en/#plugin-development for reference.
  */
@@ -32,7 +34,11 @@ function commentOutCssImports() {
 
 export default {
   plugins: [
-    resolve(),
+    resolve({
+      // Use the "browser" property in package.json files to determine which files to bundle.
+      // See https://github.com/rollup/plugins/tree/master/packages/node-resolve#browser.
+      browser: true,
+    }),
     commonjs(),
     sourcemaps(),
     commentOutCssImports(),

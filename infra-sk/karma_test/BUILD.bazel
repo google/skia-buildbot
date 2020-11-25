@@ -1,0 +1,4 @@
+exports_files(
+    ["karma.conf.js"],
+    visibility = ["//visibility:public"],
+)
