@@ -4,6 +4,5 @@ sk_page(
     name = "index",
     assets_serving_path = "/static",
     nonce = "{% .Nonce %}",
-    sass_deps = ["//machine/modules/machine-server-sk:styles"],
-    deps = ["//machine/modules/machine-server-sk"],
+    sk_element_deps = ["//machine/modules/machine-server-sk:machine-server-sk"],
 )
