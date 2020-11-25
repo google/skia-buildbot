@@ -15,7 +15,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
 import {
   MultiSelectSk,

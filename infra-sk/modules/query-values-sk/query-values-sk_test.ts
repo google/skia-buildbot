@@ -1,4 +1,4 @@
-import './index';
+import './query-values-sk';
 import {
   QueryValuesSk,
   QueryValuesSkQueryValuesChangedEventDetail,

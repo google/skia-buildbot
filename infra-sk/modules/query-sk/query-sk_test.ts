@@ -1,9 +1,9 @@
-import './index';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
 import { removePrefix, QuerySk } from './query-sk';
 import { QuerySkPO } from './query-sk_po';
 import { setUpElementUnderTest } from '../test_util';
 import { assert } from 'chai';
+import './query-sk';
 
 const paramset: ParamSet = {
   arch: ['WASM', 'arm', 'arm64', 'asmjs', 'wasm', 'x86', 'x86_64'],

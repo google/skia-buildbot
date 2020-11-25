@@ -1,9 +1,8 @@
-import './index';
-
 import { setUpElementUnderTest, eventPromise, noEventPromise } from '../../../infra-sk/modules/test_util';
 import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';
 import { ParamSet } from 'common-sk/modules/query';
+import './paramset-sk';
 
 const expect = chai.expect;
 
