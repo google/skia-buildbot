@@ -39,6 +39,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
         templated_args = [
             "--require ts-node/register",
             "--timeout 60000",
+            "--colors",
         ] + args,
         tags = tags,
     )
