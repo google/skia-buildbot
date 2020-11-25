@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
-load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
+load("//infra-sk/karma_test:index.bzl", "karma_test")
 
 ts_library(
     name = "test_util",
@@ -13,24 +13,11 @@ ts_library(
     ],
 )
 
-ts_library(
-    name = "test_util_test_lib",
+karma_test(
+    name = "test_util_test",
     srcs = ["test_util_test.ts"],
     deps = [
         ":test_util",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/mocha",
-        "@infra-sk_npm//@types/sinon",
         "@infra-sk_npm//common-sk",
     ],
-)
-
-karma_mocha_test(
-    name = "test_util_test",
-    srcs = [
-        "//infra-sk:chai_umd",
-        "//infra-sk:common-sk_umd",
-        "//infra-sk:sinon_umd",
-    ],
-    deps = [":test_util_test_lib"],
 )
