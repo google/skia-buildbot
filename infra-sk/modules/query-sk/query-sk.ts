@@ -21,16 +21,15 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
 import { SelectSk } from 'elements-sk/select-sk/select-sk';
-import { ElementSk } from '../ElementSk';
+import { ElementSk } from '../ElementSk/ElementSk';
 import {
   QueryValuesSk,
   QueryValuesSkQueryValuesChangedEventDetail,
 } from '../query-values-sk/query-values-sk';
 
-import '../query-values-sk';
+import '../query-values-sk/query-values-sk';
 import 'elements-sk/select-sk';
 import 'elements-sk/styles/buttons';
-import { QuerySkPO } from './query-sk_po';
 
 // The delay in ms before sending a delayed query-change event.
 const DELAY_MS = 500;
