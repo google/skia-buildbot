@@ -37,7 +37,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../ElementSk';
+import { ElementSk } from '../ElementSk/ElementSk';
 import { ParamSet } from 'common-sk/modules/query';
 
 export interface ParamSetSkClickEventDetail {

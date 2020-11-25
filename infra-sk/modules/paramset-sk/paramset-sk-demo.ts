@@ -1,6 +1,6 @@
-import './index';
 import { ParamSetSk, ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSet } from 'common-sk/modules/query';
+import './paramset-sk';
 
 const paramSet1: ParamSet = {
   arch: ['Arm7', 'Arm64', 'x86_64', 'x86'],
