@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f89668cc_d9826df5",
+        "filename": "codereview-watcher/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "release: should depend on build to avoid pushing a stale exe.",
+      "range": {
+        "startLine": 7,
+        "startChar": 1,
+        "endLine": 7,
+        "endChar": 8
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84102a08_729d3eb4",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "Use util.RepeatCtx, which doesn\u0027t return.",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 8
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "edf3573c_b283781b",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "This loop needs metrics, such as liveness, so alerts can be built around it.",
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e24b1a6_1f9d55b1",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "Move this large block of text out into a const.\n\nAlso consider using a text/template instead of Sprintf to make it easier to maintain.",
+      "range": {
+        "startLine": 116,
+        "startChar": 23,
+        "endLine": 116,
+        "endChar": 29
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5471d383_803e5ac8",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "include \u0027skia-buildbot\u0027 in msg to differentiate from a failure below on \u0027skia\u0027.",
+      "range": {
+        "startLine": 232,
+        "startChar": 45,
+        "endLine": 232,
+        "endChar": 51
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "66e2c90c_5cc727ba",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "This can be dropped when you move to util.RepeatCtx.\n\nIf you do need to stop a program from exiting use\n\n   select{}\n\nwhich doesn\u0027t consume any CPU.",
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c201f563_140afa8b",
+        "filename": "codereview-watcher/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:37:14Z",
+      "side": 1,
+      "message": "Since that var is *PullRequestData, do you need to pass \u0026prData to doc.DataTo()?",
+      "range": {
+        "startLine": 79,
+        "startChar": 11,
+        "endLine": 80,
+        "endChar": 29
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
