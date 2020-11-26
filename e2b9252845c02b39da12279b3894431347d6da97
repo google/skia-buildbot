@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "85233f6a_3329ad69",
+        "filename": "go/gerrit/gerrit_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-11-26T15:21:13Z",
+      "side": 1,
+      "message": "format one key per line\n\n {\n   status: ...,\n   messages: []...",
+      "range": {
+        "startLine": 335,
+        "startChar": 0,
+        "endLine": 335,
+        "endChar": 273
+      },
+      "revId": "e2b9252845c02b39da12279b3894431347d6da97",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
