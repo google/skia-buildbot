@@ -92,6 +92,51 @@ func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Param
 	return params, values
 }
 
+// GetSamplesFromLegacyFormat returns a map from trace id to the slice of
+// samples for that test.
+func GetSamplesFromLegacyFormat(b *format.BenchData) map[string][]float64 {
+	ret := map[string][]float64{}
+	for testName, allConfigs := range b.Results {
+		for configName, result := range allConfigs {
+			key := paramtools.Params(b.Key).Copy()
+			key["test"] = testName
+			key["config"] = configName
+			key.Add(paramtools.Params(b.Options))
+			// If there is an options map inside the result add it to the params.
+			if resultOptions, ok := result["options"]; ok {
+				if opts, ok := resultOptions.(map[string]interface{}); ok {
+					for k, vi := range opts {
+						// Ignore the very long and not useful GL_ values, we can retrieve
+						// them later via ptracestore.Details.
+						if strings.HasPrefix(k, "GL_") {
+							continue
+						}
+						if s, ok := vi.(string); ok {
+							key[k] = s
+						}
+					}
+				}
+			}
+			iSamples, ok := result["samples"]
+			if !ok {
+				continue
+			}
+
+			traceID, err := query.MakeKey(query.ForceValid(key))
+			if err != nil {
+				continue
+			}
+			iSlice := iSamples.([]interface{})
+			values := make([]float64, len(iSlice))
+			for i, ix := range iSlice {
+				values[i] = ix.(float64)
+			}
+			ret[traceID] = values
+		}
+	}
+	return ret
+}
+
 // getParamsAndValuesFromVersion1Format returns two parallel slices, each slice contains
 // the params and then the float for a single value of a trace.
 func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params, []float32) {
