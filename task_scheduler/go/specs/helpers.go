@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/pmezard/go-difflib/difflib"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 )
@@ -23,6 +24,11 @@ import (
 var (
 	// Flags.
 	test = flag.Bool("test", false, "Run in test mode: verify that the output hasn't changed.")
+
+	// EmptyCasSpec is a CasSpec with no contents.
+	EmptyCasSpec = &CasSpec{
+		Digest: rbe.EmptyDigest,
+	}
 )
 
 // GetCheckoutRoot returns the path of the root of the checkout.
@@ -75,8 +81,9 @@ func NewTasksCfgBuilder() (*TasksCfgBuilder, error) {
 
 	// Create the config.
 	cfg := &TasksCfg{
-		Jobs:  map[string]*JobSpec{},
-		Tasks: map[string]*TaskSpec{},
+		CasSpecs: map[string]*CasSpec{},
+		Jobs:     map[string]*JobSpec{},
+		Tasks:    map[string]*TaskSpec{},
 	}
 
 	root, err := GetCheckoutRoot()
@@ -191,6 +198,22 @@ func (b *TasksCfgBuilder) MustGetCipdPackageFromAsset(assetName string) *CipdPac
 		sklog.Fatal(err)
 	}
 	return pkg
+}
+
+// AddCasSpec adds a CasSpec to the TasksCfgBuilder.
+func (b *TasksCfgBuilder) AddCasSpec(name string, c *CasSpec) error {
+	if _, ok := b.cfg.CasSpecs[name]; ok {
+		return fmt.Errorf("Config already contains a CasSpec named %q", name)
+	}
+	b.cfg.CasSpecs[name] = c
+	return nil
+}
+
+// MustAddCasSpec adds a CasSpec to the TasksCfgBuilder and panics on failure.
+func (b *TasksCfgBuilder) MustAddCasSpec(name string, c *CasSpec) {
+	if err := b.AddCasSpec(name, c); err != nil {
+		sklog.Fatal(err)
+	}
 }
 
 // Finish validates and writes out the TasksCfg, or, if the --test flag is
