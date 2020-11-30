@@ -28,11 +28,11 @@
     "childPath": "chromeos/profiles/orderfile.newest.txt",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
-    "parentBranch": "refs/branch-heads/4280", // m87
+    "parentBranch": "refs/branch-heads/4324", // m88
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/orderfile.newest.txt",
-    "versionRegex": "^chromeos-chrome-orderfile-field-87-\\d+.\\d+-(\\d+)-benchmark-87.(\\d+).4280.(\\d+)-r(\\d+).orderfile.xz$"
+    "versionRegex": "^chromeos-chrome-orderfile-field-88-\\d+.\\d+-(\\d+)-benchmark-88.(\\d+).4324.(\\d+)-r(\\d+).orderfile.xz$"
   },
   "kubernetes": {
     "cpu": "1",
