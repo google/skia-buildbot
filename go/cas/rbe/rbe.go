@@ -23,6 +23,11 @@ const (
 	rbeService = "remotebuildexecution.googleapis.com:443"
 )
 
+var (
+	// EmptyDigest is the digest of an empty entry in RBE-CAS.
+	EmptyDigest = digest.Empty.String()
+)
+
 // StringToDigest splits the digest string into a digest.Digest instance.
 func StringToDigest(str string) (string, int64, error) {
 	digest, err := digest.NewFromString(str)

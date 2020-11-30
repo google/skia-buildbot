@@ -312,7 +312,7 @@ type TaskSpec struct {
 	IoTimeout time.Duration `json:"io_timeout_ns,omitempty"`
 
 	// Isolate is the name of the isolate file used by this task.
-	Isolate string `json:"isolate"`
+	Isolate string `json:"isolate,omitempty"`
 
 	// MaxAttempts is the maximum number of attempts for this TaskSpec. If
 	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
