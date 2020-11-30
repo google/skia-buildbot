@@ -47,6 +47,28 @@ func TestGetAuthenticatedUser(t *testing.T) {
 	require.NoError(t, getUserErr)
 }
 
+func TestListOpenPullRequests(t *testing.T) {
+	unittest.SmallTest(t)
+	prNum1 := 1
+	prNum2 := 101
+	respBody := []byte(testutils.MarshalJSON(t, []*github.PullRequest{
+		{Number: &prNum1},
+		{Number: &prNum2},
+	}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/pulls").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	require.NoError(t, err)
+	prs, getPullErr := githubClient.ListOpenPullRequests()
+	require.NoError(t, getPullErr)
+	require.Equal(t, 2, len(prs))
+	require.Equal(t, prNum1, prs[0].GetNumber())
+	require.Equal(t, prNum2, prs[1].GetNumber())
+}
+
 func TestGetPullRequest(t *testing.T) {
 	unittest.SmallTest(t)
 	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{State: &CLOSED_STATE}))
