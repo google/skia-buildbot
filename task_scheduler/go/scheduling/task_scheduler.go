@@ -18,6 +18,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs"
@@ -96,6 +97,8 @@ type TaskScheduler struct {
 	diagInstance        string
 	isolateCache        *isolate_cache.Cache
 	isolateClient       *isolate.Client
+	rbeCas              cas.CAS
+	rbeCasInstance      string
 	jCache              cache.JobCache
 	lastScheduled       time.Time // protected by queueMtx.
 
@@ -121,7 +124,7 @@ type TaskScheduler struct {
 	window                *window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, rbeCas cas.CAS, rbeCasInstance string, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -161,6 +164,8 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		pubsubTopic:           pubsubTopic,
 		queue:                 []*taskCandidate{},
 		queueMtx:              sync.RWMutex{},
+		rbeCas:                rbeCas,
+		rbeCasInstance:        rbeCasInstance,
 		repos:                 repos,
 		swarming:              swarmingClient,
 		taskCfgCache:          taskCfgCache,
@@ -175,10 +180,19 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 
 // Close cleans up resources used by the TaskScheduler.
 func (s *TaskScheduler) Close() error {
-	if err := s.taskCfgCache.Close(); err != nil {
-		return err
+	err1 := s.taskCfgCache.Close()
+	err2 := s.isolateCache.Close()
+	err3 := s.rbeCas.Close()
+	if err1 != nil {
+		return skerr.Wrap(err1)
 	}
-	return s.isolateCache.Close()
+	if err2 != nil {
+		return skerr.Wrap(err2)
+	}
+	if err3 != nil {
+		return skerr.Wrap(err3)
+	}
+	return nil
 }
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks. beforeMainLoop
@@ -532,6 +546,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					continue
 				}
 				c = &taskCandidate{
+					CasUsesIsolate: true,
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
@@ -539,6 +554,15 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					Jobs:               nil,
 					TaskKey:            key,
 					TaskSpec:           spec,
+				}
+				if len(taskCfg.CasSpecs) > 0 {
+					casSpec, ok := taskCfg.CasSpecs[spec.CasSpec]
+					if !ok {
+						sklog.Errorf("Task %s depends on non-existent CasSpec %s", tsName, spec.CasSpec)
+						continue
+					}
+					c.CasDigests = append(c.CasDigests, casSpec.Digest)
+					c.CasUsesIsolate = false
 				}
 				candidates[key] = c
 			}
@@ -637,7 +661,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 			hashes = append(hashes, hash)
 			parentTaskIds = append(parentTaskIds, id)
 		}
-		c.IsolatedHashes = hashes
+		c.CasDigests = append(c.CasDigests, hashes...)
 		sort.Strings(parentTaskIds)
 		c.ParentTaskIds = parentTaskIds
 
@@ -1086,33 +1110,49 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 
 	isolatedCandidates := make([]*taskCandidate, 0, len(candidates))
 	isolatedFiles := make([]*isolated.Isolated, 0, len(candidates))
+	rv := make([]*taskCandidate, 0, len(candidates))
 	var errs *multierror.Error
 	for _, c := range candidates {
-		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
+		if c.CasUsesIsolate {
+			isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
+			if err != nil {
+				errStr := err.Error()
+				c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
+				errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
+				continue
+			}
+			for _, inc := range c.CasDigests {
+				isolatedFile.Includes = append(isolatedFile.Includes, isolated.HexDigest(inc))
+			}
+			isolatedFiles = append(isolatedFiles, isolatedFile)
+			isolatedCandidates = append(isolatedCandidates, c)
+			rv = append(rv, c)
+		} else {
+			digest, err := s.rbeCas.Merge(ctx, c.CasDigests)
+			if err != nil {
+				errStr := err.Error()
+				c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
+				errs = multierror.Append(errs, fmt.Errorf("Failed to merge CAS inputs: %s", errStr))
+				continue
+			}
+			c.CasInput = digest
+			rv = append(rv, c)
+		}
+	}
+	if len(isolatedFiles) > 0 {
+		hashes, err := s.isolateClient.ReUploadIsolatedFiles(ctx, isolatedFiles)
 		if err != nil {
-			errStr := err.Error()
-			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
-			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
-			continue
+			return nil, fmt.Errorf("Failed to re-upload Isolated files: %s", err)
 		}
-		for _, inc := range c.IsolatedHashes {
-			isolatedFile.Includes = append(isolatedFile.Includes, isolated.HexDigest(inc))
+		if len(hashes) != len(isolatedFiles) {
+			return nil, fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(isolatedFiles))
 		}
-		isolatedFiles = append(isolatedFiles, isolatedFile)
-		isolatedCandidates = append(isolatedCandidates, c)
-	}
-	hashes, err := s.isolateClient.ReUploadIsolatedFiles(ctx, isolatedFiles)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to re-upload Isolated files: %s", err)
-	}
-	if len(hashes) != len(isolatedFiles) {
-		return nil, fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(isolatedFiles))
-	}
-	for idx, c := range isolatedCandidates {
-		c.IsolatedInput = hashes[idx]
+		for idx, c := range isolatedCandidates {
+			c.CasInput = hashes[idx]
+		}
 	}
 
-	return isolatedCandidates, errs.ErrorOrNil()
+	return rv, errs.ErrorOrNil()
 }
 
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
@@ -1139,7 +1179,11 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				return
 			}
 			diag.TaskId = t.Id
-			req := candidate.MakeTaskRequest(t.Id, s.isolateClient.ServerURL(), s.pubsubTopic)
+			req, err := candidate.MakeTaskRequest(t.Id, s.rbeCasInstance, s.isolateClient.ServerURL(), s.pubsubTopic)
+			if err != nil {
+				recordErr("Failed to create task request", err)
+				return
+			}
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
