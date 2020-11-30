@@ -9,6 +9,8 @@ import (
 	"path"
 	"strconv"
 	"testing"
+
+	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // mustReadPort reads environment server's TCP port from $ENV_DIR/port.
@@ -29,6 +31,16 @@ func mustReadPort() int {
 }
 
 func TestOnEnv(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// If this is running via "go test" instead of "bazel test" (e.g. Infra-Experimental-Small-Linux)
+	// then the environment binary is not running, so there is nothing to test.
+	if os.Getenv("TEST_TARGET") == "" {
+		// Make it clear in the "go test -v" output that we are skipping the real tests.
+		t.Run("running outside Bazel, nothing to test", func(t *testing.T) {})
+		return
+	}
+
 	tests := []struct {
 		path               string
 		expectedStatusCode int
