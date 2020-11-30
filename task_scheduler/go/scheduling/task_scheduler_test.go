@@ -17,8 +17,8 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/cas/mocks"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	skfs "go.skia.org/infra/go/firestore"
@@ -194,6 +194,14 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 		})
 	}
 
+	var hash string
+	var size int64
+	if task.IsolatedOutput != "" {
+		var err error
+		hash, size, err = rbe.StringToDigest(task.IsolatedOutput)
+		require.NoError(t, err)
+	}
+
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
 			CreatedTs: ts(task.Created),
@@ -213,8 +221,12 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 			CreatedTs:   ts(task.Created),
 			CompletedTs: ts(task.Finished),
 			Failure:     failed,
-			OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
-				Isolated: task.IsolatedOutput,
+			CasOutputRoot: &swarming_api.SwarmingRpcsCASReference{
+				CasInstance: "fake-cas-instance",
+				Digest: &swarming_api.SwarmingRpcsDigest{
+					Hash:      hash,
+					SizeBytes: size,
+				},
 			},
 			StartedTs: ts(task.Started),
 			State:     state,
@@ -225,14 +237,8 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 }
 
 // Insert the given data into the caches.
-func fillCaches(t sktest.TestingT, ctx context.Context, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, rs types.RepoState, cfg *specs.TasksCfg, isolates map[string]*isolated.Isolated) {
+func fillCaches(t sktest.TestingT, ctx context.Context, taskCfgCache *task_cfg_cache.TaskCfgCache, rs types.RepoState, cfg *specs.TasksCfg) {
 	require.NoError(t, taskCfgCache.Set(ctx, rs, cfg, nil))
-	require.NoError(t, isolateCache.SetIfUnset(ctx, rs, func(ctx context.Context) (*isolate_cache.CachedValue, error) {
-		return &isolate_cache.CachedValue{
-			Isolated: isolates,
-			Error:    "",
-		}, nil
-	}))
 }
 
 // Add jobs for the given RepoStates. Assumes that the RepoStates have already
@@ -252,7 +258,7 @@ func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ..
 }
 
 // Common setup for TaskScheduler tests.
-func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
+func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, *mocks.CAS, func()) {
 	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -286,18 +292,23 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	require.NoError(t, err)
 
 	// Cache the RepoStates. This is normally done by the JobCreator.
-	fillCaches(t, ctx, taskCfgCache, isolateCache, rs1, tcc_testutils.TasksCfg1, tcc_testutils.IsolatedsRS1)
-	fillCaches(t, ctx, taskCfgCache, isolateCache, rs2, tcc_testutils.TasksCfg2, tcc_testutils.IsolatedsRS2)
+	fillCaches(t, ctx, taskCfgCache, rs1, tcc_testutils.TasksCfg1)
+	fillCaches(t, ctx, taskCfgCache, rs2, tcc_testutils.TasksCfg2)
 
 	cas := &mocks.CAS{}
 	cas.On("Close").Return(nil)
+	// Go ahead and mock the single-input merge calls.
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.CompileCASDigest}).Return(tcc_testutils.CompileCASDigest, nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
+
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
 	insertJobs(t, ctx, s, rs1, rs2)
 
-	return ctx, gb, d, swarmingClient, s, urlMock, func() {
+	return ctx, gb, d, swarmingClient, s, urlMock, cas, func() {
 		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, tmp)
 		btCleanupIsolate()
@@ -331,7 +342,7 @@ func lastDiagnostics(t *testing.T, s *TaskScheduler) taskSchedulerMainLoopDiagno
 }
 
 func TestFindTaskCandidatesForJobs(t *testing.T) {
-	ctx, _, _, _, s, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	test := func(jobs []*types.Job, expect map[types.TaskKey]*taskCandidate) {
@@ -361,22 +372,22 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs1.Copy(),
 	}
 	tc1 := &taskCandidate{
-		Jobs: []*types.Job{j1},
+		CasDigests: []string{tcc_testutils.CompileCASDigest},
+		Jobs:       []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      tcc_testutils.BuildTaskName,
 		},
-		TaskSpec:       cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
-		CasUsesIsolate: true,
+		TaskSpec: cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
 	tc2 := &taskCandidate{
-		Jobs: []*types.Job{j1},
+		CasDigests: []string{tcc_testutils.TestCASDigest},
+		Jobs:       []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      tcc_testutils.TestTaskName,
 		},
-		TaskSpec:       cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
-		CasUsesIsolate: true,
+		TaskSpec: cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 
 	test([]*types.Job{j1}, map[types.TaskKey]*taskCandidate{
@@ -403,31 +414,31 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs2,
 	}
 	tc3 := &taskCandidate{
-		Jobs: []*types.Job{j2, j3},
+		CasDigests: []string{tcc_testutils.CompileCASDigest},
+		Jobs:       []*types.Job{j2, j3},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.BuildTaskName,
 		},
-		TaskSpec:       cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
-		CasUsesIsolate: true,
+		TaskSpec: cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
 	tc4 := &taskCandidate{
-		Jobs: []*types.Job{j2},
+		CasDigests: []string{tcc_testutils.TestCASDigest},
+		Jobs:       []*types.Job{j2},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.TestTaskName,
 		},
-		TaskSpec:       cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
-		CasUsesIsolate: true,
+		TaskSpec: cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 	tc5 := &taskCandidate{
-		Jobs: []*types.Job{j3},
+		CasDigests: []string{tcc_testutils.PerfCASDigest},
+		Jobs:       []*types.Job{j3},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.PerfTaskName,
 		},
-		TaskSpec:       cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
-		CasUsesIsolate: true,
+		TaskSpec: cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
 	}
 	allCandidates := map[types.TaskKey]*taskCandidate{
 		tc1.TaskKey: tc1,
@@ -461,7 +472,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 }
 
 func TestFilterTaskCandidates(t *testing.T) {
-	_, _, _, _, s, _, cleanup := setup(t)
+	_, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	c1 := rs1.Revision
@@ -706,7 +717,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 }
 
 func TestProcessTaskCandidate(t *testing.T) {
-	ctx, _, _, _, s, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	cache := newCacheWrapper(s.tCache)
@@ -833,7 +844,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 }
 
 func TestRegularJobRetryScoring(t *testing.T) {
-	ctx, _, _, _, s, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	cache := newCacheWrapper(s.tCache)
@@ -946,7 +957,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 }
 
 func TestProcessTaskCandidates(t *testing.T) {
-	ctx, _, _, _, s, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	ts := time.Now()
@@ -1608,7 +1619,7 @@ func TestTimeDecay24Hr(t *testing.T) {
 }
 
 func TestRegenerateTaskQueue(t *testing.T) {
-	ctx, _, _, _, s, _, cleanup := setup(t)
+	ctx, _, _, _, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Ensure that the queue is initially empty.
@@ -1722,7 +1733,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	t3 := makeTask(tcc_testutils.TestTaskName, rs1.Repo, c2)
 	t3.Commits = []string{c2, c1}
 	t3.Status = types.TASK_STATUS_SUCCESS
-	t3.IsolatedOutput = "fake isolated hash"
+	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
 	require.NoError(t, s.putTask(t3))
 
 	// Regenerate the task queue.
@@ -1962,7 +1973,7 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 }
 
 func TestSchedulingE2E(t *testing.T) {
-	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, _, _, swarmingClient, s, _, cas, cleanup := setup(t)
 	defer cleanup()
 
 	c1 := rs1.Revision
@@ -2013,11 +2024,13 @@ func TestSchedulingE2E(t *testing.T) {
 	// The task is complete.
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.Finished = time.Now()
-	t1.IsolatedOutput = "abc123"
+	t1.IsolatedOutput = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/86"
 	require.NoError(t, s.putTask(t1))
 	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
 		makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims),
 	})
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest, t1.IsolatedOutput}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/56", nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest, t1.IsolatedOutput}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/56", nil)
 
 	// No bots free. Ensure that the queue is correct.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
@@ -2089,7 +2102,7 @@ func TestSchedulingE2E(t *testing.T) {
 	require.NotNil(t, t4)
 	t4.Status = types.TASK_STATUS_SUCCESS
 	t4.Finished = time.Now()
-	t4.IsolatedOutput = "abc123"
+	t4.IsolatedOutput = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee/99"
 	require.NoError(t, s.putTask(t4))
 
 	// No new bots free; only the remaining test task should be in the queue.
@@ -2111,13 +2124,14 @@ func TestSchedulingE2E(t *testing.T) {
 	require.NoError(t, err)
 	t3.Status = types.TASK_STATUS_SUCCESS
 	t3.Finished = time.Now()
-	t3.IsolatedOutput = "abc123"
+	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
 
 	// Ensure that we finalize all of the tasks and insert into the DB.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
 	mockTasks = []*swarming_api.SwarmingRpcsTaskRequestMetadata{
 		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
 	}
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest, t4.IsolatedOutput}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/56", nil)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
@@ -2133,7 +2147,7 @@ func TestSchedulingE2E(t *testing.T) {
 			if task.Status != types.TASK_STATUS_SUCCESS {
 				task.Status = types.TASK_STATUS_SUCCESS
 				task.Finished = time.Now()
-				task.IsolatedOutput = "abc123"
+				task.IsolatedOutput = "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234/56"
 				tasksList = append(tasksList, task)
 			}
 		}
@@ -2150,7 +2164,7 @@ func TestSchedulingE2E(t *testing.T) {
 }
 
 func TestSchedulerStealingFrom(t *testing.T) {
-	ctx, gb, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, gb, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	c1 := rs1.Revision
@@ -2192,7 +2206,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 			Repo:     rs1.Repo,
 			Revision: h,
 		}
-		fillCaches(t, ctx, s.taskCfgCache, s.isolateCache, rs, tcc_testutils.TasksCfg2, tcc_testutils.IsolatedsRS2)
+		fillCaches(t, ctx, s.taskCfgCache, rs, tcc_testutils.TasksCfg2)
 		insertJobs(t, ctx, s, rs)
 	}
 
@@ -2296,7 +2310,7 @@ func (s *spyDB) PutTasks(tasks []*types.Task) error {
 	return s.DB.PutTasks(tasks)
 }
 
-func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *mem_git.MemGit, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), *specs.TasksCfg, map[string]*isolated.Isolated, func()) {
+func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *mem_git.MemGit, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), *specs.TasksCfg, func()) {
 	unittest.LargeTest(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -2325,15 +2339,19 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	require.NoError(t, err)
 
 	// Create a single task in the config.
-	taskName := "dummytask"
-	isolateFile := "dummy.isolate"
+	taskName := "faketask"
 	cfg := &specs.TasksCfg{
+		CasSpecs: map[string]*specs.CasSpec{
+			"compile": {
+				Digest: tcc_testutils.CompileCASDigest,
+			},
+		},
 		Tasks: map[string]*specs.TaskSpec{
 			taskName: {
+				CasSpec:      "compile",
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions:   []string{"pool:Skia"},
-				Isolate:      isolateFile,
 				Priority:     1.0,
 			},
 		},
@@ -2345,22 +2363,11 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	}
 	hashes := gb.CommitN(ctx, 1)
 
-	isolateContents := &isolated.Isolated{
-		Algo: "sha1",
-		Files: map[string]isolated.File{
-			"../../somefile.txt": {
-				Digest: "abc123",
-			},
-		},
-	}
-	isolatedMap := map[string]*isolated.Isolated{
-		isolateFile: isolateContents,
-	}
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
 	mock := func(task *types.Task) {
 		task.Status = types.TASK_STATUS_SUCCESS
 		task.Finished = time.Now()
-		task.IsolatedOutput = "abc123"
+		task.IsolatedOutput = tcc_testutils.CompileCASDigest
 		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 		swarmingClient.MockTasks(mockTasks)
 	}
@@ -2368,6 +2375,11 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	// Create the TaskScheduler.
 	cas := &mocks.CAS{}
 	cas.On("Close").Return(nil)
+	// Go ahead and mock the single-input merge calls.
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.CompileCASDigest}).Return(tcc_testutils.CompileCASDigest, nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
+	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
+
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
@@ -2376,7 +2388,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 			Repo:     rs1.Repo,
 			Revision: h,
 		}
-		fillCaches(t, ctx, taskCfgCache, isolateCache, rs, cfg, isolatedMap)
+		fillCaches(t, ctx, taskCfgCache, rs, cfg)
 		insertJobs(t, ctx, s, rs)
 	}
 
@@ -2399,11 +2411,11 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 			Repo:     rs1.Repo,
 			Revision: h,
 		}
-		fillCaches(t, ctx, taskCfgCache, isolateCache, rs, cfg, isolatedMap)
+		fillCaches(t, ctx, taskCfgCache, rs, cfg)
 		insertJobs(t, ctx, s, rs)
 	}
 	require.NoError(t, s.repos[rs1.Repo].Update(ctx))
-	return ctx, gb, d, s, swarmingClient, newHashes, mock, cfg, isolatedMap, func() {
+	return ctx, gb, d, s, swarmingClient, newHashes, mock, cfg, func() {
 		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, workdir)
 		btCleanupIsolate()
@@ -2413,7 +2425,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 }
 
 func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
-	ctx, _, d, s, swarmingClient, commits, mock, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	ctx, _, d, s, swarmingClient, commits, mock, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
 	// Trigger builds simultaneously.
@@ -2532,7 +2544,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 }
 
 func TestSchedulingRetry(t *testing.T) {
-	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, _, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	c1 := rs1.Revision
@@ -2595,7 +2607,7 @@ func TestSchedulingRetry(t *testing.T) {
 }
 
 func TestParentTaskId(t *testing.T) {
-	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, _, _, swarmingClient, s, _, cas, cleanup := setup(t)
 	defer cleanup()
 
 	// Run the available compile task at c2.
@@ -2609,7 +2621,7 @@ func TestParentTaskId(t *testing.T) {
 	t1 := tasks[0]
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.Finished = time.Now()
-	t1.IsolatedOutput = "abc123"
+	t1.IsolatedOutput = "abc123/45"
 	require.Equal(t, 0, len(t1.ParentTaskIds))
 	require.NoError(t, s.putTasks([]*types.Task{t1}))
 
@@ -2617,6 +2629,8 @@ func TestParentTaskId(t *testing.T) {
 	bot3 := makeBot("bot3", androidTaskDims)
 	bot4 := makeBot("bot4", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4})
+	cas.On("Merge", testutils.AnyContext, []string{"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/42", "abc123/45"}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/87", nil)
+	cas.On("Merge", testutils.AnyContext, []string{"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/42", "abc123/45"}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/87", nil)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -2636,7 +2650,7 @@ func TestParentTaskId(t *testing.T) {
 func TestSkipTasks(t *testing.T) {
 	// skip_tasks has its own tests, so this test just verifies that it's
 	// actually integrated into the scheduler.
-	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, _, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 	c, cleanupfs := skfs.NewClientForTesting(context.Background(), t)
 	defer cleanupfs()
@@ -2683,7 +2697,7 @@ func TestSkipTasks(t *testing.T) {
 }
 
 func TestGetTasksForJob(t *testing.T) {
-	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, _, _, swarmingClient, s, _, cas, cleanup := setup(t)
 	defer cleanup()
 
 	c1 := rs1.Revision
@@ -2811,7 +2825,7 @@ func TestGetTasksForJob(t *testing.T) {
 	// The retry succeeded.
 	t2.Status = types.TASK_STATUS_SUCCESS
 	t2.Finished = time.Now()
-	t2.IsolatedOutput = "abc"
+	t2.IsolatedOutput = "abc123/45"
 	// The Build at c1 failed.
 	t3.Status = types.TASK_STATUS_FAILURE
 	t3.Finished = time.Now()
@@ -2835,6 +2849,8 @@ func TestGetTasksForJob(t *testing.T) {
 	bot4 := makeBot("bot4", androidTaskDims)
 	bot5 := makeBot("bot5", androidTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4, bot5})
+	cas.On("Merge", testutils.AnyContext, []string{"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/42", "abc123/45"}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/87", nil)
+	cas.On("Merge", testutils.AnyContext, []string{"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/42", "abc123/45"}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/87", nil)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 
@@ -2860,7 +2876,7 @@ func TestGetTasksForJob(t *testing.T) {
 }
 
 func TestTaskTimeouts(t *testing.T) {
-	ctx, gb, _, swarmingClient, s, _, cleanup := setup(t)
+	ctx, gb, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	// The test repo does not set any timeouts. Ensure that we get
@@ -2887,6 +2903,11 @@ func TestTaskTimeouts(t *testing.T) {
 	// Rewrite tasks.json with some timeouts.
 	name := "Timeout-Task"
 	cfg := &specs.TasksCfg{
+		CasSpecs: map[string]*specs.CasSpec{
+			"compile": {
+				Digest: tcc_testutils.CompileCASDigest,
+			},
+		},
 		Jobs: map[string]*specs.JobSpec{
 			"Timeout-Job": {
 				Priority:  1.0,
@@ -2895,6 +2916,7 @@ func TestTaskTimeouts(t *testing.T) {
 		},
 		Tasks: map[string]*specs.TaskSpec{
 			name: {
+				CasSpec:      "compile",
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions: []string{
@@ -2905,7 +2927,6 @@ func TestTaskTimeouts(t *testing.T) {
 				ExecutionTimeout: 40 * time.Minute,
 				Expiration:       2 * time.Hour,
 				IoTimeout:        3 * time.Minute,
-				Isolate:          tcc_testutils.IsolateCompileSkia,
 				Priority:         1.0,
 			},
 		},
@@ -2916,7 +2937,7 @@ func TestTaskTimeouts(t *testing.T) {
 		Repo:     "fake.git",
 		Revision: hashes[0],
 	}
-	fillCaches(t, ctx, s.taskCfgCache, s.isolateCache, rs, cfg, tcc_testutils.IsolatedsRS2)
+	fillCaches(t, ctx, s.taskCfgCache, rs, cfg)
 	insertJobs(t, ctx, s, rs)
 
 	// Cycle, ensure that we get the expected timeouts.
@@ -2938,7 +2959,7 @@ func TestTaskTimeouts(t *testing.T) {
 }
 
 func TestUpdateUnfinishedTasks(t *testing.T) {
-	_, _, _, swarmingClient, s, _, cleanup := setup(t)
+	_, _, _, swarmingClient, s, _, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Create a few tasks.
@@ -2974,8 +2995,10 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 
 	// Update the tasks, mock in Swarming.
 	t1.Status = types.TASK_STATUS_SUCCESS
+	t1.IsolatedOutput = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/86"
 	t2.Status = types.TASK_STATUS_FAILURE
 	t3.Status = types.TASK_STATUS_SUCCESS
+	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
 
 	m1 := makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims)
 	m2 := makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims)
@@ -3001,7 +3024,7 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 // setupAddTasksTest calls setup then adds 7 commits to the repo and returns
 // their hashes.
 func setupAddTasksTest(t *testing.T) (context.Context, *mem_git.MemGit, []string, *memory.InMemoryDB, *TaskScheduler, func()) {
-	ctx, gb, d, _, s, _, cleanup := setup(t)
+	ctx, gb, d, _, s, _, _, cleanup := setup(t)
 
 	// Add some commits to test blamelist calculation.
 	gb.CommitN(ctx, 7)
@@ -3487,7 +3510,7 @@ func TestAddTasksRetries(t *testing.T) {
 func TestTriggerTaskFailed(t *testing.T) {
 	// Verify that if one task out of a set fails to trigger, the others are
 	// still inserted into the DB and handled properly, eg. wrt. blamelists.
-	ctx, _, _, s, swarmingClient, commits, _, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	ctx, _, _, s, swarmingClient, commits, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
 	// Trigger three tasks. We should attempt to trigger tasks at
@@ -3509,7 +3532,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 			fmt.Sprintf("sk_repo:%s", rs1.Repo),
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
-			"sk_name:dummytask",
+			"sk_name:faketask",
 		}
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
@@ -3607,7 +3630,7 @@ func (d *mockDB) PutTasks(tasks []*types.Task) error {
 func TestContinueOnTriggerTaskFailure(t *testing.T) {
 	// Verify that if one task out of a set fails any part of the triggering
 	// process, the others are still triggered, inserted into the DB, etc.
-	ctx, gb, _, s, swarmingClient, commits, _, cfg, iso, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	ctx, gb, _, s, swarmingClient, commits, _, cfg, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
 	// Add several more commits.
@@ -3626,22 +3649,18 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 		c := cfg.Copy()
 		if hash == badCommit {
 			c.Tasks[badTaskName] = &specs.TaskSpec{
+				CasSpec:      "compile",
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions:   []string{fmt.Sprintf("pool:%s", badPool)},
-				Isolate:      "dummy.isolate",
 				Priority:     1.0,
 			}
 			c.Jobs["badjob"] = &specs.JobSpec{
 				TaskSpecs: []string{badTaskName},
 			}
 		}
-		fillCaches(t, ctx, s.taskCfgCache, s.isolateCache, rs, c, iso)
+		fillCaches(t, ctx, s.taskCfgCache, rs, c)
 		insertJobs(t, ctx, s, rs)
-	}
-	badRS := types.RepoState{
-		Repo:     rs1.Repo,
-		Revision: badCommit,
 	}
 
 	finishAll := func() {
@@ -3698,38 +3717,7 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 	swarmingClient.MockTriggerTaskFailure(badTags)
 	test()
 
-	// 2. Retrieval of cached isolate failed.
-	// NOTE: We're doing this by inserting an error into the cache; in
-	// practice, we won't create jobs if we failed to cache the isolates,
-	// so this case would actually be something like a transient network
-	// error.
-	errMsg := "This commit is cursed!"
-	require.NoError(t, s.isolateCache.Set(ctx, badRS, &isolate_cache.CachedValue{
-		Isolated: nil,
-		Error:    errMsg,
-	}))
-	test()
-	// Check diagnostics.
-	diag := lastDiagnostics(t, s)
-	failedIsolate := 0
-	for _, c := range diag.Candidates {
-		if c.Revision == badCommit {
-			require.Contains(t, c.Diagnostics.Triggering.IsolateError, errMsg)
-			failedIsolate++
-		} else if c.Diagnostics.Triggering != nil {
-			require.Equal(t, "", c.Diagnostics.Triggering.IsolateError)
-			require.NotEqual(t, "", c.Diagnostics.Triggering.TaskId)
-		}
-	}
-	// Should be one task that failed
-	require.Equal(t, 1, failedIsolate)
-	// Set the isolate back the way it was.
-	require.NoError(t, s.isolateCache.Set(ctx, badRS, &isolate_cache.CachedValue{
-		Isolated: iso,
-		Error:    "",
-	}))
-
-	// 3. DB.AssignId failed.
+	// 2. DB.AssignId failed.
 	mdb := &mockDB{
 		DB:           s.db,
 		failAssignId: true,
@@ -3748,13 +3736,13 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 	test()
 	s.db = mdb.DB
 
-	// NOTE: We don't test re-uploading of isolated files, since that's done
-	// for all candidates at once; they'll all succeed or fail together.
+	// 5. Failure to merge CAS entries.
+	// TODO(borenet)
 }
 
 func TestTriggerTaskDeduped(t *testing.T) {
 	// Verify that we properly handle de-duplicated tasks.
-	ctx, _, _, s, swarmingClient, commits, _, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	ctx, _, _, s, swarmingClient, commits, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
 	// Trigger three tasks. We should attempt to trigger tasks at
@@ -3776,7 +3764,7 @@ func TestTriggerTaskDeduped(t *testing.T) {
 			fmt.Sprintf("sk_repo:%s", rs1.Repo),
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
-			"sk_name:dummytask",
+			"sk_name:faketask",
 		}
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
@@ -3815,7 +3803,7 @@ func TestTriggerTaskDeduped(t *testing.T) {
 func TestTriggerTaskNoResource(t *testing.T) {
 	// Verify that we properly handle tasks which are rejected due to lack
 	// of matching bots.
-	ctx, _, _, s, swarmingClient, commits, _, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
+	ctx, _, _, s, swarmingClient, commits, _, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
 	// Attempt to trigger a task. It gets rejected because the bot we
@@ -3833,14 +3821,14 @@ func TestTriggerTaskNoResource(t *testing.T) {
 			fmt.Sprintf("sk_repo:%s", rs1.Repo),
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
-			"sk_name:dummytask",
+			"sk_name:faketask",
 		}
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	swarmingClient.MockTriggerTaskNoResource(makeTags(commits[0]))
 	err := s.MainLoop(ctx)
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "No bots available to run dummytask with dimensions: pool:Skia"))
+	require.True(t, strings.Contains(err.Error(), "No bots available to run faketask with dimensions: pool:Skia"))
 	s.testWaitGroup.Wait()
 	require.NoError(t, s.tCache.Update())
 	require.Equal(t, 8, len(s.queue))

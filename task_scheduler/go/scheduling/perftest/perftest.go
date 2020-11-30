@@ -146,74 +146,50 @@ func main() {
 	assertNoError(err)
 
 	// Write some files.
-	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
-	addFile(ctx, repoDir, "a.txt", "dummy2")
-	addFile(ctx, repoDir, "somefile.txt", "dummy3")
+	assertNoError(ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("placeholder"), os.ModePerm))
+	addFile(ctx, repoDir, "a.txt", "placeholder2")
+	addFile(ctx, repoDir, "somefile.txt", "placeholder3")
 	infraBotsSubDir := path.Join("infra", "bots")
 	infraBotsDir := path.Join(repoDir, infraBotsSubDir)
 	assertNoError(os.MkdirAll(infraBotsDir, os.ModePerm))
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "compile_skia.isolate"), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "perf_skia.isolate"), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "test_skia.isolate"), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	addFile(ctx, repoDir, path.Join(infraBotsSubDir, "swarm_recipe.isolate"), `{
-  'variables': {
-    'command': [
-      'python', 'recipes.py', 'run',
-    ],
-    'files': [
-      '../../somefile.txt',
-    ],
-  },
-}`)
+
+	// CAS inputs.
+	casSpecs := map[string]*specs.CasSpec{
+		"compile": {
+			Root:  ".",
+			Paths: []string{"somefile.txt"},
+		},
+		"perf": {
+			Root:  ".",
+			Paths: []string{"somefile.txt"},
+		},
+		"test": {
+			Root:  ".",
+			Paths: []string{"somefile.txt"},
+		},
+	}
 
 	// Add tasks to the repo.
 	var tasks = map[string]*specs.TaskSpec{
 		"Build-Ubuntu-GCC-Arm7-Release-Android": {
+			CasSpec:      "compile",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
-			Isolate:      "compile_skia.isolate",
 			Priority:     0.9,
 		},
 		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+			CasSpec:      "test",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-			Isolate:      "test_skia.isolate",
 			Priority:     0.9,
 		},
 		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": {
+			CasSpec:      "perf",
 			CipdPackages: []*specs.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-			Isolate:      "perf_skia.isolate",
 			Priority:     0.9,
 		},
 	}
@@ -227,10 +203,10 @@ func main() {
 				deps = append(deps, fmt.Sprintf("%s%d", d, i))
 			}
 			newTask := &specs.TaskSpec{
+				CasSpec:      task.CasSpec,
 				CipdPackages: task.CipdPackages,
 				Dependencies: deps,
 				Dimensions:   task.Dimensions,
-				Isolate:      task.Isolate,
 				Priority:     task.Priority,
 			}
 			moarTasks[newName] = newTask
@@ -241,8 +217,9 @@ func main() {
 		}
 	}
 	cfg := specs.TasksCfg{
-		Tasks: moarTasks,
-		Jobs:  jobs,
+		CasSpecs: casSpecs,
+		Tasks:    moarTasks,
+		Jobs:     jobs,
 	}
 	assertNoError(util.WithWriteFile(path.Join(repoDir, specs.TASKS_CFG_FILE), func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(&cfg)
