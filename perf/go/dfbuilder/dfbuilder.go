@@ -592,13 +592,13 @@ func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error)
 
 	tileNumber, err := b.store.GetLatestTile(ctx)
 	if err != nil {
-		return -1, err
+		return -1, skerr.Wrap(err)
 	}
 
 	// Count the matches in the first tile.
 	out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 	if err != nil {
-		return -1, fmt.Errorf("Failed to query traces: %s", err)
+		return -1, skerr.Wrapf(err, "Failed to query traces.")
 	}
 	var tileOneCount int64
 	for range out {

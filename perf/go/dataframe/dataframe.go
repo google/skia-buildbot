@@ -51,9 +51,8 @@ type DataFrameBuilder interface {
 
 	// PreflightQuery returns the number of traces that will match the query and
 	// a refined ParamSet to use for further queries. The referenceParamSet
-	// should be a master ParamSet that includes all the Params that could
-	// appear in a query. For example, the ParamSet managed by
-	// ParamSetRefresher.
+	// should be a ParamSet that includes all the Params that could appear in a
+	// query. For example, the ParamSet managed by ParamSetRefresher.
 	PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error)
 }
 

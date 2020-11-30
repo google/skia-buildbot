@@ -244,7 +244,6 @@ func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 
 func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -275,7 +274,6 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 
 func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -301,7 +299,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 	q, err := query.NewFromString("config=8888")
 	require.NoError(t, err)
 
-	// The reference ParamSet contains values that should not appear in the
+	// The referenceParamSet contains values that should not appear in the
 	// returned ParamSet, and some that get retained.
 	referenceParamSet := paramtools.ReadOnlyParamSet{
 		"arch":   {"x86", "arm", "should-disappear"},
@@ -322,7 +320,6 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 
 func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetReflectsBothTiles(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -375,7 +372,6 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 
 func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -396,7 +392,6 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 
 func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
@@ -429,7 +424,6 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 
 func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCountsIsReturned(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx := context.Background()
 
 	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
