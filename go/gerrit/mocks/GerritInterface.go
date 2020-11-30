@@ -31,6 +31,20 @@ func (_m *GerritInterface) Abandon(_a0 context.Context, _a1 *gerrit.ChangeInfo, 
 	return r0
 }
 
+// AddCC provides a mock function with given fields: _a0, _a1, _a2
+func (_m *GerritInterface) AddCC(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 []string) error {
+	ret := _m.Called(_a0, _a1, _a2)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *gerrit.ChangeInfo, []string) error); ok {
+		r0 = rf(_a0, _a1, _a2)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // AddComment provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) AddComment(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)

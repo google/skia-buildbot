@@ -47,6 +47,9 @@ func (g *SimpleGerritInterface) SetReview(ctx context.Context, issue *gerrit.Cha
 func (g *SimpleGerritInterface) AddComment(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
 	return nil
 }
+func (g *SimpleGerritInterface) AddCC(ctx context.Context, issue *gerrit.ChangeInfo, ccList []string) error {
+	return nil
+}
 func (g *SimpleGerritInterface) SendToDryRun(ctx context.Context, issue *gerrit.ChangeInfo, message string) error {
 	return nil
 }
