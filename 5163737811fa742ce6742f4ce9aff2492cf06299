@@ -1,0 +1,420 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "36a28c84_086ff806",
+        "filename": "golden/cmd/cockroachdb_explore/README.md",
+        "patchSetId": 63
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 37,
+        "startChar": 36,
+        "endLine": 37,
+        "endChar": 37
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "e4662ed3_e9b0fdcc",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore_test.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 1258,
+        "startChar": 4,
+        "endLine": 1258,
+        "endChar": 5
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ed99ddb7_1df25461",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore_test.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 1264,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 1264,
+        "startChar": 8,
+        "endLine": 1264,
+        "endChar": 9
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "79162fa8_8abffc69",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore_test.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 1274,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 1274,
+        "startChar": 84,
+        "endLine": 1274,
+        "endChar": 85
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b000a099_e21dd6ca",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore_test.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 1280,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 1280,
+        "startChar": 75,
+        "endLine": 1280,
+        "endChar": 76
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2f11f51f_57c9479a",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore_test.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 1287,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 1287,
+        "startChar": 39,
+        "endLine": 1287,
+        "endChar": 40
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "7dab22bd_175212f2",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore_test.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 1288,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 1288,
+        "startChar": 23,
+        "endLine": 1288,
+        "endChar": 24
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "969c0a19_4c3c9f00",
+        "filename": "golden/cmd/gen_benchmark_data/sqlsearch/sqlsearch.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 75,
+        "startChar": 95,
+        "endLine": 75,
+        "endChar": 96
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2e9e014d_21fd4b4d",
+        "filename": "golden/cmd/gen_benchmark_data/sqlsearch/sqlsearch.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 191,
+        "startChar": 86,
+        "endLine": 191,
+        "endChar": 87
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "924195e2_77710094",
+        "filename": "golden/cmd/gen_benchmark_data/sqlsearch/sqlsearch.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 281,
+        "startChar": 16,
+        "endLine": 281,
+        "endChar": 17
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "39d039ed_fa14aaf3",
+        "filename": "golden/cmd/gen_benchmark_data/sqlsearch/sqlsearch.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 335,
+        "startChar": 65,
+        "endLine": 335,
+        "endChar": 66
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "abcfeeac_9a1aa0c8",
+        "filename": "golden/cmd/gen_benchmark_data/sqlsearch/sqlsearch.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 336,
+        "startChar": 90,
+        "endLine": 336,
+        "endChar": 91
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b942315e_e847fbc0",
+        "filename": "golden/go/sql/schema.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 53,
+        "startChar": 14,
+        "endLine": 53,
+        "endChar": 15
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "044cf344_e970a655",
+        "filename": "golden/go/sql/schema.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 61,
+        "startChar": 69,
+        "endLine": 61,
+        "endChar": 70
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "c14bcd5e_ddf994c2",
+        "filename": "golden/go/sql/schema.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 104,
+        "startChar": 92,
+        "endLine": 104,
+        "endChar": 93
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000006440326",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d63",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "07e94682_50fb7eae",
+        "filename": "golden/go/sql/schema.go",
+        "patchSetId": 63
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-11-30T12:31:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 213,
+        "startChar": 93,
+        "endLine": 213,
+        "endChar": 94
+      },
+      "revId": "5163737811fa742ce6742f4ce9aff2492cf06299",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
