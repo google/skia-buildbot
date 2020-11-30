@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"go.chromium.org/luci/common/isolated"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sktest"
@@ -17,14 +16,14 @@ const (
 	TestTaskName  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	PerfTaskName  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 
-	IsolateCompileSkia = "compile_skia.isolate"
-	IsolatePerfSkia    = "perf_skia.isolate"
-	IsolateTestSkia    = "test_skia.isolate"
-	IsolateSwarmRecipe = "swarm_recipe.isolate"
+	CompileCASDigest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/42"
+	TestCASDigest    = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/42"
+	PerfCASDigest    = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/42"
 )
 
 var (
 	BuildTask = &specs.TaskSpec{
+		CasSpec: "compile",
 		CipdPackages: []*specs.CipdPackage{
 			{
 				Name:    "android_sdk",
@@ -37,11 +36,11 @@ var (
 		ExtraTags: map[string]string{
 			"is_build_task": "true",
 		},
-		Isolate:     IsolateCompileSkia,
 		MaxAttempts: 5,
 		Priority:    0.5,
 	}
 	TestTask = &specs.TaskSpec{
+		CasSpec: "test",
 		CipdPackages: []*specs.CipdPackage{
 			{
 				Name:    "skimage",
@@ -60,10 +59,10 @@ var (
 		EnvPrefixes: map[string][]string{
 			"PATH": {"curdir"},
 		},
-		Isolate:  IsolateTestSkia,
 		Priority: 0.5,
 	}
 	PerfTask = &specs.TaskSpec{
+		CasSpec: "perf",
 		CipdPackages: []*specs.CipdPackage{
 			{
 				Name:    "skimage",
@@ -79,7 +78,6 @@ var (
 		Command:      []string{"perf", "skia"},
 		Dependencies: []string{BuildTaskName},
 		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
-		Isolate:      IsolatePerfSkia,
 		Priority:     0.5,
 	}
 
@@ -95,7 +93,27 @@ var (
 		Priority:  0.5,
 		TaskSpecs: []string{PerfTaskName},
 	}
+	CasSpecs1 = map[string]*specs.CasSpec{
+		"compile": {
+			Digest: CompileCASDigest,
+		},
+		"test": {
+			Digest: TestCASDigest,
+		},
+	}
+	CasSpecs2 = map[string]*specs.CasSpec{
+		"compile": {
+			Digest: CompileCASDigest,
+		},
+		"test": {
+			Digest: TestCASDigest,
+		},
+		"perf": {
+			Digest: PerfCASDigest,
+		},
+	}
 	TasksCfg1 = &specs.TasksCfg{
+		CasSpecs: CasSpecs1,
 		Tasks: map[string]*specs.TaskSpec{
 			BuildTaskName: BuildTask,
 			TestTaskName:  TestTask,
@@ -106,6 +124,7 @@ var (
 		},
 	}
 	TasksCfg2 = &specs.TasksCfg{
+		CasSpecs: CasSpecs2,
 		Tasks: map[string]*specs.TaskSpec{
 			BuildTaskName: BuildTask,
 			PerfTaskName:  PerfTask,
@@ -116,59 +135,6 @@ var (
 			PerfTaskName:  PerfJob,
 			TestTaskName:  TestJob,
 		},
-	}
-
-	IsolatedSwarmRecipe = &isolated.Isolated{
-		Algo: "sha1",
-		Files: map[string]isolated.File{
-			"run_recipe.py": {
-				Digest: "abc123",
-			},
-		},
-	}
-	IsolatedCompileSkia = &isolated.Isolated{
-		Algo: "sha1",
-		Files: map[string]isolated.File{
-			"compile_skia.py": {
-				Digest: "bbad1",
-			},
-		},
-		Includes: []isolated.HexDigest{
-			"abc123",
-		},
-	}
-	IsolatedPerfSkia = &isolated.Isolated{
-		Algo: "sha1",
-		Files: map[string]isolated.File{
-			"perf_skia.py": {
-				Digest: "bbad2",
-			},
-		},
-		Includes: []isolated.HexDigest{
-			"abc123",
-		},
-	}
-	IsolatedTestSkia = &isolated.Isolated{
-		Algo: "sha1",
-		Files: map[string]isolated.File{
-			"test_skia.py": {
-				Digest: "bbad3",
-			},
-		},
-		Includes: []isolated.HexDigest{
-			"abc123",
-		},
-	}
-	IsolatedsRS1 = map[string]*isolated.Isolated{
-		IsolateCompileSkia: IsolatedCompileSkia,
-		IsolateSwarmRecipe: IsolatedSwarmRecipe,
-		IsolateTestSkia:    IsolatedTestSkia,
-	}
-	IsolatedsRS2 = map[string]*isolated.Isolated{
-		IsolateCompileSkia: IsolatedCompileSkia,
-		IsolatePerfSkia:    IsolatedPerfSkia,
-		IsolateSwarmRecipe: IsolatedSwarmRecipe,
-		IsolateTestSkia:    IsolatedTestSkia,
 	}
 )
 
@@ -186,48 +152,7 @@ func SetupTestRepo(t sktest.TestingT) (context.Context, *git_testutils.GitBuilde
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 
-	ib := func(filename string) string {
-		return "infra/bots/" + filename
-	}
-
 	// Commit 1.
-	gb.Add(ctx, ib(IsolateCompileSkia), `{
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	gb.Add(ctx, ib(IsolatePerfSkia), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
-	gb.Add(ctx, ib(IsolateSwarmRecipe), `{
-  'variables': {
-    'command': [
-      'python', 'recipes.py', 'run',
-    ],
-    'files': [
-      '../../somefile.txt',
-    ],
-  },
-}`)
-	gb.Add(ctx, ib(IsolateTestSkia), `{
-  'includes': [
-    'swarm_recipe.isolate',
-  ],
-  'variables': {
-    'files': [
-      '../../../.gclient',
-    ],
-  },
-}`)
 	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, TasksCfg1))
 	gb.Add(ctx, "somefile.txt", "blahblah")
 	gb.Add(ctx, "a.txt", "blah")

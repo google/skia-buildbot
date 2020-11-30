@@ -63,8 +63,8 @@ func MockSwarmingBotsForAllTasksForTesting(ctx context.Context, repos map[string
 }
 
 // PeriodicallyUpdateMockTasksForTesting simulates running the mocked tasks in
-// TestClient by updating the status, started/completed times, isolated output,
-// etc. Does not return.
+// TestClient by updating the status, started/completed times, content-addressed
+// output, etc. Does not return.
 func PeriodicallyUpdateMockTasksForTesting(swarm *TestClient) {
 	for range time.Tick(time.Minute) {
 		swarm.DoMockTasks(func(task *swarming_api.SwarmingRpcsTaskRequestMetadata) {
@@ -78,8 +78,11 @@ func PeriodicallyUpdateMockTasksForTesting(swarm *TestClient) {
 				task.TaskResult.BotId = fmt.Sprintf("A-Bot-To-Run-%s", task.TaskResult.Name)
 			} else if task.TaskResult.State == swarming.TASK_STATE_RUNNING && created.Add(5*time.Minute).Before(time.Now()) {
 				task.TaskResult.State = swarming.TASK_STATE_COMPLETED
-				task.TaskResult.OutputsRef = &swarming_api.SwarmingRpcsFilesRef{
-					Isolated: fmt.Sprintf("Isolated-%s", task.TaskId),
+				task.TaskResult.CasOutputRoot = &swarming_api.SwarmingRpcsCASReference{
+					Digest: &swarming_api.SwarmingRpcsDigest{
+						Hash:      fmt.Sprintf("cas-%s", task.TaskId),
+						SizeBytes: 42,
+					},
 				}
 				task.TaskResult.CompletedTs = time.Now().Format(swarming.TIMESTAMP_FORMAT)
 			}

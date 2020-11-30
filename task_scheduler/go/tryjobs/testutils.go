@@ -43,19 +43,24 @@ import (
 const (
 	repoBaseName = "skia.git"
 	testTasksCfg = `{
+  "casSpecs": {
+    "fake": {
+      "digest": "` + tcc_testutils.CompileCASDigest + `"
+    }
+  },
   "tasks": {
     "fake-task1": {
+      "casSpec": "fake",
       "dependencies": [],
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
-      "isolate": "fake1.isolate",
       "priority": 0.8
     },
     "fake-task2": {
+      "casSpec": "fake",
       "dependencies": ["fake-task1"],
       "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
       "extra_args": [],
-      "isolate": "fake2.isolate",
       "priority": 0.8
     }
   },
@@ -94,8 +99,6 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	require.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
 	gb.Add(ctx, tasksJson, testTasksCfg)
-	gb.Add(ctx, path.Join("infra", "bots", "fake1.isolate"), "{}")
-	gb.Add(ctx, path.Join("infra", "bots", "fake2.isolate"), "{}")
 	gb.Commit(ctx)
 
 	rs := types.RepoState{

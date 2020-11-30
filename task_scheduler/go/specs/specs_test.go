@@ -107,10 +107,10 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 	taskSpecs := make(map[string]*TaskSpec, len(tasks))
 	for name, deps := range tasks {
 		taskSpecs[name] = &TaskSpec{
+			CasSpec:      "my-cas",
 			CipdPackages: []*CipdPackage{},
 			Dependencies: deps,
 			Dimensions:   []string{"os:whatever"},
-			Isolate:      "abc123",
 			Priority:     0.0,
 		}
 	}
@@ -123,6 +123,13 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 	cfg := TasksCfg{
 		Tasks: taskSpecs,
 		Jobs:  jobSpecs,
+	}
+	if len(taskSpecs) > 0 {
+		cfg.CasSpecs = map[string]*CasSpec{
+			"my-cas": {
+				Digest: "abc123/45",
+			},
+		}
 	}
 	return testutils.MarshalIndentJSON(t, &cfg)
 }

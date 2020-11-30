@@ -180,8 +180,11 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
 			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
 		},
-		OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
-			Isolated: "F",
+		CasOutputRoot: &swarming_api.SwarmingRpcsCASReference{
+			Digest: &swarming_api.SwarmingRpcsDigest{
+				Hash:      "F",
+				SizeBytes: 42,
+			},
 		},
 		BotId: "G",
 	}
@@ -204,7 +207,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		Finished:       now.Add(-2 * time.Minute),
 		Status:         TASK_STATUS_SUCCESS,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "F",
+		IsolatedOutput: "F/42",
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -234,7 +237,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		Finished:       now.Add(-time.Minute),
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "F",
+		IsolatedOutput: "F/42",
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -284,8 +287,11 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
 			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
 		},
-		OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
-			Isolated: "G",
+		CasOutputRoot: &swarming_api.SwarmingRpcsCASReference{
+			Digest: &swarming_api.SwarmingRpcsDigest{
+				Hash:      "H",
+				SizeBytes: 42,
+			},
 		},
 		BotId: "I",
 	}
@@ -308,7 +314,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-1 * time.Minute),
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "G",
+		IsolatedOutput: "H/42",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -334,7 +340,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-1 * time.Minute),
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "G",
+		IsolatedOutput: "H/42",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -361,7 +367,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-90 * time.Second),
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "G",
+		IsolatedOutput: "H/42",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -424,7 +430,6 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
 			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
 		},
-		OutputsRef: nil,
 	}
 
 	testUpdateStatus(s, TASK_STATUS_PENDING)
