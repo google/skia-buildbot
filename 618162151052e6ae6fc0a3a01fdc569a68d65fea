@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "99a2be29_0a6a089e",
+        "filename": "codereview-watcher/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f89668cc_d9826df5",
+      "range": {
+        "startLine": 7,
+        "startChar": 1,
+        "endLine": 7,
+        "endChar": 8
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "84102a08_729d3eb4",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-11-26T15:37:14Z",
       "side": 1,
       "message": "Use util.RepeatCtx, which doesn\u0027t return.",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 8
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4a09e8cd_8fea40b7",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84102a08_729d3eb4",
       "range": {
         "startLine": 55,
         "startChar": 1,
@@ -64,6 +112,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e21fbf31_7647f729",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edf3573c_b283781b",
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e24b1a6_1f9d55b1",
@@ -77,6 +143,30 @@
       "writtenOn": "2020-11-26T15:37:14Z",
       "side": 1,
       "message": "Move this large block of text out into a const.\n\nAlso consider using a text/template instead of Sprintf to make it easier to maintain.",
+      "range": {
+        "startLine": 116,
+        "startChar": 23,
+        "endLine": 116,
+        "endChar": 29
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03edb9a5_986fec43",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e24b1a6_1f9d55b1",
       "range": {
         "startLine": 116,
         "startChar": 23,
@@ -110,6 +200,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b655797_9d22b8bb",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5471d383_803e5ac8",
+      "range": {
+        "startLine": 232,
+        "startChar": 45,
+        "endLine": 232,
+        "endChar": 51
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "66e2c90c_5cc727ba",
@@ -127,6 +241,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7ed77921_94e5836d",
+        "filename": "codereview-watcher/go/codereview-watcher/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66e2c90c_5cc727ba",
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c201f563_140afa8b",
@@ -140,6 +272,30 @@
       "writtenOn": "2020-11-26T15:37:14Z",
       "side": 1,
       "message": "Since that var is *PullRequestData, do you need to pass \u0026prData to doc.DataTo()?",
+      "range": {
+        "startLine": 79,
+        "startChar": 11,
+        "endLine": 80,
+        "endChar": 29
+      },
+      "revId": "618162151052e6ae6fc0a3a01fdc569a68d65fea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c378051_f99433c2",
+        "filename": "codereview-watcher/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-11-30T14:55:41Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "c201f563_140afa8b",
       "range": {
         "startLine": 79,
         "startChar": 11,
