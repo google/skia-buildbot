@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
+	"go.skia.org/infra/go/cas/mocks"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	skfs "go.skia.org/infra/go/firestore"
@@ -288,7 +289,9 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	fillCaches(t, ctx, taskCfgCache, isolateCache, rs1, tcc_testutils.TasksCfg1, tcc_testutils.IsolatedsRS1)
 	fillCaches(t, ctx, taskCfgCache, isolateCache, rs2, tcc_testutils.TasksCfg2, tcc_testutils.IsolatedsRS2)
 
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	cas := &mocks.CAS{}
+	cas.On("Close").Return(nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -363,7 +366,8 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			RepoState: rs1.Copy(),
 			Name:      tcc_testutils.BuildTaskName,
 		},
-		TaskSpec: cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
+		TaskSpec:       cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
+		CasUsesIsolate: true,
 	}
 	tc2 := &taskCandidate{
 		Jobs: []*types.Job{j1},
@@ -371,7 +375,8 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			RepoState: rs1.Copy(),
 			Name:      tcc_testutils.TestTaskName,
 		},
-		TaskSpec: cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
+		TaskSpec:       cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
+		CasUsesIsolate: true,
 	}
 
 	test([]*types.Job{j1}, map[types.TaskKey]*taskCandidate{
@@ -403,7 +408,8 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.BuildTaskName,
 		},
-		TaskSpec: cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
+		TaskSpec:       cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
+		CasUsesIsolate: true,
 	}
 	tc4 := &taskCandidate{
 		Jobs: []*types.Job{j2},
@@ -411,7 +417,8 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.TestTaskName,
 		},
-		TaskSpec: cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
+		TaskSpec:       cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
+		CasUsesIsolate: true,
 	}
 	tc5 := &taskCandidate{
 		Jobs: []*types.Job{j3},
@@ -419,7 +426,8 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.PerfTaskName,
 		},
-		TaskSpec: cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
+		TaskSpec:       cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
+		CasUsesIsolate: true,
 	}
 	allCandidates := map[types.TaskKey]*taskCandidate{
 		tc1.TaskKey: tc1,
@@ -2358,7 +2366,9 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	}
 
 	// Create the TaskScheduler.
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	cas := &mocks.CAS{}
+	cas.On("Close").Return(nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	for _, h := range hashes {

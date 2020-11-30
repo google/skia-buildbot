@@ -18,6 +18,7 @@ func fakeTaskSpec() *TaskSpec {
 				Path: "if/you/can",
 			},
 		},
+		CasSpec: "my-cas",
 		CipdPackages: []*CipdPackage{
 			{
 				Name:    "pkg",
@@ -58,9 +59,20 @@ func fakeJobSpec() *JobSpec {
 	}
 }
 
+func fakeCasSpec() *CasSpec {
+	return &CasSpec{
+		Root:   ".",
+		Paths:  []string{"a/b", "c/d"},
+		Digest: "abc123/32",
+	}
+}
+
 func TestCopyTasksCfg(t *testing.T) {
 	unittest.SmallTest(t)
 	v := &TasksCfg{
+		CasSpecs: map[string]*CasSpec{
+			"my-cas": fakeCasSpec(),
+		},
 		Jobs: map[string]*JobSpec{
 			"job-name": fakeJobSpec(),
 		},
@@ -80,6 +92,12 @@ func TestCopyTaskSpec(t *testing.T) {
 func TestCopyJobSpec(t *testing.T) {
 	unittest.SmallTest(t)
 	v := fakeJobSpec()
+	assertdeep.Copy(t, v, v.Copy())
+}
+
+func TestCopyCasSpec(t *testing.T) {
+	unittest.SmallTest(t)
+	v := fakeCasSpec()
 	assertdeep.Copy(t, v, v.Copy())
 }
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
@@ -63,7 +64,7 @@ type JobCreator struct {
 	window        *window.Window
 }
 
-func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource) (*JobCreator, error) {
+func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, rbe cas.CAS, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -83,7 +84,7 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	}
 
 	sc := syncer.New(ctx, repos, depotTools, workdir, syncer.DEFAULT_NUM_WORKERS)
-	chr := cacher.New(sc, taskCfgCache, isolateClient, isolateCache)
+	chr := cacher.New(sc, taskCfgCache, isolateClient, isolateCache, rbe)
 
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
 	if err != nil {

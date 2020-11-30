@@ -111,8 +111,8 @@ func (t *Task) Validate() error {
 	return nil
 }
 
-// WriteIsolatedGenJson writes a temporary .isolated.gen.json file for the task.
-func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
+// writeIsolatedGenJson writes a temporary .isolated.gen.json file for the task.
+func writeIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	if err := t.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -248,8 +248,8 @@ func CopyIsolated(iso *isolated.Isolated) *isolated.Isolated {
 	}
 }
 
-// ReadIsolatedFile reads the given isolated file.
-func ReadIsolatedFile(filepath string) (*isolated.Isolated, error) {
+// readIsolatedFile reads the given isolated file.
+func readIsolatedFile(filepath string) (*isolated.Isolated, error) {
 	var iso isolated.Isolated
 	if err := util.WithReadFile(filepath, func(r io.Reader) error {
 		return json.NewDecoder(r).Decode(&iso)
@@ -259,15 +259,15 @@ func ReadIsolatedFile(filepath string) (*isolated.Isolated, error) {
 	return &iso, nil
 }
 
-// WriteIsolatedFile writes the given isolated file.
-func WriteIsolatedFile(filepath string, i *isolated.Isolated) error {
+// writeIsolatedFile writes the given isolated file.
+func writeIsolatedFile(filepath string, i *isolated.Isolated) error {
 	return util.WithWriteFile(filepath, func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(i)
 	})
 }
 
-// BatchArchiveTasks runs `isolate batcharchive` for the tasks.
-func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, jsonOutput string) error {
+// batchArchiveTasks runs `isolate batcharchive` for the tasks.
+func (c *Client) batchArchiveTasks(ctx context.Context, genJsonFiles []string, jsonOutput string) error {
 	cmd := []string{
 		c.isolate, "batcharchive", "--verbose",
 		"--isolate-server", c.serverUrl,
@@ -313,7 +313,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
 		genJsonFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
 		isolatedFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
-		if err := WriteIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
+		if err := writeIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
 			return nil, nil, err
 		}
 		genJsonFiles = append(genJsonFiles, genJsonFile)
@@ -321,7 +321,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 	}
 
 	// Isolate the tasks.
-	if err := c.BatchArchiveTasks(ctx, genJsonFiles, ""); err != nil {
+	if err := c.batchArchiveTasks(ctx, genJsonFiles, ""); err != nil {
 		return nil, nil, err
 	}
 
@@ -329,7 +329,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 	isolatedFiles := make([]*isolated.Isolated, 0, len(isolatedFilePaths))
 	for i, f := range isolatedFilePaths {
 		t := tasks[i]
-		iso, err := ReadIsolatedFile(f)
+		iso, err := readIsolatedFile(f)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -381,7 +381,7 @@ func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*iso
 		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
 		filePath := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
 		isolatedFilePaths = append(isolatedFilePaths, filePath)
-		if err := WriteIsolatedFile(filePath, isolatedFile); err != nil {
+		if err := writeIsolatedFile(filePath, isolatedFile); err != nil {
 			return nil, err
 		}
 	}

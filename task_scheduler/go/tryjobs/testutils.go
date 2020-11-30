@@ -17,6 +17,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket/mocks"
+	cas_mocks "go.skia.org/infra/go/cas/mocks"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -141,7 +142,8 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
 	require.NoError(t, err)
-	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache)
+	cas := &cas_mocks.CAS{}
+	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache, cas)
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
