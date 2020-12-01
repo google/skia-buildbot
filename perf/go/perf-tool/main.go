@@ -16,6 +16,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/spf13/cobra"
+	"github.com/urfave/cli"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
@@ -84,7 +85,29 @@ func mustGetStore() tracestore.TraceStore {
 	return traceStore
 }
 
+const (
+	configFilenameFlag = "config_filename"
+)
+
 func main() {
+	app := &cli.App{
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  configFilenameFlag,
+				Value: "",
+				Usage: "Name of the config file.",
+			},
+		},
+		Name:  "perf-tool",
+		Usage: "Command-line tool for working with Perf data.",
+		Action: func(c *cli.Context) error {
+			if c.String(configFilenameFlag) == "" {
+				return skerr.Fmt("The --config_filename flag is required.")
+			}
+			return nil
+		},
+	}
+
 	cmd := cobra.Command{
 		Use: "perf-tool [sub]",
 		PersistentPreRunE: func(c *cobra.Command, args []string) error {
