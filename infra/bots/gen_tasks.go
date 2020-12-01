@@ -25,6 +25,12 @@ const (
 	BUILD_TASK_DRIVERS_NAME = "Housekeeper-PerCommit-BuildTaskDrivers"
 	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
 
+	CAS_AUTOROLL_CONFIGS = "autoroll-configs"
+	CAS_EMPTY            = "empty" // TODO(borenet): It'd be nice if this wasn't necessary.
+	CAS_RUN_RECIPE       = "run-recipe"
+	CAS_RECIPES          = "recipes"
+	CAS_WHOLE_REPO       = "whole-repo"
+
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-10.3"
 	DEFAULT_OS_WIN   = "Windows-Server-17763"
@@ -161,16 +167,16 @@ func props(p map[string]string) string {
 // bundleRecipes generates the task to bundle and isolate the recipes.
 func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUNDLE_RECIPES_NAME, &specs.TaskSpec{
+		CasSpec:      CAS_RECIPES,
 		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.CIPD_PKGS_PYTHON...),
 		Command: []string{
-			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
+			"/bin/bash", "infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
 		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin"},
 		},
 		Idempotent: true,
-		Isolate:    "recipes.isolate",
 	})
 	return BUNDLE_RECIPES_NAME
 }
@@ -191,6 +197,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 	name := fmt.Sprintf("%s-%s-%s", BUILD_TASK_DRIVERS_NAME, os, arch)
 	b.MustAddTask(name, &specs.TaskSpec{
 		Caches:       CACHES_GO,
+		CasSpec:      CAS_WHOLE_REPO,
 		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, b.MustGetCipdPackageFromAsset("go")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
@@ -206,7 +213,6 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 		// This task is idempotent but unlikely to ever be deduped
 		// because it depends on the entire repo...
 		Idempotent: true,
-		Isolate:    "whole_repo.isolate",
 	})
 	return name
 
@@ -214,7 +220,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
 // recipe.
-func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
+func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN...)
 	properties := map[string]string{
 		"buildername":   name,
@@ -235,6 +241,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 				Path: "cache/vpython",
 			},
 		},
+		CasSpec:      casSpec,
 		CipdPackages: cipd,
 		Command:      []string{python, "-u", "buildbot/infra/bots/run_recipe.py", "${ISOLATED_OUTDIR}", recipe, props(properties), "skia"},
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
@@ -246,7 +253,6 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 		ExtraTags: map[string]string{
 			"log_location": LOGDOG_ANNOTATION_URL,
 		},
-		Isolate:        isolate,
 		Outputs:        outputs,
 		ServiceAccount: serviceAccount,
 	}
@@ -266,10 +272,10 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		// Puppeteer tests run inside a Docker container, take screenshots and
 		// upload them to Gold. Therefore we need Docker, goldctl and EXTRA_PROPS,
 		// which include the properties required by goldctl (issue, patchset, etc).
-		task = kitchenTask(name, "puppeteer_tests", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
+		task = kitchenTask(name, "puppeteer_tests", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
 		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GOLDCTL...)
 	} else {
-		task = kitchenTask(name, "swarm_infra", "whole_repo.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
+		task = kitchenTask(name, "swarm_infra", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 	}
 
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
@@ -311,7 +317,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	for k, v := range EXTRA_PROPS {
 		extraProps[k] = v
 	}
-	task := kitchenTask(name, "run_presubmit", "run_recipe.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
+	task := kitchenTask(name, "run_presubmit", CAS_RUN_RECIPE, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
 	task.Caches = append(task.Caches, []*specs.Cache{
 		{
 			Name: "git",
@@ -366,6 +372,7 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	}
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
+		CasSpec:      CAS_WHOLE_REPO,
 		CipdPackages: cipd,
 		Command: []string{
 			"./infra_tests",
@@ -380,7 +387,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "whole_repo.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
 	b.MustAddTask(name, t)
@@ -395,6 +401,7 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 	machineType := MACHINE_TYPE_MEDIUM
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
+		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command: []string{
 			"./update_go_deps",
@@ -416,7 +423,6 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
 	}
 	b.MustAddTask(name, t)
@@ -431,6 +437,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 	machineType := MACHINE_TYPE_MEDIUM
 	t := &specs.TaskSpec{
 		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command: []string{
 			"./build_push_docker_image",
@@ -455,7 +462,6 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
 	b.MustAddTask(name, t)
@@ -470,6 +476,7 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 	machineType := MACHINE_TYPE_MEDIUM
 	t := &specs.TaskSpec{
 		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command: []string{
 			"./push_apps_from_infra_image",
@@ -491,7 +498,6 @@ func createPushAppsFromInfraDockerImage(b *specs.TasksCfgBuilder, name string) s
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
 	b.MustAddTask(name, t)
@@ -506,6 +512,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 	machineType := MACHINE_TYPE_MEDIUM
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
+		CasSpec:      CAS_EMPTY,
 		CipdPackages: cipd,
 		Command: []string{
 			"./roll_cipd_packages",
@@ -527,7 +534,6 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
-		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_RECREATE_SKPS,
 	}
 	b.MustAddTask(name, t)
@@ -536,6 +542,7 @@ func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
 
 func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 	t := &specs.TaskSpec{
+		CasSpec: CAS_AUTOROLL_CONFIGS,
 		Command: []string{
 			"./validate_autoroll_configs",
 			"--project_id", "skia-swarming-bots",
@@ -547,7 +554,6 @@ func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 		},
 		Dependencies:   []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:     linuxGceDimensions(MACHINE_TYPE_SMALL),
-		Isolate:        "autoroll_configs.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
 	b.MustAddTask(name, t)
@@ -612,6 +618,30 @@ func main() {
 	for _, name := range JOBS {
 		process(b, name)
 	}
+
+	// CasSpecs.
+	b.MustAddCasSpec(CAS_AUTOROLL_CONFIGS, &specs.CasSpec{
+		Root:  ".",
+		Paths: []string{"autoroll/config"},
+	})
+	b.MustAddCasSpec(CAS_EMPTY, specs.EmptyCasSpec)
+	b.MustAddCasSpec(CAS_RECIPES, &specs.CasSpec{
+		Root: "..",
+		Paths: []string{
+			"buildbot/infra/config/recipes.cfg",
+			"buildbot/infra/bots/bundle_recipes.sh",
+			"buildbot/infra/bots/recipes",
+			"buildbot/infra/bots/recipes.py",
+		},
+	})
+	b.MustAddCasSpec(CAS_RUN_RECIPE, &specs.CasSpec{
+		Root:  "..",
+		Paths: []string{"buildbot/infra/bots/run_recipe.py"},
+	})
+	b.MustAddCasSpec(CAS_WHOLE_REPO, &specs.CasSpec{
+		Root:  "..",
+		Paths: []string{"buildbot"},
+	})
 
 	b.MustFinish()
 }
