@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9dbe6a89_1583a75c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 32
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "I would like to see nanostat\u0027s main become a little bit more injectable.",
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6efd801e_46d9bd04",
+        "filename": "perf/go/samplestats/analyze.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "Is it ok to just see the last error? Should this be built up at all?",
+      "range": {
+        "startLine": 116,
+        "startChar": 15,
+        "endLine": 116,
+        "endChar": 20
+      },
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0bc09477_7d82da97",
+        "filename": "perf/nanostat/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "It\u0027s not clear to me what the + 8 means. Is this the size of each population? If so, what about n_old\u003d10, n_new\u003d 8",
+      "range": {
+        "startLine": 29,
+        "startChar": 55,
+        "endLine": 29,
+        "endChar": 58
+      },
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e91b6e2e_68022b08",
+        "filename": "perf/nanostat/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "Maybe also t_test, u_test, and man_u ?",
+      "range": {
+        "startLine": 136,
+        "startChar": 4,
+        "endLine": 136,
+        "endChar": 8
+      },
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d5097da2_d2a1bf47",
+        "filename": "perf/nanostat/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "Do you have a test case that calls this?",
+      "range": {
+        "startLine": 193,
+        "startChar": 7,
+        "endLine": 193,
+        "endChar": 14
+      },
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4f5b473c_8f17ee1a",
+        "filename": "perf/nanostat/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "then",
+      "range": {
+        "startLine": 215,
+        "startChar": 38,
+        "endLine": 215,
+        "endChar": 42
+      },
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f59f29a1_a858b9ed",
+        "filename": "perf/nanostat/main_test.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "This pattern feels a little strange to me. I would much prefer having main call a helper function with the flag values that we can inject here from tests. Heck, that helper can have an output writer that we can more easily intercept rather than overwriting os.Stdout. We wouldn\u0027t have to use osExit either.",
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1237a376_c56b7b73",
+        "filename": "perf/nanostat/main_test.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T19:52:36Z",
+      "side": 1,
+      "message": "It\u0027s probably best to repair this on a defer, right?",
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
