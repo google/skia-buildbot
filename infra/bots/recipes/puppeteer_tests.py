@@ -31,13 +31,13 @@ def RunSteps(api):
     api.path.c.base_paths['start_dir'] = api.path.c.base_paths['start_dir'][:-1]
 
   # Run Puppeteer tests inside a Docker container.
-  buildbot_dir = api.path['start_dir'].join('buildbot')
-  with api.context(cwd=buildbot_dir,
+  infra_dir = api.path['start_dir']
+  with api.context(cwd=infra_dir,
                    env={'DOCKER_CONFIG': '/home/chrome-bot/.docker'}):
     api.step('run puppeteer tests', cmd=['make', 'puppeteer-tests'])
 
   # Upload any digests produced by Puppeteer tests to Gold.
-  with api.context(cwd=buildbot_dir.join('puppeteer-tests')):
+  with api.context(cwd=infra_dir.join('puppeteer-tests')):
     upload_digests_cmd = [
         'python3',
         'upload-screenshots-to-gold.py',

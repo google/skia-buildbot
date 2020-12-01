@@ -47,7 +47,7 @@ def RunSteps(api):
       ('recipe_bundle', 'depot_tools'))
 
   gopath = api.path['start_dir'].join('cache', 'gopath')
-  infra_dir = api.path['start_dir'].join('buildbot')
+  infra_dir = api.path['start_dir']
   go_cache = api.path['start_dir'].join('cache', 'go_cache')
   go_root = api.path['start_dir'].join('go', 'go')
   go_bin = go_root.join('bin')

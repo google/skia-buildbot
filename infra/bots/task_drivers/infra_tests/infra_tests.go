@@ -38,7 +38,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	ctx = golang.WithEnv(ctx, wd)
-	infraDir := filepath.Join(wd, "buildbot")
+	infraDir := wd
 
 	// We get depot_tools via isolate. It's required for some tests.
 	ctx = td.WithEnv(ctx, []string{fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", dirs.DepotTools(*workdir))})
