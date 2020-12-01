@@ -74,8 +74,20 @@ func (c *Client) Upload(ctx context.Context, inputSpec cas.InputSpec) (string, e
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
+	excludes, err := inputSpec.GetExcludes(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	ex := make([]*command.InputExclusion, 0, len(excludes))
+	for _, regex := range excludes {
+		ex = append(ex, &command.InputExclusion{
+			Regex: regex,
+			Type:  command.UnspecifiedInputType,
+		})
+	}
 	is := command.InputSpec{
-		Inputs: paths,
+		Inputs:          paths,
+		InputExclusions: ex,
 	}
 	rootDigest, chunkers, _, err := c.client.ComputeMerkleTree(root, &is, chunker.DefaultChunkSize, filemetadata.NewNoopCache())
 	if err != nil {
@@ -407,8 +419,9 @@ func (c *Client) Close() error {
 
 // InputSpec implements cas.InputSpec.
 type InputSpec struct {
-	Root  string
-	Paths []string
+	Root     string
+	Paths    []string
+	Excludes []string
 }
 
 // Copy returns a deep copy of the InputSpec.
@@ -422,6 +435,11 @@ func (s *InputSpec) Copy() *InputSpec {
 // GetPaths implements cas.InputSpec.
 func (s *InputSpec) GetPaths(ctx context.Context) (string, []string, error) {
 	return s.Root, s.Paths, nil
+}
+
+// GetExcludes implements cas.InputSpec.
+func (s *InputSpec) GetExcludes(ctx context.Context) ([]string, error) {
+	return s.Excludes, nil
 }
 
 // NewInputSpec returns an InputSpec instance.

@@ -214,3 +214,29 @@ func TestMerge(t *testing.T) {
 	}
 	assertdeep.Equal(t, expectMergeTree, mergeTree)
 }
+
+func TestUpload_Exclude(t *testing.T) {
+	ctx, client := setup(t)
+
+	wd, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, wd)
+
+	f(t, wd, "keepme", "blahblah", false)
+	f(t, wd, "skipme", "abcdef", false)
+
+	is := &InputSpec{
+		Root:     wd,
+		Paths:    []string{"."},
+		Excludes: []string{".*ipm.*"},
+	}
+	digest, err := client.Upload(ctx, is)
+	dest, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, dest)
+	require.NoError(t, client.Download(ctx, dest, digest))
+
+	// Remove the skipped file and verify that the trees are equal.
+	require.NoError(t, os.Remove(filepath.Join(wd, "skipme")))
+	AssertTreesEqual(t, wd, dest)
+}
