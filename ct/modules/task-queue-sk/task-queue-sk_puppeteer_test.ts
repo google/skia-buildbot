@@ -21,7 +21,7 @@ describe('task-queue-sk', () => {
     });
 
     it('shows the delete dialog', async () => {
-      await testBed.page.click('delete-icon-sk');
+      (await testBed.page.$$('delete-icon-sk'))[0].click();
       await takeScreenshot(testBed.page, 'ct', 'task-queue-sk_delete');
     });
 
