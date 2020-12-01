@@ -1,0 +1,234 @@
+{
+   "results": {
+      "mobi_googlenews.skp_1264_7738": {},
+      "desk_googledocs.skp_1280_907": {},
+      "desk_googlesearch.skp_1264_3260": {},
+      "mobi_googlesearch.skp_2440_318": {},
+      "desk_googleimagesearch.skp_1264_5638": {},
+      "desk_googlespreadsheet.skp_1279_957": {},
+      "desk_googlecalendar.skp_1279_908": {},
+      "mobi_googlenews.skp_128_128": {},
+      "desk_googledocs.skp_128_128": {},
+      "desk_googlesearch.skp_128_128": {},
+      "mobi_googlesearch.skp_128_128": {},
+      "desk_googleimagesearch.skp_128_128": {},
+      "desk_googlespreadsheet.skp_128_128": {},
+      "desk_googlecalendar.skp_128_128": {},
+      "mobi_googlenews.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "mobi_googlenews.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 0.2419519983232021,
+            "samples": [
+               0.2424840033054352,
+               0.2421920001506805,
+               0.2420039996504784,
+               0.2427689991891384,
+               0.2506530024111271,
+               0.2427779994904995,
+               0.2441450022161007,
+               0.2433199994266033,
+               0.2423330023884773,
+               0.2419519983232021
+            ]
+         }
+      },
+      "desk_googledocs.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "desk_googledocs.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 0.6967767141759396,
+            "samples": [
+               0.7367192852709975,
+               0.7572601432246822,
+               0.7447265716535705,
+               0.7574534283152649,
+               0.750852571534259,
+               0.7518414285566125,
+               0.7269442858440536,
+               0.7412087140338761,
+               0.6967767141759396,
+               0.7251414284110069
+            ]
+         }
+      },
+      "desk_googlesearch.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "desk_googlesearch.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 0.4515828182074157,
+            "samples": [
+               0.47049499980428,
+               0.4519179090857506,
+               0.4765484543009238,
+               0.4551569091325456,
+               0.4515828182074157,
+               0.4524584544653242,
+               0.4636184542693875,
+               0.4865583635189317,
+               0.483592454682697,
+               0.4521047273142771
+            ]
+         }
+      },
+      "mobi_googlesearch.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "mobi_googlesearch.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 0.2352144760744912,
+            "samples": [
+               0.2667650952935219,
+               0.2648412856672491,
+               0.2590163809557756,
+               0.2396123810183434,
+               0.244210809469223,
+               0.2352144760744912,
+               0.244315619092612,
+               0.2360251906017462,
+               0.2447516190863791,
+               0.2375016191176006
+            ]
+         }
+      },
+      "desk_googleimagesearch.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "desk_googleimagesearch.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 0.6778834286545005,
+            "samples": [
+               0.7073030003479549,
+               0.6990905718079635,
+               0.6905385718813964,
+               0.679385285292353,
+               0.6778834286545005,
+               0.6801092858825412,
+               0.6986967144267899,
+               0.7086887141423566,
+               0.6828227144266877,
+               0.6989772857299873
+            ]
+         }
+      },
+      "desk_googlespreadsheet.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "desk_googlespreadsheet.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 2.193761666615804,
+            "samples": [
+               2.224674999713898,
+               2.21467333411177,
+               2.193761666615804,
+               2.214604999870062,
+               2.222137334446112,
+               2.262012999504805,
+               2.336465666691462,
+               2.322107999275128,
+               2.323969000329574,
+               2.216947333266338
+            ]
+         }
+      },
+      "desk_googlecalendar.skp_1_1000_1000": {
+         "gl": {
+            "options": {
+               "name": "desk_googlecalendar.skp",
+               "source_type": "skp",
+               "bench_type": "playback",
+               "clip": "0 0 1000 1000",
+               "scale": "1",
+               "GL_VERSION": "4.6.0 NVIDIA 440.100",
+               "GL_RENDERER": "Quadro M2000/PCIe/SSE2",
+               "GL_VENDOR": "NVIDIA Corporation",
+               "GL_SHADING_LANGUAGE_VERSION": "4.60 NVIDIA"
+            },
+            "min_ms": 0.781835714089019,
+            "samples": [
+               0.8459568571831498,
+               0.8208732860428947,
+               0.8095821429576192,
+               0.8060825711914471,
+               0.781835714089019,
+               0.8028175713760513,
+               0.8173382857016155,
+               0.8384872855884689,
+               0.8414807144020285,
+               0.8238618570779052
+            ]
+         }
+      },
+      "memory_usage_0_0": {
+         "meta": {
+            "max_rss_mb": 87
+         }
+      },
+      "sksl_compiler_baseline": {
+         "meta": {
+            "bytes": 34432
+         }
+      },
+      "sksl_compiler_gpu": {
+         "meta": {
+            "bytes": 344128
+         }
+      },
+      "sksl_compiler_runtimeeffect": {
+         "meta": {
+            "bytes": 115936
+         }
+      }
+   }
+}

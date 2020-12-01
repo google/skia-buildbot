@@ -47,6 +47,30 @@ func New(instanceConfig *config.InstanceConfig) *Parser {
 	return ret
 }
 
+// buildInitialParams returns a Params for the given BenchResult.
+func buildInitialParams(testName, configName string, b *format.BenchData, result format.BenchResult) paramtools.Params {
+	ret := paramtools.Params(b.Key).Copy()
+	ret["test"] = testName
+	ret["config"] = configName
+	ret.Add(paramtools.Params(b.Options))
+	// If there is an options map inside the result add it to the params.
+	if resultOptions, ok := result["options"]; ok {
+		if opts, ok := resultOptions.(map[string]interface{}); ok {
+			for k, vi := range opts {
+				// Ignore the very long and not useful GL_ values, we can retrieve
+				// them later via ptracestore.Details.
+				if strings.HasPrefix(k, "GL_") {
+					continue
+				}
+				if s, ok := vi.(string); ok {
+					ret[k] = s
+				}
+			}
+		}
+	}
+	return ret
+}
+
 // getParamsAndValuesFromLegacyFormat returns two parallel slices, each slice
 // contains the params and then the float for a single value of a trace.
 func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Params, []float32) {
@@ -54,25 +78,7 @@ func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Param
 	values := []float32{}
 	for testName, allConfigs := range b.Results {
 		for configName, result := range allConfigs {
-			key := paramtools.Params(b.Key).Copy()
-			key["test"] = testName
-			key["config"] = configName
-			key.Add(paramtools.Params(b.Options))
-			// If there is an options map inside the result add it to the params.
-			if resultOptions, ok := result["options"]; ok {
-				if opts, ok := resultOptions.(map[string]interface{}); ok {
-					for k, vi := range opts {
-						// Ignore the very long and not useful GL_ values, we can retrieve
-						// them later via ptracestore.Details.
-						if strings.HasPrefix(k, "GL_") {
-							continue
-						}
-						if s, ok := vi.(string); ok {
-							key[k] = s
-						}
-					}
-				}
-			}
+			key := buildInitialParams(testName, configName, b, result)
 			for k, vi := range result {
 				if k == "options" || k == "samples" {
 					continue
@@ -90,6 +96,48 @@ func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Param
 		}
 	}
 	return params, values
+}
+
+// Samples contain multiple runs of the same test, where Params describes the
+// test.
+type Samples struct {
+	Params paramtools.Params
+	Values []float64
+}
+
+// GetSamplesFromLegacyFormat returns a map from trace id to the slice of
+// samples for that test.
+func GetSamplesFromLegacyFormat(b *format.BenchData) map[string]Samples {
+	ret := map[string]Samples{}
+	for testName, allConfigs := range b.Results {
+		for configName, result := range allConfigs {
+			params := buildInitialParams(testName, configName, b, result)
+			iSamples, ok := result["samples"]
+			if !ok {
+				continue
+			}
+
+			params = query.ForceValid(params)
+			traceID, err := query.MakeKeyFast(params)
+			if err != nil {
+				continue
+			}
+			iSlice := iSamples.([]interface{})
+			values := make([]float64, 0, len(iSlice))
+			for _, ix := range iSlice {
+				x, ok := ix.(float64)
+				if !ok {
+					continue
+				}
+				values = append(values, x)
+			}
+			ret[traceID] = Samples{
+				Params: params,
+				Values: values,
+			}
+		}
+	}
+	return ret
 }
 
 // getParamsAndValuesFromVersion1Format returns two parallel slices, each slice contains

@@ -222,3 +222,55 @@ func parse_ReadErr(t *testing.T, p *Parser, f file.File) {
 	assert.Equal(t, int64(1), p.parseCounter.Get())
 	assert.Equal(t, int64(1), p.parseFailCounter.Get())
 }
+
+func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	// Load the sample data file as BenchData.
+
+	r := testutils.MustGetReader(filepath.Join("legacy", "samples_success.json"))
+
+	b, err := format.ParseLegacyFormat(r)
+	require.NoError(t, err)
+
+	res := GetSamplesFromLegacyFormat(b)
+	require.Equal(t, 2, len(res))
+	expected := map[string]Samples{
+		",bench_type=micro,config=8888,name=writepix_pm_bgra_srgb,source_type=bench,test=writepix_pm_bgra_srgb_640_480,": {
+			Params: paramtools.Params{
+				"bench_type":  "micro",
+				"config":      "8888",
+				"name":        "writepix_pm_bgra_srgb",
+				"source_type": "bench",
+				"test":        "writepix_pm_bgra_srgb_640_480",
+			},
+			Values: []float64{
+				0.1828799247741699, 0.1826989650726318, 0.1827061176300049, 0.1827809810638428, 0.1825799942016602, 0.1826908588409424, 0.1829240322113037, 0.182894229888916, 0.1915080547332764, 0.1832039356231689, 0.1829140186309814, 0.1829030513763428, 0.1829860210418701, 0.182703971862793, 0.1829319000244141, 0.1827821731567383, 0.1828160285949707, 0.1827318668365479, 0.1829230785369873, 0.1828629970550537},
+		},
+
+		",bench_type=micro,config=8888,name=writepix_um_bgra_srgb,source_type=bench,test=writepix_um_bgra_srgb_640_480,": {
+			Params: paramtools.Params{
+				"bench_type":  "micro",
+				"config":      "8888",
+				"name":        "writepix_um_bgra_srgb",
+				"source_type": "bench",
+				"test":        "writepix_um_bgra_srgb_640_480",
+			},
+			Values: []float64{
+				0.2057559490203857, 0.1993551254272461, 0.198721170425415, 0.1989059448242188, 0.1990170478820801, 0.1992101669311523, 0.1991400718688965, 0.1987521648406982, 0.1994550228118896, 0.199286937713623, 0.1990699768066406, 0.1992120742797852, 0.198800802230835, 0.1989920139312744, 0.199099063873291, 0.2042169570922852, 0.1992931365966797, 0.1988308429718018, 0.1994678974151611, 0.1989710330963135,
+			},
+		}}
+	assert.Equal(t, expected, res)
+}
+
+func TestGetSamplesFromLegacyFormat_EmptyData_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Load the sample data file as BenchData.
+	r := testutils.MustGetReader(filepath.Join("legacy", "samples_no_results.json"))
+
+	b, err := format.ParseLegacyFormat(r)
+	require.NoError(t, err)
+
+	res := GetSamplesFromLegacyFormat(b)
+	assert.Empty(t, res)
+}
