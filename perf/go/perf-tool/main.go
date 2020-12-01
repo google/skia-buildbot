@@ -16,6 +16,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/spf13/cobra"
+	"github.com/urfave/cli"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
@@ -84,197 +85,227 @@ func mustGetStore() tracestore.TraceStore {
 	return traceStore
 }
 
+const (
+	configFilenameFlag = "config_filename"
+)
+
 func main() {
-	cmd := cobra.Command{
-		Use: "perf-tool [sub]",
-		PersistentPreRunE: func(c *cobra.Command, args []string) error {
-			glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
+	glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
 
-			if configFilename == "" {
-				return skerr.Fmt("The --config_filename flag is required.")
-			}
-			var err error
-			instanceConfig, err = config.InstanceConfigFromFile(configFilename)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			config.Config = instanceConfig
-
+	app := &cli.App{
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     configFilenameFlag,
+				Value:    "",
+				Usage:    "Load configuration from `FILE`",
+				EnvVar:   "PERF_CONFIG_FILENAME",
+				Required: true,
+			},
+		},
+		Name:  "perf-tool",
+		Usage: "Command-line tool for working with Perf data.",
+		Action: func(c *cli.Context) error {
 			return nil
 		},
 	}
-	cmd.PersistentFlags().StringVar(&configFilename, "config_filename", "", "The filename of the config file to use.")
-	cmd.PersistentFlags().BoolVar(&local, "local", true, "If true then use glcloud credentials.")
 
-	configCmd := &cobra.Command{
-		Use: "config [sub]",
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Printf("\nError: %s\n", err.Error())
+		os.Exit(2)
 	}
-	configPubSubCmd := &cobra.Command{
-		Use:   "create-pubsub-topics",
-		Short: "Create PubSub topics for the given big_table_config.",
-		RunE:  configCreatePubSubTopicsAction,
-	}
-	configCmd.AddCommand(configPubSubCmd)
+	/*
 
-	databaseCmd := &cobra.Command{
-		Use: "database [sub]",
-	}
-	databaseCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+			cmd := cobra.Command{
+				Use: "perf-tool [sub]",
+				PersistentPreRunE: func(c *cobra.Command, args []string) error {
 
-	databaseMigrateSubCmd := &cobra.Command{
-		Use:   "migrate",
-		Short: "Migrate the database to the latest version of the schema.",
-		RunE:  databaseMigrateSubAction,
-	}
+					if configFilename == "" {
+						return skerr.Fmt("The --config_filename flag is required.")
+					}
+					var err error
+					instanceConfig, err = config.InstanceConfigFromFile(configFilename)
+					if err != nil {
+						return skerr.Wrap(err)
+					}
+					config.Config = instanceConfig
 
-	databaseBackupSubCmd := &cobra.Command{
-		Use: "backup [sub]",
-	}
-	databaseBackupSubCmd.PersistentFlags().String(outputFilenameFlag, "", "The output filename")
+					return nil
+				},
+			}
+			cmd.PersistentFlags().StringVar(&configFilename, "config_filename", "", "The filename of the config file to use.")
+			cmd.PersistentFlags().BoolVar(&local, "local", true, "If true then use glcloud credentials.")
 
-	databaseBackupAlertsSubCmd := &cobra.Command{
-		Use:   "alerts",
-		Short: "Backup Alerts.",
-		RunE:  databaseDatabaseBackupAlertsSubAction,
-	}
-	databaseBackupSubCmd.AddCommand(databaseBackupAlertsSubCmd)
+			configCmd := &cobra.Command{
+				Use: "config [sub]",
+			}
+			configPubSubCmd := &cobra.Command{
+				Use:   "create-pubsub-topics",
+				Short: "Create PubSub topics for the given big_table_config.",
+				RunE:  configCreatePubSubTopicsAction,
+			}
+			configCmd.AddCommand(configPubSubCmd)
 
-	databaseBackupShortcutsSubCmd := &cobra.Command{
-		Use:   "shortcuts",
-		Short: "Backup Shortcuts.",
-		RunE:  databaseDatabaseBackupShortcutsSubAction,
-	}
-	databaseBackupSubCmd.AddCommand(databaseBackupShortcutsSubCmd)
+			databaseCmd := &cobra.Command{
+				Use: "database [sub]",
+			}
+			databaseCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
 
-	databaseBackupRegressionsSubCmd := &cobra.Command{
-		Use:   "regressions",
-		Short: "Backups up regressions and any shortcuts they rely on.",
-		Long: `Backups up regressions and any shortcuts they rely on.
+			databaseMigrateSubCmd := &cobra.Command{
+				Use:   "migrate",
+				Short: "Migrate the database to the latest version of the schema.",
+				RunE:  databaseMigrateSubAction,
+			}
 
-When restoring you must restore twice, first
+			databaseBackupSubCmd := &cobra.Command{
+				Use: "backup [sub]",
+			}
+			databaseBackupSubCmd.PersistentFlags().String(outputFilenameFlag, "", "The output filename")
 
-    'perf-tool database restore regressions'
+			databaseBackupAlertsSubCmd := &cobra.Command{
+				Use:   "alerts",
+				Short: "Backup Alerts.",
+				RunE:  databaseDatabaseBackupAlertsSubAction,
+			}
+			databaseBackupSubCmd.AddCommand(databaseBackupAlertsSubCmd)
 
-and then
+			databaseBackupShortcutsSubCmd := &cobra.Command{
+				Use:   "shortcuts",
+				Short: "Backup Shortcuts.",
+				RunE:  databaseDatabaseBackupShortcutsSubAction,
+			}
+			databaseBackupSubCmd.AddCommand(databaseBackupShortcutsSubCmd)
 
-    'perf-tool database restore shortcuts'
+			databaseBackupRegressionsSubCmd := &cobra.Command{
+				Use:   "regressions",
+				Short: "Backups up regressions and any shortcuts they rely on.",
+				Long: `Backups up regressions and any shortcuts they rely on.
 
-using the same input file for both restores.
- `,
-		RunE: databaseDatabaseBackupRegressionsSubAction,
-	}
-	databaseBackupRegressionsSubCmd.Flags().String(backupToDateFlag, "", "How far back in time to back up Regressions. Defaults to four weeks.")
-	databaseBackupSubCmd.AddCommand(databaseBackupRegressionsSubCmd)
+		When restoring you must restore twice, first
 
-	databaseRestoreSubCmd := &cobra.Command{
-		Use: "restore [sub]",
-	}
-	databaseRestoreSubCmd.PersistentFlags().String(inputFilenameFlag, "", "The output filename")
+		    'perf-tool database restore regressions'
 
-	databaseRestoreAlertsSubCmd := &cobra.Command{
-		Use:   "alerts",
-		Short: "Restores from the given backup.",
-		RunE:  databaseDatabaseRestoreAlertsSubAction,
-	}
-	databaseRestoreSubCmd.AddCommand(databaseRestoreAlertsSubCmd)
+		and then
 
-	databaseRestoreShortcutsSubCmd := &cobra.Command{
-		Use:   "shortcuts",
-		Short: "Restores from the given backup.",
-		RunE:  databaseDatabaseRestoreShortcutsSubAction,
-	}
-	databaseRestoreSubCmd.AddCommand(databaseRestoreShortcutsSubCmd)
+		    'perf-tool database restore shortcuts'
 
-	databaseRestoreRegressionsSubCmd := &cobra.Command{
-		Use:   "regressions",
-		Short: "Restores from the given backup both the regressions and their associated shortcuts.",
-		RunE:  databaseDatabaseRestoreRegressionsSubAction,
-	}
-	databaseRestoreSubCmd.AddCommand(databaseRestoreRegressionsSubCmd)
+		using the same input file for both restores.
+		 `,
+				RunE: databaseDatabaseBackupRegressionsSubAction,
+			}
+			databaseBackupRegressionsSubCmd.Flags().String(backupToDateFlag, "", "How far back in time to back up Regressions. Defaults to four weeks.")
+			databaseBackupSubCmd.AddCommand(databaseBackupRegressionsSubCmd)
 
-	databaseCmd.AddCommand(
-		databaseMigrateSubCmd,
-		databaseBackupSubCmd,
-		databaseRestoreSubCmd)
+			databaseRestoreSubCmd := &cobra.Command{
+				Use: "restore [sub]",
+			}
+			databaseRestoreSubCmd.PersistentFlags().String(inputFilenameFlag, "", "The output filename")
 
-	tilesCmd := &cobra.Command{
-		Use: "tiles [sub]",
-	}
-	tilesCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+			databaseRestoreAlertsSubCmd := &cobra.Command{
+				Use:   "alerts",
+				Short: "Restores from the given backup.",
+				RunE:  databaseDatabaseRestoreAlertsSubAction,
+			}
+			databaseRestoreSubCmd.AddCommand(databaseRestoreAlertsSubCmd)
 
-	tilesLast := &cobra.Command{
-		Use:   "last",
-		Short: "Prints the offset of the last (most recent) tile.",
-		RunE:  tilesLastAction,
-	}
-	tilesList := &cobra.Command{
-		Use:   "list",
-		Short: "Prints the last N tiles and the number of traces they contain.",
-		RunE:  tilesListAction,
-	}
-	tilesList.Flags().Int32Var(&tileListNumFlag, "num", 10, "The number of tiles to display.")
+			databaseRestoreShortcutsSubCmd := &cobra.Command{
+				Use:   "shortcuts",
+				Short: "Restores from the given backup.",
+				RunE:  databaseDatabaseRestoreShortcutsSubAction,
+			}
+			databaseRestoreSubCmd.AddCommand(databaseRestoreShortcutsSubCmd)
 
-	tilesCmd.AddCommand(
-		tilesLast,
-		tilesList,
-	)
+			databaseRestoreRegressionsSubCmd := &cobra.Command{
+				Use:   "regressions",
+				Short: "Restores from the given backup both the regressions and their associated shortcuts.",
+				RunE:  databaseDatabaseRestoreRegressionsSubAction,
+			}
+			databaseRestoreSubCmd.AddCommand(databaseRestoreRegressionsSubCmd)
 
-	tracesCmd := &cobra.Command{
-		Use: "traces [sub]",
-	}
+			databaseCmd.AddCommand(
+				databaseMigrateSubCmd,
+				databaseBackupSubCmd,
+				databaseRestoreSubCmd)
 
-	tracesCmd.PersistentFlags().StringVar(&tracesQueryFlag, "query", "", "The query to run. Defaults to the empty query which matches all traces.")
-	tracesCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+			tilesCmd := &cobra.Command{
+				Use: "tiles [sub]",
+			}
+			tilesCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
 
-	tracesListByIndexCmd := &cobra.Command{
-		Use:   "list",
-		Short: "Prints the IDs of traces in the last (most recent) tile, or the tile specified by the --tile flag, that match --query.",
-		RunE:  tracesListByIndexAction,
-	}
-	tracesListByIndexCmd.PersistentFlags().Int32Var((*int32)(&tracesTileFlag), "tile", -1, "The tile to query")
+			tilesLast := &cobra.Command{
+				Use:   "last",
+				Short: "Prints the offset of the last (most recent) tile.",
+				RunE:  tilesLastAction,
+			}
+			tilesList := &cobra.Command{
+				Use:   "list",
+				Short: "Prints the last N tiles and the number of traces they contain.",
+				RunE:  tilesListAction,
+			}
+			tilesList.Flags().Int32Var(&tileListNumFlag, "num", 10, "The number of tiles to display.")
 
-	tracesExportCmd := &cobra.Command{
-		Use:   "export",
-		Short: "Writes a JSON files with the traces that match --query for the given range of commits.",
-		RunE:  tracesExportAction,
-	}
-	tracesExportCmd.PersistentFlags().Int32Var((*int32)(&tracesBeginFlag), "begin", -1, "The index of the first commit.")
-	tracesExportCmd.PersistentFlags().Int32Var((*int32)(&tracesEndFlag), "end", -1, "The index of the last commit. If not specified then only the values at --begin are returned.")
-	tracesExportCmd.PersistentFlags().StringVar(&tracesFilenameFlag, "filename", "", "The name of the file to write the results, defaults to stdout if unspecified.")
+			tilesCmd.AddCommand(
+				tilesLast,
+				tilesList,
+			)
 
-	tracesCmd.AddCommand(
-		tracesListByIndexCmd,
-		tracesExportCmd,
-	)
+			tracesCmd := &cobra.Command{
+				Use: "traces [sub]",
+			}
 
-	ingestCmd := &cobra.Command{
-		Use: "ingest [sub]",
-	}
+			tracesCmd.PersistentFlags().StringVar(&tracesQueryFlag, "query", "", "The query to run. Defaults to the empty query which matches all traces.")
+			tracesCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
 
-	ingestForceReingestCmd := &cobra.Command{
-		Use:   "force-reingest",
-		Short: "Force re-ingestion of files.",
-		RunE:  ingestForceReingestAction,
-	}
+			tracesListByIndexCmd := &cobra.Command{
+				Use:   "list",
+				Short: "Prints the IDs of traces in the last (most recent) tile, or the tile specified by the --tile flag, that match --query.",
+				RunE:  tracesListByIndexAction,
+			}
+			tracesListByIndexCmd.PersistentFlags().Int32Var((*int32)(&tracesTileFlag), "tile", -1, "The tile to query")
 
-	ingestForceReingestCmd.Flags().StringVar(&ingestStartFlag, "start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
-	ingestForceReingestCmd.Flags().StringVar(&ingestEndFlag, "end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
-	ingestForceReingestCmd.Flags().BoolVar(&ingestDryrunFlag, "dryrun", false, "Just display the list of files to send.")
+			tracesExportCmd := &cobra.Command{
+				Use:   "export",
+				Short: "Writes a JSON files with the traces that match --query for the given range of commits.",
+				RunE:  tracesExportAction,
+			}
+			tracesExportCmd.PersistentFlags().Int32Var((*int32)(&tracesBeginFlag), "begin", -1, "The index of the first commit.")
+			tracesExportCmd.PersistentFlags().Int32Var((*int32)(&tracesEndFlag), "end", -1, "The index of the last commit. If not specified then only the values at --begin are returned.")
+			tracesExportCmd.PersistentFlags().StringVar(&tracesFilenameFlag, "filename", "", "The name of the file to write the results, defaults to stdout if unspecified.")
 
-	ingestCmd.AddCommand(ingestForceReingestCmd)
+			tracesCmd.AddCommand(
+				tracesListByIndexCmd,
+				tracesExportCmd,
+			)
 
-	cmd.AddCommand(
-		configCmd,
-		databaseCmd,
-		tilesCmd,
-		tracesCmd,
-		ingestCmd,
-	)
+			ingestCmd := &cobra.Command{
+				Use: "ingest [sub]",
+			}
 
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+			ingestForceReingestCmd := &cobra.Command{
+				Use:   "force-reingest",
+				Short: "Force re-ingestion of files.",
+				RunE:  ingestForceReingestAction,
+			}
+
+			ingestForceReingestCmd.Flags().StringVar(&ingestStartFlag, "start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
+			ingestForceReingestCmd.Flags().StringVar(&ingestEndFlag, "end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
+			ingestForceReingestCmd.Flags().BoolVar(&ingestDryrunFlag, "dryrun", false, "Just display the list of files to send.")
+
+			ingestCmd.AddCommand(ingestForceReingestCmd)
+
+			cmd.AddCommand(
+				configCmd,
+				databaseCmd,
+				tilesCmd,
+				tracesCmd,
+				ingestCmd,
+			)
+
+			if err := cmd.Execute(); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+	*/
 
 }
 
