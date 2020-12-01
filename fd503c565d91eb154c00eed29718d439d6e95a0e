@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3287cad5_ab573aa7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-01T14:19:00Z",
+      "side": 1,
+      "message": "Friendly ping (this is the only change that is left in the chain)",
+      "revId": "fd503c565d91eb154c00eed29718d439d6e95a0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
