@@ -16,6 +16,24 @@
       "message": "Wonder if there are other google projects that are in this boat, and could benefit from this automation....?",
       "revId": "904b193c1ce1653654c1252cd4b366e7afa1ebf2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8dd0bae5_629a03a7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-01T17:48:35Z",
+      "side": 1,
+      "message": "I spoke to a number of teams to figure out what they were doing. Some did the pure copybara approach of creating a Gerrit CL from a PR, but this did not have commenting or closing when change was abandoned.\nGolang wrote their own bot (without copybara) to do this, but they had many known sharp edges in their implementation.\n\nI went with a hybrid approach of using both copybara and our own bot. I plan to send out the design doc to the teams I had spoken to as an FYI of what we decided to go with. I will also send it to Chrome Ops as an FYI.\n\n(all details are in the design doc: http://goto/skia-github-gerrit)",
+      "parentUuid": "019f2fd9_c6307fda",
+      "revId": "904b193c1ce1653654c1252cd4b366e7afa1ebf2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
