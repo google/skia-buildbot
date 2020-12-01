@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d3108dba_ca8a8aad",
+        "filename": "perf/nanostat/main_test.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T20:45:17Z",
+      "side": 1,
+      "message": "testutil.ReadFileBytes or testutil.ReadFile is probably a better fit.",
+      "range": {
+        "startLine": 74,
+        "startChar": 24,
+        "endLine": 74,
+        "endChar": 32
+      },
+      "revId": "84c9ca0506563a2b4bfaf2a3e18bf0cc36dc073b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

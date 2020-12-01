@@ -290,6 +290,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3fdbd700_98ebf0db",
+        "filename": "perf/nanostat/main_test.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-01T20:45:17Z",
+      "side": 1,
+      "message": "\u003e That wouldn\u0027t test parsing the flags.\n\nMaybe add a specific test that focuses on that part if that\u0027s important.\n\n\u003e That would require changing every fmt.Print* call to fmt.Fprint*, while doing it this way keeps the main code\nreadable and clear, while still allowing it to be tested.\n\nThere are 2 such calls that would need to be changed.\n\nThe reason I requested this change was because it was very difficult for me to understand what the test was doing and that the test was testing the right things. I would like our tests to be easy to read and easy to understand.",
+      "parentUuid": "f27d91e2_01af6e80",
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1237a376_c56b7b73",
         "filename": "perf/nanostat/main_test.go",
         "patchSetId": 32
