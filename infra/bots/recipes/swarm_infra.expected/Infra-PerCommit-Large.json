@@ -4,7 +4,6 @@
       "git",
       "init"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "name": "git init"
   },
   {
@@ -13,7 +12,6 @@
       "add",
       "."
     ],
-    "cwd": "[START_DIR]/buildbot",
     "name": "git add"
   },
   {
@@ -23,7 +21,6 @@
       "-m",
       "Fake commit to satisfy recipe tests"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "name": "git commit"
   },
   {
@@ -31,7 +28,6 @@
       "which",
       "go"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -50,7 +46,6 @@
       "mod",
       "download"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -70,7 +65,6 @@
       "-v",
       "github.com/golang/protobuf/protoc-gen-go"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -90,7 +84,6 @@
       "-v",
       "github.com/kisielk/errcheck"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -110,7 +103,6 @@
       "-v",
       "golang.org/x/tools/cmd/goimports"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -130,7 +122,6 @@
       "-v",
       "golang.org/x/tools/cmd/stringer"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -150,7 +141,6 @@
       "-v",
       "github.com/vektra/mockery/..."
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -170,7 +160,6 @@
       "-v",
       "github.com/GeertJohan/go.rice/rice"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -190,7 +179,6 @@
       "-v",
       "github.com/twitchtv/twirp/protoc-gen-twirp"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -210,7 +198,6 @@
       "-v",
       "go.larrymyers.com/protoc-gen-twirp_typescript"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -231,7 +218,6 @@
       "-g",
       "bower@1.8.2"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -246,10 +232,9 @@
   },
   {
     "cmd": [
-      "[START_DIR]/buildbot/scripts/run_emulators/run_emulators",
+      "[START_DIR]/scripts/run_emulators/run_emulators",
       "start"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "CHROME_HEADLESS": "1",
       "DOCKER_CONFIG": "/home/chrome-bot/.docker",
@@ -270,7 +255,6 @@
       "--alsologtostderr",
       "--large"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
@@ -291,10 +275,9 @@
   },
   {
     "cmd": [
-      "[START_DIR]/buildbot/scripts/run_emulators/run_emulators",
+      "[START_DIR]/scripts/run_emulators/run_emulators",
       "stop"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
@@ -321,7 +304,6 @@
       "--exit-code",
       "go.mod"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "name": "git diff go.mod"
   },
   {

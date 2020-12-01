@@ -4,7 +4,6 @@
       "make",
       "puppeteer-tests"
     ],
-    "cwd": "[START_DIR]/buildbot",
     "env": {
       "DOCKER_CONFIG": "/home/chrome-bot/.docker"
     },
@@ -27,7 +26,7 @@
       "--task_id",
       "8894409419339087024"
     ],
-    "cwd": "[START_DIR]/buildbot/puppeteer-tests",
+    "cwd": "[START_DIR]/puppeteer-tests",
     "name": "upload digests (tryjob)"
   },
   {
