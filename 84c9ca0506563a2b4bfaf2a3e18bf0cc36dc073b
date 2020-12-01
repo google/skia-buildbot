@@ -22,6 +22,30 @@
       },
       "revId": "84c9ca0506563a2b4bfaf2a3e18bf0cc36dc073b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5df2a7a9_1c0d7b62",
+        "filename": "perf/nanostat/main_test.go",
+        "patchSetId": 34
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-01T21:15:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d3108dba_ca8a8aad",
+      "range": {
+        "startLine": 74,
+        "startChar": 24,
+        "endLine": 74,
+        "endChar": 32
+      },
+      "revId": "84c9ca0506563a2b4bfaf2a3e18bf0cc36dc073b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

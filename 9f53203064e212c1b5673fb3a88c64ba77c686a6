@@ -306,6 +306,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cb904b0e_8f89d0e7",
+        "filename": "perf/nanostat/main_test.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-01T21:15:46Z",
+      "side": 1,
+      "message": "OK, I was able to move flags and flag parsing into actualMain while still passing in \u0027stdout\u0027, so flag parsing is still being tested while dramatically cleaning up the tests.",
+      "parentUuid": "3fdbd700_98ebf0db",
+      "revId": "9f53203064e212c1b5673fb3a88c64ba77c686a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1237a376_c56b7b73",
