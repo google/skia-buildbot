@@ -1,0 +1,7 @@
+         old         new  delta      stats            name
+  0.82 ±  2%  1.22 ±  2%   49%   (p=0.000,  n=10+10)  desk_googlecalendar.skp
+  0.74 ±  3%  0.71 ±  2%   -4%   (p=0.002,  n=10+10)  desk_googledocs.skp
+  0.69 ±  2%  1.05 ±  0%   52%   (p=0.000,  n=10+10)  desk_googleimagesearch.skp
+  2.25 ±  2%  3.24 ±  1%   44%   (p=0.000,  n=10+10)  desk_googlespreadsheet.skp
+  0.24 ±  1%  0.24 ±  1%   -2%   (p=0.001,  n=10+10)  mobi_googlenews.skp
+  0.25 ±  5%  0.33 ± 15%   32%   (p=0.000,  n=10+10)  mobi_googlesearch.skp
