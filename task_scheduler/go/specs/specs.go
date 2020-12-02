@@ -589,17 +589,19 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 
 // CasSpec describes a set of task inputs in content-addressed storage.
 type CasSpec struct {
-	Root   string   `json:"root,omitempty"`
-	Paths  []string `json:"paths,omitempty"`
-	Digest string   `json:"digest,omitempty"`
+	Root     string   `json:"root,omitempty"`
+	Paths    []string `json:"paths,omitempty"`
+	Excludes []string `json:"excludes,omitempty"`
+	Digest   string   `json:"digest,omitempty"`
 }
 
 // Copy returns a deep copy of the CasSpec.
 func (s *CasSpec) Copy() *CasSpec {
 	return &CasSpec{
-		Root:   s.Root,
-		Paths:  util.CopyStringSlice(s.Paths),
-		Digest: s.Digest,
+		Root:     s.Root,
+		Paths:    util.CopyStringSlice(s.Paths),
+		Excludes: util.CopyStringSlice(s.Excludes),
+		Digest:   s.Digest,
 	}
 }
 

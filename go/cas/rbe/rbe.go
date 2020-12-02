@@ -14,12 +14,17 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
 )
 
 const (
+	// ExcludeGitDir is a regular expression which may be used as part of an
+	// InputSpec to exclude the ".git" directory.
+	ExcludeGitDir = `^(.*\/)*\.git(\/.*)*$`
+
 	rbeService = "remotebuildexecution.googleapis.com:443"
 )
 
@@ -70,12 +75,31 @@ func NewClient(ctx context.Context, instance string, ts oauth2.TokenSource) (*Cl
 
 // Upload the given paths to RBE-CAS.
 func (c *Client) Upload(ctx context.Context, inputSpec cas.InputSpec) (string, error) {
+	sklog.Errorf("Uploading to CAS")
 	root, paths, err := inputSpec.GetPaths(ctx)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
+	excludes, err := inputSpec.GetExcludes(ctx)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	ex := make([]*command.InputExclusion, 0, len(excludes))
+	for _, regex := range excludes {
+		ex = append(ex, &command.InputExclusion{
+			Regex: regex,
+			Type:  command.UnspecifiedInputType,
+		})
+	}
+	// Log the excludes, if any.
+	if len(ex) > 0 {
+		sklog.Errorf("Excluding: %v", excludes)
+	} else {
+		sklog.Errorf("No excludes for root: %s", root)
+	}
 	is := command.InputSpec{
-		Inputs: paths,
+		Inputs:          paths,
+		InputExclusions: ex,
 	}
 	rootDigest, chunkers, _, err := c.client.ComputeMerkleTree(root, &is, chunker.DefaultChunkSize, filemetadata.NewNoopCache())
 	if err != nil {
@@ -407,21 +431,28 @@ func (c *Client) Close() error {
 
 // InputSpec implements cas.InputSpec.
 type InputSpec struct {
-	Root  string
-	Paths []string
+	Root     string
+	Paths    []string
+	Excludes []string
 }
 
 // Copy returns a deep copy of the InputSpec.
 func (s *InputSpec) Copy() *InputSpec {
 	return &InputSpec{
-		Root:  s.Root,
-		Paths: util.CopyStringSlice(s.Paths),
+		Root:     s.Root,
+		Paths:    util.CopyStringSlice(s.Paths),
+		Excludes: util.CopyStringSlice(s.Excludes),
 	}
 }
 
 // GetPaths implements cas.InputSpec.
 func (s *InputSpec) GetPaths(ctx context.Context) (string, []string, error) {
 	return s.Root, s.Paths, nil
+}
+
+// GetExcludes implements cas.InputSpec.
+func (s *InputSpec) GetExcludes(ctx context.Context) ([]string, error) {
+	return s.Excludes, nil
 }
 
 // NewInputSpec returns an InputSpec instance.
