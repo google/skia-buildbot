@@ -9,6 +9,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
+import { SelectSk } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/select-sk';
 
@@ -18,38 +19,42 @@ const frequencies = [
   { num: '2', desc: 'Repeat every other day' },
   { num: '7', desc: 'Repeat weekly' }];
 
-const template = () => html`
-<div class=tr-container>
-  <select-sk>
-    ${frequencies.map((f) => html`
-    <div>
-      <span class=num>${f.num}</span><span>${f.desc}</span>
-    </div>`)}
-  </select-sk>
-</div>
-`;
+export class TaskRepeaterSk extends ElementSk {
+  private _selector: SelectSk | null = null;
 
-define('task-repeater-sk', class extends ElementSk {
   constructor() {
-    super(template);
+    super(TaskRepeaterSk.template);
   }
 
-  connectedCallback() {
+  private static template = () => html`
+  <div class=tr-container>
+    <select-sk>
+      ${frequencies.map((f) => html`
+      <div>
+        <span class=num>${f.num}</span><span>${f.desc}</span>
+      </div>`)}
+    </select-sk>
+  </div>
+  `;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._selector = $$('select-sk', this);
-    this._selector.selection = 0;
+    this._selector!.selection = 0;
   }
 
   /**
    * @prop {string} frequency - Number string representing user selected
    * frequency of their task.
    */
-  get frequency() {
-    return frequencies[this._selector.selection].num;
+  get frequency(): string {
+    return frequencies[this._selector!.selection as number].num;
   }
 
-  set frequency(val) {
-    this._selector.selection = frequencies.findIndex((f) => f.num === val);
+  set frequency(val: string) {
+    this._selector!.selection = frequencies.findIndex((f) => f.num === val);
   }
-});
+}
+
+define('task-repeater-sk', TaskRepeaterSk);
