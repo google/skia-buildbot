@@ -6,16 +6,11 @@ import (
 	"context"
 )
 
-// InputSpec represents an entry in content-addressed storage.
-type InputSpec interface {
-	GetPaths(ctx context.Context) (root string, paths []string, err error)
-}
-
 // CAS represents a content-addressed storage system.
 type CAS interface {
 	// Upload the given inputs to content-addressed storage and return the
 	// resulting digest.
-	Upload(ctx context.Context, inputs InputSpec) (string, error)
+	Upload(ctx context.Context, root string, paths, excludes []string) (string, error)
 
 	// Download the given entry from content-addressed storage.
 	Download(ctx context.Context, root, digest string) error

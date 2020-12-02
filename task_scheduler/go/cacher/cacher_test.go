@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/cas/mocks"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git/repograph"
@@ -123,8 +124,9 @@ func TestGetOrCacheRepoState_Unset_RBE(t *testing.T) {
 	tasksCfg := tcc_testutils.TasksCfg2.Copy()
 	tasksCfg.CasSpecs = map[string]*specs.CasSpec{
 		"my-cas": {
-			Root:  ".",
-			Paths: []string{"somefile.txt"},
+			Root:     ".",
+			Paths:    []string{"somefile.txt"},
+			Excludes: []string{rbe.ExcludeGitDir},
 		},
 	}
 	for _, task := range tasksCfg.Tasks {
@@ -141,7 +143,7 @@ func TestGetOrCacheRepoState_Unset_RBE(t *testing.T) {
 	require.Nil(t, cached)
 
 	// Run GetOrCacheRepoState to populate the cache.
-	cas.On("Upload", testutils.AnyContext, mock.AnythingOfType("*rbe.InputSpec")).Return("fake-digest", nil)
+	cas.On("Upload", testutils.AnyContext, mock.AnythingOfType("string"), []string{"somefile.txt"}, []string{rbe.ExcludeGitDir}).Return("fake-digest", nil)
 	_, err = c.GetOrCacheRepoState(ctx, rs)
 	require.NoError(t, err)
 
