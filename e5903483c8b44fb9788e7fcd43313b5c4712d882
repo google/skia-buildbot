@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6a04eba_e9943654",
+        "filename": "go/cas/rbe/rbe.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-02T15:04:47Z",
+      "side": 1,
+      "message": "InputSpec is no longer a thing, \u0027...may be used as part of an exclude list...\u0027?",
+      "range": {
+        "startLine": 23,
+        "startChar": 4,
+        "endLine": 23,
+        "endChar": 13
+      },
+      "revId": "e5903483c8b44fb9788e7fcd43313b5c4712d882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
