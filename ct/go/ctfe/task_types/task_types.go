@@ -17,8 +17,8 @@ func Prototypes() []task_common.Task {
 	return []task_common.Task{
 		&admin_tasks.RecreatePageSetsDatastoreTask{},
 		&admin_tasks.RecreateWebpageArchivesDatastoreTask{},
-		&chromium_analysis.DatastoreTask{},
-		&chromium_perf.DatastoreTask{},
-		&metrics_analysis.DatastoreTask{},
+		&chromium_analysis.ChromiumAnalysisDatastoreTask{},
+		&chromium_perf.ChromiumPerfDatastoreTask{},
+		&metrics_analysis.MetricsAnalysisDatastoreTask{},
 	}
 }
