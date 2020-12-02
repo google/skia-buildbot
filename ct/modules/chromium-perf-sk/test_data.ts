@@ -1,3 +1,5 @@
+import { BenchmarksPlatformsResponse } from '../json';
+
 export const benchmarks_platforms = {
   benchmarks: {
     'ad_tagging.cluster_telemetry': 'https://docs.google.com/document/d/1zlWQoLjGuYOWDR_vkVRYoVbU89JetNDOlcDuOaNAzDc/',
@@ -17,4 +19,4 @@ export const benchmarks_platforms = {
     Linux: 'Linux (Ubuntu18.04 machines)',
     Windows: 'Windows (2016 DataCenter Server cloud instances)',
   },
-};
+} as BenchmarksPlatformsResponse;
