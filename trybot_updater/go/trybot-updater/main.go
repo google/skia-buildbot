@@ -168,15 +168,17 @@ func main() {
 	repo := gitiles.NewRepo(*repoUrl, httpClient)
 
 	// TODO(rmistry): Use pubsub instead of polling.
-	go util.RepeatCtx(ctx, *pollingPeriod, func(ctx context.Context) {
+	util.RepeatCtx(ctx, *pollingPeriod, func(ctx context.Context) {
 		existingCfg, err := getCurrentBuildbucketCfg(ctx, repo)
 		if err != nil {
 			sklog.Errorf("Could not get contents of buildbucket.config from %s: %s", repo, err)
+			return
 		}
 
 		newCfg, err := getBuildbucketCfgFromJobs(ctx, repo)
 		if err != nil {
 			sklog.Errorf("Could not get list of jobs from %s: %s", repo, err)
+			return
 		}
 
 		// Only update buildbucket.config if the config is different.
@@ -190,6 +192,4 @@ func main() {
 			sklog.Info("Config has not changed")
 		}
 	})
-
-	select {}
 }
