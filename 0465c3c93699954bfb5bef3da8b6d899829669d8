@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6994a10b_6c746ebf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 23
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-02T16:05:09Z",
+      "side": 1,
+      "message": "The change to tasks.json here caused an interesting reaction in trybot_updater. It submitted this: https://skia-review.googlesource.com/c/buildbot/+/340067\n\nThe logs of trybot_updater had:\nE1202 15:55:36.488223       1 main.go:179] main.go:179 Could not get list of jobs from \u0026{%!s(*http.Client\u003d\u0026{0xc00019f6c0 \u003cnil\u003e \u003cnil\u003e 300000000000}) %!s(*rate.Limiter\u003d\u0026{{0 0} 4 40 38.34146248800001 {13828878929225726245 2339400114079162 0x1373f00} {13828878929225726245 2339400114079162 0x1373f00}}) https://skia.googlesource.com/buildbot.git}: Could not parse infra/bots/tasks.json: Invalid TasksCfg: Isolate file is required.. At main.go:65 main.go:177 util.go:400 asm_amd64.s:1374\n\nI created a new image and pushed to trybot_updater and it fixed itself: https://skia-review.googlesource.com/c/buildbot/+/340068\n\nLet\u0027s coordinate when you push similar change to skia repo (maybe just CC me on the change).\nI\u0027ll fix trybot_updater to not submit a change when it cannot get list of jobs.",
+      "revId": "0465c3c93699954bfb5bef3da8b6d899829669d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
