@@ -22,6 +22,30 @@
       },
       "revId": "e5903483c8b44fb9788e7fcd43313b5c4712d882",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "94db2241_74cc38ec",
+        "filename": "go/cas/rbe/rbe.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-02T15:08:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a6a04eba_e9943654",
+      "range": {
+        "startLine": 23,
+        "startChar": 4,
+        "endLine": 23,
+        "endChar": 13
+      },
+      "revId": "e5903483c8b44fb9788e7fcd43313b5c4712d882",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
