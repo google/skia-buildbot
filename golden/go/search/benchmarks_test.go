@@ -24,19 +24,19 @@ import (
 )
 
 const (
-	// These consts were arbitrarily picked to approximate a representative Skia ChangeList
+	// These consts were arbitrarily picked to approximate a representative Skia Changelist
 	numResultParams  = 6
 	numOptionsParams = 8
 	numGroupParams   = 12
 	numIgnoreRules   = 100
 	// numIgnorableValues can be tuned higher to ignore fewer values and lower to ignore more.
-	// Right now, this value ignores 10% on average in BenchmarkExtractChangeListDigests
+	// Right now, this value ignores 10% on average in BenchmarkExtractChangelistDigests
 	numIgnorableValues = 500
 )
 
-// BenchmarkExtractChangeListDigests benchmarks extractChangeListDigests, specifically
+// BenchmarkExtractChangelistDigests benchmarks extractChangelistDigests, specifically
 // focusing on the filtering logic after the TryJobResults are returned.
-func BenchmarkExtractChangeListDigests(b *testing.B) {
+func BenchmarkExtractChangelistDigests(b *testing.B) {
 	const gerritCRS = "gerrit"
 	mis := &mock_index.IndexSearcher{}
 	mcls := &mock_clstore.Store{}
@@ -48,10 +48,10 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 	// 15 unique groups.
 	xtr := genTryJobResults(500000, 15, 15)
 
-	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+	mcls.On("GetPatchsets", testutils.AnyContext, clID).Return([]code_review.Patchset{
 		{
 			SystemID:     "first_one",
-			ChangeListID: clID,
+			ChangelistID: clID,
 			Order:        psOrder,
 			// All the rest are ignored
 		},
@@ -83,12 +83,12 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		err := s.extractChangeListDigests(context.Background(), &query.Search{
-			PatchSets:               []int64{int64(psOrder)},
+		err := s.extractChangelistDigests(context.Background(), &query.Search{
+			Patchsets:               []int64{int64(psOrder)},
 			TraceValues:             map[string][]string{},
 			IncludeUntriagedDigests: true,
 			CodeReviewSystemID:      "gerrit",
-			ChangeListID:            clID,
+			ChangelistID:            clID,
 		}, mis, expectations.EmptyClassifier(), fn)
 		require.NoError(b, err)
 	}

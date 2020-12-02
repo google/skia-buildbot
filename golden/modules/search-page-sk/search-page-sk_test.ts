@@ -321,8 +321,8 @@ describe('search-page-sk', () => {
       searchFieldIsBoundToURLAndRPC<string>(
         instantiationOptionsWithCL,
         queryStringWithCL + '&patchsets=1',
-        () => changelistControlsSkPO.getPatchSet(),
-        () => changelistControlsSkPO.setPatchSet('PS 1'),
+        () => changelistControlsSkPO.getPatchset(),
+        () => changelistControlsSkPO.setPatchset('PS 1'),
         /* expectedUiValue= */ 'PS 1',
         {...searchRequestWithCL, patchsets: 1});
     });
@@ -472,7 +472,7 @@ describe('search-page-sk', () => {
         await searchPageSkPO.clickBulkTriageBtn();
         expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.true;
         expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal(
-          'This affects ChangeList 123456.');
+          'This affects Changelist 123456.');
       });
     });
 

@@ -251,15 +251,15 @@ type triageHistoryGetter interface {
 
 type joinedHistories struct {
 	masterBranch expectations.Store
-	changeList   expectations.Store
+	changelist   expectations.Store
 }
 
 // GetTriageHistory returns a combined history from both the master branch and the changelist,
 // if configured for one.
 func (j *joinedHistories) GetTriageHistory(ctx context.Context, grouping types.TestName, digest types.Digest) ([]expectations.TriageHistory, error) {
 	var history []expectations.TriageHistory
-	if j.changeList != nil {
-		xth, err := j.changeList.GetTriageHistory(ctx, grouping, digest)
+	if j.changelist != nil {
+		xth, err := j.changelist.GetTriageHistory(ctx, grouping, digest)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Looking in CL history")
 		}
@@ -276,13 +276,13 @@ func (j *joinedHistories) GetTriageHistory(ctx context.Context, grouping types.T
 }
 
 // makeTriageHistoryGetter will return either a view of the master branch triage history or a
-// combined view of the given changeList's triage history and the master branch's.
+// combined view of the given changelist's triage history and the master branch's.
 func (s *SearchImpl) makeTriageHistoryGetter(crs, clID string) triageHistoryGetter {
 	if crs == "" || clID == "" {
 		return &joinedHistories{masterBranch: s.expectationsStore}
 	}
 	return &joinedHistories{
 		masterBranch: s.expectationsStore,
-		changeList:   s.expectationsStore.ForChangeList(clID, crs),
+		changelist:   s.expectationsStore.ForChangelist(clID, crs),
 	}
 }
