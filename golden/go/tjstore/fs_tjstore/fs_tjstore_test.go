@@ -57,7 +57,7 @@ func TestPutGetTryJob(t *testing.T) {
 	assert.Equal(t, tj, actual)
 }
 
-// TestGetTryJobs stores several TryJobs belonging to two different PatchSets and makes sure
+// TestGetTryJobs stores several TryJobs belonging to two different Patchsets and makes sure
 // we can retrieve them with GetTryJobs.
 func TestGetTryJobs(t *testing.T) {
 	unittest.LargeTest(t)

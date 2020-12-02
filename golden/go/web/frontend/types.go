@@ -23,12 +23,12 @@ import (
 
 const urlPlaceholder = "%s"
 
-// ChangeList encapsulates how the frontend expects to get information
-// about a code_review.ChangeList that has Gold results associated with it.
+// Changelist encapsulates how the frontend expects to get information
+// about a code_review.Changelist that has Gold results associated with it.
 // We have a separate struct so we can decouple the JSON representation
 // and the backend representation (if it needs changing or use by another project
 // with its own JSON requirements).
-type ChangeList struct {
+type Changelist struct {
 	System   string    `json:"system"`
 	SystemID string    `json:"id"`
 	Owner    string    `json:"owner"`
@@ -38,9 +38,9 @@ type ChangeList struct {
 	URL      string    `json:"url"`
 }
 
-// ConvertChangeList turns a code_review.ChangeList into a ChangeList for the frontend.
-func ConvertChangeList(cl code_review.ChangeList, system, urlTempl string) ChangeList {
-	return ChangeList{
+// ConvertChangelist turns a code_review.Changelist into a Changelist for the frontend.
+func ConvertChangelist(cl code_review.Changelist, system, urlTempl string) Changelist {
+	return Changelist{
 		System:   system,
 		SystemID: cl.SystemID,
 		Owner:    cl.Owner,
@@ -51,18 +51,18 @@ func ConvertChangeList(cl code_review.ChangeList, system, urlTempl string) Chang
 	}
 }
 
-// ChangeListSummary encapsulates how the frontend expects to get a summary of
-// the TryJob information we have associated with a given ChangeList. These
+// ChangelistSummary encapsulates how the frontend expects to get a summary of
+// the TryJob information we have associated with a given Changelist. These
 // TryJobs are those we've noticed that uploaded results to Gold.
-type ChangeListSummary struct {
-	CL ChangeList `json:"cl"`
+type ChangelistSummary struct {
+	CL Changelist `json:"cl"`
 	// these are only those patchsets with data.
-	PatchSets         []PatchSet `json:"patch_sets" go2ts:"ignorenil"`
-	NumTotalPatchSets int        `json:"num_total_patch_sets"`
+	Patchsets         []Patchset `json:"patch_sets" go2ts:"ignorenil"`
+	NumTotalPatchsets int        `json:"num_total_patch_sets"`
 }
 
-// PatchSet represents the data the frontend needs for PatchSets.
-type PatchSet struct {
+// Patchset represents the data the frontend needs for Patchsets.
+type Patchset struct {
 	SystemID string   `json:"id"`
 	Order    int      `json:"order"`
 	TryJobs  []TryJob `json:"try_jobs" go2ts:"ignorenil"`
@@ -98,10 +98,10 @@ type TriageRequest struct {
 	// expectation.Label.String() values
 	TestDigestStatus TriageRequestData `json:"testDigestStatus"`
 
-	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
-	ChangeListID string `json:"changelist_id"`
+	// ChangelistID is the id of the Changelist for which we want to change the expectations.
+	ChangelistID string `json:"changelist_id"`
 
-	// CodeReviewSystem is the id of the crs that the ChangeListID belongs. If ChangeListID is set,
+	// CodeReviewSystem is the id of the crs that the ChangelistID belongs. If ChangelistID is set,
 	// CodeReviewSystem should be also.
 	CodeReviewSystem string `json:"crs"`
 
@@ -224,7 +224,7 @@ type Commit struct {
 	Hash          string `json:"hash"` // For CLs, this is the CL ID.
 	Author        string `json:"author"`
 	Subject       string `json:"message"`
-	ChangeListURL string `json:"cl_url"`
+	ChangelistURL string `json:"cl_url"`
 }
 
 // FromTilingCommit converts a tiling.Commit into a frontend.Commit.

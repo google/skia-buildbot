@@ -30,8 +30,8 @@ func (_m *Store) AddChange(ctx context.Context, changes []expectations.Delta, us
 	return r0
 }
 
-// ForChangeList provides a mock function with given fields: id, crs
-func (_m *Store) ForChangeList(id string, crs string) expectations.Store {
+// ForChangelist provides a mock function with given fields: id, crs
+func (_m *Store) ForChangelist(id string, crs string) expectations.Store {
 	ret := _m.Called(id, crs)
 
 	var r0 expectations.Store

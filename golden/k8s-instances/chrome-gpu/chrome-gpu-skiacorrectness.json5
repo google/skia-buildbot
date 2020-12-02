@@ -5,7 +5,7 @@
   ],
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
 \n\
-Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}} before submitting.\n\
+Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}} before submitting.\n\
 \n\
 If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.\n\
 If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
