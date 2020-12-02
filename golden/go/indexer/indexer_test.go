@@ -35,7 +35,7 @@ import (
 	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
 
-// TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success tests a full indexing run, assuming
+// TestIndexer_ExecutePipeline_NoChangelistsToIndex_Success tests a full indexing run, assuming
 // nothing crashes or returns an error..
 func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	unittest.SmallTest(t)
@@ -205,7 +205,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	wg.Wait()
 }
 
-func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
+func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
@@ -229,7 +229,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 
 	// secondCL has no additional expectations
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
+	loadChangelistExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		firstCLID:  &firstCLExp,
 		secondCLID: {},
 	})
@@ -241,16 +241,16 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 		assert.NotZero(t, so.After)
 		return true
 	})
-	mcs.On("GetChangeLists", testutils.AnyContext, searchOptionsMatcher).Return([]code_review.ChangeList{
+	mcs.On("GetChangelists", testutils.AnyContext, searchOptionsMatcher).Return([]code_review.Changelist{
 		// We don't look at the other fields since the index doesn't previously exist for this CL.
 		{SystemID: firstCLID},
 		{SystemID: secondCLID},
 	}, 0, nil)
 	// Reminder: only the most recent patchset is indexed.
-	mcs.On("GetPatchSets", testutils.AnyContext, firstCLID).Return([]code_review.PatchSet{
-		{SystemID: patchsetFoxtrot}, // all other fields ignored from PatchSet.
+	mcs.On("GetPatchsets", testutils.AnyContext, firstCLID).Return([]code_review.Patchset{
+		{SystemID: patchsetFoxtrot}, // all other fields ignored from Patchset.
 	}, nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, secondCLID).Return([]code_review.PatchSet{
+	mcs.On("GetPatchsets", testutils.AnyContext, secondCLID).Return([]code_review.Patchset{
 		{SystemID: "not the most recent, so it is ignored"},
 		{SystemID: patchsetSam},
 	}, nil)
@@ -330,11 +330,11 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	require.NoError(t, err)
 	ixr.changeListsReindexed.Reset()
 
-	ixr.calcChangeListIndices(ctx)
+	ixr.calcChangelistIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(gerritCRS, firstCLID)
 	assert.NotNil(t, clIdx)
-	assert.Equal(t, firstCombinedID, clIdx.LatestPatchSet)
+	assert.Equal(t, firstCombinedID, clIdx.LatestPatchset)
 	assert.Len(t, clIdx.UntriagedResults, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
 	require.NotNil(t, clIdx.ParamSet)
@@ -349,7 +349,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 
 	clIdx = ixr.GetIndexForCL(gerritCRS, secondCLID)
 	assert.NotNil(t, clIdx)
-	assert.Equal(t, secondCombinedID, clIdx.LatestPatchSet)
+	assert.Equal(t, secondCombinedID, clIdx.LatestPatchset)
 	assert.Len(t, clIdx.UntriagedResults, 2)
 	// Reminder, AlphaNegativeDigest was not triaged in the CL expectations for secondCLID
 	assert.Equal(t, data.AlphaNegativeDigest, clIdx.UntriagedResults[0].Digest)
@@ -367,15 +367,15 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	assert.Equal(t, int64(2), ixr.changeListsReindexed.Get())
 }
 
-func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.T) {
+func TestIndexer_CalcChangelistIndices_HasIndexForPreviousPS_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
 	const clID = "111111"
-	const firstPatchSet = "firstPS"
-	const secondPatchSet = "secondPS"
-	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: firstPatchSet}
-	secondPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: secondPatchSet}
+	const firstPatchset = "firstPS"
+	const secondPatchset = "secondPS"
+	firstPatchsetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: firstPatchset}
+	secondPatchsetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: secondPatchset}
 
 	longAgo := time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
 	recently := time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
@@ -390,20 +390,20 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
+	loadChangelistExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		clID: {},
 	})
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return([]code_review.ChangeList{
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return([]code_review.Changelist{
 		{
 			SystemID: clID,
 			Updated:  recently,
 		},
 	}, 0, nil)
 
-	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
-		{SystemID: firstPatchSet}, // all other fields ignored from patch set.
-		{SystemID: secondPatchSet},
+	mcs.On("GetPatchsets", testutils.AnyContext, clID).Return([]code_review.Patchset{
+		{SystemID: firstPatchset}, // all other fields ignored from patch set.
+		{SystemID: secondPatchset},
 	}, nil)
 
 	androidGroup := paramtools.Params{
@@ -411,7 +411,7 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 		"model": "crosshatch",
 	}
 
-	mts.On("GetResults", testutils.AnyContext, secondPatchSetCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, secondPatchsetCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 			GroupParams:  androidGroup,
@@ -446,12 +446,12 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 	require.NoError(t, err)
 	ixr.changeListsReindexed.Reset()
 
-	// The scenario here is that the first PatchSet generated three untriaged digests.After that
+	// The scenario here is that the first Patchset generated three untriaged digests.After that
 	// index was computed, the user triaged AlphaPositiveDigest and AlphaNegativeDigest, and the
-	// remainder of the data was uploaded to secondPatchSet. After the index is recomputed, the index
+	// remainder of the data was uploaded to secondPatchset. After the index is recomputed, the index
 	// should be replaced with the new data (which reflects the new expectations).
-	previousIdx := ChangeListIndex{
-		LatestPatchSet: firstPatchSetCombinedID,
+	previousIdx := ChangelistIndex{
+		LatestPatchset: firstPatchsetCombinedID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{
 				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
@@ -478,11 +478,11 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 	}
 	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
 
-	ixr.calcChangeListIndices(ctx)
+	ixr.calcChangelistIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(gerritCRS, clID)
 	assert.NotNil(t, clIdx)
-	assert.Equal(t, secondPatchSetCombinedID, clIdx.LatestPatchSet)
+	assert.Equal(t, secondPatchsetCombinedID, clIdx.LatestPatchset)
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
 	assert.Len(t, clIdx.UntriagedResults, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
@@ -496,17 +496,17 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 	assert.Equal(t, int64(1), ixr.changeListsReindexed.Get())
 }
 
-func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuccess(t *testing.T) {
+func TestIndexer_CalcChangelistIndices_HasIndexForCurrentPS_IncrementalUpdateSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
 	const clID = "111111"
-	const firstPatchSet = "firstPS"
+	const firstPatchset = "firstPS"
 	const firstUntriagedDigest = types.Digest("11111111111111111111")
 	const secondUntriagedDigest = types.Digest("22222222222222222222")
 	const thirdUntriagedDigest = types.Digest("33333333333333333333")
 
-	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: firstPatchSet}
+	firstPatchsetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: firstPatchset}
 
 	longAgo := time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
 	recently := time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
@@ -520,19 +520,19 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
+	loadChangelistExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		clID: {},
 	})
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return([]code_review.ChangeList{
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return([]code_review.Changelist{
 		{
 			SystemID: clID,
 			Updated:  recently,
 		},
 	}, 0, nil)
 
-	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
-		{SystemID: firstPatchSet}, // all other fields ignored from patch set.
+	mcs.On("GetPatchsets", testutils.AnyContext, clID).Return([]code_review.Patchset{
+		{SystemID: firstPatchset}, // all other fields ignored from patch set.
 	}, nil)
 
 	androidGroup := paramtools.Params{
@@ -541,7 +541,7 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 	}
 
 	// Note that this time is based on the previous indexed time.
-	mts.On("GetResults", testutils.AnyContext, firstPatchSetCombinedID, longAgo).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, firstPatchsetCombinedID, longAgo).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 			GroupParams:  androidGroup,
@@ -572,8 +572,8 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 
 	// The scenario here is that the first index for this patchset identified two untriaged digests.
 	// Later, .
-	previousIdx := ChangeListIndex{
-		LatestPatchSet: firstPatchSetCombinedID,
+	previousIdx := ChangelistIndex{
+		LatestPatchset: firstPatchsetCombinedID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{
 				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
@@ -596,11 +596,11 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 	}
 	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
 
-	ixr.calcChangeListIndices(ctx)
+	ixr.calcChangelistIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(gerritCRS, clID)
 	assert.NotNil(t, clIdx)
-	assert.Equal(t, firstPatchSetCombinedID, clIdx.LatestPatchSet)
+	assert.Equal(t, firstPatchsetCombinedID, clIdx.LatestPatchset)
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
 	assert.Len(t, clIdx.UntriagedResults, 3)
 	assert.Equal(t, firstUntriagedDigest, clIdx.UntriagedResults[0].Digest)
@@ -616,13 +616,13 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 	assert.Equal(t, int64(1), ixr.changeListsReindexed.Get())
 }
 
-func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(t *testing.T) {
+func TestIndexer_CalcChangelistIndices_PreviousIndexDoesNotNeedUpdating_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const gerritCRS = "gerrit"
 	const clID = "111111"
-	const thePatchSet = "firstPS"
-	thePatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: thePatchSet}
+	const thePatchset = "firstPS"
+	thePatchsetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: thePatchset}
 
 	now := time.Date(2020, time.May, 15, 15, 15, 0, 0, time.UTC)
 	fiveMinAgo := now.Add(-5 * time.Minute)
@@ -637,11 +637,11 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
+	loadChangelistExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		clID: {},
 	})
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return([]code_review.ChangeList{
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return([]code_review.Changelist{
 		{
 			SystemID: clID,
 			// CL was updated 10 minutes ago. That is, the ingester last got data from this CL 10 min
@@ -650,8 +650,8 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 		},
 	}, 0, nil)
 
-	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
-		{SystemID: thePatchSet}, // all other fields ignored from patch set.
+	mcs.On("GetPatchsets", testutils.AnyContext, clID).Return([]code_review.Patchset{
+		{SystemID: thePatchset}, // all other fields ignored from patch set.
 	}, nil)
 
 	ctx := context.Background()
@@ -671,8 +671,8 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 
 	// The scenario here is that the CL has not been updated since the index was made, so the index
 	// should not be updated.
-	previousIdx := ChangeListIndex{
-		LatestPatchSet: thePatchSetCombinedID,
+	previousIdx := ChangelistIndex{
+		LatestPatchset: thePatchsetCombinedID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{
 				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
@@ -691,11 +691,11 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 	}
 	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
 
-	ixr.calcChangeListIndices(ctx)
+	ixr.calcChangelistIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(gerritCRS, clID)
 	assert.NotNil(t, clIdx)
-	assert.Equal(t, thePatchSetCombinedID, clIdx.LatestPatchSet)
+	assert.Equal(t, thePatchsetCombinedID, clIdx.LatestPatchset)
 	assert.Equal(t, clIdx.ComputedTS, fiveMinAgo) // should not be updated
 	assert.Len(t, clIdx.UntriagedResults, 1)
 	assert.Equal(t, int64(0), ixr.changeListsReindexed.Get())
@@ -1005,10 +1005,10 @@ func makeComplexTileWithCrosshatchIgnores() (tiling.ComplexTile, *tiling.Tile, *
 	return ct, fullTile, partialTile
 }
 
-func loadChangeListExpectations(masterExp *mock_expectations.Store, crs string, clExps map[string]*expectations.Expectations) {
+func loadChangelistExpectations(masterExp *mock_expectations.Store, crs string, clExps map[string]*expectations.Expectations) {
 	for clID, exp := range clExps {
 		clStore := &mock_expectations.Store{}
 		clStore.On("Get", testutils.AnyContext).Return(exp, nil)
-		masterExp.On("ForChangeList", clID, crs).Return(clStore)
+		masterExp.On("ForChangelist", clID, crs).Return(clStore)
 	}
 }

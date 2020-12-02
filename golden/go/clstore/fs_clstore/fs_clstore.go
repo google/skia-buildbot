@@ -47,7 +47,7 @@ func New(client *ifirestore.Client, crsID string) *StoreImpl {
 	}
 }
 
-// changeListEntry represents how a ChangeList is stored in Firestore.
+// changeListEntry represents how a Changelist is stored in Firestore.
 type changeListEntry struct {
 	SystemID string               `firestore:"systemid"`
 	System   string               `firestore:"system"`
@@ -57,22 +57,22 @@ type changeListEntry struct {
 	Updated  time.Time            `firestore:"updated"`
 }
 
-// patchSetEntry represents how a PatchSet is stored in Firestore.
+// patchSetEntry represents how a Patchset is stored in Firestore.
 type patchSetEntry struct {
 	SystemID                      string    `firestore:"systemid"`
 	System                        string    `firestore:"system"`
-	ChangeListID                  string    `firestore:"changelistid"`
+	ChangelistID                  string    `firestore:"changelistid"`
 	Order                         int       `firestore:"order"`
 	GitHash                       string    `firestore:"githash"`
 	CommentedOnCL                 bool      `firestore:"did_comment"`
 	LastCheckedIfCommentNecessary time.Time `firestore:"last_checked_about_comment"`
 }
 
-// toPatchSet converts the Firestore representation of a PatchSet to a code_review.PatchSet
-func (p patchSetEntry) toPatchSet() code_review.PatchSet {
-	return code_review.PatchSet{
+// toPatchset converts the Firestore representation of a Patchset to a code_review.Patchset
+func (p patchSetEntry) toPatchset() code_review.Patchset {
+	return code_review.Patchset{
 		SystemID:                      p.SystemID,
-		ChangeListID:                  p.ChangeListID,
+		ChangelistID:                  p.ChangelistID,
 		Order:                         p.Order,
 		GitHash:                       p.GitHash,
 		LastCheckedIfCommentNecessary: p.LastCheckedIfCommentNecessary,
@@ -80,27 +80,27 @@ func (p patchSetEntry) toPatchSet() code_review.PatchSet {
 	}
 }
 
-// GetChangeList implements the clstore.Store interface.
-func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
+// GetChangelist implements the clstore.Store interface.
+func (s *StoreImpl) GetChangelist(ctx context.Context, id string) (code_review.Changelist, error) {
 	defer metrics2.FuncTimer().Stop()
 	fID := s.changeListFirestoreID(id)
 	doc, err := s.client.Collection(changelistCollection).Doc(fID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return code_review.ChangeList{}, clstore.ErrNotFound
+			return code_review.Changelist{}, clstore.ErrNotFound
 		}
-		return code_review.ChangeList{}, skerr.Wrapf(err, "retrieving CL %s from Firestore", fID)
+		return code_review.Changelist{}, skerr.Wrapf(err, "retrieving CL %s from Firestore", fID)
 	}
 	if doc == nil {
-		return code_review.ChangeList{}, clstore.ErrNotFound
+		return code_review.Changelist{}, clstore.ErrNotFound
 	}
 
 	cle := changeListEntry{}
 	if err := doc.DataTo(&cle); err != nil {
 		id := doc.Ref.ID
-		return code_review.ChangeList{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s changelist with id %s", s.crsID, id)
+		return code_review.Changelist{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s changelist with id %s", s.crsID, id)
 	}
-	cl := code_review.ChangeList{
+	cl := code_review.Changelist{
 		SystemID: cle.SystemID,
 		Owner:    cle.Owner,
 		Status:   cle.Status,
@@ -117,8 +117,8 @@ func (s *StoreImpl) changeListFirestoreID(clID string) string {
 	return clID + "_" + s.crsID
 }
 
-// GetChangeLists implements the clstore.Store interface.
-func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptions) ([]code_review.ChangeList, int, error) {
+// GetChangelists implements the clstore.Store interface.
+func (s *StoreImpl) GetChangelists(ctx context.Context, opts clstore.SearchOptions) ([]code_review.Changelist, int, error) {
 	defer metrics2.FuncTimer().Stop()
 	if opts.Limit <= 0 {
 		return nil, 0, skerr.Fmt("must supply a limit")
@@ -132,10 +132,10 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptio
 	}
 	q = q.Limit(opts.Limit).Offset(opts.StartIdx)
 
-	var xcl []code_review.ChangeList
+	var xcl []code_review.Changelist
 
 	r := fmt.Sprintf("[%d:%d]", opts.StartIdx, opts.StartIdx+opts.Limit)
-	err := s.client.IterDocs(ctx, "GetChangeLists", r, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetChangelists", r, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -144,7 +144,7 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptio
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal entry with id %s", id)
 		}
-		xcl = append(xcl, code_review.ChangeList{
+		xcl = append(xcl, code_review.Changelist{
 			SystemID: entry.SystemID,
 			Updated:  entry.Updated,
 			Subject:  entry.Subject,
@@ -170,41 +170,41 @@ func (s *StoreImpl) GetChangeLists(ctx context.Context, opts clstore.SearchOptio
 	return xcl, n, nil
 }
 
-// GetPatchSet implements the clstore.Store interface.
-func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_review.PatchSet, error) {
+// GetPatchset implements the clstore.Store interface.
+func (s *StoreImpl) GetPatchset(ctx context.Context, clID, psID string) (code_review.Patchset, error) {
 	defer metrics2.FuncTimer().Stop()
 	fID := s.changeListFirestoreID(clID)
 	doc, err := s.client.Collection(changelistCollection).Doc(fID).
 		Collection(patchsetCollection).Doc(psID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return code_review.PatchSet{}, clstore.ErrNotFound
+			return code_review.Patchset{}, clstore.ErrNotFound
 		}
-		return code_review.PatchSet{}, skerr.Wrapf(err, "retrieving PS %s from Firestore", fID)
+		return code_review.Patchset{}, skerr.Wrapf(err, "retrieving PS %s from Firestore", fID)
 	}
 	if doc == nil {
-		return code_review.PatchSet{}, clstore.ErrNotFound
+		return code_review.Patchset{}, clstore.ErrNotFound
 	}
 
 	pse := patchSetEntry{}
 	if err := doc.DataTo(&pse); err != nil {
 		id := doc.Ref.ID
-		return code_review.PatchSet{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s patchset with id %s", s.crsID, id)
+		return code_review.Patchset{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s patchset with id %s", s.crsID, id)
 	}
-	return pse.toPatchSet(), nil
+	return pse.toPatchset(), nil
 }
 
-// GetPatchSetByOrder implements the clstore.Store interface.
-func (s *StoreImpl) GetPatchSetByOrder(ctx context.Context, clID string, psOrder int) (code_review.PatchSet, error) {
+// GetPatchsetByOrder implements the clstore.Store interface.
+func (s *StoreImpl) GetPatchsetByOrder(ctx context.Context, clID string, psOrder int) (code_review.Patchset, error) {
 	defer metrics2.FuncTimer().Stop()
 	fID := s.changeListFirestoreID(clID)
 	q := s.client.Collection(changelistCollection).Doc(fID).
 		Collection(patchsetCollection).Where(orderField, "==", psOrder)
 
-	ps := code_review.PatchSet{}
+	ps := code_review.Patchset{}
 	found := false
 	msg := fmt.Sprintf("%s:%d", clID, psOrder)
-	err := s.client.IterDocs(ctx, "GetPatchSetByOrder", msg, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetPatchsetByOrder", msg, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil || found {
 			return nil
 		}
@@ -213,30 +213,30 @@ func (s *StoreImpl) GetPatchSetByOrder(ctx context.Context, clID string, psOrder
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal patchsetEntry with id %s", id)
 		}
-		ps = entry.toPatchSet()
+		ps = entry.toPatchset()
 		found = true
 		return nil
 	})
 	if err != nil {
-		return code_review.PatchSet{}, skerr.Wrapf(err, "fetching patchsets for cl %s", clID)
+		return code_review.Patchset{}, skerr.Wrapf(err, "fetching patchsets for cl %s", clID)
 	}
 	if !found {
-		return code_review.PatchSet{}, clstore.ErrNotFound
+		return code_review.Patchset{}, clstore.ErrNotFound
 	}
 
 	return ps, nil
 }
 
-// GetPatchSets implements the clstore.Store interface.
-func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
+// GetPatchsets implements the clstore.Store interface.
+func (s *StoreImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	defer metrics2.FuncTimer().Stop()
 	fID := s.changeListFirestoreID(clID)
 	q := s.client.Collection(changelistCollection).Doc(fID).
 		Collection(patchsetCollection).OrderBy(orderField, firestore.Asc)
 
-	var xps []code_review.PatchSet
+	var xps []code_review.Patchset
 
-	err := s.client.IterDocs(ctx, "GetPatchSets", clID, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "GetPatchsets", clID, q, maxReadAttempts, maxOperationTime, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
@@ -245,7 +245,7 @@ func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_revie
 			id := doc.Ref.ID
 			return skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal entry with id %s", id)
 		}
-		xps = append(xps, entry.toPatchSet())
+		xps = append(xps, entry.toPatchset())
 		return nil
 	})
 	if err != nil {
@@ -255,8 +255,8 @@ func (s *StoreImpl) GetPatchSets(ctx context.Context, clID string) ([]code_revie
 	return xps, nil
 }
 
-// PutChangeList implements the clstore.Store interface.
-func (s *StoreImpl) PutChangeList(ctx context.Context, cl code_review.ChangeList) error {
+// PutChangelist implements the clstore.Store interface.
+func (s *StoreImpl) PutChangelist(ctx context.Context, cl code_review.Changelist) error {
 	defer metrics2.FuncTimer().Stop()
 	fID := s.changeListFirestoreID(cl.SystemID)
 	cd := s.client.Collection(changelistCollection).Doc(fID)
@@ -275,16 +275,16 @@ func (s *StoreImpl) PutChangeList(ctx context.Context, cl code_review.ChangeList
 	return nil
 }
 
-// PutPatchSet implements the clstore.Store interface.
-func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) error {
+// PutPatchset implements the clstore.Store interface.
+func (s *StoreImpl) PutPatchset(ctx context.Context, ps code_review.Patchset) error {
 	defer metrics2.FuncTimer().Stop()
-	fID := s.changeListFirestoreID(ps.ChangeListID)
+	fID := s.changeListFirestoreID(ps.ChangelistID)
 	pd := s.client.Collection(changelistCollection).Doc(fID).
 		Collection(patchsetCollection).Doc(ps.SystemID)
 	record := patchSetEntry{
 		SystemID:                      ps.SystemID,
 		System:                        s.crsID,
-		ChangeListID:                  ps.ChangeListID,
+		ChangelistID:                  ps.ChangelistID,
 		Order:                         ps.Order,
 		GitHash:                       ps.GitHash,
 		LastCheckedIfCommentNecessary: ps.LastCheckedIfCommentNecessary,
