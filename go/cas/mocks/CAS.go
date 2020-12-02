@@ -5,8 +5,6 @@ package mocks
 import (
 	context "context"
 
-	cas "go.skia.org/infra/go/cas"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -64,20 +62,20 @@ func (_m *CAS) Merge(ctx context.Context, digests []string) (string, error) {
 	return r0, r1
 }
 
-// Upload provides a mock function with given fields: ctx, inputs
-func (_m *CAS) Upload(ctx context.Context, inputs cas.InputSpec) (string, error) {
-	ret := _m.Called(ctx, inputs)
+// Upload provides a mock function with given fields: ctx, root, paths, excludes
+func (_m *CAS) Upload(ctx context.Context, root string, paths []string, excludes []string) (string, error) {
+	ret := _m.Called(ctx, root, paths, excludes)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, cas.InputSpec) string); ok {
-		r0 = rf(ctx, inputs)
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string, []string) string); ok {
+		r0 = rf(ctx, root, paths, excludes)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, cas.InputSpec) error); ok {
-		r1 = rf(ctx, inputs)
+	if rf, ok := ret.Get(1).(func(context.Context, string, []string, []string) error); ok {
+		r1 = rf(ctx, root, paths, excludes)
 	} else {
 		r1 = ret.Error(1)
 	}

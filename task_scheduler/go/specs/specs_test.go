@@ -61,9 +61,10 @@ func fakeJobSpec() *JobSpec {
 
 func fakeCasSpec() *CasSpec {
 	return &CasSpec{
-		Root:   ".",
-		Paths:  []string{"a/b", "c/d"},
-		Digest: "abc123/32",
+		Root:     ".",
+		Paths:    []string{"a/b", "c/d"},
+		Excludes: []string{"skip", "me"},
+		Digest:   "abc123/32",
 	}
 }
 
