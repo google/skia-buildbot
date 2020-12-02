@@ -164,6 +164,8 @@ require (
 	github.com/twitchtv/twirp v7.1.0+incompatible
 	github.com/ugorji/go v1.1.4 // indirect
 	github.com/unrolled/secure v1.0.8
+	github.com/urfave/cli v1.22.1
+	github.com/urfave/cli/v2 v2.3.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/willf/bitset v1.1.11
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
@@ -174,6 +176,7 @@ require (
 	go.opencensus.io v0.22.5
 	go.starlark.net v0.0.0-20201118183435-e55f603d8c79 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/mobile v0.0.0-20191031020345-0945064e013a
 	golang.org/x/net v0.0.0-20201029221708-28c70e62bb1d // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
