@@ -87,6 +87,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -158,7 +159,6 @@
           "go/go/bin"
         ]
       },
-      "isolate": "empty.isolate",
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-OnDemand-Presubmit": {
@@ -176,6 +176,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "run-recipe",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -247,7 +248,6 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "run_recipe.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {
@@ -261,6 +261,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -307,8 +308,7 @@
           "go/go/bin"
         ]
       },
-      "idempotent": true,
-      "isolate": "whole_repo.isolate"
+      "idempotent": true
     },
     "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64": {
       "caches": [
@@ -321,6 +321,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -367,10 +368,10 @@
           "go/go/bin"
         ]
       },
-      "idempotent": true,
-      "isolate": "whole_repo.isolate"
+      "idempotent": true
     },
     "Housekeeper-PerCommit-BundleRecipes": {
+      "casSpec": "recipes",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -417,8 +418,7 @@
           "cipd_bin_packages/bin"
         ]
       },
-      "idempotent": true,
-      "isolate": "recipes.isolate"
+      "idempotent": true
     },
     "Housekeeper-Weekly-UpdateCIPDPackages": {
       "caches": [
@@ -431,6 +431,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -502,7 +503,6 @@
           "go/go/bin"
         ]
       },
-      "isolate": "empty.isolate",
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-Experimental-Small-Linux": {
@@ -516,6 +516,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -588,7 +589,6 @@
           "go/go/bin"
         ]
       },
-      "isolate": "whole_repo.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-Experimental-Small-Win": {
@@ -602,6 +602,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -673,7 +674,6 @@
           "go/go/bin"
         ]
       },
-      "isolate": "whole_repo.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Build": {
@@ -691,6 +691,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -780,7 +781,6 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "whole_repo.isolate",
       "max_attempts": 2,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
@@ -799,6 +799,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -876,7 +877,6 @@
           "go/go/bin"
         ]
       },
-      "isolate": "empty.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Large": {
@@ -894,6 +894,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -1003,7 +1004,6 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "whole_repo.isolate",
       "max_attempts": 2,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
@@ -1022,6 +1022,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -1106,7 +1107,6 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "whole_repo.isolate",
       "max_attempts": 2,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
@@ -1125,6 +1125,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -1214,7 +1215,6 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "whole_repo.isolate",
       "max_attempts": 2,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
@@ -1233,6 +1233,7 @@
           "path": "cache/gopath"
         }
       ],
+      "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/git/linux-amd64",
@@ -1305,7 +1306,6 @@
           "go/go/bin"
         ]
       },
-      "isolate": "empty.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Race": {
@@ -1323,6 +1323,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -1428,7 +1429,6 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "io_timeout_ns": 3600000000000,
-      "isolate": "whole_repo.isolate",
       "max_attempts": 1,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
@@ -1447,6 +1447,7 @@
           "path": "cache/vpython"
         }
       ],
+      "casSpec": "whole-repo",
       "cipd_packages": [
         {
           "name": "infra/3pp/tools/cpython/${platform}",
@@ -1531,11 +1532,11 @@
       "extra_tags": {
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
-      "isolate": "whole_repo.isolate",
       "max_attempts": 2,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-ValidateAutorollConfigs": {
+      "casSpec": "autoroll-configs",
       "command": [
         "./validate_autoroll_configs",
         "--project_id",
@@ -1561,8 +1562,42 @@
         "machine_type:n1-highmem-2",
         "docker_installed:true"
       ],
-      "isolate": "autoroll_configs.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    }
+  },
+  "casSpecs": {
+    "autoroll-configs": {
+      "root": ".",
+      "paths": [
+        "autoroll/config"
+      ]
+    },
+    "empty": {
+      "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855/0"
+    },
+    "recipes": {
+      "root": "..",
+      "paths": [
+        "buildbot/infra/config/recipes.cfg",
+        "buildbot/infra/bots/bundle_recipes.sh",
+        "buildbot/infra/bots/recipes",
+        "buildbot/infra/bots/recipes.py"
+      ]
+    },
+    "run-recipe": {
+      "root": "..",
+      "paths": [
+        "buildbot/infra/bots/run_recipe.py"
+      ]
+    },
+    "whole-repo": {
+      "root": "..",
+      "paths": [
+        "buildbot"
+      ],
+      "excludes": [
+        "^(.*\\/)*\\.git(\\/.*)*$"
+      ]
     }
   }
 }
