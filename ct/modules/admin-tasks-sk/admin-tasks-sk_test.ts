@@ -1,43 +1,40 @@
 import './index';
 
+import sinon from 'sinon';
 import { $, $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
+import { expect } from 'chai';
 import { pageSets } from '../pageset-selector-sk/test_data';
+import { AdminTasksSk } from './admin-tasks-sk';
 import {
   eventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import { expect } from 'chai';
 
 describe('admin-tasks-sk', () => {
   fetchMock.config.overwriteRoutes = false;
-  const factory = setUpElementUnderTest('admin-tasks-sk');
+  const factory = setUpElementUnderTest<AdminTasksSk>('admin-tasks-sk');
   // Returns a new element with the pagesets, task priorirites, and
   // active tasks fetches complete, and benchmarks and platforms set.
-  const newInstance = async (activeTasks, init) => {
+  const newInstance = async (activeTasks?: number) => {
     mockActiveTasks(activeTasks);
     fetchMock.post('begin:/_/page_sets/', pageSets, { repeat: 2 });
-
-    const wrappedInit = (ele) => {
-      if (init) {
-        init(ele);
-      }
-    };
-    const ele = factory(wrappedInit);
+    const ele = factory();
     await fetchMock.flush(true);
     return ele;
   };
 
   // Make our test object global to make helper functions convenient.
-  let adminTasks;
+  let adminTasks: AdminTasksSk;
 
   afterEach(() => {
     //  Check all mock fetches called at least once and reset.
     expect(fetchMock.done()).to.be.true;
     fetchMock.reset();
+    sinon.restore();
   });
 
-  const mockActiveTasks = (n) => {
+  const mockActiveTasks = (n: number|undefined) => {
     n = n || 0;
     // For running tasks for the user we put a nonzero total in one of the
     // responses, and 0 in the remaining 6.
@@ -56,7 +53,7 @@ describe('admin-tasks-sk', () => {
   };
 
   const clickSubmit = () => {
-    $$('#submit', adminTasks).click();
+    ($$('#submit', adminTasks)! as HTMLElement).click();
   };
 
   it('loads, default tab', async () => {
@@ -68,13 +65,14 @@ describe('admin-tasks-sk', () => {
 
   it('triggers a new pagesets task', async () => {
     adminTasks = await newInstance();
-    // Karma can't handlje page reloads, so disable it.
-    adminTasks._gotoRunsHistory = () => { };
+    adminTasks._gotoRunsHistory = () => {
+      // Karma can't handlje page reloads, so disable it.
+    };
     fetchMock.postOnce('begin:/_/add_recreate_page_sets_task', {});
+    sinon.stub(window, 'confirm').returns(true);
     clickSubmit();
-    $('#confirm_dialog button')[1].click(); // brittle way to press 'ok'
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions().body);
+    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
     const expectation = {
       page_sets: '100k',
       repeat_after_days: '0',
@@ -85,15 +83,16 @@ describe('admin-tasks-sk', () => {
 
   it('triggers a new archives task', async () => {
     adminTasks = await newInstance();
-    // Karma can't handlje page reloads, so disable it.
-    adminTasks._gotoRunsHistory = () => { };
+    adminTasks._gotoRunsHistory = () => {
+      // Karma can't handlje page reloads, so disable it.
+    };
     fetchMock.postOnce('begin:/_/add_recreate_webpage_archives_task', {});
+    sinon.stub(window, 'confirm').returns(true);
     // Click archives tab.
-    $('tabs-sk button', adminTasks)[1].click();
+    ($('tabs-sk button', adminTasks)[1] as HTMLElement).click();
     clickSubmit();
-    $('#confirm_dialog button')[1].click(); // brittle way to press 'ok'
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(fetchMock.lastOptions().body);
+    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
     const expectation = {
       page_sets: '100k',
       repeat_after_days: '0',
@@ -108,6 +107,6 @@ describe('admin-tasks-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect(err.detail.message).to.contain('You have 4 currently running tasks');
+    expect((err as CustomEvent).detail.message).to.contain('You have 4 currently running tasks');
   });
 });

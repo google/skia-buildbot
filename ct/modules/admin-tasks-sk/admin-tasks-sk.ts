@@ -9,7 +9,6 @@ import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/toast-sk';
 import 'elements-sk/tabs-sk';
 import 'elements-sk/tabs-panel-sk';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../pageset-selector-sk';
@@ -23,12 +22,25 @@ import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
+import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
+import { AdminAddTaskVars } from '../json';
 import {
   moreThanThreeActiveTasksChecker,
 } from '../ctfe_utils';
 
-const template = (el) => html`
-<confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
+export class AdminTasksSk extends ElementSk {
+  _activeTab: Element | null = null;
+
+  private _triggeringTask = false;
+
+  private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
+
+  constructor() {
+    super(AdminTasksSk.template);
+  }
+
+  private static template = (el: AdminTasksSk) => html`
 
 <div>
   <tabs-sk @tab-selected-sk=${el._setActiveTab}>
@@ -36,13 +48,13 @@ const template = (el) => html`
     <button>Recreate Webpage Archives</button>
   </tabs-sk>
   <tabs-panel-sk>
-    <div id=pagesets>${tabTemplate(el, false)}</div>
-    <div id=archives>${tabTemplate(el, true)}</div>
+    <div id=pagesets>${AdminTasksSk.tabTemplate(el)}</div>
+    <div id=archives>${AdminTasksSk.tabTemplate(el)}</div>
   </tabs-panel-sk>
 </div>
 `;
 
-const tabTemplate = (el) => html`
+  private static tabTemplate = (el: AdminTasksSk) => html`
 <table class=options>
   <tr>
     <td>PageSets Type</td>
@@ -74,49 +86,42 @@ const tabTemplate = (el) => html`
 </table>
 `;
 
-define('admin-tasks-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._triggeringTask = false;
-    this._moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._activeTab = $('tabs-panel-sk div')[0];
   }
 
-  _setActiveTab(e) {
-    // For template simplicity we have some same-IDed elements, we use the
-    // active tab as the parent in selectors.
+  _setActiveTab(e: CustomEvent): void {
+  // For template simplicity we have some same-IDed elements, we use the
+  // active tab as the parent in selectors.
     this._activeTab = $('tabs-panel-sk>div', this)[e.detail.index];
   }
 
-  _validateTask() {
-    if (!$$('#pageset_selector', this._activeTab).selected) {
+  _validateTask(): void {
+    const pagesetSelector = $$('#pageset_selector', this._activeTab!) as PagesetSelectorSk;
+    if (!pagesetSelector.selected) {
       errorMessage('Please select a page set type');
-      $$('#pageset_selector', this._activeTab).focus();
+      pagesetSelector.focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
       return;
     }
-    $$('#confirm_dialog', this).open('Proceed with queueing task?')
-      .then(() => this._queueTask())
-      .catch(() => {
-        errorMessage('Unable to queue task');
-      });
+    const confirmed = window.confirm('Proceed with queueing task?');
+    if (confirmed) {
+      this._queueTask();
+    }
   }
 
-  _queueTask() {
+  _queueTask(): void {
     this._triggeringTask = true;
-    const params = {};
-    params.page_sets = $$('#pageset_selector', this._activeTab).selected;
-    params.repeat_after_days = $$('#repeat_after_days', this._activeTab).frequency;
+    const params = {} as AdminAddTaskVars;
+    params.page_sets = ($$('#pageset_selector', this._activeTab!) as PagesetSelectorSk).selected;
+    params.repeat_after_days = ($$('#repeat_after_days', this._activeTab!) as TaskRepeaterSk).frequency;
 
     let url = '/_/add_recreate_page_sets_task';
-    if (this._activeTab.id === 'archives') {
+    if (this._activeTab!.id === 'archives') {
       url = '/_/add_recreate_webpage_archives_task';
     }
 
@@ -134,11 +139,13 @@ define('admin-tasks-sk', class extends ElementSk {
       });
   }
 
-  _gotoRunsHistory() {
-    if (this._activeTab.id === 'archives') {
+  _gotoRunsHistory(): void {
+    if (this._activeTab!.id === 'archives') {
       window.location.href = '/recreate_webpage_archives_runs/';
     } else {
       window.location.href = '/recreate_page_sets_runs/';
     }
   }
-});
+}
+
+define('admin-tasks-sk', AdminTasksSk);
