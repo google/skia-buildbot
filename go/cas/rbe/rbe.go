@@ -14,12 +14,15 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
 )
 
 const (
+	// ExcludeGitDir is a regular expression which may be passed to
+	// Client.Upload to exclude the ".git" directory.
+	ExcludeGitDir = `^(.*\/)*\.git(\/.*)*$`
+
 	rbeService = "remotebuildexecution.googleapis.com:443"
 )
 
@@ -69,13 +72,17 @@ func NewClient(ctx context.Context, instance string, ts oauth2.TokenSource) (*Cl
 }
 
 // Upload the given paths to RBE-CAS.
-func (c *Client) Upload(ctx context.Context, inputSpec cas.InputSpec) (string, error) {
-	root, paths, err := inputSpec.GetPaths(ctx)
-	if err != nil {
-		return "", skerr.Wrap(err)
+func (c *Client) Upload(ctx context.Context, root string, paths, excludes []string) (string, error) {
+	ex := make([]*command.InputExclusion, 0, len(excludes))
+	for _, regex := range excludes {
+		ex = append(ex, &command.InputExclusion{
+			Regex: regex,
+			Type:  command.UnspecifiedInputType,
+		})
 	}
 	is := command.InputSpec{
-		Inputs: paths,
+		Inputs:          paths,
+		InputExclusions: ex,
 	}
 	rootDigest, chunkers, _, err := c.client.ComputeMerkleTree(root, &is, chunker.DefaultChunkSize, filemetadata.NewNoopCache())
 	if err != nil {
@@ -405,32 +412,4 @@ func (c *Client) Close() error {
 	return c.client.Close()
 }
 
-// InputSpec implements cas.InputSpec.
-type InputSpec struct {
-	Root  string
-	Paths []string
-}
-
-// Copy returns a deep copy of the InputSpec.
-func (s *InputSpec) Copy() *InputSpec {
-	return &InputSpec{
-		Root:  s.Root,
-		Paths: util.CopyStringSlice(s.Paths),
-	}
-}
-
-// GetPaths implements cas.InputSpec.
-func (s *InputSpec) GetPaths(ctx context.Context) (string, []string, error) {
-	return s.Root, s.Paths, nil
-}
-
-// NewInputSpec returns an InputSpec instance.
-func NewInputSpec(root string, paths []string) *InputSpec {
-	return &InputSpec{
-		Root:  root,
-		Paths: paths,
-	}
-}
-
 var _ cas.CAS = &Client{}
-var _ cas.InputSpec = &InputSpec{}

@@ -86,11 +86,8 @@ func testUploadDownload(ctx context.Context, t *testing.T, client *Client, work 
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, wd)
 	work(wd)
-	is := &InputSpec{
-		Root:  wd,
-		Paths: []string{"."},
-	}
-	digest, err := client.Upload(ctx, is)
+	digest, err := client.Upload(ctx, wd, []string{"."}, nil)
+	require.NoError(t, err)
 	dest, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, dest)
@@ -164,11 +161,7 @@ func TestMerge(t *testing.T) {
 		require.NoError(t, err)
 		defer testutils.RemoveAll(t, wd)
 		work(wd)
-		is := &InputSpec{
-			Root:  wd,
-			Paths: []string{"."},
-		}
-		digest, err := client.Upload(ctx, is)
+		digest, err := client.Upload(ctx, wd, []string{"."}, nil)
 		require.NoError(t, err)
 		return digest, readTree(t, wd)
 	}
@@ -213,4 +206,44 @@ func TestMerge(t *testing.T) {
 		expectMergeTree[k] = v1
 	}
 	assertdeep.Equal(t, expectMergeTree, mergeTree)
+}
+
+func TestUpload_Exclude(t *testing.T) {
+	ctx, client := setup(t)
+
+	wd, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, wd)
+
+	f(t, wd, "keepme", "blahblah", false)
+	f(t, wd, "skipme", "abcdef", false)
+
+	digest, err := client.Upload(ctx, wd, []string{"."}, []string{".*ipm.*"})
+	require.NoError(t, err)
+	dest, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, dest)
+	require.NoError(t, client.Download(ctx, dest, digest))
+
+	// Remove the skipped file and verify that the trees are equal.
+	require.NoError(t, os.Remove(filepath.Join(wd, "skipme")))
+	AssertTreesEqual(t, wd, dest)
+
+	// Exclude ".git"
+	d(t, wd, ".git")
+	f(t, wd, ".git/objects", "blahblah", false)
+	// Make sure we don't accidentally exclude similar file names.
+	f(t, wd, "agit", "ldsfklasdfkl", false)
+	f(t, wd, ".gitignore", "ldsfklasdfkl", false)
+	f(t, wd, "fake.git", "blahblah", false)
+	digest, err = client.Upload(ctx, wd, []string{"."}, []string{".*ipm.*", ExcludeGitDir})
+	require.NoError(t, err)
+	dest, err = ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, dest)
+	require.NoError(t, client.Download(ctx, dest, digest))
+
+	// Remove the skipped file and verify that the trees are equal.
+	require.NoError(t, os.RemoveAll(filepath.Join(wd, ".git")))
+	AssertTreesEqual(t, wd, dest)
 }
