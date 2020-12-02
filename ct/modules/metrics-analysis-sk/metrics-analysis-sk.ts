@@ -7,7 +7,6 @@ import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/toast-sk';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../patch-sk';
@@ -22,13 +21,32 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+
+import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
+import { PatchSk } from '../patch-sk/patch-sk';
+import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
+import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
 import {
   combineClDescriptions,
   moreThanThreeActiveTasksChecker,
 } from '../ctfe_utils';
+import { MetricsAnalysisAddTaskVars } from '../json';
 
-const template = (el) => html`
-<confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
+interface ExpandableTextArea extends HTMLInputElement {
+  open: boolean;
+}
+
+export class MetricsAnalysisSk extends ElementSk {
+  private _triggeringTask: boolean = false;
+
+  private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
+
+
+  constructor() {
+    super(MetricsAnalysisSk.template);
+  }
+
+  private static template = (el: MetricsAnalysisSk) => html`
 
 <table class=options>
   <tr>
@@ -142,21 +160,14 @@ const template = (el) => html`
 </table>
 `;
 
-define('metrics-analysis-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._triggeringTask = false;
-    this._moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
-  _toggleAnalysisTaskId() {
-    const customTracesInput = $$('#custom_traces', this);
-    const taskInput = $$('#analysis_task_id', this);
+  _toggleAnalysisTaskId(): void {
+    const customTracesInput = $$('#custom_traces', this) as ExpandableTextArea;
+    const taskInput = $$('#analysis_task_id', this) as HTMLInputElement;
     if (customTracesInput.open === taskInput.hidden) {
       // This click wasn't toggling the expandable textarea.
       return;
@@ -172,56 +183,55 @@ define('metrics-analysis-sk', class extends ElementSk {
     this._render();
   }
 
-  _patchChanged() {
-    $$('#description', this).value = combineClDescriptions(
-      $('patch-sk', this).map((patch) => patch.clDescription),
+  _patchChanged(): void {
+    ($$('#description', this)! as HTMLInputElement).value = combineClDescriptions(
+      $('patch-sk', this).map((patch) => (patch as PatchSk).clDescription),
     );
   }
 
-  _validateTask() {
-    if (!$('patch-sk', this).every((patch) => patch.validate())) {
+  _validateTask(): void {
+    if (!$('patch-sk', this).every((patch) => (patch as PatchSk).validate())) {
       return;
     }
-    if (!$$('#metric_name', this).value) {
+    if (!($$('#metric_name', this) as HTMLInputElement).value) {
       errorMessage('Please specify a metric name');
-      $$('#metric_name', this).focus();
+      ($$('#metric_name', this) as HTMLInputElement).focus();
       return;
     }
-    if (!$$('#analysis_task_id', this).value && !$$('#custom_traces', this).value) {
+    if (!($$('#analysis_task_id', this) as HTMLInputElement).value && !($$('#custom_traces', this) as HTMLInputElement).value) {
       errorMessage('Please specify an analysis task id or custom traces');
-      $$('#analysis_task_id', this).focus();
+      ($$('#analysis_task_id', this) as HTMLInputElement).focus();
       return;
     }
-    if (!$$('#description', this).value) {
+    if (!($$('#description', this) as HTMLInputElement).value) {
       errorMessage('Please specify a description');
-      $$('#description', this).focus();
+      ($$('#description', this) as HTMLInputElement).focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
       return;
     }
-    $$('#confirm_dialog', this).open('Proceed with queueing task?')
-      .then(() => this._queueTask())
-      .catch(() => {
-        errorMessage('Unable to queue task');
-      });
+    const confirmed = window.confirm('Proceed with queueing task?');
+    if (confirmed) {
+      this._queueTask();
+    }
   }
 
-  _queueTask() {
+  _queueTask(): void {
     this._triggeringTask = true;
-    const params = {};
-    params.metric_name = $$('#metric_name', this).value;
-    params.analysis_task_id = $$('#analysis_task_id', this).value;
-    params.custom_traces = $$('#custom_traces', this).customPages;
-    params.benchmark_args = $$('#benchmark_args', this).value;
-    params.value_column_name = $$('#value_column_name', this).value;
-    params.desc = $$('#description', this).value;
-    params.chromium_patch = $$('#chromium_patch', this).patch;
-    params.catapult_patch = $$('#catapult_patch', this).patch;
-    params.repeat_after_days = $$('#repeat_after_days', this).frequency;
-    params.task_priority = $$('#task_priority', this).priority;
-    if ($$('#cc_list', this).value) {
-      params.cc_list = $$('#cc_list', this).value.split(',');
+    const params = {} as MetricsAnalysisAddTaskVars;
+    params.metric_name = ($$('#metric_name', this) as HTMLInputElement).value;
+    params.analysis_task_id = ($$('#analysis_task_id', this) as HTMLInputElement).value;
+    params.custom_traces = ($$('#custom_traces', this) as PagesetSelectorSk).customPages;
+    params.benchmark_args = ($$('#benchmark_args', this) as HTMLInputElement).value;
+    params.value_column_name = ($$('#value_column_name', this) as HTMLInputElement).value;
+    params.desc = ($$('#description', this) as HTMLInputElement).value;
+    params.chromium_patch = ($$('#chromium_patch', this) as PatchSk).patch;
+    params.catapult_patch = ($$('#catapult_patch', this) as PatchSk).patch;
+    params.repeat_after_days = ($$('#repeat_after_days', this) as TaskRepeaterSk).frequency;
+    params.task_priority = ($$('#task_priority', this) as TaskPrioritySk).priority;
+    if (($$('#cc_list', this) as HTMLInputElement).value) {
+      params.cc_list = ($$('#cc_list', this) as HTMLInputElement).value.split(',');
     }
 
     fetch('/_/add_metrics_analysis_task', {
@@ -238,7 +248,9 @@ define('metrics-analysis-sk', class extends ElementSk {
       });
   }
 
-  _gotoRunsHistory() {
+  _gotoRunsHistory(): void {
     window.location.href = '/metrics_analysis_runs/';
   }
-});
+}
+
+define('metrics-analysis-sk', MetricsAnalysisSk);
