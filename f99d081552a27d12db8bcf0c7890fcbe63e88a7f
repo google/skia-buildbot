@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d1c745c8_7ed6f032",
+        "filename": "trybot_updater/go/trybot-updater/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-02T18:09:26Z",
+      "side": 1,
+      "message": "Nit: I think we can be more assertive here, maybe add \"DO NOT EDIT!\" ?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 65
+      },
+      "revId": "f99d081552a27d12db8bcf0c7890fcbe63e88a7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
