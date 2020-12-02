@@ -61,16 +61,24 @@ var (
 )
 
 type CommonCols struct {
-	DatastoreKey    *datastore.Key `datastore:"__key__"`
-	TsAdded         int64
-	TsStarted       int64
-	TsCompleted     int64
-	Username        string
-	Failure         bool
-	RepeatAfterDays int64
-	SwarmingLogs    string
-	TaskDone        bool
-	SwarmingTaskID  string
+	DatastoreKey    *datastore.Key `json:"-" datastore:"__key__"`
+	TsAdded         int64          `json:"ts_added"`
+	TsStarted       int64          `json:"ts_started"`
+	TsCompleted     int64          `json:"ts_completed"`
+	Username        string         `json:"username"`
+	Failure         bool           `json:"failure"`
+	RepeatAfterDays int64          `json:"repeat_after_days"`
+	SwarmingLogs    string         `json:"swarming_logs"`
+	TaskDone        bool           `json:"task_done"`
+	SwarmingTaskID  string         `json:"swarming_task_id"`
+
+	Id         int    `json:"id" datastore:"-"`
+	CanRedo    bool   `json:"can_redo" datastore:"-"`
+	CanDelete  bool   `json:"can_delete" datastore:"-"`
+	FutureDate bool   `json:"future_date" datastore:"-"`
+	TaskType   string `json:"task_type" datastore:"-"`
+	GetURL     string `json:"get_url" datastore:"-"`
+	DeleteURL  string `json:"delete_url" datastore:"-"`
 }
 
 type Task interface {
@@ -143,8 +151,8 @@ func GetRunID(task Task) string {
 
 // Data included in all tasks; set by AddTaskHandler.
 type AddTaskCommonVars struct {
-	Username        string
-	TsAdded         string
+	Username        string `json:"username"`
+	TsAdded         string `json:"ts_added"`
 	RepeatAfterDays string `json:"repeat_after_days"`
 }
 
@@ -357,6 +365,18 @@ func GetNextId(ctx context.Context, kind ds.Kind, task Task) (int64, error) {
 	return nextId, err
 }
 
+type Permissions struct {
+	DeleteAllowed bool
+	RedoAllowed   bool
+}
+
+type GetTasksResponse struct {
+	Data        interface{}                   `json:"data"`
+	Permissions []Permissions                 `json:"permissions"`
+	Pagination  *httputils.ResponsePagination `json:"pagination"`
+	IDs         []int64                       `json:"ids"`
+}
+
 func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -411,10 +431,6 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		Size:   size,
 		Total:  count,
 	}
-	type Permissions struct {
-		DeleteAllowed bool
-		RedoAllowed   bool
-	}
 	tasks := AsTaskSlice(data)
 	ids := make([]int64, len(tasks))
 	permissions := make([]Permissions, len(tasks))
@@ -424,11 +440,12 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		permissions[i] = Permissions{DeleteAllowed: deleteAllowed, RedoAllowed: redoAllowed}
 		ids[i] = tasks[i].GetCommonCols().DatastoreKey.ID
 	}
-	jsonResponse := map[string]interface{}{
-		"data":        data,
-		"permissions": permissions,
-		"pagination":  pagination,
-		"ids":         ids,
+	// jsonResponse := map[string]interface{}{
+	jsonResponse := GetTasksResponse{
+		Data:        data,
+		Permissions: permissions,
+		Pagination:  pagination,
+		IDs:         ids,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		httputils.ReportError(w, err, "Failed to encode JSON", http.StatusInternalServerError)
@@ -470,21 +487,25 @@ func getClosedTasksChannel(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata)
 	return tasksChannel
 }
 
+type DeleteTaskRequest struct {
+	Id int64 `json:"id"`
+}
+
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
 		httputils.ReportError(w, nil, "Please login with google account to delete tasks", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	vars := struct{ Id int64 }{}
-	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+	var req DeleteTaskRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to parse delete request", http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(r.Body)
 
 	key := ds.NewKey(prototype.GetDatastoreKind())
-	key.ID = vars.Id
+	key.ID = req.Id
 	task, err := prototype.Get(r.Context(), key)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find requested task", http.StatusInternalServerError)
@@ -532,7 +553,11 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), vars.Id, login.LoggedInAs(r))
+	sklog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), req.Id, login.LoggedInAs(r))
+}
+
+type RedoTaskRequest struct {
+	Id int64 `json:"id"`
 }
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
@@ -541,15 +566,15 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	vars := struct{ Id int64 }{}
-	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+	var req RedoTaskRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to parse redo request", http.StatusInternalServerError)
 		return
 	}
 	defer skutil.Close(r.Body)
 
 	key := ds.NewKey(prototype.GetDatastoreKind())
-	key.ID = vars.Id
+	key.ID = req.Id
 	task, err := prototype.Get(r.Context(), key)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find requested task", http.StatusInternalServerError)
@@ -724,12 +749,17 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type BenchmarksPlatformsResponse struct {
+	Benchmarks map[string]string `json:"benchmarks"`
+	Platforms  map[string]string `json:"platforms"`
+}
+
 func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	data := map[string]interface{}{
-		"benchmarks": ctutil.SupportedBenchmarksToDoc,
-		"platforms":  ctutil.SupportedPlatformsToDesc,
+	data := BenchmarksPlatformsResponse{
+		Benchmarks: ctutil.SupportedBenchmarksToDoc,
+		Platforms:  ctutil.SupportedPlatformsToDesc,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
@@ -737,11 +767,15 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type TaskPrioritiesResponse struct {
+	TaskPriorities map[int]string `json:"task_priorities"`
+}
+
 func taskPrioritiesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	data := map[string]interface{}{
-		"task_priorities": ctutil.TaskPrioritiesToDesc,
+	data := TaskPrioritiesResponse{
+		TaskPriorities: ctutil.TaskPrioritiesToDesc,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
