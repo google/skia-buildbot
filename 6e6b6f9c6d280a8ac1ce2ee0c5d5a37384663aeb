@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7b0f86ce_bef0bab2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-02T19:31:36Z",
+      "side": 1,
+      "message": "Compare with PatchSet1 for easier review",
+      "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
