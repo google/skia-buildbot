@@ -341,8 +341,9 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 		req.TaskSlices[0].Properties.CasInputRoot = &swarming_api.SwarmingRpcsCASReference{
 			CasInstance: casInstance,
 			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:      hash,
-				SizeBytes: size,
+				Hash:            hash,
+				SizeBytes:       size,
+				ForceSendFields: []string{"SizeBytes"},
 			},
 		}
 	}
