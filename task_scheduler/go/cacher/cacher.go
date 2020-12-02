@@ -61,8 +61,9 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 			for _, casSpec := range cfg.CasSpecs {
 				if casSpec.Digest == "" {
 					digest, err := c.rbeCas.Upload(ctx, &rbe.InputSpec{
-						Root:  filepath.Join(co.Dir(), casSpec.Root),
-						Paths: casSpec.Paths,
+						Root:     filepath.Join(co.Dir(), casSpec.Root),
+						Paths:    casSpec.Paths,
+						Excludes: casSpec.Excludes,
 					})
 					if err != nil {
 						return err
