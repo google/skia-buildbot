@@ -1,16 +1,19 @@
 import './index';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
 // TODO(lovisolo,kjlubick): Add the below to infra-sk.
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import {
   eventPromise, setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { CtScaffoldSk } from './ct-scaffold-sk';
 
 describe('ct-scaffold-sk', () => {
-  const newInstance = setUpElementUnderTest('ct-scaffold-sk');
+  const newInstance = setUpElementUnderTest<CtScaffoldSk>('ct-scaffold-sk');
 
-  let scaffoldSk;
+  let scaffoldSk: CtScaffoldSk;
   beforeEach(() => {
     expect(fetchMock.done()).to.be.true;
     fetchMock.reset();
@@ -28,18 +31,18 @@ describe('ct-scaffold-sk', () => {
     });
 
     it('adds a sidebar with links', () => {
-      const nav = $$('aside nav', scaffoldSk);
+      const nav = $$('aside nav', scaffoldSk) as HTMLElement;
       expect(nav).to.not.be.null;
       const links = $('a', nav);
       expect(links.length).not.to.equal(0);
     });
 
     it('puts the content under <main>', () => {
-      const main = $$('main', scaffoldSk);
+      const main = $$('main', scaffoldSk) as HTMLElement;
       expect(main).to.not.be.null;
       const content = $$('div', main);
       expect(content).to.not.be.null;
-      expect(content.textContent).to.equal('content');
+      expect(content!.textContent).to.equal('content');
     });
   });// end describe('html layout')
 
@@ -64,7 +67,7 @@ describe('ct-scaffold-sk', () => {
     });
 
     it('keeps spinner active while busy', () => {
-      const spinner = $$('header spinner-sk', scaffoldSk);
+      const spinner = $$('header spinner-sk', scaffoldSk) as SpinnerSk;
       expect(spinner.active).to.equal(false);
       scaffoldSk.dispatchEvent(
         new CustomEvent('begin-task', { bubbles: true }),
