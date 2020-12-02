@@ -10,7 +10,6 @@ import (
 
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/cas"
-	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/skerr"
@@ -60,10 +59,8 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 			}
 			for _, casSpec := range cfg.CasSpecs {
 				if casSpec.Digest == "" {
-					digest, err := c.rbeCas.Upload(ctx, &rbe.InputSpec{
-						Root:  filepath.Join(co.Dir(), casSpec.Root),
-						Paths: casSpec.Paths,
-					})
+					root := filepath.Join(co.Dir(), casSpec.Root)
+					digest, err := c.rbeCas.Upload(ctx, root, casSpec.Paths, casSpec.Excludes)
 					if err != nil {
 						return err
 					}
