@@ -1,4 +1,4 @@
-// Package updater contains an implementation of the code_review.ChangeListLandedUpdater interface.
+// Package updater contains an implementation of the code_review.ChangelistLandedUpdater interface.
 // It should be CRS-agnostic.
 package updater
 
@@ -25,9 +25,9 @@ func New(e expectations.Store, reviewSystems []clstore.ReviewSystem) *Impl {
 	}
 }
 
-// UpdateChangeListsAsLanded implements the code_review.ChangeListLandedUpdater interface.
+// UpdateChangelistsAsLanded implements the code_review.ChangelistLandedUpdater interface.
 // This implementation is *not* thread safe.
-func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+func (u *Impl) UpdateChangelistsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	if len(commits) > 100 {
 		// For new instances, or very sparse instances, we'll have many many many commits to check,
 		// which can make startup take tens of minutes (due to having to poll the CRS about many
@@ -39,9 +39,9 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 		var clID string
 		var system clstore.ReviewSystem
 		for _, rs := range u.reviewSystems {
-			// GetChangeListIDForCommit is smart enough to distinguish between two different Gerrit
+			// GetChangelistIDForCommit is smart enough to distinguish between two different Gerrit
 			// systems because it looks at the review URL in the CL message.
-			if id, err := rs.Client.GetChangeListIDForCommit(ctx, c); err == nil {
+			if id, err := rs.Client.GetChangelistIDForCommit(ctx, c); err == nil {
 				clID = id
 				system = rs
 				break
@@ -52,10 +52,10 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			continue
 		}
 
-		storedCL, err := system.Store.GetChangeList(ctx, clID)
+		storedCL, err := system.Store.GetChangelist(ctx, clID)
 		if err == clstore.ErrNotFound {
 			// Wasn't in clstore, so there was no data from TryJobs associated with that
-			//  ChangeList, so there can't be any expectations associated with it.
+			//  Changelist, so there can't be any expectations associated with it.
 			continue
 		}
 		if err != nil {
@@ -66,7 +66,7 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			continue
 		}
 
-		cl, err := system.Client.GetChangeList(ctx, clID)
+		cl, err := system.Client.GetChangelist(ctx, clID)
 		if err == code_review.ErrNotFound {
 			return skerr.Fmt("somehow got an invalid CLID %s from commit %s", clID, c.Hash)
 		}
@@ -78,7 +78,7 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 		}
 
 		// Write the expectations (if any) for the CL to master
-		clExp := u.expStore.ForChangeList(cl.SystemID, system.ID)
+		clExp := u.expStore.ForChangelist(cl.SystemID, system.ID)
 		e, err := clExp.Get(ctx)
 		if err != nil {
 			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, system.ID)
@@ -91,12 +91,12 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 		}
 		// cl.Status must be Landed at this point and the CRS has set the cl's Updated time to
 		// the time that it was closed or marked as landed.
-		if err := system.Store.PutChangeList(ctx, cl); err != nil {
+		if err := system.Store.PutChangelist(ctx, cl); err != nil {
 			return skerr.Wrapf(err, "storing CL %v to store", cl)
 		}
 	}
 	return nil
 }
 
-// Make sure Impl fulfills the code_review.ChangeListLandedUpdater interface.
-var _ code_review.ChangeListLandedUpdater = (*Impl)(nil)
+// Make sure Impl fulfills the code_review.ChangelistLandedUpdater interface.
+var _ code_review.ChangelistLandedUpdater = (*Impl)(nil)

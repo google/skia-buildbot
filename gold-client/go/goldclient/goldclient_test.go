@@ -99,7 +99,7 @@ func TestLoadBaseline(t *testing.T) {
 	assert.Equal(t, expectations.Negative, digests["badbadbad1325855590527db196112e0"])
 	assert.Equal(t, expectations.Positive, digests["beef00d3a1527db19619ec12a4e0df68"])
 
-	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.ChangeListID)
+	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.ChangelistID)
 
 	knownHashes := goldClient.resultState.KnownHashes
 	assert.Empty(t, knownHashes, "No hashes loaded")
@@ -142,7 +142,7 @@ func TestLoadBaselineMaster(t *testing.T) {
 	assert.Equal(t, expectations.Negative, digests["badbadbad1325855590527db196112e0"])
 	assert.Equal(t, expectations.Positive, digests["beef00d3a1527db19619ec12a4e0df68"])
 
-	assert.Equal(t, "", goldClient.resultState.SharedConfig.ChangeListID)
+	assert.Equal(t, "", goldClient.resultState.SharedConfig.ChangelistID)
 
 	knownHashes := goldClient.resultState.KnownHashes
 	assert.Empty(t, knownHashes, "No hashes loaded")
@@ -959,7 +959,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 					newImageHash: expectations.Positive,
 				},
 			},
-			ChangeListID:           "867",
+			ChangelistID:           "867",
 			CodeReviewSystem:       "gerrit",
 			ImageMatchingAlgorithm: "fuzzy",
 		}, tr)
@@ -1263,7 +1263,7 @@ func TestCheckIssue(t *testing.T) {
 	const imgHash = types.Digest("beef00d3a1527db19619ec12a4e0df68")
 	const testName = types.TestName("ThisIsTheOnlyTest")
 	const githubCRS = "github"
-	const changeListID = "abc"
+	const changelistID = "abc"
 
 	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -1283,7 +1283,7 @@ func TestCheckIssue(t *testing.T) {
 
 	gr := jsonio.GoldResults{
 		CodeReviewSystem: githubCRS,
-		ChangeListID:     changeListID,
+		ChangelistID:     changelistID,
 		GitHash:          "HEAD",
 	}
 	err = goldClient.SetSharedConfig(gr, true)
@@ -2275,7 +2275,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 		GoldURL: "https://testing-gold.skia.org",
 		SharedConfig: &jsonio.GoldResults{
 			CodeReviewSystem: "gerrit",
-			ChangeListID:     "123456",
+			ChangelistID:     "123456",
 		},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
@@ -2306,7 +2306,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 				},
 			},
 			CodeReviewSystem:       "gerrit",
-			ChangeListID:           "123456",
+			ChangelistID:           "123456",
 			ImageMatchingAlgorithm: "fuzzy",
 		}, tr)
 		return true
@@ -2579,8 +2579,8 @@ func makeTestSharedConfig() jsonio.GoldResults {
 			"os":  "WinTest",
 			"gpu": "GPUTest",
 		},
-		ChangeListID:                testIssueID,
-		PatchSetOrder:               testPatchsetOrder,
+		ChangelistID:                testIssueID,
+		PatchsetOrder:               testPatchsetOrder,
 		CodeReviewSystem:            "gerrit",
 		TryJobID:                    testBuildBucketID,
 		ContinuousIntegrationSystem: "buildbucket",

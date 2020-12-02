@@ -10,14 +10,14 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 )
 
-func TestChangeListIndex_Copy(t *testing.T) {
+func TestChangelistIndex_Copy(t *testing.T) {
 	unittest.SmallTest(t)
 
 	alphaPSID := tjstore.CombinedPSID{CRS: "github", CL: "alpha", PS: "whatever"}
 	betaPSID := tjstore.CombinedPSID{CRS: "github", CL: "beta", PS: "whatever"}
 
-	clIdx := &ChangeListIndex{
-		LatestPatchSet: alphaPSID,
+	clIdx := &ChangelistIndex{
+		LatestPatchset: alphaPSID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{Digest: "1111"}, {Digest: "2222"},
 		},
@@ -30,12 +30,12 @@ func TestChangeListIndex_Copy(t *testing.T) {
 
 	copiedIdx.ComputedTS = time.Date(2020, time.May, 10, 10, 10, 10, 0, time.UTC)
 	assert.NotEqual(t, clIdx, copiedIdx)
-	copiedIdx.LatestPatchSet = betaPSID
+	copiedIdx.LatestPatchset = betaPSID
 	// Mutate the maps of the copy.
 	copiedIdx.UntriagedResults = []tjstore.TryJobResult{{Digest: "3333"}}
 	copiedIdx.ParamSet["alpha"] = []string{"beta"}
 
 	// Make sure the original maps didn't get changed.
 	assert.Equal(t, []tjstore.TryJobResult{{Digest: "1111"}, {Digest: "2222"}}, clIdx.UntriagedResults)
-	assert.Equal(t, alphaPSID, clIdx.LatestPatchSet)
+	assert.Equal(t, alphaPSID, clIdx.LatestPatchset)
 }

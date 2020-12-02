@@ -54,13 +54,13 @@ func (c *CRSImpl) LoggedInAs(ctx context.Context) (string, error) {
 	return s, nil
 }
 
-// GetChangeList implements the code_review.Client interface.
-func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
+// GetChangelist implements the code_review.Client interface.
+func (c *CRSImpl) GetChangelist(ctx context.Context, id string) (code_review.Changelist, error) {
 	cl, err := c.getGerritCL(ctx, id)
 	if err != nil {
-		return code_review.ChangeList{}, err
+		return code_review.Changelist{}, err
 	}
-	return code_review.ChangeList{
+	return code_review.Changelist{
 		SystemID: strconv.FormatInt(cl.Issue, 10),
 		Owner:    cl.Owner.Email,
 		Status:   statusToEnum(cl.Status),
@@ -82,17 +82,17 @@ func statusToEnum(g string) code_review.CLStatus {
 	return code_review.Open
 }
 
-// GetPatchSets implements the code_review.Client interface.
-func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
+// GetPatchsets implements the code_review.Client interface.
+func (c *CRSImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	cl, err := c.getGerritCL(ctx, clID)
 	if err != nil {
 		return nil, err
 	}
-	var xps []code_review.PatchSet
+	var xps []code_review.Patchset
 	for _, p := range cl.Patchsets {
-		xps = append(xps, code_review.PatchSet{
+		xps = append(xps, code_review.Patchset{
 			SystemID:     p.ID,
-			ChangeListID: clID,
+			ChangelistID: clID,
 			Order:        int(p.Number),
 			GitHash:      p.ID,
 		})
@@ -105,8 +105,8 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	return xps, nil
 }
 
-// GetChangeListIDForCommit implements the code_review.Client interface.
-func (c *CRSImpl) GetChangeListIDForCommit(_ context.Context, commit *vcsinfo.LongCommit) (string, error) {
+// GetChangelistIDForCommit implements the code_review.Client interface.
+func (c *CRSImpl) GetChangelistIDForCommit(_ context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	if commit == nil {
 		return "", skerr.Fmt("commit cannot be nil")
 	}
