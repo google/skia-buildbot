@@ -69,7 +69,7 @@ func (c CorpusStatusSorter) Less(i, j int) bool { return c[i].Name < c[j].Name }
 func (c CorpusStatusSorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 type StatusWatcherConfig struct {
-	ChangeListener    expectations.ChangeEventRegisterer
+	ExpChangeListener expectations.ChangeEventRegisterer
 	ExpectationsStore expectations.Store
 	TileSource        tilesource.TileSource
 	VCS               vcsinfo.VCS
@@ -159,7 +159,7 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	sklog.Infof("Starting status watcher")
 	// This value chosen arbitrarily in an effort to avoid blockages on this channel.
 	expChanges := make(chan expectations.ID, 1000)
-	s.ChangeListener.ListenForChange(func(e expectations.ID) {
+	s.ExpChangeListener.ListenForChange(func(e expectations.ID) {
 		expChanges <- e
 	})
 

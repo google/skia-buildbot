@@ -283,6 +283,6 @@ func (s *SearchImpl) makeTriageHistoryGetter(crs, clID string) triageHistoryGett
 	}
 	return &joinedHistories{
 		masterBranch: s.expectationsStore,
-		changeList:   s.expectationsStore.ForChangeList(clID, crs),
+		changeList:   s.expectationsStore.ForChangelist(clID, crs),
 	}
 }

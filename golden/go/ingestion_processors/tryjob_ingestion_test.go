@@ -101,8 +101,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Once()
-	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet()).Return(nil).Once()
+	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Once()
+	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil).Once()
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil).Once()
@@ -130,21 +130,21 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 // TestTryJobProcessFreshStartGitHub tests the scenario in which we see data uploaded to GitHub for
 // a brand new CL, PS, and TryJob. The PS is derived by id, not by order. The uploaded digest
 // was not previously seen or triaged on master and is not covered by an ignore rule, so the
-// created PatchSet object should be marked as having UntriagedDigests.
+// created Patchset object should be marked as having UntriagedDigests.
 func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := makeEmptyCLStore()
 	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls each of PutChangeList, PutPatchSet, and PutTryJob
+	// We want to assert that the Process calls each of PutChangelist, PutPatchset, and PutTryJob
 	// with the new, correct objects object. Further, it should call PutResults with the
 	// appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, githubCLID, makeGitHubCirrusTryJob().Updated)).Return(nil)
-	mcls.On("PutPatchSet", testutils.AnyContext, code_review.PatchSet{
+	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, githubCLID, makeGitHubCirrusTryJob().Updated)).Return(nil)
+	mcls.On("PutPatchset", testutils.AnyContext, code_review.Patchset{
 		SystemID:     githubPSID,
-		ChangeListID: githubCLID,
+		ChangelistID: githubCLID,
 		Order:        githubPSOrder,
 		GitHash:      githubPSID,
 	}).Return(nil).Once()
@@ -180,8 +180,8 @@ func TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mock_clstore.Store{}
 	// We can return whatever here, since we plan to error out when the tryjob gets read.
-	mcls.On("GetChangeList", testutils.AnyContext, githubCLID).Return(makeChangeList(), nil)
-	mcls.On("GetPatchSet", testutils.AnyContext, githubCLID, githubPSID).Return(makeGerritPatchSets()[0], nil)
+	mcls.On("GetChangelist", testutils.AnyContext, githubCLID).Return(makeChangelist(), nil)
+	mcls.On("GetPatchset", testutils.AnyContext, githubCLID, githubPSID).Return(makeGerritPatchsets()[0], nil)
 
 	bbClient := &mock_cis.Client{}
 	bbClient.On("GetTryJob", testutils.AnyContext, mock.Anything).Return(ci.TryJob{}, errors.New("buildbucket error")).Once()
@@ -238,8 +238,8 @@ func githubIngestionResultFromCIS(t *testing.T, cis string) ingestion.ResultFile
 		},
 		// arbitrary, yet valid, sha1 (git) hash
 		GitHash:                     "6eb2b22a052a9913fe3b9170fc217e84def40598",
-		ChangeListID:                githubCLID,
-		PatchSetID:                  githubPSID,
+		ChangelistID:                githubCLID,
+		PatchsetID:                  githubPSID,
 		CodeReviewSystem:            githubCRS,
 		TryJobID:                    "whatever",
 		ContinuousIntegrationSystem: cis,
@@ -259,16 +259,16 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mock_clstore.Store{}
 	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls PutChangeList (with updated time), PutPatchSet
+	// We want to assert that the Process calls PutChangelist (with updated time), PutPatchset
 	// (with the correct new object), PutTryJob with the new TryJob object and PutResults with
 	// the appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet()).Return(nil)
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
+	mcls.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
+	mcls.On("GetPatchsetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(code_review.Patchset{}, clstore.ErrNotFound)
+	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
+	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
@@ -299,18 +299,18 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mock_clstore.Store{}
 	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls PutChangeList (with updated time and no longer
-	// abandoned), PutPatchSet with the new object, PutTryJob with the new TryJob object,
+	// We want to assert that the Process calls PutChangelist (with updated time and no longer
+	// abandoned), PutPatchset with the new object, PutTryJob with the new TryJob object,
 	// and PutResults with the appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	cl := makeChangeList()
+	cl := makeChangelist()
 	cl.Status = code_review.Abandoned
-	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(cl, nil)
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(code_review.PatchSet{}, clstore.ErrNotFound)
-	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet()).Return(nil)
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
+	mcls.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(cl, nil)
+	mcls.On("GetPatchsetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(code_review.Patchset{}, clstore.ErrNotFound)
+	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
+	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
@@ -341,15 +341,15 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 	mcls := &mock_clstore.Store{}
 	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls PutChangeList and PutPatchSet (with updated times),
+	// We want to assert that the Process calls PutChangelist and PutPatchset (with updated times),
 	// PutTryJob with the new TryJob object, and PutResults with the appropriate TryJobResults.
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchSet(), nil)
-	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
-	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet()).Return(nil)
+	mcls.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
+	mcls.On("GetPatchsetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchset(), nil)
+	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
+	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
@@ -375,9 +375,9 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 
 func makeEmptyCLStore() *mock_clstore.Store {
 	mcls := &mock_clstore.Store{}
-	mcls.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, clstore.ErrNotFound).Maybe()
-	mcls.On("GetPatchSetByOrder", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.PatchSet{}, clstore.ErrNotFound).Maybe()
-	mcls.On("GetPatchSet", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.PatchSet{}, clstore.ErrNotFound).Maybe()
+	mcls.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(code_review.Changelist{}, clstore.ErrNotFound).Maybe()
+	mcls.On("GetPatchsetByOrder", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.Patchset{}, clstore.ErrNotFound).Maybe()
+	mcls.On("GetPatchset", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.Patchset{}, clstore.ErrNotFound).Maybe()
 
 	return mcls
 }
@@ -428,8 +428,8 @@ func makeTryJobResults() []tjstore.TryJobResult {
 	}
 }
 
-func makeChangeList() code_review.ChangeList {
-	return code_review.ChangeList{
+func makeChangelist() code_review.Changelist {
+	return code_review.Changelist{
 		SystemID: "1762193",
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
@@ -441,7 +441,7 @@ func makeChangeList() code_review.ChangeList {
 // clWithUpdatedTime returns a matcher that will assert the CL has properly had its Updated field
 // updated.
 func clWithUpdatedTime(t *testing.T, clID string, originalDate time.Time) interface{} {
-	return mock.MatchedBy(func(cl code_review.ChangeList) bool {
+	return mock.MatchedBy(func(cl code_review.Changelist) bool {
 		assert.Equal(t, clID, cl.SystemID)
 		assert.Equal(t, code_review.Open, cl.Status)
 		// Make sure the time is updated to be later than the original one (which was in November
@@ -454,31 +454,31 @@ func clWithUpdatedTime(t *testing.T, clID string, originalDate time.Time) interf
 	})
 }
 
-func makeGerritPatchSets() []code_review.PatchSet {
-	return []code_review.PatchSet{
+func makeGerritPatchsets() []code_review.Patchset {
+	return []code_review.Patchset{
 		{
 			SystemID:     "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-			ChangeListID: "1762193",
+			ChangelistID: "1762193",
 			Order:        1,
 			GitHash:      "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
 		},
 		{
 			SystemID:     gerritPSID,
-			ChangeListID: "1762193",
+			ChangelistID: "1762193",
 			Order:        gerritPSOrder,
 			GitHash:      gerritPSID,
 		},
 		{
 			SystemID:     "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-			ChangeListID: "1762193",
+			ChangelistID: "1762193",
 			Order:        3,
 			GitHash:      "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
 		},
 	}
 }
 
-func makeGerritPatchSet() code_review.PatchSet {
-	ps := makeGerritPatchSets()[1]
+func makeGerritPatchset() code_review.Patchset {
+	ps := makeGerritPatchsets()[1]
 	return ps
 }
 
@@ -501,8 +501,8 @@ func makeBuildbucketCIS() map[string]ci.Client {
 
 func makeGerritCRS() *mock_crs.Client {
 	mcrs := &mock_crs.Client{}
-	mcrs.On("GetChangeList", testutils.AnyContext, gerritCLID).Return(makeChangeList(), nil)
-	mcrs.On("GetPatchSets", testutils.AnyContext, gerritCLID).Return(makeGerritPatchSets(), nil)
+	mcrs.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
+	mcrs.On("GetPatchsets", testutils.AnyContext, gerritCLID).Return(makeGerritPatchsets(), nil)
 	return mcrs
 }
 
@@ -563,7 +563,7 @@ func makeCirrusCIS() map[string]ci.Client {
 }
 
 func makeGitHubCRS() *mock_crs.Client {
-	cl := code_review.ChangeList{
+	cl := code_review.Changelist{
 		SystemID: githubCLID,
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
@@ -571,16 +571,16 @@ func makeGitHubCRS() *mock_crs.Client {
 		Updated:  time.Date(2019, time.November, 19, 18, 17, 16, 0, time.UTC),
 	}
 
-	xps := []code_review.PatchSet{
+	xps := []code_review.Patchset{
 		{
 			SystemID:     "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
-			ChangeListID: githubCLID,
+			ChangelistID: githubCLID,
 			Order:        githubPSOrder,
 			GitHash:      "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
 		},
 	}
 	mcrs := &mock_crs.Client{}
-	mcrs.On("GetChangeList", testutils.AnyContext, githubCLID).Return(cl, nil)
-	mcrs.On("GetPatchSets", testutils.AnyContext, githubCLID).Return(xps, nil)
+	mcrs.On("GetChangelist", testutils.AnyContext, githubCLID).Return(cl, nil)
+	mcrs.On("GetPatchsets", testutils.AnyContext, githubCLID).Return(xps, nil)
 	return mcrs
 }

@@ -41,7 +41,7 @@ func addTypes(generator *go2ts.Go2TS) {
 	generator.AddWithName(ignoreNil{}, "IgnoreNil_DO_NOT_USE")
 
 	// Response for the /json/v1/changelist/{system}/{id} RPC endpoint.
-	generator.AddWithName(frontend.ChangeListSummary{}, "ChangeListSummaryResponse")
+	generator.AddWithName(frontend.ChangelistSummary{}, "ChangelistSummaryResponse")
 
 	// Response for the /json/v1/paramset RPC endpoint.
 	generator.AddWithName(tiling.Tile{}.ParamSet, "ParamSetResponse")
