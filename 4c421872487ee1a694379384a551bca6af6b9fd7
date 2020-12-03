@@ -22,6 +22,29 @@
       },
       "revId": "4c421872487ee1a694379384a551bca6af6b9fd7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3dbaa8a7_2e2c8c58",
+        "filename": "ct/modules/ctfe_utils.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T18:47:57Z",
+      "side": 1,
+      "message": "Perhaps define a type TaskDescriptor, and make this an Array\u003cTaskDescriptor\u003e? then we won\u0027t have to use \u0027any\u0027 in places we look at these.",
+      "range": {
+        "startLine": 160,
+        "startChar": 13,
+        "endLine": 160,
+        "endChar": 28
+      },
+      "revId": "4c421872487ee1a694379384a551bca6af6b9fd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
