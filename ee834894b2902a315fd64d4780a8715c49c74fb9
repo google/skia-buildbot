@@ -16,6 +16,29 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "ee834894b2902a315fd64d4780a8715c49c74fb9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2107e1c1_a174bd07",
+        "filename": "ct/modules/runs-history-summary-sk/test_data.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T19:18:19Z",
+      "side": 1,
+      "message": "I don\u0027t believe this gives us any static check of the actually validity of the instantiated value, since its a cast. Lets prefer:\nlet X: Array\u003cCompletedTaskResponse\u003e\n\nHere and below.",
+      "range": {
+        "startLine": 59,
+        "startChar": 5,
+        "endLine": 59,
+        "endChar": 23
+      },
+      "revId": "ee834894b2902a315fd64d4780a8715c49c74fb9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
