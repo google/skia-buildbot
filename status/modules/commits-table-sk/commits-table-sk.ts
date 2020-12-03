@@ -250,7 +250,12 @@ class Data {
    * @param update Data from the backend.
    */
   private extractData(update: IncrementalUpdate) {
-    const newCommits = (update.commits || []) as Array<Commit>;
+    const newCommits = ((update.commits || []) as Array<Commit>).filter(
+      // In a pathological case, a commit that the backend becomes aware of between when the client
+      // calculates 'from' and when the backend gets the client's request, could end up being sent
+      // twice. Dedup it.
+      (commit) => !this.commitsByHash.has(commit.hash)
+    );
     const sliceIdx = this.numCommits - newCommits.length;
     const keep = this.commits.slice(0, sliceIdx);
     const remove = this.commits.slice(sliceIdx, this.commits.length);
@@ -1233,8 +1238,9 @@ export class CommitsTableSk extends ElementSk {
     window.clearTimeout(this.refreshHandle);
     this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-    this.data.update(this.repo, numCommits, this.lastLoaded).finally(() => {
-      this.lastLoaded = new Date();
+    const previousLoad = this.lastLoaded ? new Date(this.lastLoaded.getTime()) : undefined;
+    this.lastLoaded = new Date();
+    this.data.update(this.repo, numCommits, previousLoad).finally(() => {
       this.draw();
       const branchesSk = $$('branches-sk', this) as BranchesSk;
       branchesSk.commits = this.data.commits;
