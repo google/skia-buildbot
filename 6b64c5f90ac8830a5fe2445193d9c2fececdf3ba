@@ -16,6 +16,52 @@
       "message": "Diff task-priority-sk.ts with PatchSet3 for easier review",
       "revId": "6b64c5f90ac8830a5fe2445193d9c2fececdf3ba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f75db33d_aedc9c0f",
+        "filename": "ct/modules/task-priority-sk/task-priority-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T19:01:30Z",
+      "side": 1,
+      "message": "how is this turning a {[key:number]-\u003estring} object into a string[][] without compliant..? TS is supposed to save me from this confusion.",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 64
+      },
+      "revId": "6b64c5f90ac8830a5fe2445193d9c2fececdf3ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a890a047_1fcc48ab",
+        "filename": "ct/modules/task-priority-sk/test_data.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T19:01:30Z",
+      "side": 1,
+      "message": ": TaskPrioritiesResponse",
+      "range": {
+        "startLine": 1,
+        "startChar": 13,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "6b64c5f90ac8830a5fe2445193d9c2fececdf3ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
