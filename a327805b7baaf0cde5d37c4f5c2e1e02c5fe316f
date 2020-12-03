@@ -16,6 +16,52 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "a327805b7baaf0cde5d37c4f5c2e1e02c5fe316f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a14ecb89_30eb8478",
+        "filename": "ct/modules/metrics-analysis-runs-sk/metrics-analysis-runs-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:59:45Z",
+      "side": 1,
+      "message": ": GetTasksResponse",
+      "range": {
+        "startLine": 262,
+        "startChar": 13,
+        "endLine": 262,
+        "endChar": 17
+      },
+      "revId": "a327805b7baaf0cde5d37c4f5c2e1e02c5fe316f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "be7bcd20_34d4d856",
+        "filename": "ct/modules/metrics-analysis-runs-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:59:45Z",
+      "side": 1,
+      "message": ": GetTasksResponse here and below.",
+      "range": {
+        "startLine": 6,
+        "startChar": 13,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "a327805b7baaf0cde5d37c4f5c2e1e02c5fe316f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
