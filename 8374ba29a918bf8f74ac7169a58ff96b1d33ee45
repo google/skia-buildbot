@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "74735d3c_b3af1322",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-03T23:58:58Z",
+      "side": 1,
+      "message": "Nit: PatchsetExists",
+      "range": {
+        "startLine": 109,
+        "startChar": 36,
+        "endLine": 109,
+        "endChar": 50
+      },
+      "revId": "8374ba29a918bf8f74ac7169a58ff96b1d33ee45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "16353d7b_3f2fa3b3",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-03T23:58:58Z",
+      "side": 1,
+      "message": "Uber nit: NoPatchsetsFound",
+      "range": {
+        "startLine": 216,
+        "startChar": 21,
+        "endLine": 216,
+        "endChar": 40
+      },
+      "revId": "8374ba29a918bf8f74ac7169a58ff96b1d33ee45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
