@@ -16,6 +16,29 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "f57490cdeb8bd53688790194c41942b1f9a21cad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2be01a35_44c593ab",
+        "filename": "ct/modules/admin-task-runs-sk/admin-task-runs-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:56:34Z",
+      "side": 1,
+      "message": ": GetTasksResponse",
+      "range": {
+        "startLine": 220,
+        "startChar": 11,
+        "endLine": 220,
+        "endChar": 15
+      },
+      "revId": "f57490cdeb8bd53688790194c41942b1f9a21cad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
