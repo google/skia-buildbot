@@ -16,6 +16,52 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "a61bc409224d3d6a2631981fcb13b066cd0c5690",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9016c06a_01eea317",
+        "filename": "ct/modules/pageset-selector-sk/pageset-selector-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:39:31Z",
+      "side": 1,
+      "message": ": Array\u003cPageSet\u003e ?",
+      "range": {
+        "startLine": 72,
+        "startChar": 13,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "a61bc409224d3d6a2631981fcb13b066cd0c5690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a473c76d_6623e123",
+        "filename": "ct/modules/pageset-selector-sk/test_data.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:39:31Z",
+      "side": 1,
+      "message": "prefer export const pageSets: Array\u003cPageSet\u003e rather than a cast, to get the static check of the instantiation.",
+      "range": {
+        "startLine": 11,
+        "startChar": 77,
+        "endLine": 11,
+        "endChar": 91
+      },
+      "revId": "a61bc409224d3d6a2631981fcb13b066cd0c5690",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
