@@ -16,6 +16,98 @@
       "message": "Forgot to send this one out",
       "revId": "cb1a0a5e507753990c99b5dc8b3d79d84a3d0230",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f22d1be8_4fd2be6f",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:48:29Z",
+      "side": 1,
+      "message": "I believe all these HTMLInputElements should actually be InputSks, here, above below, etc.",
+      "range": {
+        "startLine": 311,
+        "startChar": 38,
+        "endLine": 311,
+        "endChar": 54
+      },
+      "revId": "cb1a0a5e507753990c99b5dc8b3d79d84a3d0230",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "879b3229_b14615d0",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:48:29Z",
+      "side": 1,
+      "message": "I believe all these HTMLInputElements should actually be InputSks, here, above below, etc",
+      "range": {
+        "startLine": 334,
+        "startChar": 60,
+        "endLine": 334,
+        "endChar": 76
+      },
+      "revId": "cb1a0a5e507753990c99b5dc8b3d79d84a3d0230",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c8f1b2d_33a5cfaa",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:48:29Z",
+      "side": 1,
+      "message": "InputSk here as well.",
+      "range": {
+        "startLine": 375,
+        "startChar": 54,
+        "endLine": 375,
+        "endChar": 70
+      },
+      "revId": "cb1a0a5e507753990c99b5dc8b3d79d84a3d0230",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4c2df34c_8f1763cd",
+        "filename": "ct/modules/chromium-perf-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:48:29Z",
+      "side": 1,
+      "message": "Prefer export const benchmarks_platforms: BenchmarksPlatformsResponse \u003d {...} to get static checking of the instantiation.",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 32
+      },
+      "revId": "cb1a0a5e507753990c99b5dc8b3d79d84a3d0230",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
