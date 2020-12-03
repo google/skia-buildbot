@@ -9,7 +9,7 @@
  */
 
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -27,23 +27,26 @@ import { doImpl } from '../leasing';
 
 import '../../../infra-sk/modules/login-sk';
 
-function displayTasks(ele) {
-  return ele._tasks.map((task) => html`
-    <leasing-task-sk .task=${task}></leasing-task-sk>
-  `);
-}
+import { Task } from '../json';
 
-const template = (ele) => html`${displayTasks(ele)}`;
+export class LeasingListSk extends ElementSk {
+  _tasks: Task[] = [];
 
-define('leasing-list-sk', class extends ElementSk {
   constructor() {
-    super(template);
-    this._tasks = [];
+    super(LeasingListSk.template);
 
     this._fetchTasks();
   }
 
-  _fetchTasks() {
+  private static template = (ele: LeasingListSk) => html`${ele.displayTasks(ele)}`;
+
+  displayTasks(ele: LeasingListSk): TemplateResult[] {
+    return ele._tasks.map((task) => html`
+      <leasing-task-sk .task=${task}></leasing-task-sk>
+    `);
+  }
+
+  _fetchTasks(): void {
     const url = '/_/get_leases';
     const details = {
       filter_by_user: this.filterByUser,
@@ -54,17 +57,17 @@ define('leasing-list-sk', class extends ElementSk {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     upgradeProperty(this, 'filterByUser');
     this._render();
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['filter_by_user'];
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'filter_by_user':
         if (newValue !== '') {
@@ -76,15 +79,17 @@ define('leasing-list-sk', class extends ElementSk {
   }
 
   /** @prop filter_by_user {String} User tasks should be filtered by. */
-  get filterByUser() {
-    return this.getAttribute('filter_by_user');
+  get filterByUser(): string {
+    return this.getAttribute('filter_by_user')!;
   }
 
-  set filterByUser(val) {
+  set filterByUser(val: string) {
     this.setAttribute('filter_by_user', val);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
   }
-});
+}
+
+define('leasing-list-sk', LeasingListSk);
