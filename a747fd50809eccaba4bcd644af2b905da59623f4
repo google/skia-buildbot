@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e3358dbf_cd2121be",
+        "filename": "ct/modules/metrics-analysis-sk/metrics-analysis-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T21:00:41Z",
+      "side": 1,
+      "message": "Here and below, s/HTMLInputElement/InputSk",
+      "range": {
+        "startLine": 187,
+        "startChar": 34,
+        "endLine": 187,
+        "endChar": 50
+      },
+      "revId": "a747fd50809eccaba4bcd644af2b905da59623f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
