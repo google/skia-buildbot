@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "52e89477_abaa15a0",
+        "filename": "ct/modules/patch-sk/patch-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T19:22:45Z",
+      "side": 1,
+      "message": "Shall we go2tsify the \u0027/_/cl_data\u0027 endpoint?",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 9
+      },
+      "revId": "b2407e81702aa30543cb4823a5fe4519b25b4d6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
