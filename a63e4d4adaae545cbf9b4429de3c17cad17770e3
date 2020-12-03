@@ -16,6 +16,23 @@
       "message": "tbr",
       "revId": "a63e4d4adaae545cbf9b4429de3c17cad17770e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "39d41f64_8f2c2bef",
+        "filename": "perf/go/perf-tool/main.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-03T13:43:58Z",
+      "side": 1,
+      "message": "Do you still need this to be Fatal (vs returning error)?",
+      "revId": "a63e4d4adaae545cbf9b4429de3c17cad17770e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
