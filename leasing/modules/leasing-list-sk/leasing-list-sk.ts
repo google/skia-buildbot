@@ -33,17 +33,17 @@ function displayTasks(ele) {
   `);
 }
 
-const template = (ele) => html`${displayTasks(ele)}`;
-
-define('leasing-list-sk', class extends ElementSk {
+export class LeasingListSk extends ElementSk {
   constructor() {
-    super(template);
+    super(LeasingListSk.template);
     this._tasks = [];
 
     this._fetchTasks();
   }
 
-  _fetchTasks() {
+  private static template = (ele: LeasingListSk) => html`${displayTasks(ele)}`;
+
+  _fetchTasks(): void {
     const url = '/_/get_leases';
     const details = {
       filter_by_user: this.filterByUser,
@@ -84,7 +84,9 @@ define('leasing-list-sk', class extends ElementSk {
     this.setAttribute('filter_by_user', val);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
   }
-});
+}
+
+define('leasing-list-sk', LeasingListSk);
