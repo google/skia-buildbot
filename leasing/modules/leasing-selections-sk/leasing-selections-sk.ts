@@ -10,7 +10,7 @@
  */
 
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 
 import 'elements-sk/error-toast-sk';
@@ -29,52 +29,41 @@ import { device, getAKAStr, doImpl } from '../leasing';
 
 import '../../../infra-sk/modules/login-sk';
 
-const _displayPools = (ele) => ele._all_pools.map(
-  (p) => html`
-    <option
-      ?selected=${ele._pool === p}
-      value=${p}
-      title=${p}
-      >${p}
-    </option>`,
-);
+import { Task, PoolDetails } from '../json';
 
-function _displayOsTypes(ele) {
-  if (ele._osTypes === {}) {
-    return '';
-  }
-  return Object.keys(ele._osTypes).map((o) => html`
-    <option
-      value=${o}
-      title=${o}
-      >${o} - ${ele._osTypes[o]} bots online
-    </option>`);
-}
+export class LeasingSelectionsSk extends ElementSk {
+  private _all_pools: string[] = ['Skia'];
 
-function _displayDeviceTypes(ele) {
-  if (ele._osToDeviceTypes === {}) {
-    return '';
-  }
-  if (!(ele._selectedOsType in ele._osToDeviceTypes)) {
-    return '';
-  }
-  const deviceTypes = ele._osToDeviceTypes[ele._selectedOsType];
-  return Object.keys(deviceTypes).map((d) => html`
-    <option
-      value=${d}
-      title=${d}
-      >${device(d)} ${getAKAStr(d)} - ${deviceTypes[d]} bots online
-    </option>`);
-}
+  private _pool: string = 'Skia';
 
-const template = (ele) => html`
+  private _osTypes: { [key: string]: number; } = {};
+
+  private _deviceTypes: Record<string, string> = {};
+
+  private _selectedDeviceType: string = '';
+
+  private _selectedOsType: string = '';
+
+  private _osToDeviceTypes: { [key: string]: { [key: string]: number; }; } = {};
+
+  private _loadingDetails: boolean = false;
+
+
+  constructor() {
+    super(LeasingSelectionsSk.template);
+
+    this._fetchSupportedPools();
+    this._fetchOsDetails();
+  }
+
+  private static template = (ele: LeasingSelectionsSk) => html`
     <table class="options panel">
 
       <tr>
         <td class="step-title">Select Pool</td>
         <td>
           <select id="pool" ?disabled=${ele._loadingDetails} .selection=${ele._pool} @input=${ele._poolChanged}>
-            ${_displayPools(ele)}
+            ${LeasingSelectionsSk._displayPools(ele)}
           </select>
         </td>
       </tr>
@@ -83,7 +72,7 @@ const template = (ele) => html`
         <td class="step-title">Select OS Type</td>
         <td>
           <select id="os_type" ?disabled=${ele._loadingDetails} @input=${ele._osTypeChanged}>
-            ${_displayOsTypes(ele)}
+            ${LeasingSelectionsSk._displayOsTypes(ele)}
           </select>
         </td>
       </tr>
@@ -92,7 +81,7 @@ const template = (ele) => html`
         <td class="step-title">Select Device Type</td>
         <td>
           <select id="device_type" ?disabled=${ele._loadingDetails || (ele._selectedOsType !== 'Android' && !ele._selectedOsType.startsWith('iOS'))}>
-            ${_displayDeviceTypes(ele)}
+            ${LeasingSelectionsSk._displayDeviceTypes(ele)}
           </select>
         </td>
       </tr>
@@ -140,60 +129,79 @@ const template = (ele) => html`
     </table>
 `;
 
-define('leasing-selections-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._all_pools = ['Skia'];
-    this._pool = 'Skia';
-    this._osTypes = {};
-    this._deviceTypes = {};
+  private static _displayPools(ele: LeasingSelectionsSk): TemplateResult[] {
+    return ele._all_pools.map((p) => html`
+    <option
+      ?selected=${ele._pool === p}
+      value=${p}
+      title=${p}
+      >${p}
+    </option>`);
+  }
 
-    this._selectedDeviceType = '';
-    this._selectedOsType = '';
-    this._osToDeviceTypes = {};
+  private static _displayOsTypes(ele: LeasingSelectionsSk): TemplateResult[] {
+    if (ele._osTypes === {}) {
+      return [html``];
+    }
+    return Object.keys(ele._osTypes).map((o) => html`
+    <option
+      value=${o}
+      title=${o}
+      >${o} - ${ele._osTypes[o]} bots online
+    </option>`);
+  }
 
-    // Maybe removable now because it's supposed to be fast???
-    this._loadingDetails = false;
+  private static _displayDeviceTypes(ele: LeasingSelectionsSk): TemplateResult[] {
+    if (ele._osToDeviceTypes === {}) {
+      return [html``];
+    }
+    if (!(ele._selectedOsType in ele._osToDeviceTypes)) {
+      return [html``];
+    }
+    const deviceTypes = ele._osToDeviceTypes[ele._selectedOsType];
+    return Object.keys(deviceTypes).map((d) => html`
+    <option
+      value=${d}
+      title=${d}
+      >${device(d)} ${getAKAStr(d)} - ${deviceTypes[d]} bots online
+    </option>`);
+  }
 
-    this._fetchSupportedPools();
+  _poolChanged(e: InputEvent): void {
+    this._pool = (e.target! as HTMLInputElement).value;
     this._fetchOsDetails();
   }
 
-  _poolChanged(e) {
-    this._pool = e.target.value;
-    this._fetchOsDetails();
-  }
-
-  _osTypeChanged(e) {
-    this._selectedOsType = e.target.value;
+  _osTypeChanged(e: InputEvent): void {
+    this._selectedOsType = (e.target! as HTMLInputElement).value;
     this._render();
   }
 
-  _fetchSupportedPools() {
+  _fetchSupportedPools(): void {
     doImpl('/_/get_supported_pools', {}, (json) => {
       this._all_pools = json;
       this._render();
     });
   }
 
-  _fetchOsDetails() {
-    doImpl(`/_/pooldetails?pool=${this._pool}`, {}, (json) => {
-      this._osTypes = json.OsTypes;
-      this._osToDeviceTypes = json.OsToDeviceTypes;
+  _fetchOsDetails(): void {
+    doImpl(`/_/pooldetails?pool=${this._pool}`, {}, (json: PoolDetails) => {
+      this._osTypes = json.os_types;
+      this._osToDeviceTypes = json.os_to_device_types;
       // Select first OsType.
       this._selectedOsType = Object.keys(this._osTypes)[0];
       this._render();
     });
   }
 
-  _addTask() {
-    const pool = $$('#pool', this).value;
-    const osType = $$('#os_type', this).value;
-    const deviceType = $$('#device_type', this).value;
-    const botId = $$('#bot_id', this).value;
-    const taskId = $$('#task_id', this).value;
-    const duration = $$('#duration', this).value;
-    const desc = $$('#desc', this).value;
+  _addTask(): void {
+    const pool = ($$('#pool', this) as HTMLInputElement).value;
+    const osType = ($$('#os_type', this) as HTMLInputElement).value;
+    const deviceType = ($$('#device_type', this) as HTMLInputElement).value;
+    const botId = ($$('#bot_id', this) as HTMLInputElement).value;
+    const taskId = ($$('#task_id', this) as HTMLInputElement).value;
+    const duration = ($$('#duration', this) as HTMLInputElement).value;
+    const desc = ($$('#desc', this) as HTMLInputElement).value;
 
     // Validate inputs.
     if (!desc) {
@@ -208,7 +216,7 @@ define('leasing-selections-sk', class extends ElementSk {
     }
 
     // Call backend to add task.
-    const detail = {};
+    const detail = {} as Task;
     detail.pool = pool;
     detail.botId = botId;
     if (!botId) {
@@ -228,17 +236,19 @@ define('leasing-selections-sk', class extends ElementSk {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle() { return this.getAttribute('app_title'); }
+  get appTitle(): string { return this.getAttribute('app_title')!; }
 
-  set appTitle(val) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) { this.setAttribute('app_title', val); }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
   }
-});
+}
+
+define('leasing-selections-sk', LeasingSelectionsSk);
