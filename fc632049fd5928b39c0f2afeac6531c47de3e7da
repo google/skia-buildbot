@@ -16,6 +16,52 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "fc632049fd5928b39c0f2afeac6531c47de3e7da",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "29c68ee5_e106d575",
+        "filename": "ct/modules/chromium-perf-runs-sk/chromium-perf-runs-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:53:07Z",
+      "side": 1,
+      "message": ": GetTasksResponse",
+      "range": {
+        "startLine": 347,
+        "startChar": 13,
+        "endLine": 347,
+        "endChar": 17
+      },
+      "revId": "fc632049fd5928b39c0f2afeac6531c47de3e7da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2ee84e31_55199fdf",
+        "filename": "ct/modules/chromium-perf-runs-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:53:07Z",
+      "side": 1,
+      "message": "can we add \u0027:GetTasksResponse\u0027 to all these?",
+      "range": {
+        "startLine": 6,
+        "startChar": 13,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "fc632049fd5928b39c0f2afeac6531c47de3e7da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
