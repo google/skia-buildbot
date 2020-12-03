@@ -2,7 +2,7 @@
 
 import { resolve } from 'path';
 import webpack from 'webpack';
-import CopyWebpackPlugin from 'copy-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import HtmlWebpackInjectAttributesPlugin from 'html-webpack-inject-attributes-plugin';
 import commonBuilder from '../infra-sk/pulito/webpack.common';
 
@@ -13,17 +13,18 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   config.output!.publicPath = '/static/';
 
   config.plugins!.push(
-    new CopyWebpackPlugin([
-      {
-        from: resolve(__dirname, 'images/icon.png'),
-        to: 'icon.png',
-      },
-      {
-        from: resolve(__dirname, 'images/icon-active.png'),
-        to: 'icon-active.png',
-      },
-
-    ]),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: resolve(__dirname, 'images/icon.png'),
+          to: 'icon.png',
+        },
+        {
+          from: resolve(__dirname, 'images/icon-active.png'),
+          to: 'icon-active.png',
+        },
+      ],
+    }),
   );
 
   config.plugins!.push(
