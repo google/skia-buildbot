@@ -41,7 +41,7 @@ func TestGet_ExpectationsInCLPartition_Success(t *testing.T) {
 	const clID = "123"
 	const crs = "github"
 	masterStore := New(c, nil, ReadWrite)
-	clStore := masterStore.ForChangeList(clID, crs)
+	clStore := masterStore.ForChangelist(clID, crs)
 
 	// Brand new instance should have no expectations
 	clExps, err := clStore.Get(ctx)
@@ -87,7 +87,7 @@ func TestGet_ExpectationsInCLPartition_Success(t *testing.T) {
 
 	// Make sure that if we create a new view, we can still read the results.
 	masterStore = New(c, nil, ReadOnly)
-	clStore = masterStore.ForChangeList(clID, crs)
+	clStore = masterStore.ForChangelist(clID, crs)
 	clExps, err = clStore.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, clExps)
@@ -181,7 +181,7 @@ func TestGetCopy_CLPartition_CallerMutatesReturnValue_StoreUnaffected(t *testing
 	defer cleanup()
 
 	masterStore := New(c, nil, ReadWrite)
-	clStore := masterStore.ForChangeList("123", "github") // These are arbitrary
+	clStore := masterStore.ForChangelist("123", "github") // These are arbitrary
 	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
 
 	clExps, err := clStore.GetCopy(ctx)
@@ -376,7 +376,7 @@ func TestAddChange_ExpectationsDoNotConflictBetweenMasterAndCLPartition(t *testi
 	require.NoError(t, masterStore.Initialize(ctx))
 	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeInt, userTwo)
 
-	clStore := masterStore.ForChangeList("117", "gerrit") // arbitrary cl id
+	clStore := masterStore.ForChangelist("117", "gerrit") // arbitrary cl id
 	// Check that it starts out blank.
 	clExps, err := clStore.Get(ctx)
 	require.NoError(t, err)
@@ -662,7 +662,7 @@ func TestGetTriageHistory_MasterAndCLPartitionsDoNotConflict_Success(t *testing.
 	}, userOne)
 	require.NoError(t, err)
 
-	clStore := masterStore.ForChangeList("123", "gerrit") // arbitrary CL
+	clStore := masterStore.ForChangelist("123", "gerrit") // arbitrary CL
 
 	err = clStore.AddChange(ctx, []expectations.Delta{
 		{
@@ -790,7 +790,7 @@ func TestQueryLog_MasterAndCLPartitionsDoNotConflict_Success(t *testing.T) {
 
 	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
 
-	clStore := masterStore.ForChangeList("1687", "gerrit") // this is arbitrary
+	clStore := masterStore.ForChangelist("1687", "gerrit") // this is arbitrary
 	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
 	fakeNow = secondTime
 
@@ -1039,7 +1039,7 @@ func TestUndo_CLPartition_EntriesExist_Success(t *testing.T) {
 	defer cleanup()
 
 	masterStore := New(c, nil, ReadWrite)
-	clStore := masterStore.ForChangeList("123", "github") // These are arbitrary
+	clStore := masterStore.ForChangelist("123", "github") // These are arbitrary
 
 	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveInt, userOne)
 	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeInt, userOne) // will be undone
@@ -1385,7 +1385,7 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 
 	masterStore := New(c, nil, ReadWrite)
 
-	clExp := masterStore.ForChangeList("cl1234", "crs")
+	clExp := masterStore.ForChangelist("cl1234", "crs")
 	err := clExp.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: entryOneGrouping,

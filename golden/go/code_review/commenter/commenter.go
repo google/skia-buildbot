@@ -1,4 +1,4 @@
-// Package commenter contains an implementation of the code_review.ChangeListCommenter interface.
+// Package commenter contains an implementation of the code_review.ChangelistCommenter interface.
 // It should be CRS-agnostic.
 package commenter
 
@@ -56,9 +56,9 @@ func New(system clstore.ReviewSystem, search search.SearchAPI, messageTemplate, 
 	}, nil
 }
 
-// CommentOnChangeListsWithUntriagedDigests implements the code_review.ChangeListCommenter
+// CommentOnChangelistsWithUntriagedDigests implements the code_review.ChangelistCommenter
 // interface.
-func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) error {
+func (i *Impl) CommentOnChangelistsWithUntriagedDigests(ctx context.Context) error {
 	total := 0
 	// This pageSize was picked arbitrarily, could be larger, but hopefully we don't have to
 	// deal with that many CLs at once.
@@ -67,7 +67,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	// to look at CLs that were Updated "recently". We make the range of time that we search
 	// much wider than we need to account for either glitches in ingestion or outages of the CRS.
 	recent := i.now().Add(-timePeriodOfCLsToCheck)
-	xcl, _, err := i.system.Store.GetChangeLists(ctx, clstore.SearchOptions{
+	xcl, _, err := i.system.Store.GetChangelists(ctx, clstore.SearchOptions{
 		StartIdx:    0,
 		Limit:       pageSize,
 		OpenCLsOnly: true,
@@ -77,9 +77,9 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 		return skerr.Wrapf(err, "searching for open CLs")
 	}
 
-	// stillOpen maps id to ChangeList to avoid duplication
+	// stillOpen maps id to Changelist to avoid duplication
 	// (this could happen due to paging trickiness)
-	stillOpen := map[string]code_review.ChangeList{}
+	stillOpen := map[string]code_review.Changelist{}
 	var openMutex sync.Mutex
 	// Number of shards was picked sort of arbitrarily. Updating CLs requires multiple network
 	// requests, so we can run them in parallel basically for free.
@@ -119,7 +119,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 
 		// Page to the next ones using len(stillOpen) because the next iteration of this query
 		// won't count the ones we just marked as Closed/Abandoned when computing the offset.
-		xcl, _, err = i.system.Store.GetChangeLists(ctx, clstore.SearchOptions{
+		xcl, _, err = i.system.Store.GetChangelists(ctx, clstore.SearchOptions{
 			StartIdx:    len(stillOpen),
 			Limit:       pageSize,
 			OpenCLsOnly: true,
@@ -133,7 +133,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	sklog.Infof("There were originally %d recent open CLs; after checking with CRS there are %d still open", total, len(stillOpen))
 
 	for _, cl := range stillOpen {
-		xps, err := i.system.Store.GetPatchSets(ctx, cl.SystemID)
+		xps, err := i.system.Store.GetPatchsets(ctx, cl.SystemID)
 		if err != nil {
 			return skerr.Wrapf(err, "looking for patchsets on open CL %s", cl.SystemID)
 		}
@@ -155,7 +155,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 				}
 				mostRecentPS.CommentedOnCL = true
 			}
-			if err := i.system.Store.PutPatchSet(ctx, mostRecentPS); err != nil {
+			if err := i.system.Store.PutPatchset(ctx, mostRecentPS); err != nil {
 				return skerr.Wrapf(err, "updating PS %#v", mostRecentPS)
 			}
 		}
@@ -166,11 +166,11 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 
 // maybeCommentOn either comments on the given CL/PS that there are untriaged digests on it or
 // logs if this commenter is configured to not actually comment.
-func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) error {
+func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.Changelist, ps code_review.Patchset, untriagedDigests int) error {
 	msg, err := i.untriagedMessage(commentTemplateContext{
 		CRS:           i.system.ID,
-		ChangeListID:  cl.SystemID,
-		PatchSetOrder: ps.Order,
+		ChangelistID:  cl.SystemID,
+		PatchsetOrder: ps.Order,
 		NumUntriaged:  untriagedDigests,
 	})
 	if err != nil {
@@ -192,11 +192,11 @@ func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps
 
 // commentTemplateContext contains the fields that can be substituted into
 type commentTemplateContext struct {
-	ChangeListID      string
+	ChangelistID      string
 	CRS               string
 	InstanceURL       string
 	NumUntriaged      int
-	PatchSetOrder     int
+	PatchsetOrder     int
 	PublicInstanceURL string
 }
 
@@ -214,8 +214,8 @@ func (i *Impl) untriagedMessage(c commentTemplateContext) (string, error) {
 // updateCLInStoreIfAbandoned checks with the CRS to see if the cl is still Open. If it is, it
 // returns true. If it is Abandoned, it stores the updated CL in the store and returns false.
 // If the CL is Landed, it returns false and *does not update anything* in the store.
-func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.ChangeList) (bool, error) {
-	up, err := i.system.Client.GetChangeList(ctx, cl.SystemID)
+func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Changelist) (bool, error) {
+	up, err := i.system.Client.GetChangelist(ctx, cl.SystemID)
 	if err == code_review.ErrNotFound {
 		sklog.Debugf("CL %s might have been deleted", cl.SystemID)
 		return false, nil
@@ -227,7 +227,7 @@ func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Ch
 		return true, nil
 	}
 	// If the CRS is reporting a CL as Landed, but we think it to be Open, that means that
-	// the code_review.ChangeListLandedUpdater hasn't had a chance to process it yet, which is
+	// the code_review.ChangelistLandedUpdater hasn't had a chance to process it yet, which is
 	// necessary to smoothly merge the Expectations from the CL into master.
 	if up.Status == code_review.Landed {
 		return false, nil
@@ -236,7 +236,7 @@ func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Ch
 	// remember it is abandoned in the future. This also catches things like the cl Subject
 	// changing since it was opened.
 	up.Updated = i.now()
-	if err := i.system.Store.PutChangeList(ctx, up); err != nil {
+	if err := i.system.Store.PutChangelist(ctx, up); err != nil {
 		return false, skerr.Wrapf(err, "storing CL %s", up.SystemID)
 	}
 	return false, nil
@@ -259,5 +259,5 @@ func (i *Impl) searchIndexForNewUntriagedDigests(ctx context.Context, clID, psID
 
 }
 
-// Make sure Impl fulfills the code_review.ChangeListCommenter interface.
-var _ code_review.ChangeListCommenter = (*Impl)(nil)
+// Make sure Impl fulfills the code_review.ChangelistCommenter interface.
+var _ code_review.ChangelistCommenter = (*Impl)(nil)

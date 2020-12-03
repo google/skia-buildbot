@@ -501,7 +501,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client
 
 // mustMakeTileSource returns a new tilesource.TileSource.
 func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, ignoreStore ignore.Store, traceStore *bt_tracestore.BTTraceStore, vcs vcsinfo.VCS, publiclyViewableParams publicparams.Matcher, reviewSystems []clstore.ReviewSystem) tilesource.TileSource {
-	var clUpdater code_review.ChangeListLandedUpdater
+	var clUpdater code_review.ChangelistLandedUpdater
 	if fsc.IsAuthoritative() && !fsc.DisableCLTracking {
 		clUpdater = updater.New(expStore, reviewSystems)
 	}
@@ -528,8 +528,8 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 // mustMakeIndexer makes a new indexer.Indexer.
 func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, diffStore diff.DiffStore, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
 	ic := indexer.IndexerConfig{
-		ChangeListener:    expChangeHandler,
 		DiffStore:         diffStore,
+		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
 		ReviewSystems:     reviewSystems,
@@ -565,11 +565,11 @@ func mustStartCommenters(ctx context.Context, fsc *frontendServerConfig, reviewS
 }
 
 // startCommenter begins the background process that comments on CLs.
-func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
+func startCommenter(ctx context.Context, cmntr code_review.ChangelistCommenter) {
 	go func() {
 		// TODO(kjlubick): tune this time, maybe make it a flag
 		util.RepeatCtx(ctx, 3*time.Minute, func(ctx context.Context) {
-			if err := cmntr.CommentOnChangeListsWithUntriagedDigests(ctx); err != nil {
+			if err := cmntr.CommentOnChangelistsWithUntriagedDigests(ctx); err != nil {
 				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)
 			}
 		})
@@ -579,10 +579,10 @@ func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) 
 // mustMakeStatusWatcher returns a new status.StatusWatcher.
 func mustMakeStatusWatcher(ctx context.Context, vcs vcsinfo.VCS, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, tileSource tilesource.TileSource) *status.StatusWatcher {
 	swc := status.StatusWatcherConfig{
-		VCS:               vcs,
-		ChangeListener:    expChangeHandler,
-		TileSource:        tileSource,
+		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
+		TileSource:        tileSource,
+		VCS:               vcs,
 	}
 
 	statusWatcher, err := status.New(ctx, swc)
@@ -736,7 +736,7 @@ func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Ha
 	router.HandleFunc("/list", templateHandler("by_test_list.html"))
 	router.HandleFunc("/help", templateHandler("help.html"))
 	router.HandleFunc("/search", templateHandler("search.html"))
-	router.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
+	router.HandleFunc("/cl/{system}/{id}", handlers.ChangelistSearchRedirect)
 }
 
 // addAuthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
@@ -756,8 +756,8 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 
 	add("/json/byblame", handlers.ByBlameHandler, "GET")
 	add("/json/v1/byblame", handlers.ByBlameHandler, "GET")
-	add("/json/changelists", handlers.ChangeListsHandler, "GET")
-	add("/json/v1/changelists", handlers.ChangeListsHandler, "GET")
+	add("/json/changelists", handlers.ChangelistsHandler, "GET")
+	add("/json/v1/changelists", handlers.ChangelistsHandler, "GET")
 	add("/json/clusterdiff", handlers.ClusterDiffHandler, "GET")
 	add("/json/v1/clusterdiff", handlers.ClusterDiffHandler, "GET")
 	add("/json/commits", handlers.CommitsHandler, "GET")
@@ -826,12 +826,12 @@ func addUnauthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig,
 		addJSONRoute(jsonRoute, httputils.CorsHandler(handlerFunc), router, "").Methods("GET")
 	}
 
-	add("/json/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangeListUntriagedHandler)
-	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangeListUntriagedHandler)
+	add("/json/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
+	add("/json/v1/changelist/{system}/{id}/{patchset}/untriaged", handlers.ChangelistUntriagedHandler)
 	add("/json/trstatus", handlers.StatusHandler)
 	add("/json/v1/trstatus", handlers.StatusHandler)
-	add("/json/changelist/{system}/{id}", handlers.ChangeListSummaryHandler)
-	add("/json/v1/changelist/{system}/{id}", handlers.ChangeListSummaryHandler)
+	add("/json/changelist/{system}/{id}", handlers.ChangelistSummaryHandler)
+	add("/json/v1/changelist/{system}/{id}", handlers.ChangelistSummaryHandler)
 }
 
 var (

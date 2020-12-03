@@ -8,11 +8,11 @@ export class ChangelistControlsSkPO extends PageObject {
     return this.element.applyFnToDOMNode((el) => el.children.length > 0);
   }
 
-  getPatchSet() {
+  getPatchset() {
     return this.selectOnePOEThenApplyFn('.inputs select', (el) => el.value);
   }
 
-  setPatchSet(value: string) {
+  setPatchset(value: string) {
     return this.selectOnePOEThenApplyFn('.inputs select', (el) => el.enterValue(value));
   }
 

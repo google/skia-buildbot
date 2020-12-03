@@ -32,11 +32,11 @@ type Search struct {
 	RightTraceValues paramtools.ParamSet `json:"-"`
 
 	// TryJob support.
-	ChangeListID       string `json:"issue"`
+	ChangelistID       string `json:"issue"`
 	CodeReviewSystemID string `json:"crs_id"`
 	// TODO(kjlubick) Change this so only one patchset is allowed. It will simplify the backend code.
-	PatchSetsStr string  `json:"patchsets"` // Comma-separated list of patchsets.
-	PatchSets    []int64 `json:"-"`
+	PatchsetsStr string  `json:"patchsets"` // Comma-separated list of patchsets.
+	Patchsets    []int64 `json:"-"`
 	// By default, we typically only want to see digests that were created exclusively on this CL,
 	// but sometimes the user wants to also see digests that are the same as on master, so this option
 	// allows for that.

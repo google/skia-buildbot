@@ -16,7 +16,7 @@ import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk
 import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeListSummaryResponse, TriageRequestData, Label } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangelistSummaryResponse, TriageRequestData, Label } from '../rpc_types';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -189,7 +189,7 @@ export class SearchPageSk extends ElementSk {
   // Fields populated from JSON RPCs.
   private _corpora: string[] = [];
   private _paramSet: ParamSet = {};
-  private _changeListSummaryResponse: ChangeListSummaryResponse | null = null;
+  private _changeListSummaryResponse: ChangelistSummaryResponse | null = null;
   private _searchResponse: SearchResponse | null = null;
 
   private _searchResultsFetchController: AbortController | null = null;
@@ -230,7 +230,7 @@ export class SearchPageSk extends ElementSk {
         // These RPCs are only called once during the page's lifetime.
         this._fetchCorporaOnce();
         this._fetchParamSetOnce();
-        this._maybeFetchChangeListSummaryOnce(); // Only called if the CL/CRS URL params are set.
+        this._maybeFetchChangelistSummaryOnce(); // Only called if the CL/CRS URL params are set.
 
         // Called every time the state changes.
         this._fetchSearchResults();
@@ -305,7 +305,7 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  private async _maybeFetchChangeListSummaryOnce() {
+  private async _maybeFetchChangelistSummaryOnce() {
     // We can skip this RPC if no CL information has been provided via URL parameters.
     if (!this._crs || !this._changelistId) return;
 

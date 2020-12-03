@@ -30,7 +30,7 @@ type TileSource interface {
 }
 
 type CachedTileSourceConfig struct {
-	CLUpdater   code_review.ChangeListLandedUpdater
+	CLUpdater   code_review.ChangelistLandedUpdater
 	IgnoreStore ignore.Store
 	TraceStore  tracestore.TraceStore
 	VCS         vcsinfo.VCS
@@ -124,7 +124,7 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	cpxTile.SetIgnoreRules(retIgnoredTile, ignoreRules)
 
 	// check if all the expectations of all commits have been added to the tile.
-	err = s.checkForLandedChangeLists(ctx, prevCommit, allCommits)
+	err = s.checkForLandedChangelists(ctx, prevCommit, allCommits)
 	if err != nil {
 		return skerr.Wrapf(err, "identifying CLs/CLExpectations that have landed")
 	}
@@ -191,9 +191,9 @@ func computeMetricsOnTile(denseTile *tiling.Tile, allCommits []tiling.Commit) {
 	metrics2.GetInt64Metric(emptyCommitsAtHeadMetric).Update(int64(emptyCommitsAtHead))
 }
 
-// checkForLandedChangeLists checks all commits of the current tile whether
+// checkForLandedChangelists checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
-func (s *CachedTileSourceImpl) checkForLandedChangeLists(ctx context.Context, prev tiling.Commit, commits []tiling.Commit) error {
+func (s *CachedTileSourceImpl) checkForLandedChangelists(ctx context.Context, prev tiling.Commit, commits []tiling.Commit) error {
 	if s.CLUpdater == nil {
 		sklog.Infof("Not Updating clstore with landed CLs because no updater configured.")
 		return nil
@@ -228,6 +228,6 @@ func (s *CachedTileSourceImpl) checkForLandedChangeLists(ctx context.Context, pr
 		return skerr.Wrapf(err, "fetching details of %d hashes starting at %s", len(hashes), hashes[0])
 	}
 
-	return skerr.Wrap(s.CLUpdater.UpdateChangeListsAsLanded(ctx, xc))
+	return skerr.Wrap(s.CLUpdater.UpdateChangelistsAsLanded(ctx, xc))
 
 }

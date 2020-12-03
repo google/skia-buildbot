@@ -391,8 +391,8 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 
 			if !match {
 				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgDigest)
-				if c.resultState.SharedConfig.ChangeListID != "" {
-					link += "&changelist_id=" + c.resultState.SharedConfig.ChangeListID
+				if c.resultState.SharedConfig.ChangelistID != "" {
+					link += "&changelist_id=" + c.resultState.SharedConfig.ChangelistID
 					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
 				}
 				link += "\n"
@@ -828,18 +828,18 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 	triageRequest := &frontend.TriageRequest{
 		TestDigestStatus:       map[types.TestName]map[types.Digest]expectations.Label{testName: {digest: expectations.Positive}},
 		CodeReviewSystem:       c.resultState.SharedConfig.CodeReviewSystem,
-		ChangeListID:           c.resultState.SharedConfig.ChangeListID,
+		ChangelistID:           c.resultState.SharedConfig.ChangelistID,
 		ImageMatchingAlgorithm: algorithmName,
 	}
 	jsonTriageRequest, err := json.Marshal(triageRequest)
 	if err != nil {
-		return skerr.Wrapf(err, `encoding frontend.TriageRequest into JSON for test %q, digest %q, algorithm %q and CL %q`, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
+		return skerr.Wrapf(err, `encoding frontend.TriageRequest into JSON for test %q, digest %q, algorithm %q and CL %q`, testName, digest, algorithmName, c.resultState.SharedConfig.ChangelistID)
 	}
 
 	// Make /json/v1/triage request. Response is always empty.
 	_, err = post(c.httpClient, c.resultState.GoldURL+"/json/v1/triage", "application/json", bytes.NewReader(jsonTriageRequest))
 	if err != nil {
-		return skerr.Wrapf(err, `making POST request to %s/json/v1/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
+		return skerr.Wrapf(err, `making POST request to %s/json/v1/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangelistID)
 	}
 
 	return nil

@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 )
 
-func TestGetChangeListSunnyDay(t *testing.T) {
+func TestGetChangelistSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -25,9 +25,9 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 	id := "44380"
 	ts := time.Date(2019, time.November, 7, 23, 39, 17, 0, time.UTC)
 
-	cl, err := c.GetChangeList(context.Background(), id)
+	cl, err := c.GetChangelist(context.Background(), id)
 	require.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.Changelist{
 		SystemID: id,
 		Owner:    "engine-flutter-autoroll",
 		Status:   code_review.Landed,
@@ -36,7 +36,7 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 	}, cl)
 }
 
-func TestGetChangeListOpen(t *testing.T) {
+func TestGetChangelistOpen(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -47,9 +47,9 @@ func TestGetChangeListOpen(t *testing.T) {
 	id := "44380"
 	ts := time.Date(2019, time.November, 7, 23, 39, 17, 0, time.UTC)
 
-	cl, err := c.GetChangeList(context.Background(), id)
+	cl, err := c.GetChangelist(context.Background(), id)
 	require.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.Changelist{
 		SystemID: id,
 		Owner:    "engine-flutter-autoroll",
 		Status:   code_review.Open,
@@ -58,7 +58,7 @@ func TestGetChangeListOpen(t *testing.T) {
 	}, cl)
 }
 
-func TestGetChangeListAbandoned(t *testing.T) {
+func TestGetChangelistAbandoned(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -69,9 +69,9 @@ func TestGetChangeListAbandoned(t *testing.T) {
 	id := "44345"
 	ts := time.Date(2019, time.November, 7, 14, 14, 0, 0, time.UTC)
 
-	cl, err := c.GetChangeList(context.Background(), id)
+	cl, err := c.GetChangelist(context.Background(), id)
 	require.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.Changelist{
 		SystemID: id,
 		Owner:    "a-user",
 		Status:   code_review.Abandoned,
@@ -80,7 +80,7 @@ func TestGetChangeListAbandoned(t *testing.T) {
 	}, cl)
 }
 
-func TestGetChangeListDoesNotExist(t *testing.T) {
+func TestGetChangelistDoesNotExist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -88,22 +88,22 @@ func TestGetChangeListDoesNotExist(t *testing.T) {
 	// as we would expect for a 404
 	c := New(m.Client(), "unit/test")
 
-	_, err := c.GetChangeList(context.Background(), "44345")
+	_, err := c.GetChangelist(context.Background(), "44345")
 	require.Error(t, err)
 	assert.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestGetChangeListInvalidID(t *testing.T) {
+func TestGetChangelistInvalidID(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := New(nil, "unit/test")
 
-	_, err := c.GetChangeList(context.Background(), "bad")
+	_, err := c.GetChangelist(context.Background(), "bad")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid")
 }
 
-func TestGetPatchSetsSunnyDay(t *testing.T) {
+func TestGetPatchsetsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -115,43 +115,43 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 
 	id := "44419"
 
-	xps, err := c.GetPatchSets(context.Background(), id)
+	xps, err := c.GetPatchsets(context.Background(), id)
 	require.NoError(t, err)
-	assert.Equal(t, []code_review.PatchSet{
+	assert.Equal(t, []code_review.Patchset{
 		{
 			SystemID:     "a892f9f299e91924405cb8bd244efc1a6c28e4fa",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        1,
 			GitHash:      "a892f9f299e91924405cb8bd244efc1a6c28e4fa",
 		},
 		{
 			SystemID:     "042f0382b7ec0efdb7570c3e6c891cf2a20379a7",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        2,
 			GitHash:      "042f0382b7ec0efdb7570c3e6c891cf2a20379a7",
 		},
 		{
 			SystemID:     "a332b7085723c13fa96777a1830c7113e7ffba96",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        3,
 			GitHash:      "a332b7085723c13fa96777a1830c7113e7ffba96",
 		},
 		{
 			SystemID:     "d3e3d639d8a1cca0929829b04d90f35011b50fbf",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        4,
 			GitHash:      "d3e3d639d8a1cca0929829b04d90f35011b50fbf",
 		},
 		{
 			SystemID:     "74a239b99ee360397a22cede6d9d16aacd245af1",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        5,
 			GitHash:      "74a239b99ee360397a22cede6d9d16aacd245af1",
 		},
 	}, xps)
 }
 
-func TestGetPatchSetsNone(t *testing.T) {
+func TestGetPatchsetsNone(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -160,12 +160,12 @@ func TestGetPatchSetsNone(t *testing.T) {
 	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", none)
 	c := New(m.Client(), "unit/test")
 
-	xps, err := c.GetPatchSets(context.Background(), "44419")
+	xps, err := c.GetPatchsets(context.Background(), "44419")
 	require.NoError(t, err)
 	assert.Empty(t, xps)
 }
 
-func TestGetPatchSetsDoesNotExist(t *testing.T) {
+func TestGetPatchsetsDoesNotExist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -173,12 +173,12 @@ func TestGetPatchSetsDoesNotExist(t *testing.T) {
 	// as we would expect for a 404
 	c := New(m.Client(), "unit/test")
 
-	_, err := c.GetPatchSets(context.Background(), "44345")
+	_, err := c.GetPatchsets(context.Background(), "44345")
 	require.Error(t, err)
 	require.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestGetChangeListForCommitSunnyDay(t *testing.T) {
+func TestGetChangelistForCommitSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -186,7 +186,7 @@ func TestGetChangeListForCommitSunnyDay(t *testing.T) {
 	m.Mock("https://api.github.com/repos/unit/test/pulls/44380", resp)
 	c := New(m.Client(), "unit/test")
 
-	clID, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
+	clID, err := c.GetChangelistIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		ShortCommit: &vcsinfo.ShortCommit{
 			Subject: "Roll engine ddceed5f7af1..629930e8887c (1 commits) (#44380)",
@@ -196,22 +196,22 @@ func TestGetChangeListForCommitSunnyDay(t *testing.T) {
 	assert.Equal(t, "44380", clID)
 }
 
-func TestGetPatchSetsInvalidID(t *testing.T) {
+func TestGetPatchsetsInvalidID(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := New(nil, "unit/test")
 
-	_, err := c.GetPatchSets(context.Background(), "bad")
+	_, err := c.GetPatchsets(context.Background(), "bad")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid")
 }
 
-func TestGetChangeListForCommitMalformed(t *testing.T) {
+func TestGetChangelistForCommitMalformed(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := New(nil, "unit/test")
 
-	_, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
+	_, err := c.GetChangelistIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		ShortCommit: &vcsinfo.ShortCommit{
 			Subject: "Roll engine ddceed5f7af1..629930e8887c (1 commits)",
@@ -240,10 +240,10 @@ func TestCommentOnError(t *testing.T) {
 
 	m := mockhttpclient.NewURLMock()
 	// By not mocking anything, an error will be returned from GitHub,
-	// as we would expect for a ChangeList not found or something.
+	// as we would expect for a Changelist not found or something.
 	c := New(m.Client(), "unit/test")
 
-	_, err := c.GetChangeList(context.Background(), "44345")
+	_, err := c.GetChangelist(context.Background(), "44345")
 	require.Error(t, err)
 }
 

@@ -22,12 +22,12 @@ type Store interface {
 	// Returns NotFound if it doesn't exist.
 	GetTryJob(ctx context.Context, id, cisName string) (ci.TryJob, error)
 
-	// GetTryJobs returns all TryJobs associated with a given ChangeList and PatchSet.
+	// GetTryJobs returns all TryJobs associated with a given Changelist and Patchset.
 	// The returned slice could be empty if the CL or PS don't exist.
 	// TryJobs should be sorted by DisplayName.
 	GetTryJobs(ctx context.Context, psID CombinedPSID) ([]ci.TryJob, error)
 
-	// GetResults returns any TryJobResults for a given ChangeList and PatchSet.
+	// GetResults returns any TryJobResults for a given Changelist and Patchset.
 	// The returned slice could be empty and is not sorted. If updatedAfter is not
 	// a zero time, it will be used to return the subset of results created on or after
 	// the given time.
@@ -35,11 +35,11 @@ type Store interface {
 
 	// PutTryJob stores the given TryJob, overwriting any values for
 	// that TryJob if they already existed. The TryJob will "belong" to the
-	// the associated ChangeList and PatchSet.
+	// the associated Changelist and Patchset.
 	PutTryJob(ctx context.Context, psID CombinedPSID, tj ci.TryJob) error
 
 	// PutResults stores the given TryJobResult. The TryJobResults will "belong"
-	// to the associated ChangeList and PatchSet. tjID is the SystemID of the TryJob which
+	// to the associated Changelist and Patchset. tjID is the SystemID of the TryJob which
 	// produced the TryJobResults. ts is the timestamp that will be used to mark the creating
 	// time of these results (see GetResults).
 	// Of note, a typical Skia TryJob might have 5-10k TryJobResult objects.
@@ -77,7 +77,7 @@ type TryJobResult struct {
 	Digest types.Digest
 }
 
-// CombinedPSID represents an identifier that uniquely refers to a PatchSet.
+// CombinedPSID represents an identifier that uniquely refers to a Patchset.
 type CombinedPSID struct {
 	CL  string
 	CRS string
@@ -85,7 +85,7 @@ type CombinedPSID struct {
 }
 
 // Key creates a probably unique id for a given
-// PatchSet using the id of the ChangeList it belongs to and the
+// Patchset using the id of the Changelist it belongs to and the
 // ChangeReviewSystem it is a part of. We say "probably unique" because
 // a malicious person could try to control the clID and the psID to make
 // two different inputs make the same result, but that is unlikely for

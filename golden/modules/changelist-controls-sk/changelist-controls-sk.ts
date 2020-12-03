@@ -6,7 +6,7 @@ import { truncateWithEllipses } from '../common';
 import 'elements-sk/radio-sk';
 import 'elements-sk/styles/select';
 import 'elements-sk/icon/find-in-page-icon-sk';
-import { ChangeListSummaryResponse, TryJob } from '../rpc_types';
+import { ChangelistSummaryResponse, TryJob } from '../rpc_types';
 
 export interface ChangelistControlsSkChangeEventDetail {
   readonly include_master: boolean;
@@ -20,7 +20,7 @@ export class ChangelistControlsSk extends ElementSk {
       return '';
     }
     const cl = ele._summary.cl;
-    const ps = ele._getSelectedPatchSet();
+    const ps = ele._getSelectedPatchset();
     return html`
       <div class=info>
         <span class=title>${cl.system} changelist:</span>
@@ -73,7 +73,7 @@ export class ChangelistControlsSk extends ElementSk {
 
   private _psOrder = 0; // Default to use the last patchset.
   private _includeDigestsFromPrimary = false;
-  private _summary: ChangeListSummaryResponse | null = null;
+  private _summary: ChangelistSummaryResponse | null = null;
 
   constructor() {
     super(ChangelistControlsSk.template);
@@ -87,7 +87,7 @@ export class ChangelistControlsSk extends ElementSk {
   /** Changelist summary for this element to display. */
   get summary() { return this._summary; }
 
-  set summary(summary: ChangeListSummaryResponse | null) {
+  set summary(summary: ChangelistSummaryResponse | null) {
     this._summary = summary;
     this._render();
   }
@@ -97,7 +97,7 @@ export class ChangelistControlsSk extends ElementSk {
    *
    * TODO(lovisolo): Remove after the legacy search page is deleted.
    */
-  setSummary(summary: ChangeListSummaryResponse) {
+  setSummary(summary: ChangelistSummaryResponse) {
     this._summary = summary;
     this._render();
   }
@@ -137,10 +137,10 @@ export class ChangelistControlsSk extends ElementSk {
   }
 
   /**
-   * Returns the PatchSet object which matches _psOrder. if _psOrder is 0 (match latest), _psOrder
+   * Returns the Patchset object which matches _psOrder. if _psOrder is 0 (match latest), _psOrder
    * will be updated to whatever the latest order is.
    */
-  _getSelectedPatchSet() {
+  _getSelectedPatchset() {
     if (!this._summary?.patch_sets?.length) {
       return null;
     }

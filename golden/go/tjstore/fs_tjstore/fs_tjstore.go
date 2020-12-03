@@ -30,9 +30,9 @@ const (
 	paramsCollection   = "tjstore_params"
 
 	// These are the fields we query by
-	changeListIDField = "clid"
+	changelistIDField = "clid"
 	crsField          = "crs"
-	patchSetIDField   = "psid"
+	patchsetIDField   = "psid"
 	digestField       = "digest"
 	timestampField    = "ts"
 
@@ -40,7 +40,7 @@ const (
 	maxWriteAttempts = 5
 	maxOperationTime = time.Minute
 
-	// Based on data with 400k results for a single ChangeList
+	// Based on data with 400k results for a single Changelist
 	// 16 shards = 5s
 	// 64 shards = 2.3s
 	// 256 shards = 2.3s
@@ -73,8 +73,8 @@ type tryJobEntry struct {
 	CISystem string `firestore:"cis"`
 
 	CRSystem     string `firestore:"crs"`
-	ChangeListID string `firestore:"clid"`
-	PatchSetID   string `firestore:"psid"`
+	ChangelistID string `firestore:"clid"`
+	PatchsetID   string `firestore:"psid"`
 
 	DisplayName string    `firestore:"displayname"`
 	Updated     time.Time `firestore:"updated"`
@@ -86,7 +86,7 @@ type resultEntry struct {
 	CISystem string `firestore:"cis"`
 
 	CRSystem     string `firestore:"crs"`
-	ChangeListID string `firestore:"clid"`
+	ChangelistID string `firestore:"clid"`
 	PatchsetID   string `firestore:"psid"`
 
 	Digest          types.Digest      `firestore:"digest"`
@@ -142,7 +142,7 @@ func (s *StoreImpl) tryJobFirestoreID(tjID, cisName string) string {
 func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) ([]ci.TryJob, error) {
 	defer metrics2.FuncTimer().Stop()
 	q := s.client.Collection(tryJobCollection).Where(crsField, "==", psID.CRS).
-		Where(changeListIDField, "==", psID.CL).Where(patchSetIDField, "==", psID.PS)
+		Where(changelistIDField, "==", psID.CL).Where(patchsetIDField, "==", psID.PS)
 
 	var xtj []ci.TryJob
 
@@ -168,7 +168,7 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 	}
 
 	// Sort after the fact to save us a composite index and due to the fact that the amount of
-	// TryJobs per PatchSet should be small (< 100).
+	// TryJobs per Patchset should be small (< 100).
 	ci.SortTryJobsByName(xtj)
 
 	return xtj, nil
@@ -178,7 +178,7 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID, updatedAfter time.Time) ([]tjstore.TryJobResult, error) {
 	defer metrics2.FuncTimer().Stop()
 	q := s.client.Collection(tjResultCollection).Where(crsField, "==", psID.CRS).
-		Where(changeListIDField, "==", psID.CL).Where(patchSetIDField, "==", psID.PS)
+		Where(changelistIDField, "==", psID.CL).Where(patchsetIDField, "==", psID.PS)
 
 	shards := resultShards
 	var queries []firestore.Query
@@ -297,8 +297,8 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 		SystemID:     tj.SystemID,
 		CISystem:     tj.System,
 		CRSystem:     psID.CRS,
-		ChangeListID: psID.CL,
-		PatchSetID:   psID.PS,
+		ChangelistID: psID.CL,
+		PatchsetID:   psID.PS,
 		DisplayName:  tj.DisplayName,
 		Updated:      tj.Updated,
 	}
@@ -328,7 +328,7 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 			TryJobID: tjID,
 
 			CRSystem:     psID.CRS,
-			ChangeListID: psID.CL,
+			ChangelistID: psID.CL,
 			PatchsetID:   psID.PS,
 
 			Digest:       tr.Digest,

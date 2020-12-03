@@ -36,7 +36,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
 
 	swc := StatusWatcherConfig{
-		ChangeListener:    expectations.NewEventDispatcherForTesting(),
+		ExpChangeListener: expectations.NewEventDispatcherForTesting(),
 		ExpectationsStore: mes,
 		TileSource:        mts,
 	}
@@ -90,7 +90,7 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 	swc := StatusWatcherConfig{
 		ExpectationsStore: mes,
 		TileSource:        mts,
-		ChangeListener:    eb,
+		ExpChangeListener: eb,
 	}
 
 	watcher, err := New(context.Background(), swc)

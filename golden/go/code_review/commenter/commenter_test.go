@@ -42,12 +42,12 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 		assert.NotZero(t, options.After)
 		return true
 	})
-	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(nil, 10, nil).Once()
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(2, false), nil)
+	mcs.On("GetChangelists", testutils.AnyContext, optionsMatcher).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, optionsMatcher).Return(nil, 10, nil).Once()
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(2, false), nil)
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		cl := xcl[i]
@@ -64,7 +64,7 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 
 	oldTime := xcl[0].Updated
 	// This matcher checks that only the abandoned CL gets updated in the DB.
-	putClMatcher := mock.MatchedBy(func(cl code_review.ChangeList) bool {
+	putClMatcher := mock.MatchedBy(func(cl code_review.Changelist) bool {
 		assert.True(t, cl.Updated.After(oldTime))
 		if cl.SystemID == "0003" {
 			assert.Equal(t, code_review.Abandoned, cl.Status)
@@ -72,10 +72,10 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 		}
 		return false
 	})
-	mcs.On("PutChangeList", testutils.AnyContext, putClMatcher).Return(nil).Once()
+	mcs.On("PutChangelist", testutils.AnyContext, putClMatcher).Return(nil).Once()
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "8", metrics_utils.GetRecordedMetric(t, numRecentOpenCLsMetric, nil))
 }
@@ -97,20 +97,20 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 		assert.NotZero(t, options.After)
 		return true
 	})
-	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(5), 5, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(nil, 5, nil).Once()
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(2, false), nil)
+	mcs.On("GetChangelists", testutils.AnyContext, optionsMatcher).Return(makeChangelists(5), 5, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, optionsMatcher).Return(nil, 5, nil).Once()
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(2, false), nil)
 
-	xcl := makeChangeLists(5)
-	mcr.On("GetChangeList", testutils.AnyContext, "0002").Return(code_review.ChangeList{}, code_review.ErrNotFound)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(5)
+	mcr.On("GetChangelist", testutils.AnyContext, "0002").Return(code_review.Changelist{}, code_review.ErrNotFound)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
 	}, nil)
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// The one CL that was not found should not be counted as an open CL.
 	assert.Equal(t, "4", metrics_utils.GetRecordedMetric(t, numRecentOpenCLsMetric, nil))
@@ -125,11 +125,11 @@ func TestUpdateBorkedCL(t *testing.T) {
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(5), 5, nil)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, code_review.ErrNotFound)
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(5), 5, nil)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(code_review.Changelist{}, code_review.ErrNotFound)
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// This shouldn't hang and we'll see 0 open CLs
 	assert.Equal(t, "0", metrics_utils.GetRecordedMetric(t, numRecentOpenCLsMetric, nil))
@@ -149,12 +149,12 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 		assert.NotZero(t, options.After)
 		return true
 	})
-	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(5), 5, nil)
+	mcs.On("GetChangelists", testutils.AnyContext, optionsMatcher).Return(makeChangelists(5), 5, nil)
 
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, errors.New("GitHub down"))
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(code_review.Changelist{}, errors.New("GitHub down"))
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "down", "github")
 }
 
@@ -173,20 +173,20 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 		assert.NotZero(t, options.After)
 		return true
 	})
-	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(5), 5, nil)
+	mcs.On("GetChangelists", testutils.AnyContext, optionsMatcher).Return(makeChangelists(5), 5, nil)
 
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(code_review.Changelist{
 		Status: code_review.Abandoned,
 	}, nil)
 
-	mcs.On("PutChangeList", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
+	mcs.On("PutChangelist", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "firestore broke")
 }
 
-// TestCommentOnCLsSunnyDay tests a typical case where two of the open ChangeLists have patchsets
+// TestCommentOnCLsSunnyDay tests a typical case where two of the open Changelists have patchsets
 // that have Untriaged images, and no comment yet.
 func TestCommentOnCLsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
@@ -199,24 +199,24 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 
 	var indexTime = time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
 	// Mark two of the CLs (with id 0003 and 0007) as having untriaged digests in all n patchsets.
-	mcs.On("GetPatchSets", testutils.AnyContext, "0003").Return(makePatchSets(4, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, "0007").Return(makePatchSets(9, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, false), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0003").Return(makePatchsets(4, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0007").Return(makePatchsets(9, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(1, false), nil)
 
-	// We should see two PatchSets with their CommentedOnCL and LastCheckedIfCommentNecessary field
+	// We should see two Patchsets with their CommentedOnCL and LastCheckedIfCommentNecessary field
 	// written back to Firestore.
-	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+	patchsetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.Patchset) bool {
 		assert.True(t, ps.CommentedOnCL)
 		assert.Equal(t, indexTime, ps.LastCheckedIfCommentNecessary)
 		return true
 	})
-	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil).Twice()
+	mcs.On("PutPatchset", testutils.AnyContext, patchsetsWereMarkedCommentedOn).Return(nil).Twice()
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
@@ -247,14 +247,14 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 	}, nil)
 
 	c := newTestCommenter(t, mcr, mcs, msa)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
 
-// CommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success tests a typical case where
-// two of the open ChangeLists have patchsets have no Untriaged images, and no comment yet. We
+// CommentOnChangelistsWithUntriagedDigests_NoUntriagedDigests_Success tests a typical case where
+// two of the open Changelists have patchsets have no Untriaged images, and no comment yet. We
 // should the LastCheckedIfCommentNecessary data get updated but no comments made.
-func TestCommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success(t *testing.T) {
+func TestCommentOnChangelistsWithUntriagedDigests_NoUntriagedDigests_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcr := &mock_codereview.Client{}
@@ -264,23 +264,23 @@ func TestCommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success(t *
 
 	var indexTime = time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
 	// Mark two of the CLs (with id 0003 and 0007) as having untriaged digests in all n patchsets.
-	mcs.On("GetPatchSets", testutils.AnyContext, "0003").Return(makePatchSets(4, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, "0007").Return(makePatchSets(9, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, false), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0003").Return(makePatchsets(4, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0007").Return(makePatchsets(9, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(1, false), nil)
 
-	// We should see two PatchSets with their LastCheckedIfCommentNecessary field updated.
-	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+	// We should see two Patchsets with their LastCheckedIfCommentNecessary field updated.
+	patchsetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.Patchset) bool {
 		assert.False(t, ps.CommentedOnCL)
 		assert.Equal(t, indexTime, ps.LastCheckedIfCommentNecessary)
 		return true
 	})
-	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil).Twice()
+	mcs.On("PutPatchset", testutils.AnyContext, patchsetsWereMarkedCommentedOn).Return(nil).Twice()
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
@@ -293,11 +293,11 @@ func TestCommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success(t *
 	}, nil)
 
 	c := newTestCommenter(t, mcr, mcs, msa)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
 
-func TestCommentOnChangeListsWithUntriagedDigests_SearchAPIError_LogsErrorAndSuccess(t *testing.T) {
+func TestCommentOnChangelistsWithUntriagedDigests_SearchAPIError_LogsErrorAndSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcr := &mock_codereview.Client{}
@@ -305,23 +305,23 @@ func TestCommentOnChangeListsWithUntriagedDigests_SearchAPIError_LogsErrorAndSuc
 	msa := &mock_search.SearchAPI{}
 	defer mcs.AssertExpectations(t)
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
 	// Mark two of the CLs (with id 0003 and 0007) as having untriaged digests in all n patchsets.
-	mcs.On("GetPatchSets", testutils.AnyContext, "0003").Return(makePatchSets(4, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, "0007").Return(makePatchSets(9, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, false), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0003").Return(makePatchsets(4, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0007").Return(makePatchsets(9, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(1, false), nil)
 
-	// We should see two PatchSets with their LastCheckedIfCommentNecessary field updated.
-	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+	// We should see two Patchsets with their LastCheckedIfCommentNecessary field updated.
+	patchsetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.Patchset) bool {
 		assert.False(t, ps.CommentedOnCL)
 		assert.Equal(t, fakeNow, ps.LastCheckedIfCommentNecessary)
 		return true
 	})
-	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil).Twice()
+	mcs.On("PutPatchset", testutils.AnyContext, patchsetsWereMarkedCommentedOn).Return(nil).Twice()
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
@@ -331,7 +331,7 @@ func TestCommentOnChangeListsWithUntriagedDigests_SearchAPIError_LogsErrorAndSuc
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(nil, errors.New("boom"))
 
 	c := newTestCommenter(t, mcr, mcs, msa)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
 
@@ -345,23 +345,23 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 	msa := &mock_search.SearchAPI{}
 	defer mcs.AssertExpectations(t)
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
 	// Mark two of the CLs (with id 0003 and 0007) as having untriaged digests in all n patchsets.
-	mcs.On("GetPatchSets", testutils.AnyContext, "0003").Return(makePatchSets(4, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, "0007").Return(makePatchSets(9, true), nil)
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, false), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0003").Return(makePatchsets(4, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, "0007").Return(makePatchsets(9, true), nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(1, false), nil)
 
-	// We should see two PatchSets with their CommentedOnCL bit set written back to Firestore.
+	// We should see two Patchsets with their CommentedOnCL bit set written back to Firestore.
 	// Even though we are logging the comments, we want to update Firestore that we "commented".
-	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+	patchsetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.Patchset) bool {
 		assert.True(t, ps.CommentedOnCL)
 		return true
 	})
-	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil).Twice()
+	mcs.On("PutPatchset", testutils.AnyContext, patchsetsWereMarkedCommentedOn).Return(nil).Twice()
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
@@ -374,7 +374,7 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 
 	c := newTestCommenter(t, mcr, mcs, msa)
 	c.logCommentsOnly = true
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
 
@@ -386,14 +386,14 @@ func TestCommentOnCLsOnlyCommentOnce(t *testing.T) {
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
-	xps := makePatchSets(1, true)
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	xps := makePatchsets(1, true)
 	xps[0].CommentedOnCL = true
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(xps, nil)
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(xps, nil)
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
@@ -401,31 +401,31 @@ func TestCommentOnCLsOnlyCommentOnce(t *testing.T) {
 	// no calls to CommentOn expected because the CL has already been commented on
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
 
-// TestCommentOnCLsPatchSetsRetrievalError tests the case where fetching PatchSets from clstore
+// TestCommentOnCLsPatchsetsRetrievalError tests the case where fetching Patchsets from clstore
 // fails. The whole process should fail.
-func TestCommentOnCLsPatchSetsRetrievalError(t *testing.T) {
+func TestCommentOnCLsPatchsetsRetrievalError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcr := &mock_codereview.Client{}
 	mcs := &mock_clstore.Store{}
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(nil, errors.New("firestore kaput"))
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(nil, errors.New("firestore kaput"))
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
 	}, nil)
 
 	c := newTestCommenter(t, mcr, mcs, nil)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "firestore kaput")
 }
@@ -440,12 +440,12 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 	mcs := &mock_clstore.Store{}
 	defer mcr.AssertExpectations(t)
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, true), nil)
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(1, true), nil)
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
@@ -458,7 +458,7 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 	}, nil)
 
 	c := newTestCommenter(t, mcr, mcs, msa)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "internet down")
 }
 
@@ -473,25 +473,25 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 	defer mcr.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
 
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
-	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, true), nil)
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(makeChangelists(10), 10, nil).Once()
+	mcs.On("GetChangelists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetPatchsets", testutils.AnyContext, mock.Anything).Return(makePatchsets(1, true), nil)
 
-	xcl := makeChangeLists(10)
-	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+	xcl := makeChangelists(10)
+	mcr.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.Changelist {
 		i, err := strconv.Atoi(id)
 		assert.NoError(t, err)
 		return xcl[i]
 	}, nil)
 	mcr.On("CommentOn", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.ErrNotFound)
 
-	// We should see two PatchSets with their CommentedOnCL bit set written back to Firestore.
+	// We should see two Patchsets with their CommentedOnCL bit set written back to Firestore.
 	// Even though we are logging the comments, we want to update Firestore that we "commented".
-	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+	patchsetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.Patchset) bool {
 		assert.True(t, ps.CommentedOnCL)
 		return true
 	})
-	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil)
+	mcs.On("PutPatchset", testutils.AnyContext, patchsetsWereMarkedCommentedOn).Return(nil)
 
 	// Pretend all CLs queried have 2 untriaged digests.
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
@@ -499,14 +499,14 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 	}, nil)
 
 	c := newTestCommenter(t, mcr, mcs, msa)
-	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	err := c.CommentOnChangelistsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
 
-func makeChangeLists(n int) []code_review.ChangeList {
-	var xcl []code_review.ChangeList
+func makeChangelists(n int) []code_review.Changelist {
+	var xcl []code_review.Changelist
 	for i := 0; i < n; i++ {
-		xcl = append(xcl, code_review.ChangeList{
+		xcl = append(xcl, code_review.Changelist{
 			SystemID: fmt.Sprintf("%04d", i),
 			Owner:    "user@example.com",
 			Status:   0,
@@ -517,12 +517,12 @@ func makeChangeLists(n int) []code_review.ChangeList {
 	return xcl
 }
 
-func makePatchSets(n int, needsComment bool) []code_review.PatchSet {
-	var xps []code_review.PatchSet
+func makePatchsets(n int, needsComment bool) []code_review.Patchset {
+	var xps []code_review.Patchset
 	for i := 0; i < n; i++ {
-		ps := code_review.PatchSet{
+		ps := code_review.Patchset{
 			SystemID:      fmt.Sprintf("%04d", i),
-			ChangeListID:  "ignored",
+			ChangelistID:  "ignored",
 			Order:         i + 1,
 			GitHash:       "ignored",
 			CommentedOnCL: false,
@@ -568,8 +568,8 @@ func newTestCommenter(t *testing.T, mcr *mock_codereview.Client, mcs *mock_clsto
 const (
 	instanceURL       = "gold.skia.org"
 	publicInstanceURL = "public-gold.skia.org"
-	basicTemplate     = `Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.
-Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}}.
+	basicTemplate     = `Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchsetOrder}}.
+Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}.
 The public instance is {{.PublicInstanceURL}}.`
 )
 

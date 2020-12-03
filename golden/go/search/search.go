@@ -58,7 +58,7 @@ type SearchImpl struct {
 	tryJobStore       tjstore.Store
 	commentStore      comment.Store
 
-	// storeCache allows for better performance by caching values from changeListStore and
+	// storeCache allows for better performance by caching values from changelistStore and
 	// tryJobStore for a little while, before evicting them.
 	// See skbug.com/9476
 	storeCache *ttlcache.Cache
@@ -120,14 +120,14 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	getRefDiffs := !q.NoDiff
 	// TODO(kjlubick) remove the legacy check against "0" once the frontend is updated
 	//   not to pass it.
-	isChangeListSearch := q.ChangeListID != "" && q.ChangeListID != "0"
+	isChangelistSearch := q.ChangelistID != "" && q.ChangelistID != "0"
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	if isChangeListSearch && q.CodeReviewSystemID == "" {
+	if isChangelistSearch && q.CodeReviewSystemID == "" {
 		// TODO(kjlubick) remove this default after the search page is converted to lit-html.
 		q.CodeReviewSystemID = s.reviewSystems[0].ID
 	}
-	exp, err := s.getExpectations(ctx, q.ChangeListID, q.CodeReviewSystemID)
+	exp, err := s.getExpectations(ctx, q.ChangelistID, q.CodeReviewSystemID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -136,12 +136,12 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	commits := web_frontend.FromTilingCommits(idx.Tile().DataCommits())
 	var results []*frontend.SearchResult
 	// Find the digests (left hand side) we are interested in.
-	if isChangeListSearch {
+	if isChangelistSearch {
 		reviewSystem, err := s.reviewSystem(q.CodeReviewSystemID)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		cl, err := reviewSystem.Store.GetChangeList(ctx, q.ChangeListID)
+		cl, err := reviewSystem.Store.GetChangelist(ctx, q.ChangelistID)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -153,9 +153,9 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 			Hash:          cl.SystemID,
 			Author:        cl.Owner,
 			Subject:       cl.Subject,
-			ChangeListURL: strings.Replace(reviewSystem.URLTemplate, "%s", cl.SystemID, 1),
+			ChangelistURL: strings.Replace(reviewSystem.URLTemplate, "%s", cl.SystemID, 1),
 		})
-		results, err = s.queryChangeList(ctx, q, idx, exp)
+		results, err = s.queryChangelist(ctx, q, idx, exp)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "getting digests from clstore/tjstore")
 		}
@@ -190,9 +190,9 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
-	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(q.CodeReviewSystemID, q.ChangeListID), displayRet)
+	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(q.CodeReviewSystemID, q.ChangelistID), displayRet)
 	traceComments := s.getTraceComments(ctx)
-	prepareTraceGroups(displayRet, exp, traceComments, isChangeListSearch)
+	prepareTraceGroups(displayRet, exp, traceComments, isChangelistSearch)
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
@@ -307,7 +307,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 // getExpectations returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
-// querying ChangeList results. If query is nil the expectations of the master
+// querying Changelist results. If query is nil the expectations of the master
 // tile are returned.
 func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (expectations.Classifier, error) {
 	exp, err := s.expectationsStore.Get(ctx)
@@ -316,7 +316,7 @@ func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (exp
 	}
 	// TODO(kjlubick) remove the legacy value "0" once frontend changes have baked in.
 	if clID != "" && clID != "0" {
-		issueExpStore := s.expectationsStore.ForChangeList(clID, crs)
+		issueExpStore := s.expectationsStore.ForChangelist(clID, crs)
 		tjExp, err := issueExpStore.Get(ctx)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
@@ -339,19 +339,19 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 	}
 
 	// We know xps is sorted by order, if it is non-nil.
-	xps, err := s.getPatchSets(ctx, crs, clID)
+	xps, err := s.getPatchsets(ctx, crs, clID)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+		return nil, skerr.Wrapf(err, "getting Patchsets for CL %s", clID)
 	}
 	if len(xps) == 0 {
 		return nil, skerr.Fmt("No data for CL %s", clID)
 	}
 
-	latestPatchSet := xps[len(xps)-1]
+	latestPatchset := xps[len(xps)-1]
 	id := tjstore.CombinedPSID{
-		CL:  latestPatchSet.ChangeListID,
+		CL:  latestPatchset.ChangelistID,
 		CRS: crs,
-		PS:  latestPatchSet.SystemID,
+		PS:  latestPatchset.SystemID,
 	}
 	xtr, err := s.getTryJobResults(ctx, id)
 	if err != nil {
@@ -390,10 +390,10 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 	}, nil
 }
 
-// queryChangeList returns the digests associated with the ChangeList referenced by q.CRSAndCLID
+// queryChangelist returns the digests associated with the Changelist referenced by q.CRSAndCLID
 // in intermediate representation. It returns the filtered digests as specified by q. The param
-// exp should contain the expectations for the given ChangeList.
-func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
+// exp should contain the expectations for the given Changelist.
+func (s *SearchImpl) queryChangelist(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Build the intermediate map to group results belonging to the same test and digest.
@@ -428,7 +428,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 		}
 	}
 
-	err := s.extractChangeListDigests(ctx, q, idx, exp, addByGroupAndDigest)
+	err := s.extractChangelistDigests(ctx, q, idx, exp, addByGroupAndDigest)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -445,36 +445,36 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 // be called for each testName/digest combination and should accumulate the digests of interest.
 type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params, tp tiling.TracePair)
 
-// extractFilterShards dictates how to break up the filtering of extractChangeListDigests after
+// extractFilterShards dictates how to break up the filtering of extractChangelistDigests after
 // they have been fetched from the TryJobStore. It was determined experimentally on
-// BenchmarkExtractChangeListDigests. It sped up things by about a factor of 6 and was a good
+// BenchmarkExtractChangelistDigests. It sped up things by about a factor of 6 and was a good
 // balance of dividing up and mutex contention.
 const extractFilterShards = 16
 
-// extractChangeListDigests loads the ChangeList referenced by q.CRSAndCLID and the TryJobResults
+// extractChangelistDigests loads the Changelist referenced by q.CRSAndCLID and the TryJobResults
 // associated with it. Then, it filters those results with the given query. For each
 // testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
 // to build up a list of those results.
-func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier, addFn filterAddFn) error {
+func (s *SearchImpl) extractChangelistDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier, addFn filterAddFn) error {
 	defer metrics2.FuncTimer().Stop()
 
-	clID := q.ChangeListID
+	clID := q.ChangelistID
 	// We know xps is sorted by order, if it is non-nil.
-	xps, err := s.getPatchSets(ctx, q.CodeReviewSystemID, clID)
+	xps, err := s.getPatchsets(ctx, q.CodeReviewSystemID, clID)
 	if err != nil {
-		return skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+		return skerr.Wrapf(err, "getting Patchsets for CL %s", clID)
 	}
 
 	if len(xps) == 0 {
 		return skerr.Fmt("No data for CL %s", clID)
 	}
 
-	// Default to the latest PatchSet
+	// Default to the latest Patchset
 	ps := xps[len(xps)-1]
-	if len(q.PatchSets) > 0 {
+	if len(q.Patchsets) > 0 {
 		// legacy code used to request multiple patchsets at once - we don't do that
 		// so we just look at the first one mentioned by the query.
-		psOrder := int(q.PatchSets[0])
+		psOrder := int(q.Patchsets[0])
 		found := false
 		for _, p := range xps {
 			if p.Order == psOrder {
@@ -489,7 +489,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	}
 
 	id := tjstore.CombinedPSID{
-		CL:  ps.ChangeListID,
+		CL:  ps.ChangelistID,
 		CRS: q.CodeReviewSystemID,
 		PS:  ps.SystemID,
 	}
@@ -499,7 +499,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	if q.IncludeUntriagedDigests && !q.IncludePositiveDigests && !q.IncludeNegativeDigests {
 		// If the search is just for untriaged digests, we can use the CL index for this.
 		clIdx := s.indexSource.GetIndexForCL(id.CRS, id.CL)
-		if clIdx != nil && clIdx.LatestPatchSet.Equal(id) {
+		if clIdx != nil && clIdx.LatestPatchset.Equal(id) {
 			s.clIndexCacheHitCounter.Inc(1)
 			xtr = clIdx.UntriagedResults
 			wasCached = true
@@ -574,17 +574,17 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	})
 }
 
-// getPatchSets returns the PatchSets for a given CL either from the store or from the cache.
-func (s *SearchImpl) getPatchSets(ctx context.Context, crs, id string) ([]code_review.PatchSet, error) {
+// getPatchsets returns the Patchsets for a given CL either from the store or from the cache.
+func (s *SearchImpl) getPatchsets(ctx context.Context, crs, id string) ([]code_review.Patchset, error) {
 	key := crs + "_patchsets_" + id
 	if xtr, ok := s.storeCache.Get(key); ok {
-		return xtr.([]code_review.PatchSet), nil
+		return xtr.([]code_review.Patchset), nil
 	}
 	rs, err := s.reviewSystem(crs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	xps, err := rs.Store.GetPatchSets(ctx, id)
+	xps, err := rs.Store.GetPatchsets(ctx, id)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1051,7 +1051,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 	var resultsForThisPS []tjstore.TryJobResult
 	listTS := time.Now()
 	clIdx := s.indexSource.GetIndexForCL(psID.CRS, psID.CL)
-	if clIdx != nil && clIdx.LatestPatchSet.Equal(psID) {
+	if clIdx != nil && clIdx.LatestPatchset.Equal(psID) {
 		s.clIndexCacheHitCounter.Inc(1)
 
 		resultsForThisPS = clIdx.UntriagedResults

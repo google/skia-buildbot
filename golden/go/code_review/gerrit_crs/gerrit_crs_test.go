@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 )
 
-func TestGetChangeListSunnyDay(t *testing.T) {
+func TestGetChangelistSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -31,9 +31,9 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 
 	c := New(mgi)
 
-	cl, err := c.GetChangeList(context.Background(), id)
+	cl, err := c.GetChangelist(context.Background(), id)
 	require.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.Changelist{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Open,
@@ -42,7 +42,7 @@ func TestGetChangeListSunnyDay(t *testing.T) {
 	}, cl)
 }
 
-func TestGetChangeListLanded(t *testing.T) {
+func TestGetChangelistLanded(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -56,9 +56,9 @@ func TestGetChangeListLanded(t *testing.T) {
 
 	c := New(mgi)
 
-	cl, err := c.GetChangeList(context.Background(), id)
+	cl, err := c.GetChangelist(context.Background(), id)
 	require.NoError(t, err)
-	assert.Equal(t, code_review.ChangeList{
+	assert.Equal(t, code_review.Changelist{
 		SystemID: id,
 		Owner:    "test@example.com",
 		Status:   code_review.Landed,
@@ -67,7 +67,7 @@ func TestGetChangeListLanded(t *testing.T) {
 	}, cl)
 }
 
-func TestGetChangeListDoesNotExist(t *testing.T) {
+func TestGetChangelistDoesNotExist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -78,12 +78,12 @@ func TestGetChangeListDoesNotExist(t *testing.T) {
 
 	c := New(mgi)
 
-	_, err := c.GetChangeList(context.Background(), id)
+	_, err := c.GetChangelist(context.Background(), id)
 	require.Error(t, err)
 	require.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestGetChangeListInvalidID(t *testing.T) {
+func TestGetChangelistInvalidID(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -92,12 +92,12 @@ func TestGetChangeListInvalidID(t *testing.T) {
 	const id = "not_an_integer"
 	c := New(mgi)
 
-	_, err := c.GetChangeList(context.Background(), id)
+	_, err := c.GetChangelist(context.Background(), id)
 	require.Error(t, err)
 	require.Equal(t, invalidID, err)
 }
 
-func TestGetChangeListOtherErr(t *testing.T) {
+func TestGetChangelistOtherErr(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -108,13 +108,13 @@ func TestGetChangeListOtherErr(t *testing.T) {
 
 	c := New(mgi)
 
-	_, err := c.GetChangeList(context.Background(), id)
+	_, err := c.GetChangelist(context.Background(), id)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "fetching CL")
 	assert.Contains(t, err.Error(), "oops")
 }
 
-func TestGetPatchSetsSunnyDay(t *testing.T) {
+func TestGetPatchsetsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -126,37 +126,37 @@ func TestGetPatchSetsSunnyDay(t *testing.T) {
 
 	c := New(mgi)
 
-	xps, err := c.GetPatchSets(context.Background(), id)
+	xps, err := c.GetPatchsets(context.Background(), id)
 	require.NoError(t, err)
-	require.Equal(t, []code_review.PatchSet{
+	require.Equal(t, []code_review.Patchset{
 		{
 			SystemID:     "993b807277763b351e72d01e6d65461c4bf57981",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        1,
 			GitHash:      "993b807277763b351e72d01e6d65461c4bf57981",
 		},
 		{
 			SystemID:     "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        2,
 			GitHash:      "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
 		},
 		{
 			SystemID:     "787d20c0117d455ef28cce925e2bb5302c2254ad",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        3,
 			GitHash:      "787d20c0117d455ef28cce925e2bb5302c2254ad",
 		},
 		{
 			SystemID:     "337da6ea3a14fd2899b39d0a60c6828971c0d883",
-			ChangeListID: id,
+			ChangelistID: id,
 			Order:        4,
 			GitHash:      "337da6ea3a14fd2899b39d0a60c6828971c0d883",
 		},
 	}, xps)
 }
 
-func TestGetPatchSetsDoesNotExist(t *testing.T) {
+func TestGetPatchsetsDoesNotExist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -167,12 +167,12 @@ func TestGetPatchSetsDoesNotExist(t *testing.T) {
 
 	c := New(mgi)
 
-	_, err := c.GetPatchSets(context.Background(), id)
+	_, err := c.GetPatchsets(context.Background(), id)
 	require.Error(t, err)
 	require.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestGetPatchSetsInvalidID(t *testing.T) {
+func TestGetPatchsetsInvalidID(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -181,12 +181,12 @@ func TestGetPatchSetsInvalidID(t *testing.T) {
 	const id = "not_an_integer"
 	c := New(mgi)
 
-	_, err := c.GetPatchSets(context.Background(), id)
+	_, err := c.GetPatchsets(context.Background(), id)
 	require.Error(t, err)
 	require.Equal(t, invalidID, err)
 }
 
-func TestGetPatchSetsOtherErr(t *testing.T) {
+func TestGetPatchsetsOtherErr(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -197,13 +197,13 @@ func TestGetPatchSetsOtherErr(t *testing.T) {
 
 	c := New(mgi)
 
-	_, err := c.GetPatchSets(context.Background(), id)
+	_, err := c.GetPatchsets(context.Background(), id)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "fetching CL")
 	assert.Contains(t, err.Error(), "oops")
 }
 
-func TestGetChangeListForCommitSunnyDay(t *testing.T) {
+func TestGetChangelistForCommitSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -219,7 +219,7 @@ blah blah blah
 
 	c := New(mgi)
 
-	clID, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
+	clID, err := c.GetChangelistIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		Body: clBody,
 	})
@@ -227,7 +227,7 @@ blah blah blah
 	assert.Equal(t, id, clID)
 }
 
-func TestGetChangeListForCommitBadBody(t *testing.T) {
+func TestGetChangelistForCommitBadBody(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -239,7 +239,7 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 
 	c := New(mgi)
 
-	_, err := c.GetChangeListIDForCommit(context.Background(), &vcsinfo.LongCommit{
+	_, err := c.GetChangelistIDForCommit(context.Background(), &vcsinfo.LongCommit{
 		// This is the only field the implementation cares about.
 		Body: clBody,
 	})
@@ -247,7 +247,7 @@ func TestGetChangeListForCommitBadBody(t *testing.T) {
 	assert.Equal(t, err, code_review.ErrNotFound)
 }
 
-func TestCommentOnChangeListSunnyDay(t *testing.T) {
+func TestCommentOnChangelistSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -264,7 +264,7 @@ func TestCommentOnChangeListSunnyDay(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCommentOnChangeListGerritError(t *testing.T) {
+func TestCommentOnChangelistGerritError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -282,7 +282,7 @@ func TestCommentOnChangeListGerritError(t *testing.T) {
 	assert.Contains(t, err.Error(), "internet broke")
 }
 
-func TestCommentOnChangeList_CLNotFound_ReturnsError(t *testing.T) {
+func TestCommentOnChangelist_CLNotFound_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -299,7 +299,7 @@ func TestCommentOnChangeList_CLNotFound_ReturnsError(t *testing.T) {
 	assert.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestCommentOnChangeList_CLNotFound2_ReturnsError(t *testing.T) {
+func TestCommentOnChangelist_CLNotFound2_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -317,7 +317,7 @@ func TestCommentOnChangeList_CLNotFound2_ReturnsError(t *testing.T) {
 }
 
 // Based on a real-world query for a CL that is open and out for review
-// with 4 PatchSets
+// with 4 Patchsets
 func getOpenChangeInfo() gerrit.ChangeInfo {
 	xps := getOpenPatchsets()
 	return gerrit.ChangeInfo{

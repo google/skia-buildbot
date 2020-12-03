@@ -67,7 +67,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	q := &query.Search{
-		ChangeListID:                     "",
+		ChangelistID:                     "",
 		IncludeUntriagedDigests:          true,
 		OnlyIncludeDigestsProducedAtHead: true,
 
@@ -249,7 +249,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	q := &query.Search{
-		ChangeListID:            "",
+		ChangelistID:            "",
 		IncludeUntriagedDigests: true,
 
 		Offset: 0,
@@ -705,7 +705,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 	assert.Equal(t, 6, traceCount, "Not all traces were in the final result")
 }
 
-// TestSearch_ChangeListResults_ChangeListIndexMiss_Success covers the case
+// TestSearch_ChangelistResults_ChangelistIndexMiss_Success covers the case
 // where two tryjobs have been run on a given CL and PS, one on the
 // angler bot and one on the bullhead bot. The master branch
 // looks like in the ThreeDevices data set. The outputs produced are
@@ -721,7 +721,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 // With this setup, we do a default query (don't show master,
 // only untriaged digests) and expect to see only an entry about
 // BetaBrandNewDigest.
-func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
+func TestSearch_ChangelistResults_ChangelistIndexMiss_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const clAuthor = "broom@example.com"
@@ -742,27 +742,27 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
-	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
+	issueStore := addChangelistExpectations(mes, crs, clID, &ie)
 	// Hasn't been triaged yet
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
-	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{
+	mcls.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{
 		SystemID: clID,
 		Owner:    clAuthor,
 		Status:   code_review.Open,
 		Subject:  clSubject,
 		Updated:  clTime,
 	}, nil)
-	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+	mcls.On("GetPatchsets", testutils.AnyContext, clID).Return([]code_review.Patchset{
 		{
 			SystemID:     "first_one",
-			ChangeListID: clID,
+			ChangelistID: clID,
 			Order:        1,
 			// All the rest are ignored
 		},
 		{
 			SystemID:     "fourth_one",
-			ChangeListID: clID,
+			ChangelistID: clID,
 			Order:        4,
 			// All the rest are ignored
 		},
@@ -847,7 +847,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 
 	q := &query.Search{
 		CodeReviewSystemID:             gerritCRS,
-		ChangeListID:                   clID,
+		ChangelistID:                   clID,
 		IncludeDigestsProducedOnMaster: false,
 
 		IncludeUntriagedDigests:          true,
@@ -875,7 +875,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 		Hash:          clID,
 		Author:        clAuthor,
 		Subject:       clSubject,
-		ChangeListURL: "https://skia-review.googlesource.com/1234",
+		ChangelistURL: "https://skia-review.googlesource.com/1234",
 	})
 	assert.Equal(t, &frontend.SearchResponse{
 		Commits: masterBranchCommitsWithCL,
@@ -957,10 +957,10 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestSearchImpl_ExtractChangeListDigests_CacheHit_Success tests the case where the ChangeList
+// TestSearchImpl_ExtractChangelistDigests_CacheHit_Success tests the case where the Changelist
 // index can be used (because we are only searching for untriaged data) and makes sure the results
 // are used as if they were freshly queried from firestore.
-func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
+func TestSearchImpl_ExtractChangelistDigests_CacheHit_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const clID = "1234"
@@ -973,10 +973,10 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 	mis := &mock_index.IndexSearcher{}
 	mcs := &mock_clstore.Store{}
 
-	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+	mcs.On("GetPatchsets", testutils.AnyContext, clID).Return([]code_review.Patchset{
 		{
 			SystemID:     psID,
-			ChangeListID: clID,
+			ChangelistID: clID,
 			Order:        1,
 			// other fields are ignored
 		},
@@ -991,8 +991,8 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 	options := map[string]string{
 		"ext": data.PNGExtension,
 	}
-	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
-		LatestPatchSet: combinedID,
+	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangelistIndex{
+		LatestPatchset: combinedID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{
 				GroupParams: anglerGroup,
@@ -1043,7 +1043,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 
 	q := &query.Search{
 		CodeReviewSystemID:             crs,
-		ChangeListID:                   clID,
+		ChangelistID:                   clID,
 		IncludeDigestsProducedOnMaster: false,
 
 		IncludeUntriagedDigests: true,
@@ -1061,7 +1061,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 		}
 	}
 
-	err := s.extractChangeListDigests(context.Background(), q, mis, expectations.EmptyClassifier(), testAddFn)
+	err := s.extractChangelistDigests(context.Background(), q, mis, expectations.EmptyClassifier(), testAddFn)
 	require.NoError(t, err)
 	assert.Equal(t, int32(1), alphaSeenCount)
 	assert.Equal(t, int32(1), betaSeenCount)
@@ -1165,27 +1165,27 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 	}, details)
 }
 
-func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
+func TestDigestDetails_ChangelistAltersExpectations_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = data.AlphaTest
 	const testCLID = "abc12345"
 	const testCRS = "gerritHub"
-	const clUser = "changeListUser@"
-	var changeListTriageTime = time.Date(2020, time.May, 19, 18, 17, 16, 0, time.UTC)
+	const clUser = "changelistUser@"
+	var changelistTriageTime = time.Date(2020, time.May, 19, 18, 17, 16, 0, time.UTC)
 
 	// Reminder, this includes triage history.
 	mes := makeThreeDevicesExpectationStore()
 
-	// Mock out some ChangeList expectations in which the digest we care about is negative
+	// Mock out some Changelist expectations in which the digest we care about is negative
 	var ie expectations.Expectations
 	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
-	issueStore := addChangeListExpectations(mes, testCRS, testCLID, &ie)
+	issueStore := addChangelistExpectations(mes, testCRS, testCLID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return([]expectations.TriageHistory{
 		{
 			User: clUser,
-			TS:   changeListTriageTime,
+			TS:   changelistTriageTime,
 		},
 	}, nil)
 
@@ -1205,7 +1205,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: clUser,
-			TS:   changeListTriageTime,
+			TS:   changelistTriageTime,
 		},
 		{
 			User: userWhoTriaged,
@@ -1293,7 +1293,7 @@ func TestDigestDetails_BadTest_ReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown")
 }
 
-func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
+func TestDigestDetails_NewTestOnChangelist_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
@@ -1311,11 +1311,11 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
 	var ie expectations.Expectations
 	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
-	addChangeListExpectations(mes, testCRS, testCLID, &ie)
+	addChangelistExpectations(mes, testCRS, testCLID, &ie)
 
 	// This index emulates the fact that master branch does not have the newly added test.
 	mis.On("GetIndex").Return(makeThreeDevicesIndex())
-	mis.On("GetIndexForCL", testCRS, testCLID).Return(&indexer.ChangeListIndex{
+	mis.On("GetIndexForCL", testCRS, testCLID).Return(&indexer.ChangelistIndex{
 		ParamSet: paramtools.ParamSet{
 			// The index is used to verify the test exists before searching through all the TryJob
 			// results for a given CL.
@@ -1323,10 +1323,10 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 		},
 	})
 
-	mcs.On("GetPatchSets", testutils.AnyContext, testCLID).Return([]code_review.PatchSet{
+	mcs.On("GetPatchsets", testutils.AnyContext, testCLID).Return([]code_review.Patchset{
 		{
 			SystemID:     latestPSID,
-			ChangeListID: testCLID,
+			ChangelistID: testCLID,
 			// Only the ID is used.
 		},
 	}, nil)
@@ -1389,7 +1389,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 	}, rv)
 }
 
-func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T) {
+func TestDigestDetails_NewTestOnChangelist_WithPublicParams_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
@@ -1407,11 +1407,11 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
 	var ie expectations.Expectations
 	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
-	addChangeListExpectations(mes, testCRS, testCLID, &ie)
+	addChangelistExpectations(mes, testCRS, testCLID, &ie)
 
 	// This index emulates the fact that master branch does not have the newly added test.
 	mis.On("GetIndex").Return(makeThreeDevicesIndex())
-	mis.On("GetIndexForCL", testCRS, testCLID).Return(&indexer.ChangeListIndex{
+	mis.On("GetIndexForCL", testCRS, testCLID).Return(&indexer.ChangelistIndex{
 		ParamSet: paramtools.ParamSet{
 			// The index is used to verify the test exists before searching through all the TryJob
 			// results for a given CL.
@@ -1419,10 +1419,10 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 		},
 	})
 
-	mcs.On("GetPatchSets", testutils.AnyContext, testCLID).Return([]code_review.PatchSet{
+	mcs.On("GetPatchsets", testutils.AnyContext, testCLID).Return([]code_review.Patchset{
 		{
 			SystemID:     latestPSID,
-			ChangeListID: testCLID,
+			ChangelistID: testCLID,
 			// Only the ID is used.
 		},
 	}, nil)
@@ -1584,7 +1584,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	}, cd)
 }
 
-func TestDiffDigestsChangeList(t *testing.T) {
+func TestDiffDigestsChangelist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const testWeWantDetailsAbout = data.AlphaTest
@@ -1596,7 +1596,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, leftDigest, expectations.Negative)
-	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
+	issueStore := addChangelistExpectations(mes, crs, clID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
 	mds := &mock_diffstore.DiffStore{}
@@ -1654,7 +1654,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTr
 
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	addChangeListExpectations(mes, crs, clID, &ie)
+	addChangelistExpectations(mes, crs, clID, &ie)
 
 	anglerGroup := map[string]string{
 		"device": data.AnglerDevice,
@@ -1665,8 +1665,8 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTr
 
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
-	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
-		LatestPatchSet: expectedID,
+	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangelistIndex{
+		LatestPatchset: expectedID,
 		ParamSet:       nil, // not used here
 		ComputedTS:     indexedTS,
 		UntriagedResults: []tjstore.TryJobResult{
@@ -1731,7 +1731,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
-	addChangeListExpectations(mes, crs, clID, &ie)
+	addChangelistExpectations(mes, crs, clID, &ie)
 
 	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
 	reduced := data.MakeTestTile()
@@ -1762,9 +1762,9 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 		"ext": data.PNGExtension,
 	}
 	indexTS := time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
-	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangelistIndex{
 		ComputedTS:     indexTS,
-		LatestPatchSet: expectedID,
+		LatestPatchset: expectedID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{
 				GroupParams: anglerGroup,
@@ -1967,7 +1967,7 @@ func TestFillInFrontEndTraceData_MultipleTraces_DigestIndicesAreCorrect(t *testi
 }
 
 // TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect tests that we generate
-// the output required to draw the trace graphs correctly, specifically the case for ChangeList
+// the output required to draw the trace graphs correctly, specifically the case for Changelist
 // results (that is, when appendPrimaryDigest is true).
 func TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
@@ -2388,9 +2388,9 @@ func makeThreeDevicesExpectationStore() *mock_expectations.Store {
 	return mes
 }
 
-func addChangeListExpectations(mes *mock_expectations.Store, crs string, clID string, issueExp *expectations.Expectations) *mock_expectations.Store {
+func addChangelistExpectations(mes *mock_expectations.Store, crs string, clID string, issueExp *expectations.Expectations) *mock_expectations.Store {
 	issueStore := &mock_expectations.Store{}
-	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
+	mes.On("ForChangelist", clID, crs).Return(issueStore, nil)
 	issueStore.On("Get", testutils.AnyContext).Return(issueExp, nil)
 	return issueStore
 }

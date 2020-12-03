@@ -35,7 +35,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 			return nil, skerr.Wrapf(err, "getting master branch expectations")
 		}
 		b := baseline.Baseline{
-			ChangeListID:           "",
+			ChangelistID:           "",
 			CodeReviewSystem:       "",
 			Expectations:           exp.AsBaseline(),
 			DeprecatedExpectations: exp.AsBaseline(),
@@ -48,7 +48,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 		return &b, nil
 	}
 
-	issueStore := f.exp.ForChangeList(clID, crs)
+	issueStore := f.exp.ForChangelist(clID, crs)
 
 	iexp, err := issueStore.GetCopy(ctx)
 	if err != nil {
@@ -60,7 +60,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 			return nil, skerr.Wrapf(err, "calculating md5 hash of issue expectations")
 		}
 		return &baseline.Baseline{
-			ChangeListID:           clID,
+			ChangelistID:           clID,
 			CodeReviewSystem:       crs,
 			Expectations:           iexp.AsBaseline(),
 			DeprecatedExpectations: iexp.AsBaseline(),
@@ -76,7 +76,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 	exp.MergeExpectations(iexp)
 
 	b := baseline.Baseline{
-		ChangeListID:           clID,
+		ChangelistID:           clID,
 		CodeReviewSystem:       crs,
 		Expectations:           exp.AsBaseline(),
 		DeprecatedExpectations: exp.AsBaseline(),

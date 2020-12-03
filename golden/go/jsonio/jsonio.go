@@ -96,11 +96,11 @@ type GoldResults struct {
 	Results []*Result         `json:"results"  validate:"min=1"`
 
 	// These indicate the results were ingested from a TryJob.
-	// ChangeListID and PatchSetID correspond to code_review.ChangeList.SystemID and
-	// code_review.PatchSet.Order, respectively
-	ChangeListID     string `json:"change_list_id,omitempty"`
-	PatchSetOrder    int    `json:"patch_set_order,omitempty"`
-	PatchSetID       string `json:"patch_set_id,omitempty"`
+	// ChangelistID and PatchsetID correspond to code_review.Changelist.SystemID and
+	// code_review.Patchset.Order, respectively
+	ChangelistID     string `json:"change_list_id,omitempty"`
+	PatchsetOrder    int    `json:"patch_set_order,omitempty"`
+	PatchsetID       string `json:"patch_set_id,omitempty"`
 	CodeReviewSystem string `json:"crs,omitempty"`
 
 	// TryJobID corresponds to continuous_integration.TryJob.SystemID
@@ -128,11 +128,11 @@ type rawGoldResults struct {
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
 	Results []*Result         `json:"results"  validate:"min=1"`
 
-	// ChangeListID and PatchSetID correspond to code_review.ChangeList.SystemID and
-	// code_review.PatchSet.Order, respectively
-	ChangeListID     string `json:"change_list_id"`
-	PatchSetOrder    int    `json:"patch_set_order"`
-	PatchSetID       string `json:"patch_set_id"`
+	// ChangelistID and PatchsetID correspond to code_review.Changelist.SystemID and
+	// code_review.Patchset.Order, respectively
+	ChangelistID     string `json:"change_list_id"`
+	PatchsetOrder    int    `json:"patch_set_order"`
+	PatchsetID       string `json:"patch_set_id"`
 	CodeReviewSystem string `json:"crs"`
 
 	// TryJobID corresponds to continuous_integration.TryJob.SystemID
@@ -142,10 +142,10 @@ type rawGoldResults struct {
 	// Legacy fields for tryjob support - keep these around until a few months after Skia's dm
 	// is updated to produce the new format in case we want to re-ingest old results
 	// (after that, TryJob results that old probably won't matter)
-	// If ChangeListID is set, these will be ignored.
+	// If ChangelistID is set, these will be ignored.
 	BuildBucketID      string `json:"buildbucket_build_id"`
-	GerritChangeListID string `json:"issue"`
-	GerritPatchSet     string `json:"patchset"`
+	GerritChangelistID string `json:"issue"`
+	GerritPatchset     string `json:"patchset"`
 
 	// Optional fields for tryjobs - can make debugging easier
 	Builder string `json:"builder"`
@@ -162,29 +162,29 @@ func (r *rawGoldResults) parse() (*GoldResults, error) {
 		Builder: r.Builder,
 		TaskID:  r.TaskID,
 	}
-	if r.ChangeListID == "" && r.GerritChangeListID == "" {
+	if r.ChangelistID == "" && r.GerritChangelistID == "" {
 		return ret, nil
 	}
 
-	if r.ChangeListID != "" {
-		ret.ChangeListID = r.ChangeListID
+	if r.ChangelistID != "" {
+		ret.ChangelistID = r.ChangelistID
 		ret.CodeReviewSystem = r.CodeReviewSystem
-		ret.PatchSetOrder = r.PatchSetOrder
-		ret.PatchSetID = r.PatchSetID
+		ret.PatchsetOrder = r.PatchsetOrder
+		ret.PatchsetID = r.PatchsetID
 		ret.TryJobID = r.TryJobID
 		ret.ContinuousIntegrationSystem = r.ContinuousIntegrationSystem
 
-	} else if r.GerritChangeListID != "0" && r.GerritChangeListID != "-1" {
-		// Handles legacy inputs for older inputs that specified GerritChangeListID
-		ret.ChangeListID = r.GerritChangeListID
+	} else if r.GerritChangelistID != "0" && r.GerritChangelistID != "-1" {
+		// Handles legacy inputs for older inputs that specified GerritChangelistID
+		ret.ChangelistID = r.GerritChangelistID
 		ret.CodeReviewSystem = "gerrit"
 		ret.TryJobID = r.BuildBucketID
 		ret.ContinuousIntegrationSystem = "buildbucket"
 
-		if n, err := strconv.ParseInt(r.GerritPatchSet, 10, 64); err != nil {
-			return nil, skerr.Wrapf(err, "invalid value for patchset: %q", r.GerritPatchSet)
+		if n, err := strconv.ParseInt(r.GerritPatchset, 10, 64); err != nil {
+			return nil, skerr.Wrapf(err, "invalid value for patchset: %q", r.GerritPatchset)
 		} else {
-			ret.PatchSetOrder = int(n)
+			ret.PatchsetOrder = int(n)
 		}
 	} // else we are looking at a legacy master branch way.
 
@@ -211,10 +211,10 @@ func (g *GoldResults) Validate(ignoreResults bool) error {
 		return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Key"])
 	}
 
-	if !((noneOf(g.ContinuousIntegrationSystem, g.CodeReviewSystem, g.TryJobID, g.ChangeListID, g.PatchSetID) && g.PatchSetOrder == 0) ||
-		(allOf(g.ContinuousIntegrationSystem, g.CodeReviewSystem, g.TryJobID, g.ChangeListID) && (g.PatchSetID != "" || g.PatchSetOrder > 0))) {
+	if !((noneOf(g.ContinuousIntegrationSystem, g.CodeReviewSystem, g.TryJobID, g.ChangelistID, g.PatchsetID) && g.PatchsetOrder == 0) ||
+		(allOf(g.ContinuousIntegrationSystem, g.CodeReviewSystem, g.TryJobID, g.ChangelistID) && (g.PatchsetID != "" || g.PatchsetOrder > 0))) {
 		return skerr.Fmt("Either all of or none of fields [%q, %q, %q, %q] and one of or none of [%q, %q] must be set",
-			jn["ContinuousIntegrationSystem"], jn["CodeReviewSystem"], jn["TryJobID"], jn["ChangeListID"], jn["PatchSetOrder"], jn["PatchSetID"])
+			jn["ContinuousIntegrationSystem"], jn["CodeReviewSystem"], jn["TryJobID"], jn["ChangelistID"], jn["PatchsetOrder"], jn["PatchsetID"])
 	}
 
 	if !ignoreResults {

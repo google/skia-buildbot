@@ -31,7 +31,7 @@ describe('bulk-triage-sk', () => {
   it('show the changelist ID when provided', async () => {
     bulkTriageSk.changeListID = '123';
     expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.true;
-    expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal('This affects ChangeList 123.');
+    expect(await bulkTriageSkPO.getAffectedChangelistId()).to.equal('This affects Changelist 123.');
   });
 
   it('defaults to bulk-triaging to closest', async () => {

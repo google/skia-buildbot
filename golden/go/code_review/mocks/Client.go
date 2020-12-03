@@ -31,15 +31,15 @@ func (_m *Client) CommentOn(ctx context.Context, clID string, message string) er
 	return r0
 }
 
-// GetChangeList provides a mock function with given fields: ctx, id
-func (_m *Client) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
+// GetChangelist provides a mock function with given fields: ctx, id
+func (_m *Client) GetChangelist(ctx context.Context, id string) (code_review.Changelist, error) {
 	ret := _m.Called(ctx, id)
 
-	var r0 code_review.ChangeList
-	if rf, ok := ret.Get(0).(func(context.Context, string) code_review.ChangeList); ok {
+	var r0 code_review.Changelist
+	if rf, ok := ret.Get(0).(func(context.Context, string) code_review.Changelist); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(code_review.ChangeList)
+		r0 = ret.Get(0).(code_review.Changelist)
 	}
 
 	var r1 error
@@ -52,8 +52,8 @@ func (_m *Client) GetChangeList(ctx context.Context, id string) (code_review.Cha
 	return r0, r1
 }
 
-// GetChangeListIDForCommit provides a mock function with given fields: ctx, commit
-func (_m *Client) GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
+// GetChangelistIDForCommit provides a mock function with given fields: ctx, commit
+func (_m *Client) GetChangelistIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	ret := _m.Called(ctx, commit)
 
 	var r0 string
@@ -73,16 +73,16 @@ func (_m *Client) GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.
 	return r0, r1
 }
 
-// GetPatchSets provides a mock function with given fields: ctx, clID
-func (_m *Client) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
+// GetPatchsets provides a mock function with given fields: ctx, clID
+func (_m *Client) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	ret := _m.Called(ctx, clID)
 
-	var r0 []code_review.PatchSet
-	if rf, ok := ret.Get(0).(func(context.Context, string) []code_review.PatchSet); ok {
+	var r0 []code_review.Patchset
+	if rf, ok := ret.Get(0).(func(context.Context, string) []code_review.Patchset); ok {
 		r0 = rf(ctx, clID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]code_review.PatchSet)
+			r0 = ret.Get(0).([]code_review.Patchset)
 		}
 	}
 

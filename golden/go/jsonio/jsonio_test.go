@@ -192,31 +192,31 @@ func TestValidateInvalid(t *testing.T) {
 			ignoreResults: false,
 			errFragment:   `empty key and value`,
 		},
-		"partialChangeListInfo": {
+		"partialChangelistInfo": {
 			results: GoldResults{
 				GitHash:          "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:              map[string]string{"param1": "value1"},
-				ChangeListID:     "missing_tryjob",
+				ChangelistID:     "missing_tryjob",
 				CodeReviewSystem: "some_system",
-				PatchSetOrder:    1,
+				PatchsetOrder:    1,
 			},
 			ignoreResults: true,
 			errFragment:   `all of or none of`,
 		},
-		"partialChangeListInfo2": {
+		"partialChangelistInfo2": {
 			results: GoldResults{
 				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:                         map[string]string{"param1": "value1"},
-				ChangeListID:                "missing_patchset",
+				ChangelistID:                "missing_patchset",
 				CodeReviewSystem:            "some_system",
-				PatchSetOrder:               0, // order, by definition, starts at 1
+				PatchsetOrder:               0, // order, by definition, starts at 1
 				TryJobID:                    "12345",
 				ContinuousIntegrationSystem: "sandbucket",
 			},
 			ignoreResults: true,
 			errFragment:   `all of or none of`,
 		},
-		"partialChangeListInfo3": {
+		"partialChangelistInfo3": {
 			results: GoldResults{
 				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:                         map[string]string{"param1": "value1"},
@@ -226,26 +226,26 @@ func TestValidateInvalid(t *testing.T) {
 			ignoreResults: true,
 			errFragment:   `all of or none of`,
 		},
-		"partialChangeListInfo4": {
+		"partialChangelistInfo4": {
 			results: GoldResults{
 				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:                         map[string]string{"param1": "value1"},
-				ChangeListID:                "missing_patchset_id",
+				ChangelistID:                "missing_patchset_id",
 				CodeReviewSystem:            "some_system",
-				PatchSetID:                  "",
+				PatchsetID:                  "",
 				TryJobID:                    "12345",
 				ContinuousIntegrationSystem: "sandbucket",
 			},
 			ignoreResults: true,
 			errFragment:   `all of or none of`,
 		},
-		"partialChangeListInfo5": {
+		"partialChangelistInfo5": {
 			results: GoldResults{
 				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:                         map[string]string{"param1": "value1"},
-				ChangeListID:                "missing_tryjob",
+				ChangelistID:                "missing_tryjob",
 				CodeReviewSystem:            "some_system",
-				PatchSetID:                  "12345",
+				PatchsetID:                  "12345",
 				TryJobID:                    "",
 				ContinuousIntegrationSystem: "sandbucket",
 			},
@@ -295,7 +295,7 @@ func TestValidateValid(t *testing.T) {
 			},
 			ignoreResults: false,
 		},
-		"onChangeList": {
+		"onChangelist": {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
@@ -307,9 +307,9 @@ func TestValidateValid(t *testing.T) {
 						Digest: "12345abc",
 					},
 				},
-				ChangeListID:                "123456",
+				ChangelistID:                "123456",
 				CodeReviewSystem:            "some_system",
-				PatchSetOrder:               1,
+				PatchsetOrder:               1,
 				TryJobID:                    "12345",
 				ContinuousIntegrationSystem: "sandbucket",
 			},
@@ -327,9 +327,9 @@ func TestValidateValid(t *testing.T) {
 						Digest: "12345abc",
 					},
 				},
-				ChangeListID:                "123456",
+				ChangelistID:                "123456",
 				CodeReviewSystem:            "some_system",
-				PatchSetID:                  "another id",
+				PatchsetID:                  "another id",
 				TryJobID:                    "12345",
 				ContinuousIntegrationSystem: "sandbucket",
 			},
@@ -353,8 +353,8 @@ func TestParseGoldResultsValid(t *testing.T) {
 	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
 	require.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
 	require.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
-	require.Equal(t, "12345", r.ChangeListID)
-	require.Equal(t, 10, r.PatchSetOrder)
+	require.Equal(t, "12345", r.ChangelistID)
+	require.Equal(t, 10, r.PatchsetOrder)
 	require.Equal(t, "549340494940393", r.TryJobID)
 	// When we detect a legacy system, default to gerrit and buildbucket
 	require.Equal(t, "gerrit", r.CodeReviewSystem)
@@ -362,15 +362,15 @@ func TestParseGoldResultsValid(t *testing.T) {
 	require.Len(t, r.Results, 3)
 
 	r = testParse(t, legacySkiaJSON)
-	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 	require.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
 	require.Equal(t, r.Results[0].Key[types.PrimaryKeyField], "skottie_multiframe")
 	require.Contains(t, r.Results[0].Options, "color_type")
 
 	r = testParse(t, legacyGoldCtlTryjobJSON)
-	require.Equal(t, "1762193", r.ChangeListID)
-	require.Equal(t, 2, r.PatchSetOrder)
+	require.Equal(t, "1762193", r.ChangelistID)
+	require.Equal(t, 2, r.PatchsetOrder)
 	require.Equal(t, "8904604368086838672", r.TryJobID)
 	// When we detect a legacy system, default to gerrit and buildbucket
 	require.Equal(t, "gerrit", r.CodeReviewSystem)
@@ -378,19 +378,19 @@ func TestParseGoldResultsValid(t *testing.T) {
 	require.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, goldCtlTryjobJSON)
-	require.Equal(t, "1762193", r.ChangeListID)
-	require.Equal(t, 2, r.PatchSetOrder)
+	require.Equal(t, "1762193", r.ChangelistID)
+	require.Equal(t, 2, r.PatchsetOrder)
 	require.Equal(t, "8904604368086838672", r.TryJobID)
 	require.Equal(t, "gerrit", r.CodeReviewSystem)
 	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
 	require.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, goldCtlTryjobPSIDJSON)
-	require.Equal(t, "1762193", r.ChangeListID)
-	require.Equal(t, "42191ad7b6f31d823d2d9904df24c0649ca3766c", r.PatchSetID)
+	require.Equal(t, "1762193", r.ChangelistID)
+	require.Equal(t, "42191ad7b6f31d823d2d9904df24c0649ca3766c", r.PatchsetID)
 
 	r = testParse(t, goldCtlMasterBranchJSON)
-	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 	require.Equal(t, map[string]string{
 		"device_id": "0x1cb3",
@@ -398,20 +398,20 @@ func TestParseGoldResultsValid(t *testing.T) {
 	}, r.Key)
 
 	r = testParse(t, legacyGoldCtlJSON)
-	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 	require.Contains(t, r.Key, "vendor_id")
 
 	r = testParse(t, legacyMasterBranchJSON)
-	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 
 	r = testParse(t, negativeMasterBranchJSON)
-	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 
 	r = testParse(t, emptyIssueJSON)
-	require.Empty(t, r.ChangeListID)
+	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 }
 

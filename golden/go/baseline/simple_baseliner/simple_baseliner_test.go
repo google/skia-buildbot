@@ -35,14 +35,14 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	expectedBaseline := exp.AsBaseline()
 
 	assert.Equal(t, expectedBaseline, b.DeprecatedExpectations)
-	assert.Equal(t, primaryBranch, b.ChangeListID)
+	assert.Equal(t, primaryBranch, b.ChangelistID)
 	assert.Equal(t, noCRS, b.CodeReviewSystem)
 	assert.NotEqual(t, "", b.MD5)
 }
 
-// TestFetchBaselineChangeListSunnyDay tests that the baseline fetcher behaves differently
+// TestFetchBaselineChangelistSunnyDay tests that the baseline fetcher behaves differently
 // when requesting a baseline for a given tryjob.
-func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
+func TestFetchBaselineChangelistSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
 	clID := "1234"
@@ -70,7 +70,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	defer mesCL.AssertExpectations(t)
 
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
-	mes.On("ForChangeList", clID, crs).Return(mesCL).Once()
+	mes.On("ForChangelist", clID, crs).Return(mesCL).Once()
 	// mock the expectations that a user would have applied to their CL (that
 	// are not live on the primary branch yet).
 	mesCL.On("GetCopy", testutils.AnyContext).Return(&additionalTriages, nil).Once()
@@ -80,7 +80,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	b, err := baseliner.FetchBaseline(context.Background(), clID, crs, false)
 	assert.NoError(t, err)
 
-	assert.Equal(t, clID, b.ChangeListID)
+	assert.Equal(t, clID, b.ChangelistID)
 	assert.Equal(t, crs, b.CodeReviewSystem)
 	// The expectation should be the baseline for the primary branch merged in with the
 	// additionalTriages, which overwrite any existing expectations.

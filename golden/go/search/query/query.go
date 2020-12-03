@@ -63,8 +63,8 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.DiffMaxFilter = float32(validate.Float64FormValue(r, "fdiffmax", -1.0))
 
 	// Parse out the issue and patchsets.
-	q.PatchSets = validate.Int64SliceFormValue(r, "patchsets", nil)
-	q.ChangeListID = r.FormValue("issue")
+	q.Patchsets = validate.Int64SliceFormValue(r, "patchsets", nil)
+	q.ChangelistID = r.FormValue("issue")
 
 	// Check whether any of the validations failed.
 	if err := validate.Errors(); err != nil {

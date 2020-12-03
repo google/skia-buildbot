@@ -1,4 +1,4 @@
-// Package clstore defines an interface for storing ChangeList-related data
+// Package clstore defines an interface for storing Changelist-related data
 // as needed for operating Gold.
 package clstore
 
@@ -11,48 +11,48 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 )
 
-// Store (sometimes called ChangeListStore) is an interface around a database
-// for storing ChangeLists and PatchSets. Of note, we will only store data for
-// ChangeLists and PatchSets that have uploaded data to Gold (e.g. via ingestion);
+// Store (sometimes called ChangelistStore) is an interface around a database
+// for storing Changelists and Patchsets. Of note, we will only store data for
+// Changelists and Patchsets that have uploaded data to Gold (e.g. via ingestion);
 // the purpose of this interface is not to store every CL.
 // A single Store interface should only be responsible for one "system", i.e.
 // Gerrit or GitHub.
 // TODO(kjlubick) Just like the tryjobstore holds onto all tryjob results (from all CIS), this
 //   should hold onto all CLs from all CRS.
 type Store interface {
-	// GetChangeList returns the ChangeList corresponding to the given id.
+	// GetChangelist returns the Changelist corresponding to the given id.
 	// Returns NotFound if it doesn't exist.
-	GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error)
-	// GetPatchSet returns the PatchSet matching the given ChangeList ID and PatchSet ID.
+	GetChangelist(ctx context.Context, id string) (code_review.Changelist, error)
+	// GetPatchset returns the Patchset matching the given Changelist ID and Patchset ID.
 	// Returns NotFound if it doesn't exist.
-	GetPatchSet(ctx context.Context, clID, psID string) (code_review.PatchSet, error)
-	// GetPatchSetByOrder returns the PatchSet matching the given ChangeList ID and order.
+	GetPatchset(ctx context.Context, clID, psID string) (code_review.Patchset, error)
+	// GetPatchsetByOrder returns the Patchset matching the given Changelist ID and order.
 	// Returns NotFound if it doesn't exist.
-	GetPatchSetByOrder(ctx context.Context, clID string, psOrder int) (code_review.PatchSet, error)
+	GetPatchsetByOrder(ctx context.Context, clID string, psOrder int) (code_review.Patchset, error)
 
-	// GetChangeLists returns a slice of ChangeList objects sorted such that the
+	// GetChangelists returns a slice of Changelist objects sorted such that the
 	// most recently updated ones come first. The SearchOptions should be supplied to narrow
 	// the query down and limit results. Limit is required.
 	// If it is computationally cheap to do so, the second return value can be
 	// a count of the total number of CLs, or CountMany otherwise.
-	GetChangeLists(ctx context.Context, opts SearchOptions) ([]code_review.ChangeList, int, error)
+	GetChangelists(ctx context.Context, opts SearchOptions) ([]code_review.Changelist, int, error)
 
-	// GetPatchSets returns a slice of PatchSets belonging to the given ChangeList.
+	// GetPatchsets returns a slice of Patchsets belonging to the given Changelist.
 	// They should be ordered in increasing Order index.
 	// The returned slice could be empty, even if the CL exists.
-	GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error)
+	GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error)
 
-	// PutChangeList stores the given ChangeList, overwriting any values for
-	// that ChangeList if they already existed.
-	PutChangeList(ctx context.Context, cl code_review.ChangeList) error
-	// PutPatchSet stores the given PatchSet, overwriting any values for
-	// that PatchSet if they already existed.
-	PutPatchSet(ctx context.Context, ps code_review.PatchSet) error
+	// PutChangelist stores the given Changelist, overwriting any values for
+	// that Changelist if they already existed.
+	PutChangelist(ctx context.Context, cl code_review.Changelist) error
+	// PutPatchset stores the given Patchset, overwriting any values for
+	// that Patchset if they already existed.
+	PutPatchset(ctx context.Context, ps code_review.Patchset) error
 }
 
 var ErrNotFound = errors.New("not found")
 
-// SearchOptions controls which ChangeLists to return.
+// SearchOptions controls which Changelists to return.
 type SearchOptions struct {
 	StartIdx    int
 	Limit       int

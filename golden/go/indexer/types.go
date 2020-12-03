@@ -19,8 +19,8 @@ type IndexSource interface {
 	// consistent information.
 	GetIndex() IndexSearcher
 
-	// GetIndexForCL returns an index object for a given ChangeList.
-	GetIndexForCL(crs, clID string) *ChangeListIndex
+	// GetIndexForCL returns an index object for a given Changelist.
+	GetIndexForCL(crs, clID string) *ChangelistIndex
 }
 
 type IndexSearcher interface {
@@ -69,28 +69,28 @@ type IndexSearcher interface {
 	MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error)
 }
 
-// ChangeListIndex is an index about data seen for the most recent PatchSet of a given ChangeList.
-// We only keep the most recent PatchSet around because that's the data that is most likely to
+// ChangelistIndex is an index about data seen for the most recent Patchset of a given Changelist.
+// We only keep the most recent Patchset around because that's the data that is most likely to
 // be searched by a user.
-type ChangeListIndex struct {
-	// LatestPatchSet is the most recent PatchSet that was seen for this CL (and that the rest of
+type ChangelistIndex struct {
+	// LatestPatchset is the most recent Patchset that was seen for this CL (and that the rest of
 	// the data in the index belongs to).
-	LatestPatchSet tjstore.CombinedPSID
+	LatestPatchset tjstore.CombinedPSID
 	// UntriagedResults is a map of all results that were untriaged the last time the index was built.
 	UntriagedResults []tjstore.TryJobResult
 
 	// ParamSet is a set of all keys seen in trace data for this CL, as well as any values associated
-	// with those keys. A best effort is made to include Params from all PatchSets on this CL.
+	// with those keys. A best effort is made to include Params from all Patchsets on this CL.
 	ParamSet paramtools.ParamSet
 
 	// ComputedTS is when this index was created. This helps clients determine how fresh the data is.
 	ComputedTS time.Time
 }
 
-// Copy returns a deep copy of the ChangeListIndex.
-func (c *ChangeListIndex) Copy() *ChangeListIndex {
-	rv := &ChangeListIndex{
-		LatestPatchSet:   c.LatestPatchSet,
+// Copy returns a deep copy of the ChangelistIndex.
+func (c *ChangelistIndex) Copy() *ChangelistIndex {
+	rv := &ChangelistIndex{
+		LatestPatchset:   c.LatestPatchset,
 		ComputedTS:       c.ComputedTS,
 		UntriagedResults: make([]tjstore.TryJobResult, len(c.UntriagedResults)),
 		ParamSet:         c.ParamSet.Copy(),

@@ -337,9 +337,9 @@ func lookUpCommits(freq []int, commits []tiling.Commit) []string {
 	return ret
 }
 
-// ChangeListsHandler returns the list of code_review.ChangeLists that have
+// ChangelistsHandler returns the list of code_review.Changelists that have
 // uploaded results to Gold (via TryJobs).
-func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ChangelistsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -354,7 +354,7 @@ func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, activeOnly := values["active"]
-	cls, pagination, err := wh.getIngestedChangeLists(r.Context(), offset, size, activeOnly)
+	cls, pagination, err := wh.getIngestedChangelists(r.Context(), offset, size, activeOnly)
 
 	if err != nil {
 		httputils.ReportError(w, err, "Retrieving changelists results failed.", http.StatusInternalServerError)
@@ -364,9 +364,9 @@ func (wh *Handlers) ChangeListsHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponseWithPagination(w, cls, pagination)
 }
 
-// getIngestedChangeLists performs the core of the logic for ChangeListsHandler,
-// by fetching N ChangeLists given an offset.
-func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int, activeOnly bool) ([]frontend.ChangeList, *httputils.ResponsePagination, error) {
+// getIngestedChangelists performs the core of the logic for ChangelistsHandler,
+// by fetching N Changelists given an offset.
+func (wh *Handlers) getIngestedChangelists(ctx context.Context, offset, size int, activeOnly bool) ([]frontend.Changelist, *httputils.ResponsePagination, error) {
 	so := clstore.SearchOptions{
 		StartIdx: offset,
 		Limit:    size,
@@ -376,15 +376,15 @@ func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int
 	}
 
 	grandTotal := 0
-	var retCls []frontend.ChangeList
+	var retCls []frontend.Changelist
 	for _, system := range wh.ReviewSystems {
-		cls, total, err := system.Store.GetChangeLists(ctx, so)
+		cls, total, err := system.Store.GetChangelists(ctx, so)
 		if err != nil {
-			return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
+			return nil, nil, skerr.Wrapf(err, "fetching Changelists from [%d:%d)", offset, offset+size)
 		}
 
 		for _, cl := range cls {
-			retCls = append(retCls, frontend.ConvertChangeList(cl, system.ID, system.URLTemplate))
+			retCls = append(retCls, frontend.ConvertChangelist(cl, system.ID, system.URLTemplate))
 		}
 		if grandTotal == clstore.CountMany || total == clstore.CountMany {
 			grandTotal = clstore.CountMany
@@ -401,10 +401,10 @@ func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int
 	return retCls, pagination, nil
 }
 
-// ChangeListSummaryHandler returns a summary of the data we have collected
-// for a given ChangeList, specifically any TryJobs that have uploaded data
+// ChangelistSummaryHandler returns a summary of the data we have collected
+// for a given Changelist, specifically any TryJobs that have uploaded data
 // to Gold belonging to various patchsets in it.
-func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ChangelistSummaryHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -414,12 +414,12 @@ func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Requ
 	// the functionality to handle two code review systems at once.
 	clID, ok := mux.Vars(r)["id"]
 	if !ok {
-		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
 	crs, ok := mux.Vars(r)["system"]
 	if !ok {
-		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
 		return
 	}
 	system, ok := wh.getCodeReviewSystem(crs)
@@ -443,22 +443,22 @@ var cisTemplates = map[string]string{
 	"buildbucket": "https://cr-buildbucket.appspot.com/build/%s",
 }
 
-// getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
-// fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
+// getCLSummary does a bulk of the work for ChangelistSummaryHandler, specifically
+// fetching the Changelist and Patchsets from clstore and any associated TryJobs from
 // the tjstore.
-func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSystem, clID string) (frontend.ChangeListSummary, error) {
-	cl, err := system.Store.GetChangeList(ctx, clID)
+func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSystem, clID string) (frontend.ChangelistSummary, error) {
+	cl, err := system.Store.GetChangelist(ctx, clID)
 	if err != nil {
-		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
+		return frontend.ChangelistSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
 	}
 
 	// We know xps is sorted by order, if it is non-nil
-	xps, err := system.Store.GetPatchSets(ctx, clID)
+	xps, err := system.Store.GetPatchsets(ctx, clID)
 	if err != nil {
-		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+		return frontend.ChangelistSummary{}, skerr.Wrapf(err, "getting Patchsets for CL %s", clID)
 	}
 
-	var patchsets []frontend.PatchSet
+	var patchsets []frontend.Patchset
 	maxOrder := 0
 
 	// TODO(kjlubick): maybe fetch these in parallel (with errgroup)
@@ -473,7 +473,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSyste
 		}
 		xtj, err := wh.TryJobStore.GetTryJobs(ctx, psID)
 		if err != nil {
-			return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
+			return frontend.ChangelistSummary{}, skerr.Wrapf(err, "getting TryJobs for CL %s - PS %s", clID, ps.SystemID)
 		}
 		var tryjobs []frontend.TryJob
 		for _, tj := range xtj {
@@ -481,23 +481,23 @@ func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSyste
 			tryjobs = append(tryjobs, frontend.ConvertTryJob(tj, templ))
 		}
 
-		patchsets = append(patchsets, frontend.PatchSet{
+		patchsets = append(patchsets, frontend.Patchset{
 			SystemID: ps.SystemID,
 			Order:    ps.Order,
 			TryJobs:  tryjobs,
 		})
 	}
 
-	return frontend.ChangeListSummary{
-		CL:                frontend.ConvertChangeList(cl, system.ID, system.URLTemplate),
-		PatchSets:         patchsets,
-		NumTotalPatchSets: maxOrder,
+	return frontend.ChangelistSummary{
+		CL:                frontend.ConvertChangelist(cl, system.ID, system.URLTemplate),
+		Patchsets:         patchsets,
+		NumTotalPatchsets: maxOrder,
 	}, nil
 }
 
-// ChangeListUntriagedHandler writes out a list of untriaged digests uploaded by this CL that
+// ChangelistUntriagedHandler writes out a list of untriaged digests uploaded by this CL that
 // are not on master already and are not ignored.
-func (wh *Handlers) ChangeListUntriagedHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ChangelistUntriagedHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForGerritPlugin(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -507,17 +507,17 @@ func (wh *Handlers) ChangeListUntriagedHandler(w http.ResponseWriter, r *http.Re
 	requestVars := mux.Vars(r)
 	clID, ok := requestVars["id"]
 	if !ok {
-		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
 	psID, ok := requestVars["patchset"]
 	if !ok {
-		http.Error(w, "Must specify 'patchset' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'patchset' of Changelist.", http.StatusBadRequest)
 		return
 	}
 	crs, ok := requestVars["system"]
 	if !ok {
-		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
 		return
 	}
 
@@ -575,7 +575,7 @@ func (wh *Handlers) ExportHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if q.ChangeListID != "" || q.BlameGroupID != "" {
+	if q.ChangelistID != "" || q.BlameGroupID != "" {
 		http.Error(w, "Search query cannot contain blame or issue information.", http.StatusBadRequest)
 		return
 	}
@@ -965,7 +965,7 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 // triage processes the given TriageRequest.
 func (wh *Handlers) triage(ctx context.Context, user string, req frontend.TriageRequest) error {
 	// TODO(kjlubick) remove the legacy check for "0" when the frontend no longer sends it.
-	if req.ChangeListID != "" && req.ChangeListID != "0" {
+	if req.ChangelistID != "" && req.ChangelistID != "0" {
 		if req.CodeReviewSystem == "" {
 			// TODO(kjlubick) remove this default after the search page is converted to lit-html.
 			req.CodeReviewSystem = wh.ReviewSystems[0].ID
@@ -1002,8 +1002,8 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 	// in the request, then get the expectations store for the issue.
 	expStore := wh.ExpectationsStore
 	// TODO(kjlubick) remove the legacy check here after the frontend bakes in.
-	if req.ChangeListID != "" && req.ChangeListID != "0" {
-		expStore = wh.ExpectationsStore.ForChangeList(req.ChangeListID, req.CodeReviewSystem)
+	if req.ChangelistID != "" && req.ChangelistID != "0" {
+		expStore = wh.ExpectationsStore.ForChangelist(req.ChangelistID, req.CodeReviewSystem)
 	}
 
 	// If set, use the image matching algorithm's name as the author of this change.
@@ -1221,11 +1221,11 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getTriageLog does the actual work of the TriageLogHandler, but is easier to test.
-func (wh *Handlers) getTriageLog(ctx context.Context, crs, changeListID string, offset, size int, withDetails bool) ([]frontend.TriageLogEntry, int, error) {
+func (wh *Handlers) getTriageLog(ctx context.Context, crs, changelistID string, offset, size int, withDetails bool) ([]frontend.TriageLogEntry, int, error) {
 	expStore := wh.ExpectationsStore
 	// TODO(kjlubick) remove this legacy handler
-	if changeListID != "" && changeListID != "0" {
-		expStore = wh.ExpectationsStore.ForChangeList(changeListID, crs)
+	if changelistID != "" && changelistID != "0" {
+		expStore = wh.ExpectationsStore.ForChangelist(changelistID, crs)
 	}
 	entries, total, err := expStore.QueryLog(ctx, offset, size, withDetails)
 	if err != nil {
@@ -1244,7 +1244,7 @@ func (wh *Handlers) getTriageLog(ctx context.Context, crs, changeListID string, 
 // that should be reversed.
 // If successful it returns the same result as a call to jsonTriageLogHandler
 // to reflect the changed triagelog.
-// TODO(kjlubick): This does not properly handle undoing of ChangeListExpectations.
+// TODO(kjlubick): This does not properly handle undoing of ChangelistExpectations.
 func (wh *Handlers) TriageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	// Get the user and make sure they are logged in.
@@ -1618,11 +1618,11 @@ func (wh *Handlers) GetFlakyTracesData(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, flakyData)
 }
 
-// ChangeListSearchRedirect redirects the user to a search page showing the search results
+// ChangelistSearchRedirect redirects the user to a search page showing the search results
 // for a given CL. It will do a quick scan of the untriaged digests - if it finds some, it will
 // include the corpus containing some of those untriaged digests in the search query so the user
 // will see results (instead of getting directed to a corpus with no results).
-func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) ChangelistSearchRedirect(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
@@ -1631,12 +1631,12 @@ func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Requ
 	requestVars := mux.Vars(r)
 	crs, ok := requestVars["system"]
 	if !ok {
-		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'system' of Changelist.", http.StatusBadRequest)
 		return
 	}
 	clID, ok := requestVars["id"]
 	if !ok {
-		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
+		http.Error(w, "Must specify 'id' of Changelist.", http.StatusBadRequest)
 		return
 	}
 	system, ok := wh.getCodeReviewSystem(crs)
@@ -1650,7 +1650,7 @@ func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Requ
 	clIdx := wh.Indexer.GetIndexForCL(system.ID, clID)
 	if clIdx == nil {
 		// Not cached, so we can't cheaply determine the corpus to include
-		if _, err := system.Store.GetChangeList(r.Context(), clID); err != nil {
+		if _, err := system.Store.GetChangelist(r.Context(), clID); err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -1658,7 +1658,7 @@ func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	digestList, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), clIdx.LatestPatchSet)
+	digestList, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), clIdx.LatestPatchset)
 	if err != nil {
 		sklog.Errorf("Could not find corpus to redirect to for CL %s: %s", clID, err)
 		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)

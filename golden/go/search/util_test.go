@@ -119,28 +119,28 @@ func TestTraceViewFnErr(t *testing.T) {
 	require.Contains(t, err.Error(), "later than end")
 }
 
-// TestJoinedHistories_GetTriageHistory_WithChangeList_Success tests the 4 cases of triage history
+// TestJoinedHistories_GetTriageHistory_WithChangelist_Success tests the 4 cases of triage history
 // existing or not existing on the changelist and master branch.
-func TestJoinedHistories_GetTriageHistory_WithChangeList_Success(t *testing.T) {
+func TestJoinedHistories_GetTriageHistory_WithChangelist_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	const crs = "github"
 	const clID = "whatever"
 
 	const grouping = types.TestName("some_test")
-	const noHistoryOnMasterOrChangeList = types.Digest("digestHasNoHistory")
+	const noHistoryOnMasterOrChangelist = types.Digest("digestHasNoHistory")
 	const historyOnMasterOnly = types.Digest("digestHasHistoryOnMasterOnly")
-	const historyOnChangeListOnly = types.Digest("digestHasHistoryOnChangeListOnly")
+	const historyOnChangelistOnly = types.Digest("digestHasHistoryOnChangelistOnly")
 	const historyOnBoth = types.Digest("digestHasHistoryOnBoth")
 
 	const masterBranchUser = "masterBranch@"
-	const changeListUser = "clUser@"
+	const changelistUser = "clUser@"
 
 	var masterBranchTriageTime = time.Date(2020, time.May, 18, 17, 16, 15, 0, time.UTC)
-	var changeListTriageTime = time.Date(2020, time.May, 19, 18, 17, 16, 0, time.UTC)
+	var changelistTriageTime = time.Date(2020, time.May, 19, 18, 17, 16, 0, time.UTC)
 
 	masterBranchHistory := &mock_expectations.Store{}
-	changeListHistory := &mock_expectations.Store{}
-	masterBranchHistory.On("ForChangeList", clID, crs).Return(changeListHistory)
+	changelistHistory := &mock_expectations.Store{}
+	masterBranchHistory.On("ForChangelist", clID, crs).Return(changelistHistory)
 
 	masterBranchHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnMasterOnly).Return([]expectations.TriageHistory{
 		{
@@ -154,29 +154,29 @@ func TestJoinedHistories_GetTriageHistory_WithChangeList_Success(t *testing.T) {
 			TS:   masterBranchTriageTime,
 		},
 	}, nil)
-	masterBranchHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnChangeListOnly).Return(nil, nil)
-	masterBranchHistory.On("GetTriageHistory", testutils.AnyContext, grouping, noHistoryOnMasterOrChangeList).Return(nil, nil)
+	masterBranchHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnChangelistOnly).Return(nil, nil)
+	masterBranchHistory.On("GetTriageHistory", testutils.AnyContext, grouping, noHistoryOnMasterOrChangelist).Return(nil, nil)
 
-	changeListHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnChangeListOnly).Return([]expectations.TriageHistory{
+	changelistHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnChangelistOnly).Return([]expectations.TriageHistory{
 		{
-			User: changeListUser,
-			TS:   changeListTriageTime,
+			User: changelistUser,
+			TS:   changelistTriageTime,
 		},
 	}, nil)
-	changeListHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnBoth).Return([]expectations.TriageHistory{
+	changelistHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnBoth).Return([]expectations.TriageHistory{
 		{
-			User: changeListUser,
-			TS:   changeListTriageTime,
+			User: changelistUser,
+			TS:   changelistTriageTime,
 		},
 	}, nil)
-	changeListHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnMasterOnly).Return(nil, nil)
-	changeListHistory.On("GetTriageHistory", testutils.AnyContext, grouping, noHistoryOnMasterOrChangeList).Return(nil, nil)
+	changelistHistory.On("GetTriageHistory", testutils.AnyContext, grouping, historyOnMasterOnly).Return(nil, nil)
+	changelistHistory.On("GetTriageHistory", testutils.AnyContext, grouping, noHistoryOnMasterOrChangelist).Return(nil, nil)
 
 	s := SearchImpl{expectationsStore: masterBranchHistory}
 	joined := s.makeTriageHistoryGetter(crs, clID)
 	ctx := context.Background()
 
-	th, err := joined.GetTriageHistory(ctx, grouping, noHistoryOnMasterOrChangeList)
+	th, err := joined.GetTriageHistory(ctx, grouping, noHistoryOnMasterOrChangelist)
 	require.NoError(t, err)
 	assert.Empty(t, th)
 
@@ -189,12 +189,12 @@ func TestJoinedHistories_GetTriageHistory_WithChangeList_Success(t *testing.T) {
 		},
 	}, th)
 
-	th, err = joined.GetTriageHistory(ctx, grouping, historyOnChangeListOnly)
+	th, err = joined.GetTriageHistory(ctx, grouping, historyOnChangelistOnly)
 	require.NoError(t, err)
 	assert.Equal(t, []expectations.TriageHistory{
 		{
-			User: changeListUser,
-			TS:   changeListTriageTime,
+			User: changelistUser,
+			TS:   changelistTriageTime,
 		},
 	}, th)
 
@@ -202,8 +202,8 @@ func TestJoinedHistories_GetTriageHistory_WithChangeList_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []expectations.TriageHistory{
 		{
-			User: changeListUser,
-			TS:   changeListTriageTime,
+			User: changelistUser,
+			TS:   changelistTriageTime,
 		},
 		{
 			User: masterBranchUser,
@@ -212,7 +212,7 @@ func TestJoinedHistories_GetTriageHistory_WithChangeList_Success(t *testing.T) {
 	}, th)
 }
 
-func TestJoinedHistories_GetTriageHistory_NoChangeList_Success(t *testing.T) {
+func TestJoinedHistories_GetTriageHistory_NoChangelist_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	const grouping = types.TestName("some_test")
 	const noHistoryOnMaster = types.Digest("digestHasNoHistory")
@@ -264,15 +264,15 @@ func TestJoinedHistories_GetTriageHistory_BackendErrorCausesError(t *testing.T) 
 	assert.Contains(t, err.Error(), "boom")
 }
 
-func TestJoinedHistories_GetTriageHistory_ChangeListBackendErrorCausesError(t *testing.T) {
+func TestJoinedHistories_GetTriageHistory_ChangelistBackendErrorCausesError(t *testing.T) {
 	unittest.SmallTest(t)
 	const crs = "github"
 	const clID = "whatever"
 
 	masterBranchHistory := &mock_expectations.Store{}
-	changeListHistory := &mock_expectations.Store{}
-	masterBranchHistory.On("ForChangeList", clID, crs).Return(changeListHistory)
-	changeListHistory.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, errors.New("pow"))
+	changelistHistory := &mock_expectations.Store{}
+	masterBranchHistory.On("ForChangelist", clID, crs).Return(changelistHistory)
+	changelistHistory.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, errors.New("pow"))
 
 	s := SearchImpl{expectationsStore: masterBranchHistory}
 	joined := s.makeTriageHistoryGetter(crs, clID)

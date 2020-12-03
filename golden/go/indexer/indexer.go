@@ -273,7 +273,7 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 }
 
 type IndexerConfig struct {
-	ChangeListener    expectations.ChangeEventRegisterer
+	ExpChangeListener expectations.ChangeEventRegisterer
 	DiffStore         diff.DiffStore
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
@@ -295,9 +295,9 @@ type Indexer struct {
 	lastMasterIndex  *SearchIndex
 	masterIndexMutex sync.RWMutex
 
-	changeListIndices *ttlcache.Cache
+	changelistIndices *ttlcache.Cache
 
-	changeListsReindexed metrics2.Counter
+	changelistsReindexed metrics2.Counter
 }
 
 // New returns a new IndexSource instance. It synchronously indexes the initially
@@ -306,8 +306,8 @@ type Indexer struct {
 func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
 		IndexerConfig:        ic,
-		changeListIndices:    ttlcache.New(changelistCacheExpirationDuration, changelistCacheExpirationDuration),
-		changeListsReindexed: metrics2.GetCounter(reindexedCLsMetric),
+		changelistIndices:    ttlcache.New(changelistCacheExpirationDuration, changelistCacheExpirationDuration),
+		changelistsReindexed: metrics2.GetCounter(reindexedCLsMetric),
 	}
 
 	// Set up the processing pipeline.
@@ -379,9 +379,9 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 		return nil
 	}
 
-	// We can start indexing the ChangeLists right away since it only depends on the expectations
+	// We can start indexing the Changelists right away since it only depends on the expectations
 	// (and nothing from the master branch index).
-	go util.RepeatCtx(ctx, interval, ix.calcChangeListIndices)
+	go util.RepeatCtx(ctx, interval, ix.calcChangelistIndices)
 
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
@@ -394,7 +394,7 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 	// will usually be empty, except when triaging happens. We set the size to be big enough to
 	// handle a large bulk triage, if needed.
 	expCh := make(chan expectations.ID, 100000)
-	ix.ChangeListener.ListenForChange(func(e expectations.ID) {
+	ix.ExpChangeListener.ListenForChange(func(e expectations.ID) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e
 	})
@@ -732,11 +732,11 @@ const (
 	maxCLsToIndex = 2000
 )
 
-// calcChangeListIndices goes through all open changelists within a given window and computes
+// calcChangelistIndices goes through all open changelists within a given window and computes
 // an index of them (e.g. the untriaged digests).
-func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
+func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 	// Update the metric when we return (either from error or because we completed indexing).
-	defer metrics2.GetInt64Metric(indexedCLsMetric).Update(int64(ix.changeListIndices.ItemCount()))
+	defer metrics2.GetInt64Metric(indexedCLsMetric).Update(int64(ix.changelistIndices.ItemCount()))
 	defer shared.NewMetricsTimer("indexer_calculate_changelist_indices").Stop()
 	// Make sure this doesn't take arbitrarily long.
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
@@ -751,7 +751,7 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 	for _, system := range ix.ReviewSystems {
 		// An arbitrary cut off to the amount of recent, open CLs we try to index.
 		recent := now.Add(-maxAgeOfOpenCLsToIndex)
-		xcl, _, err := system.Store.GetChangeLists(ctx, clstore.SearchOptions{
+		xcl, _, err := system.Store.GetChangelists(ctx, clstore.SearchOptions{
 			StartIdx:    0,
 			Limit:       maxCLsToIndex,
 			OpenCLsOnly: true,
@@ -770,11 +770,11 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 		err = util.ChunkIterParallel(ctx, len(xcl), chunkSize, func(ctx context.Context, startIdx int, endIdx int) error {
 			for _, cl := range xcl[startIdx:endIdx] {
 				if err := ctx.Err(); err != nil {
-					sklog.Errorf("ChangeList indexing timed out (%v)", err)
+					sklog.Errorf("Changelist indexing timed out (%v)", err)
 					return nil
 				}
 
-				issueExpStore := ix.ExpectationsStore.ForChangeList(cl.SystemID, system.ID)
+				issueExpStore := ix.ExpectationsStore.ForChangelist(cl.SystemID, system.ID)
 				clExps, err := issueExpStore.Get(ctx)
 				if err != nil {
 					return skerr.Wrapf(err, "loading expectations for cl %s (%s)", cl.SystemID, system.ID)
@@ -788,9 +788,9 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 				// uploaded at the exact same time we create an index (skbug.com/10265).
 				updatedWithGracePeriod := cl.Updated.Add(30 * time.Second)
 				if !ok || clIdx.ComputedTS.Before(updatedWithGracePeriod) {
-					ix.changeListsReindexed.Inc(1)
+					ix.changelistsReindexed.Inc(1)
 					// Compute it from scratch and store it to the index.
-					xps, err := system.Store.GetPatchSets(ctx, cl.SystemID)
+					xps, err := system.Store.GetPatchsets(ctx, cl.SystemID)
 					if err != nil {
 						return skerr.Wrap(err)
 					}
@@ -807,7 +807,7 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 					var existingUntriagedResults []tjstore.TryJobResult
 					// Test to see if we can do an incremental index (just for results that were uploaded
 					// for this patchset since the last time we indexed).
-					if ok && clIdx.LatestPatchSet.PS == latestPS.SystemID {
+					if ok && clIdx.LatestPatchset.PS == latestPS.SystemID {
 						afterTime = clIdx.ComputedTS
 						existingUntriagedResults = clIdx.UntriagedResults
 					}
@@ -821,11 +821,11 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 					// ParamSet by writing to it while GetIndexForCL is reading from it.
 					params.AddParamSet(clIdx.ParamSet)
 					clIdx.ParamSet = params
-					clIdx.LatestPatchSet = psID
+					clIdx.LatestPatchset = psID
 					clIdx.UntriagedResults = untriagedResults
 					clIdx.ComputedTS = now
 				}
-				ix.changeListIndices.Set(clKey, &clIdx, ttlcache.DefaultExpiration)
+				ix.changelistIndices.Set(clKey, &clIdx, ttlcache.DefaultExpiration)
 			}
 			return nil
 		})
@@ -874,18 +874,18 @@ func indexTryJobResults(existing, newResults []tjstore.TryJobResult, exps expect
 	return combined, params
 }
 
-// getCLIndex is a helper that returns the appropriately typed element from changeListIndices.
+// getCLIndex is a helper that returns the appropriately typed element from changelistIndices.
 // We return a struct and not a pointer so that we can update the index w/o having to need a mutex.
-func (ix *Indexer) getCLIndex(key string) (ChangeListIndex, bool) {
-	clIdx, ok := ix.changeListIndices.Get(key)
+func (ix *Indexer) getCLIndex(key string) (ChangelistIndex, bool) {
+	clIdx, ok := ix.changelistIndices.Get(key)
 	if !ok || clIdx == nil {
-		return ChangeListIndex{}, false
+		return ChangelistIndex{}, false
 	}
-	return *clIdx.(*ChangeListIndex), true
+	return *clIdx.(*ChangelistIndex), true
 }
 
 // GetIndexForCL implements the IndexSource interface.
-func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangeListIndex {
+func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangelistIndex {
 	key := fmt.Sprintf("%s_%s", crs, clID)
 	clIdx, ok := ix.getCLIndex(key)
 	if !ok {

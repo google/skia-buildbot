@@ -316,15 +316,15 @@ func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.Se
 	return si
 }
 
-// TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success tests the core functionality of
-// listing all ChangeLists that have Gold results.
-func TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success(t *testing.T) {
+// TestGetIngestedChangelists_AllChangelists_SunnyDay_Success tests the core functionality of
+// listing all Changelists that have Gold results.
+func TestGetIngestedChangelists_AllChangelists_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcls := &mock_clstore.Store{}
 	defer mcls.AssertExpectations(t)
 
-	mcls.On("GetChangeLists", testutils.AnyContext, clstore.SearchOptions{
+	mcls.On("GetChangelists", testutils.AnyContext, clstore.SearchOptions{
 		StartIdx: 0,
 		Limit:    50,
 	}).Return(makeCodeReviewCLs(), len(makeCodeReviewCLs()), nil)
@@ -341,7 +341,7 @@ func TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success(t *testing.T) {
 		},
 	}
 
-	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 0, 50, false)
+	cls, pagination, err := wh.getIngestedChangelists(context.Background(), 0, 50, false)
 	assert.NoError(t, err)
 	assert.Len(t, cls, 3)
 	assert.NotNil(t, pagination)
@@ -356,15 +356,15 @@ func TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success(t *testing.T) {
 	assert.Equal(t, expected, cls)
 }
 
-// TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success makes sure that we properly get
-// only active ChangeLists, that is, ChangeLists which are open.
-func TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success(t *testing.T) {
+// TestGetIngestedChangelists_ActiveChangelists_SunnyDay_Success makes sure that we properly get
+// only active Changelists, that is, Changelists which are open.
+func TestGetIngestedChangelists_ActiveChangelists_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mcls := &mock_clstore.Store{}
 	defer mcls.AssertExpectations(t)
 
-	mcls.On("GetChangeLists", testutils.AnyContext, clstore.SearchOptions{
+	mcls.On("GetChangelists", testutils.AnyContext, clstore.SearchOptions{
 		StartIdx:    20,
 		Limit:       30,
 		OpenCLsOnly: true,
@@ -382,7 +382,7 @@ func TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success(t *testing.T)
 		},
 	}
 
-	cls, pagination, err := wh.getIngestedChangeLists(context.Background(), 20, 30, true)
+	cls, pagination, err := wh.getIngestedChangelists(context.Background(), 20, 30, true)
 	assert.NoError(t, err)
 	assert.Len(t, cls, 3)
 	assert.NotNil(t, pagination)
@@ -397,8 +397,8 @@ func TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success(t *testing.T)
 	assert.Equal(t, expected, cls)
 }
 
-func makeCodeReviewCLs() []code_review.ChangeList {
-	return []code_review.ChangeList{
+func makeCodeReviewCLs() []code_review.Changelist {
+	return []code_review.Changelist{
 		{
 			SystemID: "1002",
 			Owner:    "other@example.com",
@@ -423,8 +423,8 @@ func makeCodeReviewCLs() []code_review.ChangeList {
 	}
 }
 
-func makeWebCLs() []frontend.ChangeList {
-	return []frontend.ChangeList{
+func makeWebCLs() []frontend.Changelist {
+	return []frontend.Changelist{
 		{
 			System:   "gerrit",
 			SystemID: "1002",
@@ -466,8 +466,8 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
 
-	mcls.On("GetChangeList", testutils.AnyContext, expectedCLID).Return(makeCodeReviewCLs()[0], nil)
-	mcls.On("GetPatchSets", testutils.AnyContext, expectedCLID).Return(makeCodeReviewPSs(), nil)
+	mcls.On("GetChangelist", testutils.AnyContext, expectedCLID).Return(makeCodeReviewCLs()[0], nil)
+	mcls.On("GetPatchsets", testutils.AnyContext, expectedCLID).Return(makeCodeReviewPSs(), nil)
 	mcls.On("System").Return("gerrit")
 
 	psID := tjstore.CombinedPSID{
@@ -521,10 +521,10 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 
 	cl, err := wh.getCLSummary(context.Background(), gerritSystem, expectedCLID)
 	assert.NoError(t, err)
-	assert.Equal(t, frontend.ChangeListSummary{
+	assert.Equal(t, frontend.ChangelistSummary{
 		CL:                makeWebCLs()[0], // matches expectedCLID
-		NumTotalPatchSets: 4,
-		PatchSets: []frontend.PatchSet{
+		NumTotalPatchsets: 4,
+		Patchsets: []frontend.Patchset{
 			{
 				SystemID: "ps-1",
 				Order:    1,
@@ -562,18 +562,18 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	}, cl)
 }
 
-func makeCodeReviewPSs() []code_review.PatchSet {
+func makeCodeReviewPSs() []code_review.Patchset {
 	// This data is arbitrary
-	return []code_review.PatchSet{
+	return []code_review.Patchset{
 		{
 			SystemID:     "ps-1",
-			ChangeListID: "1002",
+			ChangelistID: "1002",
 			Order:        1,
 			GitHash:      "d6ac82ac4ee426b5ce2061f78cc02f9fe1db587e",
 		},
 		{
 			SystemID:     "ps-4",
-			ChangeListID: "1002",
+			ChangelistID: "1002",
 			Order:        4,
 			GitHash:      "45247158d641ece6318f2598fefecfce86a61ae0",
 		},
@@ -653,7 +653,7 @@ func TestTriage_SingleDigestOnMaster_ImageMatchingAlgorithmSet_UsesAlgorithmName
 }
 
 // TestTriage_SingleDigestOnCL_Success tests a common case of a developer triaging a single test on
-// a ChangeList.
+// a Changelist.
 func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -665,7 +665,7 @@ func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 	const githubCRS = "github"
 	const user = "user@example.com"
 
-	mes.On("ForChangeList", clID, githubCRS).Return(clExp)
+	mes.On("ForChangelist", clID, githubCRS).Return(clExp)
 
 	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
@@ -689,7 +689,7 @@ func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 
 	tr := frontend.TriageRequest{
 		CodeReviewSystem: githubCRS,
-		ChangeListID:     clID,
+		ChangelistID:     clID,
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -714,7 +714,7 @@ func TestTriage_SingleDigestOnCL_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAu
 	const user = "user@example.com"
 	const algorithmName = "fuzzy"
 
-	mes.On("ForChangeList", clID, githubCRS).Return(clExp)
+	mes.On("ForChangelist", clID, githubCRS).Return(clExp)
 
 	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
@@ -737,7 +737,7 @@ func TestTriage_SingleDigestOnCL_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAu
 
 	tr := frontend.TriageRequest{
 		CodeReviewSystem: githubCRS,
-		ChangeListID:     clID,
+		ChangelistID:     clID,
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -835,7 +835,7 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	}
 
 	tr := frontend.TriageRequest{
-		ChangeListID: "0",
+		ChangelistID: "0",
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -2175,7 +2175,7 @@ func TestParamsHandler_MasterBranch_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
-func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
+func TestParamsHandler_ChangelistIndex_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mockIndexSource := &mock_indexer.IndexSource{}
@@ -2184,7 +2184,7 @@ func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
 	const gerritCRS = "gerrit"
 	const clID = "1234"
 
-	clIdx := indexer.ChangeListIndex{
+	clIdx := indexer.ChangelistIndex{
 		ParamSet: paramtools.ParamSet{
 			types.CorpusField:     []string{"first_corpus", "second_corpus"},
 			types.PrimaryKeyField: []string{"alpha_test", "beta_test", "gamma_test"},
@@ -2211,7 +2211,7 @@ func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
-func TestParamsHandler_NoChangeListIndex_FallBackToMasterBranch(t *testing.T) {
+func TestParamsHandler_NoChangelistIndex_FallBackToMasterBranch(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mockIndexSearcher := &mock_indexer.IndexSearcher{}
@@ -2253,7 +2253,7 @@ func TestParamsHandler_NoChangeListIndex_FallBackToMasterBranch(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
-func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
+func TestChangelistSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mockSearchAPI := &mock_search.SearchAPI{}
@@ -2268,8 +2268,8 @@ func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 		PS:  "some patchset",
 	}
 
-	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangeListIndex{
-		LatestPatchSet: combinedID,
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangelistIndex{
+		LatestPatchset: combinedID,
 		// Other fields should be ignored
 	})
 
@@ -2295,13 +2295,13 @@ func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 		"system": gerritCRS,
 		"id":     clID,
 	})
-	wh.ChangeListSearchRedirect(w, r)
+	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
 	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit&corpus=one_corpus"}, headers["Location"])
 }
 
-func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutCorpus(t *testing.T) {
+func TestChangelistSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutCorpus(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mockSearchAPI := &mock_search.SearchAPI{}
@@ -2317,8 +2317,8 @@ func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutC
 		PS:  "some patchset",
 	}
 
-	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangeListIndex{
-		LatestPatchSet: combinedID,
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangelistIndex{
+		LatestPatchset: combinedID,
 		// Other fields should be ignored
 	})
 
@@ -2342,13 +2342,13 @@ func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutC
 		"system": gerritCRS,
 		"id":     clID,
 	})
-	wh.ChangeListSearchRedirect(w, r)
+	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
 	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit"}, headers["Location"])
 }
 
-func TestChangeListSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *testing.T) {
+func TestChangelistSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mockIndexSource := &mock_indexer.IndexSource{}
@@ -2360,7 +2360,7 @@ func TestChangeListSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *t
 	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
 
 	// all this cares about is a non-error return code
-	mockCLStore.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, nil)
+	mockCLStore.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{}, nil)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2380,13 +2380,13 @@ func TestChangeListSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *t
 		"system": gerritCRS,
 		"id":     clID,
 	})
-	wh.ChangeListSearchRedirect(w, r)
+	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
 	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit"}, headers["Location"])
 }
 
-func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
+func TestChangelistSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mockIndexSource := &mock_indexer.IndexSource{}
@@ -2398,7 +2398,7 @@ func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
 
 	// all this cares about is a non-error return code
-	mockCLStore.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, code_review.ErrNotFound)
+	mockCLStore.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{}, code_review.ErrNotFound)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -2418,7 +2418,7 @@ func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 		"system": gerritCRS,
 		"id":     clID,
 	})
-	wh.ChangeListSearchRedirect(w, r)
+	wh.ChangelistSearchRedirect(w, r)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 

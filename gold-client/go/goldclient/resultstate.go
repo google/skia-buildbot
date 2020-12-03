@@ -117,8 +117,8 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	urlPath := shared.ExpectationsRouteV2
-	if r.SharedConfig != nil && r.SharedConfig.ChangeListID != "" {
-		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
+	if r.SharedConfig != nil && r.SharedConfig.ChangelistID != "" {
+		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangelistID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
 
 	u := r.GoldURL + urlPath
@@ -168,8 +168,8 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 		}
 	}
 	gitHashOrCL := r.SharedConfig.GitHash
-	if r.SharedConfig.ChangeListID != "" {
-		gitHashOrCL = fmt.Sprintf("%s_%s_%d", r.SharedConfig.ChangeListID, r.SharedConfig.PatchSetID, r.SharedConfig.PatchSetOrder)
+	if r.SharedConfig.ChangelistID != "" {
+		gitHashOrCL = fmt.Sprintf("%s_%s_%d", r.SharedConfig.ChangelistID, r.SharedConfig.PatchsetID, r.SharedConfig.PatchsetOrder)
 	}
 	segments := []interface{}{
 		jsonPrefix,
@@ -182,7 +182,7 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 		fileName}
 	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%s/%s", segments...)
 
-	if r.SharedConfig.ChangeListID != "" {
+	if r.SharedConfig.ChangelistID != "" {
 		path = "trybot/" + path
 	}
 	return fmt.Sprintf("%s/%s", r.Bucket, path)
