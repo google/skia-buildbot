@@ -16,6 +16,52 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "d21afd22813d0904622d95ca5ae5e5b805b1ddad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69d07988_52340309",
+        "filename": "ct/modules/chromium-analysis-runs-sk/chromium-analysis-runs-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:55:26Z",
+      "side": 1,
+      "message": ": GetTasksResponse",
+      "range": {
+        "startLine": 352,
+        "startChar": 13,
+        "endLine": 352,
+        "endChar": 17
+      },
+      "revId": "d21afd22813d0904622d95ca5ae5e5b805b1ddad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5dfb2818_fa3d21c4",
+        "filename": "ct/modules/chromium-analysis-runs-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:55:26Z",
+      "side": 1,
+      "message": ":GetTasksResponse here and elsewhere.",
+      "range": {
+        "startLine": 6,
+        "startChar": 13,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "d21afd22813d0904622d95ca5ae5e5b805b1ddad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
