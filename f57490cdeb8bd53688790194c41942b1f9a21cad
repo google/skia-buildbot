@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "329cd69a_5b402c80",
+        "filename": "ct/pages/recreate_webpage_archives_runs.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:58:00Z",
+      "side": 0,
+      "message": "nit: All the others are renamed, this one is deleted and copied. It\u0027s unacceptable.",
+      "revId": "f57490cdeb8bd53688790194c41942b1f9a21cad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
