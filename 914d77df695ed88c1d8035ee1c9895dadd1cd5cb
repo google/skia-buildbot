@@ -16,6 +16,29 @@
       "message": "Compare with PatchSet1 for easier review",
       "revId": "914d77df695ed88c1d8035ee1c9895dadd1cd5cb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f41a9227_e83352be",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T19:14:43Z",
+      "side": 1,
+      "message": "might as well do \u0027Object?\u0027 which is actually more restrictive and correct than \u0027X | any\u0027.  Could we do something like:\nlet re: {test: fucntion(str: string)\u003d\u003e boolean }\n\nOtherwise, you could define an interface to achieve the same.",
+      "range": {
+        "startLine": 176,
+        "startChar": 12,
+        "endLine": 176,
+        "endChar": 25
+      },
+      "revId": "914d77df695ed88c1d8035ee1c9895dadd1cd5cb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
