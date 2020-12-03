@@ -9,7 +9,7 @@
  */
 
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -25,14 +25,16 @@ import { device, getAKAStr, doImpl } from '../leasing';
 
 import '../../../infra-sk/modules/login-sk';
 
-function displayTaskStatus(task) {
+import { Task, ExpireTaskRequest, ExtendTaskRequest } from '../json';
+
+function displayTaskStatus(task: Task): string {
   if (task.done) {
     return 'Completed';
   }
   return 'Still Running';
 }
 
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp: string): string {
   if (!timestamp) {
     return timestamp;
   }
@@ -40,22 +42,22 @@ function formatTimestamp(timestamp) {
   return d.toLocaleString();
 }
 
-function displayLeaseStartTime(task) {
+function displayLeaseStartTime(task: Task): string {
   return displayLeaseTime(task.swarmingTaskState, task.leaseStartTime);
 }
 
-function displayLeaseEndTime(task) {
+function displayLeaseEndTime(task: Task): string {
   return displayLeaseTime(task.swarmingTaskState, task.leaseEndTime);
 }
 
-function displayLeaseTime(taskState, taskTime) {
+function displayLeaseTime(taskState: string, taskTime: string): string {
   if (taskState === 'PENDING') {
     return 'N/A';
   }
   return formatTimestamp(taskTime);
 }
 
-function displayDimensions(task) {
+function displayDimensions(task: Task): TemplateResult {
   let dims = task.osType;
   if (task.deviceType !== '') {
     dims += ` - ${device(task.deviceType)}${getAKAStr(task.deviceType)}`;
@@ -65,9 +67,9 @@ function displayDimensions(task) {
     Dimensions: ${dims}`;
 }
 
-function displayBotId(task) {
+function displayBotId(task: Task): TemplateResult {
   if (!task.botId) {
-    return '';
+    return html``;
   }
   return html`
     <br/>
@@ -75,9 +77,9 @@ function displayBotId(task) {
   `;
 }
 
-function displaySwarmingTaskForIsolates(task) {
+function displaySwarmingTaskForIsolates(task: Task): TemplateResult {
   if (!task.taskIdForIsolates) {
-    return '';
+    return html``;
   }
   return html`
     <br/>
@@ -85,39 +87,23 @@ function displaySwarmingTaskForIsolates(task) {
   `;
 }
 
-function displaySwarmingTask(task) {
+function displaySwarmingTask(task: Task): TemplateResult {
   if (!task.swarmingTaskId) {
-    return 'Processing';
+    return html`Processing`;
   }
   return html`
     <a href="https://${task.swarmingServer}/task?id=${task.swarmingTaskId}" target="_blank">Link</a
   `;
 }
 
-function displayLeaseButtonRow(ele) {
-  const task = ele._task;
-  if (task.done || task.swarmingTaskState === 'PENDING') {
-    return '';
-  }
-  return html`
-  <tr>
-    <td>
-      <select id="duration">
-        <option value="1" title="1 Hour">1hr</option>
-        <option value="2" title="2 Hours">2hr</option>
-        <option value="6" title="6 Hours">6hr</option>
-        <option value="23" title="23 Hours">23hr</option>
-      </select>
-      <button raised @click=${ele._onExtend}>Extend Lease</button>
-    </td>
-    <td>
-      <button raised @click=${ele._onExpire}>Expire Lease</button>
-    </td>
-  </tr>
-`;
-}
+export class LeasingTaskSk extends ElementSk {
+  private _task = {} as Task;
 
-const template = (ele) => html`
+  constructor() {
+    super(LeasingTaskSk.template);
+  }
+
+  private static template = (ele: LeasingTaskSk) => html`
   <table class="tasktable" cellpadding="5" border="1">
     <col width ="33%">
     <col width ="33%">
@@ -154,41 +140,58 @@ const template = (ele) => html`
       </td>
     </tr>
 
-    ${displayLeaseButtonRow(ele)}
+    ${LeasingTaskSk.displayLeaseButtonRow(ele)}
   </table>
 `;
 
-define('leasing-task-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._task = {};
+  private static displayLeaseButtonRow(ele: LeasingTaskSk) {
+    const task = ele._task;
+    if (task.done || task.swarmingTaskState === 'PENDING') {
+      return '';
+    }
+    return html`
+  <tr>
+    <td>
+      <select id="duration">
+        <option value="1" title="1 Hour">1hr</option>
+        <option value="2" title="2 Hours">2hr</option>
+        <option value="6" title="6 Hours">6hr</option>
+        <option value="23" title="23 Hours">23hr</option>
+      </select>
+      <button raised @click=${ele._onExtend}>Extend Lease</button>
+    </td>
+    <td>
+      <button raised @click=${ele._onExpire}>Expire Lease</button>
+    </td>
+  </tr>
+`;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
-  _onExtend() {
+  _onExtend(): void {
     const confirmed = window.confirm('Proceed with extending leasing task?');
     if (!confirmed) {
       return;
     }
-    const detail = {
+    const detail: ExtendTaskRequest = {
       task: this._task.datastoreId,
-      duration: parseInt($$('#duration', this).value, 10),
+      duration: parseInt(($$('#duration', this) as HTMLInputElement)!.value, 10),
     };
     doImpl('/_/extend_leasing_task', detail, () => {
       window.location.href = '/my_leases';
     });
   }
 
-  _onExpire() {
+  _onExpire(): void {
     const confirmed = window.confirm('Proceed with expiring leasing task?');
     if (!confirmed) {
       return;
     }
-    const detail = {
+    const detail: ExpireTaskRequest = {
       task: this._task.datastoreId,
     };
     doImpl('/_/expire_leasing_task', detail, () => {
@@ -196,15 +199,17 @@ define('leasing-task-sk', class extends ElementSk {
     });
   }
 
-  /** @prop task {Object} Leasing task object. */
-  get task() { return this._task; }
+  /** @prop task {Task} Leasing task object. */
+  get task(): Task { return this._task; }
 
-  set task(val) {
+  set task(val: Task) {
     this._task = val;
     this._render();
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
   }
-});
+}
+
+define('leasing-task-sk', LeasingTaskSk);
