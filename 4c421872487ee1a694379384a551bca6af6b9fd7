@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2342263e_61e1f7b9",
+        "filename": "ct/modules/ctfe_utils.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T18:24:39Z",
+      "side": 1,
+      "message": "make this a BenchmarksPlatformsResponse and dothe casting in the function?",
+      "range": {
+        "startLine": 89,
+        "startChar": 51,
+        "endLine": 89,
+        "endChar": 60
+      },
+      "revId": "4c421872487ee1a694379384a551bca6af6b9fd7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
