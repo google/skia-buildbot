@@ -48,7 +48,7 @@ const template = (ele) => html`
  * @param {NodeList} from - The list we are moving from.
  * @param {NodeList} to - The list we are moving to.
  */
-function move(from, to) {
+function move(from: HTMLCollection | NodeList, to: HTMLElement) {
   Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
 }
 

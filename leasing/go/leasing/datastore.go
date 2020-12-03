@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/leasing/go/types"
 )
 
 func DatastoreInit(project string, ns string) error {
@@ -41,21 +42,21 @@ func GetNewDSKey() *datastore.Key {
 	return ds.NewKey(ds.TASK)
 }
 
-func GetDSTask(taskID int64) (*datastore.Key, *Task, error) {
+func GetDSTask(taskID int64) (*datastore.Key, *types.Task, error) {
 	key := ds.NewKey(ds.TASK)
 	key.ID = taskID
 
-	task := &Task{}
+	task := &types.Task{}
 	if err := ds.DS.Get(context.TODO(), key, task); err != nil {
 		return nil, nil, fmt.Errorf("Error retrieving task from Datastore: %v", err)
 	}
 	return key, task, nil
 }
 
-func PutDSTask(k *datastore.Key, t *Task) (*datastore.Key, error) {
+func PutDSTask(k *datastore.Key, t *types.Task) (*datastore.Key, error) {
 	return ds.DS.Put(context.Background(), k, t)
 }
 
-func UpdateDSTask(k *datastore.Key, t *Task) (*datastore.Key, error) {
+func UpdateDSTask(k *datastore.Key, t *types.Task) (*datastore.Key, error) {
 	return ds.DS.Put(context.Background(), k, t)
 }
