@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9535ed75_105cb58e",
+        "filename": "ct/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T18:21:46Z",
+      "side": 1,
+      "message": "Personally, I\u0027ll always continue to call `make test_js`, since it performs the webpack step before running the test.\u003c/snark\u003e :D just rename test_js to testjs if you want, and delete this?",
+      "range": {
+        "startLine": 131,
+        "startChar": 0,
+        "endLine": 133,
+        "endChar": 97
+      },
+      "revId": "04329895444572bba7cc281cfff48999c900771d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
