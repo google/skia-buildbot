@@ -68,7 +68,7 @@ func MakeTestBaseline() *baseline.Baseline {
 	b := baseline.Baseline{
 		Expectations:           e.AsBaseline(),
 		DeprecatedExpectations: e.AsBaseline(),
-		ChangeListID:           "",
+		ChangelistID:           "",
 		CodeReviewSystem:       "",
 	}
 	var err error

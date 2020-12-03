@@ -308,8 +308,8 @@ func extractExpectationEntries(qs *firestore.QuerySnapshot) []expectationEntry {
 	return entries
 }
 
-// ForChangeList implements the ExpectationsStore interface.
-func (s *Store) ForChangeList(id, crs string) expectations.Store {
+// ForChangelist implements the ExpectationsStore interface.
+func (s *Store) ForChangelist(id, crs string) expectations.Store {
 	if id == "" || crs == "" {
 		// These must both be specified
 		return nil
@@ -317,7 +317,7 @@ func (s *Store) ForChangeList(id, crs string) expectations.Store {
 	return &Store{
 		client:    s.client,
 		numShards: clPartitionShards,
-		notifier:  nil, // we do not need to notify when ChangeList expectations change.
+		notifier:  nil, // we do not need to notify when Changelist expectations change.
 		partition: crs + "_" + id,
 		mode:      s.mode,
 		now:       s.now,

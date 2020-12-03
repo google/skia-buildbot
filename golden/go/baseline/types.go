@@ -24,9 +24,9 @@ type Baseline struct {
 	//                        expectations.Label is finished.
 	DeprecatedExpectations expectations.Baseline `json:"master_str,omitempty"`
 
-	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
+	// ChangelistID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.
-	ChangeListID string `json:"cl_id,omitempty"`
+	ChangelistID string `json:"cl_id,omitempty"`
 
 	// CodeReviewSystem indicates which CRS system (if any) this baseline is tied to.
 	// (e.g. "gerrit", "github") "" indicates the master branch.
@@ -34,7 +34,7 @@ type Baseline struct {
 }
 
 type BaselineFetcher interface {
-	// FetchBaseline fetches a Baseline. If clID and crs are non-empty, the given ChangeList will be
+	// FetchBaseline fetches a Baseline. If clID and crs are non-empty, the given Changelist will be
 	// created by loading the master baseline and the CL baseline and combining them.
 	//
 	// If issueOnly is true and clID/crs != "" then only the expectations attached to the CL are

@@ -29,7 +29,7 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 
 	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
-	mu := &mock_updater.ChangeListLandedUpdater{}
+	mu := &mock_updater.ChangelistLandedUpdater{}
 	mvcs := &mock_vcs.VCS{}
 	defer mis.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
@@ -46,7 +46,7 @@ func TestUpdateTileSunnyDay(t *testing.T) {
 	// No ignores in this test
 	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
-	mu.On("UpdateChangeListsAsLanded", testutils.AnyContext, makeSparseLongCommits()).Return(nil)
+	mu.On("UpdateChangelistsAsLanded", testutils.AnyContext, makeSparseLongCommits()).Return(nil)
 
 	ts := New(CachedTileSourceConfig{
 		NCommits:    nCommits,
@@ -78,7 +78,7 @@ func TestUpdateTileEmptyTile(t *testing.T) {
 
 	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
-	mu := &mock_updater.ChangeListLandedUpdater{}
+	mu := &mock_updater.ChangelistLandedUpdater{}
 	mvcs := &mock_vcs.VCS{}
 	defer mis.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
@@ -100,7 +100,7 @@ func TestUpdateTileEmptyTile(t *testing.T) {
 	// No ignores in this test
 	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
-	mu.On("UpdateChangeListsAsLanded", testutils.AnyContext, makeSparseLongCommits()).Return(nil)
+	mu.On("UpdateChangelistsAsLanded", testutils.AnyContext, makeSparseLongCommits()).Return(nil)
 
 	ts := New(CachedTileSourceConfig{
 		NCommits:    nCommits,
@@ -171,7 +171,7 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 
 	mis := &mock_ignorestore.Store{}
 	mts := &mocks.TraceStore{}
-	mu := &mock_updater.ChangeListLandedUpdater{}
+	mu := &mock_updater.ChangelistLandedUpdater{}
 	mvcs := &mock_vcs.VCS{}
 	// TODO(kjlubick) It's probably best to make a real ComplexTile here and below instead
 	//  of a mock. go/mocks#prefer-testing-state
@@ -195,7 +195,7 @@ func TestUpdateTileHasPreviousPartial(t *testing.T) {
 	// No ignores in this test
 	mis.On("List", testutils.AnyContext).Return(nil, nil)
 
-	mu.On("UpdateChangeListsAsLanded", testutils.AnyContext, longCommits).Return(nil)
+	mu.On("UpdateChangelistsAsLanded", testutils.AnyContext, longCommits).Return(nil)
 
 	mct.On("AllCommits").Return(makeSparseTilingCommits()[:2])
 

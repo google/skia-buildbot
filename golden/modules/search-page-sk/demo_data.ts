@@ -1,4 +1,4 @@
-import { SearchResponse, StatusResponse, ParamSetResponse, ChangeListSummaryResponse } from '../rpc_types';
+import { SearchResponse, StatusResponse, ParamSetResponse, ChangelistSummaryResponse } from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-07-20T00:00:00Z');
 
@@ -180,7 +180,7 @@ export const paramSetResponse: ParamSetResponse = {
 };
 
 // Taken from https://skia-infra-gold.skia.org/json/changelist/gerrit/31719 on 2020-09-15.
-export const changeListSummaryResponse: ChangeListSummaryResponse = {
+export const changeListSummaryResponse: ChangelistSummaryResponse = {
   "cl": {
     "system": "gerrit",
     "id": "123456",

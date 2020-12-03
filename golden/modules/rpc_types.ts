@@ -4,7 +4,7 @@ export interface IgnoreNil_DO_NOT_USE {
 	ParamSet: ParamSet;
 }
 
-export interface ChangeList {
+export interface Changelist {
 	system: string;
 	id: string;
 	owner: string;
@@ -22,15 +22,15 @@ export interface TryJob {
 	url: string;
 }
 
-export interface PatchSet {
+export interface Patchset {
 	id: string;
 	order: number;
 	try_jobs: TryJob[];
 }
 
-export interface ChangeListSummaryResponse {
-	cl: ChangeList;
-	patch_sets: PatchSet[];
+export interface ChangelistSummaryResponse {
+	cl: Changelist;
+	patch_sets: Patchset[];
 	num_total_patch_sets: number;
 }
 

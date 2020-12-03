@@ -254,11 +254,11 @@ func TestJoin(t *testing.T) {
 	masterE.Set(testName, alphaPositiveDigest, Positive)
 	masterE.Set(testName, betaNegativeDigest, Positive)
 
-	var changeListE Expectations
-	changeListE.Set(testName, gammaPositiveDigest, Positive)
-	changeListE.Set(testName, betaNegativeDigest, Negative) // this should win
+	var changelistE Expectations
+	changelistE.Set(testName, gammaPositiveDigest, Positive)
+	changelistE.Set(testName, betaNegativeDigest, Negative) // this should win
 
-	e := Join(&changeListE, &masterE)
+	e := Join(&changelistE, &masterE)
 
 	assert.Equal(t, Positive, e.Classification(testName, alphaPositiveDigest))
 	assert.Equal(t, Positive, e.Classification(testName, gammaPositiveDigest))
