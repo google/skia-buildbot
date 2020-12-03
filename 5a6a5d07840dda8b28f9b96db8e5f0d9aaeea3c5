@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8823ba52_379d59bb",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T18:52:41Z",
+      "side": 0,
+      "message": "Hmmm... this seems suspect. ;)",
+      "range": {
+        "startLine": 23,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 7
+      },
+      "revId": "5a6a5d07840dda8b28f9b96db8e5f0d9aaeea3c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
