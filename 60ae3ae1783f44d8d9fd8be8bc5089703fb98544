@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c4c4994f_88f5cb80",
+        "filename": "ct/modules/chromium-analysis-sk/chromium-analysis-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:54:06Z",
+      "side": 1,
+      "message": "InputSk here and elsewhere.",
+      "range": {
+        "startLine": 376,
+        "startChar": 38,
+        "endLine": 376,
+        "endChar": 54
+      },
+      "revId": "60ae3ae1783f44d8d9fd8be8bc5089703fb98544",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0a39fb36_75a9f8f7",
+        "filename": "ct/modules/chromium-analysis-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T20:54:06Z",
+      "side": 1,
+      "message": "Prefer \u0027: BenchmarksPlatformsResponse\u0027 to cast.",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 32
+      },
+      "revId": "60ae3ae1783f44d8d9fd8be8bc5089703fb98544",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
