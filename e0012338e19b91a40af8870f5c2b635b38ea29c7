@@ -22,6 +22,30 @@
       },
       "revId": "e0012338e19b91a40af8870f5c2b635b38ea29c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bb859b58_db4bd3bf",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-03T18:33:27Z",
+      "side": 1,
+      "message": "We have an array of commits (this.commits) and a map by hash (this.commitsByHash). The array is what we\u0027re preventing duplicates in.  We could probably get away with only a map with a little work, but it\u0027d probably be more code (annoying, slower) to traverse the commits in order.",
+      "parentUuid": "272f8e4e_4a62ef09",
+      "range": {
+        "startLine": 257,
+        "startChar": 0,
+        "endLine": 257,
+        "endChar": 54
+      },
+      "revId": "e0012338e19b91a40af8870f5c2b635b38ea29c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
