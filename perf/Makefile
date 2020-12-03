@@ -2,6 +2,10 @@
 default: ./dist
 	go install -v ./go/...
 
+docs:
+	go install ./go/perf-tool
+	perf-tool markdown > PERFTOOL.md
+
 # The command line tool that embeds plain files into Go code.
 ${GOPATH}/bin/rice:
 	go get github.com/GeertJohan/go.rice/rice
