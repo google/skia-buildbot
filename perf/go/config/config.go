@@ -285,7 +285,7 @@ func InstanceConfigFromFile(filename string) (*InstanceConfig, error) {
 		return json.NewDecoder(r).Decode(&instanceConfig)
 	})
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "Filename: %s", filename)
 	}
 	return &instanceConfig, nil
 }
