@@ -22,24 +22,24 @@ var (
 			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_SUBMIT,
 			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
 		},
-		CqSuccessLabels: map[string]int{
-			AUTOSUBMIT_LABEL:         AUTOSUBMIT_LABEL_SUBMIT,
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_ACCEPTED,
+		CqSuccessLabels: map[string][]int{
+			AUTOSUBMIT_LABEL:         []int{AUTOSUBMIT_LABEL_SUBMIT},
+			PRESUBMIT_VERIFIED_LABEL: []int{PRESUBMIT_VERIFIED_LABEL_ACCEPTED_WITH_WARNINGS, PRESUBMIT_VERIFIED_LABEL_ACCEPTED},
 		},
-		CqFailureLabels: map[string]int{
-			AUTOSUBMIT_LABEL:         AUTOSUBMIT_LABEL_SUBMIT,
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_REJECTED,
+		CqFailureLabels: map[string][]int{
+			AUTOSUBMIT_LABEL:         []int{AUTOSUBMIT_LABEL_SUBMIT},
+			PRESUBMIT_VERIFIED_LABEL: []int{PRESUBMIT_VERIFIED_LABEL_REJECTED_WEAK, PRESUBMIT_VERIFIED_LABEL_REJECTED_STRONG},
 		},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
 			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_NONE,
 			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
 		},
-		DryRunSuccessLabels: map[string]int{
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_ACCEPTED,
+		DryRunSuccessLabels: map[string][]int{
+			PRESUBMIT_VERIFIED_LABEL: []int{PRESUBMIT_VERIFIED_LABEL_ACCEPTED_WITH_WARNINGS, PRESUBMIT_VERIFIED_LABEL_ACCEPTED},
 		},
-		DryRunFailureLabels: map[string]int{
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_REJECTED,
+		DryRunFailureLabels: map[string][]int{
+			PRESUBMIT_VERIFIED_LABEL: []int{PRESUBMIT_VERIFIED_LABEL_REJECTED_WEAK, PRESUBMIT_VERIFIED_LABEL_REJECTED_STRONG},
 		},
 		DryRunUsesTryjobResults: false,
 	}
@@ -61,14 +61,14 @@ var (
 		CqActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
-		CqSuccessLabels:           map[string]int{},
-		CqFailureLabels:           map[string]int{},
+		CqSuccessLabels:           map[string][]int{},
+		CqFailureLabels:           map[string][]int{},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
 		},
-		DryRunSuccessLabels:     map[string]int{},
-		DryRunFailureLabels:     map[string]int{},
+		DryRunSuccessLabels:     map[string][]int{},
+		DryRunFailureLabels:     map[string][]int{},
 		DryRunUsesTryjobResults: true,
 	}
 
@@ -89,14 +89,14 @@ var (
 		CqActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
-		CqSuccessLabels:           map[string]int{},
-		CqFailureLabels:           map[string]int{},
+		CqSuccessLabels:           map[string][]int{},
+		CqFailureLabels:           map[string][]int{},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
 		},
-		DryRunSuccessLabels:     map[string]int{},
-		DryRunFailureLabels:     map[string]int{},
+		DryRunSuccessLabels:     map[string][]int{},
+		DryRunFailureLabels:     map[string][]int{},
 		DryRunUsesTryjobResults: true,
 	}
 
@@ -111,12 +111,12 @@ var (
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
 		},
 		CqActiveLabels:            map[string]int{},
-		CqSuccessLabels:           map[string]int{},
-		CqFailureLabels:           map[string]int{},
+		CqSuccessLabels:           map[string][]int{},
+		CqFailureLabels:           map[string][]int{},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels:        map[string]int{},
-		DryRunSuccessLabels:       map[string]int{},
-		DryRunFailureLabels:       map[string]int{},
+		DryRunSuccessLabels:       map[string][]int{},
+		DryRunFailureLabels:       map[string][]int{},
 		DryRunUsesTryjobResults:   false,
 	}
 
@@ -137,21 +137,21 @@ var (
 		CqActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
 		},
-		CqSuccessLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_ACCEPTED,
+		CqSuccessLabels: map[string][]int{
+			VERIFIED_LABEL: []int{VERIFIED_LABEL_ACCEPTED},
 		},
-		CqFailureLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_REJECTED,
+		CqFailureLabels: map[string][]int{
+			VERIFIED_LABEL: []int{VERIFIED_LABEL_REJECTED},
 		},
 		CqLabelsUnsetOnCompletion: false,
 		DryRunActiveLabels: map[string]int{
 			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
 		},
-		DryRunSuccessLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_ACCEPTED,
+		DryRunSuccessLabels: map[string][]int{
+			VERIFIED_LABEL: []int{VERIFIED_LABEL_ACCEPTED},
 		},
-		DryRunFailureLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_REJECTED,
+		DryRunFailureLabels: map[string][]int{
+			VERIFIED_LABEL: []int{VERIFIED_LABEL_REJECTED},
 		},
 		DryRunUsesTryjobResults: false,
 	}
@@ -180,10 +180,10 @@ type Config struct {
 	CqActiveLabels map[string]int
 	// If the issue is merged or all of these labels are set, the Commit
 	// Queue is considered to have finished successfully.
-	CqSuccessLabels map[string]int
+	CqSuccessLabels map[string][]int
 	// If the issue is abandoned or all of these labels are set, the Commit
 	// Queue is considered to have failed.
-	CqFailureLabels map[string]int
+	CqFailureLabels map[string][]int
 	// CqLabelsUnsetOnCompletion is true if the commit queue unsets the
 	// labels when it finishes.
 	CqLabelsUnsetOnCompletion bool
@@ -192,11 +192,11 @@ type Config struct {
 	// considered active.
 	DryRunActiveLabels map[string]int
 	// If the issue is merged or all of these labels are set, the dry run is
-	// considered to have finished successfuly.
-	DryRunSuccessLabels map[string]int
+	// considered to have finished successfully.
+	DryRunSuccessLabels map[string][]int
 	// If the issue is abandoned or all of these labels are set, the dry run
 	// is considered to have failed.
-	DryRunFailureLabels map[string]int
+	DryRunFailureLabels map[string][]int
 	// DryRunUsesTryjobResults is true if tryjob results should be factored
 	// into dry run success.
 	DryRunUsesTryjobResults bool
@@ -211,6 +211,29 @@ func all(ci *ChangeInfo, labels map[string]int) bool {
 			for _, labelDetail := range labelEntry.All {
 				if wantValue == labelDetail.Value {
 					found = true
+				}
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+// allWithMultipleAcceptableValues returns true iff all of the given label keys and
+// one of their acceptable values are set on the change. Returns true if the given map
+// of labels is empty.
+func allWithMultipleAcceptableValues(ci *ChangeInfo, labels map[string][]int) bool {
+	for labelKey, wantValues := range labels {
+		found := false
+		if labelEntry, ok := ci.Labels[labelKey]; ok {
+			for _, labelDetail := range labelEntry.All {
+				for _, v := range wantValues {
+					if labelDetail.Value == v {
+						found = true
+						break
+					}
 				}
 			}
 		}
@@ -248,10 +271,10 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	// to be running or we'll incorrectly mark the CQ as failed. Note that
 	// if the CQ never manages to merge the change, we'll be stuck in this
 	// "CQ running even though it's finished" state indefinitely.
-	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
+	if len(c.CqSuccessLabels) > 0 && allWithMultipleAcceptableValues(ci, c.CqSuccessLabels) {
 		return true
 	}
-	if len(c.CqFailureLabels) > 0 && all(ci, c.CqFailureLabels) {
+	if len(c.CqFailureLabels) > 0 && allWithMultipleAcceptableValues(ci, c.CqFailureLabels) {
 		return false
 	}
 	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
@@ -283,9 +306,9 @@ func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
 	if c.CqLabelsUnsetOnCompletion {
 		return true
 	}
-	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
+	if len(c.DryRunSuccessLabels) > 0 && allWithMultipleAcceptableValues(ci, c.DryRunSuccessLabels) {
 		return false
-	} else if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels) {
+	} else if len(c.DryRunFailureLabels) > 0 && allWithMultipleAcceptableValues(ci, c.DryRunFailureLabels) {
 		return false
 	}
 	return true
@@ -312,10 +335,10 @@ func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
 			return false
 		}
 	}
-	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
+	if len(c.DryRunSuccessLabels) > 0 && allWithMultipleAcceptableValues(ci, c.DryRunSuccessLabels) {
 		return true
 	}
-	if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels) {
+	if len(c.DryRunFailureLabels) > 0 && allWithMultipleAcceptableValues(ci, c.DryRunFailureLabels) {
 		return false
 	}
 	return c.DryRunUsesTryjobResults && allTrybotsSucceeded

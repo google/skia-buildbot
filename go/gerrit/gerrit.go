@@ -63,16 +63,18 @@ const (
 	COMMITQUEUE_LABEL_SUBMIT  = 2
 
 	// Android specific labels.
-	AUTOSUBMIT_LABEL                  = "Autosubmit"
-	AUTOSUBMIT_LABEL_NONE             = 0
-	AUTOSUBMIT_LABEL_SUBMIT           = 1
-	PRESUBMIT_READY_LABEL             = "Presubmit-Ready"
-	PRESUBMIT_READY_LABEL_NONE        = 0
-	PRESUBMIT_READY_LABEL_ENABLE      = 1
-	PRESUBMIT_VERIFIED_LABEL          = "Presubmit-Verified"
-	PRESUBMIT_VERIFIED_LABEL_REJECTED = -1
-	PRESUBMIT_VERIFIED_LABEL_RUNNING  = 0
-	PRESUBMIT_VERIFIED_LABEL_ACCEPTED = 1
+	AUTOSUBMIT_LABEL                                = "Autosubmit"
+	AUTOSUBMIT_LABEL_NONE                           = 0
+	AUTOSUBMIT_LABEL_SUBMIT                         = 1
+	PRESUBMIT_READY_LABEL                           = "Presubmit-Ready"
+	PRESUBMIT_READY_LABEL_NONE                      = 0
+	PRESUBMIT_READY_LABEL_ENABLE                    = 1
+	PRESUBMIT_VERIFIED_LABEL                        = "Presubmit-Verified"
+	PRESUBMIT_VERIFIED_LABEL_REJECTED_STRONG        = -2
+	PRESUBMIT_VERIFIED_LABEL_REJECTED_WEAK          = -1
+	PRESUBMIT_VERIFIED_LABEL_RUNNING                = 0
+	PRESUBMIT_VERIFIED_LABEL_ACCEPTED_WITH_WARNINGS = 1
+	PRESUBMIT_VERIFIED_LABEL_ACCEPTED               = 2
 
 	// Some Gerrit hosts use the "Verified" label instead of "Presubmit-Verified".
 	VERIFIED_LABEL          = "Verified"
