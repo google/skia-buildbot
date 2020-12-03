@@ -502,7 +502,7 @@ func makeBuildbucketCIS() map[string]ci.Client {
 func makeGerritCRS() *mock_crs.Client {
 	mcrs := &mock_crs.Client{}
 	mcrs.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
-	mcrs.On("GetPatchsets", testutils.AnyContext, gerritCLID).Return(makeGerritPatchsets(), nil)
+	mcrs.On("GetPatchset", testutils.AnyContext, gerritCLID, mock.Anything, mock.Anything).Return(makeGerritPatchsets()[1], nil)
 	return mcrs
 }
 
@@ -571,16 +571,14 @@ func makeGitHubCRS() *mock_crs.Client {
 		Updated:  time.Date(2019, time.November, 19, 18, 17, 16, 0, time.UTC),
 	}
 
-	xps := []code_review.Patchset{
-		{
-			SystemID:     "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
-			ChangelistID: githubCLID,
-			Order:        githubPSOrder,
-			GitHash:      "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
-		},
+	ps := code_review.Patchset{
+		SystemID:     "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
+		ChangelistID: githubCLID,
+		Order:        githubPSOrder,
+		GitHash:      "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
 	}
 	mcrs := &mock_crs.Client{}
 	mcrs.On("GetChangelist", testutils.AnyContext, githubCLID).Return(cl, nil)
-	mcrs.On("GetPatchsets", testutils.AnyContext, githubCLID).Return(xps, nil)
+	mcrs.On("GetPatchset", testutils.AnyContext, githubCLID, mock.Anything, mock.Anything).Return(ps, nil)
 	return mcrs
 }
