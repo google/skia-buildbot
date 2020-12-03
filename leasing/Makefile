@@ -1,8 +1,9 @@
-include ../kube/kube.mk
-
 default: build
 
-build:
+./modules/json/index.ts:
+	go run ./go/types/ts -o modules/json/index.ts
+
+build: ./modules/json/index.ts
 	cd ../infra-sk && npm ci
 	npm ci
 	npx webpack --mode=production
