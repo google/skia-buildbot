@@ -12,38 +12,38 @@ import (
 
 // The Client interface is an abstraction around a Code Review System
 type Client interface {
-	// GetChangeList returns the ChangeList corresponding to the given id.
+	// GetChangelist returns the Changelist corresponding to the given id.
 	// Returns ErrNotFound if it doesn't exist.
-	GetChangeList(ctx context.Context, id string) (ChangeList, error)
+	GetChangelist(ctx context.Context, id string) (Changelist, error)
 
-	// GetPatchSets returns the PatchSets belonging to the ChangeList with the ID
-	// in index order (see PatchSet.Order).
-	// Returns ErrNotFound if the ChangeList doesn't exist.
-	GetPatchSets(ctx context.Context, clID string) ([]PatchSet, error)
+	// GetPatchsets returns the Patchsets belonging to the Changelist with the ID
+	// in index order (see Patchset.Order).
+	// Returns ErrNotFound if the Changelist doesn't exist.
+	GetPatchsets(ctx context.Context, clID string) ([]Patchset, error)
 
-	// GetChangeListIDForCommit returns the ChangeList id corresponding to the given git commit.
+	// GetChangelistIDForCommit returns the Changelist id corresponding to the given git commit.
 	// Returns ErrNotFound if one could not be identified.
-	GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error)
+	GetChangelistIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error)
 
 	// CommentOn creates a comment on the CRS for the given CL with the given message.
 	CommentOn(ctx context.Context, clID, message string) error
 }
 
-// The ChangeListLandedUpdater interface is an abstraction around the code that tracks ChangeLists
+// The ChangelistLandedUpdater interface is an abstraction around the code that tracks Changelists
 // which land.
-type ChangeListLandedUpdater interface {
-	// UpdateChangeListsAsLanded goes through the given commits and marks any ChangeList
+type ChangelistLandedUpdater interface {
+	// UpdateChangelistsAsLanded goes through the given commits and marks any Changelist
 	// objects as Landed. For those that are marked as landed, it should update the master
 	// branch's Expectations as well.
-	UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error
+	UpdateChangelistsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error
 }
 
-// The ChangeListCommenter interface is an abstraction around the code which comments on CLs in
+// The ChangelistCommenter interface is an abstraction around the code which comments on CLs in
 // the Code Review System to which they belong.
-type ChangeListCommenter interface {
-	// CommentOnChangeListsWithUntriagedDigests comments (exactly once per patchset) on a ChangeList
+type ChangelistCommenter interface {
+	// CommentOnChangelistsWithUntriagedDigests comments (exactly once per patchset) on a Changelist
 	// with unknown
-	CommentOnChangeListsWithUntriagedDigests(ctx context.Context) error
+	CommentOnChangelistsWithUntriagedDigests(ctx context.Context) error
 }
 
 // ErrNotFound is an error used to indicate something could not be found.
@@ -52,8 +52,8 @@ type ChangeListCommenter interface {
 //   https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 var ErrNotFound = errors.New("not found")
 
-type ChangeList struct {
-	// SystemID is expected to be unique between all ChangeLists for a given system and repo.
+type Changelist struct {
+	// SystemID is expected to be unique between all Changelists for a given system and repo.
 	SystemID string
 
 	Owner   string
@@ -82,16 +82,16 @@ func (c CLStatus) String() string {
 	return "<unknown>"
 }
 
-type PatchSet struct {
-	// SystemID may or may not be unique for all PatchSets for a given system.
-	// Definitely unique for a given ChangeList.
+type Patchset struct {
+	// SystemID may or may not be unique for all Patchsets for a given system.
+	// Definitely unique for a given Changelist.
 	SystemID string
 
-	// ChangeListID is the id that the PatchSet belongs to.
-	ChangeListID string
-	// It is convenient to think about PatchSets starting at 1 and increasing
+	// ChangelistID is the id that the Patchset belongs to.
+	ChangelistID string
+	// It is convenient to think about Patchsets starting at 1 and increasing
 	// monotonically. This gives some measure of time/progress. Order is the
-	// index of this PatchSet relative to all other PatchSets on this CL.
+	// index of this Patchset relative to all other Patchsets on this CL.
 	Order   int
 	GitHash string
 	// CommentedOnCL are used to keep track of "Do we need to notify

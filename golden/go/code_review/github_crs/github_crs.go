@@ -58,28 +58,28 @@ type pullRequestResponse struct {
 	Merged  string `json:"merged_at"`
 }
 
-// GetChangeList implements the code_review.Client interface.
-func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.ChangeList, error) {
+// GetChangelist implements the code_review.Client interface.
+func (c *CRSImpl) GetChangelist(ctx context.Context, id string) (code_review.Changelist, error) {
 	if _, err := strconv.ParseInt(id, 10, 64); err != nil {
-		return code_review.ChangeList{}, skerr.Fmt("invalid ChangeList ID")
+		return code_review.Changelist{}, skerr.Fmt("invalid Changelist ID")
 	}
 	// Respect the rate limit.
 	if err := c.rl.Wait(ctx); err != nil {
-		return code_review.ChangeList{}, skerr.Wrap(err)
+		return code_review.Changelist{}, skerr.Wrap(err)
 	}
 	u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s", c.repo, id)
 	resp, err := httputils.GetWithContext(ctx, c.client, u)
 	if err != nil {
-		sklog.Errorf("Error getting ChangeList from %s: %s", u, err)
-		// Assume an error here is the ChangeList is not found
-		return code_review.ChangeList{}, code_review.ErrNotFound
+		sklog.Errorf("Error getting Changelist from %s: %s", u, err)
+		// Assume an error here is the Changelist is not found
+		return code_review.Changelist{}, code_review.ErrNotFound
 	}
 	defer util.Close(resp.Body)
 
 	var prr pullRequestResponse
 	err = json.NewDecoder(resp.Body).Decode(&prr)
 	if err != nil {
-		return code_review.ChangeList{}, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
+		return code_review.Changelist{}, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
 	}
 
 	state := code_review.Open
@@ -93,10 +93,10 @@ func (c *CRSImpl) GetChangeList(ctx context.Context, id string) (code_review.Cha
 
 	updated, err := time.Parse(time.RFC3339, prr.Updated)
 	if err != nil {
-		return code_review.ChangeList{}, skerr.Wrapf(err, "invalid time %q", prr.Updated)
+		return code_review.Changelist{}, skerr.Wrapf(err, "invalid time %q", prr.Updated)
 	}
 
-	return code_review.ChangeList{
+	return code_review.Changelist{
 		SystemID: id,
 		Owner:    prr.User.UserName,
 		Subject:  prr.Title,
@@ -112,12 +112,12 @@ type commit struct {
 // https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
 type commitsOnPullRequestResponse []commit
 
-// GetPatchSets implements the code_review.Client interface.
-func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.PatchSet, error) {
+// GetPatchsets implements the code_review.Client interface.
+func (c *CRSImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
-		return nil, skerr.Fmt("invalid ChangeList ID")
+		return nil, skerr.Fmt("invalid Changelist ID")
 	}
-	var xps []code_review.PatchSet
+	var xps []code_review.Patchset
 
 	// At the moment, paging returns 30 at a time and the API docs say that it stops after
 	// 250 commits. Just to be safe, we should bail out of page is more than 20 (~600 patchsets) in
@@ -132,7 +132,7 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 		resp, err := httputils.GetWithContext(ctx, c.client, u)
 		if err != nil {
 			sklog.Errorf("Error getting commits on PR %s with url %s: %s", clID, u, err)
-			// Assume an error here is the ChangeList is not found
+			// Assume an error here is the Changelist is not found
 			return nil, code_review.ErrNotFound
 		}
 		var cprr commitsOnPullRequestResponse
@@ -145,9 +145,9 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 
 		// Assume GitHub returns these in ascending order
 		for i, ps := range cprr {
-			xps = append(xps, code_review.PatchSet{
+			xps = append(xps, code_review.Patchset{
 				SystemID:     ps.Hash,
-				ChangeListID: clID,
+				ChangelistID: clID,
 				Order:        i + 1,
 				GitHash:      ps.Hash,
 			})
@@ -160,8 +160,8 @@ func (c *CRSImpl) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 	return xps, nil
 }
 
-// GetChangeListIDForCommit implements the code_review.Client interface.
-func (c *CRSImpl) GetChangeListIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
+// GetChangelistIDForCommit implements the code_review.Client interface.
+func (c *CRSImpl) GetChangelistIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	if commit == nil {
 		return "", skerr.Fmt("commit cannot be nil")
 	}
@@ -192,7 +192,7 @@ func extractPRFromTitle(t string) (string, error) {
 func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
 	sklog.Infof("Commenting on GitHub CL (PR) %s with message %q", clID, message)
 	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
-		return skerr.Fmt("invalid ChangeList ID")
+		return skerr.Fmt("invalid Changelist ID")
 	}
 	// Respect the rate limit.
 	if err := c.rl.Wait(ctx); err != nil {

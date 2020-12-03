@@ -44,46 +44,46 @@ func TestUpdateSunnyDay(t *testing.T) {
 	betaDelta := expectations.AsDelta(&betaChanges)
 
 	// This data is all arbitrary.
-	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(landedCL, nil)
-	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[1]).Return(openCLAlpha, nil)
-	mc.On("GetChangeList", testutils.AnyContext, openCLAlpha).Return(code_review.ChangeList{
+	mc.On("GetChangelistIDForCommit", testutils.AnyContext, commits[0]).Return(landedCL, nil)
+	mc.On("GetChangelistIDForCommit", testutils.AnyContext, commits[1]).Return(openCLAlpha, nil)
+	mc.On("GetChangelist", testutils.AnyContext, openCLAlpha).Return(code_review.Changelist{
 		SystemID: openCLAlpha,
 		Status:   code_review.Landed, // the CRS says they are landed, but the store thinks not.
 		Owner:    alphaAuthor,
 		Updated:  time.Date(2019, time.May, 15, 14, 14, 12, 0, time.UTC),
 	}, nil)
-	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[2]).Return(openCLBeta, nil)
-	mc.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
+	mc.On("GetChangelistIDForCommit", testutils.AnyContext, commits[2]).Return(openCLBeta, nil)
+	mc.On("GetChangelist", testutils.AnyContext, openCLBeta).Return(code_review.Changelist{
 		SystemID: openCLBeta,
 		Status:   code_review.Landed, // the CRS says they are landed, but the store thinks not.
 		Owner:    betaAuthor,
 		Updated:  time.Date(2019, time.May, 15, 14, 18, 12, 0, time.UTC),
 	}, nil)
 
-	mes.On("ForChangeList", openCLAlpha, githubCRS).Return(alphaExp)
-	mes.On("ForChangeList", openCLBeta, githubCRS).Return(betaExp)
+	mes.On("ForChangelist", openCLAlpha, githubCRS).Return(alphaExp)
+	mes.On("ForChangelist", openCLBeta, githubCRS).Return(betaExp)
 	mes.On("AddChange", testutils.AnyContext, alphaDelta, alphaAuthor).Return(nil)
 	mes.On("AddChange", testutils.AnyContext, betaDelta, betaAuthor).Return(nil)
 
 	alphaExp.On("Get", testutils.AnyContext).Return(&alphaChanges, nil)
 	betaExp.On("Get", testutils.AnyContext).Return(&betaChanges, nil)
 
-	mcs.On("GetChangeList", testutils.AnyContext, landedCL).Return(code_review.ChangeList{
+	mcs.On("GetChangelist", testutils.AnyContext, landedCL).Return(code_review.Changelist{
 		SystemID: landedCL,
 		Status:   code_review.Landed, // Already in the store as landed - should be skipped.
 		Owner:    alphaAuthor,
 	}, nil)
-	mcs.On("GetChangeList", testutils.AnyContext, openCLAlpha).Return(code_review.ChangeList{
+	mcs.On("GetChangelist", testutils.AnyContext, openCLAlpha).Return(code_review.Changelist{
 		SystemID: openCLAlpha,
 		Status:   code_review.Open, // the CRS says they are landed, but the store thinks not.
 		Owner:    alphaAuthor,
 	}, nil)
-	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
+	mcs.On("GetChangelist", testutils.AnyContext, openCLBeta).Return(code_review.Changelist{
 		SystemID: openCLBeta,
 		Status:   code_review.Open, // the CRS says they are landed, but the store thinks not.
 		Owner:    betaAuthor,
 	}, nil)
-	clChecker := func(cl code_review.ChangeList) bool {
+	clChecker := func(cl code_review.Changelist) bool {
 		if cl.SystemID == openCLAlpha || cl.SystemID == openCLBeta {
 			require.Equal(t, code_review.Landed, cl.Status)
 			require.NotZero(t, cl.Updated)
@@ -92,12 +92,12 @@ func TestUpdateSunnyDay(t *testing.T) {
 		}
 		return false
 	}
-	mcs.On("PutChangeList", testutils.AnyContext, mock.MatchedBy(clChecker)).Return(nil).Twice()
+	mcs.On("PutChangelist", testutils.AnyContext, mock.MatchedBy(clChecker)).Return(nil).Twice()
 
 	// Pretend we are configured for Gerrit and GitHub, and GitHub doesn't recognize any of these
 	// CLs
 	gerritClient := &mock_codereview.Client{}
-	gerritClient.On("GetChangeListIDForCommit", testutils.AnyContext, mock.Anything).Return("", code_review.ErrNotFound)
+	gerritClient.On("GetChangelistIDForCommit", testutils.AnyContext, mock.Anything).Return("", code_review.ErrNotFound)
 
 	u := New(mes, []clstore.ReviewSystem{
 		{
@@ -112,7 +112,7 @@ func TestUpdateSunnyDay(t *testing.T) {
 			// URLTemplate not used here
 		},
 	})
-	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
+	err := u.UpdateChangelistsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
 
@@ -130,24 +130,24 @@ func TestUpdateEmpty(t *testing.T) {
 
 	betaChanges := expectations.Expectations{}
 
-	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
-	mc.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
+	mc.On("GetChangelistIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
+	mc.On("GetChangelist", testutils.AnyContext, openCLBeta).Return(code_review.Changelist{
 		SystemID: openCLBeta,
 		Status:   code_review.Landed,
 		Owner:    betaAuthor,
 		Updated:  time.Date(2019, time.May, 15, 14, 18, 12, 0, time.UTC),
 	}, nil)
 
-	mes.On("ForChangeList", openCLBeta, githubCRS).Return(betaExp)
+	mes.On("ForChangelist", openCLBeta, githubCRS).Return(betaExp)
 
 	betaExp.On("Get", testutils.AnyContext).Return(&betaChanges, nil)
 
-	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{
+	mcs.On("GetChangelist", testutils.AnyContext, openCLBeta).Return(code_review.Changelist{
 		SystemID: openCLBeta,
 		Status:   code_review.Open, // the CRS says they are landed, but the store thinks not.
 		Owner:    betaAuthor,
 	}, nil)
-	clChecker := func(cl code_review.ChangeList) bool {
+	clChecker := func(cl code_review.Changelist) bool {
 		if cl.SystemID == openCLBeta {
 			require.Equal(t, code_review.Landed, cl.Status)
 			require.NotZero(t, cl.Updated)
@@ -156,7 +156,7 @@ func TestUpdateEmpty(t *testing.T) {
 		}
 		return false
 	}
-	mcs.On("PutChangeList", testutils.AnyContext, mock.MatchedBy(clChecker)).Return(nil).Once()
+	mcs.On("PutChangelist", testutils.AnyContext, mock.MatchedBy(clChecker)).Return(nil).Once()
 
 	u := New(mes, []clstore.ReviewSystem{
 		{
@@ -166,7 +166,7 @@ func TestUpdateEmpty(t *testing.T) {
 			// URLTemplate not used here
 		},
 	})
-	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
+	err := u.UpdateChangelistsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
 
@@ -180,9 +180,9 @@ func TestUpdateNoTryJobsSeen(t *testing.T) {
 
 	commits := makeCommits()[2:]
 
-	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
+	mc.On("GetChangelistIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
 
-	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{}, clstore.ErrNotFound)
+	mcs.On("GetChangelist", testutils.AnyContext, openCLBeta).Return(code_review.Changelist{}, clstore.ErrNotFound)
 
 	u := New(nil, []clstore.ReviewSystem{
 		{
@@ -192,19 +192,19 @@ func TestUpdateNoTryJobsSeen(t *testing.T) {
 			// URLTemplate not used here
 		},
 	})
-	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
+	err := u.UpdateChangelistsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
 
-// TestUpdateNoChangeList checks the exceptional case where a commit lands without being tied to
-// a ChangeList in any CRS (we should skip it and not crash).
-func TestUpdateNoChangeList(t *testing.T) {
+// TestUpdateNoChangelist checks the exceptional case where a commit lands without being tied to
+// a Changelist in any CRS (we should skip it and not crash).
+func TestUpdateNoChangelist(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mc := &mock_codereview.Client{}
 
 	commits := makeCommits()[2:]
-	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return("", code_review.ErrNotFound)
+	mc.On("GetChangelistIDForCommit", testutils.AnyContext, commits[0]).Return("", code_review.ErrNotFound)
 
 	u := New(nil, []clstore.ReviewSystem{
 		{
@@ -218,7 +218,7 @@ func TestUpdateNoChangeList(t *testing.T) {
 			// Store and URLTemplate not used here
 		},
 	})
-	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
+	err := u.UpdateChangelistsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
 

@@ -24,12 +24,12 @@ type imgTest struct {
 	corpus                      string
 	failureFile                 string
 	instanceID                  string
-	changeListID                string
+	changelistID                string
 	tryJobID                    string
 	keysFile                    string
 	passFailStep                bool
-	patchSetOrder               int
-	patchSetID                  string
+	patchsetOrder               int
+	patchsetID                  string
 	uploadOnly                  bool
 	urlOverride                 string
 	workDir                     string
@@ -117,7 +117,7 @@ Does not upload anything nor queue anything for upload.`,
 	imgTestCheckCmd.Flags().StringVar(&env.pngFile, "png-file", "", "Path to the PNG file that contains the test results.")
 	imgTestCheckCmd.Flags().StringVar(&env.instanceID, "instance", "", "ID of the Gold instance.")
 
-	imgTestCheckCmd.Flags().StringVar(&env.changeListID, "changelist", "", "If provided, the ChangeListExpectations matching this will apply.")
+	imgTestCheckCmd.Flags().StringVar(&env.changelistID, "changelist", "", "If provided, the ChangelistExpectations matching this will apply.")
 	imgTestCheckCmd.Flags().StringVar(&env.urlOverride, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
 
 	Must(imgTestCheckCmd.MarkFlagRequired(fstrWorkDir))
@@ -141,19 +141,19 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().BoolVar(&i.passFailStep, "passfail", false, "Whether the 'add' call returns a pass/fail for each test.")
 	cmd.Flags().BoolVar(&i.uploadOnly, "upload-only", false, "Skip reading expectations from the server. Incompatible with passfail=true.")
 
-	cmd.Flags().StringVar(&i.changeListID, "changelist", "", "ChangeList ID if this is run as a TryJob.")
+	cmd.Flags().StringVar(&i.changelistID, "changelist", "", "Changelist ID if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.codeReviewSystem, "crs", "", "CodeReviewSystem, if any (e.g. 'gerrit', 'github')")
 	cmd.Flags().StringVar(&i.commitHash, "commit", "", "Git commit hash")
 	cmd.Flags().StringVar(&i.continuousIntegrationSystem, "cis", "", "ContinuousIntegrationSystem, if any (e.g. 'buildbucket')")
 	cmd.Flags().StringVar(&i.corpus, "corpus", "", "Gold Corpus Name. Overrides any other values (e.g. from keys-file or add-test-key)")
 	cmd.Flags().StringVar(&i.failureFile, "failure-file", "", "Path to the file where to write failure information")
 	cmd.Flags().StringVar(&i.keysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
-	cmd.Flags().IntVar(&i.patchSetOrder, "patchset", 0, "PatchSet number if this is run as a TryJob.")
-	cmd.Flags().StringVar(&i.patchSetID, "patchset_id", "", "PatchSet id (e.g. githash) if this is run as a TryJob.")
+	cmd.Flags().IntVar(&i.patchsetOrder, "patchset", 0, "Patchset number if this is run as a TryJob.")
+	cmd.Flags().StringVar(&i.patchsetID, "patchset_id", "", "Patchset id (e.g. githash) if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.tryJobID, "jobid", "", "TryJob ID if this is a TryJob run.")
 	cmd.Flags().StringVar(&i.urlOverride, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
 
-	cmd.Flags().StringVar(&i.changeListID, "issue", "", "[deprecated] Gerrit issue if this is trybot run. ")
+	cmd.Flags().StringVar(&i.changelistID, "issue", "", "[deprecated] Gerrit issue if this is trybot run. ")
 	Must(cmd.MarkFlagRequired(fstrWorkDir))
 	if !optional {
 		Must(cmd.MarkFlagRequired("instance"))
@@ -198,9 +198,9 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 		goldClient, err = goldclient.NewCloudClient(auth, config)
 		ifErrLogExit(cmd, err)
 
-		if i.changeListID != "" {
+		if i.changelistID != "" {
 			gr := jsonio.GoldResults{
-				ChangeListID: i.changeListID,
+				ChangelistID: i.changelistID,
 				GitHash:      "HEAD",
 			}
 			err = goldClient.SetSharedConfig(gr, true) // this will load the baseline
@@ -261,9 +261,9 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	gr := jsonio.GoldResults{
 		GitHash:                     i.commitHash,
 		Key:                         keyMap,
-		ChangeListID:                i.changeListID,
-		PatchSetOrder:               i.patchSetOrder,
-		PatchSetID:                  i.patchSetID,
+		ChangelistID:                i.changelistID,
+		PatchsetOrder:               i.patchsetOrder,
+		PatchsetID:                  i.patchsetID,
 		CodeReviewSystem:            i.codeReviewSystem,
 		TryJobID:                    i.tryJobID,
 		ContinuousIntegrationSystem: i.continuousIntegrationSystem,
@@ -305,9 +305,9 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		gr := jsonio.GoldResults{
 			GitHash:                     i.commitHash,
 			Key:                         keyMap,
-			ChangeListID:                i.changeListID,
-			PatchSetOrder:               i.patchSetOrder,
-			PatchSetID:                  i.patchSetID,
+			ChangelistID:                i.changelistID,
+			PatchsetOrder:               i.patchsetOrder,
+			PatchsetID:                  i.patchsetID,
 			CodeReviewSystem:            i.codeReviewSystem,
 			TryJobID:                    i.tryJobID,
 			ContinuousIntegrationSystem: i.continuousIntegrationSystem,

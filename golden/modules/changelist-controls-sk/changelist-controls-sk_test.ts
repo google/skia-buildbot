@@ -2,7 +2,7 @@ import './index';
 
 import { ChangelistControlsSk, ChangelistControlsSkChangeEventDetail } from './changelist-controls-sk';
 import { ChangelistControlsSkPO  } from './changelist-controls-sk_po';
-import { twoPatchSets } from './test_data';
+import { twoPatchsets } from './test_data';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
 
@@ -26,10 +26,10 @@ describe('changelist-controls-sk', () => {
       expect(changelistControlsSk.ps_order).to.equal(0);
       expect(changelistControlsSk.include_master).to.equal(false);
 
-      changelistControlsSk.summary = twoPatchSets;
+      changelistControlsSk.summary = twoPatchsets;
       expect(changelistControlsSk.ps_order).to.equal(4);
 
-      expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 4');
+      expect(await changelistControlsSkPO.getPatchset()).to.equal('PS 4');
       expect(await changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked()).to.be.true;
       expect(await changelistControlsSkPO.isShowAllResultsRadioChecked()).to.be.false;
       expect(await changelistControlsSkPO.getTryJobs()).to.deep.equal([
@@ -41,15 +41,15 @@ describe('changelist-controls-sk', () => {
     });
 
     it('shows other patchsets when ps_order is changed', async () => {
-      changelistControlsSk.summary = twoPatchSets;
+      changelistControlsSk.summary = twoPatchsets;
       changelistControlsSk.ps_order = 1;
 
-      expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 1');
+      expect(await changelistControlsSkPO.getPatchset()).to.equal('PS 1');
       expect(await changelistControlsSkPO.getTryJobs()).to.deep.equal(['android-nougat-arm64-rel']);
     });
 
     it('flips the radio buttons on include_master', async () => {
-      changelistControlsSk.summary = twoPatchSets;
+      changelistControlsSk.summary = twoPatchsets;
       expect(await changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked()).to.be.true;
       expect(await changelistControlsSkPO.isShowAllResultsRadioChecked()).to.be.false;
 
@@ -63,7 +63,7 @@ describe('changelist-controls-sk', () => {
     it('generates a cl-control-change event on "include results from primary" toggle', async () => {
       changelistControlsSk.include_master = false;
       changelistControlsSk.ps_order = 4;
-      changelistControlsSk.summary = twoPatchSets;
+      changelistControlsSk.summary = twoPatchsets;
 
       expect(await changelistControlsSkPO.isExcludeResultsFromPrimaryRadioChecked()).to.be.true;
       expect(await changelistControlsSkPO.isShowAllResultsRadioChecked()).to.be.false;
@@ -83,20 +83,20 @@ describe('changelist-controls-sk', () => {
 
     it('generates a cl-control-change event on patchset change', async () => {
       changelistControlsSk.ps_order = 0; // Use the latest patchset, i.e. 'PS 4'.
-      changelistControlsSk.summary = twoPatchSets;
+      changelistControlsSk.summary = twoPatchsets;
 
-      expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 4');
+      expect(await changelistControlsSkPO.getPatchset()).to.equal('PS 4');
 
       const event =
         eventPromise<CustomEvent<ChangelistControlsSkChangeEventDetail>>('cl-control-change');
-      await changelistControlsSkPO.setPatchSet('PS 1');
+      await changelistControlsSkPO.setPatchset('PS 1');
       const eventDetail = (await event).detail;
 
       expect(eventDetail.include_master).to.equal(false);
       expect(eventDetail.ps_order).to.equal(1);
 
       expect(changelistControlsSk.ps_order).to.equal(1);
-      expect(await changelistControlsSkPO.getPatchSet()).to.equal('PS 1');
+      expect(await changelistControlsSkPO.getPatchset()).to.equal('PS 1');
     });
   }); // end describe('events')
 });

@@ -32,14 +32,14 @@ type Store interface {
 	// undone.
 	UndoChange(ctx context.Context, changeID, userID string) error
 
-	// ForChangeList returns a new Store that will deal with the Expectations for a ChangeList
+	// ForChangelist returns a new Store that will deal with the Expectations for a Changelist
 	// with the given id (aka a CLExpectations). Any Expectations added to the returned Store
 	// will be kept separate from the master branch. Any Expectations returned should be
 	// treated as the delta between the MasterBranch and the given issue. The parameter crs is
 	// the CodeReviewSystem (e.g. "gerrit", "github") and id is the id of the CL in that CRS.p
 	// (This allows us to avoid a collision between two CLs with the same id in the event that
 	// we transition from one CRS to another).
-	ForChangeList(id, crs string) Store
+	ForChangelist(id, crs string) Store
 
 	// GetTriageHistory returns a slice of TriageHistory structs that indicate the last edits
 	// for a given grouping/digest. If not nil, the return value should be sorted such that

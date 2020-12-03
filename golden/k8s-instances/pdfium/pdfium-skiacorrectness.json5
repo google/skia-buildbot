@@ -3,7 +3,7 @@
     "google.com",
   ],
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
-View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}}",
+View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   client_secret_file: "/etc/skia.org/login.json",
   diff_server_grpc: "gold-pdfium-diffserver:8000",
   diff_server_http: "gold-pdfium-diffserver:8001",
