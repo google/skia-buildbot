@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/leasing/go/types"
 )
 
 type SwarmingInstanceClients struct {
@@ -109,12 +110,7 @@ func GetIsolateClient(pool string) **isolate.Client {
 	return GetSwarmingInstance(pool).IsolateClient
 }
 
-type PoolDetails struct {
-	OsTypes         map[string]int
-	OsToDeviceTypes map[string]map[string]int
-}
-
-func getPoolDetails(pool string) (*PoolDetails, error) {
+func getPoolDetails(pool string) (*types.PoolDetails, error) {
 	swarmingClient := *GetSwarmingClient(pool)
 	bots, err := swarmingClient.ListBotsForPool(pool)
 	if err != nil {
@@ -154,14 +150,14 @@ func getPoolDetails(pool string) (*PoolDetails, error) {
 			osToDeviceTypes[osType][deviceType]++
 		}
 	}
-	return &PoolDetails{
+	return &types.PoolDetails{
 		OsTypes:         osTypes,
 		OsToDeviceTypes: osToDeviceTypes,
 	}, nil
 }
 
-func GetDetailsOfAllPools() (map[string]*PoolDetails, error) {
-	poolToDetails := map[string]*PoolDetails{}
+func GetDetailsOfAllPools() (map[string]*types.PoolDetails, error) {
+	poolToDetails := map[string]*types.PoolDetails{}
 	for pool := range PoolsToSwarmingInstance {
 		details, err := getPoolDetails(pool)
 		if err != nil {

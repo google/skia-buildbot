@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/leasing/go/types"
 )
 
 const (
@@ -72,7 +73,7 @@ var (
 	// OAUTH params
 	authAllowList = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 
-	poolToDetails      map[string]*PoolDetails
+	poolToDetails      map[string]*types.PoolDetails
 	poolToDetailsMutex sync.Mutex
 )
 
@@ -311,34 +312,7 @@ func (srv *Server) supportedPoolsHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-type Task struct {
-	Requester               string    `json:"requester"`
-	OsType                  string    `json:"osType"`
-	DeviceType              string    `json:"deviceType"`
-	InitialDurationHrs      string    `json:"duration"`
-	Created                 time.Time `json:"created"`
-	LeaseStartTime          time.Time `json:"leaseStartTime"`
-	LeaseEndTime            time.Time `json:"leaseEndTime"`
-	Description             string    `json:"description"`
-	Done                    bool      `json:"done"`
-	WarningSent             bool      `json:"warningSent"`
-	EmailThreadingReference string    `json:"emailThreadingReference"`
-
-	TaskIdForIsolates string `json:"taskIdForIsolates"`
-	SwarmingPool      string `json:"pool"`
-	SwarmingBotId     string `json:"botId"`
-	SwarmingServer    string `json:"swarmingServer"`
-	SwarmingTaskId    string `json:"swarmingTaskId"`
-	SwarmingTaskState string `json:"swarmingTaskState"`
-
-	DatastoreId int64 `json:"datastoreId"`
-
-	// Left for backwards compatibility but no longer used.
-	Architecture  string `json:"architecture"`
-	SetupDebugger bool   `json:"setupDebugger"`
-}
-
-type sortTasks []*Task
+type sortTasks []*types.Task
 
 func (a sortTasks) Len() int      { return len(a) }
 func (a sortTasks) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -346,11 +320,11 @@ func (a sortTasks) Less(i, j int) bool {
 	return a[i].Created.After(a[j].Created)
 }
 
-func getLeasingTasks(filterUser string) ([]*Task, error) {
-	tasks := []*Task{}
+func getLeasingTasks(filterUser string) ([]*types.Task, error) {
+	tasks := []*types.Task{}
 	it := GetAllDSTasks(filterUser)
 	for {
-		t := &Task{}
+		t := &types.Task{}
 		k, err := it.Next(t)
 		if err == iterator.Done {
 			break
@@ -410,10 +384,7 @@ func (srv *Server) allLeasesHandler(w http.ResponseWriter, r *http.Request) {
 func (srv *Server) extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	extendRequest := struct {
-		TaskID      int64 `json:"task"`
-		DurationHrs int   `json:"duration"`
-	}{}
+	extendRequest := types.ExtendTaskRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&extendRequest); err != nil {
 		httputils.ReportError(w, err, "Failed to decode extend request", http.StatusInternalServerError)
 		return
@@ -456,9 +427,7 @@ func (srv *Server) extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 func (srv *Server) expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	expireRequest := struct {
-		TaskID int64 `json:"task"`
-	}{}
+	expireRequest := types.ExpireTaskRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&expireRequest); err != nil {
 		httputils.ReportError(w, err, "Failed to decode expire request", http.StatusInternalServerError)
 		return
@@ -494,7 +463,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := context.Background()
 
-	task := &Task{}
+	task := &types.Task{}
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to add %T task", task), http.StatusInternalServerError)
 		return
