@@ -100,12 +100,6 @@ def RunSteps(api):
 
   # More prerequisites.
   builder = api.properties['buildername']
-  with api.context(cwd=infra_dir, env=env):
-    if 'Race' not in builder:
-      api.step(
-          'install bower',
-          cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
-
   run_emulators = infra_dir.join('scripts', 'run_emulators', 'run_emulators')
   if ('Large' in builder) or ('Race' in builder):
     with api.context(cwd=infra_dir, env=env):

@@ -32,9 +32,8 @@ services/bugdroid/bugdroid_log.txt
 git_cookie_authdaemon/third_party
 google_oauth_token.data
 oauth-token.cache
-# Bower and Node related directories
+# Node related directories
 node_modules
-bower_components
 # Sublime project files
 *.sublime-project
 *.sublime-workspace
@@ -70,13 +69,8 @@ alertserver/third_party
 status/third_party
 android_ingest/third_party
 android_compile/third_party
-res/imp/res
-res/imp/9/res
-res/imp/9/res/js
-res/imp/9/bower_components
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
-tracedb/local_perf.toml
 fiddle/fiddle_secwrap
 fiddle/res/css
 prometheus/tmp
