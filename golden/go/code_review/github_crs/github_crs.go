@@ -112,52 +112,53 @@ type commit struct {
 // https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
 type commitsOnPullRequestResponse []commit
 
-// GetPatchsets implements the code_review.Client interface.
-func (c *CRSImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
+// GetPatchset implements the code_review.Client interface.
+func (c *CRSImpl) GetPatchset(ctx context.Context, clID, psID string, psOrder int) (code_review.Patchset, error) {
 	if _, err := strconv.ParseInt(clID, 10, 64); err != nil {
-		return nil, skerr.Fmt("invalid Changelist ID")
+		return code_review.Patchset{}, skerr.Fmt("invalid Changelist ID")
 	}
-	var xps []code_review.Patchset
-
 	// At the moment, paging returns 30 at a time and the API docs say that it stops after
 	// 250 commits. Just to be safe, we should bail out of page is more than 20 (~600 patchsets) in
 	// an effort to not hang on some unanticipated response. Normally we break when the API
 	// gives us 0 responses for a page, indicating we have all the patchsets.
+	order := 0
 	for page := 1; page < 20; page++ {
 		// Respect the rate limit.
 		if err := c.rl.Wait(ctx); err != nil {
-			return nil, skerr.Wrap(err)
+			return code_review.Patchset{}, skerr.Wrap(err)
 		}
 		u := fmt.Sprintf("https://api.github.com/repos/%s/pulls/%s/commits?page=%d", c.repo, clID, page)
 		resp, err := httputils.GetWithContext(ctx, c.client, u)
 		if err != nil {
 			sklog.Errorf("Error getting commits on PR %s with url %s: %s", clID, u, err)
 			// Assume an error here is the Changelist is not found
-			return nil, code_review.ErrNotFound
+			return code_review.Patchset{}, code_review.ErrNotFound
 		}
 		var cprr commitsOnPullRequestResponse
 		err = json.NewDecoder(resp.Body).Decode(&cprr)
 		if err != nil {
 			util.Close(resp.Body)
-			return nil, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
+			return code_review.Patchset{}, skerr.Wrapf(err, "received invalid JSON from GitHub: %s", u)
 		}
 		util.Close(resp.Body)
 
 		// Assume GitHub returns these in ascending order
-		for i, ps := range cprr {
-			xps = append(xps, code_review.Patchset{
-				SystemID:     ps.Hash,
-				ChangelistID: clID,
-				Order:        i + 1,
-				GitHash:      ps.Hash,
-			})
+		for _, ps := range cprr {
+			order++
+			if psOrder == order || psID == ps.Hash {
+				return code_review.Patchset{
+					SystemID:     ps.Hash,
+					ChangelistID: clID,
+					Order:        order,
+					GitHash:      ps.Hash,
+				}, nil
+			}
 		}
 		if len(cprr) == 0 {
 			break
 		}
 	}
-
-	return xps, nil
+	return code_review.Patchset{}, code_review.ErrNotFound
 }
 
 // GetChangelistIDForCommit implements the code_review.Client interface.

@@ -5,7 +5,6 @@ package gerrit_crs
 import (
 	"context"
 	"errors"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -83,26 +82,22 @@ func statusToEnum(g string) code_review.CLStatus {
 }
 
 // GetPatchsets implements the code_review.Client interface.
-func (c *CRSImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
+func (c *CRSImpl) GetPatchset(ctx context.Context, clID, psID string, psOrder int) (code_review.Patchset, error) {
 	cl, err := c.getGerritCL(ctx, clID)
 	if err != nil {
-		return nil, err
+		return code_review.Patchset{}, err
 	}
-	var xps []code_review.Patchset
 	for _, p := range cl.Patchsets {
-		xps = append(xps, code_review.Patchset{
-			SystemID:     p.ID,
-			ChangelistID: clID,
-			Order:        int(p.Number),
-			GitHash:      p.ID,
-		})
+		if p.ID == psID || int(p.Number) == psOrder {
+			return code_review.Patchset{
+				SystemID:     p.ID,
+				ChangelistID: clID,
+				Order:        int(p.Number),
+				GitHash:      p.ID,
+			}, nil
+		}
 	}
-	// Gerrit probably returns them in order, but this ensures it.
-	sort.Slice(xps, func(i, j int) bool {
-		return xps[i].Order < xps[j].Order
-	})
-
-	return xps, nil
+	return code_review.Patchset{}, code_review.ErrNotFound
 }
 
 // GetChangelistIDForCommit implements the code_review.Client interface.

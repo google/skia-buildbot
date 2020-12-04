@@ -16,10 +16,10 @@ type Client interface {
 	// Returns ErrNotFound if it doesn't exist.
 	GetChangelist(ctx context.Context, id string) (Changelist, error)
 
-	// GetPatchsets returns the Patchsets belonging to the Changelist with the ID
-	// in index order (see Patchset.Order).
-	// Returns ErrNotFound if the Changelist doesn't exist.
-	GetPatchsets(ctx context.Context, clID string) ([]Patchset, error)
+	// GetPatchset returns the Patchset belonging to the changelist and the provided id or order.
+	// One of psID or psOrder should be set - the non-zero version will be used.
+	// Returns ErrNotFound if the Patchset or Changelist doesn't exist.
+	GetPatchset(ctx context.Context, clID, psID string, psOrder int) (Patchset, error)
 
 	// GetChangelistIDForCommit returns the Changelist id corresponding to the given git commit.
 	// Returns ErrNotFound if one could not be identified.

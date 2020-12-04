@@ -114,79 +114,105 @@ func TestGetChangelistOtherErr(t *testing.T) {
 	assert.Contains(t, err.Error(), "oops")
 }
 
-func TestGetPatchsetsSunnyDay(t *testing.T) {
+const omitPS = ""
+const omitOrder = 0
+
+func TestGetPatchset_PatchsetExists_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	const id = "235460"
+	gci := getOpenChangeInfo()
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
+
+	c := New(mgi)
+	const clID = "235460"
+	const psOneID = "993b807277763b351e72d01e6d65461c4bf57981"
+	const psFourID = "337da6ea3a14fd2899b39d0a60c6828971c0d883"
+
+	expectedFirstPS := code_review.Patchset{
+		SystemID:     psOneID,
+		ChangelistID: clID,
+		Order:        1,
+		GitHash:      psOneID,
+	}
+	expectedFifthPS := code_review.Patchset{
+		SystemID:     psFourID,
+		ChangelistID: clID,
+		Order:        4,
+		GitHash:      psFourID,
+	}
+
+	ps, err := c.GetPatchset(context.Background(), clID, psOneID, omitOrder)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFirstPS, ps)
+	ps, err = c.GetPatchset(context.Background(), clID, omitPS, 1)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFirstPS, ps)
+
+	ps, err = c.GetPatchset(context.Background(), clID, psFourID, omitOrder)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFifthPS, ps)
+	ps, err = c.GetPatchset(context.Background(), clID, omitPS, 4)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFifthPS, ps)
+}
+
+func TestGetPatchset_PatchsetDoesNotExist_ReturnsNotFound(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgi := &mocks.GerritInterface{}
+	defer mgi.AssertExpectations(t)
+
 	gci := getOpenChangeInfo()
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 
 	c := New(mgi)
 
-	xps, err := c.GetPatchsets(context.Background(), id)
-	require.NoError(t, err)
-	require.Equal(t, []code_review.Patchset{
-		{
-			SystemID:     "993b807277763b351e72d01e6d65461c4bf57981",
-			ChangelistID: id,
-			Order:        1,
-			GitHash:      "993b807277763b351e72d01e6d65461c4bf57981",
-		},
-		{
-			SystemID:     "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
-			ChangelistID: id,
-			Order:        2,
-			GitHash:      "4cfd5b1ed4d6938efc61fd127bb4a458198ac620",
-		},
-		{
-			SystemID:     "787d20c0117d455ef28cce925e2bb5302c2254ad",
-			ChangelistID: id,
-			Order:        3,
-			GitHash:      "787d20c0117d455ef28cce925e2bb5302c2254ad",
-		},
-		{
-			SystemID:     "337da6ea3a14fd2899b39d0a60c6828971c0d883",
-			ChangelistID: id,
-			Order:        4,
-			GitHash:      "337da6ea3a14fd2899b39d0a60c6828971c0d883",
-		},
-	}, xps)
+	const clID = "235460"
+	_, err := c.GetPatchset(context.Background(), clID, "does not exist", omitOrder)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+	_, err = c.GetPatchset(context.Background(), clID, omitPS, 1000)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestGetPatchsetsDoesNotExist(t *testing.T) {
+func TestGetPatchset_ChangelistDoesNotExist_ReturnsNotFound(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	const id = "235460"
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, gerrit.ErrNotFound)
 
 	c := New(mgi)
 
-	_, err := c.GetPatchsets(context.Background(), id)
+	const clID = "235460"
+	_, err := c.GetPatchset(context.Background(), clID, "nope", omitOrder)
 	require.Error(t, err)
-	require.Equal(t, code_review.ErrNotFound, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+	_, err = c.GetPatchset(context.Background(), clID, omitPS, 1)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
 }
 
-func TestGetPatchsetsInvalidID(t *testing.T) {
+func TestGetPatchset_InvalidIDForChangelist_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
 	defer mgi.AssertExpectations(t)
 
-	const id = "not_an_integer"
 	c := New(mgi)
 
-	_, err := c.GetPatchsets(context.Background(), id)
+	const clID = "not_an_integer"
+	_, err := c.GetPatchset(context.Background(), clID, "nope", omitOrder)
 	require.Error(t, err)
 	require.Equal(t, invalidID, err)
 }
 
-func TestGetPatchsetsOtherErr(t *testing.T) {
+func TestGetPatchset_OtherError_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mgi := &mocks.GerritInterface{}
@@ -197,7 +223,7 @@ func TestGetPatchsetsOtherErr(t *testing.T) {
 
 	c := New(mgi)
 
-	_, err := c.GetPatchsets(context.Background(), id)
+	_, err := c.GetPatchset(context.Background(), id, "whatever", 7)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "fetching CL")
 	assert.Contains(t, err.Error(), "oops")

@@ -327,21 +327,13 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 		// Fetch PS from clstore if we have seen it before, from CRS if we have not.
 		ps, err := system.Store.GetPatchset(ctx, clID, psID)
 		if err == clstore.ErrNotFound {
-			xps, err := system.Client.GetPatchsets(ctx, clID)
+			ps, err := system.Client.GetPatchset(ctx, clID, psID, 0)
 			if err != nil {
-				return code_review.Patchset{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", system.ID, clID)
+				sklog.Warningf("Unknown %s PS %s for CL %q: %s", system.ID, psID, clID, err)
+				// Try again later - maybe the input was created before the CL uploaded its PS?
+				return code_review.Patchset{}, ingestion.IgnoreResultsFileErr
 			}
-			// It should be ok to overwrite any Patchsets we've seen before - they should be
-			// immutable.
-			for _, p := range xps {
-				if p.SystemID == psID {
-					return p, nil
-				}
-			}
-			sklog.Warningf("Unknown %s PS %s for CL %q", system.ID, psID, clID)
-			// Try again later - maybe the input was created before the CL uploaded its PS?
-			return code_review.Patchset{}, ingestion.IgnoreResultsFileErr
-
+			return ps, nil
 		} else if err != nil {
 			return code_review.Patchset{}, skerr.Wrapf(err, "fetching PS from clstore with id %s for CL %q", psID, clID)
 		}
@@ -351,19 +343,13 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
 	ps, err := system.Store.GetPatchsetByOrder(ctx, clID, psOrder)
 	if err == clstore.ErrNotFound {
-		xps, err := system.Client.GetPatchsets(ctx, clID)
+		ps, err := system.Client.GetPatchset(ctx, clID, "", psOrder)
 		if err != nil {
-			return code_review.Patchset{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", system.ID, clID)
+			sklog.Warningf("Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
+			// Try again later - maybe the input was created before the CL uploaded its PS?
+			return code_review.Patchset{}, ingestion.IgnoreResultsFileErr
 		}
-		// It should be ok to put any Patchsets we've seen before - they should be immutable.
-		for _, p := range xps {
-			if p.Order == psOrder {
-				return p, nil
-			}
-		}
-		sklog.Warningf("Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
-		// Try again later - maybe the input was created before the CL uploaded its PS?
-		return code_review.Patchset{}, ingestion.IgnoreResultsFileErr
+		return ps, nil
 	} else if err != nil {
 		return code_review.Patchset{}, skerr.Wrapf(err, "fetching PS from clstore with order %d for CL %q", psOrder, clID)
 	}

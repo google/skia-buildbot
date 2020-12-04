@@ -103,7 +103,10 @@ func TestGetChangelistInvalidID(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid")
 }
 
-func TestGetPatchsetsSunnyDay(t *testing.T) {
+const omitPS = ""
+const omitOrder = 0
+
+func TestGetPatchset_OnePageResults_PatchsetExists_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -113,45 +116,104 @@ func TestGetPatchsetsSunnyDay(t *testing.T) {
 	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=2", donePaging)
 	c := New(m.Client(), "unit/test")
 
-	id := "44419"
+	const clID = "44419"
+	const psOneID = "111119f299e91924405cb8bd244efc1a6c28e4fa"
+	const psFiveID = "555559b99ee360397a22cede6d9d16aacd245af1"
 
-	xps, err := c.GetPatchsets(context.Background(), id)
+	expectedFirstPS := code_review.Patchset{
+		SystemID:     psOneID,
+		ChangelistID: clID,
+		Order:        1,
+		GitHash:      psOneID,
+	}
+	expectedFifthPS := code_review.Patchset{
+		SystemID:     psFiveID,
+		ChangelistID: clID,
+		Order:        5,
+		GitHash:      psFiveID,
+	}
+
+	ps, err := c.GetPatchset(context.Background(), clID, psOneID, omitOrder)
 	require.NoError(t, err)
-	assert.Equal(t, []code_review.Patchset{
-		{
-			SystemID:     "a892f9f299e91924405cb8bd244efc1a6c28e4fa",
-			ChangelistID: id,
-			Order:        1,
-			GitHash:      "a892f9f299e91924405cb8bd244efc1a6c28e4fa",
-		},
-		{
-			SystemID:     "042f0382b7ec0efdb7570c3e6c891cf2a20379a7",
-			ChangelistID: id,
-			Order:        2,
-			GitHash:      "042f0382b7ec0efdb7570c3e6c891cf2a20379a7",
-		},
-		{
-			SystemID:     "a332b7085723c13fa96777a1830c7113e7ffba96",
-			ChangelistID: id,
-			Order:        3,
-			GitHash:      "a332b7085723c13fa96777a1830c7113e7ffba96",
-		},
-		{
-			SystemID:     "d3e3d639d8a1cca0929829b04d90f35011b50fbf",
-			ChangelistID: id,
-			Order:        4,
-			GitHash:      "d3e3d639d8a1cca0929829b04d90f35011b50fbf",
-		},
-		{
-			SystemID:     "74a239b99ee360397a22cede6d9d16aacd245af1",
-			ChangelistID: id,
-			Order:        5,
-			GitHash:      "74a239b99ee360397a22cede6d9d16aacd245af1",
-		},
-	}, xps)
+	assert.Equal(t, expectedFirstPS, ps)
+	ps, err = c.GetPatchset(context.Background(), clID, omitPS, 1)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFirstPS, ps)
+
+	ps, err = c.GetPatchset(context.Background(), clID, psFiveID, omitOrder)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFifthPS, ps)
+	ps, err = c.GetPatchset(context.Background(), clID, omitPS, 5)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFifthPS, ps)
 }
 
-func TestGetPatchsetsNone(t *testing.T) {
+func TestGetPatchset_TwoPageResults_PatchsetsExist_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	m := mockhttpclient.NewURLMock()
+	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", fiveCommits)
+	twoCommits := mockhttpclient.MockGetDialogue([]byte(twoCommitsOnPullRequestResponse))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=2", twoCommits)
+	donePaging := mockhttpclient.MockGetDialogue([]byte("[]"))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=3", donePaging)
+	c := New(m.Client(), "unit/test")
+
+	const clID = "44419"
+	const psFiveID = "555559b99ee360397a22cede6d9d16aacd245af1"  // first page
+	const psSevenID = "77777b5b0a55743c586708a94cbb69feb7bf32cd" // second page
+
+	expectedFifthPS := code_review.Patchset{
+		SystemID:     psFiveID,
+		ChangelistID: clID,
+		Order:        5,
+		GitHash:      psFiveID,
+	}
+	expectedSeventhPS := code_review.Patchset{
+		SystemID:     psSevenID,
+		ChangelistID: clID,
+		Order:        7,
+		GitHash:      psSevenID,
+	}
+
+	ps, err := c.GetPatchset(context.Background(), clID, psSevenID, omitOrder)
+	require.NoError(t, err)
+	assert.Equal(t, expectedSeventhPS, ps)
+	ps, err = c.GetPatchset(context.Background(), clID, omitPS, 7)
+	require.NoError(t, err)
+	assert.Equal(t, expectedSeventhPS, ps)
+
+	ps, err = c.GetPatchset(context.Background(), clID, psFiveID, omitOrder)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFifthPS, ps)
+	ps, err = c.GetPatchset(context.Background(), clID, omitPS, 5)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFifthPS, ps)
+}
+
+func TestGetPatchset_OnePageResults_PatchsetDoesNotExist_ReturnsNotFound(t *testing.T) {
+	unittest.SmallTest(t)
+
+	m := mockhttpclient.NewURLMock()
+	fiveCommits := mockhttpclient.MockGetDialogue([]byte(fiveCommitsOnPullRequestResponse))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", fiveCommits)
+	donePaging := mockhttpclient.MockGetDialogue([]byte("[]"))
+	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=2", donePaging)
+	c := New(m.Client(), "unit/test")
+
+	const clID = "44419"
+	_, err := c.GetPatchset(context.Background(), clID, "does not exist", omitOrder)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+
+	_, err = c.GetPatchset(context.Background(), clID, omitPS, 10000)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+
+}
+
+func TestGetPatchset_NoPatchsetsReturned_ReturnsNotFound(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -160,12 +222,17 @@ func TestGetPatchsetsNone(t *testing.T) {
 	m.Mock("https://api.github.com/repos/unit/test/pulls/44419/commits?page=1", none)
 	c := New(m.Client(), "unit/test")
 
-	xps, err := c.GetPatchsets(context.Background(), "44419")
-	require.NoError(t, err)
-	assert.Empty(t, xps)
+	_, err := c.GetPatchset(context.Background(), "44419", "whatever", omitOrder)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+
+	_, err = c.GetPatchset(context.Background(), "44419", omitPS, 4)
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+
 }
 
-func TestGetPatchsetsDoesNotExist(t *testing.T) {
+func TestGetPatchset_ChangelistDoesNotExist_ReturnsNotFound(t *testing.T) {
 	unittest.SmallTest(t)
 
 	m := mockhttpclient.NewURLMock()
@@ -173,9 +240,22 @@ func TestGetPatchsetsDoesNotExist(t *testing.T) {
 	// as we would expect for a 404
 	c := New(m.Client(), "unit/test")
 
-	_, err := c.GetPatchsets(context.Background(), "44345")
+	_, err := c.GetPatchset(context.Background(), "1234", "nope", omitOrder)
 	require.Error(t, err)
 	require.Equal(t, code_review.ErrNotFound, err)
+	_, err = c.GetPatchset(context.Background(), "1234", omitPS, 1)
+	require.Error(t, err)
+	require.Equal(t, code_review.ErrNotFound, err)
+}
+
+func TestGetPatchset_InvalidIDForChangelist_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	c := New(nil, "unit/test")
+
+	_, err := c.GetPatchset(context.Background(), "bad", "nope", omitOrder)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid")
 }
 
 func TestGetChangelistForCommitSunnyDay(t *testing.T) {
@@ -194,16 +274,6 @@ func TestGetChangelistForCommitSunnyDay(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "44380", clID)
-}
-
-func TestGetPatchsetsInvalidID(t *testing.T) {
-	unittest.SmallTest(t)
-
-	c := New(nil, "unit/test")
-
-	_, err := c.GetPatchsets(context.Background(), "bad")
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid")
 }
 
 func TestGetChangelistForCommitMalformed(t *testing.T) {
@@ -284,22 +354,33 @@ const abandonedPullRequestResponse = `
 	"merged_at": null
 }`
 
-// This is based on https://github.com/flutter/flutter/pull/44419
+// This is based on https://github.com/flutter/flutter/pull/44419, with the shas changed for
+// readability.
 const fiveCommitsOnPullRequestResponse = `
 [
   {
-    "sha": "a892f9f299e91924405cb8bd244efc1a6c28e4fa"
+    "sha": "111119f299e91924405cb8bd244efc1a6c28e4fa"
   },
   {
-    "sha": "042f0382b7ec0efdb7570c3e6c891cf2a20379a7"
+    "sha": "22222382b7ec0efdb7570c3e6c891cf2a20379a7"
   },
   {
-    "sha": "a332b7085723c13fa96777a1830c7113e7ffba96"
+    "sha": "333337085723c13fa96777a1830c7113e7ffba96"
   },
   {
-    "sha": "d3e3d639d8a1cca0929829b04d90f35011b50fbf"
+    "sha": "44444639d8a1cca0929829b04d90f35011b50fbf"
   },
   {
-    "sha": "74a239b99ee360397a22cede6d9d16aacd245af1"
+    "sha": "555559b99ee360397a22cede6d9d16aacd245af1"
+  }
+]`
+
+const twoCommitsOnPullRequestResponse = `
+[
+  {
+    "sha": "666667ad358596996cfd8664b66a9087e3d7ee1c"
+  },
+  {
+    "sha": "77777b5b0a55743c586708a94cbb69feb7bf32cd"
   }
 ]`
