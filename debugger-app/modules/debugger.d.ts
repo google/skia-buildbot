@@ -23,6 +23,7 @@ export interface SkpDebugPlayer {
   drawTo(surface: SkSurface, index: number): void;
   findCommandByPixel(surface: SkSurface, x: number, y: number, upperBound: number): number;
   getBounds(): SkIRect;
+  getBoundsForFrame(frame: number): SkIRect;
   getFrameCount(): number;
   getImageResource(index: number): string;
   getImageCount(): number;

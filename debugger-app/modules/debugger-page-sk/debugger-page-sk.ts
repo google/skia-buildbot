@@ -50,7 +50,7 @@ import { ResourcesSk } from '../resources-sk/resources-sk';
 
 // Types for the wasm bindings
 import {
-  Debugger, DebuggerInitOptions, SkpDebugPlayer, SkSurface, SkpJsonCommandList,
+  Debugger, DebuggerInitOptions, SkpDebugPlayer, SkIRect, SkSurface, SkpJsonCommandList,
   MatrixClipInfo, Matrix3x3, Matrix4x4
 } from '../debugger';
 
@@ -332,7 +332,7 @@ export class DebuggerPageSk extends ElementDocSk {
   }
 
   private _checkUrlParams() {
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
     if (params.has('url')) {
       const skpurl = params.get('url')!;
       fetch(skpurl).then((response) => response.arrayBuffer()).then((ab) => {
@@ -470,12 +470,18 @@ export class DebuggerPageSk extends ElementDocSk {
     if (this._fileContext) {
       // From the loaded SKP, player knows how large its picture is. Resize our canvas
       // to match.
-      let bounds = this._fileContext.player.getBounds();
+      const bounds = this._fileContext.player.getBounds();
       width = bounds.fRight - bounds.fLeft;
       height = bounds.fBottom - bounds.fTop;
       // Still ok to proceed if no skp, the toggle still should work before a file
       // is picked.
     }
+    this._replaceSurfaceKnownBounds(width, height);
+  }
+
+  // replace surface, using the given size
+  private _replaceSurfaceKnownBounds(width: number, height: number) {
+    if (!this._debugger) { return; }
     const canvas = this._debugViewSk!.resize(width, height);
     // free the wasm memory of the previous surface
     if (this._surface) { this._surface.dispose(); }
@@ -491,8 +497,20 @@ export class DebuggerPageSk extends ElementDocSk {
   // Note that if you want to move the frame for the whole app, just as if a user did it,
   // this is not the function you're looking for, instead set this._timelineSk.item
   private _moveFrameTo(n: number) {
-    // Clear the surface back to transparent.
-    this._surface!.clear(0);
+
+    // bounds may change too, requring a new surface and gl context, but this is costly and
+    // only rarely nnecessary
+    let oldBounds = this._fileContext!.player.getBounds();
+    let newBounds = this._fileContext!.player.getBoundsForFrame(n);
+    if (!this._boundsEqual(oldBounds, newBounds)) {
+      const width = newBounds.fRight - newBounds.fLeft;
+      const height = newBounds.fBottom - newBounds.fTop;
+      this._replaceSurfaceKnownBounds(width, height);
+    } else {
+      // When not changing size, it only needs to be cleared.
+      this._surface!.clear(0);
+    }
+
     this._fileContext!.player.changeFrame(n);
     // If the frame moved and the state is paused, also update the command list
     const mode = this._timelineSk!.querySelector<PlaySk>('play-sk')!.mode;
@@ -504,6 +522,13 @@ export class DebuggerPageSk extends ElementDocSk {
       this._updateDebuggerView();
     }
     this._timelineSk!.playsk.movedTo(n);
+  }
+
+  private _boundsEqual(a: SkIRect, b: SkIRect) {
+    return (a.fLeft === b.fLeft
+         && a.fTop === b.fTop
+         && a.fRight === b.fRight
+         && a.fBottom === b.fBottom);
   }
 
   // Fetch the list of commands for the frame or layer the debugger is currently showing
