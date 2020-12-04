@@ -639,6 +639,84 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gold-cros-tast-dev-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-cros-tast-dev-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-cros-tast-dev-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-cros-tast-dev-diffserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-cros-tast-dev-diffserver",
+                        "port_value": 8001
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-cros-tast-dev-diffserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "gold-cros-tast-dev-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-cros-tast-dev-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-cros-tast-dev-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-flutter-engine-baselineserver",
           "endpoints": [
             {
@@ -1055,32 +1133,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "debugger-assets",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "debugger-assets",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "debugger-assets",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "demoserver",
           "endpoints": [
             {
@@ -1308,32 +1360,6 @@
           ]
         },
         "name": "leasing",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "legacy-debugger",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "legacy-debugger",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "legacy-debugger",
         "type": "STRICT_DNS"
       },
       {
@@ -3111,6 +3137,84 @@
                       ]
                     },
                     {
+                      "domains": "cros-tast-dev-gold.skia.org",
+                      "name": "cros-tast-dev-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/json/hashes"
+                          },
+                          "route": {
+                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/json/expectations"
+                          },
+                          "route": {
+                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/hashes"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/expectations.*"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-cros-tast-dev-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-cros-tast-dev-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-cros-tast-dev-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "flutter-engine-gold.skia.org",
                       "name": "flutter-engine-gold.skia.org",
                       "routes": [
@@ -3515,23 +3619,6 @@
                       ]
                     },
                     {
-                      "domains": "debugger-assets.skia.org",
-                      "name": "debugger-assets.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "debugger-assets",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "domains": "demos.skia.org",
                       "name": "demos.skia.org",
                       "routes": [
@@ -3677,23 +3764,6 @@
                           },
                           "route": {
                             "cluster": "leasing",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "legacy-debugger.skia.org",
-                      "name": "legacy-debugger.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "legacy-debugger",
                             "timeout": {
                               "seconds": 600
                             }

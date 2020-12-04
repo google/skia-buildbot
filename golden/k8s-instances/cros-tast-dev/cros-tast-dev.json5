@@ -1,0 +1,21 @@
+{
+  bt_instance: "production",
+  bt_project_id: "skia-public",
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://chromium-review.googlesource.com",
+      url_template: "https://chromium-review.googlesource.com/%s"
+    },
+  ],
+  gcs_bucket: "skia-gold-cros-tast-dev",
+  git_bt_table: "git-repos2",
+  git_repo_url: "https://chromium.googlesource.com/chromiumos/platform/tast-tests",
+  fs_namespace: "cros-tast-dev",
+  fs_project_id: "skia-firestore",
+  known_hashes_gcs_path: "skia-gold-cros-tast-dev/hash_files/gold-cros-tast-dev-hashes.txt",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
+}

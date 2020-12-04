@@ -5,19 +5,20 @@ package goldpushk
 
 const (
 	// Gold instances.
-	Angle         Instance = "angle"
-	Chrome        Instance = "chrome"
-	ChromeGPU     Instance = "chrome-gpu"
-	ChromePublic  Instance = "chrome-public"
-	Flutter       Instance = "flutter"
-	FlutterEngine Instance = "flutter-engine"
-	Fuchsia       Instance = "fuchsia"
-	FuchsiaPublic Instance = "fuchsia-public"
-	Lottie        Instance = "lottie"
-	Pdfium        Instance = "pdfium"
-	Skia          Instance = "skia"
-	SkiaInfra     Instance = "skia-infra"
-	SkiaPublic    Instance = "skia-public"
+	Angle             Instance = "angle"
+	Chrome            Instance = "chrome"
+	ChromeGPU         Instance = "chrome-gpu"
+	ChromePublic      Instance = "chrome-public"
+	ChromiumOSTastDev Instance = "cros-tast-dev"
+	Flutter           Instance = "flutter"
+	FlutterEngine     Instance = "flutter-engine"
+	Fuchsia           Instance = "fuchsia"
+	FuchsiaPublic     Instance = "fuchsia-public"
+	Lottie            Instance = "lottie"
+	Pdfium            Instance = "pdfium"
+	Skia              Instance = "skia"
+	SkiaInfra         Instance = "skia-infra"
+	SkiaPublic        Instance = "skia-public"
 
 	// Gold services.
 	BaselineServer  Service = "baselineserver"
@@ -56,6 +57,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			Chrome,
 			ChromeGPU,
 			ChromePublic,
+			ChromiumOSTastDev,
 			Flutter,
 			FlutterEngine,
 			Fuchsia,
@@ -89,7 +91,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Angle, Chrome, ChromeGPU, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
+		Angle, Chrome, ChromeGPU, ChromiumOSTastDev, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)

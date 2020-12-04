@@ -539,7 +539,7 @@ func (g *Goldpushk) pushConfigMap(ctx context.Context, path, configMapName strin
 		// Command "kubectl delete configmap" returns exit code 1 when the ConfigMap does not exist on
 		// the cluster.
 		var exitError *osexec.ExitError
-		if errors.As(err, &exitError) && exitError.ExitCode() == 1 {
+		if errors.As(skerr.Unwrap(err), &exitError) && exitError.ExitCode() == 1 {
 			sklog.Infof("Did not delete ConfigMap %s as it does not exist on the cluster.", configMapName)
 		} else {
 			return skerr.Wrap(err)

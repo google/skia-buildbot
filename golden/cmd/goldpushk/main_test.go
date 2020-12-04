@@ -132,6 +132,8 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	chromeIngestionBT := makeID(goldpushk.Chrome, goldpushk.IngestionBT)
 	chromeSkiaCorrectness := makeID(goldpushk.Chrome, goldpushk.SkiaCorrectness)
 	chromePublicSkiaCorrectness := makeID(goldpushk.ChromePublic, goldpushk.SkiaCorrectness)
+	chromiumTastSkiaCorrectness := makeID(goldpushk.ChromiumOSTastDev, goldpushk.SkiaCorrectness)
+	chromiumTastDiffServer := makeID(goldpushk.ChromiumOSTastDev, goldpushk.DiffServer)
 	flutterDiffServer := makeID(goldpushk.Flutter, goldpushk.DiffServer)
 	flutterEngineDiffServer := makeID(goldpushk.FlutterEngine, goldpushk.DiffServer)
 	flutterEngineSkiaCorrectness := makeID(goldpushk.FlutterEngine, goldpushk.SkiaCorrectness)
@@ -151,253 +153,124 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	skiaPublicSkiaCorrectness := makeID(goldpushk.SkiaPublic, goldpushk.SkiaCorrectness)
 	skiaSkiaCorrectness := makeID(goldpushk.Skia, goldpushk.SkiaCorrectness)
 
-	testCases := []struct {
-		message string // Test case name.
+	test := func(name string, flagInstances, flagServices, flagCanaries []string, expectedDeployableUnitIDs, expectedCanariedDeployableUnitIDs []goldpushk.DeployableUnitID) {
+		t.Run(name, func(t *testing.T) {
+			deployableUnits, canariedDeployableUnits, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), flagInstances, flagServices, flagCanaries)
+			deployableUnitIDs := mapUnitsToIDs(deployableUnits)
+			canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
 
-		// Inputs.
-		flagInstances []string
-		flagServices  []string
-		flagCanaries  []string
-
-		// Expected outputs.
-		expectedDeployableUnitIDs         []goldpushk.DeployableUnitID
-		expectedCanariedDeployableUnitIDs []goldpushk.DeployableUnitID
-	}{
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// No wildcards                                                                               //
-		////////////////////////////////////////////////////////////////////////////////////////////////
-
-		{
-			message:                   "Single instance, single service, no canary",
-			flagInstances:             []string{"chrome"},
-			flagServices:              []string{"baselineserver"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeBaselineServer},
-		},
-
-		{
-			message:                   "Single instance, multiple services, no canary",
-			flagInstances:             []string{"chrome"},
-			flagServices:              []string{"baselineserver", "diffserver"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
-		},
-
-		{
-			message:                           "Single instance, multiple services, one canary",
-			flagInstances:                     []string{"chrome"},
-			flagServices:                      []string{"baselineserver", "diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"chrome:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeSkiaCorrectness},
-		},
-
-		{
-			message:                           "Single instance, multiple services, multiple canaries",
-			flagInstances:                     []string{"chrome"},
-			flagServices:                      []string{"baselineserver", "diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"chrome:diffserver", "chrome:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeBaselineServer},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness},
-		},
-
-		{
-			message:                   "Multiple instances, single service, no canary",
-			flagInstances:             []string{"chrome", "skia", "skia-public"},
-			flagServices:              []string{"skiacorrectness"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeSkiaCorrectness, skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "Multiple instances, single service, one canary",
-			flagInstances:                     []string{"chrome", "skia", "skia-public"},
-			flagServices:                      []string{"skiacorrectness"},
-			flagCanaries:                      []string{"skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeSkiaCorrectness, skiaSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "Multiple instances, single service, multiple canaries",
-			flagInstances:                     []string{"chrome", "skia", "skia-public"},
-			flagServices:                      []string{"skiacorrectness"},
-			flagCanaries:                      []string{"skia:skiacorrectness", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                   "Multiple instances, multiple services, no canary",
-			flagInstances:             []string{"chrome", "skia", "skia-public"},
-			flagServices:              []string{"diffserver", "skiacorrectness"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "Multiple instances, multiple services, one canary",
-			flagInstances:                     []string{"chrome", "skia", "skia-public"},
-			flagServices:                      []string{"diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "Multiple instances, multiple services, multiple canaries",
-			flagInstances:                     []string{"chrome", "skia", "skia-public"},
-			flagServices:                      []string{"diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"skia:skiacorrectness", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaDiffServer},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Wildcard: --service all                                                                    //
-		////////////////////////////////////////////////////////////////////////////////////////////////
-
-		{
-			message:                   "Single instance, all services, no canary",
-			flagInstances:             []string{"chrome"},
-			flagServices:              []string{"all"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness},
-		},
-
-		{
-			message:                           "Single instance, all services, one canary",
-			flagInstances:                     []string{"chrome"},
-			flagServices:                      []string{"all"},
-			flagCanaries:                      []string{"chrome:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeSkiaCorrectness},
-		},
-
-		{
-			message:                           "Single instance, all services, multiple canaries",
-			flagInstances:                     []string{"chrome"},
-			flagServices:                      []string{"all"},
-			flagCanaries:                      []string{"chrome:ingestion-bt", "chrome:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeIngestionBT, chromeSkiaCorrectness},
-		},
-
-		{
-			message:                   "Multiple instances, all services, no canary",
-			flagInstances:             []string{"chrome", "skia"},
-			flagServices:              []string{"all"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer, skiaIngestionBT, skiaSkiaCorrectness},
-		},
-
-		{
-			message:                           "Multiple instances, all services, one canary",
-			flagInstances:                     []string{"chrome", "skia"},
-			flagServices:                      []string{"all"},
-			flagCanaries:                      []string{"skia:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer, skiaIngestionBT},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaSkiaCorrectness},
-		},
-
-		{
-			message:                           "Multiple instances, all services, multiple canaries",
-			flagInstances:                     []string{"chrome", "skia"},
-			flagServices:                      []string{"all"},
-			flagCanaries:                      []string{"skia:ingestion-bt", "skia:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaIngestionBT, skiaSkiaCorrectness},
-		},
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Wildcard: --instance all                                                                   //
-		////////////////////////////////////////////////////////////////////////////////////////////////
-
-		{
-			message:                   "All instances, single service, no canary",
-			flagInstances:             []string{"all"},
-			flagServices:              []string{"skiacorrectness"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "All instances, single service, one canary",
-			flagInstances:                     []string{"all"},
-			flagServices:                      []string{"skiacorrectness"},
-			flagCanaries:                      []string{"skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "All instances, single service, multiple canaries",
-			flagInstances:                     []string{"all"},
-			flagServices:                      []string{"skiacorrectness"},
-			flagCanaries:                      []string{"skia-infra:skiacorrectness", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                   "All instances, multiple services, no canary",
-			flagInstances:             []string{"all"},
-			flagServices:              []string{"diffserver", "skiacorrectness"},
-			flagCanaries:              []string{},
-			expectedDeployableUnitIDs: []goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "All instances, multiple services, one canary",
-			flagInstances:                     []string{"all"},
-			flagServices:                      []string{"diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "All instances, multiple services, multiple canaries",
-			flagInstances:                     []string{"all"},
-			flagServices:                      []string{"diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"skia-infra:skiacorrectness", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
-		},
-
-		////////////////////////////////////////////////////////////////////////////////////////////////
-		// Miscellaneous                                                                              //
-		////////////////////////////////////////////////////////////////////////////////////////////////
-
-		{
-			message:                           "Repeated inputs are ignored",
-			flagInstances:                     []string{"chrome", "chrome", "skia", "chrome", "skia", "skia-public", "skia-public"},
-			flagServices:                      []string{"diffserver", "skiacorrectness", "diffserver", "skiacorrectness"},
-			flagCanaries:                      []string{"skia:diffserver", "skia-public:skiacorrectness", "skia:diffserver", "skia-public:skiacorrectness"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaDiffServer, skiaPublicSkiaCorrectness},
-		},
-
-		{
-			message:                           "Outputs sorted by instance, then service",
-			flagInstances:                     []string{"skia-public", "chrome", "skia"},
-			flagServices:                      []string{"skiacorrectness", "diffserver"},
-			flagCanaries:                      []string{"skia-public:skiacorrectness", "skia:diffserver"},
-			expectedDeployableUnitIDs:         []goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaSkiaCorrectness},
-			expectedCanariedDeployableUnitIDs: []goldpushk.DeployableUnitID{skiaDiffServer, skiaPublicSkiaCorrectness},
-		},
+			require.NoError(t, err)
+			assert.ElementsMatch(t, expectedDeployableUnitIDs, deployableUnitIDs)
+			assert.ElementsMatch(t, expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs)
+		})
 	}
 
-	for _, tc := range testCases {
-		deployableUnits, canariedDeployableUnits, err := parseAndValidateFlags(goldpushk.ProductionDeployableUnits(), tc.flagInstances, tc.flagServices, tc.flagCanaries)
-		deployableUnitIDs := mapUnitsToIDs(deployableUnits)
-		canariedDeployableUnitIDs := mapUnitsToIDs(canariedDeployableUnits)
+	// Cases with no wild cards
+	test("Single instance, single service, no canary",
+		[]string{"chrome"}, []string{"baselineserver"}, nil,
+		[]goldpushk.DeployableUnitID{chromeBaselineServer},
+		nil)
+	test("Single instance, multiple services, no canary",
+		[]string{"chrome"}, []string{"baselineserver", "diffserver"}, nil,
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
+		nil)
+	test("Single instance, multiple services, one canary",
+		[]string{"chrome"}, []string{"baselineserver", "diffserver", "skiacorrectness"}, []string{"chrome:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
+		[]goldpushk.DeployableUnitID{chromeSkiaCorrectness})
+	test("Single instance, multiple services, multiple canaries",
+		[]string{"chrome"}, []string{"baselineserver", "diffserver", "skiacorrectness"}, []string{"chrome:diffserver", "chrome:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer},
+		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness})
+	test("Multiple instances, single service, no canary",
+		[]string{"chrome", "skia", "skia-public"}, []string{"skiacorrectness"}, nil,
+		[]goldpushk.DeployableUnitID{chromeSkiaCorrectness, skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
+		nil)
+	test("Multiple instances, single service, one canary",
+		[]string{"chrome", "skia", "skia-public"}, []string{"skiacorrectness"}, []string{"skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeSkiaCorrectness, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness})
+	test("Multiple instances, single service, multiple canaries",
+		[]string{"chrome", "skia", "skia-public"}, []string{"skiacorrectness"}, []string{"skia:skiacorrectness", "skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaSkiaCorrectness, skiaPublicSkiaCorrectness})
+	test("Multiple instances, multiple services, no canary",
+		[]string{"chrome", "skia", "skia-public"}, []string{"diffserver", "skiacorrectness"}, nil,
+		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaPublicSkiaCorrectness},
+		nil)
+	test("Multiple instances, multiple services, one canary",
+		[]string{"chrome", "skia", "skia-public"}, []string{"diffserver", "skiacorrectness"}, []string{"skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness})
+	test("Multiple instances, multiple services, multiple canaries",
+		[]string{"chrome", "skia", "skia-public"}, []string{"diffserver", "skiacorrectness"}, []string{"skia:skiacorrectness", "skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaDiffServer},
+		[]goldpushk.DeployableUnitID{skiaSkiaCorrectness, skiaPublicSkiaCorrectness})
 
-		require.NoError(t, err, tc.message)
-		assert.ElementsMatch(t, tc.expectedDeployableUnitIDs, deployableUnitIDs, tc.message)
-		assert.ElementsMatch(t, tc.expectedCanariedDeployableUnitIDs, canariedDeployableUnitIDs, tc.message)
-	}
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Wildcard: --service all                                                                    //
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	test("Single instance, all services, no canary",
+		[]string{"chrome"}, []string{"all"}, nil,
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness},
+		nil)
+	test("Single instance, all services, one canary",
+		[]string{"chrome"}, []string{"all"}, []string{"chrome:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT},
+		[]goldpushk.DeployableUnitID{chromeSkiaCorrectness})
+	test("Single instance, all services, multiple canaries",
+		[]string{"chrome"}, []string{"all"}, []string{"chrome:ingestion-bt", "chrome:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
+		[]goldpushk.DeployableUnitID{chromeIngestionBT, chromeSkiaCorrectness})
+	test("Multiple instances, all services, no canary",
+		[]string{"chrome", "skia"}, []string{"all"}, nil,
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer, skiaIngestionBT, skiaSkiaCorrectness},
+		nil)
+	test("Multiple instances, all services, one canary",
+		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer, skiaIngestionBT},
+		[]goldpushk.DeployableUnitID{skiaSkiaCorrectness})
+	test("Multiple instances, all services, multiple canaries",
+		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:ingestion-bt", "skia:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer},
+		[]goldpushk.DeployableUnitID{skiaIngestionBT, skiaSkiaCorrectness})
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Wildcard: --instance all                                                                   //
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	test("All instances, single service, no canary",
+		[]string{"all"}, []string{"skiacorrectness"}, nil,
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
+		nil)
+	test("All instances, single service, one canary",
+		[]string{"all"}, []string{"skiacorrectness"}, []string{"skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness})
+	test("All instances, single service, multiple canaries",
+		[]string{"all"}, []string{"skiacorrectness"}, []string{"skia-infra:skiacorrectness", "skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness})
+	test("All instances, multiple services, no canary",
+		[]string{"all"}, []string{"diffserver", "skiacorrectness"}, nil,
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastDiffServer, chromiumTastSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
+		nil)
+	test("All instances, multiple services, one canary",
+		[]string{"all"}, []string{"diffserver", "skiacorrectness"}, []string{"skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastDiffServer, chromiumTastSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness})
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Miscellaneous                                                                              //
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	test("Repeated inputs are ignored",
+		[]string{"chrome", "chrome", "skia", "chrome", "skia", "skia-public", "skia-public"}, []string{"diffserver", "skiacorrectness", "diffserver", "skiacorrectness"}, []string{"skia:diffserver", "skia-public:skiacorrectness", "skia:diffserver", "skia-public:skiacorrectness"},
+		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaDiffServer, skiaPublicSkiaCorrectness})
+	test("Outputs sorted by instance, then service",
+		[]string{"skia-public", "chrome", "skia"}, []string{"skiacorrectness", "diffserver"}, []string{"skia-public:skiacorrectness", "skia:diffserver"},
+		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeSkiaCorrectness, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{skiaDiffServer, skiaPublicSkiaCorrectness})
 }
 
 func TestParseAndValidateFlagsTestingSuccess(t *testing.T) {
