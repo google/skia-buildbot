@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/spf13/pflag"
+	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
@@ -247,6 +248,144 @@ func (flags *FrontendFlags) Register(fs *pflag.FlagSet) {
 	fs.StringVar(&flags.InternalPort, "internal_port", ":9000", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 	fs.IntVar(&flags.Radius, "radius", 7, "The number of commits to include on either side of a commit when clustering.")
 	fs.BoolVar(&flags.StepUpOnly, "step_up_only", false, "Only regressions that look like a step up will be reported.")
+}
+
+// Register the flags in the given FlagSet.
+func (flags *FrontendFlags) AsCliFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{
+			Destination: &flags.AuthBypassList,
+			Name:        "auth_bypass_list",
+			Value:       "",
+			Usage:       "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.ConfigFilename,
+			Name:        "config_filename",
+			Value:       "./configs/nano.json",
+			Usage:       "The name of the config file to use.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.ConnectionString,
+			Name:        "connection_string",
+			Value:       "",
+			Usage:       " Override Usage: the connection_string in the config file.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.CommitRangeURL,
+			Name:        "commit_range_url",
+			Value:       "",
+			Usage:       "A URI Usage: Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DefaultSparse,
+			Name:        "default_sparse",
+			Value:       false,
+			Usage:       "The default value for 'Sparse' in Alerts.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DoClustering,
+			Name:        "do_clustering",
+			Value:       true,
+			Usage:       "If true then run continuous clustering over all the alerts.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.NoEmail,
+			Name:        "noemail",
+			Value:       false,
+			Usage:       "Do not send emails.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.EmailClientSecretFile,
+			Name:        "email_client_secret_file",
+			Value:       "client_secret.json",
+			Usage:       "OAuth client secret JSON file for sending email.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.EmailTokenCacheFile,
+			Name:        "email_token_cache_file",
+			Value:       "client_token.json",
+			Usage:       "OAuth token cache file for sending email.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.EventDrivenRegressionDetection,
+			Name:        "event_driven_regression_detection",
+			Value:       false,
+			Usage:       "If true then regression detection is done based on PubSub events.",
+		},
+		&cli.Float64Flag{
+			Destination: &flags.Interesting,
+			Name:        "interesting",
+			Value:       50.0,
+			Usage:       "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.InternalOnly,
+			Name:        "internal_only",
+			Value:       false,
+			Usage:       "Require the user to be logged in to see any page.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.KeyOrder,
+			Name:        "key_order",
+			Value:       "build_flavor,name,sub_result,source_type",
+			Usage:       "The order that keys should be presented in for searching. All keys that don't appear here will appear after.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.Local,
+			Name:        "local",
+			Value:       false,
+			Usage:       "Running locally if true. As opposed to in production.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.NumContinuous,
+			Name:        "num_continuous",
+			Value:       50,
+			Usage:       "The number of commits to do continuous clustering over looking for regressions.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.NumContinuousParallel,
+			Name:        "num_continuous_parallel",
+			Value:       3,
+			Usage:       "The number of parallel copies of continuous clustering to run.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.NumShift,
+			Name:        "num_shift",
+			Value:       10,
+			Usage:       "The number of commits the shift navigation buttons should jump.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.Port,
+			Name:        "port",
+			Value:       ":8000",
+			Usage:       "HTTP service address (e.g., ':8000')",
+		},
+		&cli.StringFlag{
+			Destination: &flags.PromPort,
+			Name:        "prom_port",
+			Value:       ":20000",
+			Usage:       "Metrics service address (e.g., ':10110')",
+		},
+		&cli.StringFlag{
+			Destination: &flags.InternalPort,
+			Name:        "internal_port",
+			Value:       ":9000",
+			Usage:       "HTTP service address for internal clients, e.g. probers. No authentication on this port.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.Radius,
+			Name:        "radius",
+			Value:       7,
+			Usage:       "The number of commits to include on either side of a commit when clustering.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.StepUpOnly,
+			Name:        "step_up_only",
+			Value:       false,
+			Usage:       "Only regressions that look like a step up will be reported.",
+		},
+	}
 }
 
 // IngestFlags are the command-line flags for the ingestion process.

@@ -201,10 +201,9 @@ func actualMain(app application.Application) {
 {{ range $v := .Commands }}
 {{ $v }}{{ end }}{{ end }}`
 
-	var cliApp = &cli.App{
-		Name:    "perf-tool",
-		Version: "1.0",
-		Usage:   "Command-line tool for working with Perf data.",
+	cliApp := &cli.App{
+		Name:  "perf-tool",
+		Usage: "Command-line tool for working with Perf data.",
 		Flags: []cli.Flag{
 			loggingFlag,
 		},
