@@ -73,22 +73,20 @@ func (_m *Client) GetChangelistIDForCommit(ctx context.Context, commit *vcsinfo.
 	return r0, r1
 }
 
-// GetPatchsets provides a mock function with given fields: ctx, clID
-func (_m *Client) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
-	ret := _m.Called(ctx, clID)
+// GetPatchset provides a mock function with given fields: ctx, clID, psID, psOrder
+func (_m *Client) GetPatchset(ctx context.Context, clID string, psID string, psOrder int) (code_review.Patchset, error) {
+	ret := _m.Called(ctx, clID, psID, psOrder)
 
-	var r0 []code_review.Patchset
-	if rf, ok := ret.Get(0).(func(context.Context, string) []code_review.Patchset); ok {
-		r0 = rf(ctx, clID)
+	var r0 code_review.Patchset
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int) code_review.Patchset); ok {
+		r0 = rf(ctx, clID, psID, psOrder)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]code_review.Patchset)
-		}
+		r0 = ret.Get(0).(code_review.Patchset)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, clID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, int) error); ok {
+		r1 = rf(ctx, clID, psID, psOrder)
 	} else {
 		r1 = ret.Error(1)
 	}
