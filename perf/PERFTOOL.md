@@ -9,7 +9,6 @@ perf-tool
 ```
 [--help|-h]
 [--logging]
-[--version|-v]
 ```
 
 **Usage**:
@@ -23,8 +22,6 @@ perf-tool [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
 **--help, -h**: show help
 
 **--logging**: Turn on logging while running commands.
-
-**--version, -v**: print the version
 
 
 # COMMANDS
