@@ -3,8 +3,9 @@ default: ./dist
 	go install -v ./go/...
 
 docs:
-	go install ./go/perf-tool
+	go install ./go/perf-tool ./go/perfserver
 	perf-tool markdown > PERFTOOL.md
+	perfserver markdown > PERFSERVER.md
 
 # The command line tool that embeds plain files into Go code.
 ${GOPATH}/bin/rice:

@@ -9,6 +9,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/urfavecli"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/perf-tool/application"
@@ -172,39 +173,11 @@ func main() {
 }
 
 func actualMain(app application.Application) {
-	cli.MarkdownDocTemplate = `# NAME
+	cli.MarkdownDocTemplate = urfavecli.MarkdownDocTemplate
 
-{{ .App.Name }}{{ if .App.Usage }} - {{ .App.Usage }}{{ end }}
-
-# SYNOPSIS
-
-{{ .App.Name }}
-{{ if .SynopsisArgs }}
-` + "```" + `
-{{ range $v := .SynopsisArgs }}{{ $v }}{{ end }}` + "```" + `
-{{ end }}{{ if .App.UsageText }}
-# DESCRIPTION
-
-{{ .App.UsageText }}
-{{ end }}
-**Usage**:
-
-` + "```" + `
-{{ .App.Name }} [GLOBAL OPTIONS] command [COMMAND OPTIONS] [ARGUMENTS...]
-` + "```" + `
-{{ if .GlobalArgs }}
-# GLOBAL OPTIONS
-{{ range $v := .GlobalArgs }}
-{{ $v }}{{ end }}
-{{ end }}{{ if .Commands }}
-# COMMANDS
-{{ range $v := .Commands }}
-{{ $v }}{{ end }}{{ end }}`
-
-	var cliApp = &cli.App{
-		Name:    "perf-tool",
-		Version: "1.0",
-		Usage:   "Command-line tool for working with Perf data.",
+	cliApp := &cli.App{
+		Name:  "perf-tool",
+		Usage: "Command-line tool for working with Perf data.",
 		Flags: []cli.Flag{
 			loggingFlag,
 		},

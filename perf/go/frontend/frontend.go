@@ -21,8 +21,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
-	"github.com/jcgregorio/logger"
-	"github.com/spf13/pflag"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
@@ -36,7 +34,6 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/go/sklog/sklog_impl"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
@@ -130,13 +127,11 @@ type Frontend struct {
 }
 
 // New returns a new Frontend instance.
-//
-// We pass in the FlagSet so that we can emit the flag values into the logs.
-func New(flags *config.FrontendFlags, fs *pflag.FlagSet) (*Frontend, error) {
+func New(flags *config.FrontendFlags) (*Frontend, error) {
 	f := &Frontend{
 		flags: flags,
 	}
-	f.initialize(fs)
+	f.initialize()
 
 	return f, nil
 }
@@ -252,31 +247,8 @@ func (f *Frontend) newAlertsConfigProvider() continuous.ConfigProvider {
 }
 
 // initialize the application.
-func (f *Frontend) initialize(fs *pflag.FlagSet) {
+func (f *Frontend) initialize() {
 	rand.Seed(time.Now().UnixNano())
-
-	// Log to stdout.
-	glog_and_cloud.SetLogger(
-		glog_and_cloud.NewSLogCloudLogger(logger.NewFromOptions(&logger.Options{
-			SyncWriter: os.Stdout,
-		})),
-	)
-
-	// Note that we don't use common.* here, instead doing the setup manually
-	// because we are using a pflag.FlagSet instead of the global
-	// flag.CommandLine.
-	//
-	// If this works out then maybe we can fold flag.FlagSet support into
-	// common.
-	//
-	// TODO(jcgregorio) Remove the call to fs.Parse once skiaperf/main.go is
-	// removed and everything is run via perfserver.
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		sklog.Fatal(err)
-	}
-	fs.VisitAll(func(f *pflag.Flag) {
-		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
-	})
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
