@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "944b75bc_589bd221",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-04T13:50:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74735d3c_b3af1322",
+      "range": {
+        "startLine": 109,
+        "startChar": 36,
+        "endLine": 109,
+        "endChar": 50
+      },
+      "revId": "8374ba29a918bf8f74ac7169a58ff96b1d33ee45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "16353d7b_3f2fa3b3",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-03T23:58:58Z",
       "side": 1,
       "message": "Uber nit: NoPatchsetsFound",
+      "range": {
+        "startLine": 216,
+        "startChar": 21,
+        "endLine": 216,
+        "endChar": 40
+      },
+      "revId": "8374ba29a918bf8f74ac7169a58ff96b1d33ee45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dd9b4833_44d5cd16",
+        "filename": "golden/go/code_review/github_crs/github_crs_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-04T13:50:24Z",
+      "side": 1,
+      "message": "The Returned here means returned from GitHub, which is an important distinction from the other test.",
+      "parentUuid": "16353d7b_3f2fa3b3",
       "range": {
         "startLine": 216,
         "startChar": 21,
