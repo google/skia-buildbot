@@ -225,27 +225,6 @@
   },
   {
     "cmd": [
-      "sudo",
-      "npm",
-      "i",
-      "-g",
-      "bower@1.8.2"
-    ],
-    "cwd": "[START_DIR]/buildbot",
-    "env": {
-      "CHROME_HEADLESS": "1",
-      "DOCKER_CONFIG": "/home/chrome-bot/.docker",
-      "GIT_USER_AGENT": "git/1.9.1",
-      "GOCACHE": "[START_DIR]/cache/go_cache",
-      "GOFLAGS": "-mod=readonly",
-      "GOPATH": "[START_DIR]/cache/gopath",
-      "GOROOT": "[START_DIR]/go/go",
-      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/cache/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:[START_DIR]/cockroachdb:<PATH>"
-    },
-    "name": "install bower"
-  },
-  {
-    "cmd": [
       "go",
       "run",
       "./run_unittests.go",
