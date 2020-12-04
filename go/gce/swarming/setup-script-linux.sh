@@ -47,8 +47,6 @@ sudo ln -sfn /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/lib
 curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -
 sudo apt-get --assume-yes install nodejs npm
 sudo npm install --global npm@3.10.9
-sudo npm install --global bower@1.6.5
-sudo npm install --global polylint@2.10.4
 
 # Python Coverage.
 sudo pip install coverage

@@ -48,7 +48,6 @@ $ sudo apt-get install python-django
 $ go get -u github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
   go.chromium.org/luci/client/cmd/isolate
-$ npm install -g polylint bower
 ```
 
 Build ~everything:

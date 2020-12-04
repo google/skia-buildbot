@@ -58,7 +58,6 @@ var (
 		".git",
 		".recipe_deps",
 		"assets",
-		"bower_components",
 		"third_party",
 		"node_modules",
 	}

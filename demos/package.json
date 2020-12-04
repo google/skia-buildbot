@@ -16,7 +16,6 @@
     "@types/mocha": "^7.0.2",
     "@types/webpack": "^4.41.13",
     "autoprefixer": "^9.6.1",
-    "bower": "^1.8.8",
     "chai": "~4.2.0",
     "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^3.5.3",
@@ -44,7 +43,6 @@
     "ts-node": "^8.10.1",
     "typescript": "^3.9.2",
     "uglify-js": "^2.6.4",
-    "vulcanize": "~1.5.1",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3"
