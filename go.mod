@@ -165,7 +165,6 @@ require (
 	github.com/ugorji/go v1.1.4 // indirect
 	github.com/unrolled/secure v1.0.8
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/willf/bitset v1.1.11
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
