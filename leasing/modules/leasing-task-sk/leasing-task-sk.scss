@@ -1,10 +1,8 @@
-@import '../colors';
-
 leasing-task-sk {
   display: block;
   text-align: center;
 
   tr.headers {
-    background-color: var(--purple)
+    background-color: var(--on-primary)
   }
 }
