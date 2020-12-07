@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ce5fb0d9_8961637d",
+        "filename": "debugger-app/modules/debugger-page-sk/debugger-page-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-07T19:17:21Z",
+      "side": 1,
+      "message": "Nit: typo.",
+      "range": {
+        "startLine": 502,
+        "startChar": 19,
+        "endLine": 502,
+        "endChar": 29
+      },
+      "revId": "3825a341c2ce4a452e2d6e836df173f1f054acd0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
