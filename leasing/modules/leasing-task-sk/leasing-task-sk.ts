@@ -9,7 +9,7 @@
  */
 
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -25,14 +25,16 @@ import { device, getAKAStr, doImpl } from '../leasing';
 
 import '../../../infra-sk/modules/login-sk';
 
-function displayTaskStatus(task) {
+import { Task, ExpireTaskRequest, ExtendTaskRequest } from '../json';
+
+function displayTaskStatus(task: Task): string {
   if (task.done) {
     return 'Completed';
   }
   return 'Still Running';
 }
 
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp: string): string {
   if (!timestamp) {
     return timestamp;
   }
@@ -40,22 +42,22 @@ function formatTimestamp(timestamp) {
   return d.toLocaleString();
 }
 
-function displayLeaseStartTime(task) {
+function displayLeaseStartTime(task: Task): string {
   return displayLeaseTime(task.swarmingTaskState, task.leaseStartTime);
 }
 
-function displayLeaseEndTime(task) {
+function displayLeaseEndTime(task: Task): string {
   return displayLeaseTime(task.swarmingTaskState, task.leaseEndTime);
 }
 
-function displayLeaseTime(taskState, taskTime) {
+function displayLeaseTime(taskState: string, taskTime: string): string {
   if (taskState === 'PENDING') {
     return 'N/A';
   }
   return formatTimestamp(taskTime);
 }
 
-function displayDimensions(task) {
+function displayDimensions(task: Task): TemplateResult {
   let dims = task.osType;
   if (task.deviceType !== '') {
     dims += ` - ${device(task.deviceType)}${getAKAStr(task.deviceType)}`;
@@ -65,9 +67,9 @@ function displayDimensions(task) {
     Dimensions: ${dims}`;
 }
 
-function displayBotId(task) {
+function displayBotId(task: Task): TemplateResult {
   if (!task.botId) {
-    return '';
+    return html``;
   }
   return html`
     <br/>
@@ -75,9 +77,9 @@ function displayBotId(task) {
   `;
 }
 
-function displaySwarmingTaskForIsolates(task) {
+function displaySwarmingTaskForIsolates(task: Task): TemplateResult {
   if (!task.taskIdForIsolates) {
-    return '';
+    return html``;
   }
   return html`
     <br/>
@@ -85,21 +87,69 @@ function displaySwarmingTaskForIsolates(task) {
   `;
 }
 
-function displaySwarmingTask(task) {
+function displaySwarmingTask(task: Task): TemplateResult {
   if (!task.swarmingTaskId) {
-    return 'Processing';
+    return html`Processing`;
   }
   return html`
     <a href="https://${task.swarmingServer}/task?id=${task.swarmingTaskId}" target="_blank">Link</a
   `;
 }
 
-function displayLeaseButtonRow(ele) {
-  const task = ele._task;
-  if (task.done || task.swarmingTaskState === 'PENDING') {
-    return '';
+export class LeasingTaskSk extends ElementSk {
+  private leasingTask = {} as Task;
+
+  constructor() {
+    super(LeasingTaskSk.template);
   }
-  return html`
+
+  private static template = (ele: LeasingTaskSk) => html`
+  <table class="tasktable" cellpadding="5" border="1">
+    <col width ="33%">
+    <col width ="33%">
+    <col width ="33%">
+
+    <tr class="headers">
+       <td colspan=2>
+         Task - ${ele.leasingTask.description} - ${ele.leasingTask.requester} - ${displayTaskStatus(ele.leasingTask)}
+       </td>
+    </tr>
+
+    <tr>
+      <td>
+        Created: ${formatTimestamp(ele.leasingTask.created)}
+      </td>
+      <td>
+        Lease Start Time: ${displayLeaseStartTime(ele.leasingTask)}
+        <br/>
+        Lease End Time: ${displayLeaseEndTime(ele.leasingTask)}
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        Pool: ${ele.leasingTask.pool}
+        ${displayDimensions(ele.leasingTask)}
+        ${displayBotId(ele.leasingTask)}
+        ${displaySwarmingTaskForIsolates(ele.leasingTask)}
+      </td>
+      <td>
+        Task Log:${displaySwarmingTask(ele.leasingTask)}
+        <br/>
+        Task Status: ${ele.leasingTask.swarmingTaskState}
+      </td>
+    </tr>
+
+    ${LeasingTaskSk.displayLeaseButtonRow(ele)}
+  </table>
+`;
+
+  private static displayLeaseButtonRow(ele: LeasingTaskSk) {
+    const task = ele.leasingTask;
+    if (task.done || task.swarmingTaskState === 'PENDING') {
+      return '';
+    }
+    return html`
   <tr>
     <td>
       <select id="duration">
@@ -108,103 +158,58 @@ function displayLeaseButtonRow(ele) {
         <option value="6" title="6 Hours">6hr</option>
         <option value="23" title="23 Hours">23hr</option>
       </select>
-      <button raised @click=${ele._onExtend}>Extend Lease</button>
+      <button raised @click=${ele.onExtend}>Extend Lease</button>
     </td>
     <td>
-      <button raised @click=${ele._onExpire}>Expire Lease</button>
+      <button raised @click=${ele.onExpire}>Expire Lease</button>
     </td>
   </tr>
 `;
-}
-
-const template = (ele) => html`
-  <table class="tasktable" cellpadding="5" border="1">
-    <col width ="33%">
-    <col width ="33%">
-    <col width ="33%">
-
-    <tr class="headers">
-       <td colspan=2>
-         Task - ${ele._task.description} - ${ele._task.requester} - ${displayTaskStatus(ele._task)}
-       </td>
-    </tr>
-
-    <tr>
-      <td>
-        Created: ${formatTimestamp(ele._task.created)}
-      </td>
-      <td>
-        Lease Start Time: ${displayLeaseStartTime(ele._task)}
-        <br/>
-        Lease End Time: ${displayLeaseEndTime(ele._task)}
-      </td>
-    </tr>
-
-    <tr>
-      <td>
-        Pool: ${ele._task.pool}
-        ${displayDimensions(ele._task)}
-        ${displayBotId(ele._task)}
-        ${displaySwarmingTaskForIsolates(ele._task)}
-      </td>
-      <td>
-        Task Log:${displaySwarmingTask(ele._task)}
-        <br/>
-        Task Status: ${ele._task.swarmingTaskState}
-      </td>
-    </tr>
-
-    ${displayLeaseButtonRow(ele)}
-  </table>
-`;
-
-define('leasing-task-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._task = {};
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
-  _onExtend() {
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+  }
+
+  private onExtend(): void {
     const confirmed = window.confirm('Proceed with extending leasing task?');
     if (!confirmed) {
       return;
     }
-    const detail = {
-      task: this._task.datastoreId,
-      duration: parseInt($$('#duration', this).value, 10),
+    const detail: ExtendTaskRequest = {
+      task: this.leasingTask.datastoreId,
+      duration: parseInt(($$('#duration', this) as HTMLInputElement)!.value, 10),
     };
     doImpl('/_/extend_leasing_task', detail, () => {
       window.location.href = '/my_leases';
     });
   }
 
-  _onExpire() {
+  private onExpire(): void {
     const confirmed = window.confirm('Proceed with expiring leasing task?');
     if (!confirmed) {
       return;
     }
-    const detail = {
-      task: this._task.datastoreId,
+    const detail: ExpireTaskRequest = {
+      task: this.leasingTask.datastoreId,
     };
     doImpl('/_/expire_leasing_task', detail, () => {
       window.location.href = '/my_leases';
     });
   }
 
-  /** @prop task {Object} Leasing task object. */
-  get task() { return this._task; }
+  /** @prop task {Task} Leasing task object. */
+  get task(): Task { return this.leasingTask; }
 
-  set task(val) {
-    this._task = val;
+  set task(val: Task) {
+    this.leasingTask = val;
     this._render();
   }
+}
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-});
+define('leasing-task-sk', LeasingTaskSk);
