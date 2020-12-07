@@ -22,6 +22,30 @@
       },
       "revId": "885cbf3b086d2a4a545b3a5d0a3c5b10a6b8465b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8a4d6b80_c872ce5f",
+        "filename": "leasing/modules/leasing-scaffold-sk/leasing-scaffold-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-07T16:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d39cebe4_91ab54f6",
+      "range": {
+        "startLine": 38,
+        "startChar": 10,
+        "endLine": 38,
+        "endChar": 15
+      },
+      "revId": "885cbf3b086d2a4a545b3a5d0a3c5b10a6b8465b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
