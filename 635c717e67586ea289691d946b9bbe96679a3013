@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cdf4e5b8_50fc440e",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-07T14:24:03Z",
+      "side": 1,
+      "message": "Should be labelled private, and doesn\u0027t need the prefix anymore:\n\n  private tasks: Task[] \u003d [];",
+      "revId": "635c717e67586ea289691d946b9bbe96679a3013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b9fe961f_0d909ecd",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-07T14:24:03Z",
+      "side": 1,
+      "message": "You can either make this private, and since this is a member function you don\u0027t need to pass in the ele as an arg.\n\nOr you can make this \u0027private static\u0027 and keep passing in the ele as an arg.",
+      "revId": "635c717e67586ea289691d946b9bbe96679a3013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "724209d1_fd744f92",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-07T14:24:03Z",
+      "side": 1,
+      "message": "private",
+      "revId": "635c717e67586ea289691d946b9bbe96679a3013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
