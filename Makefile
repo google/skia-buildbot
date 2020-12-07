@@ -165,6 +165,7 @@ BAZEL_BUILD_TARGETS=\
 	//infra-sk/... \
 	//machine/modules/... \
 	//machine/pages/... \
+	//particles/... \
 	//puppeteer-tests/... \
 
 # Known good Bazel test targets. Eventually this should be replaced with "bazel test all".
@@ -172,6 +173,7 @@ BAZEL_TEST_TARGETS=\
 	//bazel/... \
 	//infra-sk/... \
 	//machine/modules/...\
+	//particles/... \
 	//puppeteer-tests/... \
 
 .PHONY: bazel-build
