@@ -24,7 +24,24 @@ import 'elements-sk/nav-links-sk';
 
 import '../../../infra-sk/modules/login-sk';
 
-const template = (ele) => html`
+/**
+ * Moves the elements from one NodeList to another NodeList.
+ *
+ * @param {NodeList} from - The list we are moving from.
+ * @param {NodeList} to - The list we are moving to.
+ */
+function move(from: HTMLCollection | NodeList, to: HTMLElement) {
+  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
+}
+
+export class LeasingScaffoldSk extends ElementSk {
+  private main: HTMLElement | null = null;
+
+  constructor() {
+    super(LeasingScaffoldSk.template);
+  }
+
+  private static template = (ele: LeasingScaffoldSk) => html`
   <nav>
     <nav-button-sk></nav-button-sk>
     <nav-links-sk>
@@ -42,26 +59,11 @@ const template = (ele) => html`
   <error-toast-sk></error-toast-sk>
 `;
 
-/**
- * Moves the elements from one NodeList to another NodeList.
- *
- * @param {NodeList} from - The list we are moving from.
- * @param {NodeList} to - The list we are moving to.
- */
-function move(from, to) {
-  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
-}
 
-define('leasing-scaffold-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._main = null;
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     // Don't call more than once.
-    if (this._main) {
+    if (this.main) {
       return;
     }
     // We aren't using shadow dom so we need to manually move the children of
@@ -77,24 +79,30 @@ define('leasing-scaffold-sk', class extends ElementSk {
     this._render();
 
     // Move the old children back under main.
-    this._main = this.querySelector('main');
-    move(div.children, this._main);
+    this.main = this.querySelector('main');
+    if (this.main) {
+      move(div.children, this.main);
+    }
 
     // Move all future children under main also.
     const observer = new MutationObserver((mutList) => {
       mutList.forEach((mut) => {
-        move(mut.addedNodes, this._main);
+        if (this.main) {
+          move(mut.addedNodes, this.main);
+        }
       });
     });
     observer.observe(this, { childList: true });
   }
 
   /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle() { return this.getAttribute('app_title'); }
+  get appTitle(): string { return this.getAttribute('app_title') || ''; }
 
-  set appTitle(val) { this.setAttribute('app_title', val); }
+  set appTitle(val: string) { this.setAttribute('app_title', val); }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
   }
-});
+}
+
+define('leasing-scaffold-sk', LeasingScaffoldSk);
