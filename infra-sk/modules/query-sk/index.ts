@@ -1,2 +1,2 @@
-import './query-sk.ts'
-import './query-sk.scss'
+import './query-sk';
+import './query-sk.scss';
