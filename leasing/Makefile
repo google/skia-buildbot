@@ -1,3 +1,5 @@
+include ../kube/kube.mk
+
 default: build
 
 ./modules/json/index.ts:
