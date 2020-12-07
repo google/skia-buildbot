@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "01bed941_05dea9b2",
+        "filename": "leasing/modules/leasing.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-07T19:10:19Z",
+      "side": 1,
+      "message": "We really need this in a centrally located JSON file. I need the same info for machines.skia.org.",
+      "revId": "f625513af34968bb427e66853414b1ae086ef194",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
