@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1454c1d4_cca86f62",
+        "filename": "leasing/modules/leasing-task-sk/leasing-task-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-07T16:51:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "863384e3_e2148263",
+      "range": {
+        "startLine": 100,
+        "startChar": 10,
+        "endLine": 100,
+        "endChar": 11
+      },
+      "revId": "c8a0378b011df9854c648204e785881ee169513b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "53130fb0_db662c68",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "115f0709_3fe633ff",
+        "filename": "leasing/modules/leasing-task-sk/leasing-task-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-07T16:51:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53130fb0_db662c68",
+      "range": {
+        "startLine": 175,
+        "startChar": 2,
+        "endLine": 175,
+        "endChar": 11
+      },
+      "revId": "c8a0378b011df9854c648204e785881ee169513b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c677eada_64a87453",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-12-07T15:46:26Z",
       "side": 1,
       "message": "private onExpire",
+      "range": {
+        "startLine": 189,
+        "startChar": 2,
+        "endLine": 189,
+        "endChar": 11
+      },
+      "revId": "c8a0378b011df9854c648204e785881ee169513b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f85c6ce_1189a983",
+        "filename": "leasing/modules/leasing-task-sk/leasing-task-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-07T16:51:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c677eada_64a87453",
       "range": {
         "startLine": 189,
         "startChar": 2,
