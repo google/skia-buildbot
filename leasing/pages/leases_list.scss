@@ -1,5 +1,3 @@
-@import '../modules/colors';
-
 body {
   display: block;
   padding: 0;
@@ -14,7 +12,7 @@ body {
   }
 
   td, th {
-    border: 1px solid var(--black);
+    border: 1px solid var(--on-primary);
     padding: 0.5em;
     font-size: 1.3em;
   }

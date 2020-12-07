@@ -1,5 +1,3 @@
-@import '~elements-sk/colors';
-
 leasing-scaffold-sk {
   display: block;
   text-align: center;
@@ -26,27 +24,27 @@ leasing-scaffold-sk {
   }
 
   nav-button-sk button {
-    fill: var(--white);
-    color: var(--white);
-    background: var(--blue);
+    fill: var(--on-background);
+    color: var(--on-background);
+    background: var(--primary);
     border: none;
     box-shadow: none;
   }
 
   nav-button-sk button:hover {
-    background: var(--light-blue);
+    background: var(--primary);
   }
 
   nav {
     display: flex;
     align-items: center;
     color: var(--white);
-    background: var(--blue);
+    background: var(--primary);
     text-align: left;
   }
 
   nav a[href] {
-    color: var(--black);
+    color: var(--on-primary);
     text-decoration: none;
   }
 

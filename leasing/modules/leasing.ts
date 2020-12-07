@@ -5,6 +5,8 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 // Updated from
 // https://github.com/luci/luci-py/blob/master/appengine/swarming/ui2/modules/alias.js#L33
 const DEVICE_ALIASES: Record<string, string> = {
+  '4560MMX_b_sprout': 'Android One',
+  '4560MMX_sprout': 'Android One',
   ELE: 'P30',
   'TECNO-KB8': 'Tecno Spark 3 Pro',
   angler: 'Nexus 6p',

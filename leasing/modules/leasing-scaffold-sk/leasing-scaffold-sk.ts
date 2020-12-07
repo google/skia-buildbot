@@ -23,6 +23,7 @@ import 'elements-sk/nav-button-sk';
 import 'elements-sk/nav-links-sk';
 
 import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 /**
  * Moves the elements from one NodeList to another NodeList.
@@ -42,7 +43,7 @@ export class LeasingScaffoldSk extends ElementSk {
   }
 
   private static template = (ele: LeasingScaffoldSk) => html`
-  <nav>
+  <nav class=surface-themes-sk>
     <nav-button-sk></nav-button-sk>
     <nav-links-sk>
       <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Lease Bots</span></a>
@@ -53,6 +54,7 @@ export class LeasingScaffoldSk extends ElementSk {
     </nav-links-sk>
     <h1 class=name>${ele.appTitle}</h1>
     <login-sk></login-sk>
+    <theme-chooser-sk></theme-chooser-sk>
   </nav>
   <main>
   </main>
