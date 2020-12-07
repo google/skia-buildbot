@@ -41,6 +41,11 @@ status-sk {
         padding: 0 0.5em 0 0;
         margin: 0;
         height: auto;
+
+        // We don't want icons interferring with the button click.
+        * {
+          pointer-events: none;
+        }
       }
 
       .table {
