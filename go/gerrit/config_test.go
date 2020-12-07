@@ -20,10 +20,14 @@ func testConfig(t *testing.T, cfg *Config) {
 	testCqInProgress(t, cfg)
 	testCqSuccess(t, cfg)
 	testCqSuccessNotMerged(t, cfg)
+	testCqSuccessWithHigherValues(t, cfg)
 	testCqFailed(t, cfg)
+	testCqFailedWithLowerValues(t, cfg)
 	testDryRunInProgress(t, cfg)
 	testDryRunSuccess(t, cfg)
+	testDryRunSuccessWithHigherValues(t, cfg)
 	testDryRunFailed(t, cfg)
+	testDryRunFailedWithLowerValues(t, cfg)
 }
 
 // Initial empty change. No CQ labels at all.
@@ -70,6 +74,36 @@ func testCqSuccess(t *testing.T, cfg *Config) {
 	if len(cfg.CqSuccessLabels) > 0 {
 		SetLabels(ci, cfg.CqSuccessLabels)
 	}
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.CqActiveLabels)
+	}
+	ci.Status = CHANGE_STATUS_MERGED
+	if cfg.HasCq {
+		require.False(t, cfg.CqRunning(ci))
+		require.True(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.True(t, cfg.DryRunSuccess(ci, false))
+	} else {
+		// CQ and DryRun are never running with no CQ. CqSuccess is only
+		// true if the change is merged, and DryRunSuccess is always
+		// true.
+		require.False(t, cfg.CqRunning(ci))
+		require.True(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.True(t, cfg.DryRunSuccess(ci, true))
+	}
+}
+
+// CQ success with higher label values than specified.
+func testCqSuccessWithHigherValues(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	labels := map[string]int{}
+	if len(cfg.CqSuccessLabels) > 0 {
+		for k, v := range cfg.CqSuccessLabels {
+			labels[k] = v + 1
+		}
+	}
+	SetLabels(ci, labels)
 	if cfg.CqLabelsUnsetOnCompletion {
 		UnsetLabels(ci, cfg.CqActiveLabels)
 	}
@@ -152,6 +186,37 @@ func testCqFailed(t *testing.T, cfg *Config) {
 	}
 }
 
+// CQ failed with lower label values than specified.
+func testCqFailedWithLowerValues(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetCqLabels)
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.CqActiveLabels)
+	}
+	labels := map[string]int{}
+	if len(cfg.CqFailureLabels) > 0 {
+		for k, v := range cfg.CqFailureLabels {
+			labels[k] = v - 1
+		}
+	}
+	SetLabels(ci, labels)
+	ci.Status = ""
+	if cfg.HasCq {
+		require.False(t, cfg.CqRunning(ci))
+		require.False(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.False(t, cfg.DryRunSuccess(ci, false))
+	} else {
+		// CQ and DryRun are never running with no CQ. CqSuccess is only
+		// true if the change is merged, and DryRunSuccess is always
+		// true.
+		require.False(t, cfg.CqRunning(ci))
+		require.False(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.True(t, cfg.DryRunSuccess(ci, true))
+	}
+}
+
 // Dry run in progress.
 func testDryRunInProgress(t *testing.T, cfg *Config) {
 	ci := makeChangeInfo()
@@ -190,6 +255,28 @@ func testDryRunSuccess(t *testing.T, cfg *Config) {
 	require.True(t, cfg.DryRunSuccess(ci, true))
 }
 
+// Dry run success with higher label values than specified.
+func testDryRunSuccessWithHigherValues(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetDryRunLabels)
+	labels := map[string]int{}
+	if len(cfg.DryRunSuccessLabels) > 0 {
+		for k, v := range cfg.DryRunSuccessLabels {
+			labels[k] = v + 1
+		}
+	}
+	SetLabels(ci, labels)
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.DryRunActiveLabels)
+	}
+	// Unfortunately, with no labels to differentiate, we can't verify that
+	// CqRunning is false here.
+	//require.False(t, cfg.CqRunning(ci))
+	require.False(t, cfg.CqSuccess(ci))
+	require.False(t, cfg.DryRunRunning(ci))
+	require.True(t, cfg.DryRunSuccess(ci, true))
+}
+
 // Dry run failed.
 func testDryRunFailed(t *testing.T, cfg *Config) {
 	ci := makeChangeInfo()
@@ -197,6 +284,36 @@ func testDryRunFailed(t *testing.T, cfg *Config) {
 	if len(cfg.DryRunFailureLabels) > 0 {
 		SetLabels(ci, cfg.DryRunFailureLabels)
 	}
+	if cfg.CqLabelsUnsetOnCompletion {
+		UnsetLabels(ci, cfg.DryRunActiveLabels)
+	}
+	if cfg.HasCq {
+		require.False(t, cfg.CqRunning(ci))
+		require.False(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.False(t, cfg.DryRunSuccess(ci, false))
+	} else {
+		// CQ and DryRun are never running with no CQ. CqSuccess is only
+		// true if the change is merged, and DryRunSuccess is always
+		// true.
+		require.False(t, cfg.CqRunning(ci))
+		require.False(t, cfg.CqSuccess(ci))
+		require.False(t, cfg.DryRunRunning(ci))
+		require.True(t, cfg.DryRunSuccess(ci, true))
+	}
+}
+
+// Dry run failed with lower label values than specified.
+func testDryRunFailedWithLowerValues(t *testing.T, cfg *Config) {
+	ci := makeChangeInfo()
+	SetLabels(ci, cfg.SetDryRunLabels)
+	labels := map[string]int{}
+	if len(cfg.DryRunFailureLabels) > 0 {
+		for k, v := range cfg.DryRunFailureLabels {
+			labels[k] = v - 1
+		}
+	}
+	SetLabels(ci, labels)
 	if cfg.CqLabelsUnsetOnCompletion {
 		UnsetLabels(ci, cfg.DryRunActiveLabels)
 	}

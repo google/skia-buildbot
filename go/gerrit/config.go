@@ -203,13 +203,14 @@ type Config struct {
 }
 
 // all returns true iff all of the given label keys and values are set on the
-// change. Returns true if the given map of labels is empty.
-func all(ci *ChangeInfo, labels map[string]int) bool {
+// change. Label value comparison is done using the specified compFunc.
+// Returns true if the given map of labels is empty.
+func all(ci *ChangeInfo, labels map[string]int, compFunc func(int, int) bool) bool {
 	for labelKey, wantValue := range labels {
 		found := false
 		if labelEntry, ok := ci.Labels[labelKey]; ok {
 			for _, labelDetail := range labelEntry.All {
-				if wantValue == labelDetail.Value {
+				if compFunc(labelDetail.Value, wantValue) {
 					found = true
 				}
 			}
@@ -219,6 +220,17 @@ func all(ci *ChangeInfo, labels map[string]int) bool {
 		}
 	}
 	return true
+}
+
+// Comparison functions that can be used to pass to above all function.
+func leq(x, y int) bool {
+	return x <= y
+}
+func geq(x, y int) bool {
+	return x >= y
+}
+func eq(x, y int) bool {
+	return x == y
 }
 
 // MergeLabels returns a new map containing both sets of labels. Labels from the
@@ -248,13 +260,13 @@ func (c *Config) CqRunning(ci *ChangeInfo) bool {
 	// to be running or we'll incorrectly mark the CQ as failed. Note that
 	// if the CQ never manages to merge the change, we'll be stuck in this
 	// "CQ running even though it's finished" state indefinitely.
-	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels) {
+	if len(c.CqSuccessLabels) > 0 && all(ci, c.CqSuccessLabels, geq) {
 		return true
 	}
-	if len(c.CqFailureLabels) > 0 && all(ci, c.CqFailureLabels) {
+	if len(c.CqFailureLabels) > 0 && all(ci, c.CqFailureLabels, leq) {
 		return false
 	}
-	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
+	if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels, eq) {
 		return true
 	}
 	return false
@@ -277,15 +289,15 @@ func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
 	if ci.IsClosed() {
 		return false
 	}
-	if len(c.DryRunActiveLabels) > 0 && !all(ci, c.DryRunActiveLabels) {
+	if len(c.DryRunActiveLabels) > 0 && !all(ci, c.DryRunActiveLabels, eq) {
 		return false
 	}
 	if c.CqLabelsUnsetOnCompletion {
 		return true
 	}
-	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
+	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels, geq) {
 		return false
-	} else if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels) {
+	} else if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels, leq) {
 		return false
 	}
 	return true
@@ -305,17 +317,17 @@ func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
 		return true
 	}
 	if c.CqLabelsUnsetOnCompletion {
-		if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels) {
+		if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels, eq) {
 			return false
 		}
-		if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels) {
+		if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels, eq) {
 			return false
 		}
 	}
-	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels) {
+	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels, geq) {
 		return true
 	}
-	if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels) {
+	if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels, leq) {
 		return false
 	}
 	return c.DryRunUsesTryjobResults && allTrybotsSucceeded
