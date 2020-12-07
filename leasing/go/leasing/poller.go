@@ -12,12 +12,13 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/leasing/go/types"
 	"google.golang.org/api/iterator"
 )
 
 // populateRunningTask updates the provided Task struct with a new state, botId, lease start/end times,
 // and sends a start email.
-func populateRunningTask(newState, botId string, k *datastore.Key, t *Task) error {
+func populateRunningTask(newState, botId string, k *datastore.Key, t *types.Task) error {
 	// Update the state and add the bot name.
 	t.SwarmingTaskState = newState
 	t.SwarmingBotId = botId
@@ -45,7 +46,7 @@ func populateRunningTask(newState, botId string, k *datastore.Key, t *Task) erro
 }
 
 // expireTask marks the provided Task struct as Done and sends a completion email.
-func expireTask(k *datastore.Key, t *Task) error {
+func expireTask(k *datastore.Key, t *types.Task) error {
 	t.Done = true
 	t.SwarmingTaskState = getCompletedStateStr(false)
 	if _, err := UpdateDSTask(k, t); err != nil {
@@ -60,7 +61,7 @@ func expireTask(k *datastore.Key, t *Task) error {
 }
 
 // taskExpiringSoon sends a warning email and updates the WarningSent field in the Task struct.
-func taskExpiringSoon(k *datastore.Key, t *Task) error {
+func taskExpiringSoon(k *datastore.Key, t *types.Task) error {
 	if err := SendWarningEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadingReference); err != nil {
 		return fmt.Errorf("Error sending 15m warning email: %s", err)
 	}
@@ -72,7 +73,7 @@ func taskExpiringSoon(k *datastore.Key, t *Task) error {
 }
 
 // taskCancelled marks the provided Task struct as cancelled.
-func taskCancelled(k *datastore.Key, t *Task) error {
+func taskCancelled(k *datastore.Key, t *types.Task) error {
 	t.Done = true
 	t.SwarmingTaskState = getCompletedStateStr(true)
 	t.LeaseStartTime = time.Now()
@@ -93,7 +94,7 @@ func getCompletedStateStr(failure bool) string {
 
 // checkForUnexpectedStates checks to see if the new state falls in a list of unexpected states.
 // If it does then the Task is marked as Done, the lease ended and a failure email it sent.
-func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t *Task) error {
+func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t *types.Task) error {
 	unexpectedStates := []string{
 		swarming.TASK_STATE_BOT_DIED,
 		swarming.TASK_STATE_CANCELED,
@@ -133,7 +134,7 @@ func pollSwarmingTasks() error {
 
 	it := GetRunningDSTasks()
 	for {
-		t := &Task{}
+		t := &types.Task{}
 		k, err := it.Next(t)
 		if err == iterator.Done {
 			break
