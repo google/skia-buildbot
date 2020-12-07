@@ -4,7 +4,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
 // Updated from
 // https://github.com/luci/luci-py/blob/master/appengine/swarming/ui2/modules/alias.js#L33
-const DEVICE_ALIASES = {
+const DEVICE_ALIASES: Record<string, string> = {
   ELE: 'P30',
   'TECNO-KB8': 'Tecno Spark 3 Pro',
   angler: 'Nexus 6p',
@@ -53,7 +53,7 @@ const DEVICE_ALIASES = {
 
 const UNKNOWN = 'unknown';
 
-const GPU_ALIASES = {
+const GPU_ALIASES: Record<string, string> = {
   1002: 'AMD',
   '1002:6613': 'AMD Radeon R7 240',
   '1002:6646': 'AMD Radeon R9 M280X',
@@ -107,14 +107,14 @@ const GPU_ALIASES = {
  * Returns the device alias for the specified device type. Eg: 'walleye'
  * returns 'Pixel 2'.
  */
-export function device(dt) {
+export function device(dt: string): string {
   return DEVICE_ALIASES[dt] || UNKNOWN;
 }
 
 /**
  * Returns the GPU name for the specified GPU. Eg: '10de' returns 'NVIDIA'.
  */
-export function gpu(g) {
+export function gpu(g: string): string {
   if (!g || !g.split) {
     return UNKNOWN;
   }
@@ -125,11 +125,11 @@ export function gpu(g) {
 /**
  * Returns a suitable for display aka string.
  */
-export function getAKAStr(aka) {
+export function getAKAStr(aka: string): string {
   return ` (${aka})`;
 }
 
-/*
+/**
  * Does a POST to the specified URL with the specified content.
  *
  * @param {string} url - The URL to make the POST call to.
@@ -138,7 +138,7 @@ export function getAKAStr(aka) {
  * @param {Function} action - The response of the POST call will be converted
  *                            to JSON and will be passed to the action function.
  */
-export function doImpl(url, detail, action) {
+export function doImpl(url: string, detail: any, action: (json: any)=> any): void {
   fetch(url, {
     body: JSON.stringify(detail),
     headers: {
