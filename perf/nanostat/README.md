@@ -6,7 +6,7 @@ nanostat compares statistics about nanobench results.
 
 You need to have [Go](https://golang.org) installed. Then run:
 
-    go get go.skia.org/infra/perf/nanostat
+    go get -u go.skia.org/infra/perf/nanostat
 
 If you have `$GOPATH` or `$GOBIN` set then `nanostat` should appear in your
 path, otherwise it will be installed at `$HOME/go/bin/nanostat`.
