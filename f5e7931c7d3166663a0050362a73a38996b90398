@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df43e41b_2af1e07e",
+        "filename": "leasing/modules/leasing.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-07T14:16:25Z",
+      "side": 1,
+      "message": "/** \n\nwill make this comment pop-up as context sensitive help for this func.",
+      "range": {
+        "startLine": 132,
+        "startChar": 1,
+        "endLine": 132,
+        "endChar": 2
+      },
+      "revId": "f5e7931c7d3166663a0050362a73a38996b90398",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
