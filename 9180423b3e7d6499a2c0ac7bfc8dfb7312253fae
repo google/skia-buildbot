@@ -16,6 +16,24 @@
       "message": "These exported types should have comments.",
       "revId": "9180423b3e7d6499a2c0ac7bfc8dfb7312253fae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ccd678b6_0d8142ac",
+        "filename": "leasing/go/types/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-07T16:22:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e6b27226_e3c39c05",
+      "revId": "9180423b3e7d6499a2c0ac7bfc8dfb7312253fae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
