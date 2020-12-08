@@ -1,6 +1,9 @@
 import './index';
 
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
+import { SelectSk } from 'elements-sk/select-sk/select-sk';
+import { TaskRepeaterSk } from './task-repeater-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('task-repeater-sk', () => {
@@ -14,9 +17,9 @@ describe('task-repeater-sk', () => {
 
   it('reflects changes in selection', () => {
     const taskRepeater = newInstance();
-    $$('select-sk', taskRepeater).selection = 3;
+    ($$('select-sk', taskRepeater) as SelectSk).selection = 3;
     expect(taskRepeater).to.have.property('frequency', '7');
-    taskRepeater.frequency = '2';
+    (taskRepeater as TaskRepeaterSk).frequency = '2';
     expect($$('select-sk', taskRepeater)).to.have.property('selection', 2);
   });
 });
