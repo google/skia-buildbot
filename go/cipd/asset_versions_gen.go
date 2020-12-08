@@ -3,9 +3,29 @@
 package cipd
 
 var PACKAGES = map[string]*Package{
-	"infra/3pp/tools/cpython/${platform}": {
+	"infra/3pp/tools/cpython/linux-amd64": {
 		Path:    "cipd_bin_packages",
-		Name:    "infra/3pp/tools/cpython/${platform}",
+		Name:    "infra/3pp/tools/cpython/linux-amd64",
+		Version: "version:2.7.18.chromium.30",
+	},
+	"infra/3pp/tools/cpython/linux-arm64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython/linux-arm64",
+		Version: "version:2.7.18.chromium.30",
+	},
+	"infra/3pp/tools/cpython/mac-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython/mac-amd64",
+		Version: "version:2.7.18.chromium.29",
+	},
+	"infra/3pp/tools/cpython/windows-386": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython/windows-386",
+		Version: "version:2.7.18.chromium.30",
+	},
+	"infra/3pp/tools/cpython/windows-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython/windows-amd64",
 		Version: "version:2.7.18.chromium.30",
 	},
 	"infra/3pp/tools/git/linux-amd64": {
