@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6efbf58_50b095ee",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3101,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T20:27:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "12ec3126_94fc848e",
+      "range": {
+        "startLine": 3099,
+        "startChar": 0,
+        "endLine": 3101,
+        "endChar": 66
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "922f472b_5035ee29",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-08T20:13:15Z",
       "side": 1,
       "message": "We don\u0027t currently have any autorollers that do this, but it should be possible.  Alternatively, whoever uploads the image could also create a CL to update the digest.",
+      "range": {
+        "startLine": 3104,
+        "startChar": 30,
+        "endLine": 3105,
+        "endChar": 52
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "94ae3d17_d2710d2b",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T20:27:40Z",
+      "side": 1,
+      "message": "Glad to hear it\u0027s feasible!\n\nI understand this container is uploaded automatically multiple times a day, so I don\u0027t know if it would be practical to update the digest by hand. We can always manually update it upon any significant changes to CanvasKit, Debugger, etc., but an autoroller is probably best in the long term.\n\nIf it makes things any easier, the digest can be imported from a separate, one-line file (e.g. //skia_wasm_digest.bzl) that exports the digest as a constant that can be imported from //WORKSPACE. We could even generate the entire contents of the .bzl file from a string template or something.",
+      "parentUuid": "922f472b_5035ee29",
       "range": {
         "startLine": 3104,
         "startChar": 30,
