@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7dccdba0_3c209b27",
+        "filename": "skfe/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-08T00:46:02Z",
+      "side": 1,
+      "message": "The other possibility is to pin our use to a specific version with a tag, ex:\n\n    envoyproxy/envoy:v1.14-latest",
+      "range": {
+        "startLine": 11,
+        "startChar": 98,
+        "endLine": 11,
+        "endChar": 125
+      },
+      "revId": "1851ffadabd49bfda2e681f9554099b9cc015924",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
