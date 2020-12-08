@@ -22,6 +22,30 @@
       },
       "revId": "1851ffadabd49bfda2e681f9554099b9cc015924",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39095f12_1641abcd",
+        "filename": "skfe/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T01:27:39Z",
+      "side": 1,
+      "message": "Much better, thanks! I pinned it to v1.15 instead because it\u0027s the most recent version before the deprecation of envoy.api.v2.listener.Filter.config.",
+      "parentUuid": "7dccdba0_3c209b27",
+      "range": {
+        "startLine": 11,
+        "startChar": 98,
+        "endLine": 11,
+        "endChar": 125
+      },
+      "revId": "1851ffadabd49bfda2e681f9554099b9cc015924",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
