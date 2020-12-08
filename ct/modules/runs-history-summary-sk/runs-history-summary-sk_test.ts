@@ -1,7 +1,8 @@
 import './index';
 
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 
 import {
   summaryResults3, summaryResults5, summaryResults15, summaryResults33,
@@ -9,17 +10,18 @@ import {
 import {
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { RunsHistorySummarySk } from './runs-history-summary-sk';
 
 describe('runs-history-summary-sk', () => {
-  const newInstance = setUpElementUnderTest('runs-history-summary-sk');
+  const newInstance = setUpElementUnderTest<RunsHistorySummarySk>('runs-history-summary-sk');
   fetchMock.config.overwriteRoutes = false;
 
-  let summary;
+  let summary: RunsHistorySummarySk;
   beforeEach(async () => {
     fetchMock.post('begin:/_/completed_tasks', () => {
       // Cheat so we don't have to compute timestamps to determine the period
       // on this fake backend.
-      switch ($$('runs-history-summary-sk').period) {
+      switch (($$('runs-history-summary-sk') as RunsHistorySummarySk).period) {
         case 7:
           return summaryResults3;
         case 30:
@@ -41,8 +43,8 @@ describe('runs-history-summary-sk', () => {
   });
 
   // Take index of desired button [week, month, year, ever].
-  const clickTimePeriodButton = async (i) => {
-    $('button', summary)[i].click();
+  const clickTimePeriodButton = async (i: number) => {
+    ($('button', summary)[i] as HTMLElement).click();
     await fetchMock.flush(true);
   };
 
