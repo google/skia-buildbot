@@ -442,7 +442,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
           </div>
           <div>
             <a
-              href="https://debugger.skia.org/loadfrom?url=https://fiddle.skia.org/i/${
+              href="https://debugger.skia.org?url=https://fiddle.skia.org/i/${
                 ele._runResults.fiddleHash
               }.skp"
               >Debug</a
