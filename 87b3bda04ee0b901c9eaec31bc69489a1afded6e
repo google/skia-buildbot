@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cf9ee330_39211ebd",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T20:14:10Z",
+      "side": 1,
+      "message": "Ubernit: semicolon",
+      "range": {
+        "startLine": 501,
+        "startChar": 40,
+        "endLine": 501,
+        "endChar": 41
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bfea1699_2a6042f8",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T20:14:10Z",
+      "side": 1,
+      "message": "Nit: typo",
+      "range": {
+        "startLine": 502,
+        "startChar": 50,
+        "endLine": 502,
+        "endChar": 60
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "76b01af0_a60107c1",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T20:14:10Z",
+      "side": 1,
+      "message": "Remove?",
+      "range": {
+        "startLine": 506,
+        "startChar": 0,
+        "endLine": 506,
+        "endChar": 26
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f0c9723_2a2a2255",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-08T20:14:10Z",
+      "side": 1,
+      "message": "Any chance we could add a test for this?",
+      "range": {
+        "startLine": 521,
+        "startChar": 4,
+        "endLine": 524,
+        "endChar": 5
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
