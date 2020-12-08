@@ -104,7 +104,7 @@ export class LeasingTaskSk extends ElementSk {
   }
 
   private static template = (ele: LeasingTaskSk) => html`
-  <table class="tasktable" cellpadding="5" border="1">
+  <table class="tasktable">
     <col width ="33%">
     <col width ="33%">
     <col width ="33%">
