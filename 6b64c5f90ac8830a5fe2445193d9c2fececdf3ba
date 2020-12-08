@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c1f9f0ee_f5adc132",
+        "filename": "ct/modules/task-priority-sk/task-priority-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-08T20:14:39Z",
+      "side": 1,
+      "message": "I\u0027m not sure, but it works :D",
+      "parentUuid": "f75db33d_aedc9c0f",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 64
+      },
+      "revId": "6b64c5f90ac8830a5fe2445193d9c2fececdf3ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a890a047_1fcc48ab",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-03T19:01:30Z",
       "side": 1,
       "message": ": TaskPrioritiesResponse",
+      "range": {
+        "startLine": 1,
+        "startChar": 13,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "6b64c5f90ac8830a5fe2445193d9c2fececdf3ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "906ded91_bd18fdbc",
+        "filename": "ct/modules/task-priority-sk/test_data.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-08T20:14:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a890a047_1fcc48ab",
       "range": {
         "startLine": 1,
         "startChar": 13,
