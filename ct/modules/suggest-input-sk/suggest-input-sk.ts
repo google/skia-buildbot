@@ -16,8 +16,29 @@ import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-// TODO(westont): We should probably use input-sk here.
-const template = (ele) => html`
+const DOWN_ARROW = '40';
+const UP_ARROW = '38';
+const ENTER = '13';
+
+export class SuggestInputSk extends ElementSk {
+  private _options: string[] = [];
+
+  private _suggestions: string[] = [];
+
+  private _suggestionSelected: number = -1;
+
+  private _label: string = '';
+
+  constructor() {
+    super(SuggestInputSk.template);
+
+    this._upgradeProperty('options');
+    this._upgradeProperty('acceptCustomValue');
+    this._upgradeProperty('label');
+  }
+
+  // TODO(westont): We should probably use input-sk here.
+  private static template = (ele: SuggestInputSk) => html`
 <div class=suggest-input-container>
 <input class=suggest-input autocomplete=off required
   @focus=${ele._refresh}
@@ -35,37 +56,22 @@ const template = (ele) => html`
   @click=${ele._suggestionClick}>
   <ul>
   ${ele._suggestions.map((s, i) => (ele._suggestionSelected === i
-    ? selectedOptionTemplate(s) : optionTemplate(s)))}
+    ? SuggestInputSk.selectedOptionTemplate(s) : SuggestInputSk.optionTemplate(s)))}
   </ul>
 </div>
 </div>
 `;
 
-// tabindex so the fields populate FocusEvent.relatedTarget on blur.
-const optionTemplate = (option) => html`
+  // tabindex so the fields populate FocusEvent.relatedTarget on blur.
+  private static optionTemplate = (option: string) => html`
 <li tabindex=-1 class=suggestion>${option}</li>
 `;
-const selectedOptionTemplate = (option) => html`
+
+  private static selectedOptionTemplate = (option: string) => html`
 <li tabindex=-1 class="suggestion selected">${option}</li>
 `;
 
-const DOWN_ARROW = 40;
-const UP_ARROW = 38;
-const ENTER = 13;
-
-define('suggest-input-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._options = [];
-    this._suggestions = [];
-    this._suggestionSelected = -1;
-
-    this._upgradeProperty('options');
-    this._upgradeProperty('acceptCustomValue');
-    this._upgradeProperty('label');
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
@@ -74,25 +80,25 @@ define('suggest-input-sk', class extends ElementSk {
    * @prop {string} value - Content of the input element from typing,
    * selection, etc.
    */
-  get value() {
-    // We back our value with input.value directly, to avoid issues with the
-    // input value changing without changing our value property, causing
-    // element re-rendering to be skipped.
-    return $$('input', this).value;
+  get value(): string {
+  // We back our value with input.value directly, to avoid issues with the
+  // input value changing without changing our value property, causing
+  // element re-rendering to be skipped.
+    return ($$('input', this) as HTMLInputElement).value;
   }
 
-  set value(v) {
-    $$('input', this).value = v;
+  set value(v: string) {
+    ($$('input', this) as HTMLInputElement).value = v;
   }
 
   /**
    * @prop {Array<string>} options - Values for suggestion list.
    */
-  get options() {
+  get options(): string[] {
     return this._options;
   }
 
-  set options(o) {
+  set options(o: string[]) {
     this._options = o;
   }
 
@@ -100,11 +106,11 @@ define('suggest-input-sk', class extends ElementSk {
    * @prop {Boolean} acceptCustomValue - Mirrors the
    * 'accept-custom-value' attribute.
    */
-  get acceptCustomValue() {
+  get acceptCustomValue(): boolean {
     return this.hasAttribute('accept-custom-value');
   }
 
-  set acceptCustomValue(val) {
+  set acceptCustomValue(val: boolean) {
     if (val) {
       this.setAttribute('accept-custom-value', '');
     } else {
@@ -113,27 +119,27 @@ define('suggest-input-sk', class extends ElementSk {
   }
 
   /**
-   * @prop {Array<string>} label - Label to display to guide user input.
+   * @prop string label - Label to display to guide user input.
    */
-  get label() {
+  get label(): string {
     return this._label;
   }
 
-  set label(o) {
+  set label(o: string) {
     this._label = o;
   }
 
 
-  _blur(e) {
-    // Ignore if this blur is preceding _suggestionClick.
-    const blurredElem = e.relatedTarget;
+  _blur(e: MouseEvent): void {
+  // Ignore if this blur is preceding _suggestionClick.
+    const blurredElem = e.relatedTarget as HTMLElement;
     if (blurredElem && blurredElem.classList.contains('suggestion')) {
       return;
     }
     this._commit();
   }
 
-  _commit() {
+  _commit(): void {
     if (this._suggestionSelected > -1) {
       this.value = this._suggestions[this._suggestionSelected];
     } else if (!this._options.includes(this.value) && !this.acceptCustomValue) {
@@ -146,10 +152,10 @@ define('suggest-input-sk', class extends ElementSk {
       { bubbles: true, detail: { value: this.value } }));
   }
 
-  _keyup(e) {
-    // Allow the user to scroll through suggestions using arrow keys.
+  _keyup(e: KeyboardEvent): void {
+  // Allow the user to scroll through suggestions using arrow keys.
     const len = this._suggestions.length;
-    const key = e.key || e.keyCode;
+    const key = e.key || e.code;
     if ((key === 'ArrowDown' || key === DOWN_ARROW) && len > 0) {
       this._suggestionSelected = (this._suggestionSelected + 1) % len;
       this._render();
@@ -157,22 +163,24 @@ define('suggest-input-sk', class extends ElementSk {
       this._suggestionSelected = (this._suggestionSelected + len - 1) % len;
       this._render();
     } else if (key === 'Enter' || key === ENTER) {
-      // This also commits the current selection (if present) or custom
-      // value (if allowed).
-      $$('input', this).blur();
+    // This also commits the current selection (if present) or custom
+    // value (if allowed).
+      ($$('input', this) as HTMLInputElement).dispatchEvent(
+        new Event('blur', { bubbles: true, cancelable: true }),
+      );
     }
   }
 
-  _refresh() {
+  _refresh(): void {
     const v = this.value;
-    let re;
+    let re: {test: (str: string)=> boolean; };
     try {
       re = new RegExp(v, 'i'); // case-insensitive.
     } catch (err) {
-      // If the user enters an invalid expression, just use substring
-      // match.
+    // If the user enters an invalid expression, just use substring
+    // match.
       re = {
-        test: function(str) {
+        test: function(str: string) {
           return str.indexOf(v) !== -1;
         },
       };
@@ -182,13 +190,15 @@ define('suggest-input-sk', class extends ElementSk {
     this._render();
   }
 
-  _suggestionClick(e) {
-    const item = e.target;
+  _suggestionClick(e: Event): void {
+    const item = e.target as HTMLElement;
     if (item.tagName !== 'LI') {
       return;
     }
-    const index = Array.from(item.parentNode.children).indexOf(item);
+    const index = Array.from(item.parentNode!.children).indexOf(item);
     this._suggestionSelected = index;
     this._commit();
   }
-});
+}
+
+define('suggest-input-sk', SuggestInputSk);
