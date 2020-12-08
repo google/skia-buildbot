@@ -18,7 +18,11 @@ infra/3pp/tools/git/mac-amd64                    version:2.29.2.chromium.6
 infra/3pp/tools/git/windows-386                  version:2.29.2.chromium.6
 infra/3pp/tools/git/windows-amd64                version:2.29.2.chromium.6
 infra/gsutil                                     version:4.46
-infra/3pp/tools/cpython/${platform}              version:2.7.18.chromium.30
+infra/3pp/tools/cpython/linux-amd64              version:2.7.18.chromium.30
+infra/3pp/tools/cpython/linux-arm64              version:2.7.18.chromium.30
+infra/3pp/tools/cpython/mac-amd64                version:2.7.18.chromium.29
+infra/3pp/tools/cpython/windows-386              version:2.7.18.chromium.30
+infra/3pp/tools/cpython/windows-amd64            version:2.7.18.chromium.30
 infra/tools/git/${platform}                      git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378
 infra/tools/luci-auth/${platform}                git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378
 infra/tools/luci/git-credential-luci/${platform} git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378
