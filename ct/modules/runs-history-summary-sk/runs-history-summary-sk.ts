@@ -15,11 +15,27 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { getCtDbTimestamp } from '../ctfe_utils';
 
-const template = (el) => html`
+import {
+  CompletedTask,
+  CompletedTaskResponse,
+} from '../json';
+
+export class RunsHistorySummarySk extends ElementSk {
+  private _tasks: CompletedTask[] = [];
+
+  private _uniqueUsers: number = 0;
+
+  private _period: number = 0;
+
+  constructor() {
+    super(RunsHistorySummarySk.template);
+  }
+
+  private static template = (el: RunsHistorySummarySk) => html`
 <div>
   <h4>CT Runs Summary</h4>
     <tabs-sk
-      @tab-selected-sk=${(e) => el.period = [7, 30, 365, 0][e.detail.index]}>
+      @tab-selected-sk=${(e: CustomEvent) => el.period = [7, 30, 365, 0][e.detail.index]}>
       <button>Last Week</button>
       <button>Last Month</button>
       <button>Last Year</button>
@@ -38,28 +54,21 @@ const template = (el) => html`
     <th>Description</th>
     <th>Completed</th>
   </tr>
-  ${el._tasks.map((task) => taskRowTemplate(task))}
+  ${el._tasks.map((task: CompletedTask) => RunsHistorySummarySk.taskRowTemplate(task))}
  </table>
 </div>
 `;
 
-const taskRowTemplate = (task) => html`
+  private static taskRowTemplate = (task: CompletedTask) => html`
 <tr>
-  <td>${task.Type}</td>
-  <td>${task.Username}</td>
-  <td>${task.Description}</td>
-  <td class="nowrap">${task.TsCompleted}</td>
+  <td>${task.type}</td>
+  <td>${task.username}</td>
+  <td>${task.description}</td>
+  <td class="nowrap">${task.ts_completed}</td>
 </tr>
 `;
 
-define('runs-history-summary-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._tasks = [];
-    this._uniqueUsers = 0;
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     // We wait for everything to load so scaffolding event handlers are
     // attached.
@@ -71,16 +80,16 @@ define('runs-history-summary-sk', class extends ElementSk {
   /**
    * @prop {Number} period - Number of days to look back for tasks.
    */
-  get period() {
+  get period(): number {
     return this._period;
   }
 
-  set period(val) {
+  set period(val: number) {
     this._period = val;
     this._reload();
   }
 
-  _reload() {
+  _reload(): void {
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
     let completedAfter;
     if (this._period > 0) {
@@ -97,9 +106,9 @@ define('runs-history-summary-sk', class extends ElementSk {
     };
     fetch(`/_/completed_tasks?${fromObject(queryParams)}`, { method: 'POST' })
       .then(jsonOrThrow)
-      .then((json) => {
-        this._tasks = json.CompletedTasks;
-        this._uniqueUsers = json.UniqueUsers;
+      .then((json: CompletedTaskResponse) => {
+        this._tasks = json.completed_tasks!;
+        this._uniqueUsers = json.unique_users;
       })
       .catch((e) => {
         errorMessage(e);
@@ -109,4 +118,6 @@ define('runs-history-summary-sk', class extends ElementSk {
         this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       });
   }
-});
+}
+
+define('runs-history-summary-sk', RunsHistorySummarySk);
