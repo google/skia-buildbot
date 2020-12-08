@@ -1,13 +1,15 @@
-# Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
+./modules/json/index.ts: ./go/ctfe/admin_tasks/admin_tasks.go
+	go run ./go/types -o modules/json/index.ts
+
 .PHONY: ctfe
-ctfe:
+ctfe: ./modules/json/index.ts
 	cd ../infra-sk && npm ci
 	npm ci
 	npx webpack --mode=production
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_debug
-ctfe_debug:
+ctfe_debug: ./modules/json/index.ts
 	npx webpack --mode=development
 	go install -v ./go/ctfe
 
@@ -22,6 +24,10 @@ NODE_MEMORY_LIMIT=4096
 .PHONY: puppeteer-tests
 puppeteer-tests:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+.PHONY: watch
+watch: package-lock.json
+	npx webpack --mode=development --watch
 
 .PHONY: serve
 serve:
