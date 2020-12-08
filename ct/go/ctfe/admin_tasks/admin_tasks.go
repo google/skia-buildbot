@@ -42,11 +42,15 @@ func ReloadTemplates(resourcesDir string) {
 	))
 }
 
-type RecreatePageSetsDatastoreTask struct {
+type AdminDatastoreTask struct {
 	task_common.CommonCols
 
-	PageSets      string
-	IsTestPageSet bool
+	PageSets      string `json:"page_sets"`
+	IsTestPageSet bool   `json:"is_test_page_set"`
+}
+
+type RecreatePageSetsDatastoreTask struct {
+	AdminDatastoreTask
 }
 
 func (task RecreatePageSetsDatastoreTask) GetTaskName() string {
@@ -164,12 +168,7 @@ func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Reques
 }
 
 type RecreateWebpageArchivesDatastoreTask struct {
-	task_common.CommonCols
-
-	PageSets      string
-	IsTestPageSet bool
-	ChromiumRev   string
-	SkiaRev       string
+	AdminDatastoreTask
 }
 
 func (task RecreateWebpageArchivesDatastoreTask) GetTaskName() string {
@@ -285,18 +284,18 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
-type AddTaskVars struct {
+type AdminAddTaskVars struct {
 	task_common.AddTaskCommonVars
+	PageSets string `json:"page_sets"`
 }
 
-func (vars *AddTaskVars) IsAdminTask() bool {
+func (vars *AdminAddTaskVars) IsAdminTask() bool {
 	return true
 }
 
 // Represents the parameters sent as JSON to the add_recreate_page_sets_task handler.
 type AddRecreatePageSetsTaskVars struct {
-	AddTaskVars
-	PageSets string `json:"page_sets"`
+	AdminAddTaskVars
 }
 
 func (task *AddRecreatePageSetsTaskVars) GetDatastoreKind() ds.Kind {
@@ -309,8 +308,10 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 	}
 
 	t := &RecreatePageSetsDatastoreTask{
-		PageSets:      task.PageSets,
-		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		AdminDatastoreTask{
+			PageSets:      task.PageSets,
+			IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		},
 	}
 	return t, nil
 }
@@ -321,8 +322,7 @@ func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
 type AddRecreateWebpageArchivesTaskVars struct {
-	AddTaskVars
-	PageSets string `json:"page_sets"`
+	AdminAddTaskVars
 }
 
 func (task *AddRecreateWebpageArchivesTaskVars) GetDatastoreKind() ds.Kind {
@@ -335,8 +335,10 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 	}
 
 	t := &RecreateWebpageArchivesDatastoreTask{
-		PageSets:      task.PageSets,
-		IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		AdminDatastoreTask{
+			PageSets:      task.PageSets,
+			IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
+		},
 	}
 	return t, nil
 }
