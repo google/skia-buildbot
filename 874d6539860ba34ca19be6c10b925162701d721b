@@ -16,6 +16,52 @@
       "message": "Adding Eric to CC because of the comment about autorollers in //WORKSPACE.",
       "revId": "874d6539860ba34ca19be6c10b925162701d721b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "12ec3126_94fc848e",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-08T20:13:15Z",
+      "side": 1,
+      "message": "Or worse, the image might update without us knowing.  IMO a digest is the only way for builds to be reliable.",
+      "range": {
+        "startLine": 3099,
+        "startChar": 0,
+        "endLine": 3101,
+        "endChar": 66
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "922f472b_5035ee29",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-08T20:13:15Z",
+      "side": 1,
+      "message": "We don\u0027t currently have any autorollers that do this, but it should be possible.  Alternatively, whoever uploads the image could also create a CL to update the digest.",
+      "range": {
+        "startLine": 3104,
+        "startChar": 30,
+        "endLine": 3105,
+        "endChar": 52
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
