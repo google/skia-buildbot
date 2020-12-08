@@ -110,6 +110,30 @@
       },
       "revId": "874d6539860ba34ca19be6c10b925162701d721b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "92d4f76b_1b4af256",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-08T20:33:37Z",
+      "side": 1,
+      "message": "Is this container uploaded at every Skia commit?  If so, we\u0027re definitely not going to want that many roll commits in infra.  A nightly roll might be more appropriate.",
+      "parentUuid": "94ae3d17_d2710d2b",
+      "range": {
+        "startLine": 3104,
+        "startChar": 30,
+        "endLine": 3105,
+        "endChar": 52
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
