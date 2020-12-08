@@ -16,6 +16,24 @@
       "message": "make train?",
       "revId": "77b6acc5e4b28a8f06272918c2182aa9a215f741",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9cff1280_a2b28733",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-08T15:37:32Z",
+      "side": 1,
+      "message": "oh wait, I suppose that is unnecessary, as its the already pinned to the previously existent version, that now exists.",
+      "parentUuid": "e6717f68_91ebae4f",
+      "revId": "77b6acc5e4b28a8f06272918c2182aa9a215f741",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
