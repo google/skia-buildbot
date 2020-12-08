@@ -20,11 +20,6 @@ describe('task-queue-sk', () => {
       await takeScreenshot(testBed.page, 'ct', 'task-queue-sk');
     });
 
-    it('shows the delete dialog', async () => {
-      await testBed.page.click('delete-icon-sk');
-      await takeScreenshot(testBed.page, 'ct', 'task-queue-sk_delete');
-    });
-
     it('shows the task details', async () => {
       await testBed.page.click('a.details');
       await takeScreenshot(testBed.page, 'ct', 'task-queue-sk_task-details');
