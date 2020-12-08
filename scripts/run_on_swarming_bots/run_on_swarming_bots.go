@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -200,6 +201,59 @@ func main() {
 			sklog.Info(bot.BotId)
 			continue
 		}
+		var os string
+		var arch string
+		var platform string
+		for _, dim := range bot.Dimensions {
+			if dim.Key == "os" {
+				for _, value := range dim.Value {
+					if strings.Contains(value, "Mac") {
+						os = "Mac"
+						break
+					} else if strings.Contains(value, "Linux") {
+						os = "Linux"
+						break
+					} else if strings.Contains(value, "Windows") {
+						os = "Windows"
+						break
+					}
+				}
+			} else if dim.Key == "cpu" {
+				for _, value := range dim.Value {
+					if strings.Contains(value, "arm") {
+						arch = "arm"
+						break
+					} else if strings.Contains(value, "x86-64") {
+						arch = "x86-64"
+						// Don't break, in case a bot has both "x86" and
+						// "x86-64" dimensions.
+					} else if strings.Contains(value, "x86-32") {
+						arch = "386"
+						// Don't break, in case a bot has both "x86" and
+						// "x86-64" dimensions.
+					}
+				}
+			}
+		}
+		if os == "Linux" {
+			if arch == "arm" {
+				platform = cipd.PlatformLinuxArm64
+			} else {
+				platform = cipd.PlatformLinuxAmd64
+			}
+		} else if os == "Windows" {
+			if arch == "386" {
+				platform = cipd.PlatformWindows386
+			} else {
+				platform = cipd.PlatformWindowsAmd64
+			}
+		} else if os == "Mac" {
+			platform = cipd.PlatformMacAmd64
+		}
+		if platform == "" {
+			sklog.Fatal("Unable to find platform for %s", bot.BotId)
+		}
+
 		wg.Add(1)
 		go func(id string) {
 			defer wg.Done()
@@ -213,6 +267,7 @@ func main() {
 					Value: id,
 				},
 			}
+
 			sklog.Infof("Triggering on %s", id)
 			req := &swarming_api.SwarmingRpcsNewTaskRequest{
 				Name:     *taskName,
@@ -227,7 +282,7 @@ func main() {
 									Path: "cache/vpython",
 								},
 							},
-							CipdInput:  swarming.ConvertCIPDInput(cipd.PkgsPython),
+							CipdInput:  swarming.ConvertCIPDInput(cipd.PkgsPython[platform]),
 							Command:    cmd,
 							Dimensions: dims,
 							EnvPrefixes: []*swarming_api.SwarmingRpcsStringListPair{

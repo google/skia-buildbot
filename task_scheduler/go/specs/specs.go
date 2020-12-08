@@ -73,11 +73,32 @@ var (
 		cipd.MustGetPackage("infra/tools/luci/isolate/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci/isolated/${platform}"),
 	}
-	CIPD_PKGS_PYTHON  []*CipdPackage = cipd.PkgsPython
-	CIPD_PKGS_KITCHEN                = append([]*CipdPackage{
+	CIPD_PKGS_PYTHON_LINUX_AMD64   []*CipdPackage = cipd.PkgsPython[cipd.PlatformLinuxAmd64]
+	CIPD_PKGS_PYTHON_LINUX_ARM64   []*CipdPackage = cipd.PkgsPython[cipd.PlatformLinuxArm64]
+	CIPD_PKGS_PYTHON_MAC_AMD64     []*CipdPackage = cipd.PkgsPython[cipd.PlatformMacAmd64]
+	CIPD_PKGS_PYTHON_WINDOWS_386   []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindows386]
+	CIPD_PKGS_PYTHON_WINDOWS_AMD64 []*CipdPackage = cipd.PkgsPython[cipd.PlatformWindowsAmd64]
+
+	CIPD_PKGS_KITCHEN_LINUX_AMD64 = append([]*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
 		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
-	}, CIPD_PKGS_PYTHON...)
+	}, CIPD_PKGS_PYTHON_LINUX_AMD64...)
+	CIPD_PKGS_KITCHEN_LINUX_ARM64 = append([]*CipdPackage{
+		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
+	}, CIPD_PKGS_PYTHON_LINUX_ARM64...)
+	CIPD_PKGS_KITCHEN_MAC_AMD64 = append([]*CipdPackage{
+		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
+	}, CIPD_PKGS_PYTHON_MAC_AMD64...)
+	CIPD_PKGS_KITCHEN_WINDOWS_386 = append([]*CipdPackage{
+		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
+	}, CIPD_PKGS_PYTHON_WINDOWS_386...)
+	CIPD_PKGS_KITCHEN_WINDOWS_AMD64 = append([]*CipdPackage{
+		cipd.MustGetPackage("infra/tools/luci/kitchen/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci-auth/${platform}"),
+	}, CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
 
 	// Variable placeholders; these are replaced with the actual value
 	// at task triggering time.

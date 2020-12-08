@@ -169,7 +169,7 @@ func props(p map[string]string) string {
 func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUNDLE_RECIPES_NAME, &specs.TaskSpec{
 		CasSpec:      CAS_RECIPES,
-		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.CIPD_PKGS_PYTHON...),
+		CipdPackages: append(specs.CIPD_PKGS_GIT_LINUX_AMD64, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/bundle_recipes.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
 		},
@@ -222,7 +222,9 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
 // recipe.
 func kitchenTask(name, recipe, casSpec, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN...)
+	// TODO(borenet): Currently all callers are for Linux tasks, but that may
+	// not always be the case.
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN_LINUX_AMD64...)
 	properties := map[string]string{
 		"buildername":   name,
 		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
@@ -344,11 +346,12 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	cipd := []*specs.CipdPackage{}
 	if strings.Contains(name, "Win") {
 		cipd = append(cipd, specs.CIPD_PKGS_GIT_WINDOWS_AMD64...)
+		cipd = append(cipd, specs.CIPD_PKGS_PYTHON_WINDOWS_AMD64...)
 	} else {
 		cipd = append(cipd, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+		cipd = append(cipd, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
 	}
 	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
-	cipd = append(cipd, specs.CIPD_PKGS_PYTHON...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("node"))
 
 	machineType := MACHINE_TYPE_MEDIUM

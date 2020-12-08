@@ -36,6 +36,9 @@ const (
 
 	// Template for Git CIPD package for a particular platform.
 	pkgGitTmpl = "infra/3pp/tools/git/%s"
+
+	// Template for cpython CIPD package for a particular platform.
+	pkgCpythonTmpl = "infra/3pp/tools/cpython/%s"
 )
 
 var (
@@ -75,9 +78,27 @@ var (
 	}
 
 	// CIPD packages required for using Python.
-	PkgsPython = []*Package{
-		MustGetPackage("infra/3pp/tools/cpython/${platform}"),
-		MustGetPackage("infra/tools/luci/vpython/${platform}"),
+	PkgsPython = map[string][]*Package{
+		PlatformLinuxAmd64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxAmd64)),
+			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+		},
+		PlatformLinuxArm64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArm64)),
+			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+		},
+		PlatformMacAmd64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformMacAmd64)),
+			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+		},
+		PlatformWindows386: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformWindows386)),
+			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+		},
+		PlatformWindowsAmd64: {
+			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformWindowsAmd64)),
+			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+		},
 	}
 )
 
