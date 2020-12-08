@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "04390fe4_1b401cf9",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-08T20:07:32Z",
+      "side": 1,
+      "message": "Added a comment.",
+      "parentUuid": "de067ccd_c2fda861",
+      "range": {
+        "startLine": 130,
+        "startChar": 10,
+        "endLine": 130,
+        "endChar": 21
+      },
+      "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d6a99d06_881107d4",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-03T18:52:41Z",
       "side": 1,
       "message": "In previous CL I asked to make a TaskDescriptor class. Use it here?",
+      "range": {
+        "startLine": 161,
+        "startChar": 45,
+        "endLine": 161,
+        "endChar": 64
+      },
+      "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a1f36ead_676411cf",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-08T20:07:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d6a99d06_881107d4",
       "range": {
         "startLine": 161,
         "startChar": 45,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "03b14e26_3aa670f0",
+        "filename": "ct/modules/task-queue-sk/task-queue-sk_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-08T20:07:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5e8ee27_dea5b42e",
+      "range": {
+        "startLine": 27,
+        "startChar": 47,
+        "endLine": 27,
+        "endChar": 52
+      },
+      "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7e1162af_c4c066d8",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-12-03T18:52:41Z",
       "side": 1,
       "message": "Do we actually get any type checking for out variable instantiation this way? I think we want export const singleResultCanDelete: GetTasksResponse \u003d {...}\n\nHere and below.",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 22
+      },
+      "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21852893_8043ad32",
+        "filename": "ct/modules/task-queue-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-08T20:07:32Z",
+      "side": 1,
+      "message": "Seems to do type checking because when I change a member name it complains. But did \"singleResultCanDelete: GetTasksResponse\" to be consistent with other places.",
+      "parentUuid": "7e1162af_c4c066d8",
       "range": {
         "startLine": 34,
         "startChar": 1,
