@@ -393,7 +393,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find end index: %s", err)
 	}
-	beginIndex := types.CommitNumber(int32(endIndex) - (b.tileSize - 1))
+	beginIndex := endIndex.Add(-(b.tileSize - 1))
 	if beginIndex < 0 {
 		beginIndex = 0
 	}
@@ -491,8 +491,8 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		progress.Message("Step", fmt.Sprintf("%d/%d", steps, steps+1))
 		steps += 1
 
-		endIndex = types.CommitNumber(int32(endIndex) - b.tileSize)
-		beginIndex = types.CommitNumber(int32(beginIndex) - b.tileSize)
+		endIndex = endIndex.Add(-b.tileSize)
+		beginIndex = endIndex.Add(-b.tileSize)
 		if endIndex < 0 {
 			break
 		}
