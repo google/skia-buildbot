@@ -15,6 +15,15 @@ type CommitNumber int32
 // BadCommitNumber is an invalid CommitNumber.
 const BadCommitNumber CommitNumber = -1
 
+// Add an offset to a CommitNumber and return the resulting CommitNumber.
+func (c CommitNumber) Add(offset int32) CommitNumber {
+	ret := c + CommitNumber(offset)
+	if ret < 0 {
+		return BadCommitNumber
+	}
+	return ret
+}
+
 // CommitNumberSlice is a utility class for sorting CommitNumbers.
 type CommitNumberSlice []CommitNumber
 
