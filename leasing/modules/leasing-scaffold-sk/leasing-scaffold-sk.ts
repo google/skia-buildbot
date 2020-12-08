@@ -19,10 +19,10 @@ import 'elements-sk/icon/account-box-icon-sk';
 import 'elements-sk/icon/group-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/nav-button-sk';
-import 'elements-sk/nav-links-sk';
 
+import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 /**
  * Moves the elements from one NodeList to another NodeList.
@@ -42,21 +42,30 @@ export class LeasingScaffoldSk extends ElementSk {
   }
 
   private static template = (ele: LeasingScaffoldSk) => html`
-  <nav>
-    <nav-button-sk></nav-button-sk>
-    <nav-links-sk>
-      <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Lease Bots</span></a>
-      <a href="/my_leases" tab-index=0 ><account-box-icon-sk></account-box-icon-sk><span>My Leases<span></a>
-      <a href="/all_leases" tab-index=0 ><group-icon-sk></group-icon-sk><span>All Leases<span></a>
-      <a href="https://goto.google.com/skolo-leasing" tab-index=0 ><help-icon-sk></help-icon-sk><span>Docs</span></a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/leasing" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
-    </nav-links-sk>
-    <h1 class=name>${ele.appTitle}</h1>
-    <login-sk></login-sk>
-  </nav>
-  <main>
-  </main>
-  <error-toast-sk></error-toast-sk>
+  <app-sk>
+    <header class="primary-container-themes-sk">
+      <h1 class=name>${ele.appTitle}</h1>
+      <div class="spacer"></div>
+      <login-sk></login-sk>
+      <theme-chooser-sk></theme-chooser-sk>
+    </header>
+
+    <aside class="surface-themes-sk">
+      <nav>
+        <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Lease Bots</span></a>
+        <a href="/my_leases" tab-index=0 ><account-box-icon-sk></account-box-icon-sk><span>My Leases<span></a>
+        <a href="/all_leases" tab-index=0 ><group-icon-sk></group-icon-sk><span>All Leases<span></a>
+        <a href="https://goto.google.com/skolo-leasing" tab-index=0 ><help-icon-sk></help-icon-sk><span>Docs</span></a>
+        <a href="https://github.com/google/skia-buildbot/tree/master/leasing" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
+      </nav>
+    </aside>
+
+    <main></main>
+
+    <footer>
+      <error-toast-sk></error-toast-sk>
+    <footer>
+  <app-sk>
 `;
 
 

@@ -21,11 +21,11 @@ leasing-selections-sk {
   }
 
   table.options {
-    border: 1px solid var(--black);
+    border: 1px solid var(--on-background);
     border-collapse: collapse;
   }
 
   tr {
-    border-bottom: 1px solid var(--black);
+    border-bottom: 1px solid var(--on-background);
   }
 }

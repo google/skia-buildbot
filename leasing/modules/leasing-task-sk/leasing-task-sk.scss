@@ -4,7 +4,22 @@ leasing-task-sk {
   display: block;
   text-align: center;
 
-  tr.headers {
-    background-color: var(--purple)
+  table.tasktable {
+    border: 1px solid var(--on-background);
+    padding: 5px;
+  }
+
+  table.tasktable tr.headers {
+    background-color: var(--primary);
+    color: var(--on-primary);
+  }
+
+  a[href] {
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  a[href]:hover {
+    text-decoration: underline;
   }
 }
