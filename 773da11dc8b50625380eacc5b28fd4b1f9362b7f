@@ -16,6 +16,24 @@
       "message": "PTAL, I think I\u0027ve got all the changes now",
       "revId": "773da11dc8b50625380eacc5b28fd4b1f9362b7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2490f653_aad3a840",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-08T18:41:30Z",
+      "side": 1,
+      "message": "LGTM",
+      "parentUuid": "b304d7d4_e752e8c4",
+      "revId": "773da11dc8b50625380eacc5b28fd4b1f9362b7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
