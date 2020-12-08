@@ -59,6 +59,17 @@ export interface PageSet {
 	description: string;
 }
 
+export interface CLDataResponse {
+	cl: string;
+	subject: string;
+	url: string;
+	modified: string;
+	chromium_patch: string;
+	skia_patch: string;
+	v8_patch: string;
+	catapult_patch: string;
+}
+
 export interface CompletedTask {
 	type: string;
 	username: string;

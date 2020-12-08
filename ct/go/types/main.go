@@ -35,6 +35,7 @@ func main() {
 		task_common.BenchmarksPlatformsResponse{},
 		task_common.TaskPrioritiesResponse{},
 		task_common.PageSet{},
+		task_common.CLDataResponse{},
 
 		pending_tasks.CompletedTaskResponse{},
 

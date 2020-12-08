@@ -637,31 +637,38 @@ type clDetail struct {
 	CodereviewURL string
 }
 
-func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
-	clData := map[string]string{}
-	clData["cl"] = strconv.FormatInt(detail.Issue, 10)
-	clData["subject"] = detail.Subject
-	clData["url"] = detail.CodereviewURL
+type CLDataResponse struct {
+	CL            string `json:"cl"`
+	Subject       string `json:"subject"`
+	URL           string `json:"url"`
+	Modified      string `json:"modified"`
+	ChromiumPatch string `json:"chromium_patch"`
+	SkiaPatch     string `json:"skia_patch"`
+	V8Patch       string `json:"v8_patch"`
+	CatapultPatch string `json:"catapult_patch"`
+}
+
+func gatherCLData(detail clDetail, patch string) (*CLDataResponse, error) {
+	clData := &CLDataResponse{
+		CL:      strconv.FormatInt(detail.Issue, 10),
+		Subject: detail.Subject,
+		URL:     detail.CodereviewURL,
+	}
 	modifiedTime, err := time.Parse("2006-01-02 15:04:05.999999", detail.Modified)
 	if err != nil {
 		sklog.Errorf("Unable to parse modified time for CL %d; input '%s', got %v", detail.Issue, detail.Modified, err)
-		clData["modified"] = ""
 	} else {
-		clData["modified"] = modifiedTime.UTC().Format(ctutil.TS_FORMAT)
+		clData.Modified = modifiedTime.UTC().Format(ctutil.TS_FORMAT)
 	}
-	clData["chromium_patch"] = ""
-	clData["skia_patch"] = ""
-	clData["v8_patch"] = ""
-	clData["catapult_patch"] = ""
 	switch detail.Project {
 	case "chromium", "chromium/src":
-		clData["chromium_patch"] = patch
+		clData.ChromiumPatch = patch
 	case "skia":
-		clData["skia_patch"] = patch
+		clData.SkiaPatch = patch
 	case "v8/v8":
-		clData["v8_patch"] = patch
+		clData.V8Patch = patch
 	case "catapult":
-		clData["catapult_patch"] = patch
+		clData.CatapultPatch = patch
 	default:
 		sklog.Errorf("CL project is %s; only chromium, skia, v8, catapult are supported.", detail.Project)
 	}
