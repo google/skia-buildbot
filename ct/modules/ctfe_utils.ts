@@ -5,11 +5,12 @@ import { pad } from 'common-sk/modules/human';
 import { fromObject } from 'common-sk/modules/query';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { BenchmarksPlatformsResponse } from './json';
 
 /**
  * Converts the timestamp used in CTFE DB into a user friendly string.
  */
-export function getFormattedTimestamp(timestamp) {
+export function getFormattedTimestamp(timestamp: number): string {
   if (!timestamp) {
     return '<pending>';
   }
@@ -19,14 +20,14 @@ export function getFormattedTimestamp(timestamp) {
 /**
  * Converts the timestamp used in CTFE DB into a Javascript timestamp.
  */
-export function getTimestamp(timestamp) {
-  if (!timestamp) {
-    return timestamp;
-  }
+export function getTimestamp(timestamp: number): Date {
   const date = new Date();
+  if (!timestamp) {
+    return date;
+  }
   // Timestamp is of the form YYYYMMDDhhmmss.
   // Consume the pieces off the right to build the date.
-  const consumeDigits = (n) => {
+  const consumeDigits = (n: number) => {
     const first_n_digits = timestamp % (10 ** n);
     timestamp = (timestamp - first_n_digits) / (10 ** n);
     return first_n_digits;
@@ -43,7 +44,7 @@ export function getTimestamp(timestamp) {
 /**
  * Convert from Javascript Date to timestamp recognized by CTFE DB.
  */
-export function getCtDbTimestamp(d) {
+export function getCtDbTimestamp(d: Date): string {
   const timestamp = String(d.getUTCFullYear()) + pad(d.getUTCMonth() + 1, 2)
                   + pad(d.getUTCDate(), 2) + pad(d.getUTCHours(), 2)
                   + pad(d.getUTCMinutes(), 2) + pad(d.getUTCSeconds(), 2);
@@ -53,7 +54,7 @@ export function getCtDbTimestamp(d) {
 /**
  * Append gsPath with appropriate url to fetch from ct.skia.org.
  */
-export function getGSLink(gsPath) {
+export function getGSLink(gsPath: string): string {
   return `https://ct.skia.org/results/cluster-telemetry/${gsPath}`;
 }
 
@@ -61,7 +62,7 @@ export function getGSLink(gsPath) {
    * Returns true if gsPath is not set or if the patch's SHA1 digest in the specified
    * google storage path is for an empty string.
    */
-export function isEmptyPatch(gsPath) {
+export function isEmptyPatch(gsPath: string): boolean {
   // Compare against empty string and against the SHA1 digest of an empty string.
   return gsPath === '' || gsPath === 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch';
 }
@@ -69,7 +70,7 @@ export function isEmptyPatch(gsPath) {
 /**
  * Express numeric days in a readable format (e.g. 'Weekly'; 'Every 3 days')
  */
-export function formatRepeatAfterDays(num) {
+export function formatRepeatAfterDays(num: number): string {
   if (num === 0) {
     return 'N/A';
   } if (num === 1) {
@@ -86,7 +87,7 @@ export function formatRepeatAfterDays(num) {
  * @param {func<Object>} func - Function called with fetched benchmarks and
  * platforms object.
  */
-export function fetchBenchmarksAndPlatforms(func) {
+export function fetchBenchmarksAndPlatforms(func: (json: BenchmarksPlatformsResponse)=> void): void {
   fetch('/_/benchmarks_platforms/', {
     method: 'POST',
   })
@@ -102,14 +103,14 @@ export function fetchBenchmarksAndPlatforms(func) {
  *
  * @returns string - Combined description.
  */
-export function combineClDescriptions(descriptions) {
+export function combineClDescriptions(descriptions: string[]): string {
   const combinedDesc = descriptions.filter(Boolean).reduce(
     (str, desc) => str += (str === '' ? desc : ` and ${desc}`), '',
   );
   return combinedDesc ? `Testing ${combinedDesc}` : '';
 }
 
-export function missingLiveSitesWithCustomWebpages(customWebpages, benchmarkArgs) {
+export function missingLiveSitesWithCustomWebpages(customWebpages: string, benchmarkArgs: string): boolean {
   if (customWebpages && !benchmarkArgs.includes('--use-live-sites')) {
     errorMessage('Please specify --use-live-sites in benchmark arguments '
                     + 'when using custom web pages.');
@@ -126,7 +127,7 @@ let activeTasks = 0;
  * @returns function() boolean : Whether or not the task count
  * previously fetched is more than 3.
  */
-export function moreThanThreeActiveTasksChecker() {
+export function moreThanThreeActiveTasksChecker(): ()=> boolean {
   const queryParams = {
     size: 1,
     not_completed: true,
@@ -155,9 +156,18 @@ export function moreThanThreeActiveTasksChecker() {
 }
 
 /**
+ * Used to describe the type and get/delete URLs of various CT tasks.
+ */
+export interface TaskDescriptor {
+  type: string,
+  get_url: string,
+  delete_url: string,
+}
+
+/**
  * List of task types and the associated urls to fetch and delete them.
  */
-export const taskDescriptors = [
+export const taskDescriptors: Array<TaskDescriptor> = [
   {
     type: 'ChromiumPerf',
     get_url: '/_/get_chromium_perf_tasks',
