@@ -10,10 +10,25 @@ import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
 
+import { SelectSk } from 'elements-sk/select-sk/select-sk';
+
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/select-sk';
 
-const template = (el) => html`
+import {
+  TaskPrioritiesResponse,
+} from '../json';
+
+export class TaskPrioritySk extends ElementSk {
+private _priorities: string[][] = [];
+
+private _selector: SelectSk | null = null;
+
+constructor() {
+  super(TaskPrioritySk.template);
+}
+
+  private static template = (el: TaskPrioritySk) => html`
 <div class=tr-container>
   <select-sk>
     ${el._priorities.map((p) => html`
@@ -22,21 +37,15 @@ const template = (el) => html`
 </div>
 `;
 
-define('task-priority-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._priorities = [];
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     fetch('/_/task_priorities/', { method: 'GET' })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then((json: TaskPrioritiesResponse) => {
         // { 'p1' : 'Desc1', ...}  -> [['p1', 'Desc1'], ...]
-        this._priorities = Object.entries(json.task_priorities);
+        this._priorities = Object.entries<string>(json.task_priorities);
         this._render();
-        this._selector.selection = 1;
+        this._selector!.selection = 1;
       })
       .catch(errorMessage);
     this._render();
@@ -47,11 +56,13 @@ define('task-priority-sk', class extends ElementSk {
    * @prop {string} priority - Priority string representing user selected
    * priority of their task.
    */
-  get priority() {
-    return this._priorities[this._selector.selection][0];
+  get priority(): string {
+    return this._priorities[this._selector!.selection as number][0];
   }
 
-  set priority(val) {
-    this._selector.selection = this._priorities.findIndex((p) => p[0] === val);
+  set priority(val: string) {
+    this._selector!.selection = this._priorities.findIndex((p) => p[0] === val);
   }
-});
+}
+
+define('task-priority-sk', TaskPrioritySk);
