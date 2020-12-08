@@ -1,19 +1,22 @@
 import './index';
 
+import { expect } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 
 import { chromiumPatchResult } from './test_data';
 import {
   eventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
+import { PatchSk } from './patch-sk';
+import { InputSk } from '../input-sk/input-sk';
 
 describe('patch-sk', () => {
-  const newInstance = setUpElementUnderTest('patch-sk');
+  const newInstance = setUpElementUnderTest<PatchSk>('patch-sk');
   fetchMock.config.overwriteRoutes = false;
 
-  let patchSk;
+  let patchSk: PatchSk;
   beforeEach(() => {
     patchSk = newInstance((ele) => {
       ele.patchType = 'chromium';
@@ -26,11 +29,11 @@ describe('patch-sk', () => {
     fetchMock.reset();
   });
 
-  const simulateClInput = (cl, resp) => {
+  const simulateClInput = (cl: string, resp: any) => {
     if (cl.length >= 3) {
       fetchMock.postOnce('begin:/_/cl_data', resp);
     }
-    const input = $$('input-sk', patchSk);
+    const input = $$('input-sk', patchSk) as InputSk;
     input.focus();
     input.value = cl;
     input.dispatchEvent(new Event('input', {
@@ -38,10 +41,10 @@ describe('patch-sk', () => {
       cancelable: true,
     }));
   };
-  const simulatePatchEdit = (addition) => {
-    const exTextarea = $$('expandable-textarea-sk', patchSk);
-    $$('button', exTextarea).click();
-    exTextarea.value = exTextarea.value + addition;
+  const simulatePatchEdit = (addition: string) => {
+    const exTextarea = $$('expandable-textarea-sk', patchSk) as HTMLInputElement;
+    ($$('button', exTextarea) as HTMLElement).click();
+    exTextarea.value += addition;
     exTextarea.dispatchEvent(new Event('input', {
       bubbles: true,
       cancelable: true,
@@ -75,9 +78,8 @@ describe('patch-sk', () => {
     simulateClInput('123', 503);
     await event;
 
-    expect(patchSk).to.have.nested.property('_clData.error.message',
+    expect(patchSk).to.have.nested.property('_clError.message',
       'Bad network response: Service Unavailable');
     expect(patchSk.clDescription).to.equal('');
   });
-
 });

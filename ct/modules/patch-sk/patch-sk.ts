@@ -18,9 +18,9 @@ import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/spinner-sk';
 import 'elements-sk/toast-sk';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../../../infra-sk/modules/expandable-textarea-sk';
 
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { fromObject } from 'common-sk/modules/query';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
@@ -31,73 +31,85 @@ import * as ctfe_utils from '../ctfe_utils';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../input-sk';
+import { CLDataResponse } from '../json';
 
-const template = (ele) => html`
-<table>
-  <tr>
-    <td>CL:</td>
-    <td>
-      <input-sk @input=${ele._clChanged}
-        label="Please paste a complete Gerrit URL"></input-sk>
-    </td>
-    <td>
-      <div class=cl-detail-container>
-        <div class="cl-detail">
-          <spinner-sk alt="Loading CL details"></spinner-sk>
-        </div>
-        <div class="cl-detail">
-          <a href=${ele._clUrl()} target=_blank>${ele._formattedClData()}</a>
-          <span class="cl-error">${ele._formattedClError()}</span>
-        </div>
-      </div>
-    </td>
-  </tr>
-  <tr>
-    <td colspan=3 class=patch-manual>
-      <expandable-textarea-sk displaytext="Specify Patch Manually" @input=${ele._patchChanged}>
-      </expandable-textarea-sk>
-    </td>
-  </tr>
-</table>
-`;
+export class PatchSk extends ElementSk {
+  private _spinner: SpinnerSk | null = null;
 
-define('patch-sk', class extends ElementSk {
+  private _cl: string = '';
+
+  private _clData: CLDataResponse | null = null;
+
+  private _clDescription: string = '';
+
+  private _clError: Error | null = null;
+
   constructor() {
-    super(template);
+    super(PatchSk.template);
     this._upgradeProperty('patchType');
   }
 
-  connectedCallback() {
+  private static template = (ele: PatchSk) => html`
+  <table>
+    <tr>
+      <td>CL:</td>
+      <td>
+        <input-sk @input=${ele._clChanged}
+          label="Please paste a complete Gerrit URL"></input-sk>
+      </td>
+      <td>
+        <div class=cl-detail-container>
+          <div class="cl-detail">
+            <spinner-sk alt="Loading CL details"></spinner-sk>
+          </div>
+          <div class="cl-detail">
+            <a href=${ele._clUrl()} target=_blank>${ele._formattedClData()}</a>
+            <span class="cl-error">${ele._formattedClError()}</span>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan=3 class=patch-manual>
+        <expandable-textarea-sk displaytext="Specify Patch Manually" @input=${ele._patchChanged}>
+        </expandable-textarea-sk>
+      </td>
+    </tr>
+  </table>
+  `;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this._spinner = $$('spinner-sk', this);
   }
 
-  _clChanged(e) {
-    const newValue = e.target.value;
+  _clChanged(e: Event): void {
+    const newValue = (e.target as HTMLInputElement).value;
     this.cl = newValue;
     if (!newValue || newValue.length < 3) {
       this._clData = null;
+      this._clError = null;
       this._clDescription = this._formattedClDescription();
-      this._spinner.active = false;
+      this._spinner!.active = false;
       this._render();
       return;
     }
-    this._spinner.active = true;
+    this._spinner!.active = true;
     const queryParams = { cl: newValue };
-    const url = '/_/cl_data?' + `${fromObject(queryParams)}`;
+    const url = `/_/cl_data?${fromObject(queryParams)}`;
 
     fetch(url, { method: 'POST' })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then((json: CLDataResponse) => {
         // If the response is for the value still present in the input we
         // apply it.
         if (this.cl === newValue) {
           if (json.cl) {
             this._clData = json;
-            const patch = this._clData[`${this.patchType}_patch`];
+            const patch = this._clData![`${this.patchType}_patch` as keyof CLDataResponse];
             if (!patch) {
-              this._clData = { error: { message: `This is not a ${this.patchType} CL.` } };
+              this._clError = new Error(`This is not a ${this.patchType} CL.`);
               this._patchFetchError();
             } else {
               this.patch = patch;
@@ -109,14 +121,14 @@ define('patch-sk', class extends ElementSk {
       })
       .catch((err) => {
         if (this.cl === newValue) {
-          this._clData = { error: err };
+          this._clError = err;
           this._clLoadError();
         }
       })
       .finally(() => {
         if (this.cl === newValue) {
           this.clDescription = this._formattedClDescription();
-          this._spinner.active = false;
+          this._spinner!.active = false;
         }
         this._render();
       });
@@ -126,7 +138,7 @@ define('patch-sk', class extends ElementSk {
    * @returns {boolean} True if a patch is successfully loaded.
    * Trigger errorMessage event otherwise.
    */
-  validate() {
+  validate(): boolean {
     if (this.cl && !this._clData) {
       this._clLoadError();
       return false;
@@ -141,11 +153,11 @@ define('patch-sk', class extends ElementSk {
   /**
    * @prop {string} cl - Raw value of the CL input.
    */
-  get cl() {
+  get cl(): string {
     return this._cl || '';
   }
 
-  set cl(val) {
+  set cl(val: string) {
     this._cl = val;
   }
 
@@ -154,11 +166,11 @@ define('patch-sk', class extends ElementSk {
    * 'cl-description-changed' with detail { clDescription: <new desc> } event on
    * change.
    */
-  get clDescription() {
+  get clDescription(): string {
     return this._clDescription || '';
   }
 
-  set clDescription(val) {
+  set clDescription(val: string) {
     this._clDescription = val;
     // shadow dom, do we need composed: true?
     this.dispatchEvent(new CustomEvent('cl-description-changed',
@@ -169,12 +181,12 @@ define('patch-sk', class extends ElementSk {
    * @prop {string} patch - The patch, either retrieved from the CL or
    * manually entered/modified.
    */
-  get patch() {
-    return $$('expandable-textarea-sk', this).value || '';
+  get patch(): string {
+    return ($$('expandable-textarea-sk', this) as HTMLInputElement).value || '';
   }
 
-  set patch(val) {
-    $$('expandable-textarea-sk', this).value = val;
+  set patch(val: string) {
+    ($$('expandable-textarea-sk', this) as HTMLInputElement).value = val;
     this._patchChanged();
   }
 
@@ -182,55 +194,57 @@ define('patch-sk', class extends ElementSk {
    * @prop {string} patchType - Specifies the project for the patch. Must be
    * set. Possible values include "chromium" and "skia". Mirrors the attribute.
    */
-  get patchType() {
-    return this.getAttribute('patchType');
+  get patchType(): string {
+    return this.getAttribute('patchType')!;
   }
 
-  set patchType(val) {
-    this.setAttribute('patchType', val);
+  set patchType(val: string) {
+    this.setAttribute('patchType', val!);
   }
 
-  _clUrl() {
-    if (this._clData && !this._clData.error) {
+  _clUrl(): string {
+    if (this._clData && !this._clError) {
       return this._clData.url;
     }
     return 'javascript:void(0);';
   }
 
-  _formattedClData() {
-    if (this._clData && !this._clData.error) {
+  _formattedClData(): string {
+    if (this._clData && !this._clError) {
       return `${this._clData.subject} (modified `
-        + `${ctfe_utils.getFormattedTimestamp(this._clData.modified)})`;
+        + `${ctfe_utils.getFormattedTimestamp(+this._clData.modified)})`;
     }
     return '';
   }
 
-  _formattedClError() {
-    if (this._clData && this._clData.error) {
-      return this._clData.error.message || JSON.stringify(this._clData.error);
+  _formattedClError(): string {
+    if (this._clData && this._clError) {
+      return this._clError.message || JSON.stringify(this._clError);
     }
     return '';
   }
 
-  _formattedClDescription() {
-    if (this._clData && !this._clData.error) {
+  _formattedClDescription(): string {
+    if (this._clData && !this._clError) {
       return `${this._clUrl()} (${this._clData.subject})`;
     }
     return '';
   }
 
-  _clLoadError() {
+  _clLoadError(): void {
     errorMessage(`Unable to load ${this.patchType} CL ${this.cl}`
     + '. Please specify patches manually.');
   }
 
-  _patchFetchError() {
+  _patchFetchError(): void {
     errorMessage(`Unable to fetch ${this.patchType} patch from CL ${this.cl}`
     + '. Please specify patches manually.');
   }
 
-  _patchChanged() {
+  _patchChanged(): void {
     this.dispatchEvent(new CustomEvent('patch-changed',
       { bubbles: true, detail: { patch: this.patch } }));
   }
-});
+}
+
+define('patch-sk', PatchSk);
