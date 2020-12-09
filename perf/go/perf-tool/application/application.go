@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -25,11 +26,14 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/trybot/fileloader/gcsfileloader"
+	"go.skia.org/infra/perf/go/trybot/sources/gcssources"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
@@ -49,6 +53,7 @@ type Application interface {
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
+	TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string) error
 }
 
 // app implements Application.
@@ -725,6 +730,54 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 		}
 	}
 	return nil
+}
+
+func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string) error {
+	ctx := context.Background()
+	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly, pubsub.ScopePubSub)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	p := parser.New(instanceConfig)
+	u, err := url.Parse(trybotFilename)
+	if err != nil {
+		return skerr.Wrapf(err, "Trybot filename must be a full GCS url, e.g. gs://...")
+	}
+	gcsClient := gcsclient.New(storageClient, u.Host)
+	fileLoader := gcsfileloader.New(gcsClient, p)
+	sourcesLoader := gcssources.New(store, gcsClient, p)
+	trybotSampleSet, err := fileLoader.GetSamples(ctx, trybotFilename)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to load file.")
+	}
+	traceIDs := make([]string, 0, len(trybotSampleSet))
+	for traceID := range trybotSampleSet {
+		traceIDs = append(traceIDs, traceID)
+	}
+	allFileNames, err := sourcesLoader.Load(ctx, traceIDs, 5)
+	if err != nil {
+		skerr.Wrap(err)
+	}
+	sampleSet := parser.SamplesSet{}
+	for _, filename := range allFileNames {
+		ss, err := fileLoader.GetSamples(ctx, filename)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		sampleSet.Add(ss)
+	}
+
+	// TODO Need to convert a sampleSet back into format.BenchData and then serialize that.
+
+	return util.WithWriteFile(outputFilename, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(sampleSet)
+	})
 }
 
 // Confirm app implements App.
