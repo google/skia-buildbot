@@ -16,6 +16,24 @@
       "message": "Note that this will likely affect everything that uses the base-cipd image, ie. autorollers, task scheduler, ct, gitsync, etc etc.",
       "revId": "fa4cecb379096b783a8c28d5963eb65745a5fefc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cb8a860f_b7f3523a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-09T18:06:30Z",
+      "side": 1,
+      "message": "Yep, and it should be harmless, just adds python3 to the bin/.\nLooks like some tools (eg: repo) seem to do the right thing when it knows python3 is in the PATH.",
+      "parentUuid": "466fe696_5300b0a1",
+      "revId": "fa4cecb379096b783a8c28d5963eb65745a5fefc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
