@@ -1,7 +1,7 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { benchmarks_platforms } from './test_data';
 import { pageSets } from '../pageset-selector-sk/test_data';
 import { priorities } from '../task-priority-sk/test_data';
@@ -22,4 +22,4 @@ fetchMock.post('begin:/_/get', {
 });
 
 const chromiumPerf = document.createElement('chromium-perf-sk');
-$$('#container').appendChild(chromiumPerf);
+($$('#container') as HTMLElement).appendChild(chromiumPerf);
