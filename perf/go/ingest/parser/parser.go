@@ -105,10 +105,28 @@ type Samples struct {
 	Values []float64
 }
 
+// SamplesSet maps trace names to Samples for that trace.
+type SamplesSet map[string]Samples
+
+// Add all the Samples from 'in'.
+func (s SamplesSet) Add(in SamplesSet) {
+	for key, samples := range in {
+		existingSamples, ok := s[key]
+		if !ok {
+			existingSamples = Samples{
+				Params: samples.Params.Copy(),
+				Values: []float64{},
+			}
+		}
+		existingSamples.Values = append(existingSamples.Values, samples.Values...)
+		s[key] = existingSamples
+	}
+}
+
 // GetSamplesFromLegacyFormat returns a map from trace id to the slice of
 // samples for that test.
-func GetSamplesFromLegacyFormat(b *format.BenchData) map[string]Samples {
-	ret := map[string]Samples{}
+func GetSamplesFromLegacyFormat(b *format.BenchData) SamplesSet {
+	ret := SamplesSet{}
 	for testName, allConfigs := range b.Results {
 		for configName, result := range allConfigs {
 			params := buildInitialParams(testName, configName, b, result)

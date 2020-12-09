@@ -20,23 +20,30 @@ import (
 // flag names
 const (
 	backupToDateFlagName     = "backup_to_date"
+	beginCommitFlagName      = "begin"
 	configFilenameFlagName   = "config_filename"
 	connectionStringFlagName = "connection_string"
+	dryrunFlagName           = "dryrun"
+	endCommitFlagName        = "end"
 	inputFilenameFlagName    = "in"
 	localFlagName            = "local"
+	loggingFlagName          = "logging"
 	numTilesListFlagName     = "num"
 	outputFilenameFlagName   = "out"
 	queryFlagName            = "query"
-	tileNumberFlagName       = "tile"
-	beginCommitFlagName      = "begin"
-	endCommitFlagName        = "end"
 	startTimeFlagName        = "start"
 	stopTimeFlagName         = "stop"
-	dryrunFlagName           = "dryrun"
-	loggingFlagName          = "logging"
+	tileNumberFlagName       = "tile"
+	trybotFilenameFlagName   = "filename"
 )
 
 // flags
+var trybotFilenameFlag = &cli.StringFlag{
+	Name:  trybotFilenameFlagName,
+	Value: "",
+	Usage: "The full URL of a nanobench trybot results files, e.g.: 'gs://skia-perf/...foo.json'",
+}
+
 var connectionStringFlag = &cli.StringFlag{
 	Name:    connectionStringFlagName,
 	Value:   "",
@@ -477,6 +484,26 @@ using the same input file for both restores.
 					},
 				},
 			},
+			{
+				Name: "trybot",
+				Subcommands: []*cli.Command{
+					{
+						Name:        "reference",
+						Description: "Generates a reference file to be used by nanostat for the given trybot file.",
+						Flags: []cli.Flag{
+							localFlag,
+							configFilenameFlag,
+							connectionStringFlag,
+							trybotFilenameFlag,
+							requiredOutputFilenameFlag,
+						},
+						Action: func(c *cli.Context) error {
+							return nil
+						},
+					},
+				},
+			},
+
 			{
 				Name:  "markdown",
 				Usage: "Generates markdown help for perf-tool.",
