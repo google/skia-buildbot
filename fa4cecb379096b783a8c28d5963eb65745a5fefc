@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "466fe696_5300b0a1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-09T18:03:12Z",
+      "side": 1,
+      "message": "Note that this will likely affect everything that uses the base-cipd image, ie. autorollers, task scheduler, ct, gitsync, etc etc.",
+      "revId": "fa4cecb379096b783a8c28d5963eb65745a5fefc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
