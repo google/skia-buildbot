@@ -27,10 +27,10 @@ used for both Linux and Android.\n\
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentDisplayName": "Chromium",
+  "parentDisplayName": "Chromium Beta Branch",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "afdo-chromium-autoroll",
-  "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
+  "rollerName": "afdo-chromium-beta-autoroll",
+  "serviceAccount": "chromium-release-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "gbiv@chromium.org"
   ],
@@ -39,11 +39,11 @@ used for both Linux and Android.\n\
     "childPath": "chrome/android/profiles/newest.txt",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/llvm",
-    "parentBranch": "master",
+    "parentBranch": "refs/branch-heads/4324", // m88
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "\\d+\\.\\d+\\.\\d+\\.\\d+_rc-r\\d+-merged",
     "versionFile": "chrome/android/profiles/newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-89\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
+    "versionRegex": "^chromeos-chrome-amd64-88\\.(\\d+)\\.4324\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
   },
   "kubernetes": {
     "cpu": "1",
