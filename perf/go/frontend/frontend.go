@@ -509,7 +509,22 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 		resp = append(resp, details)
 	}
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	// Filter if we have a restricted set of branches.
+	ret := []perfgit.Commit{}
+	if len(config.Config.IngestionConfig.Branches) != 0 {
+		for _, details := range resp {
+			for _, branch := range config.Config.IngestionConfig.Branches {
+				if strings.HasSuffix(details.Subject, branch) {
+					ret = append(ret, details)
+					continue
+				}
+			}
+		}
+	} else {
+		ret = resp
+	}
+
+	if err := json.NewEncoder(w).Encode(ret); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
 }
