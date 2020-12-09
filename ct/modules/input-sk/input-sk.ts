@@ -16,14 +16,18 @@ import { ifDefined } from 'lit-html/directives/if-defined';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-const template = (ele) => html`
+export class InputSk extends ElementSk {
+  constructor() {
+    super(InputSk.template);
+    this._upgradeProperty('label');
+    this._upgradeProperty('type');
+    this._upgradeProperty('textPrefix');
+  }
+
+  private static template = (ele: InputSk) => html`
 <div class=input-container>
   <span>${ele.textPrefix}</span>
   <input autocomplete=off required
-    @focus=${ele._refresh}
-    @input=${ele._refresh}
-    @keyup=${ele._keyup}
-    @blur=${ele._blur}
     type=${ifDefined(ele.type)}>
   </input>
   <label>${ele.label}</label>
@@ -34,19 +38,11 @@ const template = (ele) => html`
 </div>
 `;
 
-define('input-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._upgradeProperty('label');
-    this._upgradeProperty('type');
-    this._upgradeProperty('textPrefix');
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     if (this.hasAttribute('value')) {
-      this.value = this.getAttribute('value');
+      this.value = this.getAttribute('value')!;
     }
   }
 
@@ -54,26 +50,26 @@ define('input-sk', class extends ElementSk {
    * @prop {string} value - Content of the input element from typing,
    * selection, etc.
    */
-  get value() {
+  get value(): string {
     // We back our value with input.value directly, to avoid issues with the
     // input value changing without changing our value property, causing
     // element re-rendering to be skipped.
-    return $$('input', this).value;
+    return ($$('input', this)! as HTMLInputElement).value;
   }
 
-  set value(v) {
-    $$('input', this).value = v;
+  set value(v: string) {
+    ($$('input', this)! as HTMLInputElement).value = v;
   }
 
   /**
    * @prop {string} label - Label to display to guide user input.
    * Mirrors the attribute.
    */
-  get label() {
+  get label(): string {
     return this.getAttribute('label') || '';
   }
 
-  set label(val) {
+  set label(val: string) {
     this.setAttribute('label', val);
     this._render();
   }
@@ -81,12 +77,11 @@ define('input-sk', class extends ElementSk {
   /**
    * @prop {string} type - Type of input.  Mirrors the attribute.
    */
-  get type() {
-    // We use undefined because it's what ifDefined uses.
-    return this.getAttribute('type') || undefined;
+  get type(): string {
+    return this.getAttribute('type') || '';
   }
 
-  set type(val) {
+  set type(val: string) {
     this.setAttribute('type', val);
     this._render();
   }
@@ -95,12 +90,14 @@ define('input-sk', class extends ElementSk {
    * @prop {string} textPrefix - Optional prefix to put before the input box.
    * Mirrors the attribute.
    */
-  get textPrefix() {
+  get textPrefix(): string {
     return this.getAttribute('textPrefix') || '';
   }
 
-  set textPrefix(val) {
+  set textPrefix(val: string) {
     this.setAttribute('type', val);
     this._render();
   }
-});
+}
+
+define('input-sk', InputSk);
