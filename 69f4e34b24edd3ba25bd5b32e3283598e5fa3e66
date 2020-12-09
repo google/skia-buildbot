@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5b85577f_2b55b360",
+        "filename": "bugs-central/go/bugs/monorail/monorail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-09T20:20:09Z",
+      "side": 1,
+      "message": "Should there be an associated test?",
+      "revId": "69f4e34b24edd3ba25bd5b32e3283598e5fa3e66",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
