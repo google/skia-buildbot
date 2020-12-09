@@ -1,4 +1,6 @@
-export const benchmarks_platforms = {
+import { BenchmarksPlatformsResponse } from '../json';
+
+export const benchmarks_platforms: BenchmarksPlatformsResponse = {
   benchmarks: {
     'ad_tagging.cluster_telemetry': 'https://docs.google.com/document/d/1zlWQoLjGuYOWDR_vkVRYoVbU89JetNDOlcDuOaNAzDc/',
     generic_trace_ct: 'https://docs.google.com/document/d/1vGd7dnrxayMYHPO72wWkwTvjMnIRrel4yxzCr1bMiis/',

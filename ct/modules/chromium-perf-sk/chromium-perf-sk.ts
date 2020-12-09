@@ -7,7 +7,6 @@ import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/toast-sk';
-import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../suggest-input-sk';
 import '../input-sk';
 import '../patch-sk';
@@ -21,7 +20,15 @@ import 'elements-sk/select-sk';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 
+import { SelectSk } from 'elements-sk/select-sk/select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+
+import { InputSk } from '../input-sk/input-sk';
+import { PagesetSelectorSk } from '../pageset-selector-sk/pageset-selector-sk';
+import { PatchSk } from '../patch-sk/patch-sk';
+import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
+import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
+import { ChromiumPerfAddTaskVars } from '../json';
 import {
   combineClDescriptions,
   missingLiveSitesWithCustomWebpages,
@@ -32,8 +39,22 @@ import {
 // Chromium perf doesn't support 1M and 100K pagesets.
 const unsupportedPageSetStrings = ['All', '100k'];
 
-const template = (el) => html`
-<confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
+export class ChromiumPerfSk extends ElementSk {
+  _platforms: [string, unknown][] = [];
+
+  private _benchmarksToDocs: Record<string, string> = {};
+
+  private _benchmarks: string[] = [];
+
+  private _triggeringTask: boolean = false;
+
+  private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
+
+  constructor() {
+    super(ChromiumPerfSk.template);
+  }
+
+  private static template = (el: ChromiumPerfSk) => html`
 
 <table class=options>
   <tr>
@@ -231,17 +252,7 @@ const template = (el) => html`
 </table>
 `;
 
-define('chromium-perf-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-    this._benchmarksToDocs = {};
-    this._benchmarks = [];
-    this._platforms = [];
-    this._triggeringTask = false;
-    this._moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     fetchBenchmarksAndPlatforms((json) => {
@@ -255,9 +266,9 @@ define('chromium-perf-sk', class extends ElementSk {
     });
   }
 
-  _refreshBenchmarkDoc(e) {
+  _refreshBenchmarkDoc(e: CustomEvent): void {
     const benchmarkName = e.detail.value;
-    const docElement = $$('#benchmark_doc', this);
+    const docElement = $$('#benchmark_doc', this) as HTMLAnchorElement;
     if (benchmarkName && this._benchmarksToDocs[benchmarkName]) {
       docElement.hidden = false;
       docElement.href = this._benchmarksToDocs[benchmarkName];
@@ -267,8 +278,8 @@ define('chromium-perf-sk', class extends ElementSk {
     }
   }
 
-  _platformChanged(e) {
-    const pagesetSelector = $$('pageset-selector-sk', this);
+  _platformChanged(e: CustomEvent): void {
+    const pagesetSelector = $$('pageset-selector-sk', this) as PagesetSelectorSk;
     if (e.detail.selection === 0) {
       pagesetSelector.selected = 'Mobile10k';
     } else {
@@ -276,72 +287,72 @@ define('chromium-perf-sk', class extends ElementSk {
     }
   }
 
-  _patchChanged() {
-    $$('#description', this).value = combineClDescriptions(
-      $('patch-sk', this).map((patch) => patch.clDescription),
+  _patchChanged(): void {
+    ($$('#description', this)! as InputSk).value = combineClDescriptions(
+      $('patch-sk', this).map((patch) => (patch as PatchSk).clDescription),
     );
   }
 
-  _validateTask() {
-    if (!$('patch-sk', this).every((patch) => patch.validate())) {
+  _validateTask(): void {
+    if (!$('patch-sk', this).every((patch) => (patch as PatchSk).validate())) {
       return;
     }
-    if (!$$('#description', this).value) {
+    if (!($$('#description', this) as InputSk).value) {
       errorMessage('Please specify a description');
-      $$('#description', this).focus();
+      ($$('#description', this) as InputSk).focus();
       return;
     }
-    if (!$$('#benchmark_name', this).value) {
+    if (!($$('#benchmark_name', this) as InputSk).value) {
       errorMessage('Please specify a benchmark');
-      $$('#benchmark_name', this).focus();
+      ($$('#benchmark_name', this) as InputSk).focus();
       return;
     }
     if (missingLiveSitesWithCustomWebpages(
-      $$('#pageset_selector', this).customPages, $$('#benchmark_args', this).value,
+      ($$('#pageset_selector', this) as PagesetSelectorSk).customPages,
+      ($$('#benchmark_args', this) as InputSk).value,
     )) {
-      $$('#benchmark_args', this).focus();
+      ($$('#benchmark_args', this) as InputSk).focus();
       return;
     }
     if (this._moreThanThreeActiveTasks()) {
       return;
     }
-    $$('#confirm_dialog', this).open('Proceed with queueing task?')
-      .then(() => this._queueTask())
-      .catch(() => {
-        errorMessage('Unable to queue task');
-      });
+    const confirmed = window.confirm('Proceed with queueing task?');
+    if (confirmed) {
+      this._queueTask();
+    }
   }
 
-  _queueTask() {
+  _queueTask(): void {
     this._triggeringTask = true;
-    const params = {};
-    params.benchmark = $$('#benchmark_name', this).value;
-    params.platform = this._platforms[$$('#platform_selector', this).selection][0];
-    params.page_sets = $$('#pageset_selector', this).selected;
-    params.custom_webpages = $$('#pageset_selector', this).customPages;
+    const params = {} as ChromiumPerfAddTaskVars;
+    params.benchmark = ($$('#benchmark_name', this) as InputSk).value;
+    params.platform = this._platforms[+($$('#platform_selector', this) as SelectSk).selection!][0];
+    params.page_sets = ($$('#pageset_selector', this) as PagesetSelectorSk).selected;
+    params.custom_webpages = ($$('#pageset_selector', this) as PagesetSelectorSk).customPages;
     params.repeat_runs = this._getRepeatValue();
-    params.run_in_parallel = ['True', 'False'][$$('#run_in_parallel', this).selection];
-    params.benchmark_args = $$('#benchmark_args', this).value;
-    params.browser_args_nopatch = $$('#browser_args_nopatch', this).value;
-    params.browser_args_withpatch = $$('#browser_args_withpatch', this).value;
-    params.value_column_name = $$('#value_column_name', this).value;
-    params.desc = $$('#description', this).value;
-    params.chromium_patch = $$('#chromium_patch', this).patch;
-    params.skia_patch = $$('#skia_patch', this).patch;
-    params.v8_patch = $$('#v8_patch', this).patch;
-    params.catapult_patch = $$('#catapult_patch', this).patch;
-    params.chromium_patch_base_build = $$('#chromium_patch_base_build', this).patch;
-    params.chromium_hash = $$('#chromium_hash', this).value;
-    params.repeat_after_days = $$('#repeat_after_days', this).frequency;
-    params.task_priority = $$('#task_priority', this).priority;
+    params.run_in_parallel = ['True', 'False'][+($$('#run_in_parallel', this) as SelectSk).selection!];
+    params.benchmark_args = ($$('#benchmark_args', this) as InputSk).value;
+    params.browser_args_nopatch = ($$('#browser_args_nopatch', this) as InputSk).value;
+    params.browser_args_withpatch = ($$('#browser_args_withpatch', this) as InputSk).value;
+    params.value_column_name = ($$('#value_column_name', this) as InputSk).value;
+    params.desc = ($$('#description', this) as InputSk).value;
+    params.chromium_patch = ($$('#chromium_patch', this) as PatchSk).patch;
+    params.skia_patch = ($$('#skia_patch', this) as PatchSk).patch;
+    params.v8_patch = ($$('#v8_patch', this) as PatchSk).patch;
+    params.catapult_patch = ($$('#catapult_patch', this) as PatchSk).patch;
+    params.chromium_patch_base_build = ($$('#chromium_patch_base_build', this) as PatchSk).patch;
+    params.chromium_hash = ($$('#chromium_hash', this) as InputSk).value;
+    params.repeat_after_days = ($$('#repeat_after_days', this) as TaskRepeaterSk).frequency;
+    params.task_priority = ($$('#task_priority', this) as TaskPrioritySk).priority;
     // Run on GCE if it is Windows. This will change in the future if we
     // get bare-metal Win machines.
     params.run_on_gce = (params.platform === 'Windows').toString();
-    if ($$('#cc_list', this).value) {
-      params.cc_list = $$('#cc_list', this).value.split(',');
+    if (($$('#cc_list', this) as InputSk).value) {
+      params.cc_list = ($$('#cc_list', this) as InputSk).value.split(',');
     }
-    if ($$('#group_name', this).value) {
-      params.group_name = $$('#group_name', this).value;
+    if (($$('#group_name', this) as InputSk).value) {
+      params.group_name = ($$('#group_name', this) as InputSk).value;
     }
 
     fetch('/_/add_chromium_perf_task', {
@@ -358,18 +369,20 @@ define('chromium-perf-sk', class extends ElementSk {
       });
   }
 
-  _getRepeatValue() {
+  _getRepeatValue(): string {
     // If "--pageset-repeat" is specified in benchmark args then use that
     // value else use "1".
     const rx = /--pageset-repeat[ =](\d+)/gm;
-    const m = rx.exec($$('#benchmark_args', this).value);
+    const m = rx.exec(($$('#benchmark_args', this) as InputSk).value);
     if (m) {
       return m[1];
     }
     return '1';
   }
 
-  _gotoRunsHistory() {
+  _gotoRunsHistory(): void {
     window.location.href = '/chromium_perf_runs/';
   }
-});
+}
+
+define('chromium-perf-sk', ChromiumPerfSk);
