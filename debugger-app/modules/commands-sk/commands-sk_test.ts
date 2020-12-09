@@ -1,5 +1,8 @@
 import './index';
-import { CommandsSk, CommandsSkMovePositionEventDetail } from './commands-sk';
+import {
+  CommandsSk, CommandsSkMovePositionEventDetail,
+  CommandsSkSelectImageEventDetail
+} from './commands-sk';
 
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import { expect } from 'chai';
@@ -326,7 +329,7 @@ describe('commands-sk', () => {
       // Click the image button. confirm event generated
       let ep = eventPromise<CustomEvent<CommandsSkSelectImageEventDetail>>(
         'select-image', 200);
-      opDiv.querySelector<HTMLButtonElement>('button').click();
+      opDiv.querySelector<HTMLButtonElement>('button')!.click();
       expect((await ep).detail.id).to.equal(1000);
   })
 });
