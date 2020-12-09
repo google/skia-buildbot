@@ -16,6 +16,24 @@
       "message": "Please change the --primary color for darkmode, that purple is painful. I think status has a nice color picked out for that.",
       "revId": "79df04275517f4e95646511402d4a2625fbd9ff1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1ab45d27_9dacb056",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-09T13:54:44Z",
+      "side": 1,
+      "message": "I saw a TODO in status about unifying themes. Would be good to update it globally for all apps that are using purple.",
+      "parentUuid": "89cd4cc8_a5cecd65",
+      "revId": "79df04275517f4e95646511402d4a2625fbd9ff1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
