@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a782426c_3c87882f",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-09T13:20:01Z",
+      "side": 1,
+      "message": "Maybe adding a CommitNumber.Sub would be little more readable for cases like this?",
+      "range": {
+        "startLine": 396,
+        "startChar": 24,
+        "endLine": 396,
+        "endChar": 27
+      },
+      "revId": "df475a48c3f9dee13e10d74b83badfd7f29a115c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
