@@ -1,7 +1,7 @@
 import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
 import { pageSets } from '../pageset-selector-sk/test_data';
 import 'elements-sk/error-toast-sk';
 
@@ -16,4 +16,4 @@ fetchMock.post('begin:/_/get', {
 });
 
 const chromiumPerf = document.createElement('admin-tasks-sk');
-$$('#container').appendChild(chromiumPerf);
+($$('#container') as HTMLElement).appendChild(chromiumPerf);
