@@ -12,49 +12,62 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import {
+  ResponsePagination,
+} from '../json';
 
-const template = (el) => html`
-<div>
-  <button class=action data-page=0
-    ?disabled=${el._onFirstPage()} @click=${el._update}>
-    <first-page-icon-sk></first-page-icon-sk>
-  </button>
-  <button class=action data-page=${el._page - 1}
-    ?disabled=${el._onFirstPage()} @click=${el._update}>
-    <chevron-left-icon-sk></chevron-left-icon-sk>
-  </button>
-  ${el._pageButtons.map((page) => html`
-    <button data-page=${page}
-     @click=${el._update}
-     ?disabled=${page === el._page}>${page + 1}</button>`)}
-  <button class=action data-page=${el._page + 1}
-    ?disabled=${el._onLastPage()} @click=${el._update}>
-    <chevron-right-icon-sk></chevron-right-icon-sk>
-  </button>
-  <button class=action data-page=${el._allPages - 1}
-    ?disabled=${el._onLastPage()} @click=${el._update}>
-    <last-page-icon-sk></last-page-icon-sk>(${el._allPages})
-  </button>
-</div>
-`;
+export class PaginationSk extends ElementSk {
+  private _showPages: number = 5;
 
-define('pagination-sk', class extends ElementSk {
+  private _pagination: ResponsePagination = { size: 10, offset: 0, total: 0 };
+
+  private _showPagesOffset = Math.floor(this._showPages / 2);
+
+  private _pageButtons: number[] = [];
+
+  private _page: number = 0;
+
+  private _allPages: number = 0;
+
   constructor() {
-    super(template);
+    super(PaginationSk.template);
     this._upgradeProperty('pagination');
     this._upgradeProperty('showPages');
-    this._showPages = this._showPages || 5;
-    this._pagination = this._pagination || { size: 10, offset: 0, total: 0 };
-    this._showPagesOffset = Math.floor(this._showPages / 2);
     this._computePageButtons();
   }
 
-  connectedCallback() {
+  private static template = (el: PaginationSk) => html`
+  <div>
+    <button class=action data-page=0
+      ?disabled=${el._onFirstPage()} @click=${el._update}>
+      <first-page-icon-sk></first-page-icon-sk>
+    </button>
+    <button class=action data-page=${el._page - 1}
+      ?disabled=${el._onFirstPage()} @click=${el._update}>
+      <chevron-left-icon-sk></chevron-left-icon-sk>
+    </button>
+    ${el._pageButtons.map((page) => html`
+      <button data-page=${page}
+       @click=${el._update}
+       ?disabled=${page === el._page}>${page + 1}</button>`)}
+    <button class=action data-page=${el._page + 1}
+      ?disabled=${el._onLastPage()} @click=${el._update}>
+      <chevron-right-icon-sk></chevron-right-icon-sk>
+    </button>
+    <button class=action data-page=${el._allPages - 1}
+      ?disabled=${el._onLastPage()} @click=${el._update}>
+      <last-page-icon-sk></last-page-icon-sk>(${el._allPages})
+    </button>
+  </div>
+  `;
+
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
-  _computePageButtons() {
+  _computePageButtons(): void {
     this._pageButtons = [];
     this._allPages = Math.ceil(this._pagination.total / this._pagination.size);
     this._showPagesOffset = Math.floor(this._showPages / 2);
@@ -69,30 +82,30 @@ define('pagination-sk', class extends ElementSk {
     this._render();
   }
 
-  _update(e) {
-    const targetPage = e.currentTarget.dataset.page;
-    this._pagination.offset = targetPage * this.pagination.size;
+  _update(e: Event): void {
+    const targetPage = (e.currentTarget! as HTMLElement).dataset.page || '0';
+    this._pagination.offset = parseFloat(targetPage) * this.pagination.size;
     this._computePageButtons();
     this.dispatchEvent(new CustomEvent('page-changed',
       { bubbles: true, detail: { offset: this._pagination.offset } }));
   }
 
-  _onFirstPage() {
+  _onFirstPage(): boolean {
     return this._page === 0;
   }
 
-  _onLastPage() {
+  _onLastPage(): boolean {
     return this._allPages === 0 || this._page === (this._allPages - 1);
   }
 
   /**
    * @prop {Object} pagination - Pagination data {offset, size, total}.
    */
-  get pagination() {
+  get pagination(): ResponsePagination {
     return this._pagination;
   }
 
-  set pagination(val) {
+  set pagination(val: ResponsePagination) {
     this._pagination = val;
     this._computePageButtons();
   }
@@ -101,12 +114,14 @@ define('pagination-sk', class extends ElementSk {
    * @prop {Number} showPages - Number of page buttons to display, centered
    * around the current page.
    */
-  get showPages() {
+  get showPages(): number {
     return this._showPages;
   }
 
-  set showPages(val) {
+  set showPages(val: number) {
     this._showPages = val;
     this._computePageButtons();
   }
-});
+}
+
+define('pagination-sk', PaginationSk);
