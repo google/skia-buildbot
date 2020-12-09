@@ -114,6 +114,8 @@ type MonorailQueryConfig struct {
 	Client types.RecognizedClient
 	// Which statuses are considered as untriaged.
 	UntriagedStatuses []string
+	// Whether unassigned issues should be considered as untriaged.
+	UnassignedIsUntriaged bool
 }
 
 // New returns an instance of the monorail implementation of bugs.BugFramework.
@@ -262,6 +264,8 @@ func (m *monorail) Search(ctx context.Context) ([]*types.Issue, *types.IssueCoun
 		countsData.IncSLOViolation(sloViolation, priority)
 		if util.In(mi.State.Status, m.queryConfig.UntriagedStatuses) {
 			countsData.UntriagedCount++
+		} else if m.queryConfig.UnassignedIsUntriaged && owner == "" {
+			countsData.UntriagedCount++
 		}
 
 		// Monorail issue names look like "projects/skia/issues/10783". Extract out the "10783".
@@ -300,9 +304,15 @@ func (m *monorail) SearchClientAndPersist(ctx context.Context, dbClient *db.Fire
 
 	queryDesc := qc.Query
 	countsData.QueryLink = fmt.Sprintf("https://bugs.chromium.org/p/%s/issues/list?can=2&q=%s", qc.Instance, qc.Query)
+	untriagedTokens := []string{}
 	if len(qc.UntriagedStatuses) > 0 {
-		countsData.UntriagedQueryLink = fmt.Sprintf("%s status:%s", countsData.QueryLink, strings.Join(qc.UntriagedStatuses, ","))
+		statusesQuery := fmt.Sprintf("status:%s", strings.Join(qc.UntriagedStatuses, ","))
+		untriagedTokens = append(untriagedTokens, statusesQuery)
 	}
+	if qc.UnassignedIsUntriaged {
+		untriagedTokens = append(untriagedTokens, "-has:owner")
+	}
+	countsData.UntriagedQueryLink = fmt.Sprintf("%s (%s)", countsData.QueryLink, strings.Join(untriagedTokens, " OR "))
 	// Calculate priority links.
 	if priorityData, ok := monorailProjectToPriorityData[m.queryConfig.Instance]; ok {
 		countsData.P0Link = fmt.Sprintf("%s %s", countsData.QueryLink, priorityData.P0Query)
