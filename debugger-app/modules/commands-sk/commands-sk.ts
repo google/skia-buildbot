@@ -22,7 +22,7 @@
  *
  */
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { PlaySk, PlaySkMoveToEventDetail } from '../play-sk/play-sk';
 import { HistogramSkToggleEventDetail } from '../histogram-sk/histogram-sk'
@@ -201,7 +201,7 @@ export class CommandsSk extends ElementDocSk {
                        @change=${ele._toggleVisible(op.index)}></checkbox-sk>
           <strong>Index: </strong> <span class=index>${op.index}</span>
         </div>
-        ${ele._renderRullOpRepresentation(op)}
+        ${ele._renderRullOpRepresentation(ele, op)}
       </details>
     </div>
     <hr>`;
@@ -489,9 +489,39 @@ Command types can also be filted by clicking on their names in the histogram"
     this._applyCommandFilter();
   }
 
-  // TODO(nifong): make this smarter, show matrices as tables, colors as colors, etc
-  private _renderRullOpRepresentation(op: Command){
-    return html`<pre>${ JSON.stringify(op.details, null, 2) }</pre>`;
+  // Returns a JSON string representation of the command, augmentend with visually rich
+  // or interactive elements for certain types.
+  private _renderRullOpRepresentation(ele: CommandsSk, op: Command) {
+    // Use json.stringify's replacer feature to replace certain objects.
+    // we would like to replace them directly with html templates, but json.stringify
+    // toStrings them, so instead replace them with a magic string and add the template
+    // to a list, then replace those magic strings with items from the list afterwards.
+
+    // An unlikely string meaning 'insert html template here'
+    const magic = '546rftvyghbjjkjiuytre';
+    // a list of templates to be used to replaces occurrences of magic.
+    const inserts: TemplateResult[] = [];
+    const replacer = function(name: string, value: any) {
+      if (name === 'imageIndex') {
+        // Show a clickable button that takes the user to the image resource viewer.
+        inserts.push(html`<b>${value}</b>
+          <button @click=${()=>{ele._jumpToImage(value)}}
+          title="Show the image referenced by this command in the resource viewer"
+          >Image</button>`);
+        return magic;
+      }
+      return value;
+    }
+    const strung = JSON.stringify(op.details, replacer, 2);
+    // JSON.stringify adds some quotes around the magic word.
+    // including these in our delimeter removes them.
+    const jsonparts = strung.split('"'+magic+'"');
+    let result = [html`${jsonparts[0]}`];
+    for (let i = 1; i < jsonparts.length; i++) {
+      result.push(inserts[i-1]);
+      result.push(html`${jsonparts[i]}`)
+    }
+    return html`<pre>${result}</pre>`;
   }
 
   private _jumpToImage(index: number){

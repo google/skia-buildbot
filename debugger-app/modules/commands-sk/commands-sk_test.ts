@@ -247,4 +247,86 @@ describe('commands-sk', () => {
     expect((await ep).detail.position).to.equal(4);
   });
 
+  it ('full op representatoin contains image buttons for image shaders', async () => {
+    commandsSk.clearFilter();
+    commandsSk.processCommands(JSON.parse(`
+{
+  "version": 1,
+  "commands": [
+    {
+      "command": "DrawOval",
+      "visible": true,
+      "coords": [
+        0,
+        0,
+        99,
+        99
+      ],
+      "paint": {
+        "antiAlias": true,
+        "filterQuality": "low",
+        "shader": {
+          "name": "SkLocalMatrixShader",
+          "data": "/data/1",
+          "values": {
+            "00_matrix": [
+              [
+                1.45588,
+                0,
+                0
+              ],
+              [
+                0,
+                1.45588,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ],
+            "01_SkImageShader": {
+              "00_uint": 0,
+              "01_uint": 0,
+              "02_bool": false,
+              "03_matrix": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "04_image": {
+                "imageIndex": 1000
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+      `));
+      // Expand the command in this test data, by clicking it two times.
+      const opDiv = commandsSk.querySelector<HTMLElement>('#op-0')!;
+      const summary = (opDiv.querySelector('summary') as HTMLElement);
+      summary.click();
+      summary.click();
+      // Click the image button. confirm event generated
+      let ep = eventPromise<CustomEvent<CommandsSkSelectImageEventDetail>>(
+        'select-image', 200);
+      opDiv.querySelector<HTMLButtonElement>('button').click();
+      expect((await ep).detail.id).to.equal(1000);
+  })
 });

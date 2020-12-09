@@ -499,7 +499,7 @@ export class DebuggerPageSk extends ElementDocSk {
   private _moveFrameTo(n: number) {
 
     // bounds may change too, requring a new surface and gl context, but this is costly and
-    // only rarely nnecessary
+    // only rarely necessary
     let oldBounds = this._fileContext!.player.getBounds();
     let newBounds = this._fileContext!.player.getBoundsForFrame(n);
     if (!this._boundsEqual(oldBounds, newBounds)) {
@@ -539,6 +539,7 @@ export class DebuggerPageSk extends ElementDocSk {
     //               : this._player.jsonCommandList(this._surface));
     const json = this._fileContext!.player.jsonCommandList(this._surface!);
     const parsed = JSON.parse(json) as SkpJsonCommandList;
+    console.log(JSON.stringify(parsed, null, 2));
     // this will eventually cause a move-command-position event
     this._commandsSk!.processCommands(parsed);
   }
