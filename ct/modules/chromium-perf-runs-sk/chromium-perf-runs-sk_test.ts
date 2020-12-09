@@ -1,7 +1,10 @@
 import './index';
 
+import sinon from 'sinon';
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
+import fetchMock from 'fetch-mock';
+import { ChromiumPerfRunsSk } from './chromium-perf-runs-sk';
 
 import {
   tasksResult0, tasksResult1,
@@ -12,31 +15,30 @@ import {
 } from '../../../infra-sk/modules/test_util';
 
 describe('chromium-perf-runs-sk', () => {
-  const newInstance = setUpElementUnderTest('chromium-perf-runs-sk');
+  const newInstance = setUpElementUnderTest<ChromiumPerfRunsSk>('chromium-perf-runs-sk');
   fetchMock.config.overwriteRoutes = false;
 
-  let perfRuns;
+  let perfRuns: HTMLElement;
   beforeEach(async () => {
-    await expectReload(() => perfRuns = newInstance());
+    await expectReload(() => perfRuns = newInstance(), null);
   });
 
   afterEach(() => {
     //  Check all mock fetches called at least once and reset.
     expect(fetchMock.done()).to.be.true;
     fetchMock.reset();
+    sinon.restore();
   });
 
   // Expect 'trigger' to cause a reload, and execute it.
   // Optionally pass desired result from server.
-  const expectReload = async (trigger, result) => {
+  const expectReload = async (trigger: any, result: any) => {
     result = result || tasksResult0;
     const event = eventPromise('end-task');
     fetchMock.postOnce('begin:/_/get_chromium_perf_tasks', result);
     trigger();
     await event;
   };
-
-  const confirmDialog = () => $$('dialog', perfRuns).querySelectorAll('button')[1].click();
 
   it('shows table entries', async () => {
     expect($('table.runssummary>tbody>tr', perfRuns)).to.have.length(11);
@@ -48,13 +50,13 @@ describe('chromium-perf-runs-sk', () => {
 
   it('filters by user', async () => {
     expect(fetchMock.lastUrl()).to.not.contain('filter_by_logged_in_user=true');
-    await expectReload(() => $$('#userFilter', perfRuns).click());
+    await expectReload(() => ($$('#userFilter', perfRuns) as HTMLElement).click(), null);
     expect(fetchMock.lastUrl()).to.contain('filter_by_logged_in_user=true');
   });
 
   it('filters by tests', async () => {
     expect(fetchMock.lastUrl()).to.contain('exclude_dummy_page_sets=true');
-    await expectReload(() => $$('#testFilter', perfRuns).click());
+    await expectReload(() => ($$('#testFilter', perfRuns) as HTMLElement).click(), null);
     expect(fetchMock.lastUrl()).to.not.contain('exclude_dummy_page_sets=true');
   });
 
@@ -64,28 +66,33 @@ describe('chromium-perf-runs-sk', () => {
     result.pagination.offset = 10;
     // 'Next page' button.
     await expectReload(
-      () => $('pagination-sk button.action', perfRuns)[2].click(), result);
+      () => ($('pagination-sk button.action', perfRuns)[2] as HTMLElement).click(), result,
+    );
     expect(fetchMock.lastUrl()).to.contain('offset=10');
     expect($('table.runssummary>tbody>tr', perfRuns)).to.have.length(5);
   });
 
   it('deletes tasks', async () => {
-    $$('delete-icon-sk', perfRuns).click();
+    sinon.stub(window, 'confirm').returns(true);
+    sinon.stub(window, 'alert');
     fetchMock.post('begin:/_/delete_chromium_perf_task', 200);
-    await expectReload(confirmDialog);
-    expect(fetchMock.lastOptions('begin:/_/delete').body).to.contain('"id":5094');
+    fetchMock.postOnce('begin:/_/get_chromium_perf_tasks', tasksResult0);
+    ($$('delete-icon-sk', perfRuns) as HTMLElement).click();
+    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain('"id":5094');
   });
 
   it('reschedules tasks', async () => {
-    $$('redo-icon-sk', perfRuns).click();
+    sinon.stub(window, 'confirm').returns(true);
+    sinon.stub(window, 'alert');
     fetchMock.post('begin:/_/redo_chromium_perf_task', 200);
-    await expectReload(confirmDialog);
-    expect(fetchMock.lastOptions('begin:/_/redo').body).to.contain('"id":5094');
+    fetchMock.postOnce('begin:/_/get_chromium_perf_tasks', tasksResult0);
+    ($$('redo-icon-sk', perfRuns) as HTMLElement).click();
+    expect(fetchMock.lastOptions('begin:/_/redo')!.body).to.contain('"id":5094');
   });
 
   it('shows detail dialogs', async () => {
-    expect($$('.dialog-background', perfRuns)).to.have.class('hidden');
-    $$('.details', perfRuns).click();
-    expect($$('.dialog-background', perfRuns)).to.not.have.class('hidden');
+    expect($$('.dialog-background', perfRuns)!.classList.value).to.include('hidden');
+    ($$('.details', perfRuns) as HTMLElement).click();
+    expect($$('.dialog-background', perfRuns)!.classList.value).to.not.include('hidden');
   });
 });
