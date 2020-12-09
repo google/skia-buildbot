@@ -1,4 +1,6 @@
-export const pageSets = [
+import { PageSet } from '../json';
+
+export const pageSets: PageSet[] = [
   { key: '100k', description: 'Top 100K (with desktop user-agent)' },
   { key: 'Mobile100k', description: 'Top 100K (with mobile user-agent)' },
   { key: '10k', description: 'Top 10K (with desktop user-agent)' },

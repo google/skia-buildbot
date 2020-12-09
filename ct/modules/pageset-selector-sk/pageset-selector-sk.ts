@@ -12,12 +12,41 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { SelectSk } from 'elements-sk/select-sk/select-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/select-sk';
 import '../../../infra-sk/modules/expandable-textarea-sk';
 
-const template = (ele) => html`
+import {
+  PageSet,
+} from '../json';
+
+interface ExpandableTextArea extends HTMLInputElement {
+  open: boolean;
+}
+
+export class PagesetSelectorSk extends ElementSk {
+  private static customFormPlaceholder = `Eg: webpage1,webpage2,webpage3
+
+  commas in webpages should be URL encoded`;
+
+  private _pageSets: PageSet[] = [];
+
+  private _unfilteredPageSets: PageSet[] = [];
+
+  private _selector: SelectSk | null = null;
+
+  private _hideIfKeyContains: string[] = [];
+
+  constructor() {
+    super(PagesetSelectorSk.template);
+
+    this._upgradeProperty('hideIfContains');
+    this._upgradeProperty('selected');
+  }
+
+  private static template = (ele: PagesetSelectorSk) => html`
 <div class=pageset-list>
 <select-sk>
   ${ele._pageSets.map((p) => (html`<div>${p.description}</div>`))}
@@ -25,42 +54,26 @@ const template = (ele) => html`
 </div>
 ${ele.hasAttribute('disable-custom-webpages')
     ? ''
-    : customWebpageFormTemplate(ele)}
+    : PagesetSelectorSk.customWebpageFormTemplate(ele)}
 `;
 
-const customFormPlaceholder = `Eg: webpage1,webpage2,webpage3
-
-commas in webpages should be URL encoded`;
-
-const customWebpageFormTemplate = (ele) => html`
+  private static customWebpageFormTemplate = (ele: PagesetSelectorSk) => html`
 <expandable-textarea-sk minRows=5
   displaytext="Specify custom list of web pages"
-  placeholder=${customFormPlaceholder}
+  placeholder=${PagesetSelectorSk.customFormPlaceholder}
   @click=${ele._updatePageSetHidden}>
 </expandable-textarea-sk>
 `;
 
-define('pageset-selector-sk', class extends ElementSk {
-  constructor() {
-    super(template);
-
-    this._upgradeProperty('hideIfContains');
-    this._upgradeProperty('selected');
-    this._pageSets = this._pageSets || [];
-    this._unfilteredPageSets = this._unfilteredPageSets || [];
-    this._selected = this._selected || '';
-    this._hideIfKeyContains = this._hideIfKeyContains || [];
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     fetch('/_/page_sets/', { method: 'POST' })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then((json: PageSet[]) => {
         this._unfilteredPageSets = json;
         this._filterPageSets();
         this._render();
-        this._selector.selection = 0;
+      this._selector!.selection = 0;
       })
       .catch(errorMessage);
     this._render();
@@ -70,56 +83,58 @@ define('pageset-selector-sk', class extends ElementSk {
   /**
    * @prop {string} customPages - User Supplied custom webpage string.
    */
-  get customPages() {
-    const exTextarea = $$('expandable-textarea-sk', this);
+  get customPages(): string {
+    const exTextarea = $$('expandable-textarea-sk', this) as HTMLInputElement;
     return exTextarea ? (exTextarea.value || '') : '';
   }
 
   /**
    * @prop {string} selected - Key of selected pageset.
    */
-  get selected() {
-    const index = this._selector.selection;
+  get selected(): string {
+    const index = this._selector!.selection as number;
     return index >= 0 ? this._pageSets[index].key : '';
   }
 
-  set selected(val) {
-    this._selector.selection = this._pageSets.findIndex((p) => p.key === val);
+  set selected(val: string) {
+  this._selector!.selection = this._pageSets.findIndex((p) => p.key === val);
   }
 
   /**
    * @prop {Array<string>} hideIfKeyContains - Entries containing these substrings
    * are removed from the pageSet listing.
    */
-  get hideIfKeyContains() {
+  get hideIfKeyContains(): string[] {
     return this._hideIfKeyContains;
   }
 
-  set hideIfKeyContains(val) {
+  set hideIfKeyContains(val: string[]) {
     this._hideIfKeyContains = val;
     this._filterPageSets();
     this._render();
   }
 
-  _filterPageSets() {
+  _filterPageSets(): void {
     const exclude = this._hideIfKeyContains;
-    const psHasSubstring = (ps) => exclude.some((s) => ps.key.includes(s));
+    const psHasSubstring = (ps: PageSet) => exclude.some((s) => ps.key.includes(s));
     this._pageSets = this._unfilteredPageSets
       .filter((ps) => !psHasSubstring(ps));
   }
 
-  _updatePageSetHidden() {
-    const exTextArea = $$('expandable-textarea-sk', this);
-    const pageSetContainer = $$('.pageset-list', this);
+  _updatePageSetHidden(): void {
+    const exTextArea = $$('expandable-textarea-sk', this) as ExpandableTextArea;
+    const pageSetContainer = $$('.pageset-list', this) as HTMLElement;
     if (exTextArea.open === pageSetContainer.hidden) {
-      // This click wasn't toggling the expandable textarea.
+    // This click wasn't toggling the expandable textarea.
       return;
     }
     pageSetContainer.hidden = exTextArea.open;
     if (!exTextArea.open) {
-      // We assume if someone closes the panel they don't want any custom pages.
+    // We assume if someone closes the panel they don't want any custom pages.
       exTextArea.value = '';
     }
     this._render();
   }
-});
+}
+
+define('pageset-selector-sk', PagesetSelectorSk);
