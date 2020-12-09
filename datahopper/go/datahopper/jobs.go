@@ -554,7 +554,14 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			// Check that the remaining JobSpecs are still valid at this commit.
 			taskCfg, err := m.taskCfgCache.Get(ctx, rs)
 			if err != nil {
-				return skerr.Fmt("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
+				if specs.ErrorIsPermanent(err) {
+					// The TasksCfg is invalid at this revision. Stop recursing.
+					for name := range todo {
+						delete(todo, name)
+					}
+				} else {
+					return skerr.Fmt("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
+				}
 			}
 			for name := range todo {
 				if _, ok := taskCfg.Jobs[name]; !ok {
