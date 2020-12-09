@@ -539,7 +539,6 @@ export class DebuggerPageSk extends ElementDocSk {
     //               : this._player.jsonCommandList(this._surface));
     const json = this._fileContext!.player.jsonCommandList(this._surface!);
     const parsed = JSON.parse(json) as SkpJsonCommandList;
-    console.log(JSON.stringify(parsed, null, 2));
     // this will eventually cause a move-command-position event
     this._commandsSk!.processCommands(parsed);
   }
