@@ -98,47 +98,57 @@ func (s *srcs) Load(ctx context.Context, traceIDs []string, n int) ([]string, er
 					}
 				}
 			}
+		}
 
-			// Now find the source filenames for each commitNumber.
-			for _, commitNumber := range commitNumbers {
-				sourceFilename, err := s.traceStore.GetSource(ctx, commitNumber, currentTraceID)
+		firstSourceFileName := ""
+		// Now find the source filenames for each commitNumber and keep track of
+		// the first source file name we encounter, which will be the most
+		// recent commit with data.
+		for i, commitNumber := range commitNumbers {
+			sourceFilename, err := s.traceStore.GetSource(ctx, commitNumber, currentTraceID)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			filenames[sourceFilename] = true
+			if i == 0 {
+				firstSourceFileName = sourceFilename
+			}
+		}
+
+		// If we found firstSourceFileName then load that file and remove all
+		// the trace ids found in it from remainingTraceIDs.
+		if firstSourceFileName != "" {
+			// source is the absolute URL to the file, e.g.
+			// "gs://bucket/path/name.json", so we need to parse it since
+			// storageClient only takes the path.
+			u, err := url.Parse(firstSourceFileName)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
+			// Load the source file.
+			rc, err := s.storageClient.FileReader(ctx, u.Path)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
+			// Parse it.
+			params, _, _, err := s.parser.Parse(file.File{
+				Name:     firstSourceFileName,
+				Contents: rc,
+			})
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
+			// Remove all the traceids it contains from remainingTraces, since
+			// the firstSourceFileName we have covers those traceids also.
+			for _, p := range params {
+				traceID, err := query.MakeKeyFast(p)
 				if err != nil {
 					return nil, skerr.Wrap(err)
 				}
-				filenames[sourceFilename] = true
-
-				// source is the absolute URL to the file, e.g.
-				// "gs://bucket/path/name.json", so we need to parse it since
-				// storageClient only takes the path.
-				u, err := url.Parse(sourceFilename)
-				if err != nil {
-					return nil, skerr.Wrap(err)
-				}
-
-				// Load the source file.
-				rc, err := s.storageClient.FileReader(ctx, u.Path)
-				if err != nil {
-					return nil, skerr.Wrap(err)
-				}
-
-				// Parse it.
-				params, _, _, err := s.parser.Parse(file.File{
-					Name:     sourceFilename,
-					Contents: rc,
-				})
-				if err != nil {
-					return nil, skerr.Wrap(err)
-				}
-
-				// Remove all the traceids it contains from remainingTraces,
-				// since the sourceFilenames we have cover those traceids also.
-				for _, p := range params {
-					traceID, err := query.MakeKeyFast(p)
-					if err != nil {
-						return nil, skerr.Wrap(err)
-					}
-					delete(remainingTraceIDs, traceID)
-				}
+				delete(remainingTraceIDs, traceID)
 			}
 		}
 	}
