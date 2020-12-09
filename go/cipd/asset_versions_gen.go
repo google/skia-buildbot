@@ -28,6 +28,31 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/3pp/tools/cpython/windows-amd64",
 		Version: "version:2.7.18.chromium.30",
 	},
+	"infra/3pp/tools/cpython3/linux-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython3/linux-amd64",
+		Version: "version:3.8.6.chromium.10",
+	},
+	"infra/3pp/tools/cpython3/linux-arm64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython3/linux-arm64",
+		Version: "version:3.8.6.chromium.10",
+	},
+	"infra/3pp/tools/cpython3/mac-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython3/mac-amd64",
+		Version: "version:3.8.6.chromium.10",
+	},
+	"infra/3pp/tools/cpython3/windows-386": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython3/windows-386",
+		Version: "version:3.8.6.chromium.10",
+	},
+	"infra/3pp/tools/cpython3/windows-amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "infra/3pp/tools/cpython3/windows-amd64",
+		Version: "version:3.8.6.chromium.10",
+	},
 	"infra/3pp/tools/git/linux-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/linux-amd64",
