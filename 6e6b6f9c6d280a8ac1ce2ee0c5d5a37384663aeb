@@ -204,6 +204,30 @@
       },
       "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "71930b45_2b21b331",
+        "filename": "ct/modules/task-queue-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-09T13:57:41Z",
+      "side": 1,
+      "message": "Oh, I was thinking it the original way would either 1) allow fields that don\u0027t exist or 2) allow missing fields.\n\nIf thats not true, I feel the tiniest amount of guilt for putting a comment like this on ~every CL. :D",
+      "parentUuid": "21852893_8043ad32",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 22
+      },
+      "revId": "6e6b6f9c6d280a8ac1ce2ee0c5d5a37384663aeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
