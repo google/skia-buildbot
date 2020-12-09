@@ -234,7 +234,7 @@ func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
 
 	res := GetSamplesFromLegacyFormat(b)
 	require.Equal(t, 2, len(res))
-	expected := map[string]Samples{
+	expected := SamplesSet{
 		",bench_type=micro,config=8888,name=writepix_pm_bgra_srgb,source_type=bench,test=writepix_pm_bgra_srgb_640_480,": {
 			Params: paramtools.Params{
 				"bench_type":  "micro",
@@ -273,4 +273,52 @@ func TestGetSamplesFromLegacyFormat_EmptyData_Success(t *testing.T) {
 
 	res := GetSamplesFromLegacyFormat(b)
 	assert.Empty(t, res)
+}
+
+func TestSamplesSetAdd_EmptySamples_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	a := SamplesSet{}
+	b := SamplesSet{}
+	a.Add(b)
+	require.Empty(t, a)
+}
+
+func TestSamplesSetAdd_NonEmptySamples_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	a := SamplesSet{
+		",config=8888,": Samples{
+			Params: paramtools.Params{"config": "8888"},
+			Values: []float64{1.0, 2.0},
+		},
+		",config=565,": {
+			Params: paramtools.Params{"config": "565"},
+			Values: []float64{},
+		},
+	}
+	b := SamplesSet{
+		",config=8888,": {
+			Params: paramtools.Params{"config": "8888"},
+			Values: []float64{2.0, 3.0},
+		},
+		",config=gles,": {
+			Params: paramtools.Params{"config": "gles"},
+			Values: []float64{4.0},
+		},
+	}
+	a.Add(b)
+	expected := SamplesSet{
+		",config=8888,": {
+			Params: paramtools.Params{"config": "8888"},
+			Values: []float64{1.0, 2.0, 2.0, 3.0},
+		},
+		",config=565,": {
+			Params: paramtools.Params{"config": "565"},
+			Values: []float64{},
+		},
+		",config=gles,": {
+			Params: paramtools.Params{"config": "gles"},
+			Values: []float64{4.0},
+		},
+	}
+	require.Equal(t, expected, a)
 }

@@ -49,6 +49,7 @@ type Application interface {
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
+	TrybotReference(store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string) error
 }
 
 // app implements Application.
