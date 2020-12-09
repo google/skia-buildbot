@@ -22,6 +22,30 @@
       },
       "revId": "df475a48c3f9dee13e10d74b83badfd7f29a115c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c71eac4_606dd5ad",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-09T15:29:58Z",
+      "side": 1,
+      "message": "I was thinking of this more like time.Time which has an Add() and you use negative numbers to subtract. The other option I considered was using a neutral name like Delta.",
+      "parentUuid": "a782426c_3c87882f",
+      "range": {
+        "startLine": 396,
+        "startChar": 24,
+        "endLine": 396,
+        "endChar": 27
+      },
+      "revId": "df475a48c3f9dee13e10d74b83badfd7f29a115c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
