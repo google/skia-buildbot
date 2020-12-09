@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "39a7c13b_99e7bd96",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-12-09T15:47:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf9ee330_39211ebd",
+      "range": {
+        "startLine": 501,
+        "startChar": 40,
+        "endLine": 501,
+        "endChar": 41
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bfea1699_2a6042f8",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-08T20:14:10Z",
       "side": 1,
       "message": "Nit: typo",
+      "range": {
+        "startLine": 502,
+        "startChar": 50,
+        "endLine": 502,
+        "endChar": 60
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "221ea021_f7c15455",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-12-09T15:47:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfea1699_2a6042f8",
       "range": {
         "startLine": 502,
         "startChar": 50,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf0086b5_16963480",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-12-09T15:47:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76b01af0_a60107c1",
+      "range": {
+        "startLine": 506,
+        "startChar": 0,
+        "endLine": 506,
+        "endChar": 26
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2f0c9723_2a2a2255",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-12-08T20:14:10Z",
       "side": 1,
       "message": "Any chance we could add a test for this?",
+      "range": {
+        "startLine": 521,
+        "startChar": 4,
+        "endLine": 524,
+        "endChar": 5
+      },
+      "revId": "87b3bda04ee0b901c9eaec31bc69489a1afded6e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "55fb551f_814c3b40",
+        "filename": "debugger-app/modules/commands-sk/commands-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-12-09T15:47:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f0c9723_2a2a2255",
       "range": {
         "startLine": 521,
         "startChar": 4,
