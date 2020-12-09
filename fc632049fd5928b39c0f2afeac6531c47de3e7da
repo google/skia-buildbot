@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e7d62a4_597008a9",
+        "filename": "ct/modules/chromium-perf-runs-sk/chromium-perf-runs-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-09T15:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "29c68ee5_e106d575",
+      "range": {
+        "startLine": 347,
+        "startChar": 13,
+        "endLine": 347,
+        "endChar": 17
+      },
+      "revId": "fc632049fd5928b39c0f2afeac6531c47de3e7da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2ee84e31_55199fdf",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-03T20:53:07Z",
       "side": 1,
       "message": "can we add \u0027:GetTasksResponse\u0027 to all these?",
+      "range": {
+        "startLine": 6,
+        "startChar": 13,
+        "endLine": 6,
+        "endChar": 25
+      },
+      "revId": "fc632049fd5928b39c0f2afeac6531c47de3e7da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dfdc6f1e_4e5e9ef7",
+        "filename": "ct/modules/chromium-perf-runs-sk/test_data.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-09T15:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ee84e31_55199fdf",
       "range": {
         "startLine": 6,
         "startChar": 13,
