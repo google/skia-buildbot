@@ -4,10 +4,12 @@ import (
 	context "context"
 	fmt "fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -25,6 +27,7 @@ import (
 type statusServerImpl struct {
 	iCache                *incremental.IncrementalCache
 	taskDb                db.RemoteDB
+	capacityClient        *capacity.CapacityClient
 	getAutorollerStatuses func() *GetAutorollerStatusesResponse
 	getRepo               func(string) (string, string, error)
 	maxCommitsToLoad      int
@@ -196,10 +199,46 @@ func (s *statusServerImpl) GetAutorollerStatuses(ctx context.Context, req *GetAu
 	return s.getAutorollerStatuses(), nil
 }
 
+func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequest) (*GetBotUsageResponse, error) {
+	rv := GetBotUsageResponse{}
+	for _, botconfig := range s.capacityClient.CapacityMetrics() {
+		var dims map[string]string
+		for _, dim := range botconfig.Dimensions {
+			split := strings.SplitN(dim, ":", 1)
+			if len(split) > 0 {
+				// Handles empty dimensions.
+				dims[split[0]] = string(dim[len(split)+1])
+			}
+		}
+		var totalTasks, cqTasks int32
+		var taskTimeMs, cqTimeMs int64
+		for _, task := range botconfig.TaskAverageDurations {
+			timeSpent := task.AverageDuration.Milliseconds()
+			taskTimeMs += timeSpent
+			totalTasks++
+			if task.OnCQ {
+				cqTimeMs += timeSpent
+				cqTasks++
+			}
+		}
+		numBots := len(botconfig.Bots)
+		rv.BotSets = append(rv.BotSets, &BotSet{
+			Dimensions:  dims,
+			CqTasks:     cqTasks,
+			MsPerCq:     cqTimeMs,
+			TotalTasks:  totalTasks,
+			MsPerCommit: taskTimeMs,
+			BotCount:    int32(numBots),
+		})
+	}
+	return &rv, nil
+}
+
 // NewStatusServer creates and returns a Twirp HTTP Server.
 func NewStatusServer(
 	iCache *incremental.IncrementalCache,
 	taskDb db.RemoteDB,
+	capacityClient *capacity.CapacityClient,
 	getAutorollStatuses func() *GetAutorollerStatusesResponse,
 	getRepo func(string) (string, string, error),
 	maxCommitsToLoad int,
@@ -208,6 +247,7 @@ func NewStatusServer(
 	return NewStatusServiceServer(&statusServerImpl{
 		iCache,
 		taskDb,
+		capacityClient,
 		getAutorollStatuses,
 		getRepo,
 		maxCommitsToLoad,

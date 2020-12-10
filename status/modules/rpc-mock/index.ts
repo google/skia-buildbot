@@ -36,6 +36,9 @@ export class MockStatusService implements StatusService {
   private processGetIncrementalCommits:
     | ((req: status.GetIncrementalCommitsRequest) => status.GetIncrementalCommitsResponse)
     | null = null;
+  private processGetBotUsage:
+    | ((req: status.GetBotUsageRequest) => status.GetBotUsageResponse)
+    | null = null;
 
   constructor() {}
 
@@ -43,7 +46,9 @@ export class MockStatusService implements StatusService {
     return !(
       this.processAddComment ||
       this.processDeleteComment ||
-      this.processGetIncrementalCommits
+      this.processGetIncrementalCommits ||
+      this.processGetAutorollerStatuses ||
+      this.processGetBotUsage
     );
   }
 
@@ -95,6 +100,18 @@ export class MockStatusService implements StatusService {
     return this;
   }
 
+  // Set the GetBotUsage response.
+  expectGetBotUsage(
+    resp: status.GetBotUsageRequest,
+    check: (req: status.GetBotUsageResponse) => void = (req) => {}
+  ): MockStatusService {
+    this.processGetBotUsage = (req) => {
+      check(req);
+      return resp;
+    };
+    return this;
+  }
+
   getIncrementalCommits(
     req: status.GetIncrementalCommitsRequest
   ): Promise<status.GetIncrementalCommitsResponse> {
@@ -120,6 +137,12 @@ export class MockStatusService implements StatusService {
   ): Promise<status.GetAutorollerStatusesResponse> {
     const process = this.processGetAutorollerStatuses;
     this.processGetAutorollerStatuses = null;
+    return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
+  }
+
+  getBotUsage(req: status.GetBotUsageRequest): Promise<status.GetBotUsageResponse> {
+    const process = this.processGetBotUsage;
+    this.processGetBotUsage = null;
     return process ? Promise.resolve(process(req)) : Promise.reject('No mock response set');
   }
 }
