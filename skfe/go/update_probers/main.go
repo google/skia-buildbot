@@ -48,8 +48,8 @@ func main() {
 	}
 
 	// Find the domain names of all redirects in the envoy file.
-	hostsPath := []string{"static_resources", "listeners", "0", "filter_chains", "filters", "0", "config", "route_config", "virtual_hosts"}
-	domains := []string{}
+	hostsPath := []string{"static_resources", "listeners", "0", "filter_chains", "filters", "0", "typed_config", "route_config", "virtual_hosts"}
+	var domains []string
 	for _, cluster := range redirects.Search(hostsPath...).Children() {
 		domain := cluster.Search("domains").Data().(string)
 		// Is there a routes redirect?
