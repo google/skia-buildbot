@@ -22,6 +22,30 @@
       },
       "revId": "6a0838fa398a08375b9c6a77ccf67b2e0e74eb6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "01acd8b1_2239c0fd",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2020-12-10T18:07:08Z",
+      "side": 1,
+      "message": "This is to keep consistent as the CrOS rollers. It\u0027s an approach to avoid beta profiles to be rolled to main branch. I figured that since we have to update the regex when branching happens for CrOS builders, we can do the same thing for these too.",
+      "parentUuid": "43ba4ea1_c037f768",
+      "range": {
+        "startLine": 46,
+        "startChar": 44,
+        "endLine": 46,
+        "endChar": 46
+      },
+      "revId": "6a0838fa398a08375b9c6a77ccf67b2e0e74eb6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
