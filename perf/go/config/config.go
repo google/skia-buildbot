@@ -134,6 +134,9 @@ type IngestionConfig struct {
 	SourceConfig SourceConfig `json:"source_config"`
 
 	// Branches, if populated then restrict to ingesting just these branches.
+	//
+	// Only use this if the Subject of each commit in the repo ends with the
+	// branch name, otherwise this will break the clustering page.
 	Branches []string `json:"branches"`
 
 	// FileIngestionTopicName is the PubSub topic name we should use if doing

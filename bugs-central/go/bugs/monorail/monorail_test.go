@@ -54,4 +54,16 @@ func TestMonorailSearch(t *testing.T) {
 	require.Equal(t, issue2, issues[1].Id)
 	require.Equal(t, 2, countsData.OpenCount)
 	require.Equal(t, 2, countsData.UnassignedCount)
+	require.Equal(t, 0, countsData.UntriagedCount)
+
+	// Set UnassignedIsUntriaged and assert.
+	mc.UnassignedIsUntriaged = true
+	issues, countsData, err = m.Search(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(issues))
+	require.Equal(t, issue1, issues[0].Id)
+	require.Equal(t, issue2, issues[1].Id)
+	require.Equal(t, 2, countsData.OpenCount)
+	require.Equal(t, 2, countsData.UnassignedCount)
+	require.Equal(t, 2, countsData.UntriagedCount)
 }

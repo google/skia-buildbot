@@ -47,6 +47,10 @@ type AdminDatastoreTask struct {
 
 	PageSets      string `json:"page_sets"`
 	IsTestPageSet bool   `json:"is_test_page_set"`
+
+	// For backwards compatilibity.
+	ChromiumRev string `json:"chromium_rev"`
+	SkiaRev     string `json:"skia_rev"`
 }
 
 type RecreatePageSetsDatastoreTask struct {
