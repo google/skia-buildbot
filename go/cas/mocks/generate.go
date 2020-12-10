@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery -name CAS -dir ../ -output .
+//go:generate mockery --name CAS --dir ../ --output .

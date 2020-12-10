@@ -2299,13 +2299,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_vektra_mockery",
-    importpath = "github.com/vektra/mockery",
-    sum = "h1:Xim2mBRFdXzXmKRO8DJg/FJtn/8Fj9NOEpO6+WuMPmk=",
-    version = "v0.0.0-20181123154057-e78b021dcbb5",
-)
-
-go_repository(
     name = "com_github_willf_bitset",
     importpath = "github.com/willf/bitset",
     sum = "h1:NotGKqX0KwQ72NUzqrjZq5ipPNDQex9lo3WpaS8L2sc=",
