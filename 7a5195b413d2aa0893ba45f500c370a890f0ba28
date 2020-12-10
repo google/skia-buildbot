@@ -22,6 +22,30 @@
       },
       "revId": "7a5195b413d2aa0893ba45f500c370a890f0ba28",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e17f368b_ed7ef995",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-10T19:32:01Z",
+      "side": 1,
+      "message": "Renamed validateCommits because all it does is sort the commits.  We have \u0027commits\u0027 which is an array of commits, and \u0027commitsByHash\u0027 is just a lookup table.  We sort \u0027commits\u0027 in this function, and use \u0027commitsByHash\u0027 to lookup ancestry.",
+      "parentUuid": "3c640c4f_97bff966",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 273,
+        "endChar": 27
+      },
+      "revId": "7a5195b413d2aa0893ba45f500c370a890f0ba28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
