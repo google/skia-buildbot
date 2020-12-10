@@ -22,6 +22,30 @@
       },
       "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "323a9e81_65be7cac",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-10T17:03:03Z",
+      "side": 1,
+      "message": "I guess something hacky like if root \u003d \"..\" then set root to \".\" and trim the first piece off relPath.  But thats pretty hacky, and it may be better to instead conditionally beef up the error message to mention the case of a name-changed checkout so devs know what the issue is.",
+      "parentUuid": "dd5a8011_5edf4ba5",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
