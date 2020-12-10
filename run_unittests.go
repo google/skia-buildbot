@@ -22,6 +22,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
@@ -30,7 +31,7 @@ import (
 
 const (
 	// This gets filled out and printed when a test fails.
-	TEST_FAILURE = `
+	testFailure = `
 ============================= TEST FAILURE =============================
 Test: %s
 
@@ -44,14 +45,17 @@ Full output:
 %s
 ------------------------------------------------------------------------
 `
+
+	// The expected version of mockery - older versions will be deleted
+	mockeryVersion = "2.4.0"
 )
 
 var (
 	// Error message shown when a required executable is not installed.
-	ERR_NEED_INSTALL = "%s failed to run! Is it installed? Error: %v"
+	needInstallErr = "%s failed to run! Is it installed? Error: %v"
 
 	// Directories with these names are skipped when searching for tests.
-	NO_CRAWL_DIR_NAMES = []string{
+	noCrawlDirNames = []string{
 		".git",
 		".recipe_deps",
 		"assets",
@@ -61,12 +65,8 @@ var (
 
 	// Directories with these paths, relative to the checkout root, are
 	// skipped when searching for tests.
-	NO_CRAWL_REL_PATHS = []string{
+	noCrawlRelPaths = []string{
 		"common",
-	}
-
-	POLYMER_PATHS = []string{
-		"res/imp",
 	}
 
 	// goTestRegexp is a regular expression used for finding the durations
@@ -101,7 +101,7 @@ func cmdTest(cmd []string, cwd, name, testType string) *test {
 			output, err := command.CombinedOutput()
 			if err != nil {
 				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {
-					return string(output), fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err)
+					return string(output), fmt.Errorf(needInstallErr, cmd[0], err)
 				}
 			}
 			return string(output), err
@@ -177,28 +177,68 @@ func goGenerate() *test {
 			}
 			diff, err := exec.Command(gitExec, "diff", "--no-ext-diff").CombinedOutput()
 			if err != nil {
-				return string(diff), fmt.Errorf("Failed to run git diff: %s", err)
+				return string(diff), skerr.Wrapf(err, "Failed to run git diff")
+			}
+
+			err = checkMockeryIsUpToDate()
+			if err != nil {
+				return "", skerr.Wrapf(err, "Could not verify mockery version")
 			}
 
 			// Run "go generate".
 			command := exec.Command(cmd[0], cmd[1:]...)
 			outputBytes, err := command.CombinedOutput()
 			if err != nil {
-				return string(outputBytes), fmt.Errorf("Failed to run go generate: %s", err)
+				return string(outputBytes), skerr.Wrapf(err, "Failed to run go generate")
 			}
 
 			// Run "git diff" again and assert that the diff didn't
 			// change.
 			diff2, err := exec.Command(gitExec, "diff", "--no-ext-diff").CombinedOutput()
 			if err != nil {
-				return string(diff2), fmt.Errorf("Failed to run git diff: %s", err)
+				return string(diff2), skerr.Wrapf(err, "Failed to run git diff the second time")
 			}
 			if string(diff) != string(diff2) {
-				return fmt.Sprintf("Diff before:\n%s\n\nDiff after:\n%s", string(diff), string(diff2)), fmt.Errorf("go generate created new diffs!")
+				return fmt.Sprintf("Diff before:\n%s\n\nDiff after:\n%s", string(diff), string(diff2)), skerr.Fmt("go generate created new diffs!")
 			}
 			return "", nil
 		},
 		Type: unittest.LARGE_TEST,
+	}
+}
+
+// checkMockeryIsUpToDate makes sure that the version of mockery on the path is the correct version
+// (on Linux; on other platforms, it is a no op). It will delete old versions until it finds a
+// correct version. If we cannot find it, we return an error. This is to work around the fact
+// that we changed mockery to be something installed via go get to something brought in via CIPD.
+// The gocache held onto the out of date version and we want to clean it up with this approach.
+func checkMockeryIsUpToDate() error {
+	if runtime.GOOS != "linux" {
+		return nil
+	}
+	for {
+		// Keep looking for a mockery version on PATH. If it is the wrong version, delete it.
+		o, err := exec.Command("which", "mockery").CombinedOutput()
+		if err != nil {
+			return skerr.Wrapf(err, "Make sure mockery is installed and on your PATH. See Readme. %s", string(o))
+		}
+		mExe := strings.TrimSpace(string(o))
+		if mExe == "" {
+			return skerr.Wrapf(err, "Make sure mockery is installed and on your PATH. See Readme. %s", string(o))
+		}
+		o, err = exec.Command(mExe, "--version").Output() // newer mockery have noisy stderr
+		if err != nil {
+			return skerr.Wrapf(err, "getting mockery version from %s", mExe)
+		}
+		mVers := strings.TrimSpace(string(o))
+		if mVers == mockeryVersion {
+			sklog.Infof("Found mockery executable %s with good version %s", mExe, mVers)
+			return nil
+		}
+		sklog.Warningf("Invalid mockery version found %s with version %s. Deleting it.", mExe, mVers)
+		if err := os.Remove(mExe); err != nil {
+			return skerr.Wrapf(err, "removing %s (with version %s)", mExe, mVers)
+		}
 	}
 }
 
@@ -244,7 +284,7 @@ func (t *test) Run() error {
 	}()
 	output, err := t.run()
 	if err != nil {
-		return fmt.Errorf(TEST_FAILURE, t.Name, t.Cmd, err, output)
+		return fmt.Errorf(testFailure, t.Name, t.Cmd, err, output)
 	}
 	t.output = output
 	return nil
@@ -304,12 +344,12 @@ func main() {
 		basename := filepath.Base(p)
 		if info.IsDir() {
 			// Skip some directories.
-			for _, skip := range NO_CRAWL_DIR_NAMES {
+			for _, skip := range noCrawlDirNames {
 				if basename == skip {
 					return filepath.SkipDir
 				}
 			}
-			for _, skip := range NO_CRAWL_REL_PATHS {
+			for _, skip := range noCrawlRelPaths {
 				if p == filepath.Join(rootDir, skip) {
 					return filepath.SkipDir
 				}
@@ -354,7 +394,7 @@ func main() {
 			outStr := strings.Trim(string(output), "\n")
 			if err != nil {
 				if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
-					return outStr, fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err)
+					return outStr, fmt.Errorf(needInstallErr, goimportsCmd[0], err)
 				}
 				// Sometimes goimports returns exit code 2, but gives no reason.
 				if outStr != "" {
@@ -384,7 +424,7 @@ func main() {
 			outStr := strings.Trim(string(output), "\n")
 			if err != nil {
 				if _, err2 := exec.LookPath(gosimplifyCmd[0]); err2 != nil {
-					return outStr, fmt.Errorf(ERR_NEED_INSTALL, gosimplifyCmd[0], err)
+					return outStr, fmt.Errorf(needInstallErr, gosimplifyCmd[0], err)
 				}
 			}
 			if outStr != "" {
