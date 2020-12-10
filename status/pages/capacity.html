@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{.Title}}</title>
+    <link id="dynamicFavicon" rel="shortcut icon" href="/res/img/favicon-open.ico" />
+    <script>
+      window.StatusSettings = {
+        swarmingUrl: '{{.SwarmingURL}}',
+        logsUrlTemplate: '{{.LogsURLTemplate}}',
+        taskSchedulerUrl: '{{.TaskSchedulerURL}}',
+        defaultRepo: '{{.DefaultRepo}}',
+        repos: new Map([
+          {{range $repo, $url := .Repos}}
+            ['{{$repo}}', '{{$url}}'],
+          {{end}}
+        ]),
+      };
+    </script>
+  </head>
+  <body>
+    <capacity-sk></capacity-sk>
+  </body>
+</html>

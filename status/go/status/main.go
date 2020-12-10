@@ -72,20 +72,21 @@ const (
 )
 
 var (
-	autorollMtx           sync.RWMutex
-	autorollStatus        []byte                             = nil
-	autorollStatusTwirp   *rpc.GetAutorollerStatusesResponse = nil
-	capacityClient        *capacity.CapacityClient           = nil
-	capacityTemplate      *template.Template                 = nil
-	legacyCommitsTemplate *template.Template                 = nil
-	commitsTemplate       *template.Template                 = nil
-	iCache                *incremental.IncrementalCache      = nil
-	lkgrObj               *lkgr.LKGR                         = nil
-	taskDb                db.RemoteDB                        = nil
-	taskDriverDb          task_driver_db.DB                  = nil
-	taskDriverLogs        *logs.LogsManager                  = nil
-	tasksPerCommit        *tasksPerCommitCache               = nil
-	tCache                cache.TaskCache                    = nil
+	autorollMtx            sync.RWMutex
+	autorollStatus         []byte                             = nil
+	autorollStatusTwirp    *rpc.GetAutorollerStatusesResponse = nil
+	capacityClient         *capacity.CapacityClient           = nil
+	legacyCapacityTemplate *template.Template                 = nil
+	capacityTemplate       *template.Template                 = nil
+	legacyCommitsTemplate  *template.Template                 = nil
+	commitsTemplate        *template.Template                 = nil
+	iCache                 *incremental.IncrementalCache      = nil
+	lkgrObj                *lkgr.LKGR                         = nil
+	taskDb                 db.RemoteDB                        = nil
+	taskDriverDb           task_driver_db.DB                  = nil
+	taskDriverLogs         *logs.LogsManager                  = nil
+	tasksPerCommit         *tasksPerCommitCache               = nil
+	tCache                 cache.TaskCache                    = nil
 
 	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -155,6 +156,9 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	capacityTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "dist", "capacity.html"),
+	))
+	legacyCapacityTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/capacity.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -608,6 +612,39 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
+	defaultRepo := repoUrlToName((*repoUrls)[0])
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	d := struct {
+		Title            string
+		SwarmingURL      string
+		LogsURLTemplate  string
+		TaskSchedulerURL string
+		DefaultRepo      string
+		// Repo name to repo URL.
+		Repos map[string]string
+	}{
+		Title:            "Capacity Statistics for Skia Bots",
+		SwarmingURL:      *swarmingUrl,
+		LogsURLTemplate:  *taskLogsUrlTemplate,
+		TaskSchedulerURL: *taskSchedulerUrl,
+		DefaultRepo:      defaultRepo,
+		Repos:            repoURLsByName,
+	}
+
+	if err := capacityTemplate.Execute(w, d); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
+	}
+}
+
+func legacyCapacityHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "text/html")
+
 	// Don't use cached templates in testing mode.
 	if *testing {
 		reloadTemplates()
@@ -618,7 +655,7 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Repos: getRepoNames(),
 	}
-	if err := capacityTemplate.Execute(w, page); err != nil {
+	if err := legacyCapacityTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 	}
 }
@@ -728,6 +765,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
 	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(legacyStatusHandler, *testing))
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
+	r.HandleFunc("/legacy/capacity", httputils.OriginTrial(legacyCapacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/autorollers", autorollStatusHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)

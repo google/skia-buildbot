@@ -202,7 +202,7 @@ func (s *statusServerImpl) GetAutorollerStatuses(ctx context.Context, req *GetAu
 func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequest) (*GetBotUsageResponse, error) {
 	rv := GetBotUsageResponse{}
 	for _, botconfig := range s.capacityClient.CapacityMetrics() {
-		var dims map[string]string
+		dims := make(map[string]string)
 		for _, dim := range botconfig.Dimensions {
 			split := strings.SplitN(dim, ":", 1)
 			if len(split) > 0 {
