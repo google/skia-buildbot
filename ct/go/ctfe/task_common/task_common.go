@@ -333,7 +333,7 @@ func HasPageSetsColumn(prototype Task) bool {
 	t := v.Type()
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		if f.Name == "PageSets" {
+		if f.Name == "AdminDatastoreTask" || f.Name == "PageSets" {
 			return true
 		}
 	}
