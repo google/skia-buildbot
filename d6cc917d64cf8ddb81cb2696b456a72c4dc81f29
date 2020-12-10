@@ -16,6 +16,23 @@
       "message": "I will review this after we finish discussion about my SQL feedback on the first CL.",
       "revId": "d6cc917d64cf8ddb81cb2696b456a72c4dc81f29",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "39941898_9f0e3365",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-10T14:13:45Z",
+      "side": 1,
+      "message": "Also, one of the new tests appears flaky: https://logs.chromium.org/logs/skia/5062fd1edb70fc11/+/steps/run_unittests/0/stdout",
+      "revId": "d6cc917d64cf8ddb81cb2696b456a72c4dc81f29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
