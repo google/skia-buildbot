@@ -51,7 +51,7 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs types.RepoState) (int,
 
 	if _, ok := c.cached[rs]; !ok {
 		// Find the number of TaskSpecs expected to run at this commit.
-		cfg, err := c.tcc.Get(ctx, rs)
+		cfg, cachedErr, err := c.tcc.Get(ctx, rs)
 		if err == task_cfg_cache.ErrNoSuchEntry {
 			// The TasksCfg for this RepoState hasn't been cached
 			// yet. Return 0 with no error for now.
@@ -59,6 +59,8 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs types.RepoState) (int,
 			return 0, nil
 		} else if err != nil {
 			return 0, err
+		} else if cachedErr != nil {
+			return 0, nil
 		}
 		tasksForCommit := make(map[string]bool, len(cfg.Tasks))
 		var recurse func(string)

@@ -391,14 +391,14 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 			Repo:     repoName,
 			Revision: commit.Hash,
 		}
-		cfg, err := tcc.Get(ctx, rs)
+		cfg, cachedErr, err := tcc.Get(ctx, rs)
+		if cachedErr != nil {
+			sklog.Warningf("Stopping blamelist recursion at %s; TaskCfgCache has error: %s", commit.Hash, err)
+			return repograph.ErrStopRecursing
+		}
 		if err != nil {
 			if err == task_cfg_cache.ErrNoSuchEntry {
 				sklog.Warningf("Computing blamelist for %s in %s @ %s, no cached TasksCfg at %s; stopping blamelist calculation.", taskName, repoName, revision.Hash, commit.Hash)
-				return repograph.ErrStopRecursing
-			}
-			if specs.ErrorIsPermanent(err) {
-				sklog.Warningf("Stopping blamelist recursion at %s; TaskCfgCache has error: %s", commit.Hash, err)
 				return repograph.ErrStopRecursing
 			}
 			return skerr.Wrap(err)
@@ -538,7 +538,10 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 			key := j.MakeTaskKey(tsName)
 			c, ok := candidates[key]
 			if !ok {
-				taskCfg, err := s.taskCfgCache.Get(ctx, j.RepoState)
+				taskCfg, cachedErr, err := s.taskCfgCache.Get(ctx, j.RepoState)
+				if cachedErr != nil {
+					continue
+				}
 				if err != nil {
 					return nil, skerr.Wrap(err)
 				}

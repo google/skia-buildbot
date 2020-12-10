@@ -396,7 +396,10 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 			Repo:     repoUrl,
 			Revision: main.Hash,
 		}
-		cfg, err := jc.taskCfgCache.Get(ctx, rs)
+		cfg, cachedErr, err := jc.taskCfgCache.Get(ctx, rs)
+		if cachedErr != nil {
+			err = cachedErr
+		}
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
 		}

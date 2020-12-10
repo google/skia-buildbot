@@ -296,17 +296,14 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 				if t.Id != "buildbot-id" {
 					cfg, ok := cfgs[commit]
 					if !ok {
-						c, err := tcc.Get(ctx, types.RepoState{
+						c, cachedErr, err := tcc.Get(ctx, types.RepoState{
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})
-						if err != nil {
-							if err == task_cfg_cache.ErrNoSuchEntry || specs.ErrorIsPermanent(err) {
-								sklog.Warningf("Could not retrieve TasksCfg for %s@%s: %s", repoUrl, commit.Hash, err)
-								return nil
-							} else {
-								return err
-							}
+						if cachedErr != nil || err == task_cfg_cache.ErrNoSuchEntry {
+							return nil
+						} else if err != nil {
+							return err
 						}
 						cfg = c
 						cfgs[commit] = cfg
