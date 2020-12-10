@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6a0168e3_537c5b79",
+        "filename": "skfe/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-10T19:45:18Z",
+      "side": 1,
+      "message": "Let\u0027s keep it pinned to a specific version instead of \u0027latest\u0027.",
+      "range": {
+        "startLine": 11,
+        "startChar": 114,
+        "endLine": 11,
+        "endChar": 119
+      },
+      "revId": "a2b341eb911775bfe0d3f5865943086b5f42afb3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
