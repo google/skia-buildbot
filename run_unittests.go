@@ -5,8 +5,6 @@ package main
 */
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -23,7 +21,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -111,94 +108,6 @@ func cmdTest(cmd []string, cwd, name, testType string) *test {
 		},
 		Type: testType,
 	}
-}
-
-func polylintTest(cwd, fileName string) *test {
-	cmd := []string{"polylint", "--no-recursion", "--root", cwd, "--input", fileName}
-	return &test{
-		Name: fmt.Sprintf("polylint in %s", filepath.Join(cwd, fileName)),
-		Cmd:  strings.Join(cmd, " "),
-		run: func() (string, error) {
-			command := exec.Command(cmd[0], cmd[1:]...)
-			outputBytes, err := command.Output()
-			if err != nil {
-				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {
-					return string(outputBytes), fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err)
-				}
-				return string(outputBytes), err
-			}
-
-			unresolvedProblems := ""
-			count := 0
-
-			for s := bufio.NewScanner(bytes.NewBuffer(outputBytes)); s.Scan(); {
-				badFileLine := s.Text()
-				if !s.Scan() {
-					return string(outputBytes), fmt.Errorf("Unexpected end of polylint output after %q:\n%s", badFileLine, string(outputBytes))
-				}
-				problemLine := s.Text()
-				if !strings.Contains(unresolvedProblems, badFileLine) {
-					unresolvedProblems = fmt.Sprintf("%s\n%s\n%s", unresolvedProblems, badFileLine, problemLine)
-					count++
-				}
-			}
-
-			if unresolvedProblems == "" {
-				return "", nil
-			}
-			return "", fmt.Errorf("%d unresolved polylint problems:\n%s\n", count, unresolvedProblems)
-		},
-		Type: unittest.LARGE_TEST,
-	}
-}
-
-// buildPolymerFolder runs the Makefile in the given folder.  This sets up the symbolic links so dependencies can be located for polylint.
-func buildPolymerFolder(cwd string) error {
-	cmd := cmdTest([]string{"make", "deps"}, cwd, fmt.Sprintf("Polymer build in %s", cwd), unittest.LARGE_TEST)
-	return cmd.Run()
-}
-
-// polylintTestsForDir builds the folder once and then returns a list of tests for each Polymer file in the directory.  If the build fails, a dummy test is returned that prints an error message.
-func polylintTestsForDir(cwd string, fileNames ...string) []*test {
-	if err := buildPolymerFolder(cwd); err != nil {
-		return []*test{
-			{
-				Name: filepath.Join(cwd, "make"),
-				Cmd:  filepath.Join(cwd, "make"),
-				run: func() (string, error) {
-					return "", fmt.Errorf("Could not build Polymer files in %s: %s", cwd, err)
-				},
-				Type: unittest.LARGE_TEST,
-			},
-		}
-	}
-	tests := make([]*test, 0, len(fileNames))
-	for _, name := range fileNames {
-		tests = append(tests, polylintTest(cwd, name))
-	}
-	return tests
-}
-
-// findPolymerFiles returns all files that probably contain polymer content
-// (i.e. end with sk.html) in a given directory.
-func findPolymerFiles(dirPath string) []string {
-	dir := fileutil.MustOpen(dirPath)
-	files := make([]string, 0)
-	for _, info := range fileutil.MustReaddir(dir) {
-		if n := info.Name(); strings.HasSuffix(info.Name(), "sk.html") {
-			files = append(files, n)
-		}
-	}
-	return files
-}
-
-//polylintTests creates a list of *test from all directories in POLYMER_PATHS
-func polylintTests() []*test {
-	tests := make([]*test, 0)
-	for _, p := range POLYMER_PATHS {
-		tests = append(tests, polylintTestsForDir(p, findPolymerFiles(p)...)...)
-	}
-	return tests
 }
 
 // goTest returns a test which runs `go test` in the given cwd.
@@ -433,13 +342,6 @@ func main() {
 		tests = append(tests, cmdTest([]string{"make", "test-frontend-ci"}, ".", "front-end tests", unittest.MEDIUM_TEST))
 		tests = append(tests, cmdTest([]string{"make", "validate"}, "proberk", "validate probers", unittest.SMALL_TEST))
 		tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
-	}
-
-	if !*race {
-		if runtime.GOOS == "linux" {
-			// put this behind a flag because polylintTests tries to build the polymer files
-			tests = append(tests, polylintTests()...)
-		}
 	}
 
 	goimportsCmd := []string{"goimports", "-l", "."}
