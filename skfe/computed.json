@@ -1920,7 +1920,9 @@
         "filter_chains": {
           "filters": [
             {
-              "config": {
+              "name": "envoy.filters.network.http_connection_manager",
+              "typed_config": {
+                "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
                 "access_log": [
                   {
                     "name": "envoy.access_loggers.file",
@@ -4136,8 +4138,7 @@
                   ]
                 },
                 "stat_prefix": "ingress_http"
-              },
-              "name": "envoy.filters.network.http_connection_manager"
+              }
             }
           ]
         },

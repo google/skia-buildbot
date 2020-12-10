@@ -34,7 +34,7 @@ func main() {
 	}
 
 	// Merge Virtual Hosts.
-	hostsPath := []string{"static_resources", "listeners", "0", "filter_chains", "filters", "0", "config", "route_config", "virtual_hosts"}
+	hostsPath := []string{"static_resources", "listeners", "0", "filter_chains", "filters", "0", "typed_config", "route_config", "virtual_hosts"}
 	for _, cluster := range file2.Search(hostsPath...).Children() {
 		if err := file1.ArrayAppend(cluster.Data(), hostsPath...); err != nil {
 			sklog.Fatal(err)

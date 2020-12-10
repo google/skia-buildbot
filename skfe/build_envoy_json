@@ -20,7 +20,7 @@ kubectl get services -o json | jq '{
             filter_chains: {
                 filters: [
                     {
-                        config: {
+                        typed_config: {
                             route_config: {
                                 virtual_hosts: [
                                     .items[]
