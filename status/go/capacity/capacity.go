@@ -140,7 +140,10 @@ func (c *CapacityClient) getTasksCfg(ctx context.Context, repo string) (*specs.T
 			Repo:     repo,
 			Revision: commit.Hash,
 		}
-		tasksCfg, err := c.tcc.Get(ctx, rs)
+		tasksCfg, cachedErr, err := c.tcc.Get(ctx, rs)
+		if cachedErr != nil {
+			err = cachedErr
+		}
 		if err == nil {
 			return tasksCfg, commit.Hash, nil
 		}

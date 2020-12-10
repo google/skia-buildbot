@@ -238,8 +238,9 @@ func fillCaches(t sktest.TestingT, ctx context.Context, taskCfgCache *task_cfg_c
 func insertJobs(t sktest.TestingT, ctx context.Context, s *TaskScheduler, rss ...types.RepoState) {
 	jobs := []*types.Job{}
 	for _, rs := range rss {
-		cfg, err := s.taskCfgCache.Get(ctx, rs)
+		cfg, cachedErr, err := s.taskCfgCache.Get(ctx, rs)
 		require.NoError(t, err)
+		require.NoError(t, cachedErr)
 		for name := range cfg.Jobs {
 			j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
 			require.NoError(t, err)
@@ -343,10 +344,12 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		assertdeep.Equal(t, expect, actual)
 	}
 
-	cfg1, err := s.taskCfgCache.Get(ctx, rs1)
+	cfg1, cachedErr, err := s.taskCfgCache.Get(ctx, rs1)
 	require.NoError(t, err)
-	cfg2, err := s.taskCfgCache.Get(ctx, rs2)
+	require.NoError(t, cachedErr)
+	cfg2, cachedErr, err := s.taskCfgCache.Get(ctx, rs2)
 	require.NoError(t, err)
+	require.NoError(t, cachedErr)
 
 	// Run on an empty job list, ensure empty list returned.
 	test([]*types.Job{}, map[types.TaskKey]*taskCandidate{})

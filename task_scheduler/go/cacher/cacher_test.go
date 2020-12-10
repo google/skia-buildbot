@@ -102,8 +102,9 @@ func TestGetOrCacheRepoState_Unset_Isolate(t *testing.T) {
 	defer cleanup()
 
 	// Verify that the cache entry doesn't exist yet.
-	cached, err := tcc.Get(ctx, rs)
+	cached, cachedErr, err := tcc.Get(ctx, rs)
 	require.EqualError(t, task_cfg_cache.ErrNoSuchEntry, err.Error())
+	require.Nil(t, cachedErr)
 	require.Nil(t, cached)
 
 	// Run GetOrCacheRepoState to populate the cache.
@@ -111,8 +112,9 @@ func TestGetOrCacheRepoState_Unset_Isolate(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify that the cache entry now exists.
-	cached, err = tcc.Get(ctx, rs)
+	cached, cachedErr, err = tcc.Get(ctx, rs)
 	require.NoError(t, err)
+	require.Nil(t, cachedErr)
 	require.NotNil(t, cached)
 }
 
@@ -138,8 +140,9 @@ func TestGetOrCacheRepoState_Unset_RBE(t *testing.T) {
 	rs.Revision = commit
 
 	// Verify that the cache entry doesn't exist yet.
-	cached, err := tcc.Get(ctx, rs)
+	cached, cachedErr, err := tcc.Get(ctx, rs)
 	require.EqualError(t, task_cfg_cache.ErrNoSuchEntry, err.Error())
+	require.Nil(t, cachedErr)
 	require.Nil(t, cached)
 
 	// Run GetOrCacheRepoState to populate the cache.
@@ -148,8 +151,9 @@ func TestGetOrCacheRepoState_Unset_RBE(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify that the cache entry now exists.
-	cached, err = tcc.Get(ctx, rs)
+	cached, cachedErr, err = tcc.Get(ctx, rs)
 	require.NoError(t, err)
+	require.Nil(t, cachedErr)
 	require.NotNil(t, cached)
 	require.Equal(t, "fake-digest", cached.CasSpecs["my-cas"].Digest)
 }

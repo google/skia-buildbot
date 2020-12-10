@@ -117,7 +117,10 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 
 	// Retrieve the task specs, so that we can include the task dimensions
 	// in the results.
-	cfg, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
+	cfg, cachedErr, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
+	if cachedErr != nil {
+		err = cachedErr
+	}
 	if err != nil {
 		sklog.Error(err)
 		return nil, nil, twirp.InternalError("Failed to retrieve job dependencies")
