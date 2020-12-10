@@ -260,7 +260,6 @@ class Data {
     const keep = this.commits.slice(0, sliceIdx);
     const remove = this.commits.slice(sliceIdx, this.commits.length);
     this.commits = newCommits.concat(keep);
-    this.validateCommits();
 
     if (update.branchHeads && update.branchHeads.length > 0) {
       this.branchHeads = update.branchHeads;
@@ -270,6 +269,8 @@ class Data {
     this.commits.forEach((commit: Commit) => {
       this.commitsByHash.set(commit.hash, commit);
     });
+    // Sorting the array of commits uses commitsByHash, so validate after loading the map.
+    this.sortCommits();
 
     // Map task Id to Task
     for (const task of update.tasks || []) {
@@ -340,7 +341,7 @@ class Data {
     return false;
   }
 
-  private validateCommits() {
+  private sortCommits() {
     this.commits.sort((a, b) => {
       const diff = new Date(b.timestamp!).valueOf() - new Date(a.timestamp!).valueOf();
       if (diff !== 0) {
