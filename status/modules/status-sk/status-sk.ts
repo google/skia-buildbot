@@ -43,16 +43,9 @@ export class StatusSk extends ElementSk {
       <app-sk>
         <header>
           <h1>Status: ${el.repo}</h1>
-          <a
-            id="legacy"
-            class="secondary-container-themes-sk"
-            href="/repo/${el.repo.toLowerCase()}"
-            ><p>Return to Legacy Status page</p></a
-          >
           <div class="spacer">
             <tree-status-sk
-              @tree-status-update=${(e: CustomEvent<TreeStatus>) =>
-                el.updateTreeStatus(e.detail)}
+              @tree-status-update=${(e: CustomEvent<TreeStatus>) => el.updateTreeStatus(e.detail)}
             ></tree-status-sk>
           </div>
           <login-sk></login-sk>
@@ -211,13 +204,13 @@ export class StatusSk extends ElementSk {
     link.rel = 'shortcut icon';
     switch (r.status.general_state) {
       case 'caution':
-        link.href = '/res/img/favicon-caution.ico';
+        link.href = '/dist/img/favicon-caution.ico';
         break;
       case 'closed':
-        link.href = '/res/img/favicon-closed.ico';
+        link.href = '/dist/img/favicon-closed.ico';
         break;
       default:
-        link.href = '/res/img/favicon-open.ico';
+        link.href = '/dist/img/favicon-open.ico';
         break;
     }
     const head = document.getElementsByTagName('head')[0];
