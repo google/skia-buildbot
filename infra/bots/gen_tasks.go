@@ -288,6 +288,8 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
+		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("mockery"))
+		task.EnvPrefixes["PATH"] = append(task.EnvPrefixes["PATH"], "mockery")
 	}
 
 	// Cloud datastore tests are assumed to be marked as 'Large'
@@ -355,12 +357,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("node"))
 
 	machineType := MACHINE_TYPE_MEDIUM
-	if strings.Contains(name, "Large") {
-		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
-		machineType = MACHINE_TYPE_LARGE
-		cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
-	}
-
 	var deps []string
 	var dims []string
 	if strings.Contains(name, "Win") {
