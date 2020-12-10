@@ -169,6 +169,10 @@ func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Reques
 
 type RecreateWebpageArchivesDatastoreTask struct {
 	AdminDatastoreTask
+
+	// For backwards compatilibity.
+	ChromiumRev string `json:"chromium_rev"`
+	SkiaRev     string `json:"skia_rev"`
 }
 
 func (task RecreateWebpageArchivesDatastoreTask) GetTaskName() string {
@@ -308,7 +312,7 @@ func (task *AddRecreatePageSetsTaskVars) GetPopulatedDatastoreTask(ctx context.C
 	}
 
 	t := &RecreatePageSetsDatastoreTask{
-		AdminDatastoreTask{
+		AdminDatastoreTask: AdminDatastoreTask{
 			PageSets:      task.PageSets,
 			IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
 		},
@@ -335,10 +339,13 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetPopulatedDatastoreTask(ctx co
 	}
 
 	t := &RecreateWebpageArchivesDatastoreTask{
-		AdminDatastoreTask{
+		AdminDatastoreTask: AdminDatastoreTask{
 			PageSets:      task.PageSets,
 			IsTestPageSet: task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k || task.PageSets == ctutil.PAGESET_TYPE_MOBILE_DUMMY_1k,
 		},
+		// For backwards compatilibity.
+		ChromiumRev: "",
+		SkiaRev:     "",
 	}
 	return t, nil
 }

@@ -499,7 +499,7 @@ export class DebuggerPageSk extends ElementDocSk {
   private _moveFrameTo(n: number) {
 
     // bounds may change too, requring a new surface and gl context, but this is costly and
-    // only rarely nnecessary
+    // only rarely necessary
     let oldBounds = this._fileContext!.player.getBounds();
     let newBounds = this._fileContext!.player.getBoundsForFrame(n);
     if (!this._boundsEqual(oldBounds, newBounds)) {
