@@ -38,11 +38,9 @@
   "rollerName": "catapult-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://rota-ng.appspot.com/legacy/sheriff_perfbot.json"
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:chromium-perf-bot-sheriff"
   ],
-  "sheriffBackup": [
-    "wenbinzhang@google.com"
-  ],
+  "sheriffBackup": ["wenbinzhang@google.com"],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/catapult",
@@ -63,9 +61,7 @@
     {
       "filter": "error",
       "email": {
-        "emails": [
-          "chrome-speed-operations@google.com"
-        ]
+        "emails": ["chrome-speed-operations@google.com"]
       }
     }
   ]
