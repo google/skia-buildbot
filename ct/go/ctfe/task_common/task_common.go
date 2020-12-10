@@ -325,21 +325,6 @@ func DatastoreTaskQuery(ctx context.Context, prototype Task, params QueryParams)
 	return ds.DS.Run(ctx, q)
 }
 
-func HasPageSetsColumn(prototype Task) bool {
-	v := reflect.Indirect(reflect.ValueOf(prototype))
-	if v.Kind() != reflect.Struct {
-		return false
-	}
-	t := v.Type()
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		if f.Name == "PageSets" {
-			return true
-		}
-	}
-	return false
-}
-
 type ClusterTelemetryIDs struct {
 	HighestID int64
 }
@@ -390,10 +375,6 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	params.ExcludeDummyPageSets = ctfeutil.ParseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
 	if params.SuccessfulOnly && params.PendingOnly {
 		httputils.ReportError(w, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "Inconsistent params", http.StatusInternalServerError)
-		return
-	}
-	if params.ExcludeDummyPageSets && !HasPageSetsColumn(prototype) {
-		httputils.ReportError(w, nil, fmt.Sprintf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()), http.StatusInternalServerError)
 		return
 	}
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)

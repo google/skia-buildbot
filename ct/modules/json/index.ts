@@ -101,6 +101,8 @@ export interface AdminDatastoreTask {
 	delete_url: string;
 	page_sets: string;
 	is_test_page_set: boolean;
+	chromium_rev: string;
+	skia_rev: string;
 }
 
 export interface AdminAddTaskVars {

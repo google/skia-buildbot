@@ -56,7 +56,7 @@ describe('metrics-analysis-runs-sk', () => {
   it('navigates with pages', async () => {
     expect(fetchMock.lastUrl()).to.contain('offset=0');
     const result = tasksResult1;
-    result.pagination.offset = 10;
+    result.pagination!.offset = 10;
     // 'Next page' button.
     await expectReload(
       () => ($('pagination-sk button.action', analysisRuns)[2] as HTMLElement).click(), result,
