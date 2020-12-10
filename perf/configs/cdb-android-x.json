@@ -19,11 +19,16 @@
       "project": "skia-public",
       "topic": "perf-ingestion-android-x-production",
       "subscription": "perf-ingestion-android-x-cdb-prod",
-      "sources": ["gs://skia-perf/android-master-ingest"],
+      "sources": [
+        "gs://skia-perf/android-master-ingest"
+      ],
       "reject_if_name_matches": "/tx_log/",
       "accept_if_name_matches": "androidx"
     },
-    "branches": ["aosp-androidx-master-dev"],
+    "branches": [
+      "aosp-androidx-master-dev",
+      "aosp-androidx-main",
+    ],
     "file_ingestion_pubsub_topic_name": ""
   },
   "git_repo_config": {
