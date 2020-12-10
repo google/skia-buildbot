@@ -277,6 +277,7 @@ func goGenerate() *test {
 			if err != nil {
 				return string(outputBytes), fmt.Errorf("Failed to run go generate: %s", err)
 			}
+			sklog.Infof("Generate output: %s", string(outputBytes))
 
 			// Run "git diff" again and assert that the diff didn't
 			// change.
