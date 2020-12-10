@@ -739,6 +739,11 @@
           "version": "version:9"
         },
         {
+          "name": "skia/bots/mockery",
+          "path": "mockery",
+          "version": "version:1"
+        },
+        {
           "name": "skia/bots/node",
           "path": "node",
           "version": "version:2"
@@ -772,7 +777,8 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "mockery"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"
@@ -962,6 +968,11 @@
           "version": "version:9"
         },
         {
+          "name": "skia/bots/mockery",
+          "path": "mockery",
+          "version": "version:1"
+        },
+        {
           "name": "skia/bots/node",
           "path": "node",
           "version": "version:2"
@@ -995,7 +1006,8 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin"
+          "cipd_bin_packages/bin",
+          "mockery"
         ],
         "VPYTHON_VIRTUALENV_ROOT": [
           "${cache_dir}/vpython"

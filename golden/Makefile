@@ -126,8 +126,9 @@ build-static-goldpushk-crashing-server:
 
 .PHONY: mocks
 mocks:
-	go get github.com/vektra/mockery/...
-
+	echo "Be sure to have downloaded mockery 2.4.0 from"
+	echo "https://github.com/vektra/mockery/releases"
+	echo "and put it on your PATH"
 	go generate ./...
 
 .PHONY: build-frontend-ci

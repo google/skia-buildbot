@@ -2,4 +2,4 @@
 // dependency cycles
 package grpc_mocks
 
-//go:generate mockery -name DiffServiceClient -dir ../ -output . --outpkg grpc_mocks
+//go:generate mockery --name DiffServiceClient --dir ../ --output . --outpkg grpc_mocks

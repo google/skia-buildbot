@@ -1,3 +1,3 @@
 package mocks
 
-//go:generate mockery -name BuildBucketInterface -dir ../ -output .
+//go:generate mockery --name BuildBucketInterface --dir ../ --output .
