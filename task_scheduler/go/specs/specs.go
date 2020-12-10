@@ -257,6 +257,14 @@ func (c *TasksCfg) Validate() error {
 			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
 	}
+
+	// Validate all CasSpecs.
+	for name, spec := range c.CasSpecs {
+		if err := spec.Validate(); err != nil {
+			return fmt.Errorf("Invalid TasksCfg; invalid CasSpec %q: %s", name, err)
+		}
+	}
+
 	// Ensure that the DAG is valid.
 	if err := findCycles(c.Tasks, c.Jobs); err != nil {
 		return fmt.Errorf("Invalid TasksCfg: %s", err)
@@ -617,14 +625,43 @@ func (s *CasSpec) Copy() *CasSpec {
 
 // Validate returns an error if the CasSpec is invalid.
 func (s *CasSpec) Validate() error {
+	// Must provide either Digest or Root+Paths.
 	if s.Root == "" && len(s.Paths) == 0 {
 		if _, _, err := rbe.StringToDigest(s.Digest); err != nil {
-			return skerr.Wrap(err)
+			return skerr.Wrapf(err, "digest is not valid: %s", s.Digest)
 		}
 		return nil
 	}
 	if (s.Root != "") != (len(s.Paths) > 0) {
 		return skerr.Fmt("Root and Paths must be specified together.")
 	}
+	if s.Digest != "" {
+		return skerr.Fmt("Cannot provide Digest in addition to Root and Paths")
+	}
+
+	// Validate root and paths.
+	if strings.HasPrefix(s.Root, "/") || strings.HasPrefix(s.Root, "~") {
+		return skerr.Fmt("Root %q is not relative", s.Root)
+	}
+	for _, path := range s.Paths {
+		if strings.HasPrefix(path, "/") || strings.HasPrefix(path, "~") {
+			return skerr.Fmt("Path %q is not relative", path)
+		}
+	}
+
+	// Only one ".." is valid in Root; this allows users to upload the entire
+	// repo as a subdirectory of the root but prevents accessing other files on
+	// the Task Scheduler server.
+	split := strings.Split(s.Root, "/")
+	upCount := 0
+	for _, term := range split {
+		if term == ".." {
+			upCount++
+		}
+	}
+	if upCount > 1 {
+		return skerr.Fmt("At most one \"..\" is allowed in CasSpec root")
+	}
+
 	return nil
 }

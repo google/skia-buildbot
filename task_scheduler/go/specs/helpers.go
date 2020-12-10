@@ -248,6 +248,16 @@ func (b *TasksCfgBuilder) Finish() error {
 	// Write the tasks.json file.
 	outFile := filepath.Join(b.root, TASKS_CFG_FILE)
 	if *test {
+		// Verify that the paths referenced by the CasSpecs actually exist.
+		for name, casSpec := range b.cfg.CasSpecs {
+			for _, relPath := range casSpec.Paths {
+				path := filepath.Join(b.root, casSpec.Root, relPath)
+				if _, err := os.Stat(path); err != nil {
+					return fmt.Errorf("Path %s needed by CasSpec %s is not accessible: %s", relPath, name, err)
+				}
+			}
+		}
+
 		// Don't write the file; read it and compare.
 		expect, err := ioutil.ReadFile(outFile)
 		if err != nil {

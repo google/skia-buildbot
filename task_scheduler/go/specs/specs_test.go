@@ -64,7 +64,7 @@ func fakeCasSpec() *CasSpec {
 		Root:     ".",
 		Paths:    []string{"a/b", "c/d"},
 		Excludes: []string{"skip", "me"},
-		Digest:   "abc123/32",
+		Digest:   "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234/32",
 	}
 }
 
@@ -128,7 +128,7 @@ func makeTasksCfg(t *testing.T, tasks, jobs map[string][]string) string {
 	if len(taskSpecs) > 0 {
 		cfg.CasSpecs = map[string]*CasSpec{
 			"my-cas": {
-				Digest: "abc123/45",
+				Digest: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234/45",
 			},
 		}
 	}

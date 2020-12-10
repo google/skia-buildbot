@@ -220,7 +220,7 @@ func TestPeriodicJobs(t *testing.T) {
 		},
 		CasSpecs: map[string]*specs.CasSpec{
 			"compile": {
-				Digest: "abc123/45",
+				Digest: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234/45",
 			},
 		},
 	}
