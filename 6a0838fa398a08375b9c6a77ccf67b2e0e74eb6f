@@ -46,6 +46,30 @@
       },
       "revId": "6a0838fa398a08375b9c6a77ccf67b2e0e74eb6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cbae8798_a9148e5e",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-10T18:31:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "01acd8b1_2239c0fd",
+      "range": {
+        "startLine": 46,
+        "startChar": 44,
+        "endLine": 46,
+        "endChar": 46
+      },
+      "revId": "6a0838fa398a08375b9c6a77ccf67b2e0e74eb6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
