@@ -140,11 +140,14 @@ type commitData struct {
 // computeMetrics computes "time to X% coverage" metrics for the individual
 // commit.
 func (d *commitData) computeMetrics() {
-	durations := make([]int64, 0, d.NumTasks)
-	for _, d := range d.Tasks {
-		durations = append(durations, int64(d))
+	var durations []int64
+	if d.NumTasks > 0 {
+		durations = make([]int64, 0, d.NumTasks)
+		for _, d := range d.Tasks {
+			durations = append(durations, int64(d))
+		}
+		sort.Sort(util.Int64Slice(durations))
 	}
-	sort.Sort(util.Int64Slice(durations))
 	m := make(map[string]time.Duration, len(PERCENTILES))
 	for _, pct := range PERCENTILES {
 		// record the time at which the X%th task finished, subtract the commit time
@@ -297,19 +300,13 @@ func cycle(ctx context.Context, tCache cache.TaskCache, repos repograph.Map, tcc
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})
-						if err == task_cfg_cache.ErrNoSuchEntry {
-							sklog.Warningf("TaskCfgCache has no entry for %s@%s.", repoUrl, commit.Hash)
-							return nil
-						} else if err != nil {
-							// Some old commits only have tasks without jobs. Skip them.
-							if strings.Contains(err.Error(), "is not reachable by any Job") {
-								cfgs[commit] = &specs.TasksCfg{
-									Tasks: map[string]*specs.TaskSpec{},
-									Jobs:  map[string]*specs.JobSpec{},
-								}
-								return repograph.ErrStopRecursing
+						if err != nil {
+							if err == task_cfg_cache.ErrNoSuchEntry || specs.ErrorIsPermanent(err) {
+								sklog.Warningf("Could not retrieve TasksCfg for %s@%s: %s", repoUrl, commit.Hash, err)
+								return nil
+							} else {
+								return err
 							}
-							return err
 						}
 						cfg = c
 						cfgs[commit] = cfg
