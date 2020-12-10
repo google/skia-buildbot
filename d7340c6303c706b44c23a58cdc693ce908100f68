@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd5a8011_5edf4ba5",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-10T15:14:47Z",
+      "side": 1,
+      "message": "Note that this could cause problems on developer machines, eg. if they did something like \"git clone https://skia.googlesource.com/skia.git ./skia2\" and the CasSpec is looking for \"../skia/whatever\".  I don\u0027t know the right workaround here.  Any ideas?",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
