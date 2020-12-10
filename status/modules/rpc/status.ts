@@ -345,11 +345,74 @@ const JSONToAutorollerStatus = (m: AutorollerStatusJSON): AutorollerStatus => {
   };
 };
 
+export interface GetBotUsageRequest {
+}
+
+interface GetBotUsageRequestJSON {
+}
+
+const GetBotUsageRequestToJSON = (m: GetBotUsageRequest): GetBotUsageRequestJSON => {
+  return {
+  };
+};
+
+export interface GetBotUsageResponse {
+  botSets?: BotSet[];
+}
+
+interface GetBotUsageResponseJSON {
+  bot_sets?: BotSetJSON[];
+}
+
+const JSONToGetBotUsageResponse = (m: GetBotUsageResponseJSON): GetBotUsageResponse => {
+  return {
+    botSets: m.bot_sets && m.bot_sets.map(JSONToBotSet),
+  };
+};
+
+export interface BotSet_DimensionsEntry {
+  [key: string]: string;
+}
+
+interface BotSet_DimensionsEntryJSON {
+  [key: string]: string;
+}
+
+export interface BotSet {
+  dimensions?: BotSet_DimensionsEntry;
+  botCount: number;
+  cqTasks: number;
+  msPerCq: number;
+  totalTasks: number;
+  msPerCommit: number;
+}
+
+interface BotSetJSON {
+  dimensions?: BotSet_DimensionsEntryJSON;
+  bot_count?: number;
+  cq_tasks?: number;
+  ms_per_cq?: number;
+  total_tasks?: number;
+  ms_per_commit?: number;
+}
+
+const JSONToBotSet = (m: BotSetJSON): BotSet => {
+  return {
+    dimensions: m.dimensions,
+    botCount: m.bot_count || 0,
+    cqTasks: m.cq_tasks || 0,
+    msPerCq: m.ms_per_cq || 0,
+    totalTasks: m.total_tasks || 0,
+    msPerCommit: m.ms_per_commit || 0,
+  };
+};
+
 export interface StatusService {
   getIncrementalCommits: (getIncrementalCommitsRequest: GetIncrementalCommitsRequest) => Promise<GetIncrementalCommitsResponse>;
   addComment: (addCommentRequest: AddCommentRequest) => Promise<AddCommentResponse>;
   deleteComment: (deleteCommentRequest: DeleteCommentRequest) => Promise<DeleteCommentResponse>;
   getAutorollerStatuses: (getAutorollerStatusesRequest: GetAutorollerStatusesRequest) => Promise<GetAutorollerStatusesResponse>;
+  getBotUsage: (getBotUsageRequest: GetBotUsageRequest) => Promise<GetBotUsageResponse>;
 }
 
 export class StatusServiceClient implements StatusService {
@@ -423,6 +486,21 @@ export class StatusServiceClient implements StatusService {
       }
 
       return resp.json().then(JSONToGetAutorollerStatusesResponse);
+    });
+  }
+
+  getBotUsage(getBotUsageRequest: GetBotUsageRequest): Promise<GetBotUsageResponse> {
+    const url = this.hostname + this.pathPrefix + "GetBotUsage";
+    let body: GetBotUsageRequest | GetBotUsageRequestJSON = getBotUsageRequest;
+    if (!this.writeCamelCase) {
+      body = GetBotUsageRequestToJSON(getBotUsageRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToGetBotUsageResponse);
     });
   }
 }

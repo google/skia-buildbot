@@ -941,7 +941,7 @@ func main() {
 	}
 
 	// Create Twirp Server.
-	twirpServer := rpc.NewStatusServer(iCache, taskDb, getAutorollerStatusesTwirp, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
+	twirpServer := rpc.NewStatusServer(iCache, taskDb, capacityClient, getAutorollerStatusesTwirp, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
 
 	// Run the server.
 	runServer(serverURL, twirpServer)

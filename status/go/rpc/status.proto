@@ -14,6 +14,8 @@ service StatusService {
   rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
   // Method to get latest status of various autorollers.
   rpc GetAutorollerStatuses(GetAutorollerStatusesRequest) returns (GetAutorollerStatusesResponse);
+  // Method to get latest bot usage / capacity metrics.
+  rpc GetBotUsage(GetBotUsageRequest) returns (GetBotUsageResponse);
 }
 
 // Request for updated commit/task/comment/branch/etc data.
@@ -135,4 +137,20 @@ message AutorollerStatus {
   int32 num_failed = 5;
   int32 num_behind = 6;
   string url = 7;
+}
+
+// Empty, no parameters needed to ask for latest bot usage data.
+message GetBotUsageRequest {}
+// Machine/device types, with associated tasks that run on them and data about those tasks.
+message GetBotUsageResponse {
+  repeated BotSet bot_sets = 1;
+}
+
+message BotSet {
+  map<string,string> dimensions = 1;
+  int32 bot_count = 2;
+  int32 cq_tasks = 3;
+  int64 ms_per_cq = 4;
+  int32 total_tasks = 5;
+  int64 ms_per_commit = 6;
 }
