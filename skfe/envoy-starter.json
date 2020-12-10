@@ -914,7 +914,7 @@
                 "http_filters": [
                   {
                     "typed_config": {},
-                    "name": "envoy.router"
+                    "name": "envoy.filters.http.router"
                   }
                 ],
                 "route_config": {
