@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "324d6c70_09aee12e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-10T19:18:20Z",
+      "side": 1,
+      "message": "May want to ask in Skia chat whether anyone is still using legacy UI and why",
+      "revId": "670829101251ca1c47effd332a7a06eb7a8a980b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
