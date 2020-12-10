@@ -157,17 +157,19 @@ func (c *TaskCfgCache) Close() error {
 // Get returns the TasksCfg (or error) for the given RepoState in the cache. If
 // the given entry does not exist in the cache, reads through to BigTable to
 // find it there and adds to the cache if it exists. If no entry exists for the
-// given RepoState, returns ErrNoSuchEntry.
-func (c *TaskCfgCache) Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error) {
+// given RepoState, returns ErrNoSuchEntry. If there is a cached (ie. permanent
+// non-recoverable error for this RepoState) error, it is returned as the second
+// return value.
+func (c *TaskCfgCache) Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error, error) {
 	val, err := c.cache.Get(ctx, rs.RowKey())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	cv := val.(*CachedValue)
 	if cv.Err != "" {
-		return nil, errors.New(cv.Err)
+		return nil, errors.New(cv.Err), nil
 	}
-	return cv.Cfg, nil
+	return cv.Cfg, nil, nil
 }
 
 // Sets the TasksCfg (or error) for the given RepoState in the cache.
@@ -228,9 +230,12 @@ func (c *TaskCfgCache) getTaskSpecsForRepoStates(ctx context.Context, rs []types
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
 func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name string) (*specs.TaskSpec, error) {
-	cfg, err := c.Get(ctx, rs)
+	cfg, cachedErr, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
+	}
+	if cachedErr != nil {
+		return nil, cachedErr
 	}
 	t, ok := cfg.Tasks[name]
 	if !ok {
@@ -242,9 +247,12 @@ func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name
 // MakeJob is a helper function which retrieves the given JobSpec at the given
 // RepoState and uses it to create a Job instance.
 func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name string) (*types.Job, error) {
-	cfg, err := c.Get(ctx, rs)
+	cfg, cachedErr, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
+	}
+	if cachedErr != nil {
+		return nil, cachedErr
 	}
 	spec, ok := cfg.Jobs[name]
 	if !ok {

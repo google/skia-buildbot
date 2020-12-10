@@ -203,8 +203,9 @@ func TestTaskCfgCacheError(t *testing.T) {
 	require.NoError(t, cache.Set(ctx, rs3, nil, storedErr))
 	_, err = cache.getTaskSpecsForRepoStates(ctx, repoStates)
 	require.NoError(t, err)
-	_, err = cache.Get(ctx, rs3)
-	require.EqualError(t, err, storedErr.Error())
+	_, cachedErr, err := cache.Get(ctx, rs3)
+	require.EqualError(t, cachedErr, storedErr.Error())
+	require.Nil(t, err)
 
 	// Create a new cache, assert that we get the same error.
 	cache2, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
@@ -212,8 +213,9 @@ func TestTaskCfgCacheError(t *testing.T) {
 	defer testutils.AssertCloses(t, cache2)
 	_, err = cache2.getTaskSpecsForRepoStates(ctx, repoStates)
 	require.NoError(t, err)
-	_, err = cache2.Get(ctx, rs3)
-	require.EqualError(t, err, storedErr.Error())
+	_, cachedErr, err = cache2.Get(ctx, rs3)
+	require.EqualError(t, cachedErr, storedErr.Error())
+	require.Nil(t, err)
 }
 
 func TestTaskCfgCacheStorage(t *testing.T) {
@@ -241,8 +243,9 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 		require.NoError(t, err)
 		defer testutils.AssertCloses(t, c2)
 		for _, r := range rs {
-			cfg, err := c2.Get(ctx, r)
+			cfg, cachedErr, err := c2.Get(ctx, r)
 			require.NoError(t, err)
+			require.NoError(t, cachedErr)
 			require.NotNil(t, cfg)
 		}
 
@@ -267,8 +270,9 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: r1,
 	}
-	cfg, err := c.Get(ctx, rs1)
+	cfg, cachedErr, err := c.Get(ctx, rs1)
 	require.Equal(t, ErrNoSuchEntry, err)
+	require.Nil(t, cachedErr)
 	require.Nil(t, cfg)
 	assertCacheLen(t, c.cache, 0)
 	taskSpecs, err := c.getTaskSpecsForRepoStates(ctx, []types.RepoState{rs1})
