@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "92e45f17_21dadb26",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-10T20:04:13Z",
+      "side": 1,
+      "message": "It\u0027s clear to me now that something needs to change, as it\u0027s far too easy for a cached error to \"poison\" multiple apps.",
+      "revId": "6236f73a56a8bded35606d7a5674a2c0990afe9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
