@@ -1,0 +1,68 @@
+@import '../styles.scss';
+
+capacity-sk {
+  font-size: 16px;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5px;
+  }
+  td,
+  th {
+    border: 1px solid #ddd;
+    padding: 5px;
+  }
+  th {
+    position: relative;
+  }
+
+  login-sk * {
+    // login-sk has a very specific color set, override it.
+    color: var(--header-font-color) !important;
+  }
+  a {
+    color: inherit;
+    fill: inherit;
+  }
+  .inputs {
+    min-height: 60px;
+    padding-top: 10px;
+  }
+
+  .inputs > * {
+    margin: 5px;
+  }
+  .horizontal {
+    display: flex;
+  }
+
+  .lowBotCount {
+    > :nth-last-child(1),
+    > :nth-last-child(2) {
+      background: var(--failure);
+      color: var(--on-failure);
+    }
+  }
+
+  .mediumBotCount {
+    > :nth-last-child(1),
+    > :nth-last-child(2) {
+      background: var(--warning);
+      color: var(--on-warning);
+    }
+  }
+
+  .highBotCount {
+    > :nth-last-child(1),
+    > :nth-last-child(2) {
+      background: var(--success);
+      color: var(--on-success);
+    }
+  }
+}
+
+.darkmode {
+  capacity-sk {
+    --sidebar-background-color: var(--surface-1dp);
+  }
+}
