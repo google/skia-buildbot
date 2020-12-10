@@ -72,21 +72,19 @@ const (
 )
 
 var (
-	autorollMtx            sync.RWMutex
-	autorollStatus         []byte                             = nil
-	autorollStatusTwirp    *rpc.GetAutorollerStatusesResponse = nil
-	capacityClient         *capacity.CapacityClient           = nil
-	legacyCapacityTemplate *template.Template                 = nil
-	capacityTemplate       *template.Template                 = nil
-	legacyCommitsTemplate  *template.Template                 = nil
-	commitsTemplate        *template.Template                 = nil
-	iCache                 *incremental.IncrementalCache      = nil
-	lkgrObj                *lkgr.LKGR                         = nil
-	taskDb                 db.RemoteDB                        = nil
-	taskDriverDb           task_driver_db.DB                  = nil
-	taskDriverLogs         *logs.LogsManager                  = nil
-	tasksPerCommit         *tasksPerCommitCache               = nil
-	tCache                 cache.TaskCache                    = nil
+	autorollMtx         sync.RWMutex
+	autorollStatus      []byte                             = nil
+	autorollStatusTwirp *rpc.GetAutorollerStatusesResponse = nil
+	capacityClient      *capacity.CapacityClient           = nil
+	capacityTemplate    *template.Template                 = nil
+	commitsTemplate     *template.Template                 = nil
+	iCache              *incremental.IncrementalCache      = nil
+	lkgrObj             *lkgr.LKGR                         = nil
+	taskDb              db.RemoteDB                        = nil
+	taskDriverDb        task_driver_db.DB                  = nil
+	taskDriverLogs      *logs.LogsManager                  = nil
+	tasksPerCommit      *tasksPerCommitCache               = nil
+	tCache              cache.TaskCache                    = nil
 
 	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -151,16 +149,8 @@ func reloadTemplates() {
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "dist", "status.html"),
 	))
-	legacyCommitsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/commits.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
 	capacityTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "dist", "capacity.html"),
-	))
-	legacyCapacityTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/capacity.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
 
@@ -581,33 +571,6 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func legacyStatusHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "text/html")
-
-	repoName, repoUrl, err := getRepo(r)
-	if err != nil {
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	d := commitsTemplateData{
-		Repo:     repoName,
-		RepoBase: fmt.Sprintf(gitiles.CommitURL, repoUrl, ""),
-		Repos:    getRepoNames(),
-		Title:    fmt.Sprintf("Status: %s", repoName),
-	}
-
-	if err := legacyCommitsTemplate.Execute(w, d); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
-	}
-}
-
 func capacityHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
@@ -638,34 +601,6 @@ func capacityHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := capacityTemplate.Execute(w, d); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
-	}
-}
-
-func legacyCapacityHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in testing mode.
-	if *testing {
-		reloadTemplates()
-	}
-
-	page := struct {
-		Repos []string
-	}{
-		Repos: getRepoNames(),
-	}
-	if err := legacyCapacityTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
-	}
-}
-
-func capacityStatsHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(capacityClient.CapacityMetrics()); err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -763,32 +698,12 @@ func runServer(serverURL string, srv http.Handler) {
 	r := topLevelRouter.NewRoute().Subrouter()
 	r.Use(httputils.LoggingGzipRequestResponse)
 	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
-	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(legacyStatusHandler, *testing))
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
-	r.HandleFunc("/legacy/capacity", httputils.OriginTrial(legacyCapacityHandler, *testing))
-	r.HandleFunc("/capacity/json", capacityStatsHandler)
-	r.HandleFunc("/json/autorollers", autorollStatusHandler)
-	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
-	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
-	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
-	taskComments.HandleFunc("/comments", addTaskCommentHandler).Methods("POST")
-	taskComments.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskCommentHandler).Methods("DELETE")
-	taskComments.Use(login.RestrictEditor)
-	taskSpecs := r.PathPrefix("/json/{repo}/taskSpecs/{taskSpec}").Subrouter()
-	taskSpecs.HandleFunc("/comments", addTaskSpecCommentHandler).Methods("POST")
-	taskSpecs.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskSpecCommentHandler).Methods("DELETE")
-	taskSpecs.Use(login.RestrictEditor)
-	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
-	commits.Use(login.RestrictEditor)
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	var h http.Handler = topLevelRouter
 	if !*testing {
