@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dd710a15_e7fd6ad6",
+        "filename": "golden/k8s-instances/chrome-public/chrome-public-skiacorrectness.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2020-12-11T19:28:06Z",
+      "side": 1,
+      "message": "Perhaps regular expression support would be helpful for cases like this.\n\nSeems like something I might be able to implement myself if you think it\u0027s worth doing + point me towards where these strings get processed.",
+      "range": {
+        "startLine": 67,
+        "startChar": 49,
+        "endLine": 67,
+        "endChar": 60
+      },
+      "revId": "89c7682e0885e9814e144ace7cd962df9ec5c819",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
