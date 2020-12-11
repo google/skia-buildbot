@@ -3057,18 +3057,14 @@ container_pull(
     repository = "cloud-marketplace/google/rbe-ubuntu16-04",
 )
 
-# Downloads the Chrome GPG key necessary to install the Chrome .deb packages in our custom RBE
-# toolchain container.
-http_file(
-    name = "chrome_gpg",
-    downloaded_file_path = "chrome_gpg",
-    urls = ["https://dl-ssl.google.com/linux/linux_signing_key.pub"],
-)
-
 rbe_autoconfig(
     name = "rbe_default",
     base_container_digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
-    digest = "sha256:3417c2e1d4aafc8e88664860277971df3dcbe6d3dd3082c8213f456291ff209d",
+    # Digest of the most recent gcr.io/skia-public/rbe-container-skia-infra image.
+    #
+    # Must be updated manually after a new container image is uploaded to the container registry
+    # via "bazel run //:push_rbe_container_skia_infra".
+    digest = "sha256:94b610705da22f96e51e94ee729402f455a64d857b11edecf8f9f68d22617df1",
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
 )
