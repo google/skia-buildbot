@@ -34,6 +34,24 @@
       "parentUuid": "56937761_7146356d",
       "revId": "2959c11fd5856c541cd620c914c3f7f60a99a599",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a86f2de_37b65b9e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-11T15:38:30Z",
+      "side": 1,
+      "message": "My intention here was to force all callers to consider the possibility that the returned error is from the cached and will therefore never go away, whereas most of the callers had been assuming that it was a transient error and would just return it assuming that it would work on the next tick.  That caused some services to get stuck permanently.",
+      "parentUuid": "90bbe66a_f792a574",
+      "revId": "2959c11fd5856c541cd620c914c3f7f60a99a599",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
