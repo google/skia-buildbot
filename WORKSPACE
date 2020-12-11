@@ -24,7 +24,7 @@ load(
 # https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md#setup-and-usage-via-bazel
 http_archive(
     name = "com_github_bazelbuild_buildtools_http_archive",
-    sha256 = "1dbb1f39c17b1cbc011cc22394e6e88b0de13ad101eb40047c603297286c8398",
+    sha256 = "b68ee69847fcc922bc496c77f0e985a7239de04f2bde8b0909e68706b05c0b31",
     strip_prefix = "buildtools-master",
     url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
 )
@@ -3079,3 +3079,13 @@ rbe_autoconfig(
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
 )
+
+
+
+# Tell Bazel about our toolchains so it can resolve them based on values passed
+# in --platform, --host_platform, and --execution_platforms options.
+register_toolchains("//bazel/infra/toolchain:all")
+
+# Tell Bazel that //:linux_platform is allowed execution platform - that our
+# host system or remote execution service can handle that platform.
+register_execution_platforms("//bazel/infra/platform:all")
