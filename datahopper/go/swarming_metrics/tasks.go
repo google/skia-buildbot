@@ -157,19 +157,19 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	}
 	parsed["failure"] = strconv.FormatBool(t.TaskResult.Failure)
 
-	isolateOverhead := float64(0.0)
+	casOverhead := float64(0.0)
 	if t.TaskResult.PerformanceStats.IsolatedDownload != nil {
-		isolateOverhead += t.TaskResult.PerformanceStats.IsolatedDownload.Duration
+		casOverhead += t.TaskResult.PerformanceStats.IsolatedDownload.Duration
 	}
 	if t.TaskResult.PerformanceStats.IsolatedUpload != nil {
-		isolateOverhead += t.TaskResult.PerformanceStats.IsolatedUpload.Duration
+		casOverhead += t.TaskResult.PerformanceStats.IsolatedUpload.Duration
 	}
 	durations := format.BenchResults{
 		"task_duration": {
-			"task_step_s":        t.TaskResult.Duration,
-			"all_overhead_s":     t.TaskResult.PerformanceStats.BotOverhead,
-			"isolate_overhead_s": isolateOverhead,
-			"total_s":            t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
+			"task_step_s":    t.TaskResult.Duration,
+			"all_overhead_s": t.TaskResult.PerformanceStats.BotOverhead,
+			"cas_overhead_s": casOverhead,
+			"total_s":        t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
 		},
 	}
 	toReport := format.BenchData{
@@ -328,8 +328,8 @@ func taskOverheadDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int6
 	}
 }
 
-// isolateCacheMissDownload returns the download overhead for the task in milliseconds.
-func isolateCacheMissDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
+// casCacheMissDownload returns the download overhead for the task in milliseconds.
+func casCacheMissDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
 	if t.TaskResult.PerformanceStats == nil {
 		return 0, errNoValue
 	} else if t.TaskResult.PerformanceStats.IsolatedDownload == nil {
@@ -339,8 +339,8 @@ func isolateCacheMissDownload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (
 	}
 }
 
-// isolateCacheMissUpload returns the download overhead for the task in milliseconds.
-func isolateCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
+// casCacheMissUpload returns the download overhead for the task in milliseconds.
+func casCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error) {
 	if t.TaskResult.PerformanceStats == nil {
 		return 0, errNoValue
 	} else if t.TaskResult.PerformanceStats.IsolatedUpload == nil {
@@ -461,13 +461,13 @@ func setupMetrics(ctx context.Context, btProject, btInstance, pool string, ts oa
 			return nil, nil, err
 		}
 
-		// Isolate Cache Miss (download).
-		if err := addMetric(s, "isolate-cache-miss-download", pool, period, isolateCacheMissDownload); err != nil {
+		// CAS Cache Miss (download).
+		if err := addMetric(s, "cas-cache-miss-download", pool, period, casCacheMissDownload); err != nil {
 			return nil, nil, err
 		}
 
-		// Isolate Cache Miss (upload).
-		if err := addMetric(s, "isolate-cache-miss-upload", pool, period, isolateCacheMissUpload); err != nil {
+		// CAS Cache Miss (upload).
+		if err := addMetric(s, "cas-cache-miss-upload", pool, period, casCacheMissUpload); err != nil {
 			return nil, nil, err
 		}
 
