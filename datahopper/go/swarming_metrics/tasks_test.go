@@ -235,8 +235,8 @@ func TestMetrics(t *testing.T) {
 	checkMetricVal("overhead-bot", 21000.0)
 	checkMetricVal("overhead-upload", 13000.0)
 	checkMetricVal("overhead-download", 7000.0)
-	checkMetricVal("isolate-cache-miss-download", 50000000.0)
-	checkMetricVal("isolate-cache-miss-upload", 70000000.0)
+	checkMetricVal("cas-cache-miss-download", 50000000.0)
+	checkMetricVal("cas-cache-miss-upload", 70000000.0)
 }
 
 func TestPerfUpload(t *testing.T) {
@@ -309,10 +309,10 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]format.BenchResults{
 			"Test-MyOS": {
 				"task_duration": {
-					"total_s":            float64((14*time.Minute + 17*time.Second) / time.Second),
-					"task_step_s":        float64(14 * time.Minute / time.Second),
-					"isolate_overhead_s": 9.0,
-					"all_overhead_s":     17.0,
+					"total_s":        float64((14*time.Minute + 17*time.Second) / time.Second),
+					"task_step_s":    float64(14 * time.Minute / time.Second),
+					"cas_overhead_s": 9.0,
+					"all_overhead_s": 17.0,
 				},
 			},
 		},
@@ -330,10 +330,10 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]format.BenchResults{
 			"Test-MyOS": {
 				"task_duration": {
-					"total_s":            float64((14*time.Minute + 31*time.Second) / time.Second),
-					"task_step_s":        float64(14 * time.Minute / time.Second),
-					"isolate_overhead_s": 10.0,
-					"all_overhead_s":     31.0,
+					"total_s":        float64((14*time.Minute + 31*time.Second) / time.Second),
+					"task_step_s":    float64(14 * time.Minute / time.Second),
+					"cas_overhead_s": 10.0,
+					"all_overhead_s": 31.0,
 				},
 			},
 		},
@@ -377,10 +377,10 @@ func TestPerfUpload(t *testing.T) {
 		Results: map[string]format.BenchResults{
 			"Perf-MyOS": {
 				"task_duration": {
-					"total_s":            float64((33*time.Minute + 37*time.Second) / time.Second),
-					"task_step_s":        float64(33 * time.Minute / time.Second),
-					"isolate_overhead_s": 27.0,
-					"all_overhead_s":     37.0,
+					"total_s":        float64((33*time.Minute + 37*time.Second) / time.Second),
+					"task_step_s":    float64(33 * time.Minute / time.Second),
+					"cas_overhead_s": 27.0,
+					"all_overhead_s": 37.0,
 				},
 			},
 		},
