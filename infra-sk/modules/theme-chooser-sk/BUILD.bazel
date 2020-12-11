@@ -1,6 +1,6 @@
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
-load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
+load("//infra-sk/karma_test:index.bzl", "karma_test")
 load("//infra-sk:index.bzl", "sk_element_puppeteer_test", "sk_page")
 load("//infra-sk/sk_demo_page_server:index.bzl", "sk_demo_page_server")
 
@@ -30,30 +30,12 @@ sass_library(
 # theme-chooser-sk test. #
 ##########################
 
-ts_library(
-    name = "test_lib",
-    srcs = [
-        "theme-chooser-sk_test.ts",
-    ],
+karma_test(
+    name = "test",
+    srcs = ["theme-chooser-sk_test.ts"],
     deps = [
         ":theme-chooser-sk",
         "//infra-sk/modules:test_util",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/mocha",
-    ],
-)
-
-karma_mocha_test(
-    name = "test",
-    srcs = [
-        "//infra-sk:chai_umd",
-        "//infra-sk:common-sk_umd",
-        "//infra-sk:elements-sk_umd",
-        "//infra-sk:lit-html_umd",
-    ],
-    deps = [
-        ":test_lib",
-        "@infra-sk_npm//elements-sk",
     ],
 )
 

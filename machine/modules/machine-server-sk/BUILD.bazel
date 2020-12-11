@@ -1,6 +1,6 @@
 load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
-load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
+load("//infra-sk/karma_test:index.bzl", "karma_test")
 
 package(default_visibility = ["//machine:__subpackages__"])
 
@@ -37,31 +37,12 @@ sass_library(
 # machine-server-sk test. #
 ###########################
 
-ts_library(
-    name = "test_lib",
-    srcs = [
-        "machine-server-sk_test.ts",
-    ],
+karma_test(
+    name = "test",
+    srcs = ["machine-server-sk_test.ts"],
     deps = [
         ":machine-server-sk",
         "//infra-sk/modules:test_util",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/mocha",
         "@infra-sk_npm//fetch-mock",
-    ],
-)
-
-karma_mocha_test(
-    name = "test",
-    srcs = [
-        "//infra-sk:chai_umd",
-        "//infra-sk:common-sk_umd",
-        "//infra-sk:elements-sk_umd",
-        "//infra-sk:fetch-mock_umd",
-        "//infra-sk:lit-html_umd",
-    ],
-    deps = [
-        ":test_lib",
-        "@infra-sk_npm//elements-sk",
     ],
 )
