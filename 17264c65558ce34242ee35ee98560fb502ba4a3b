@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7edfc836_45a3528e",
+        "filename": "datahopper/go/swarming_metrics/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-11T16:41:58Z",
+      "side": 1,
+      "message": "There aren\u0027t any Alerts based on it.",
+      "parentUuid": "295b34d6_3d6a1e34",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 171,
+        "endChar": 33
+      },
+      "revId": "17264c65558ce34242ee35ee98560fb502ba4a3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8943fa45_45654c09",
