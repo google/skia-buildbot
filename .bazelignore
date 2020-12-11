@@ -1,0 +1,31 @@
+
+# Some NPM packages are distributed with Bazel BUILD files. If we don't ignore them, commands such
+# as "bazel build //..." will try to build the targets in said BUILD files and fail.
+
+am/node_modules
+autoroll/node_modules
+ct/node_modules
+debugger-app/node_modules
+demos/node_modules
+fiddlek/node_modules
+golden/node_modules
+hashtag/node_modules
+infra-sk/node_modules/protobufjs
+jsdoc/node_modules
+jsfiddle/node_modules
+leasing/node_modules
+machine/node_modules
+named-fiddles/node_modules
+new_element/node_modules
+node_modules
+particles/node_modules
+perf/node_modules
+power/node_modules
+pulld/node_modules
+puppeteer-tests/node_modules
+push/node_modules
+skottie/node_modules
+status/node_modules
+task_driver/node_modules
+task_scheduler/node_modules
+tree_status/node_modules

@@ -94,7 +94,7 @@ main() {
   done
 
   # Run tests.
-  "$TEST_BIN"
+  $(pwd)/$TEST_BIN
   local test_exit_code=$?
   log "Test exit code: $test_exit_code"
 

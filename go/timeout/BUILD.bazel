@@ -1,18 +1,18 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "timeout",
     srcs = ["timeout.go"],
     importpath = "go.skia.org/infra/go/timeout",
     visibility = ["//visibility:public"],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "timeout_test",
     srcs = ["timeout_test.go"],
-    embed = [":go_default_library"],
+    embed = [":timeout"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )
