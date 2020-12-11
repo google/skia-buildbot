@@ -16,6 +16,24 @@
       "message": "WDYT?",
       "revId": "2959c11fd5856c541cd620c914c3f7f60a99a599",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "90bbe66a_f792a574",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-11T14:23:57Z",
+      "side": 1,
+      "message": "Disclaimer: I\u0027m still not super familiar with Go errors etc, but is it possible to instead do something like:\ntype CachedError struct {  \n    underlying error\n}\nfunc (ce *CachedError) Error() {\n  return underlying.Error()\n}\n\nand leave TaskCfgCache.Get() signature the same?  Then in most places, where you don\u0027t seem to care if the error is cached, the code stays simple/unchanged. and where you do care, you can do:\nce, ok :\u003d err.(*CachedError)\nif ok {\n //do something with ce.underlying ?\n}\n\n\nTo me the advantage is not having the sort of awkward 2 error return values, and only having to worry about CachedError if you want.  The downside I see would be that down the pipe if you\u0027re ever checking for another error type that could be cached, you\u0027d still need to explicitly check to see if the error is a CachedError first to check the underlying error.  This could probably be solved by implementing Unwrap() in https://golang.org/pkg/errors/ and making sure you\u0027re using Is() and not \u003d\u003d for error type checking.\n\nYour call if you prefer this or the multi-error return route, but let me know the reason, for my own learning.",
+      "parentUuid": "56937761_7146356d",
+      "revId": "2959c11fd5856c541cd620c914c3f7f60a99a599",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
