@@ -9,6 +9,7 @@ demos/node_modules
 fiddlek/node_modules
 golden/node_modules
 hashtag/node_modules
+>>>>>>> f7b4183bc (regenerate build files)
 jsdoc/node_modules
 jsfiddle/node_modules
 leasing/node_modules

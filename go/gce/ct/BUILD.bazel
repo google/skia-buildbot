@@ -1,23 +1,24 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "ct_lib",
     srcs = ["ct_vm.go"],
     importpath = "go.skia.org/infra/go/gce/ct",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/common:go_default_library",
-        "//go/exec:go_default_library",
-        "//go/gce:go_default_library",
-        "//go/gce/ct/instance_types:go_default_library",
-        "//go/gce/swarming/instance_types:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/common",
+        "//go/exec",
+        "//go/gce",
+        "//go/gce/ct/instance_types",
+        "//go/gce/swarming/instance_types",
+        "//go/git",
+        "//go/sklog",
+        "//go/util",
     ],
 )
 
 go_binary(
     name = "ct",
-    embed = [":go_default_library"],
+    embed = [":ct_lib"],
     visibility = ["//visibility:public"],
 )
