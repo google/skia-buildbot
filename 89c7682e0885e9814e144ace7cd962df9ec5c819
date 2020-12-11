@@ -22,6 +22,30 @@
       },
       "revId": "89c7682e0885e9814e144ace7cd962df9ec5c819",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e9448bd8_57ea903b",
+        "filename": "golden/k8s-instances/chrome-public/chrome-public-skiacorrectness.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-11T19:42:08Z",
+      "side": 1,
+      "message": "Maybe. I think being explicit in this way helps prevent unintentional leaks (via an overly permissive regex, for example).\n\nIf one wanted to change it to be a regex, the change would be about https://github.com/google/skia-buildbot/blob/master/golden/go/publicparams/publicparams.go#L47 but one should be aware that regexes in golang have mutexes in them and thus tend to not be efficiently shared across threads.\n\nI generally like to have tests for any regex I write. Would we require tests for the configs?",
+      "parentUuid": "dd710a15_e7fd6ad6",
+      "range": {
+        "startLine": 67,
+        "startChar": 49,
+        "endLine": 67,
+        "endChar": 60
+      },
+      "revId": "89c7682e0885e9814e144ace7cd962df9ec5c819",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
