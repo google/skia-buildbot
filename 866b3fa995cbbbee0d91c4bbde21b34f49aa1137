@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2b4cbe82_f9f44dcf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-11T15:26:33Z",
+      "side": 1,
+      "message": "To be submitted after everything has been switched to RBE-CAS and the dust has settled",
+      "revId": "866b3fa995cbbbee0d91c4bbde21b34f49aa1137",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
