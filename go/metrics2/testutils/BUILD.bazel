@@ -1,15 +1,15 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "testutils",
     srcs = ["testutils.go"],
     importpath = "go.skia.org/infra/go/metrics2/testutils",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sktest:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_prometheus_client_golang//prometheus:go_default_library",
-        "@com_github_prometheus_client_golang//prometheus/promhttp:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/sktest",
+        "//go/util",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@com_github_prometheus_client_golang//prometheus/promhttp",
+        "@com_github_stretchr_testify//require",
     ],
 )
