@@ -1,12 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "testutils",
     srcs = ["testutils.go"],
     importpath = "go.skia.org/infra/go/exec/testutils",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/exec:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/exec",
+        "@com_github_stretchr_testify//require",
     ],
 )

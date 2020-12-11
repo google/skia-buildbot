@@ -147,24 +147,137 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
+# Directories under //go that can be built using Gazelle-generated BUILD files. Eventually this will
+# be replaced with just ./go.
+#
+# The below list of directories (minus those that have been manually removed) can be regeneated
+# using the following command:
+#
+#   $ ls go | sed -E "s/(.*)/.\/go\/\1 \\\/" | grep -v Makefile
+GAZELLE_GO_DIRS=\
+	./go/alerts \
+	./go/allowed \
+	./go/androidbuild \
+	./go/androidbuildinternal \
+	./go/android_hashlookup \
+	./go/android_skia_checkout \
+	./go/atomic_miss_cache \
+	./go/auditlog \
+	./go/auth \
+	./go/baseapp \
+	./go/benchmarks \
+	./go/bt \
+	./go/calc \
+	./go/chatbot \
+	./go/chrome_branch \
+	./go/cleanup \
+	./go/codesearch \
+	./go/comment \
+	./go/common \
+	./go/config \
+	./go/counters \
+	./go/dataproc \
+	./go/deepequal \
+	./go/docker \
+	./go/ds \
+	./go/email \
+	./go/exec \
+	./go/executil \
+	./go/fileutil \
+	./go/firestore \
+	./go/gce \
+	./go/gcr \
+	./go/gcs \
+	./go/git \
+	./go/gitauth \
+	./go/github \
+	./go/gitiles \
+	./go/gitstore \
+	./go/httputils \
+	./go/human \
+	./go/imports \
+	./go/isolate \
+	./go/issues \
+	./go/jsonutils \
+	./go/kube \
+	./go/login \
+	./go/metadata \
+	./go/metrics2 \
+	./go/mockhttpclient \
+	./go/monorail \
+	./go/notifier \
+	./go/packages \
+	./go/paramreducer \
+	./go/paramtools \
+	./go/periodic \
+	./go/query \
+	./go/recipe_cfg \
+	./go/repo_root \
+	./go/ring \
+	./go/rotations \
+	./go/rtcache \
+	./go/skerr \
+	./go/skiaversion \
+	./go/sklog \
+	./go/sktest \
+	./go/state_machine \
+	./go/systemd \
+	./go/tar \
+	./go/taskname \
+	./go/test2json \
+	./go/testutils \
+	./go/timeout \
+	./go/timer \
+	./go/travisci \
+	./go/trie \
+	./go/twirp_auth \
+	./go/untar \
+	./go/urfavecli \
+	./go/util \
+	./go/vcsinfo \
+	./go/vec32 \
+	./go/vfs \
+	./go/webhook \
+	./go/workerpool
+
+# Directories under //go that fail to compile using Gazelle-generated BUILD files.
+#
+# These directories should be fixed one by one and moved to the $GAZELLE_GO_DIRS list above until
+# there are none left.
+#
+# 	./go/autoroll
+# 	./go/buildbucket
+# 	./go/buildskia
+#		./go/cas
+# 	./go/cipd
+# 	./go/cq
+# 	./go/depot_tools
+# 	./go/gerrit
+# 	./go/go_install
+# 	./go/luciauth
+# 	./go/swarming
+#		./go/supported_branches
+
+# Directories with Go code that can compile using Gazelle-generated BUILD files.
+GAZELLE_DIRS=\
+	./bazel \
+	$(GAZELLE_GO_DIRS) \
+	./machine
+
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle ./go/
-
-.PHONY: update-machine-bazel-files
-update-machine-bazel-files:
-	bazel run //:gazelle ./machine/
+	bazel run //:gazelle -- $(GAZELLE_DIRS)
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
-	bazel run //:gazelle -- update-repos -from_file=go.mod
+	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
 
 # Known good Bazel build targets. Eventually this should be replaced with "bazel build all".
 BAZEL_BUILD_TARGETS=\
 	//bazel/... \
+	//go/... \
 	//infra-sk/... \
-	//machine/modules/... \
-	//machine/pages/... \
+	//machine/... \
 	//puppeteer-tests/... \
 
 # Known good Bazel test targets. Eventually this should be replaced with "bazel test all".

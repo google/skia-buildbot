@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "gitstore",
     srcs = [
         "repo_impl.go",
         "types.go",
@@ -9,10 +9,10 @@ go_library(
     importpath = "go.skia.org/infra/go/gitstore",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/git:go_default_library",
-        "//go/git/repograph:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/vcsinfo:go_default_library",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vcsinfo",
     ],
 )
