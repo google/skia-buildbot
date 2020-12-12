@@ -46,6 +46,30 @@
       },
       "revId": "89c7682e0885e9814e144ace7cd962df9ec5c819",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e42658b_ca41bc4f",
+        "filename": "golden/k8s-instances/chrome-public/chrome-public-skiacorrectness.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2020-12-12T00:29:47Z",
+      "side": 1,
+      "message": "\u003e I think being explicit in this way helps prevent unintentional leaks (via an overly permissive regex, for example).\nAgreed, I\u0027m fine with keeping it explicit for now until this becomes more of an issue - this is the first time we\u0027ve had a case of an incorrectly unforwarded result since enabling the public mirror, so it might be a non-issue in the long term.\n\n\u003e I generally like to have tests for any regex I write. Would we require tests for the configs?\nI\u0027d say yes, which should help with catching overly permissive regexes.",
+      "parentUuid": "e9448bd8_57ea903b",
+      "range": {
+        "startLine": 67,
+        "startChar": 49,
+        "endLine": 67,
+        "endChar": 60
+      },
+      "revId": "89c7682e0885e9814e144ace7cd962df9ec5c819",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
