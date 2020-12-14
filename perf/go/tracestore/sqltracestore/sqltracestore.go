@@ -258,6 +258,7 @@ const (
 	queryTraceIDs
 	convertTraceIDs
 	readTraces
+	getLastNSources
 )
 
 var templates = map[statement]string{
@@ -495,7 +496,22 @@ var statements = map[statement]string{
         FROM
             Postings
         WHERE
-          tile_number = $1`,
+		  tile_number = $1`,
+	getLastNSources: `
+		SELECT
+			SourceFiles.source_file
+		FROM
+			TraceValues@primary
+		INNER LOOKUP JOIN
+			SourceFiles@primary
+		ON
+			TraceValues.source_file_id = SourceFiles.source_file_id
+		WHERE
+    		TraceValues.trace_id=$1
+		ORDER BY
+			TraceValues.commit_number DESC
+		LIMIT
+			$2`,
 }
 
 type timeProvider func() time.Time
@@ -736,6 +752,35 @@ func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.Commit
 		return "", skerr.Wrapf(err, "commitNumber=%d traceName=%q traceID=%q", commitNumber, traceName, traceID)
 	}
 	return filename, nil
+}
+
+// GetLastNSources implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLastNSources")
+	defer span.End()
+
+	rows, err := s.db.Query(ctx, statements[getLastNSources], traceIDForSQLFromTraceName(traceID), n)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed for traceID=%q and n=%d", traceID, n)
+	}
+
+	ret := []string{}
+	for rows.Next() {
+		var sourceFilename string
+		if err := rows.Scan(&sourceFilename); err != nil {
+			return nil, skerr.Wrapf(err, "Failed scanning for traceID=%q and n=%d", traceID, n)
+		}
+		ret = append(ret, sourceFilename)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return ret, nil
+}
+
+// GetTraceIDsBySource implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string) ([]string, error) {
+	return nil, nil
 }
 
 // OffsetFromCommitNumber implements the tracestore.TraceStore interface.
