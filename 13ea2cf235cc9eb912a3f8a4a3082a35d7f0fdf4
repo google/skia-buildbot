@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49e6f536_9bb114f5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5140
+      },
+      "writtenOn": "2020-12-14T22:03:49Z",
+      "side": 1,
+      "message": "I thought we had an issue open for tracking this, but maybe it I just remember Greg complaining about this a while back. In any event, I was waiting on a build and doodled these.\n\nWith a bit of investigation it turns out that a lot of systems will actually have a base favicon and then pull the image out of it, draw it to a canvas, draw any overlays to that canvas, then get the data url from the canvas and set that as the favicon in order to do dynamic updates. This is really cool, but seemed like more work that just drawing these two. Locally I have everything in layers, so it\u0027s fairly easy to tweak these if needed.",
+      "revId": "13ea2cf235cc9eb912a3f8a4a3082a35d7f0fdf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
