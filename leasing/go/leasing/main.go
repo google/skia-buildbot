@@ -86,7 +86,7 @@ type ClientSecretJSON struct {
 	Installed ClientConfig `json:"installed"`
 }
 
-// See baseapp.Constructor.
+// New implements baseapp.Constructor.
 func New() (baseapp.App, error) {
 	// Create workdir if it does not exist.
 	if err := os.MkdirAll(*workdir, 0755); err != nil {
@@ -194,7 +194,7 @@ func (srv *Server) user(r *http.Request) string {
 	return user
 }
 
-// See baseapp.App.
+// AddHandlers implements baseapp.App.
 func (srv *Server) AddHandlers(r *mux.Router) {
 	// For login/logout.
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
@@ -237,6 +237,7 @@ func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Status represents the status of a Swarming task.
 type Status struct {
 	TaskId  int64
 	Expired bool
@@ -474,12 +475,12 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if task.SwarmingBotId != "" {
 		// If BotId is specified then validate it so that we can fail fast if
 		// necessary.
-		validBotId, err := IsBotIdValid(task.SwarmingPool, task.SwarmingBotId)
+		validBotID, err := IsBotIDValid(task.SwarmingPool, task.SwarmingBotId)
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Error querying swarming for botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
-		if !validBotId {
+		if !validBotID {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not find botId %s in pool %s", task.SwarmingBotId, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
@@ -513,13 +514,21 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, fmt.Sprintf("Error putting task in datastore: %v", err), http.StatusInternalServerError)
 		return
 	}
-	isolateHash, err := IsolateLeasingArtifacts(ctx, task.SwarmingPool, swarmingProps.InputsRef)
-	if err != nil {
-		httputils.ReportError(w, err, fmt.Sprintf("Error when getting isolate hash: %v", err), http.StatusInternalServerError)
-		return
+	var casDigest string
+	if swarmingProps.CasInputRoot != nil {
+		casDigest, err = AddLeasingArtifactsToCAS(ctx, task.SwarmingPool, swarmingProps.CasInputRoot)
+		if err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Error merging CAS inputs: %s", err), http.StatusInternalServerError)
+		}
+	} else if swarmingProps.InputsRef != nil && swarmingProps.InputsRef.Isolated != "" {
+		casDigest, err = IsolateLeasingArtifacts(ctx, task.SwarmingPool, swarmingProps.InputsRef)
+		if err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Error when getting isolate hash: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 	// Trigger the swarming task.
-	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, isolateHash, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)
+	swarmingTaskID, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, casDigest, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error when triggering swarming task: %v", err), http.StatusInternalServerError)
 		return
@@ -528,7 +537,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Update the task with swarming fields.
 	swarmingInstance := GetSwarmingInstance(task.SwarmingPool)
 	task.SwarmingServer = swarmingInstance.SwarmingServer
-	task.SwarmingTaskId = swarmingTaskId
+	task.SwarmingTaskId = swarmingTaskID
 	if _, err = UpdateDSTask(datastoreKey, task); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error updating task with swarming fields in datastore: %v", err), http.StatusInternalServerError)
 		return
@@ -540,7 +549,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// See baseapp.App.
+// AddMiddleware implements baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 	return []mux.MiddlewareFunc{}
 }
