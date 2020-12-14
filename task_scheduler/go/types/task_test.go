@@ -161,6 +161,8 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 	task1 := &Task{
 		SwarmingTaskId: "E",
 	}
+	casOutput, err := swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32", "fake-cas-instance")
+	require.NoError(t, err)
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId: "E",
 		// Include both AbandonedTs and CompletedTs to test that CompletedTs takes
@@ -180,13 +182,8 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
 			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
 		},
-		CasOutputRoot: &swarming_api.SwarmingRpcsCASReference{
-			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:      "F",
-				SizeBytes: 42,
-			},
-		},
-		BotId: "G",
+		CasOutputRoot: casOutput,
+		BotId:         "G",
 	}
 	changed1, err1 := task1.UpdateFromSwarming(s)
 	require.NoError(t, err1)
@@ -207,7 +204,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		Finished:       now.Add(-2 * time.Minute),
 		Status:         TASK_STATUS_SUCCESS,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "F/42",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -237,7 +234,7 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		Finished:       now.Add(-time.Minute),
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "F/42",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -264,10 +261,12 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-1 * time.Hour),
 		Status:         TASK_STATUS_SUCCESS,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "F",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "H",
 		ParentTaskIds:  []string{"E", "F"},
 	}
+	casOutput, err := swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32", "fake-cas-instance")
+	require.NoError(t, err)
 	s := &swarming_api.SwarmingRpcsTaskResult{
 		TaskId: "E",
 		// Include both AbandonedTs and CompletedTs to test that CompletedTs takes
@@ -287,13 +286,8 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
 			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
 		},
-		CasOutputRoot: &swarming_api.SwarmingRpcsCASReference{
-			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:      "H",
-				SizeBytes: 42,
-			},
-		},
-		BotId: "I",
+		CasOutputRoot: casOutput,
+		BotId:         "I",
 	}
 	changed, err := task.UpdateFromSwarming(s)
 	require.NoError(t, err)
@@ -314,7 +308,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-1 * time.Minute),
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "H/42",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -340,7 +334,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-1 * time.Minute),
 		Status:         TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "H/42",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -367,7 +361,7 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Finished:       now.Add(-90 * time.Second),
 		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "H/42",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "I",
 		ParentTaskIds:  []string{"E", "F"},
 	})
@@ -457,7 +451,7 @@ func TestCopyTask(t *testing.T) {
 		DbModified:     now.Add(time.Millisecond),
 		Finished:       now.Add(time.Second),
 		Id:             "42",
-		IsolatedOutput: "lonely-result",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		Jobs:           []string{"123abc", "456def"},
 		MaxAttempts:    2,
 		ParentTaskIds:  []string{"38", "39", "40"},

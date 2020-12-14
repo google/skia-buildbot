@@ -78,12 +78,13 @@ func PeriodicallyUpdateMockTasksForTesting(swarm *TestClient) {
 				task.TaskResult.BotId = fmt.Sprintf("A-Bot-To-Run-%s", task.TaskResult.Name)
 			} else if task.TaskResult.State == swarming.TASK_STATE_RUNNING && created.Add(5*time.Minute).Before(time.Now()) {
 				task.TaskResult.State = swarming.TASK_STATE_COMPLETED
-				task.TaskResult.CasOutputRoot = &swarming_api.SwarmingRpcsCASReference{
-					Digest: &swarming_api.SwarmingRpcsDigest{
-						Hash:      fmt.Sprintf("cas-%s", task.TaskId),
-						SizeBytes: 42,
-					},
+				casOutput, err := swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd", "fake-cas-instance")
+				if err != nil {
+					// This shouldn't happen as long as our hard-coded inputs
+					// are valid.
+					sklog.Fatal(err)
 				}
+				task.TaskResult.CasOutputRoot = casOutput
 				task.TaskResult.CompletedTs = time.Now().Format(swarming.TIMESTAMP_FORMAT)
 			}
 		})

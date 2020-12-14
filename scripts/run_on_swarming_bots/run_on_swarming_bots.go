@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -18,11 +17,10 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -32,25 +30,13 @@ import (
 	Run a specified command on all specified GCE instances.
 */
 
-const (
-	ISOLATE_DEFAULT_NAMESPACE = "default-gzip"
-	TMP_ISOLATE_FILE_NAME     = "script.isolate"
-	TMP_ISOLATE_FILE_CONTENTS = `{
-  'variables': {
-    'files': [
-      '%s',
-    ],
-  },
-}`
-)
-
 var (
-	dev         = flag.Bool("dev", false, "Run against dev swarming and isolate instances.")
+	dev         = flag.Bool("dev", false, "Run against dev swarming instance.")
 	dimensions  = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
 	dryRun      = flag.Bool("dry_run", false, "List the bots, don't actually run any tasks")
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "Include these bots, regardless of whether they match the requested dimensions. Calculated AFTER the dimensions are computed. Can be simple strings or regexes.")
 	excludeBots = common.NewMultiStringFlag("exclude_bot", nil, "Exclude these bots, regardless of whether they match the requested dimensions. Calculated AFTER the dimensions are computed and after --include_bot is applied. Can be simple strings or regexes.")
-	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
+	internal    = flag.Bool("internal", false, "Run against internal swarming instance.")
 	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
 	script      = flag.String("script", "", "Path to a Python script to run.")
 	taskName    = flag.String("task_name", "", "Name of the task to run.")
@@ -90,31 +76,13 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// validate isolate is on PATH
-	if err := exec.Run(context.Background(), &exec.Command{
-		Name: "isolate",
-		Args: []string{"version"},
-	}); err != nil {
-		sklog.Fatalf(`isolated not found on PATH. Checkout the README for installation details.`)
-	}
-	sklog.Info("isolate detected on PATH")
-
-	// validate isolated is on PATH
-	if err := exec.Run(context.Background(), &exec.Command{
-		Name: "isolated",
-		Args: []string{"version"},
-	}); err != nil {
-		sklog.Fatalf(`isolated not found on PATH. Checkout the README for installation details.`)
-	}
-	sklog.Info("isolated detected on PATH")
-
-	isolateServer := isolate.ISOLATE_SERVER_URL
+	casInstance := rbe.InstanceChromiumSwarm
 	swarmingServer := swarming.SWARMING_SERVER
 	if *internal {
-		isolateServer = isolate.ISOLATE_SERVER_URL_PRIVATE
+		casInstance = rbe.InstanceChromeSwarming
 		swarmingServer = swarming.SWARMING_SERVER_PRIVATE
 	} else if *dev {
-		isolateServer = isolate.ISOLATE_SERVER_URL_DEV
+		casInstance = rbe.InstanceChromiumSwarmDev
 		swarmingServer = swarming.SWARMING_SERVER_DEV
 	}
 
@@ -137,42 +105,33 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	var hashes []string
+	var casInput *swarming_api.SwarmingRpcsCASReference
 	if !*dryRun {
 		if *script == "" {
 			sklog.Fatal("--script is required if not running in dry run mode.")
 		}
 
 		// Copy the script to the workdir.
-		isolateDir, err := ioutil.TempDir(*workdir, "run_on_swarming_bots")
+		casRoot, err := ioutil.TempDir(*workdir, "run_on_swarming_bots")
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		defer util.RemoveAll(isolateDir)
-		dstScript := path.Join(isolateDir, scriptName)
+		defer util.RemoveAll(casRoot)
+		dstScript := path.Join(casRoot, scriptName)
 		if err := util.CopyFile(*script, dstScript); err != nil {
 			sklog.Fatal(err)
 		}
 
-		// Create an isolate file.
-		isolateFile := path.Join(isolateDir, TMP_ISOLATE_FILE_NAME)
-		if err := util.WithWriteFile(isolateFile, func(w io.Writer) error {
-			_, err := w.Write([]byte(fmt.Sprintf(TMP_ISOLATE_FILE_CONTENTS, scriptName)))
-			return err
-		}); err != nil {
-			sklog.Fatal(err)
-		}
-
-		// Upload to isolate server.
-		isolateClient, err := isolate.NewClient(*workdir, isolateServer)
+		// Upload to CAS.
+		casClient, err := rbe.NewClient(ctx, casInstance, ts)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		isolateTask := &isolate.Task{
-			BaseDir:     isolateDir,
-			IsolateFile: isolateFile,
+		digest, err := casClient.Upload(ctx, casRoot, []string{scriptName}, nil)
+		if err != nil {
+			sklog.Fatal(err)
 		}
-		hashes, _, err = isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
+		casInput, err = swarming.MakeCASReference(digest, casInstance)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -282,9 +241,10 @@ func main() {
 									Path: "cache/vpython",
 								},
 							},
-							CipdInput:  swarming.ConvertCIPDInput(cipd.PkgsPython[platform]),
-							Command:    cmd,
-							Dimensions: dims,
+							CasInputRoot: casInput,
+							CipdInput:    swarming.ConvertCIPDInput(cipd.PkgsPython[platform]),
+							Command:      cmd,
+							Dimensions:   dims,
 							EnvPrefixes: []*swarming_api.SwarmingRpcsStringListPair{
 								{
 									Key:   "PATH",
@@ -297,12 +257,7 @@ func main() {
 							},
 							ExecutionTimeoutSecs: int64((120 * time.Minute).Seconds()),
 							Idempotent:           false,
-							InputsRef: &swarming_api.SwarmingRpcsFilesRef{
-								Isolated:       hashes[0],
-								Isolatedserver: isolateServer,
-								Namespace:      isolate.DEFAULT_NAMESPACE,
-							},
-							IoTimeoutSecs: int64((120 * time.Minute).Seconds()),
+							IoTimeoutSecs:        int64((120 * time.Minute).Seconds()),
 						},
 					},
 				},
