@@ -23,6 +23,15 @@ const (
 	// Client.Upload to exclude the ".git" directory.
 	ExcludeGitDir = `^(.*\/)*\.git(\/.*)*$`
 
+	// InstanceChromiumSwarm is the RBE instance used for chromium-swarm.
+	InstanceChromiumSwarm = "projects/chromium-swarm/instances/default_instance"
+
+	// InstanceChromiumSwarmDev is the RBE instance used for chromium-swarm-dev.
+	InstanceChromiumSwarmDev = "projects/chromium-swarm-dev/instances/default_instance"
+
+	// InstanceChromeSwarming is the RBE instance used for chrome-swarming.
+	InstanceChromeSwarming = "projects/chrome-swarming/instances/default_instance"
+
 	rbeService = "remotebuildexecution.googleapis.com:443"
 )
 
