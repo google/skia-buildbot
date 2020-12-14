@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96e0e389_fce740ab",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-14T01:41:32Z",
+      "side": 1,
+      "message": "nit: This seems to be used in a few places, should it be a constant somewhere in go/cas/rbe?",
+      "range": {
+        "startLine": 250,
+        "startChar": 36,
+        "endLine": 250,
+        "endChar": 45
+      },
+      "revId": "f0afdb900b563c0b084f77ff62c3d48673f3c522",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
