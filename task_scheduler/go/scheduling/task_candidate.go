@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/skerr"
@@ -334,18 +333,11 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 			Namespace:      isolate.DEFAULT_NAMESPACE,
 		}
 	} else {
-		hash, size, err := rbe.StringToDigest(c.CasInput)
+		casInput, err := swarming.MakeCASReference(c.CasInput, casInstance)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		req.TaskSlices[0].Properties.CasInputRoot = &swarming_api.SwarmingRpcsCASReference{
-			CasInstance: casInstance,
-			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:            hash,
-				SizeBytes:       size,
-				ForceSendFields: []string{"SizeBytes"},
-			},
-		}
+		req.TaskSlices[0].Properties.CasInputRoot = casInput
 	}
 	return req, nil
 }

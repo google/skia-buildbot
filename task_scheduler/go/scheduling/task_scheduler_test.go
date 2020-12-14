@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/cas/mocks"
-	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	skfs "go.skia.org/infra/go/firestore"
@@ -194,11 +193,10 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 		})
 	}
 
-	var hash string
-	var size int64
+	var casOutput *swarming_api.SwarmingRpcsCASReference
 	if task.IsolatedOutput != "" {
 		var err error
-		hash, size, err = rbe.StringToDigest(task.IsolatedOutput)
+		casOutput, err = swarming.MakeCASReference(task.IsolatedOutput, "fake-cas-instance")
 		require.NoError(t, err)
 	}
 
@@ -216,22 +214,16 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 		},
 		TaskId: task.SwarmingTaskId,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
-			AbandonedTs: abandoned,
-			BotId:       task.SwarmingBotId,
-			CreatedTs:   ts(task.Created),
-			CompletedTs: ts(task.Finished),
-			Failure:     failed,
-			CasOutputRoot: &swarming_api.SwarmingRpcsCASReference{
-				CasInstance: "fake-cas-instance",
-				Digest: &swarming_api.SwarmingRpcsDigest{
-					Hash:      hash,
-					SizeBytes: size,
-				},
-			},
-			StartedTs: ts(task.Started),
-			State:     state,
-			Tags:      tags,
-			TaskId:    task.SwarmingTaskId,
+			AbandonedTs:   abandoned,
+			BotId:         task.SwarmingBotId,
+			CreatedTs:     ts(task.Created),
+			CompletedTs:   ts(task.Finished),
+			Failure:       failed,
+			CasOutputRoot: casOutput,
+			StartedTs:     ts(task.Started),
+			State:         state,
+			Tags:          tags,
+			TaskId:        task.SwarmingTaskId,
 		},
 	}
 }

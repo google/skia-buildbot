@@ -358,15 +358,9 @@ func TriggerSwarmingTask(pool, requester, datastoreID, osType, deviceType, botID
 		User: "skiabot@google.com",
 	}
 
-	if hash, size, err := rbe.StringToDigest(casDigest); err == nil {
-		taskRequest.TaskSlices[0].Properties.CasInputRoot = &swarming_api.SwarmingRpcsCASReference{
-			CasInstance: swarmingInstance.CasInstance,
-			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:            hash,
-				SizeBytes:       size,
-				ForceSendFields: []string{"SizeBytes"},
-			},
-		}
+	casInput, err := swarming.MakeCASReference(casDigest, swarmingInstance.CasInstance)
+	if err == nil {
+		taskRequest.TaskSlices[0].Properties.CasInputRoot = casInput
 	} else {
 		taskRequest.TaskSlices[0].Properties.InputsRef = &swarming_api.SwarmingRpcsFilesRef{
 			Isolated:       casDigest,
