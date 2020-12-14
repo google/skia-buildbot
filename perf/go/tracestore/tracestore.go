@@ -27,6 +27,13 @@ type TraceStore interface {
 	// 'index' of trace 'traceId'.
 	GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error)
 
+	// GetLastNSources returns the names of the ingestion files that make up the last n commits
+	// to the given trace.
+	GetLastNSources(ctx context.Context, traceID string, n int) ([]string, error)
+
+	// GetTraceIDsBySource returns all the traceIDs that came from a given ingested
+	GetTraceIDsBySource(ctx context.Context, sourceFilename string) ([]string, error)
+
 	// OffsetFromCommitNumber returns the offset from within a Tile that a commit sits.
 	OffsetFromCommitNumber(commitNumber types.CommitNumber) int32
 
