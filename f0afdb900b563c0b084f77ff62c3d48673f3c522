@@ -22,6 +22,30 @@
       },
       "revId": "f0afdb900b563c0b084f77ff62c3d48673f3c522",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6ef09bcb_a0642d5c",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-14T15:40:12Z",
+      "side": 1,
+      "message": "I added swarming.MakeCASReference which takes the digest string and returns the swarming_api.SwarmingRpcsCASReference.  I think that\u0027ll be handy.",
+      "parentUuid": "96e0e389_fce740ab",
+      "range": {
+        "startLine": 250,
+        "startChar": 36,
+        "endLine": 250,
+        "endChar": 45
+      },
+      "revId": "f0afdb900b563c0b084f77ff62c3d48673f3c522",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
