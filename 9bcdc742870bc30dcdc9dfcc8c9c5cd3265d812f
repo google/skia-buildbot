@@ -16,6 +16,24 @@
       "message": "IsolateLeasingArtifacts checks for (inputsRef !\u003d nil \u0026\u0026 inputsRef.Isolated !\u003d \"\") so I think it is expected that some calls may have that missing.\nMaybe this instead needs to be:\nif swarmingProps.CasInputRoot !\u003d nil {\n  ...\n} else {\n  ...\n}\n\n\nEdit: Nevermind. In your next CL you delete this completely.",
       "revId": "9bcdc742870bc30dcdc9dfcc8c9c5cd3265d812f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7c29551_3e2c0ddb",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-14T16:11:39Z",
+      "side": 1,
+      "message": "Changed as suggested.  It may be a while before the subsequent change lands.",
+      "parentUuid": "a70890d0_4cc91539",
+      "revId": "9bcdc742870bc30dcdc9dfcc8c9c5cd3265d812f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
