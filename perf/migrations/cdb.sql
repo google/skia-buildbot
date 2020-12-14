@@ -235,3 +235,16 @@ WHERE
         '\xfe385b159ff55dca481069805e5ff050',
         '\x277262a9236d571883d47dab102070bc'
     );
+
+-- Go from trace_id to last N source files.
+explain SELECT SourceFiles.source_file
+FROM
+    TraceValues@primary  INNER JOIN  SourceFiles@primary
+    ON TraceValues.source_file_id = SourceFiles.source_file_id
+WHERE
+    TraceValues.trace_id='\xfe385b159ff55dca481069805e5ff050'
+ORDER BY TraceValues.commit_number DESC
+LIMIT 5
+;
+
+
