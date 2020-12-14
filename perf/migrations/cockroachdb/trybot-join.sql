@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS TraceValues (
 	source_file_id INT,
 	-- Id of the source filename, from SourceFiles.
 	PRIMARY KEY (trace_id, commit_number)
-	INDEX by_source_file_id (source_file_id, trace_id)
+    INDEX by_trace_id (source_file_id, trace_id)
 );
 
 -- This table is used to store source filenames. See go/tracestore/sqltracestore.
