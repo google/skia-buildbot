@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cdbfaee8_691e7eef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-14T19:40:51Z",
+      "side": 1,
+      "message": "CC\u0027ing Leandro in case this is something that needs to be take into account on the Bazel front.",
+      "revId": "0aaad021d4f58f3572e7342132401df5850db6a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
