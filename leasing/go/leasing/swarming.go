@@ -89,13 +89,13 @@ var (
 func SwarmingInit(serviceAccountFile string) error {
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, swarming.AUTH_SCOPE, compute.CloudPlatformScope)
 	if err != nil {
-		return skerr.Wrapf(err, "Problem setting up default token source: %s")
+		return skerr.Wrapf(err, "Problem setting up default token source")
 	}
 
 	// Public Isolate and CAS client.
 	isolateClientPublic, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL, serviceAccountFile)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to create public isolate client: %s")
+		return skerr.Wrapf(err, "Failed to create public isolate client")
 	}
 	casClientPublic, err = rbe.NewClient(context.TODO(), rbe.InstanceChromiumSwarm, ts)
 	if err != nil {
@@ -105,7 +105,7 @@ func SwarmingInit(serviceAccountFile string) error {
 	// Private Isolate and CAS client.
 	isolateClientPrivate, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountFile)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to create private isolate client: %s")
+		return skerr.Wrapf(err, "Failed to create private isolate client")
 	}
 	casClientPrivate, err = rbe.NewClient(context.TODO(), rbe.InstanceChromeSwarming, ts)
 	if err != nil {
@@ -118,12 +118,12 @@ func SwarmingInit(serviceAccountFile string) error {
 	// Public Swarming API client.
 	swarmingClientPublic, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to create public swarming client: %s")
+		return skerr.Wrapf(err, "Failed to create public swarming client")
 	}
 	// Private Swarming API client.
 	swarmingClientPrivate, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to create private swarming client: %s")
+		return skerr.Wrapf(err, "Failed to create private swarming client")
 	}
 
 	return nil
@@ -358,15 +358,9 @@ func TriggerSwarmingTask(pool, requester, datastoreID, osType, deviceType, botID
 		User: "skiabot@google.com",
 	}
 
-	if hash, size, err := rbe.StringToDigest(casDigest); err == nil {
-		taskRequest.TaskSlices[0].Properties.CasInputRoot = &swarming_api.SwarmingRpcsCASReference{
-			CasInstance: swarmingInstance.CasInstance,
-			Digest: &swarming_api.SwarmingRpcsDigest{
-				Hash:            hash,
-				SizeBytes:       size,
-				ForceSendFields: []string{"SizeBytes"},
-			},
-		}
+	casInput, err := swarming.MakeCASReference(casDigest, swarmingInstance.CasInstance)
+	if err == nil {
+		taskRequest.TaskSlices[0].Properties.CasInputRoot = casInput
 	} else {
 		taskRequest.TaskSlices[0].Properties.InputsRef = &swarming_api.SwarmingRpcsFilesRef{
 			Isolated:       casDigest,

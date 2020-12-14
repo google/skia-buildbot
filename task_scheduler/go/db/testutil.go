@@ -1289,13 +1289,8 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	s.CompletedTs = now.Add(2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT)
 	s.State = swarming.TASK_STATE_COMPLETED
 	s.Failure = true
-	s.CasOutputRoot = &swarming_api.SwarmingRpcsCASReference{
-		CasInstance: "fake-cas-instance",
-		Digest: &swarming_api.SwarmingRpcsDigest{
-			Hash:      "G",
-			SizeBytes: 12,
-		},
-	}
+	s.CasOutputRoot, err = swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32", "fake-cas-instance")
+	require.NoError(t, err)
 	s.BotId = "H"
 
 	modified, err = UpdateDBFromSwarmingTask(db, s)
@@ -1320,7 +1315,7 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		Finished:       now.Add(2 * time.Minute),
 		Status:         types.TASK_STATUS_FAILURE,
 		SwarmingTaskId: "E",
-		IsolatedOutput: "G/12",
+		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "H",
 		ParentTaskIds:  []string{"E", "F"},
 		// Use value from updatedTask so they are deep-equal.

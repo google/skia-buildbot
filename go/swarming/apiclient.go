@@ -11,7 +11,9 @@ import (
 	"time"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -666,4 +668,21 @@ func GetTaskRequestProperties(t *swarming.SwarmingRpcsTaskRequestMetadata) *swar
 		return t.Request.TaskSlices[0].Properties
 	}
 	return t.Request.Properties
+}
+
+// MakeCASReference returns a SwarmingRpcsCASReference which can be used as input to
+// a Swarming task.
+func MakeCASReference(digest, casInstance string) (*swarming.SwarmingRpcsCASReference, error) {
+	hash, size, err := rbe.StringToDigest(digest)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &swarming.SwarmingRpcsCASReference{
+		CasInstance: casInstance,
+		Digest: &swarming.SwarmingRpcsDigest{
+			Hash:            hash,
+			SizeBytes:       size,
+			ForceSendFields: []string{"SizeBytes"},
+		},
+	}, nil
 }
