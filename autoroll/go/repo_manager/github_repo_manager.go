@@ -28,7 +28,7 @@ type GithubRepoManagerConfig struct {
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
 
-	BuildbucketRevisionFilter *revision_filter.BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
+	BuildbucketRevisionFilter *revision_filter.BuildbucketRevisionFilterConfig `json:"buildbucketFilter,omitempty"`
 
 	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
 	// to the paths within the parent and child repo, respectively, where
