@@ -1,0 +1,65 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Plugins",
+  "commitMsg": {
+    "childLogURLTmpl": "https://github.com/flutter/plugins/compare/{{.RollingFrom}}...{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true
+  },
+  "contacts": ["flutter-ecosystem@google.com", "rmistry@google.com"],
+  "isInternal": false,
+  "ownerPrimary": "rmistry",
+  "ownerSecondary": "borenet",
+  "parentDisplayName": "Flutter",
+  "parentWaterfall": "https://flutter-dashboard.appspot.com/#/build",
+  "rollerName": "flutter-plugins-flutter-autoroll",
+  "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": ["flutter-ecosystem@google.com"],
+  "sheriffBackup": ["amirha@google.com"],
+  "github": {
+    "repoOwner": "flutter",
+    "repoName": "flutter",
+    "checksWaitFor": ["flutter-build"]
+  },
+  "githubRepoManager": {
+    "buildbucketFilter": null,
+    "childBranch": "master",
+    "childPath": "plugins",
+    "childRepoName": "plugins",
+    "childRepoURL": "git@github.com:flutter/plugins",
+    "childRevLinkTmpl": "https://github.com/flutter/plugins/commit/%s",
+    "childUserName": "flutter",
+    "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter.git",
+    "parentBranch": "master",
+    "parentRepo": "git@github.com:flutter/flutter.git",
+    "revisionFile": "bin/internal/flutter_plugins.version"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10",
+    "secrets": [
+      {
+        "name": "flutter-github-token",
+        "mountPath": "/var/secrets/github-token"
+      },
+      {
+        "name": "flutter-ssh-key",
+        "mountPath": "/var/secrets/ssh-key"
+      }
+    ]
+  },
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "warning",
+      "email": {
+        "emails": ["$SHERIFF"]
+      }
+    }
+  ]
+}
