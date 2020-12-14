@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0890da51_5065da3e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-14T23:30:16Z",
+      "side": 1,
+      "message": "Looks like the leasing server is crashing with:\n\nmain.go:137 Failed to init isolate and swarming: Failed to create RBE client: rpc error: code \u003d PermissionDenied desc \u003d Permission \"remotebuildexecution.blobs.get\" denied on resource \"projects/chromium-swarm/instances/default_instance\" (or it may not exist). At rbe.go:76 swarming.go:100 main.go:136 baseapp.go:156 main.go:558 proc.go:203 asm_amd64.s:1357",
+      "revId": "fba209b636861cbe3c299d91ffdd9b540a84d075",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
