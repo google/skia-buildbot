@@ -45,6 +45,30 @@
       },
       "revId": "18097ee3ff55454e866ad53bfb16482b05d8ee7c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "09e36e80_6c8a6f20",
+        "filename": "perf/go/trybot/sources/gcssources/gcssources.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-14T02:48:32Z",
+      "side": 1,
+      "message": "Yeah, but I had avoided that because it would require creating a new index and I thought that was take a long time.\n\nAnd I was right, over 6 hours:  https://screenshot.googleplex.com/fSCmrRWx7QdNPT3.png\n\nBut now that I have the index I think I can simplify this code a lot, CL in progress.",
+      "parentUuid": "9035798f_591959ba",
+      "range": {
+        "startLine": 74,
+        "startChar": 13,
+        "endLine": 74,
+        "endChar": 20
+      },
+      "revId": "18097ee3ff55454e866ad53bfb16482b05d8ee7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
