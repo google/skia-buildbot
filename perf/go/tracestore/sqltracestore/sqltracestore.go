@@ -738,6 +738,16 @@ func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.Commit
 	return filename, nil
 }
 
+// GetLastNSources implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]string, error) {
+	return nil, nil
+}
+
+// GetTraceIDsBySource implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string) ([]string, error) {
+	return nil, nil
+}
+
 // OffsetFromCommitNumber implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) int32 {
 	return int32(commitNumber) % s.tileSize
