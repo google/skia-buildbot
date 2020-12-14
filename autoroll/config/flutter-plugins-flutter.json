@@ -23,7 +23,6 @@
     "checksWaitFor": ["flutter-build"]
   },
   "githubRepoManager": {
-    "buildbucketFilter": null,
     "childBranch": "master",
     "childPath": "plugins",
     "childRepoName": "plugins",
