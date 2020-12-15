@@ -3,11 +3,6 @@ include ../kube/kube.mk
 .PHONY: all
 all: status
 
-# Build the web assets in production mode.
-.PHONY: web
-web: webpack
-	npx webpack --mode=production
-
 .PHONY: serve
 serve:
 	npm ci
@@ -36,7 +31,7 @@ puppeteer-test-debug:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 	echo "results are found in ../puppeteer-tests/output"
 
-status: web
+status: build-frontend-ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/status
 
 release: status
@@ -48,12 +43,8 @@ run_docker: release
 push: release pushk
 	pushk --message="$(MESSAGE)" --use-temp-checkout status
 
-include ../webtools/webtools.mk
-include webpack/webpack.mk
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	# The below commands use //status/webpack/webpack.config.ts to build the code in //status/webpack.
-	# In the future this should probably be updated to target //status/webpack.config.ts instead.
-	cd webpack && npm ci
-	cd webpack && npx webpack --mode=production
+	npm ci
+	npx webpack --mode=production
