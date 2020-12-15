@@ -16,6 +16,29 @@
       "message": "Confirmed fix on status-staging network tab (backend lacks normal dimensions for staging capacity, so names are still workthless)",
       "revId": "581986f9f19d4f8fd9a3ffe7259b46bf2d5655e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1832486a_1a21abd8",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T18:54:29Z",
+      "side": 1,
+      "message": "Please add a test for this (I see server_impl_test has a *small* TODO about that fact).\n\nIt appears that stubbing out that data should not be too difficult given the implementation of s.capacityClient.",
+      "range": {
+        "startLine": 204,
+        "startChar": 44,
+        "endLine": 204,
+        "endChar": 59
+      },
+      "revId": "581986f9f19d4f8fd9a3ffe7259b46bf2d5655e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
