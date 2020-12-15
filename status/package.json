@@ -55,7 +55,6 @@
     "@types/chai-dom": "0.0.10",
     "common-sk": "^3.4.1",
     "elements-sk": "^4.0.0",
-    "lit-html": "^1.1.2",
-    "task-driver-skia": "file:webpack"
+    "lit-html": "^1.1.2"
   }
 }

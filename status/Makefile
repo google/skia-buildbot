@@ -5,7 +5,7 @@ all: status
 
 # Build the web assets in production mode.
 .PHONY: web
-web: webpack
+web:
 	npx webpack --mode=production
 
 .PHONY: serve
@@ -48,12 +48,8 @@ run_docker: release
 push: release pushk
 	pushk --message="$(MESSAGE)" --use-temp-checkout status
 
-include ../webtools/webtools.mk
-include webpack/webpack.mk
 
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	# The below commands use //status/webpack/webpack.config.ts to build the code in //status/webpack.
-	# In the future this should probably be updated to target //status/webpack.config.ts instead.
-	cd webpack && npm ci
-	cd webpack && npx webpack --mode=production
+	npm ci
+	npx webpack --mode=production
