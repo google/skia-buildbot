@@ -72,7 +72,7 @@ export class TaskSk extends ElementSk {
             <human-date-sk .date="${ele.task!.createdAt!}"></human-date-sk>
           </td>
         </tr>
-        ${ele.task!.finishedAt
+        ${ele.task!.finishedAt && new Date(ele.task!.finishedAt).getTime() > 0
           ? html`
               <tr>
                 <td>Finished</td>
@@ -209,9 +209,10 @@ export class TaskSk extends ElementSk {
     }).then((taskResp: GetTaskResponse) => {
       this.task = taskResp.task!;
       const start = new Date(this.task.createdAt!);
-      const end = this.task.finishedAt
-        ? new Date(this.task.finishedAt)
-        : new Date(Date.now()); // Use Date.now so that it can be mocked.
+      const end =
+        this.task.finishedAt && new Date(this.task.finishedAt).getTime() > 0
+          ? new Date(this.task.finishedAt)
+          : new Date(Date.now()); // Use Date.now so that it can be mocked.
       this.duration = diffDate(start.getTime(), end.getTime());
       const rs = this.task.taskKey!.repoState!;
       this.revisionLink = `${rs.repo}/+show/${rs.revision}`;

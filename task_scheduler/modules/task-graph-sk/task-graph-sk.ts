@@ -51,7 +51,7 @@ export class TaskGraphSk extends HTMLElement {
       tasks.sort();
     });
     taskData.forEach((tasks: TaskSummary[]) => {
-      tasks.sort((a: TaskSummary, b: TaskSummary) => b.attempt - a.attempt);
+      tasks.sort((a: TaskSummary, b: TaskSummary) => a.attempt - b.attempt);
     });
 
     // Compute the "depth" of each task spec.
