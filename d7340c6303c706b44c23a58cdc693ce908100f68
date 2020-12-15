@@ -94,6 +94,30 @@
       },
       "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9466af7f_db5a2fe0",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-15T19:22:17Z",
+      "side": 1,
+      "message": "Sorry for being unclear.  On the task scheduler, we sync the main repo and all of its dependencies into a temporary directory, eg. /tmp/123.  We have some repos (eg. lottie-ci) which sync Skia as a sibling, so we\u0027d end up with /tmp/123/skia and /tmp/123/lottie-ci.  That repo may have CasSpecs which point to files in both lottie-ci and skia, eg. \u0027../skia/tools/some-tool.sh\u0027, \u0027../lottie-ci/tools/another-tool.sh\u0027.  If we just assume that the first path component can be removed, validation will fail in cases like this.",
+      "parentUuid": "efaf510f_55a75dc1",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
