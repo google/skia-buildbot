@@ -15,7 +15,7 @@
   "parentWaterfall": "https://flutter-dashboard.appspot.com/#/build",
   "rollerName": "flutter-engine-flutter-autoroll",
   "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": ["https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"],
+  "sheriff": ["https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"],
   "sheriffBackup": ["liyuqian@google.com"],
   "github": {
     "repoOwner": "flutter",
