@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f140bc53_e4f00986",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-15T20:00:10Z",
+      "side": 1,
+      "message": "entire repo or sibling repos?",
+      "range": {
+        "startLine": 653,
+        "startChar": 8,
+        "endLine": 653,
+        "endChar": 9
+      },
+      "revId": "3e82cdd514358eca1a54098c12f563c3bcaef407",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
