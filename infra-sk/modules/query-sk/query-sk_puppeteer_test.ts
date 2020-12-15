@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import {
   setUpPuppeteerAndDemoPageServer,
   takeScreenshot,
+  inBazel,
 } from '../../../puppeteer-tests/util';
 
 describe('query-sk', () => {
@@ -11,7 +12,7 @@ describe('query-sk', () => {
   );
 
   beforeEach(async () => {
-    await testBed.page.goto(`${testBed.baseUrl}/query-sk.html`);
+    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/query-sk.html`);
     await testBed.page.setViewport({ width: 600, height: 1400 });
   });
 
