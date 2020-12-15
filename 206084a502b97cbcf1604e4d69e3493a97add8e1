@@ -16,6 +16,46 @@
       "message": "Eric, PTAL. Alexis, Dan, Corentin FYI",
       "revId": "206084a502b97cbcf1604e4d69e3493a97add8e1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "33346d6f_bf4e1fab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-15T20:39:52Z",
+      "side": 1,
+      "message": "This is close.  I think some of the roller names might be over the limit, but the validator should catch that.",
+      "revId": "206084a502b97cbcf1604e4d69e3493a97add8e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8d88221_f113a444",
+        "filename": "autoroll/config/vulkan-deps-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-15T20:39:52Z",
+      "side": 1,
+      "message": "This is missing a repo manager",
+      "range": {
+        "startLine": 33,
+        "startChar": 29,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "206084a502b97cbcf1604e4d69e3493a97add8e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
