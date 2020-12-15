@@ -11,7 +11,7 @@
   "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
   "rollerName": "fuchsia-linux-toolchain-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": ["https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"],
+  "sheriff": ["https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"],
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
