@@ -160,6 +160,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b8f7618c_8ca845be",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3105,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "Eric, Kevin: Thank you both for your input. Using the \"prod\" tag for now SGTM, but in the long term we\u0027ll want an autoroller to peg the Skia WASM container to a specific ta, which makes the build reproducible. Let\u0027s discuss the appropriate roll frequency after we\u0027ve migrated at least one of the Skia WASM apps to Bazel.",
+      "parentUuid": "49d892cf_63f0a2b2",
+      "range": {
+        "startLine": 3104,
+        "startChar": 30,
+        "endLine": 3105,
+        "endChar": 52
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5aefe000_b04192e9",
@@ -173,6 +197,30 @@
       "writtenOn": "2020-12-15T13:01:32Z",
       "side": 1,
       "message": "I\u0027m a little confused where this file comes from. Is this coming from https://github.com/bazelbuild/rules_docker ?\n\nIf so, I don\u0027t really see flatten on their public API (but I do see https://github.com/bazelbuild/rules_docker#container_load).\n\nIs there documentation on how to find the git repo or whatever that defines these rules? Can we  cross reference that documentation here?",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d26f533b_c0369f1b",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "It comes from rules_docker. The @io_bazel_rules_docker prefix is just the name under which said repository was imported in the WORKSPACE file, see https://skia.googlesource.com/buildbot/+/680015361430aeab308abe1b56382640fee091e6/WORKSPACE#3010.\n\nIt\u0027s unclear whether container_flatten is part of the public API due to a lack of documentation. But the fact that container_flatten is re-exported along with other, well documented rules in rules_docker, suggests that it is part of the public API (see [1] and [2]).\n\nIf they ever make breaking changes to container_flatten, then it\u0027s probably best to just fork it. The rule itself is relatively small; it\u0027s just a wrapper around a Go program that does all the heavy lifting.\n\nI chose this rule over any of the better documented ones because most other rules in the rules_docker repository produce .tar files with layered outputs, which means we would have to do the flattening ourselves.\n\n[1] https://github.com/bazelbuild/rules_docker/blob/6c29619903b6bc533ad91967f41f2a3448758e6f/container/container.bzl#L28\n[2] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/BUILD#L158",
+      "parentUuid": "5aefe000_b04192e9",
       "range": {
         "startLine": 8,
         "startChar": 7,
@@ -202,6 +250,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "0a227d02_1d2d9e94",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "We have a container_pull target in the WORKSPACE file named \"skia_wasm\" that pulls the Skia WASM image. The below container_flatten target has a dependency on the output of said container_pull target via the \"image\" attribute (image \u003d \"@skia_wasm//image\"). Bazel will build the container_pull target (i.e. will pull the Skia WASM container), or reuse its cached output, before building the below container_flatten target.\n\nRegarding caching:\n\nI believe the DOCKER_REPO_CACHE environment variable mentioned in the link above controls the internal caching behavior of the container_pull rule. Specifically, where in the file system it will save any layers pulled from the container registry (see [1] and [2]). If we build a container_pull target, clear Bazel\u0027s cache with \"bazel clean\" and build said target again, then presumably the image layers will be read from the DOCKER_REPO_CACHE directory instead of being re-downloaded from the container registry.\n\nThat said, this internal caching behavior is orthogonal to Bazel. Bazel will build a target once and cache its output artifacts. That\u0027s consistent with the behavior I\u0027ve observed while experimenting with these rules locally and against RBE.\n\n[1] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/pull.bzl#L144\n[2] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/go/cmd/puller/puller.go#L48",
+      "parentUuid": "cc5cbb9b_ecf81fca",
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "85c40675_22c5e50f",
         "filename": "infra-sk/index.bzl",
         "patchSetId": 2
@@ -213,6 +279,30 @@
       "writtenOn": "2020-12-15T13:01:32Z",
       "side": 1,
       "message": "Ok, I see my guess earlier was correct. My concern still stands - are we sure this is a public API? Could we use container_load instead?",
+      "range": {
+        "startLine": 386,
+        "startChar": 19,
+        "endLine": 386,
+        "endChar": 33
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c205db2_27ae01f2",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "Thanks, answered above.",
+      "parentUuid": "85c40675_22c5e50f",
       "range": {
         "startLine": 386,
         "startChar": 19,
@@ -240,6 +330,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1adf464d_fdd2fc27",
+        "filename": "particles/BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "Glad you like it!",
+      "parentUuid": "cc661cc1_c4730da9",
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9576f2a7_fc57a01a",
@@ -263,6 +371,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e71d75d_866e5123",
+        "filename": "particles/BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "Oops. Good catch!",
+      "parentUuid": "9576f2a7_fc57a01a",
+      "range": {
+        "startLine": 13,
+        "startChar": 14,
+        "endLine": 13,
+        "endChar": 21
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d413cf75_6b266248",
@@ -276,6 +408,30 @@
       "writtenOn": "2020-12-15T13:01:32Z",
       "side": 1,
       "message": "This syntax looks a bit hairy - is it bash? Something Bazel specific?",
+      "range": {
+        "startLine": 21,
+        "startChar": 46,
+        "endLine": 21,
+        "endChar": 65
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "958aa849_8e6b7768",
+        "filename": "particles/BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-15T20:50:23Z",
+      "side": 1,
+      "message": "The $\u003c and $@ are standard Bazel / Blaze variables. $\u003c is the path of the only file in srcs, $@ is the path to the only file in outs.\n\nDocumentation: https://docs.bazel.build/versions/master/be/make-variables.html#predefined_genrule_variables\n\nExample: https://github.com/tensorflow/tensorflow/blob/0cbbd15f4835d8ac38708c54fc5608ea757b2ca3/tensorflow/tensorflow.bzl#L1998\n\nThe rest of the \"cmd\" argument is copied verbatim from //particles/Makefile.",
+      "parentUuid": "d413cf75_6b266248",
       "range": {
         "startLine": 21,
         "startChar": 46,
