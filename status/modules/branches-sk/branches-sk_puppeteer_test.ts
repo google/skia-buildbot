@@ -1,9 +1,6 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import {
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
-} from '../../../puppeteer-tests/util';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('branches-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
@@ -16,7 +13,7 @@ describe('branches-sk', () => {
   });
 
   it('should render the demo page (smoke test)', async () => {
-    expect(await testBed.page.$$('branches-sk')).to.have.length(1);
+    expect(await testBed.page.$$('branches-sk')).to.have.length(3);
   });
 
   describe('screenshots', () => {
