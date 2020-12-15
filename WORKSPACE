@@ -3063,8 +3063,30 @@ rbe_autoconfig(
     # Digest of the most recent gcr.io/skia-public/rbe-container-skia-infra image.
     #
     # Must be updated manually after a new container image is uploaded to the container registry
-    # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:94b610705da22f96e51e94ee729402f455a64d857b11edecf8f9f68d22617df1",
+    # with "bazel run //:push_rbe_container_skia_infra".
+    digest = "sha256:3417c2e1d4aafc8e88664860277971df3dcbe6d3dd3082c8213f456291ff209d",
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
+)
+
+##################
+# Miscellaneous. #
+##################
+
+# Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
+container_pull(
+    name = "skia_wasm",
+    registry = "gcr.io",
+    repository = "skia-public/skia-wasm-release",
+    # The container_pull documentation[1] recommends specifying a digest (via the "digest" argument)
+    # for reproducible builds.
+    #
+    # We specify the "prod" tag here instead of a digest for simplicity, but this might cause Bazel
+    # to fetch the "prod" image once, cache it, and use it for all subsequent builds, completely
+    # ignoring any new images uploaded to GCR with the "prod" tag.
+    #
+    # This caching problem would be solved by replacing the "tag" argument with a "digest" argument
+    # with the latest digest. But this requires setting up an autoroller to update the digest every
+    # time a new container image is uploaded to GCR.
+    tag = "prod",
 )
