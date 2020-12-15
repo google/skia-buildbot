@@ -134,6 +134,156 @@
       },
       "revId": "874d6539860ba34ca19be6c10b925162701d721b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "49d892cf_63f0a2b2",
+        "filename": "WORKSPACE",
+        "patchSetId": 2
+      },
+      "lineNbr": 3105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "In the current setup, a new container is generated via a Skia commit. A nightly roll could work, but might make the latency of seeing new features roll out on things like jsfiddle.skia.org go from ~30 minutes to ~1 day.\n\nI would lean toward trying a tag like prod/latest at first to see how it goes. If there are troubles with bazel caching (In docker, you can force a pull; can Bazel?) or we run into inconsistency issues (we have not with the current model, AFAIK), then we can re-evaluate.",
+      "parentUuid": "92d4f76b_1b4af256",
+      "range": {
+        "startLine": 3104,
+        "startChar": 30,
+        "endLine": 3105,
+        "endChar": 52
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5aefe000_b04192e9",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "I\u0027m a little confused where this file comes from. Is this coming from https://github.com/bazelbuild/rules_docker ?\n\nIf so, I don\u0027t really see flatten on their public API (but I do see https://github.com/bazelbuild/rules_docker#container_load).\n\nIs there documentation on how to find the git repo or whatever that defines these rules? Can we  cross reference that documentation here?",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cc5cbb9b_ecf81fca",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "How is it that this rule doesn\u0027t need to call container_pull? Of note, it appears caching is not enabled by default (https://github.com/bazelbuild/rules_docker#container_pull-1) so I don\u0027t think we need to worry as much about caching unreliability.",
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "85c40675_22c5e50f",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "Ok, I see my guess earlier was correct. My concern still stands - are we sure this is a public API? Could we use container_load instead?",
+      "range": {
+        "startLine": 386,
+        "startChar": 19,
+        "endLine": 386,
+        "endChar": 33
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc661cc1_c4730da9",
+        "filename": "particles/BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "This API looks great!",
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9576f2a7_fc57a01a",
+        "filename": "particles/BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "Aren\u0027t the files suppose to line up? i.e. version be last on both lists?",
+      "range": {
+        "startLine": 13,
+        "startChar": 14,
+        "endLine": 13,
+        "endChar": 21
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d413cf75_6b266248",
+        "filename": "particles/BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-15T13:01:32Z",
+      "side": 1,
+      "message": "This syntax looks a bit hairy - is it bash? Something Bazel specific?",
+      "range": {
+        "startLine": 21,
+        "startChar": 46,
+        "endLine": 21,
+        "endChar": 65
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
