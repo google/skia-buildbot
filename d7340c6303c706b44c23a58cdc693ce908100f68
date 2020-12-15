@@ -70,6 +70,30 @@
       },
       "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "efaf510f_55a75dc1",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-15T19:16:24Z",
+      "side": 1,
+      "message": "Not sure I understand. Aren\u0027t we sort of already making that assumption if we allow at most one \"..\" in the CAS root?",
+      "parentUuid": "e9a15a6c_ddde6471",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
