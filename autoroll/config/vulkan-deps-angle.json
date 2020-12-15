@@ -1,17 +1,16 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childDisplayName": "Vulkan-Tools",
+  "childDisplayName": "vulkan-deps",
   "commitMsg": {
     "bugProject": "angleproject",
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "childLogURLTmpl": "https://chromium.googlesource.com/vulkan-deps.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true
   },
   "contacts": [
     "angle-team@google.com",
-    "jmadill@chromium.org"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -23,7 +22,7 @@
   "ownerSecondary": "rmistry",
   "parentDisplayName": "ANGLE",
   "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
-  "rollerName": "vulkan-tools-angle-autoroll",
+  "rollerName": "vulkan-deps-angle-autoroll",
   "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:angle-wrangler"
@@ -32,17 +31,23 @@
     "ynovikov@chromium.org"
   ],
   "supportsManualRolls": true,
-  "noCheckoutDEPSRepoManager": {
+  "depsRepoManager": {
     "childBranch": "master",
-    "childPath": "third_party/vulkan-tools/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools.git/+show/%s",
+    "childPath": "third_party/vulkan-deps",
+    "childRepo": "https://chromium.googlesource.com/vulkan-deps.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/vulkan-deps.git/+show/%s",
+    "childSubdir": "angle",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "preUploadSteps": [
+      "ANGLECodeGeneration"
+    ],
+    "runHooks": true
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "2",
+    "memory": "4Gi",
+    "disk": "50Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
@@ -59,5 +64,6 @@
       }
     }
   ],
+  "supportsManualRolls": true,
   "timeWindow": "M-F 10:00-13:00"
 }

@@ -1,0 +1,46 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Vulkan-Tools",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+  },
+  "contacts": [
+    "angle-team@google.com",
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "vulkan-deps",
+    "config": "chromium-no-cq"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "vulkan-deps",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "vulkan-tools-deps-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "angle-bots+autoroll-info@google.com"
+  ],
+  "supportsManualRolls": true,
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "vulkan-tools/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools/+show/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/vulkan-deps.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
