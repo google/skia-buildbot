@@ -46,6 +46,30 @@
       },
       "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e9a15a6c_ddde6471",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-15T17:21:10Z",
+      "side": 1,
+      "message": "So the problem is that we share skia\u0027s gen_tasks_logic with a couple of other repos which may want CAS inputs from multiple top-level directories, so we can\u0027t assume we\u0027re sitting in the correct directory.",
+      "parentUuid": "323a9e81_65be7cac",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "d7340c6303c706b44c23a58cdc693ce908100f68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
