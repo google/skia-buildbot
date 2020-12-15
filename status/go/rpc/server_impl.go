@@ -204,10 +204,10 @@ func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequ
 	for _, botconfig := range s.capacityClient.CapacityMetrics() {
 		dims := make(map[string]string)
 		for _, dim := range botconfig.Dimensions {
-			split := strings.SplitN(dim, ":", 1)
+			split := strings.SplitN(dim, ":", 2)
 			if len(split) > 0 {
 				// Handles empty dimensions.
-				dims[split[0]] = string(dim[len(split)+1])
+				dims[split[0]] = string(dim[len(split[0])+1:])
 			}
 		}
 		var totalTasks, cqTasks int32
