@@ -20,23 +20,31 @@ import (
 // flag names
 const (
 	backupToDateFlagName     = "backup_to_date"
+	beginCommitFlagName      = "begin"
 	configFilenameFlagName   = "config_filename"
 	connectionStringFlagName = "connection_string"
+	dryrunFlagName           = "dryrun"
+	endCommitFlagName        = "end"
 	inputFilenameFlagName    = "in"
 	localFlagName            = "local"
+	loggingFlagName          = "logging"
 	numTilesListFlagName     = "num"
 	outputFilenameFlagName   = "out"
 	queryFlagName            = "query"
-	tileNumberFlagName       = "tile"
-	beginCommitFlagName      = "begin"
-	endCommitFlagName        = "end"
 	startTimeFlagName        = "start"
 	stopTimeFlagName         = "stop"
-	dryrunFlagName           = "dryrun"
-	loggingFlagName          = "logging"
+	tileNumberFlagName       = "tile"
+	trybotFilenameFlagName   = "filename"
+	trybotNumCommitsFlagName = "num"
 )
 
 // flags
+var trybotFilenameFlag = &cli.StringFlag{
+	Name:  trybotFilenameFlagName,
+	Value: "",
+	Usage: "The full URL of a nanobench trybot results files, e.g.: 'gs://skia-perf/...foo.json'",
+}
+
 var connectionStringFlag = &cli.StringFlag{
 	Name:    connectionStringFlagName,
 	Value:   "",
@@ -102,6 +110,12 @@ var numTilesListFlag = &cli.IntFlag{
 	Value:   10,
 	Usage:   "The number of tiles to display.",
 	EnvVars: []string{"PERF_CONFIG_FILENAME"},
+}
+
+var trybotNumCommitsFlag = &cli.IntFlag{
+	Name:  trybotNumCommitsFlagName,
+	Value: 5,
+	Usage: "The number of ingestion files to load.",
 }
 
 var beginCommitFlag = &cli.Int64Flag{
@@ -477,6 +491,34 @@ using the same input file for both restores.
 					},
 				},
 			},
+			{
+				Name: "trybot",
+				Subcommands: []*cli.Command{
+					{
+						Name:        "reference",
+						Description: "Generates a reference file to be used by nanostat for the given trybot file.",
+						Flags: []cli.Flag{
+							localFlag,
+							configFilenameFlag,
+							connectionStringFlag,
+							trybotFilenameFlag,
+							requiredOutputFilenameFlag,
+						},
+						Action: func(c *cli.Context) error {
+							instanceConfig, err := instanceConfigFromFlags(c)
+							if err != nil {
+								return skerr.Wrap(err)
+							}
+							store, err := getStore(c)
+							if err != nil {
+								return skerr.Wrap(err)
+							}
+							return app.TrybotReference(c.Bool(localFlagName), store, instanceConfig, c.String(trybotFilenameFlagName), c.String(outputFilenameFlagName), c.Int(trybotNumCommitsFlagName))
+						},
+					},
+				},
+			},
+
 			{
 				Name:  "markdown",
 				Usage: "Generates markdown help for perf-tool.",

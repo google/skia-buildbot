@@ -86,8 +86,8 @@ func TestLoad_HappyPath_Success(t *testing.T) {
 	const traceID1 = ",config=8888,name=mytest,sub_result=min_ms,"
 	const traceID2 = ",config=565,name=mytest,sub_result=min_ms,"
 	const tileSize int32 = 50
-	const sourceFilePath = "/path/file.json"
-	const sourceFileName = "gs://skia-perf" + sourceFilePath
+	const sourceFilePath = "path/file.json"
+	const sourceFileName = "gs://skia-perf/" + sourceFilePath
 
 	// Configure the traceStore mock.
 	traceStore := &mocks.TraceStore{}
@@ -126,10 +126,10 @@ func TestLoad_HappyPathLoadingTwoCommits_Success(t *testing.T) {
 	const traceID2 = ",config=565,name=mytest,sub_result=min_ms,"
 	const traceID3 = ",config=gles,name=mytest,sub_result=min_ms,"
 	const tileSize int32 = 50
-	const sourceFilePath = "/path/sourceFileBody.json"   // corresponds to sourceFileBody
-	const sourceFilePath2 = "/path/sourceFileBody2.json" // corresponds to sourceFileBody2
-	const sourceFileName = "gs://skia-perf" + sourceFilePath
-	const sourceFileName2 = "gs://skia-perf" + sourceFilePath2
+	const sourceFilePath = "path/sourceFileBody.json"   // corresponds to sourceFileBody
+	const sourceFilePath2 = "path/sourceFileBody2.json" // corresponds to sourceFileBody2
+	const sourceFileName = "gs://skia-perf/" + sourceFilePath
+	const sourceFileName2 = "gs://skia-perf/" + sourceFilePath2
 
 	// Configure the traceStore mock.
 	traceStore := &mocks.TraceStore{}
@@ -171,10 +171,10 @@ func TestLoad_HappyPathLoadingTwoCommitsSplitAcrossTwoIters_Success(t *testing.T
 	const traceID2 = ",config=565,name=mytest,sub_result=min_ms,"
 	const traceID3 = ",config=gles,name=mytest,sub_result=min_ms,"
 	const tileSize int32 = 2
-	const sourceFilePath = "/path/sourceFileBody.json"   // corresponds to sourceFileBody
-	const sourceFilePath2 = "/path/sourceFileBody2.json" // corresponds to sourceFileBody2
-	const sourceFileName = "gs://skia-perf" + sourceFilePath
-	const sourceFileName2 = "gs://skia-perf" + sourceFilePath2
+	const sourceFilePath = "path/sourceFileBody.json"   // corresponds to sourceFileBody
+	const sourceFilePath2 = "path/sourceFileBody2.json" // corresponds to sourceFileBody2
+	const sourceFileName = "gs://skia-perf/" + sourceFilePath
+	const sourceFileName2 = "gs://skia-perf/" + sourceFilePath2
 
 	// Configure the traceStore mock.
 	traceStore := &mocks.TraceStore{}
@@ -242,8 +242,8 @@ func TestLoad_OneGoodTraceIDAndOneUnknownTraceID_Success(t *testing.T) {
 	const traceID2 = ",config=565,name=mytest,sub_result=min_ms,"
 	const unknownTraceID = ",foo=bar,"
 	const tileSize int32 = 50
-	const sourceFilePath = "/path/file.json"
-	const sourceFileName = "gs://skia-perf" + sourceFilePath
+	const sourceFilePath = "path/file.json"
+	const sourceFileName = "gs://skia-perf/" + sourceFilePath
 
 	// Configure the traceStore mock.
 	traceStore := &mocks.TraceStore{}
@@ -304,8 +304,8 @@ func TestLoad_TileSizeFail_Failure(t *testing.T) {
 	const traceID1 = ",config=8888,name=mytest,sub_result=min_ms,"
 	const traceID2 = ",config=565,name=mytest,sub_result=min_ms,"
 	const tileSize int32 = 50
-	const sourceFilePath = "/path/file.json"
-	const sourceFileName = "gs://skia-perf" + sourceFilePath
+	const sourceFilePath = "path/file.json"
+	const sourceFileName = "gs://skia-perf/" + sourceFilePath
 
 	// Configure the traceStore mock.
 	traceStore := &mocks.TraceStore{}

@@ -127,7 +127,7 @@ func (s *srcs) Load(ctx context.Context, traceIDs []string, n int) ([]string, er
 			}
 
 			// Load the source file.
-			rc, err := s.storageClient.FileReader(ctx, u.Path)
+			rc, err := s.storageClient.FileReader(ctx, u.Path[1:])
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
