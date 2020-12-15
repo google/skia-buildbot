@@ -278,7 +278,7 @@ export const job2: Job = {
   buildbucketBuildId: 8921090193851453000,
   buildbucketLeaseKey: 0,
   createdAt: new Date('2019-10-10T13:56:44.572122663Z').toUTCString(),
-  dbModifiedAt: new Date('2019-10-10T19:56:44.572122663Z').toString(),
+  dbModifiedAt: new Date('2019-10-10T19:56:44.572122663Z').toUTCString(),
   dependencies: [
     {
       task: 'F',
@@ -305,7 +305,7 @@ export const job2: Job = {
       dependencies: [],
     },
   ],
-  finishedAt: '',
+  finishedAt: '0001-01-01T00:00:00Z',
   id: job2ID,
   isForce: false,
   name: 'ABCDEF',

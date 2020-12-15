@@ -102,7 +102,7 @@ export class JobSk extends ElementSk {
           </td>
           <td></td>
         </tr>
-        ${ele.job!.finishedAt
+        ${ele.job!.finishedAt && new Date(ele.job!.finishedAt).getTime() > 0
           ? html`
               <tr>
                 <td>Finished</td>
@@ -251,9 +251,10 @@ export class JobSk extends ElementSk {
   private updateFrom(job: Job) {
     this.job = job;
     const start = new Date(this.job.createdAt!);
-    const end = this.job.finishedAt
-      ? new Date(this.job.finishedAt)
-      : new Date(Date.now()); // Use Date.now so that it can be mocked.
+    const end =
+      this.job.finishedAt && new Date(this.job.finishedAt).getTime() > 0
+        ? new Date(this.job.finishedAt)
+        : new Date(Date.now()); // Use Date.now so that it can be mocked.
     this.duration = diffDate(start.getTime(), end.getTime());
     const rs = this.job.repoState!;
     this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
