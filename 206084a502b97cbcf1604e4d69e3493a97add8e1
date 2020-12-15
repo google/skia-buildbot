@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e7587e77_5bdf7748",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2020-12-15T19:36:47Z",
+      "side": 1,
+      "message": "Eric, PTAL. Alexis, Dan, Corentin FYI",
+      "revId": "206084a502b97cbcf1604e4d69e3493a97add8e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
