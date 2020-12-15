@@ -56,6 +56,30 @@
       },
       "revId": "206084a502b97cbcf1604e4d69e3493a97add8e1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fd0925e_b59e20f0",
+        "filename": "autoroll/config/vulkan-deps-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2020-12-15T22:03:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8d88221_f113a444",
+      "range": {
+        "startLine": 33,
+        "startChar": 29,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "206084a502b97cbcf1604e4d69e3493a97add8e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
