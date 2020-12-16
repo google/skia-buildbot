@@ -75,7 +75,7 @@ var (
 	autorollMtx         sync.RWMutex
 	autorollStatus      []byte                             = nil
 	autorollStatusTwirp *rpc.GetAutorollerStatusesResponse = nil
-	capacityClient      *capacity.CapacityClient           = nil
+	capacityClient      *capacity.CapacityClientImpl       = nil
 	capacityTemplate    *template.Template                 = nil
 	commitsTemplate     *template.Template                 = nil
 	iCache              *incremental.IncrementalCache      = nil
