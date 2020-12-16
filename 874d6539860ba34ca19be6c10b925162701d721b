@@ -305,6 +305,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "81b2e28e_44466f4a",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T17:36:53Z",
+      "side": 1,
+      "message": "I\u0027m fresh off the pain of trying to find/remember where dependencies are defined from my CIPD mockery adventures last week - it took me hours to resolve where things were intended to be imported from and why, despite having some basic knowledge of Python and CIPD. I don\u0027t want to have to re-experience that sort of thing on a regular basis if I forget the specifics of how things are connected.",
+      "parentUuid": "14aed0b3_536d4f66",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cc5cbb9b_ecf81fca",
         "filename": "infra-sk/index.bzl",
         "patchSetId": 2
