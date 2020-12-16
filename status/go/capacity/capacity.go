@@ -25,6 +25,19 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+// CapacityClientInterface provides methods for tracking bot capacity.
+type CapacityClientInterface interface {
+	// QueryAll updates the capacity metrics.
+	QueryAll(ctx context.Context) error
+
+	// StartLoading begins an infinite loop to recompute the capacity metrics after a
+	// given interval of time.  Any errors are logged, but the loop is not broken.
+	StartLoading(ctx context.Context, interval time.Duration)
+
+	// Returns the most recent capacity metrics. Keyed by stringified dimensions.
+	CapacityMetrics() map[string]BotConfig
+}
+
 type CapacityClient struct {
 	tcc   *task_cfg_cache.TaskCfgCache
 	tasks cache.TaskCache
@@ -287,7 +300,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 	}
 }
 
-// QueryAll updates the capacity metrics.
+// See CapacityClientInterface.
 func (c *CapacityClient) QueryAll(ctx context.Context) error {
 	sklog.Info("Recounting Capacity Stats")
 
@@ -317,8 +330,7 @@ func (c *CapacityClient) QueryAll(ctx context.Context) error {
 	return err
 }
 
-// StartLoading begins an infinite loop to recompute the capacity metrics after a
-// given interval of time.  Any errors are logged, but the loop is not broken.
+// See CapacityClientInterface.
 func (c *CapacityClient) StartLoading(ctx context.Context, interval time.Duration) {
 	go func() {
 		util.RepeatCtx(ctx, interval, func(ctx context.Context) {

@@ -27,7 +27,7 @@ import (
 type statusServerImpl struct {
 	iCache                *incremental.IncrementalCache
 	taskDb                db.RemoteDB
-	capacityClient        *capacity.CapacityClient
+	capacityClient        capacity.CapacityClientInterface
 	getAutorollerStatuses func() *GetAutorollerStatusesResponse
 	getRepo               func(string) (string, string, error)
 	maxCommitsToLoad      int
@@ -204,10 +204,10 @@ func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequ
 	for _, botconfig := range s.capacityClient.CapacityMetrics() {
 		dims := make(map[string]string)
 		for _, dim := range botconfig.Dimensions {
-			split := strings.SplitN(dim, ":", 1)
+			split := strings.SplitN(dim, ":", 2)
 			if len(split) > 0 {
 				// Handles empty dimensions.
-				dims[split[0]] = string(dim[len(split)+1])
+				dims[split[0]] = string(dim[len(split[0])+1:])
 			}
 		}
 		var totalTasks, cqTasks int32
@@ -234,6 +234,27 @@ func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequ
 	return &rv, nil
 }
 
+// newStatusServerImpl creates and returns a statusServerImpl instance.
+func newStatusServerImpl(
+	iCache *incremental.IncrementalCache,
+	taskDb db.RemoteDB,
+	capacityClient capacity.CapacityClientInterface,
+	getAutorollStatuses func() *GetAutorollerStatusesResponse,
+	getRepo func(string) (string, string, error),
+	maxCommitsToLoad int,
+	defaultCommitsToLoad int,
+	podID string) *statusServerImpl {
+	return &statusServerImpl{
+		iCache,
+		taskDb,
+		capacityClient,
+		getAutorollStatuses,
+		getRepo,
+		maxCommitsToLoad,
+		defaultCommitsToLoad,
+		podID}
+}
+
 // NewStatusServer creates and returns a Twirp HTTP Server.
 func NewStatusServer(
 	iCache *incremental.IncrementalCache,
@@ -244,7 +265,7 @@ func NewStatusServer(
 	maxCommitsToLoad int,
 	defaultCommitsToLoad int,
 	podID string) http.Handler {
-	return NewStatusServiceServer(&statusServerImpl{
+	return NewStatusServiceServer(newStatusServerImpl(
 		iCache,
 		taskDb,
 		capacityClient,
@@ -252,7 +273,7 @@ func NewStatusServer(
 		getRepo,
 		maxCommitsToLoad,
 		defaultCommitsToLoad,
-		podID}, nil)
+		podID), nil)
 }
 
 /*
