@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "3d475a23_f5345e9a",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "I strongly agree.",
+      "parentUuid": "a8aa0e07_e5147c04",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 28
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "787337d5_74479c6b",
         "filename": "status/go/capacity/capacity.go",
         "patchSetId": 3
@@ -42,6 +66,253 @@
         "startChar": 0,
         "endLine": 303,
         "endChar": 31
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dde1b224_f474b4f4",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "This amount of newline indentation is not idiomatic go (and looks very strange to me). newlines can be used to aid readibility in some cases, but not here.",
+      "range": {
+        "startLine": 239,
+        "startChar": 21,
+        "endLine": 239,
+        "endChar": 37
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "695ccbe0_dd38cdbe",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "Please never initialize structs w/o using named members. It makes future refactoring much more difficult and potentially error prone.",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 8
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f5881c6b_b247e089",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "Again, please use names when initializing structs.",
+      "range": {
+        "startLine": 269,
+        "startChar": 2,
+        "endLine": 269,
+        "endChar": 8
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "24a199d1_6cf4a8f1",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "nit: setupServerWithMockCapacityClient",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 10
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3ff2546_c81edd87",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "Please move this to the actual test caller.",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 19
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f3386e49_ce214cb0",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "go/unit-test-practices under Naming \"Test names should include the condition being tested and the expected outcome.\"\n\nPerhaps TestGetBotUsage_MultipleDimensionSets_ValidResponse",
+      "range": {
+        "startLine": 215,
+        "startChar": 5,
+        "endLine": 215,
+        "endChar": 20
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5349c4d6_97c6873b",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "Maybe add a comment that this dimension name is potentially tricky due to the double colons",
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c0977393_e5e37a06",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "nit: bot4 (in realistic data, it is unlikely a single bot/task would run on machines with such varied dimensions\n\nubernit: Let\u0027s be the change we want to see in the (bot) world - \"task1\", \"task2\", etc",
+      "range": {
+        "startLine": 249,
+        "startChar": 26,
+        "endLine": 249,
+        "endChar": 30
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3ea41b38_3fbbeb97",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "I would recommend not asserting calls unless it is important to the test (i.e. testing caching). They end up being a bit redundant - you have Once() set, so we will know if the call happens more than once - the assert of the output will only be correct if it got the input data.",
+      "range": {
+        "startLine": 253,
+        "startChar": 5,
+        "endLine": 253,
+        "endChar": 24
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7ded7598_a0b32984",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "suggestion: I usually use require.NoError because if there is an error returned, I generally do not want the follow on assertions to run (which can sometimes have nil dereferences, depending on the circumstances) and output potentially confusing errors.",
+      "range": {
+        "startLine": 254,
+        "startChar": 1,
+        "endLine": 254,
+        "endChar": 7
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9af0e6c5_318d0cc3",
+        "filename": "task_scheduler/go/mocks/RemoteDB.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T16:01:59Z",
+      "side": 1,
+      "message": "You need a newer version of mockery installed locally and on your PATH: https://github.com/google/skia-buildbot#generated-code",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 35
       },
       "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
