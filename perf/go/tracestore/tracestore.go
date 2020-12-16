@@ -9,6 +9,15 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+// Source is returned from GetLastNSources.
+type Source struct {
+	// Filename is the filename of the file that was ingested.
+	Filename string
+
+	// CommitNumber of the point that was found.
+	CommitNumber types.CommitNumber
+}
+
 // TraceStore is the interface that all backends that store traces must
 // implement. It is used by dfbuilder to build DataFrames and by the perf-tool
 // to perform some common maintenance tasks.
@@ -26,6 +35,14 @@ type TraceStore interface {
 	// GetSource returns the full URL of the file that contained the point at
 	// 'index' of trace 'traceId'.
 	GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error)
+
+	// GetLastNSources returns the filename and commit number for each the last
+	// n commits to the given trace.
+	GetLastNSources(ctx context.Context, traceID string, n int) ([]Source, error)
+
+	// GetTraceIDsBySource returns all the traceIDs that came from a given
+	// ingested file.
+	GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error)
 
 	// OffsetFromCommitNumber returns the offset from within a Tile that a commit sits.
 	OffsetFromCommitNumber(commitNumber types.CommitNumber) int32
