@@ -5,7 +5,6 @@ package query
 import (
 	"net/http"
 
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/shared"
@@ -77,7 +76,8 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.IncludeUntriagedDigests = r.FormValue("unt") == "true"
 	q.OnlyIncludeDigestsProducedAtHead = r.FormValue("head") == "true"
 	q.IncludeIgnoredTraces = r.FormValue("include") == "true"
-	q.IncludeDigestsProducedOnMaster = r.FormValue(git.DefaultBranch) == "true"
+	// TODO(kjlubick) rename this
+	q.IncludeDigestsProducedOnMaster = r.FormValue("master") == "true"
 
 	// Extract the filter values.
 	q.CommitBeginFilter = r.FormValue("fbegin")

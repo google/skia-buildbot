@@ -12,6 +12,7 @@
   ],
   gcs_bucket: "skia-gold-flutter-engine",
   git_bt_table: "git-repos2",
+  git_repo_branch: "master",
   git_repo_url: "https://github.com/flutter/engine",
   fs_namespace: "flutter-engine",
   fs_project_id: "skia-firestore",

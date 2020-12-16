@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -206,7 +205,7 @@ func main() {
 
 	gitStore := mustMakeGitStore(ctx, fsc, appName)
 
-	vcs := mustMakeVCS(ctx, gitStore)
+	vcs := mustMakeVCS(ctx, fsc, gitStore)
 
 	traceStore := mustMakeTraceStore(ctx, fsc, vcs)
 
@@ -348,11 +347,11 @@ func mustMakeGitStore(ctx context.Context, fsc *frontendServerConfig, appName st
 }
 
 // mustMakeVCS returns a vcsinfo.VCS that wraps the given BigTable-backed GitStore.
-func mustMakeVCS(ctx context.Context, gitStore *bt_gitstore.BigTableGitStore) *bt_vcs.BigTableVCS {
+func mustMakeVCS(ctx context.Context, fsc *frontendServerConfig, gitStore *bt_gitstore.BigTableGitStore) *bt_vcs.BigTableVCS {
 	// TODO(kjlubick): remove gitilesRepo and the GetFile() from vcsinfo (unused and
 	//  leaky abstraction).
 	gitilesRepo := gitiles.NewRepo("", nil)
-	vcs, err := bt_vcs.New(ctx, gitStore, git.DefaultBranch, gitilesRepo)
+	vcs, err := bt_vcs.New(ctx, gitStore, fsc.GitRepoBranch, gitilesRepo)
 	if err != nil {
 		sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 	}

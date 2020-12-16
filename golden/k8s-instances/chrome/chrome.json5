@@ -16,6 +16,7 @@
   ],
   gcs_bucket: "skia-gold-chrome",
   git_bt_table: "git-repos2",
+  git_repo_branch: "master",
   git_repo_url: "https://chromium.googlesource.com/chromium/src",
   fs_namespace: "chrome",
   fs_project_id: "skia-firestore",

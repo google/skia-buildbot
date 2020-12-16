@@ -11,6 +11,7 @@
   ],
   gcs_bucket: "skia-pdfium-gm",  // Legacy bucket name
   git_bt_table: "git-repos2",
+  git_repo_branch: "master",
   git_repo_url: "https://pdfium.googlesource.com/pdfium",
   fs_namespace: "pdfium",
   fs_project_id: "skia-firestore",

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gerrit/mocks"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -357,7 +356,7 @@ func getOpenChangeInfo() gerrit.ChangeInfo {
 		Project:         "buildbot",
 		ChangeId:        "I29ebaf19a1003e4d9c6df7e5f6469c1f812e0730",
 		Subject:         "[gold] Add more tryjob processing tests",
-		Branch:          git.DefaultBranch,
+		Branch:          "main",
 		Committed:       false,
 		Revisions: map[string]*gerrit.Revision{
 			"337da6ea3a14fd2899b39d0a60c6828971c0d883": xps[3],
