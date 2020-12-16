@@ -233,6 +233,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e4ea2675_e3af5b22",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T13:00:34Z",
+      "side": 1,
+      "message": "Can we revisit our naming convention for WORKSPACE (assuming those names are something we can freely choose)? If I am looking in this file, I want to have a better impression of which github repo the rules come from.\n\nFor example, we have @build_bazel_rules_nodejs which seems like a fine naming scheme. I\u0027m not quite sure why there\u0027s an io_ in @io_bazel_rules_docker\n\nI\u0027m fine with that being handled in a followup CL.\n\nI would still like a comment at the top of index.bzl pointing to WORKSPACE since it\u0027s not otherwise obvious of that connection.",
+      "parentUuid": "d26f533b_c0369f1b",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cc5cbb9b_ecf81fca",
         "filename": "infra-sk/index.bzl",
         "patchSetId": 2
@@ -262,6 +286,24 @@
       "side": 1,
       "message": "We have a container_pull target in the WORKSPACE file named \"skia_wasm\" that pulls the Skia WASM image. The below container_flatten target has a dependency on the output of said container_pull target via the \"image\" attribute (image \u003d \"@skia_wasm//image\"). Bazel will build the container_pull target (i.e. will pull the Skia WASM container), or reuse its cached output, before building the below container_flatten target.\n\nRegarding caching:\n\nI believe the DOCKER_REPO_CACHE environment variable mentioned in the link above controls the internal caching behavior of the container_pull rule. Specifically, where in the file system it will save any layers pulled from the container registry (see [1] and [2]). If we build a container_pull target, clear Bazel\u0027s cache with \"bazel clean\" and build said target again, then presumably the image layers will be read from the DOCKER_REPO_CACHE directory instead of being re-downloaded from the container registry.\n\nThat said, this internal caching behavior is orthogonal to Bazel. Bazel will build a target once and cache its output artifacts. That\u0027s consistent with the behavior I\u0027ve observed while experimenting with these rules locally and against RBE.\n\n[1] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/pull.bzl#L144\n[2] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/go/cmd/puller/puller.go#L48",
       "parentUuid": "cc5cbb9b_ecf81fca",
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b346556a_30a4969a",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T13:00:34Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0a227d02_1d2d9e94",
       "revId": "874d6539860ba34ca19be6c10b925162701d721b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
@@ -303,6 +345,30 @@
       "side": 1,
       "message": "Thanks, answered above.",
       "parentUuid": "85c40675_22c5e50f",
+      "range": {
+        "startLine": 386,
+        "startChar": 19,
+        "endLine": 386,
+        "endChar": 33
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "26a3429b_f7333496",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T13:00:34Z",
+      "side": 1,
+      "message": "Please add some of the justification you gave as a comment here.",
+      "parentUuid": "8c205db2_27ae01f2",
       "range": {
         "startLine": 386,
         "startChar": 19,

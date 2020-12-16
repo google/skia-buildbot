@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "68b17e30_f6c1e3bf",
+        "filename": "WORKSPACE",
+        "patchSetId": 3
+      },
+      "lineNbr": 3078,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T13:00:34Z",
+      "side": 1,
+      "message": "bikeshed: container_pull_skia_wasm or something similar so it is more obvious that this rule goes and gets the container.",
+      "range": {
+        "startLine": 3078,
+        "startChar": 12,
+        "endLine": 3078,
+        "endChar": 21
+      },
+      "revId": "f05a09d403d9e143129b98021482959c95be4dc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
