@@ -15,7 +15,7 @@ describe('comments-sk', () => {
   beforeEach(async () => {
     eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['data-update']);
     await testBed.page.goto(`${testBed.baseUrl}/dist/comments-sk.html`);
-    await testBed.page.setViewport({ width: 400, height: 550 });
+    await testBed.page.setViewport({ width: 600, height: 550 });
   });
 
   it('should render the demo page (smoke test)', async () => {
@@ -28,8 +28,8 @@ describe('comments-sk', () => {
     });
 
     it('add comment flow', async () => {
-      (await testBed.page.$$('checkbox-sk'))[0].click();
-      (await testBed.page.$$('checkbox-sk'))[1].click();
+      (await testBed.page.$('checkbox-sk[label=Flaky]'))!.click();
+      (await testBed.page.$('checkbox-sk[label=IgnoreFailure]'))!.click();
       ((await testBed.page.$('input-sk')) as any).value = 'This is flaky, lets ignore it.';
       const updated = eventPromise('data-update');
       (await testBed.page.$('button'))!.click();

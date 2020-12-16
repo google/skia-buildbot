@@ -14,6 +14,8 @@ import {
   infraRoleResp,
 } from '../tree-status-sk/test_data';
 
+Date.now = () => Date.parse('2020-12-31T00:00:00.000Z');
+
 SetupMocks()
   .expectGetIncrementalCommits(incrementalResponse0)
   .expectGetAutorollerStatuses(getAutorollerStatusesResponse);
