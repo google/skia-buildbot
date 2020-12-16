@@ -25,7 +25,20 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-type CapacityClient struct {
+// CapacityClient provides methods for tracking bot capacity.
+type CapacityClient interface {
+	// QueryAll updates the capacity metrics.
+	QueryAll(ctx context.Context) error
+
+	// StartLoading begins an infinite loop to recompute the capacity metrics after a
+	// given interval of time.  Any errors are logged, but the loop is not broken.
+	StartLoading(ctx context.Context, interval time.Duration)
+
+	// Returns the most recent capacity metrics. Keyed by stringified dimensions.
+	CapacityMetrics() map[string]BotConfig
+}
+
+type CapacityClientImpl struct {
 	tcc   *task_cfg_cache.TaskCfgCache
 	tasks cache.TaskCache
 	repos repograph.Map
@@ -35,8 +48,8 @@ type CapacityClient struct {
 }
 
 // Caller is responsible for periodically updating the arguments.
-func New(tcc *task_cfg_cache.TaskCfgCache, tasks cache.TaskCache, repos repograph.Map) *CapacityClient {
-	return &CapacityClient{tcc: tcc, tasks: tasks, repos: repos}
+func New(tcc *task_cfg_cache.TaskCfgCache, tasks cache.TaskCache, repos repograph.Map) *CapacityClientImpl {
+	return &CapacityClientImpl{tcc: tcc, tasks: tasks, repos: repos}
 }
 
 type taskData struct {
@@ -59,7 +72,7 @@ type BotConfig struct {
 
 // getTaskDurations fetches Tasks from the TaskCache and generates a taskData for each completed
 // Swarming Task, grouped by repo and TaskSpec name.
-func (c *CapacityClient) getTaskDurations() (map[string]map[string][]taskData, error) {
+func (c *CapacityClientImpl) getTaskDurations() (map[string]map[string][]taskData, error) {
 	// Fetch last 72 hours worth of tasks that TaskScheduler created.
 	now := time.Now()
 	before := now.Add(-72 * time.Hour)
@@ -101,7 +114,7 @@ func (c *CapacityClient) getTaskDurations() (map[string]map[string][]taskData, e
 
 // getCQTaskSpecs returns the TaskSpec names of all Jobs on the CQ.
 // TODO(benjaminwagner): return a util.StringSet{}
-func (c *CapacityClient) getCQTaskSpecs() ([]string, error) {
+func (c *CapacityClientImpl) getCQTaskSpecs() ([]string, error) {
 	cqTasks, err := cq.GetSkiaCQTryBots()
 	if err != nil {
 		sklog.Warningf("Could not get Skia CQ bots.  Continuing anyway.  %s", err)
@@ -125,7 +138,7 @@ func botConfigKey(dims []string) string {
 
 // getTasksCfg finds the most recent cached TasksCfg for the main branch of the given repo. Also
 // returns the commit hash where the TasksCfg was found.
-func (c *CapacityClient) getTasksCfg(ctx context.Context, repo string) (*specs.TasksCfg, string, error) {
+func (c *CapacityClientImpl) getTasksCfg(ctx context.Context, repo string) (*specs.TasksCfg, string, error) {
 	repoGraph, ok := c.repos[repo]
 	if !ok {
 		return nil, "", skerr.Fmt("Unknown repo %q", repo)
@@ -160,7 +173,7 @@ func (c *CapacityClient) getTasksCfg(ctx context.Context, repo string) (*specs.T
 // computeBotConfigs groups TaskSpecs by identical dimensions and returns a BotConfig for each
 // dimension set. Arguments are getTaskDurations() and getCQTaskSpecs(). The returned map is keyed
 // by botConfigKey(BotConfig.Dimensions).
-func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[string]map[string][]taskData, cqTasks []string) (map[string]BotConfig, error) {
+func (c *CapacityClientImpl) computeBotConfigs(ctx context.Context, durations map[string]map[string][]taskData, cqTasks []string) (map[string]BotConfig, error) {
 	// botConfigs coalesces all dimension groups together. For example, all tests
 	// that require "device_type:flounder|device_os:N12345" will be grouped together,
 	// letting us determine our actual use and theoretical capacity of that config.
@@ -287,8 +300,8 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 	}
 }
 
-// QueryAll updates the capacity metrics.
-func (c *CapacityClient) QueryAll(ctx context.Context) error {
+// QueryAll implements CapacityClient.
+func (c *CapacityClientImpl) QueryAll(ctx context.Context) error {
 	sklog.Info("Recounting Capacity Stats")
 
 	durations, err := c.getTaskDurations()
@@ -317,9 +330,8 @@ func (c *CapacityClient) QueryAll(ctx context.Context) error {
 	return err
 }
 
-// StartLoading begins an infinite loop to recompute the capacity metrics after a
-// given interval of time.  Any errors are logged, but the loop is not broken.
-func (c *CapacityClient) StartLoading(ctx context.Context, interval time.Duration) {
+// StartLoading implements CapacityClient.
+func (c *CapacityClientImpl) StartLoading(ctx context.Context, interval time.Duration) {
 	go func() {
 		util.RepeatCtx(ctx, interval, func(ctx context.Context) {
 			if err := c.QueryAll(ctx); err != nil {
@@ -329,7 +341,8 @@ func (c *CapacityClient) StartLoading(ctx context.Context, interval time.Duratio
 	}()
 }
 
-func (c *CapacityClient) CapacityMetrics() map[string]BotConfig {
+// CapacityMetrics implements CapacityClient.
+func (c *CapacityClientImpl) CapacityMetrics() map[string]BotConfig {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	return c.lastMeasurements
