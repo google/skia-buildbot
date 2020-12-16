@@ -39,6 +39,30 @@
       },
       "revId": "581986f9f19d4f8fd9a3ffe7259b46bf2d5655e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1b97cd4b_a9ddd5fb",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T15:41:23Z",
+      "side": 1,
+      "message": "Done, made Eric reviewer since it adds status and ts mocks.",
+      "parentUuid": "1832486a_1a21abd8",
+      "range": {
+        "startLine": 204,
+        "startChar": 44,
+        "endLine": 204,
+        "endChar": 59
+      },
+      "revId": "581986f9f19d4f8fd9a3ffe7259b46bf2d5655e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
