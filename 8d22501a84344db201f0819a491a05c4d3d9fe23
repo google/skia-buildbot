@@ -48,6 +48,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3636f411_63ea2391",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d475a23_f5345e9a",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 28
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "787337d5_74479c6b",
@@ -61,6 +85,30 @@
       "writtenOn": "2020-12-16T15:54:28Z",
       "side": 1,
       "message": "Nit: this will produce warnings.  Instead, let\u0027s do something like, \"QueryAll implements CapacityClientInterface.\"  Here and elsewhere.",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 303,
+        "endChar": 31
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea90d1af_2d61c11d",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "787337d5_74479c6b",
       "range": {
         "startLine": 303,
         "startChar": 0,
@@ -94,6 +142,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab6c1ae4_dbb5a113",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dde1b224_f474b4f4",
+      "range": {
+        "startLine": 239,
+        "startChar": 21,
+        "endLine": 239,
+        "endChar": 37
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "695ccbe0_dd38cdbe",
@@ -107,6 +179,30 @@
       "writtenOn": "2020-12-16T16:01:59Z",
       "side": 1,
       "message": "Please never initialize structs w/o using named members. It makes future refactoring much more difficult and potentially error prone.",
+      "range": {
+        "startLine": 248,
+        "startChar": 2,
+        "endLine": 248,
+        "endChar": 8
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a94f09d_53bd0a0e",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "695ccbe0_dd38cdbe",
       "range": {
         "startLine": 248,
         "startChar": 2,
@@ -140,6 +236,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e780bf7e_c0becf21",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "This is a function call (where the struct above use to be).",
+      "parentUuid": "f5881c6b_b247e089",
+      "range": {
+        "startLine": 269,
+        "startChar": 2,
+        "endLine": 269,
+        "endChar": 8
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "24a199d1_6cf4a8f1",
@@ -153,6 +273,30 @@
       "writtenOn": "2020-12-16T16:01:59Z",
       "side": 1,
       "message": "nit: setupServerWithMockCapacityClient",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 10
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "05a189e9_ae340d69",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24a199d1_6cf4a8f1",
       "range": {
         "startLine": 22,
         "startChar": 5,
@@ -186,6 +330,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "96e54ed2_aec62a6b",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3ff2546_c81edd87",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 19
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f3386e49_ce214cb0",
@@ -199,6 +367,30 @@
       "writtenOn": "2020-12-16T16:01:59Z",
       "side": 1,
       "message": "go/unit-test-practices under Naming \"Test names should include the condition being tested and the expected outcome.\"\n\nPerhaps TestGetBotUsage_MultipleDimensionSets_ValidResponse",
+      "range": {
+        "startLine": 215,
+        "startChar": 5,
+        "endLine": 215,
+        "endChar": 20
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ea5938af_2a25d6cb",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3386e49_ce214cb0",
       "range": {
         "startLine": 215,
         "startChar": 5,
@@ -226,6 +418,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7f35469a_f0f740cf",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5349c4d6_97c6873b",
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c0977393_e5e37a06",
@@ -239,6 +449,30 @@
       "writtenOn": "2020-12-16T16:01:59Z",
       "side": 1,
       "message": "nit: bot4 (in realistic data, it is unlikely a single bot/task would run on machines with such varied dimensions\n\nubernit: Let\u0027s be the change we want to see in the (bot) world - \"task1\", \"task2\", etc",
+      "range": {
+        "startLine": 249,
+        "startChar": 26,
+        "endLine": 249,
+        "endChar": 30
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5321a948_f6daae41",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0977393_e5e37a06",
       "range": {
         "startLine": 249,
         "startChar": 26,
@@ -272,6 +506,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fd470af7_c97815e5",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ea41b38_3fbbeb97",
+      "range": {
+        "startLine": 253,
+        "startChar": 5,
+        "endLine": 253,
+        "endChar": 24
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7ded7598_a0b32984",
@@ -295,6 +553,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3da5f744_d48b8ddc",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ded7598_a0b32984",
+      "range": {
+        "startLine": 254,
+        "startChar": 1,
+        "endLine": 254,
+        "endChar": 7
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9af0e6c5_318d0cc3",
@@ -308,6 +590,30 @@
       "writtenOn": "2020-12-16T16:01:59Z",
       "side": 1,
       "message": "You need a newer version of mockery installed locally and on your PATH: https://github.com/google/skia-buildbot#generated-code",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 35
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e771ae1_9aa7b6a9",
+        "filename": "task_scheduler/go/mocks/RemoteDB.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T17:53:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9af0e6c5_318d0cc3",
       "range": {
         "startLine": 1,
         "startChar": 29,
