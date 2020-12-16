@@ -9,7 +9,7 @@ describe('status-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/status-sk.html`);
-    await testBed.page.setViewport({ width: 400, height: 550 });
+    await testBed.page.setViewport({ width: 1600, height: 700 });
   });
 
   it('should render the demo page (smoke test)', async () => {
