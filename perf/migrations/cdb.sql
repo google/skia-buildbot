@@ -235,3 +235,30 @@ WHERE
         '\xfe385b159ff55dca481069805e5ff050',
         '\x277262a9236d571883d47dab102070bc'
     );
+
+-- GetLastNSources
+SELECT SourceFiles.source_file
+FROM
+    TraceValues@primary INNER LOOKUP JOIN  SourceFiles@primary
+    ON TraceValues.source_file_id = SourceFiles.source_file_id
+WHERE
+    TraceValues.trace_id='\xfe385b159ff55dca481069805e5ff050'
+ORDER BY TraceValues.commit_number DESC
+LIMIT 5;
+
+-- GetTraceIDsBySource
+-- Note that this requires the tile_number, which we won't have,
+-- unless GetLastNSources also returns the commit_number.
+SELECT Postings.key_value, Postings.trace_id
+FROM
+    SourceFiles@by_source_file
+    INNER LOOKUP JOIN TraceValues@by_source_file_id
+    ON TraceValues.source_file_id = SourceFiles.source_file_id
+    INNER LOOKUP JOIN Postings@by_trace_id
+    ON TraceValues.trace_id = Postings.trace_id
+WHERE
+    SourceFiles.source_file = 'gs://perf-bucket/2020/02/08/11/testdata.json'
+    AND
+    Postings.tile_number= 0
+ORDER BY
+    Postings.trace_id;
