@@ -257,6 +257,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e1511f38_812d0177",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-16T17:04:59Z",
+      "side": 1,
+      "message": "\u003e I would still like a comment at the top of index.bzl pointing to WORKSPACE since it\u0027s not otherwise obvious of that connection.\n\nI disagree, at some point we have to assume some basic knowledge of Bazel.",
+      "parentUuid": "e4ea2675_e3af5b22",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cc5cbb9b_ecf81fca",
         "filename": "infra-sk/index.bzl",
         "patchSetId": 2
