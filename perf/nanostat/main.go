@@ -136,7 +136,7 @@ func formatRows(config samplestats.Config, rows []samplestats.Row) []string {
 	delete(ps, "name")
 	importantKeys := []string{}
 	for key, values := range ps {
-		// if a key has more than one value than it's important we display it.
+		// If a key has more than one value than it's important we display it.
 		if len(values) > 1 {
 			importantKeys = append(importantKeys, key)
 		}
@@ -144,7 +144,7 @@ func formatRows(config samplestats.Config, rows []samplestats.Row) []string {
 	sort.Strings(importantKeys)
 
 	// The name of the test always goes last.
-	importantKeys = append(importantKeys, "name")
+	importantKeys = append(importantKeys, "test", "name")
 
 	header := "old\tnew\tdelta\tstats\t\t  " + strings.Join(importantKeys, "\t  ")
 
