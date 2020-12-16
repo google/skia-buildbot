@@ -8,7 +8,7 @@ release: build-config
 	./build_envoy_skia_org_release
 
 validate: build-config
-	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/computed.json:/tmp/envoy/computed.json envoyproxy/envoy:v1.16-latest --mode validate --config-path /tmp/envoy/computed.json
+	docker run -ti --entrypoint=/usr/local/bin/envoy -v `pwd`/computed.json:/tmp/envoy/computed.json envoyproxy/envoy:v1.16.1 --mode validate --config-path /tmp/envoy/computed.json
 
 push: release validate
 	pushk envoy-skia-org

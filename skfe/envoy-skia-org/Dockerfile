@@ -1,3 +1,3 @@
-FROM envoyproxy/envoy-alpine:v1.14.1
+FROM envoyproxy/envoy-alpine:v1.16.1
 
 COPY . /
