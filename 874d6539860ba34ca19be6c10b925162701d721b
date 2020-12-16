@@ -281,6 +281,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "14aed0b3_536d4f66",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-16T17:24:51Z",
+      "side": 1,
+      "message": "I\u0027m not asking for a book on Bazel here, just a single comment line referencing WORKSPACE. I could see myself forgetting this link if I don\u0027t touch Bazel for a while - why not leave developers like myself a reminder?",
+      "parentUuid": "e1511f38_812d0177",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cc5cbb9b_ecf81fca",
         "filename": "infra-sk/index.bzl",
         "patchSetId": 2
