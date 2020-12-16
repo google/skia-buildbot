@@ -177,7 +177,7 @@ func formatRows(config samplestats.Config, rows []samplestats.Row) []string {
 	return ret
 }
 
-func loadFileByName(filename string) map[string]parser.Samples {
+func loadFileByName(filename string) parser.SamplesSet {
 	f, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)

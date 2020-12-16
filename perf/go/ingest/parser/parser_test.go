@@ -234,25 +234,27 @@ func TestGetSamplesFromLegacyFormat_GoodData_Success(t *testing.T) {
 
 	res := GetSamplesFromLegacyFormat(b)
 	require.Equal(t, 2, len(res))
-	expected := map[string]Samples{
-		",bench_type=micro,config=8888,name=writepix_pm_bgra_srgb,source_type=bench,test=writepix_pm_bgra_srgb_640_480,": {
+	expected := SamplesSet{
+		",bench_type=micro,config=8888,name=writepix_pm_bgra_srgb,source_type=bench,sub_result=min_ms,test=writepix_pm_bgra_srgb_640_480,": {
 			Params: paramtools.Params{
 				"bench_type":  "micro",
 				"config":      "8888",
 				"name":        "writepix_pm_bgra_srgb",
 				"source_type": "bench",
+				"sub_result":  "min_ms",
 				"test":        "writepix_pm_bgra_srgb_640_480",
 			},
 			Values: []float64{
 				0.1828799247741699, 0.1826989650726318, 0.1827061176300049, 0.1827809810638428, 0.1825799942016602, 0.1826908588409424, 0.1829240322113037, 0.182894229888916, 0.1915080547332764, 0.1832039356231689, 0.1829140186309814, 0.1829030513763428, 0.1829860210418701, 0.182703971862793, 0.1829319000244141, 0.1827821731567383, 0.1828160285949707, 0.1827318668365479, 0.1829230785369873, 0.1828629970550537},
 		},
 
-		",bench_type=micro,config=8888,name=writepix_um_bgra_srgb,source_type=bench,test=writepix_um_bgra_srgb_640_480,": {
+		",bench_type=micro,config=8888,name=writepix_um_bgra_srgb,source_type=bench,sub_result=min_ms,test=writepix_um_bgra_srgb_640_480,": {
 			Params: paramtools.Params{
 				"bench_type":  "micro",
 				"config":      "8888",
 				"name":        "writepix_um_bgra_srgb",
 				"source_type": "bench",
+				"sub_result":  "min_ms",
 				"test":        "writepix_um_bgra_srgb_640_480",
 			},
 			Values: []float64{
@@ -273,4 +275,52 @@ func TestGetSamplesFromLegacyFormat_EmptyData_Success(t *testing.T) {
 
 	res := GetSamplesFromLegacyFormat(b)
 	assert.Empty(t, res)
+}
+
+func TestSamplesSetAdd_EmptySamples_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	a := SamplesSet{}
+	b := SamplesSet{}
+	a.Add(b)
+	require.Empty(t, a)
+}
+
+func TestSamplesSetAdd_NonEmptySamples_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	a := SamplesSet{
+		",config=8888,": Samples{
+			Params: paramtools.Params{"config": "8888"},
+			Values: []float64{1.0, 2.0},
+		},
+		",config=565,": {
+			Params: paramtools.Params{"config": "565"},
+			Values: []float64{},
+		},
+	}
+	b := SamplesSet{
+		",config=8888,": {
+			Params: paramtools.Params{"config": "8888"},
+			Values: []float64{2.0, 3.0},
+		},
+		",config=gles,": {
+			Params: paramtools.Params{"config": "gles"},
+			Values: []float64{4.0},
+		},
+	}
+	a.Add(b)
+	expected := SamplesSet{
+		",config=8888,": {
+			Params: paramtools.Params{"config": "8888"},
+			Values: []float64{1.0, 2.0, 2.0, 3.0},
+		},
+		",config=565,": {
+			Params: paramtools.Params{"config": "565"},
+			Values: []float64{},
+		},
+		",config=gles,": {
+			Params: paramtools.Params{"config": "gles"},
+			Values: []float64{4.0},
+		},
+	}
+	require.Equal(t, expected, a)
 }
