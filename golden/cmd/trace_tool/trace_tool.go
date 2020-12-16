@@ -10,7 +10,6 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/bt"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
@@ -26,6 +25,7 @@ const (
 	gitTableID   = "git-repos2"
 	traceBTTable = "gold-skia"
 	gitRepoURL   = "https://skia.googlesource.com/skia.git"
+	branch       = "master"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	gitilesRepo := gitiles.NewRepo("", nil)
-	vcs, err := bt_vcs.New(ctx, gitStore, git.DefaultBranch, gitilesRepo)
+	vcs, err := bt_vcs.New(ctx, gitStore, branch, gitilesRepo)
 	if err != nil {
 		sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 	}

@@ -14,7 +14,7 @@
 // Structured keys are a serialization of a map[string]string, so duplicate
 // parameter names are not allowed.
 //
-// Structuctured key parameter names and values are restricted to the following
+// Structured key parameter names and values are restricted to the following
 // chars:
 //
 //   [a-zA-Z0-9._-]

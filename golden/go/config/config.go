@@ -33,6 +33,9 @@ type Common struct {
 	// ID of the BigTable table that contains Git metadata.
 	GitBTTable string `json:"git_bt_table"`
 
+	// The primary branch of the git repo to track, e.g. "main".
+	GitRepoBranch string `json:"git_repo_branch"`
+
 	// The URL to the git repo that this instance tracks. Note that Gold doesn't sync this repo
 	// itself, it pulls the data from BigTable, which is put there via gitsync.
 	GitRepoURL string `json:"git_repo_url"`
