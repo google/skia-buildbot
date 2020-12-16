@@ -329,6 +329,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "061ac96b_c2eca09f",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-16T21:45:14Z",
+      "side": 1,
+      "message": "WORKSPACE isn\u0027t something you are going to forget, creating the WORKSPACE file is literally the first thing you do in any Bazel tutorial. https://docs.bazel.build/versions/3.7.0/tutorial/cpp.html#set-up-the-workspace",
+      "parentUuid": "81b2e28e_44466f4a",
+      "range": {
+        "startLine": 8,
+        "startChar": 7,
+        "endLine": 8,
+        "endChar": 51
+      },
+      "revId": "874d6539860ba34ca19be6c10b925162701d721b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "cc5cbb9b_ecf81fca",
         "filename": "infra-sk/index.bzl",
         "patchSetId": 2
