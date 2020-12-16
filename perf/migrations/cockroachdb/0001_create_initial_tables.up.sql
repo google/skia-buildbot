@@ -8,14 +8,16 @@ CREATE TABLE IF NOT EXISTS TraceValues (
 	-- The floating point measurement.
 	source_file_id INT,
 	-- Id of the source filename, from SourceFiles.
-	PRIMARY KEY (trace_id, commit_number)
+	PRIMARY KEY (trace_id, commit_number),
+	INDEX by_source_file_id (source_file_id, trace_id)
 );
 
 -- This table is used to store source filenames. See go/tracestore/sqltracestore.
 CREATE TABLE IF NOT EXISTS SourceFiles (
 	source_file_id INT PRIMARY KEY DEFAULT unique_rowid(),
 	-- The full name of the source file, e.g. gs://bucket/2020/01/02/03/15/foo.json
-	source_file STRING UNIQUE NOT NULL
+	source_file STRING UNIQUE NOT NULL,
+	INDEX by_source_file (source_file, source_file_id)
 );
 
 -- This table stores the ParamSet for each tile.

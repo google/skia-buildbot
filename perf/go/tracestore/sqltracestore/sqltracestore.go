@@ -258,6 +258,8 @@ const (
 	queryTraceIDs
 	convertTraceIDs
 	readTraces
+	getLastNSources
+	getTraceIDsBySource
 )
 
 var templates = map[statement]string{
@@ -495,7 +497,41 @@ var statements = map[statement]string{
         FROM
             Postings
         WHERE
-          tile_number = $1`,
+		  tile_number = $1`,
+	getLastNSources: `
+		SELECT
+			SourceFiles.source_file, TraceValues.commit_number
+		FROM
+			TraceValues@primary
+			INNER LOOKUP JOIN
+				SourceFiles@primary
+			ON
+				TraceValues.source_file_id = SourceFiles.source_file_id
+		WHERE
+    		TraceValues.trace_id=$1
+		ORDER BY
+			TraceValues.commit_number DESC
+		LIMIT
+			$2`,
+	getTraceIDsBySource: `
+		SELECT
+			Postings.key_value, Postings.trace_id
+		FROM
+			SourceFiles@by_source_file
+			INNER LOOKUP JOIN
+				TraceValues@by_source_file_id
+			ON
+				TraceValues.source_file_id = SourceFiles.source_file_id
+			INNER LOOKUP JOIN
+				Postings@by_trace_id
+			ON
+				TraceValues.trace_id = Postings.trace_id
+		WHERE
+			SourceFiles.source_file = $1
+		AND
+			Postings.tile_number= $2
+		ORDER BY
+			Postings.trace_id`,
 }
 
 type timeProvider func() time.Time
@@ -736,6 +772,100 @@ func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.Commit
 		return "", skerr.Wrapf(err, "commitNumber=%d traceName=%q traceID=%q", commitNumber, traceName, traceID)
 	}
 	return filename, nil
+}
+
+// GetLastNSources implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]tracestore.Source, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetLastNSources")
+	defer span.End()
+
+	traceIDAsBytes := traceIDForSQLInBytesFromTraceName(traceID)
+	rows, err := s.db.Query(ctx, statements[getLastNSources], traceIDAsBytes[:], n)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed for traceID=%q and n=%d", traceID, n)
+	}
+
+	ret := []tracestore.Source{}
+	for rows.Next() {
+		var filename string
+		var commitNumber types.CommitNumber
+		if err := rows.Scan(&filename, &commitNumber); err != nil {
+			return nil, skerr.Wrapf(err, "Failed scanning for traceID=%q and n=%d", traceID, n)
+		}
+		ret = append(ret, tracestore.Source{
+			Filename:     filename,
+			CommitNumber: commitNumber,
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return ret, nil
+}
+
+// GetTraceIDsBySource implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetTraceIDsBySource")
+	defer span.End()
+
+	rows, err := s.db.Query(ctx, statements[getTraceIDsBySource], sourceFilename, tileNumber)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed for sourceFilename=%q and tileNumber=%d", sourceFilename, tileNumber)
+	}
+
+	// We queried the Postings table, build up each traceid from all the
+	// key=value pairs returned.
+	var currentTraceIDAsBytes []byte
+	p := paramtools.Params{}
+	ret := []string{}
+	for rows.Next() {
+		var keyValue string
+		var traceIDAsBytes []byte
+		if err := rows.Scan(&keyValue, &traceIDAsBytes); err != nil {
+			return nil, skerr.Wrapf(err, "Failed scanning for sourceFilename=%q and tileNumber=%d", sourceFilename, tileNumber)
+		}
+		// If we hit a new trace_id then we have a complete traceID.
+		if !bytes.Equal(currentTraceIDAsBytes, traceIDAsBytes) {
+			if currentTraceIDAsBytes == nil {
+				// This is the first time going through this loop.
+				currentTraceIDAsBytes = make([]byte, len(traceIDAsBytes))
+			} else {
+				// Since traceIDAsBytes changed we are done building up the
+				// params for the traceID, so convert the params into a string.
+				traceID, err := query.MakeKey(p)
+				if err != nil {
+					return nil, skerr.Wrap(err)
+				}
+				ret = append(ret, traceID)
+			}
+			p = paramtools.Params{}
+			copy(currentTraceIDAsBytes, traceIDAsBytes)
+		}
+
+		// Add to the current Params.
+		parts := strings.SplitN(keyValue, "=", 2)
+		if len(parts) != 2 {
+			sklog.Warningf("Found invalid key=value pair in Postings: %q", keyValue)
+			continue
+		}
+		p[parts[0]] = parts[1]
+
+	}
+	if err := rows.Err(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Make sure to get the last trace id.
+	if currentTraceIDAsBytes != nil {
+		traceID, err := query.MakeKey(p)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		ret = append(ret, traceID)
+	}
+
+	return ret, nil
 }
 
 // OffsetFromCommitNumber implements the tracestore.TraceStore interface.
