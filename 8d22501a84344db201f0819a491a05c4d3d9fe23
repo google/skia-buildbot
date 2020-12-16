@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a8aa0e07_e5147c04",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-16T15:54:28Z",
+      "side": 1,
+      "message": "Minor nit: I slightly prefer CapacityClient for the interface and CapacityClientImpl for the implementation",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 28
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "787337d5_74479c6b",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-16T15:54:28Z",
+      "side": 1,
+      "message": "Nit: this will produce warnings.  Instead, let\u0027s do something like, \"QueryAll implements CapacityClientInterface.\"  Here and elsewhere.",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 303,
+        "endChar": 31
+      },
+      "revId": "8d22501a84344db201f0819a491a05c4d3d9fe23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
