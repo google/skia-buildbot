@@ -1240,7 +1240,8 @@ export class CommitsTableSk extends ElementSk {
     this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
     const previousLoad = this.lastLoaded ? new Date(this.lastLoaded.getTime()) : undefined;
-    this.lastLoaded = new Date();
+    // Date.now to allow mocking of time.
+    this.lastLoaded = new Date(Date.now());
     this.data.update(this.repo, numCommits, previousLoad).finally(() => {
       this.draw();
       const branchesSk = $$('branches-sk', this) as BranchesSk;

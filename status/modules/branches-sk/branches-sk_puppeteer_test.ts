@@ -9,7 +9,7 @@ describe('branches-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/branches-sk.html`);
-    await testBed.page.setViewport({ width: 400, height: 550 });
+    await testBed.page.setViewport({ width: 1200, height: 800 });
   });
 
   it('should render the demo page (smoke test)', async () => {

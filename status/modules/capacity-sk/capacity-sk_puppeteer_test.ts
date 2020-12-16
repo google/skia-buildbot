@@ -1,9 +1,6 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import {
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
-} from '../../../puppeteer-tests/util';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('capacity-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(
@@ -12,7 +9,7 @@ describe('capacity-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/capacity-sk.html`);
-    await testBed.page.setViewport({ width: 400, height: 550 });
+    await testBed.page.setViewport({ width: 800, height: 550 });
   });
 
   it('should render the demo page (smoke test)', async () => {
