@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e67407d5_a1b7b3c8",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T18:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "147da37f_489fb4e6",
+      "range": {
+        "startLine": 333,
+        "startChar": 3,
+        "endLine": 333,
+        "endChar": 11
+      },
+      "revId": "83f4a6aee5fb66d984c21b7b679ff18a421779d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0c348859_aae33ebc",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0f28fd83_50dc86a1",
+        "filename": "status/go/rpc/server_impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T18:05:16Z",
+      "side": 1,
+      "message": "Clearly the newlines didn\u0027t aid in readability if that jumped out at you *now*. haha. Done.",
+      "parentUuid": "0c348859_aae33ebc",
+      "range": {
+        "startLine": 238,
+        "startChar": 247,
+        "endLine": 238,
+        "endChar": 250
+      },
+      "revId": "83f4a6aee5fb66d984c21b7b679ff18a421779d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bdce1067_8a349e60",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-12-16T17:58:26Z",
       "side": 1,
       "message": "ubernit: I like require.NoError, but prefer assert.Equal because if there are multiple assertions wrong (e.g. invalid data), it can sometimes be helpful to see them all at once to help diagnose where the error is. It doesn\u0027t matter here where there\u0027s only one assert.Equal, but \"what if we add more??\"",
+      "range": {
+        "startLine": 254,
+        "startChar": 1,
+        "endLine": 254,
+        "endChar": 8
+      },
+      "revId": "83f4a6aee5fb66d984c21b7b679ff18a421779d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "24cab859_47f67a18",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-16T18:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bdce1067_8a349e60",
       "range": {
         "startLine": 254,
         "startChar": 1,
