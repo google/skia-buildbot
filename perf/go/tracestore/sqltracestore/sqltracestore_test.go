@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -591,4 +592,77 @@ func Test_ExpandConvertTraceIDs_Success(t *testing.T) {
             trace_id
     `
 	assert.Equal(t, expected, b.String())
+}
+
+func TestGetLsatNSources_MoreCommitsMatchThanAreAskedFor_Success(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	sources, err := s.GetLastNSources(ctx, ",arch=x86,config=8888,", 2)
+	require.NoError(t, err)
+	expected := []tracestore.Source{
+		{
+			Filename:     "gs://perf-bucket/2020/02/08/13/testdata.json",
+			CommitNumber: 8,
+		},
+		{
+			Filename:     "gs://perf-bucket/2020/02/08/12/testdata.json",
+			CommitNumber: 2,
+		},
+	}
+	require.Equal(t, expected, sources)
+}
+
+func TestGetLsatNSources_LessCommitsMatchThanAreAskedFor_Success(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	sources, err := s.GetLastNSources(ctx, ",arch=x86,config=8888,", 4)
+	require.NoError(t, err)
+	expected := []tracestore.Source{
+		{
+			Filename:     "gs://perf-bucket/2020/02/08/13/testdata.json",
+			CommitNumber: 8,
+		},
+		{
+			Filename:     "gs://perf-bucket/2020/02/08/12/testdata.json",
+			CommitNumber: 2,
+		},
+		{
+			Filename:     "gs://perf-bucket/2020/02/08/11/testdata.json",
+			CommitNumber: 1,
+		},
+	}
+	require.Equal(t, expected, sources)
+}
+
+func TestGetLsatNSources_NoMatchesForTraceID_ReturnsEmptySlice(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	sources, err := s.GetLastNSources(ctx, ",this=key,does=not,match=anything,", 4)
+	require.NoError(t, err)
+	expected := []tracestore.Source{}
+	require.Equal(t, expected, sources)
+}
+
+func TestGetTraceIDsBySource_SourceInSecondTile_Success(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	secondTile := types.TileNumber(1)
+	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/2020/02/08/13/testdata.json", secondTile)
+	require.NoError(t, err)
+	expected := []string{",arch=x86,config=565,", ",arch=x86,config=8888,"}
+	require.ElementsMatch(t, expected, traceIDs)
+}
+
+func TestGetTraceIDsBySource_LookForSourceThatDoesNotExist_ReturnsEmptySlice(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	secondTile := types.TileNumber(1)
+	traceIDs, err := s.GetTraceIDsBySource(ctx, "gs://perf-bucket/this-file-does-not-exist.json", secondTile)
+	require.NoError(t, err)
+	require.Empty(t, traceIDs)
 }

@@ -12,6 +12,8 @@ import (
 
 	time "time"
 
+	tracestore "go.skia.org/infra/perf/go/tracestore"
+
 	types "go.skia.org/infra/perf/go/types"
 )
 
@@ -32,6 +34,29 @@ func (_m *TraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber) t
 	}
 
 	return r0
+}
+
+// GetLastNSources provides a mock function with given fields: ctx, traceID, n
+func (_m *TraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]tracestore.Source, error) {
+	ret := _m.Called(ctx, traceID, n)
+
+	var r0 []tracestore.Source
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) []tracestore.Source); ok {
+		r0 = rf(ctx, traceID, n)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]tracestore.Source)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, int) error); ok {
+		r1 = rf(ctx, traceID, n)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetLatestTile provides a mock function with given fields: _a0
@@ -92,6 +117,29 @@ func (_m *TraceStore) GetSource(ctx context.Context, commitNumber types.CommitNu
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string) error); ok {
 		r1 = rf(ctx, commitNumber, traceId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTraceIDsBySource provides a mock function with given fields: ctx, sourceFilename, tileNumber
+func (_m *TraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
+	ret := _m.Called(ctx, sourceFilename, tileNumber)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context, string, types.TileNumber) []string); ok {
+		r0 = rf(ctx, sourceFilename, tileNumber)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, types.TileNumber) error); ok {
+		r1 = rf(ctx, sourceFilename, tileNumber)
 	} else {
 		r1 = ret.Error(1)
 	}
