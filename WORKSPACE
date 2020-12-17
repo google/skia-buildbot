@@ -388,20 +388,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_cockroachdb_apd",
-    importpath = "github.com/cockroachdb/apd",
-    sum = "h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=",
-    version = "v1.1.0",
-)
-
-go_repository(
-    name = "com_github_cockroachdb_cockroach_go",
-    importpath = "github.com/cockroachdb/cockroach-go",
-    sum = "h1:eApuUG8W2EtBVwxqLlY2wgoqDYOg3WvIHGvW4fUbbow=",
-    version = "v0.0.0-20190925194419-606b3d062051",
-)
-
-go_repository(
     name = "com_github_codegangsta_negroni",
     importpath = "github.com/codegangsta/negroni",
     sum = "h1:+aYywywx4bnKXWvoWtRfJ91vC59NbEhEY03sZjQhbVY=",
