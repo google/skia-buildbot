@@ -34,6 +34,24 @@
       "parentUuid": "2fb854fb_34e496da",
       "revId": "e23853c3b50757b75152fe0a86374965297b26dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13569ba8_5ef3a911",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 1252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-17T15:38:42Z",
+      "side": 1,
+      "message": "Ah, ok.  Yeah, I think having one single marker will make things simpler.",
+      "parentUuid": "367afa8c_1a6d5c7b",
+      "revId": "e23853c3b50757b75152fe0a86374965297b26dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
