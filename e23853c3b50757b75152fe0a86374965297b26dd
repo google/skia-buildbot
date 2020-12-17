@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2fb854fb_34e496da",
+        "filename": "status/modules/commits-table-sk/commits-table-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 1252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-17T15:18:47Z",
+      "side": 1,
+      "message": "I\u0027m a little confused about what\u0027s going on here.  Why are we setting this.lastLoaded in two places?",
+      "revId": "e23853c3b50757b75152fe0a86374965297b26dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
