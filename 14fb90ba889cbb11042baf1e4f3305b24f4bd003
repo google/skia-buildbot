@@ -22,6 +22,30 @@
       },
       "revId": "14fb90ba889cbb11042baf1e4f3305b24f4bd003",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "12f38f6b_84910312",
+        "filename": "leasing/go/leasing/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-17T15:57:17Z",
+      "side": 1,
+      "message": "Yes, it does not hurt to add all of them. Done.",
+      "parentUuid": "c2cd1fe2_ca3f1703",
+      "range": {
+        "startLine": 51,
+        "startChar": 27,
+        "endLine": 51,
+        "endChar": 36
+      },
+      "revId": "14fb90ba889cbb11042baf1e4f3305b24f4bd003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
