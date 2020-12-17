@@ -16,6 +16,24 @@
       "message": "Is this still needed? seems to work without it?",
       "revId": "808acb1957de121ea9b5249e7fb987808ca37741",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84772dd9_f33fae9c",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-17T15:48:47Z",
+      "side": 0,
+      "message": "I think it\u0027s still needed if you want to reproduce a task which uses isolated input.",
+      "parentUuid": "2c9bb85b_d44eca3f",
+      "revId": "808acb1957de121ea9b5249e7fb987808ca37741",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

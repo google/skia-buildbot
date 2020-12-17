@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c293bc8_113d3512",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-17T15:48:47Z",
+      "side": 1,
+      "message": "Thanks for the fix",
+      "revId": "4865f07f1668da9326cc5c75a5c483cd64624408",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "feb3f537_a5b6ce1b",
+        "filename": "leasing/go/leasing/swarming.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-17T15:48:47Z",
+      "side": 1,
+      "message": "Nit: let\u0027s just do:\n\nif casInput \u003d\u003d nil {\n  return leasingScriptDigest, nil\n}\nreturn client.Merge(ctx, []string{leasingScriptDigest, rbe.DigestToString(casInput.Digest.Hash, casInput.Digest.SizeBytes)})",
+      "range": {
+        "startLine": 246,
+        "startChar": 1,
+        "endLine": 252,
+        "endChar": 34
+      },
+      "revId": "4865f07f1668da9326cc5c75a5c483cd64624408",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
