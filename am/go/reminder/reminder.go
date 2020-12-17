@@ -24,8 +24,6 @@ const (
 	reminderHourUTC  = 4
 	reminderDuration = 24 * time.Hour
 
-	trooperURL = "https://tree-status.skia.org/current-trooper"
-
 	emailTemplate = `
 Hi {{.Owner}},
 <br/><br/>
@@ -109,21 +107,21 @@ func (et emailTicker) remindAlertOwners() error {
 		silences = []silence.Silence{}
 	}
 
-	// Find the current trooper.
-	troopers, err := rotations.FromURL(httputils.NewTimeoutClient(), trooperURL)
+	// Find the current infra gardener.
+	gardeners, err := rotations.FromURL(httputils.NewTimeoutClient(), rotations.InfraGardenerURL)
 	if err != nil {
-		return fmt.Errorf("Could not get current trooper: %s", err)
+		return fmt.Errorf("Could not get current gardener: %s", err)
 	}
-	if len(troopers) != 1 {
-		return fmt.Errorf("Expected 1 entry from %s. Instead got %s", trooperURL, troopers)
+	if len(gardeners) != 1 {
+		return fmt.Errorf("Expected 1 entry from %s. Instead got %s", rotations.InfraGardenerURL, gardeners)
 	}
-	trooper := troopers[0]
+	gardener := gardeners[0]
 
-	// Send reminder emails to alert owners (but not to the trooper).
+	// Send reminder emails to alert owners (but not to the gardener).
 	ownersToAlerts := getOwnersToAlerts(ins, silences)
 	for o, alerts := range ownersToAlerts {
-		if o == trooper {
-			sklog.Infof("Not going to email %s because they are the current trooper", o)
+		if o == gardener {
+			sklog.Infof("Not going to email %s because they are the current gardener", o)
 			continue
 		}
 		sklog.Infof("Going to email %s for these alerts:\n", o)
