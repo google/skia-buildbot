@@ -196,26 +196,35 @@ class Data {
   // Internal state.
   private serverPodId: string = '';
   private client: StatusService = GetStatusService();
+  private _lastLoaded?: Date;
   // Used to detect changes of these values between calls, to know when to load from scratch.
   private repo: string = '';
   private numCommits: number = -1;
 
-  update(repo: string, numCommits: number, lastLoaded?: Date) {
+  get lastLoaded() {
+    return this._lastLoaded;
+  }
+
+  update(repo: string, numCommits: number) {
     const req: GetIncrementalCommitsRequest = {
       n: numCommits,
       pod: this.serverPodId,
       repoPath: repo,
     };
-    if (lastLoaded && repo === this.repo && numCommits === this.numCommits) {
+    if (this.lastLoaded && repo === this.repo && numCommits === this.numCommits) {
       // We incrementally update if this is the same repo and numCommits as the
       // previous call, and we have a starting point.
-      req.from = lastLoaded.toISOString();
+      req.from = this.lastLoaded.toISOString();
     }
     this.repo = repo;
     this.numCommits = numCommits;
+    // Date.now to allow mocking of time. Take time before the server gets the request to make sure
+    // we don't miss commits, but only set it if the request was successful.
+    const reqTime = new Date(Date.now());
     return this.client
       .getIncrementalCommits(req)
       .then((json: GetIncrementalCommitsResponse) => {
+        this._lastLoaded = reqTime;
         if (json.metadata!.startOver) {
           this.clearData();
         }
@@ -1239,9 +1248,8 @@ export class CommitsTableSk extends ElementSk {
     window.clearTimeout(this.refreshHandle);
     this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-    const previousLoad = this.lastLoaded ? new Date(this.lastLoaded.getTime()) : undefined;
-    this.lastLoaded = new Date();
-    this.data.update(this.repo, numCommits, previousLoad).finally(() => {
+    this.data.update(this.repo, numCommits).finally(() => {
+      this.lastLoaded = this.data.lastLoaded;
       this.draw();
       const branchesSk = $$('branches-sk', this) as BranchesSk;
       branchesSk.commits = this.data.commits;
