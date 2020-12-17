@@ -7,7 +7,7 @@ export const treeStatusResp: TreeStatusResp = {
   general_state: 'open',
 };
 
-export const generalRoleResp: RoleResp = { username: 'alice@google.com' };
-export const gpuRoleResp: RoleResp = { username: 'bob@google.com' };
-export const androidRoleResp: RoleResp = { username: 'christy@google.com' };
-export const infraRoleResp: RoleResp = { username: 'dan@google.com' };
+export const generalRoleResp: RoleResp = { emails: ['alice@google.com'] };
+export const gpuRoleResp: RoleResp = { emails: ['bob@google.com'] };
+export const androidRoleResp: RoleResp = { emails: ['christy@google.com'] };
+export const infraRoleResp: RoleResp = { emails: ['dan@google.com'] };

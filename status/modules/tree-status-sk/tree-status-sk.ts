@@ -9,10 +9,10 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { diffDate } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/icon/star-icon-sk';
 import 'elements-sk/icon/gesture-icon-sk';
 import 'elements-sk/icon/android-icon-sk';
@@ -37,12 +37,15 @@ declare global {
 }
 
 const treeStatusUrl = 'https://tree-status.skia.org/';
+const chopsRotationProxyUrl = 'https://chrome-ops-rotation-proxy.appspot.com/current/';
 
-// Response structures from tree-status.skia.org.
-// TODO(westont): Update once tree-status is migrated to generated TS.
+// This response structure comes from chrome-ops-rotation-proxy.appspot.com.
+// We do not have access to the structure to generate TS.
 export interface RoleResp {
-  username?: string;
+  emails: string[];
 }
+// Response structure from tree-status.skia.org.
+// TODO(westont): Update once tree-status is migrated to generated TS
 export interface TreeStatusResp {
   username?: string;
   date?: string;
@@ -55,35 +58,36 @@ export class TreeStatusSk extends ElementSk {
     status: { message: 'Open', general_state: 'open' },
     rotations: [
       {
-        role: 'Sheriff',
-        currentUrl: `${treeStatusUrl}current-sheriff`,
-        docLink: `${treeStatusUrl}sheriff`,
+        role: 'Skia',
+        currentUrl: `${chopsRotationProxyUrl}grotation:skia-gardener`,
+        docLink: 'https://rotations.corp.google.com/rotation/4699606003744768',
         icon: 'star',
         name: '',
       },
       {
-        role: 'Wrangler',
-        currentUrl: `${treeStatusUrl}current-wrangler`,
-        docLink: `${treeStatusUrl}wrangler`,
+        role: 'GPU',
+        currentUrl: `${chopsRotationProxyUrl}grotation:skia-gpu-gardener`,
+        docLink: 'https://rotations.corp.google.com/rotation/6176639586140160',
         icon: 'gesture',
         name: '',
       },
       {
-        role: 'Robocop',
-        currentUrl: `${treeStatusUrl}current-robocop`,
-        docLink: `${treeStatusUrl}robocop`,
+        role: 'Android',
+        currentUrl: `${chopsRotationProxyUrl}grotation:skia-android-gardener`,
+        docLink: 'https://rotations.corp.google.com/rotation/5296436538245120',
         icon: 'android',
         name: '',
       },
       {
-        role: 'Trooper',
-        currentUrl: `${treeStatusUrl}current-trooper`,
-        docLink: `${treeStatusUrl}trooper`,
+        role: 'Infra',
+        currentUrl: `${chopsRotationProxyUrl}grotation:skia-infra-gardener`,
+        docLink: 'https://rotations.corp.google.com/rotation/4617277386260480',
         icon: 'devices-other',
         name: '',
       },
     ],
   };
+
   private static template = (el: TreeStatusSk) => html`
     <div>
       <span>
@@ -93,7 +97,7 @@ export class TreeStatusSk extends ElementSk {
       </span>
       <span class="nowrap">
         [${shortName(el.treeStatus.status.username)}
-        ${el.treeStatus.status.date ? diffDate(el.treeStatus.status.date + 'UTC') : 'eons'} ago]
+        ${el.treeStatus.status.date ? diffDate(`${el.treeStatus.status.date}UTC`) : 'eons'} ago]
       </span>
     </div>
   `;
@@ -109,16 +113,17 @@ export class TreeStatusSk extends ElementSk {
   }
 
   private refresh() {
-    const fetches = (this.treeStatus.rotations.map((role) => {
-      return fetch(role.currentUrl, { method: 'GET' })
-        .then(jsonOrThrow)
-        .then((json: RoleResp) => (role.name = shortName(json.username)))
-        .catch(errorMessage);
-    }) as Array<Promise<any>>).concat(
+    const fetches = (this.treeStatus.rotations.map((role) => fetch(role.currentUrl, { method: 'GET' })
+      .then(jsonOrThrow)
+      .then((json: RoleResp) => {
+        // Skia gardener rotations only have one entry.
+        role.name = shortName(json.emails[0]);
+      })
+      .catch(errorMessage)) as Array<Promise<any>>).concat(
       fetch(`${treeStatusUrl}current`, { method: 'GET' })
         .then(jsonOrThrow)
         .then((json: TreeStatusResp) => (this.treeStatus.status = json))
-        .catch(errorMessage)
+        .catch(errorMessage),
     );
 
     Promise.all(fetches).finally(() => {
@@ -127,7 +132,7 @@ export class TreeStatusSk extends ElementSk {
         new CustomEvent<TreeStatus>('tree-status-update', {
           bubbles: true,
           detail: this.treeStatus,
-        })
+        }),
       );
       window.setTimeout(() => this.refresh(), 60 * 1000);
     });
