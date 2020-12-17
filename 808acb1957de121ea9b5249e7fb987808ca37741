@@ -34,6 +34,24 @@
       "parentUuid": "2c9bb85b_d44eca3f",
       "revId": "808acb1957de121ea9b5249e7fb987808ca37741",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a40138ff_906aea00",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-17T16:11:23Z",
+      "side": 0,
+      "message": "Oh, I thought all tasks were migrated over but looks like not yet. Makes sense to support both anyway.\nChanged logic here a little, if isolated input is not specified then it will add leasing.py to CAS.",
+      "parentUuid": "84772dd9_f33fae9c",
+      "revId": "808acb1957de121ea9b5249e7fb987808ca37741",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
