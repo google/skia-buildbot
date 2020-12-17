@@ -4,16 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-)
 
-const (
-	SKIA_TROOPER_URL = "http://tree-status.skia.org/current-trooper"
+	"go.skia.org/infra/go/rotations"
 )
 
 func GetTrooperEmail(httpClient *http.Client) (string, error) {
-	resp, err := httpClient.Get(SKIA_TROOPER_URL)
+	resp, err := httpClient.Get(rotations.InfraGardenerURL)
 	if err != nil {
-		return "", fmt.Errorf("Error when hitting %s: %s", SKIA_TROOPER_URL, err)
+		return "", fmt.Errorf("Error when hitting %s: %s", rotations.InfraGardenerURL, err)
 	}
 	trooper := struct {
 		Username string
