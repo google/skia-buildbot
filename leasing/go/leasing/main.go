@@ -514,18 +514,9 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, fmt.Sprintf("Error putting task in datastore: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var casDigest string
-	if swarmingProps.CasInputRoot != nil {
-		casDigest, err = AddLeasingArtifactsToCAS(ctx, task.SwarmingPool, swarmingProps.CasInputRoot)
-		if err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Error merging CAS inputs: %s", err), http.StatusInternalServerError)
-		}
-	} else if swarmingProps.InputsRef != nil && swarmingProps.InputsRef.Isolated != "" {
-		casDigest, err = IsolateLeasingArtifacts(ctx, task.SwarmingPool, swarmingProps.InputsRef)
-		if err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Error when getting isolate hash: %v", err), http.StatusInternalServerError)
-			return
-		}
+	casDigest, err := AddLeasingArtifactsToCAS(ctx, task.SwarmingPool, swarmingProps.CasInputRoot)
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Error merging CAS inputs: %s", err), http.StatusInternalServerError)
 	}
 	// Trigger the swarming task.
 	swarmingTaskID, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, casDigest, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)

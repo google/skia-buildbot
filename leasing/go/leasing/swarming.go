@@ -232,21 +232,24 @@ func IsolateLeasingArtifacts(ctx context.Context, pool string, inputsRef *swarmi
 }
 
 // AddLeasingArtifactsToCAS uploads the leasing artifacts and merges them into
-// the given CAS input.
+// the given CAS input if it exists.
 func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *swarming_api.SwarmingRpcsCASReference) (string, error) {
-	baseDigest := rbe.DigestToString(casInput.Digest.Hash, casInput.Digest.SizeBytes)
 	client := *GetCASClient(pool)
 
 	// Upload the leasing artifacts.
 	// TODO(rmistry): After this has been done once, we should be able to just
 	// use the digest as a constant.
-	digest, err := client.Upload(ctx, *isolatesDir, []string{"leasing.py"}, nil)
+	leasingScriptDigest, err := client.Upload(ctx, *isolatesDir, []string{"leasing.py"}, nil)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
+	digests := []string{leasingScriptDigest}
+	if casInput != nil {
+		digests = append(digests, rbe.DigestToString(casInput.Digest.Hash, casInput.Digest.SizeBytes))
+	}
 
 	// Merge the leasing artifacts into the given CAS input.
-	return client.Merge(ctx, []string{baseDigest, digest})
+	return client.Merge(ctx, digests)
 }
 
 // GetSwarmingTask retrieves the given Swarming task.
