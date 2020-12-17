@@ -35,7 +35,7 @@
   "rollerName": "skia-chromium-stable",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://tree-status.skia.org/current-sheriff"
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener"
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
