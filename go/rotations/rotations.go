@@ -14,6 +14,11 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	SkiaGardenerURL  = "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener"
+	InfraGardenerURL = "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener"
+)
+
 // FromURL attempts to load the current sheriffs/troopers from the given URL.
 func FromURL(c *http.Client, url string) ([]string, error) {
 	// Hit the URL to get the email address. Expect JSON or a JS file which
