@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Package gcssamplesloader implements samplesloader.SamplesLoader for Google Cloud Storage.
+=======
+// Package gcssamplesloader implements fileloader.FileLoader for Google Cloud Storage.
+>>>>>>> 9bddedc3a (git squash commit for perf-tool-trybot-get-pop.)
 package gcssamplesloader
 
 import (
