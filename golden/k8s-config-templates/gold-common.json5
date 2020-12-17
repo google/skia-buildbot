@@ -1,8 +1,8 @@
 {
-    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2020-11-05T19_17_03Z-lovisolo-010f3bb-clean",
-    "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2020-11-20T15_40_30Z-kjlubick-1bc1809-clean",
-    "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2020-11-20T15_36_21Z-kjlubick-1bc1809-clean",
-    "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2020-11-20T15_41_51Z-kjlubick-1bc1809-clean",
+    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2020-12-17T13_11_01Z-kjlubick-c49f6be-clean",
+    "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2020-12-17T13_10_11Z-kjlubick-c49f6be-clean",
+    "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2020-12-17T13_09_03Z-kjlubick-c49f6be-clean",
+    "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2020-12-17T13_08_00Z-kjlubick-c49f6be-clean",
 
     // Services for testing goldpushk.
     "HEALTHY_SERVER_IMAGE": "gcr.io/skia-public/goldpushk-healthy-server:2019-10-16T18_39_09Z-lovisolo-9b77357-clean",
