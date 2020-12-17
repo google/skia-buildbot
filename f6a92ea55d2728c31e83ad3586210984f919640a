@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0adc60e9_ea96c190",
+        "filename": "perf/go/trybot/samplesloader/gcssamplesloader/gcssamplesloader.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-17T00:20:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f032b71b_d8911825",
+      "range": {
+        "startLine": 37,
+        "startChar": 48,
+        "endLine": 37,
+        "endChar": 56
+      },
+      "revId": "f6a92ea55d2728c31e83ad3586210984f919640a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "86943a47_60378558",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "57cc5a19_9e68e571",
+        "filename": "perf/go/trybot/samplesloader/gcssamplesloader/gcssamplesloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-17T00:20:49Z",
+      "side": 1,
+      "message": "Ah, that\u0027s because of leftover tabs, converted all spacing to spaces.",
+      "parentUuid": "86943a47_60378558",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 45,
+        "endChar": 3
+      },
+      "revId": "f6a92ea55d2728c31e83ad3586210984f919640a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dc284b9f_55ed97b8",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-12-16T23:36:51Z",
       "side": 1,
       "message": "nit: typo",
+      "range": {
+        "startLine": 94,
+        "startChar": 90,
+        "endLine": 94,
+        "endChar": 99
+      },
+      "revId": "f6a92ea55d2728c31e83ad3586210984f919640a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "36ce1a86_50ad84f5",
+        "filename": "perf/go/trybot/samplesloader/gcssamplesloader/gcssamplesloader_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-17T00:20:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dc284b9f_55ed97b8",
       "range": {
         "startLine": 94,
         "startChar": 90,
