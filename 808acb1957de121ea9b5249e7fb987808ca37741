@@ -52,6 +52,24 @@
       "parentUuid": "84772dd9_f33fae9c",
       "revId": "808acb1957de121ea9b5249e7fb987808ca37741",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a1c55c11_8ea1657d",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-12-17T16:18:06Z",
+      "side": 0,
+      "message": "SGTM",
+      "parentUuid": "a40138ff_906aea00",
+      "revId": "808acb1957de121ea9b5249e7fb987808ca37741",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
