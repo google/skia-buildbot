@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/rotations"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -40,14 +41,14 @@ func MailInit(emailClientId, emailClientSecret, tokenFile string) error {
 func getRecipients(taskOwner string) []string {
 	// Figure out the list of recipients.
 	recipients := []string{taskOwner}
-	trooper, err := GetTrooperEmail(httpClient)
+	gardeners, err := rotations.FromURL(httpClient, rotations.InfraGardenerURL)
 	if err != nil {
-		sklog.Errorf("Could not get trooper email: %s", err)
+		sklog.Errorf("Could not get gardener email: %s", err)
 		return recipients
 	}
 	// Make sure rmistry@ is included on all emails for now.
 	recipients = append(recipients, "rmistry@google.com")
-	return append(recipients, trooper)
+	return append(recipients, gardeners[0])
 }
 
 // SendStartEmail sends an email notifying user that the leasing task has started.
