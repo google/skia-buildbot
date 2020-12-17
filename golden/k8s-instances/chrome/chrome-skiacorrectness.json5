@@ -4,7 +4,7 @@
     "chrome-gold-internal@chops-service-accounts.iam.gserviceaccount.com",
     "chrome-gold@chops-service-accounts.iam.gserviceaccount.com",
   ],
-  cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
+  cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchsetOrder}}.\n\
 Please triage them using one of the following links before submitting:\n\
 \n\
   - {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}} if you are working on an internal repo or otherwise expect some test results to be non-public.\n\
