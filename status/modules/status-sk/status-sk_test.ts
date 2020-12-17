@@ -1,12 +1,12 @@
 import './index';
 import { expect } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
+import fetchMock from 'fetch-mock';
 import { StatusSk } from './status-sk';
 
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { AlertsStatus } from '../../../perf/modules/json/index';
 import { incrementalResponse0, SetupMocks } from '../rpc-mock';
-import fetchMock from 'fetch-mock';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
 import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
@@ -65,10 +65,10 @@ describe('status-sk', () => {
       },
     });
     fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
-    fetchMock.getOnce('https://tree-status.skia.org/current-sheriff', generalRoleResp);
-    fetchMock.getOnce('https://tree-status.skia.org/current-wrangler', gpuRoleResp);
-    fetchMock.getOnce('https://tree-status.skia.org/current-robocop', androidRoleResp);
-    fetchMock.getOnce('https://tree-status.skia.org/current-trooper', infraRoleResp);
+    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
+    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
+    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
+    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
     Date.now = () => 1600883976659;
     SetupMocks().expectGetIncrementalCommits(incrementalResponse0);
     const ep = eventPromise('end-task');

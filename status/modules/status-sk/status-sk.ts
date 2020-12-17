@@ -150,7 +150,7 @@ export class StatusSk extends ElementSk {
               ${el.rotationsOpen
                 ? html`<expand-less-icon-sk></expand-less-icon-sk>`
                 : html`<expand-more-icon-sk></expand-more-icon-sk>`}
-              Rotations
+              Gardeners
             </button>
             <collapse-sk>
               <rotations-sk></rotations-sk>

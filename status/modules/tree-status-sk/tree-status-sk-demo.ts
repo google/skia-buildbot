@@ -1,5 +1,6 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
+import fetchMock from 'fetch-mock';
 import {
   androidRoleResp,
   generalRoleResp,
@@ -7,13 +8,12 @@ import {
   infraRoleResp,
   treeStatusResp,
 } from './test_data';
-import fetchMock from 'fetch-mock';
 
 fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-sheriff', generalRoleResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-wrangler', gpuRoleResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-robocop', androidRoleResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-trooper', infraRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
 Date.now = () => 1600883976659;
 
 const el = document.createElement('tree-status-sk');

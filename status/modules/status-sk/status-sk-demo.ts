@@ -61,10 +61,10 @@ fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientC
   },
 });
 fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-sheriff', generalRoleResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-wrangler', gpuRoleResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-robocop', androidRoleResp);
-fetchMock.getOnce('https://tree-status.skia.org/current-trooper', infraRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
+fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);
 (document.querySelector('#AllFilter') as HTMLElement).click();
