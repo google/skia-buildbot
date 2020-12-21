@@ -4,59 +4,37 @@
   "childDisplayName": "SPIRV-Tools",
   "commitMsg": {
     "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqExtraTrybots": [
-      "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
-      "luci.chromium.try:android_angle_vk32_rel_ng",
-      "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
-      "luci.chromium.try:android_angle_vk64_rel_ng",
-      "luci.chromium.try:linux_angle_deqp_rel_ng",
-      "luci.chromium.try:linux-angle-rel",
-      "luci.chromium.try:win-angle-rel-32",
-      "luci.chromium.try:win-angle-rel-64",
-      "luci.chromium.try:win-angle-deqp-rel-32",
-      "luci.chromium.try:win-angle-deqp-rel-64"
-    ],
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true
+    "includeTbrLine": true,
   },
   "contacts": [
-    "dsinclair@chromium.org",
-    "geofflang@chromium.org",
-    "jmadill@chromium.org",
-    "syoussefi@chromium.org",
-    "ynovikov@chromium.org"
+    "radial-bots@google.com",
+    "angle-team@google.com",
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
+    "project": "vulkan-deps",
+    "config": "chromium-no-cq"
   },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentDisplayName": "Chromium",
+  "parentDisplayName": "vulkan-deps",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "spirv-tools-chromium-autoroll",
+  "rollerName": "spirv-tools-vulkan-deps-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "radial-bots+chrome-roll@google.com",
-    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:angle-wrangler",
-    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
-  ],
-  "sheriffBackup": [
-    "cwallez@google.com",
-    "kainino@google.com",
-    "enga@google.com"
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "src/third_party/SPIRV-Tools/src",
+    "childPath": "spirv-tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/vulkan-deps.git"
   },
   "kubernetes": {
     "cpu": "1",
@@ -65,8 +43,7 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "6h",
-  "timeWindow": "M-F 08:00-09:00",
+  "maxRollFrequency": "0m",
   "transitiveDeps": [
     {
       "child": {
