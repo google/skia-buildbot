@@ -34,16 +34,17 @@
     });
   }
 
-  function setTrooperSheriffRobocopWrangler() {
-    var urls = ['http://tree-status.skia.org/current-trooper',
-                'http://tree-status.skia.org/current-sheriff',
-                'http://tree-status.skia.org/current-robocop',
-                'http://tree-status.skia.org/current-wrangler'];
+  function setRotations() {
+    var urls = ['https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
+                'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
+                'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener',
+                'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener'];
     urls.forEach(function(url) {
       sk.get(url).then(function(resp) {
-        var tokens = url.split('/');
+        var tokens = url.split(':');
         var idName = tokens[tokens.length - 1];
-        var username = JSON.parse(resp).username.split('@')[0];
+        // Skia rotations have a single primary.
+        var username = JSON.parse(resp).emails[0].split('@')[0];
         var usernameLink = linkify(username, 'http://who/' + username);
         document.getElementById(idName).innerHTML = usernameLink;
       }).catch(function(err) {
@@ -239,7 +240,7 @@
 
   function main() {
     setTreeStatus();
-    setTrooperSheriffRobocopWrangler();
+    setRotations();
     setPerfAlerts();
     setGoldAlerts();
     addGerritChanges();
