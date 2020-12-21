@@ -212,6 +212,26 @@ Migrate the database to the latest version of the schema.
 
 **--local**: If true then use gcloud credentials.
 
+## trybot
+
+
+
+### reference
+
+Generates a reference file to be used by nanostat for the given trybot file.
+
+**--config_filename**="": Load configuration from `FILE`
+
+**--connection_string**="": Override the connection string in the config file.
+
+**--filename**="": The full URL of a nanobench trybot results files, e.g.: 'gs://skia-perf/...foo.json'
+
+**--local**: If true then use gcloud credentials.
+
+**--num**="": The number of ingestion files to load. (default: 5)
+
+**--out**="": The output filename.
+
 ## markdown
 
 Generates markdown help for perf-tool.

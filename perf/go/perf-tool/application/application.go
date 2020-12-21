@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -25,11 +27,14 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/trybot/samplesloader/gcssamplesloader"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
 )
@@ -49,6 +54,7 @@ type Application interface {
 	TracesList(store tracestore.TraceStore, queryString string, tileNumber types.TileNumber) error
 	TracesExport(store tracestore.TraceStore, queryString string, begin, end types.CommitNumber, outputFile string) error
 	IngestForceReingest(local bool, instanceConfig *config.InstanceConfig, start, stop string, dryrun bool) error
+	TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error
 }
 
 // app implements Application.
@@ -725,6 +731,86 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 		}
 	}
 	return nil
+}
+
+// TrybotReference implements the Application interface.
+func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error {
+	ctx := context.Background()
+	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly, pubsub.ScopePubSub)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
+	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	ingestParser := parser.New(instanceConfig)
+	u, err := url.Parse(trybotFilename)
+	if err != nil {
+		return skerr.Wrapf(err, "Trybot filename must be a full GCS url, e.g. gs://...")
+	}
+	gcsClient := gcsclient.New(storageClient, u.Host)
+	fileLoader := gcssamplesloader.New(gcsClient, ingestParser)
+
+	// Load the given file trybot file.
+	trybotSampleSet, err := fileLoader.Load(ctx, trybotFilename)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to load file.")
+	}
+
+	// Get a slice of all the traceIDs in the file.
+	traceIDs := make([]string, 0, len(trybotSampleSet))
+	for traceID := range trybotSampleSet {
+		traceIDs = append(traceIDs, traceID)
+	}
+
+	if len(traceIDs) == 0 {
+		return skerr.Fmt("No samples found in file: %q", trybotFilename)
+	}
+
+	// Sort to make debugging easier.
+	sort.Strings(traceIDs)
+
+	// Find that last N ingested files that correspond to the trybot file.
+	lastNSources, err := store.GetLastNSources(ctx, traceIDs[0], numCommits)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to load sources.")
+	}
+
+	// Load each of those source files and add to a common SampleSet.
+	sampleSet := parser.SamplesSet{}
+	for _, sourceAndCommit := range lastNSources {
+		ss, err := fileLoader.Load(ctx, sourceAndCommit.Filename)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		sampleSet.Add(ss)
+	}
+
+	// Create a synthetic nanobench file for the output.
+	b := format.BenchData{
+		Results: map[string]format.BenchResults{},
+	}
+	for _, samples := range sampleSet {
+		testName := samples.Params["test"]
+		configName := samples.Params["config"]
+		testResults, ok := b.Results[testName]
+		if !ok {
+			testResults = format.BenchResults{}
+			b.Results[testName] = testResults
+		}
+		testResults[configName] = map[string]interface{}{
+			"samples": samples.Values,
+			"options": samples.Params,
+		}
+	}
+
+	// Write the output file.
+	return util.WithWriteFile(outputFilename, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(b)
+	})
 }
 
 // Confirm app implements App.
