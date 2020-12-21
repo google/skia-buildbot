@@ -197,3 +197,17 @@ func (_m *Application) TracesList(store tracestore.TraceStore, queryString strin
 
 	return r0
 }
+
+// TrybotReference provides a mock function with given fields: local, store, instanceConfig, trybotFilename, outputFilename, numCommits
+func (_m *Application) TrybotReference(local bool, store tracestore.TraceStore, instanceConfig *config.InstanceConfig, trybotFilename string, outputFilename string, numCommits int) error {
+	ret := _m.Called(local, store, instanceConfig, trybotFilename, outputFilename, numCommits)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(bool, tracestore.TraceStore, *config.InstanceConfig, string, string, int) error); ok {
+		r0 = rf(local, store, instanceConfig, trybotFilename, outputFilename, numCommits)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
