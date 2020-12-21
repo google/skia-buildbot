@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "27742c37_5c13a019",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Arrays are a bit awkward when dealing with the pgx driver. We really only want to deal with arrays in places where we need them (e.g. maps) to avoid copying the contents of the array everywhere.",
+      "parentUuid": "a5595d7e_69e7547a",
+      "range": {
+        "startLine": 15,
+        "startChar": 13,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6b5a45e2_755790b1",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Nit: DigestBytes.\n\nRationale: This term is becoming a bit overloaded within Gold; it\u0027s not obvious to the reader what the difference between types.Digest and schema.Digest is without looking up their definitions.",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b62f66b6_5ceedfaf",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b5a45e2_755790b1",
       "range": {
         "startLine": 18,
         "startChar": 5,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2ae176c3_237663bd",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4c53892_76d2c6d3",
+      "range": {
+        "startLine": 25,
+        "startChar": 5,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "335d9d4e_a07334f5",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Nit: NullBool, or NBNull (where NB stands for NullableBool).\n\nRationale: Current name monopolizes the concept of unset values; in the future we might want to use nullable columns of types other than boolean.",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e8c3ae87_ec5fbf3a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "335d9d4e_a07334f5",
       "range": {
         "startLine": 28,
         "startChar": 1,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4be8f1af_bc86c01c",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39bb499b_037c3f95",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a8b9f667_35968382",
@@ -146,6 +266,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Nit: databuilder.SQLDataBuilder",
+      "range": {
+        "startLine": 34,
+        "startChar": 39,
+        "endLine": 34,
+        "endChar": 53
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d3d0b18f_44108dfa",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8b9f667_35968382",
       "range": {
         "startLine": 34,
         "startChar": 39,
@@ -181,6 +325,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f990bf35_91826fbe",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "TraceValue is what the analog in Perf is called. I\u0027d like to keep those somewhat similar if possible to help knowledge transfer between the two systems.",
+      "parentUuid": "035150bd_ce98cd4f",
+      "range": {
+        "startLine": 45,
+        "startChar": 5,
+        "endLine": 45,
+        "endChar": 18
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "1fc587d4_9ca98936",
         "filename": "golden/go/sql/schema/types.go",
         "patchSetId": 3
@@ -192,6 +360,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Could this be a computed column based on the TraceID column? See the geo-partitioning example here: https://www.cockroachlabs.com/docs/v20.2/computed-columns#create-a-table-with-geo-partitions-and-a-computed-column.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 30
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1613981d_339734e2",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Maybe? I wasn\u0027t able to get MOD to work in the computed column, but it could have simply been a typo.",
+      "parentUuid": "1fc587d4_9ca98936",
       "range": {
         "startLine": 47,
         "startChar": 0,
@@ -225,6 +417,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0f3aa72c_a3d5799f",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "I do not want to incur the (measurable) overhead of checking these foreign key values on ingestion (which is already slower than I would prefer). This is especially noticeable as the number of traces exceeds 1 million.",
+      "parentUuid": "56be39da_6c03b7df",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 39
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "05acff4a_6782c164",
@@ -248,6 +464,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3cae1a10_a3fbb8cd",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "It is redundant to label something in a composite primary key as non-null (for CockroachDB at least).",
+      "parentUuid": "05acff4a_6782c164",
+      "range": {
+        "startLine": 53,
+        "startChar": 35,
+        "endLine": 53,
+        "endChar": 40
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3c0fbcc9_3172bab3",
@@ -261,6 +501,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Altering as in \"ALTER TABLE\"? Or as in updating the contents of this particular column for all TraceValues?",
+      "range": {
+        "startLine": 58,
+        "startChar": 60,
+        "endLine": 58,
+        "endChar": 68
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0bb5ce3c_5a61b91a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "The latter. Docs updated.",
+      "parentUuid": "3c0fbcc9_3172bab3",
       "range": {
         "startLine": 58,
         "startChar": 60,
@@ -296,6 +560,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "da5daf52_dda870c6",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "I think that discussion/documentation is better located in the design doc/architectural doc due to the fact that the decision affects many tables.",
+      "parentUuid": "61b41b15_c6e546ea",
+      "range": {
+        "startLine": 65,
+        "startChar": 20,
+        "endLine": 65,
+        "endChar": 81
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f0c6bffd_097b2fad",
         "filename": "golden/go/sql/schema/types.go",
         "patchSetId": 3
@@ -307,6 +595,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Consider declaring a type PrimaryKey struct{} to make any such empty structs more self documenting. Indexes could probably be specified similarly with an Index type.\n\nAs an additional benefit, the reflection code that generates the schema from these XXXRow structs can use these types as an extra validation check (e.g. \"if the type of a field is PrimaryKey, then its \u0027sql\u0027 tag must begin with \u0027PRIMARY KEY\u0027\").",
+      "range": {
+        "startLine": 71,
+        "startChar": 12,
+        "endLine": 71,
+        "endChar": 20
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e12eb896_5c813700",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "This is still in flux. When I get around to generating the SQL, I\u0027ll keep the type in mind as I make any necessary changes (especially involving indexes). Notice it\u0027s unexported, so I don\u0027t think a named type is really necessary.",
+      "parentUuid": "f0c6bffd_097b2fad",
       "range": {
         "startLine": 71,
         "startChar": 12,
@@ -330,6 +642,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Will this column hold pure email addresses, or could there be rows with \"git log\"-style author lines such as \"Foo Bar \u003cfoobar@example.com\u003e\"?",
+      "range": {
+        "startLine": 81,
+        "startChar": 18,
+        "endLine": 81,
+        "endChar": 31
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "037799e6_c14b8aa9",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Just the email address (as it is with the current system).",
+      "parentUuid": "73d286f9_44b154d0",
       "range": {
         "startLine": 81,
         "startChar": 18,
@@ -365,6 +701,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "5c4b1b35_373e9daa",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "When looking for commits that have data (it\u0027s not just a one-off commit search):\nSELECT DISTINCT commit_id from TraceValues;",
+      "parentUuid": "74bed635_a9dedffb",
+      "range": {
+        "startLine": 87,
+        "startChar": 11,
+        "endLine": 87,
+        "endChar": 43
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "509398fa_6cf9c289",
         "filename": "golden/go/sql/schema/types.go",
         "patchSetId": 3
@@ -376,6 +736,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Sounds like a perfect candidate for a computed column.\n\nhttps://www.cockroachlabs.com/docs/v20.2/computed-columns#create-a-table-with-a-jsonb-column-and-a-computed-column",
+      "range": {
+        "startLine": 95,
+        "startChar": 63,
+        "endLine": 96,
+        "endChar": 23
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "89915da6_6fb84c33",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "Excellent!",
+      "parentUuid": "509398fa_6cf9c289",
       "range": {
         "startLine": 95,
         "startChar": 63,
@@ -399,6 +783,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "Declare it as a foreign key?",
+      "range": {
+        "startLine": 99,
+        "startChar": 41,
+        "endLine": 99,
+        "endChar": 62
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "beda5913_9fb151f4",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "As above, I don\u0027t want to actually apply the foreign key insert-time check.",
+      "parentUuid": "c135bf86_f87958ed",
       "range": {
         "startLine": 99,
         "startChar": 41,
@@ -434,6 +842,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "dcd450cf_ec2872bd",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "When we ingest the data and we see a trace for the first time, we don\u0027t want to incur the cost (and potential race condition) of loading all ignore rules and computing the ignore state right there. As such, we leave this field NULL until a process that can update this entire column safely runs.",
+      "parentUuid": "bd517e23_62e0053b",
+      "range": {
+        "startLine": 109,
+        "startChar": 10,
+        "endLine": 109,
+        "endChar": 22
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9527f303_00ce741a",
         "filename": "golden/go/sql/schema/types.go",
         "patchSetId": 3
@@ -445,6 +877,30 @@
       "writtenOn": "2020-12-21T18:19:51Z",
       "side": 1,
       "message": "This can probably be computed from the SerializedJSON column.\n\nI believe computed columns can be used as primary keys: https://www.cockroachlabs.com/docs/v20.2/computed-columns#considerations.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 60
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9e7c3ff_72b0fe73",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:49:58Z",
+      "side": 1,
+      "message": "No. I don\u0027t want to hardcode the grouping in the SQL schema. I believe that will make it difficult to change later and difficult to have it be different for individual corpora or projects.",
+      "parentUuid": "9527f303_00ce741a",
       "range": {
         "startLine": 118,
         "startChar": 0,
