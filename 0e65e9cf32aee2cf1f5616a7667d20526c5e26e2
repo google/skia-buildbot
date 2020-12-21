@@ -1,0 +1,458 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9bc56491_93a3b124",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Thanks! A few questions, and some comments on foreign keys, indexes and computed columns. The rest are nits/bikeshed and can be mostly ignored.",
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a5595d7e_69e7547a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Nit: MD5Hash. Same below.",
+      "range": {
+        "startLine": 15,
+        "startChar": 13,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b5a45e2_755790b1",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Nit: DigestBytes.\n\nRationale: This term is becoming a bit overloaded within Gold; it\u0027s not obvious to the reader what the difference between types.Digest and schema.Digest is without looking up their definitions.",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 11
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c4c53892_76d2c6d3",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Nit: NullableBool. Rationale: immediately obvious.",
+      "range": {
+        "startLine": 25,
+        "startChar": 5,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "335d9d4e_a07334f5",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Nit: NullBool, or NBNull (where NB stands for NullableBool).\n\nRationale: Current name monopolizes the concept of unset values; in the future we might want to use nullable columns of types other than boolean.",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "39bb499b_037c3f95",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "NBFalse, NBTrue (if you accept the above suggestion).",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a8b9f667_35968382",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Nit: databuilder.SQLDataBuilder",
+      "range": {
+        "startLine": 34,
+        "startChar": 39,
+        "endLine": 34,
+        "endChar": 53
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "035150bd_ce98cd4f",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Bikeshed: TraceDataPoint might be a bit more precise, and closer to our visual intuition about traces (i.e. a trace of dots, or points in time when we\u0027ve ingested data).",
+      "range": {
+        "startLine": 45,
+        "startChar": 5,
+        "endLine": 45,
+        "endChar": 18
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1fc587d4_9ca98936",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Could this be a computed column based on the TraceID column? See the geo-partitioning example here: https://www.cockroachlabs.com/docs/v20.2/computed-columns#create-a-table-with-geo-partitions-and-a-computed-column.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 30
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "56be39da_6c03b7df",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Should this and the other columns ending with \"ID\" be declared as foreign keys?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 39
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "05acff4a_6782c164",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "I suspect we want to declare all these columns as non null.",
+      "range": {
+        "startLine": 53,
+        "startChar": 35,
+        "endLine": 53,
+        "endChar": 40
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c0fbcc9_3172bab3",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Altering as in \"ALTER TABLE\"? Or as in updating the contents of this particular column for all TraceValues?",
+      "range": {
+        "startLine": 58,
+        "startChar": 60,
+        "endLine": 58,
+        "endChar": 68
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "61b41b15_c6e546ea",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "I\u0027d recommend adding a struct-level comment with the rationale (space efficiency, IIUC) as to why we store hashes for everything as opposed to the actual values, which in this case would be the file path on GCS.",
+      "range": {
+        "startLine": 65,
+        "startChar": 20,
+        "endLine": 65,
+        "endChar": 81
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f0c6bffd_097b2fad",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Consider declaring a type PrimaryKey struct{} to make any such empty structs more self documenting. Indexes could probably be specified similarly with an Index type.\n\nAs an additional benefit, the reflection code that generates the schema from these XXXRow structs can use these types as an extra validation check (e.g. \"if the type of a field is PrimaryKey, then its \u0027sql\u0027 tag must begin with \u0027PRIMARY KEY\u0027\").",
+      "range": {
+        "startLine": 71,
+        "startChar": 12,
+        "endLine": 71,
+        "endChar": 20
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73d286f9_44b154d0",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Will this column hold pure email addresses, or could there be rows with \"git log\"-style author lines such as \"Foo Bar \u003cfoobar@example.com\u003e\"?",
+      "range": {
+        "startLine": 81,
+        "startChar": 18,
+        "endLine": 81,
+        "endChar": 31
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "74bed635_a9dedffb",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand the DISTINCT part. I would have thought the query to determine whether a certain commit has data would be something like \"SELECT COUNT(1) FROM TraceValues WHERE CommitID \u003d XXX\", and if the result is greater than zero, then the commit does have data.\n\nMaybe include (an abbreviated version of) the full query that was found to be slow in practice?",
+      "range": {
+        "startLine": 87,
+        "startChar": 11,
+        "endLine": 87,
+        "endChar": 43
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "509398fa_6cf9c289",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Sounds like a perfect candidate for a computed column.\n\nhttps://www.cockroachlabs.com/docs/v20.2/computed-columns#create-a-table-with-a-jsonb-column-and-a-computed-column",
+      "range": {
+        "startLine": 95,
+        "startChar": 63,
+        "endLine": 96,
+        "endChar": 23
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c135bf86_f87958ed",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "Declare it as a foreign key?",
+      "range": {
+        "startLine": 99,
+        "startChar": 41,
+        "endLine": 99,
+        "endChar": 62
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd517e23_62e0053b",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "I\u0027m not clear as to why we need to distinguish between \"we haven\u0027t computed whether this trace matches any ignore rule\" and \"this trace does not match any ignore rule\".\n\nWhat happens when a trace matches exactly one ignore rule, and the ignore rule is deleted? Is matches_any_ignore_rule set to false, or is it set to null?",
+      "range": {
+        "startLine": 109,
+        "startChar": 10,
+        "endLine": 109,
+        "endChar": 22
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9527f303_00ce741a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:19:51Z",
+      "side": 1,
+      "message": "This can probably be computed from the SerializedJSON column.\n\nI believe computed columns can be used as primary keys: https://www.cockroachlabs.com/docs/v20.2/computed-columns#considerations.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 60
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
