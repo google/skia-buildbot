@@ -1,12 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "timer",
     srcs = ["timer.go"],
     importpath = "go.skia.org/infra/go/timer",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/metrics2:go_default_library",
-        "//go/sklog:go_default_library",
+        "//go/metrics2",
+        "//go/sklog",
     ],
 )

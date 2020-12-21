@@ -1,12 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "auditlog",
     srcs = ["auditlog.go"],
     importpath = "go.skia.org/infra/go/auditlog",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/login:go_default_library",
-        "//go/sklog:go_default_library",
+        "//go/login",
+        "//go/sklog",
     ],
 )
