@@ -69,16 +69,19 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		IngestedFrom([]string{"windows_file1", "windows_file2", "windows_file3", ""},
 			[]string{"2020-12-11T14:15:00Z", "2020-12-11T15:16:00Z", "2020-12-11T16:17:00Z", ""})
 
-	// TODO(kjlubick) add support for expectations and diff metrics.
-	//b.TriageEvent("user_one", "2020-12-12T12:12:12Z").
-	//	ExpectationsForGrouping(map[string]string{
-	//		types.CorpusField:     "corpus_one",
-	//		types.PrimaryKeyField: "test_one"}).
-	//	Positive(digestA).
-	//	Untriaged(digestB).
-	//	Negative()
-	//
-	//b.ComputeDiffMetricsFromImages("path/to/testdata")
+	b.TriageEvent("user_one", "2020-12-12T12:12:12Z").
+		ExpectationsForGrouping(map[string]string{
+			types.CorpusField:     "corpus_one",
+			types.PrimaryKeyField: "test_one"}).
+		Positive(digestA)
+	b.TriageEvent("user_two", "2020-12-13T13:13:13Z").
+		ExpectationsForGrouping(map[string]string{
+			types.CorpusField:     "corpus_one",
+			types.PrimaryKeyField: "test_two"}).
+		Positive(digestD).
+		Negative(digestC)
+	// TODO(kjlubick) add support for diff metrics.
+	// b.ComputeDiffMetricsFromImages("path/to/testdata")
 
 	tables := b.GenerateStructs()
 	assert.Equal(t, []schema.OptionsRow{{
@@ -246,6 +249,62 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		OptionsID:    pngOptionsID,
 		SourceFileID: h("windows_file3"),
 	}}, tables.TraceValues)
+	require.Len(t, tables.ExpectationRecords, 2)
+	recordIDOne := tables.ExpectationRecords[0].ExpectationRecordID
+	recordIDTwo := tables.ExpectationRecords[1].ExpectationRecordID
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: recordIDOne,
+		BranchName:          nil, // primary branch
+		UserName:            "user_one",
+		TriageTime:          time.Date(2020, time.December, 12, 12, 12, 12, 0, time.UTC),
+		NumChanges:          1,
+	}, {
+		ExpectationRecordID: recordIDTwo,
+		BranchName:          nil, // primary branch
+		UserName:            "user_two",
+		TriageTime:          time.Date(2020, time.December, 13, 13, 13, 13, 0, time.UTC),
+		NumChanges:          2,
+	}}, tables.ExpectationRecords)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: recordIDOne,
+		GroupingID:          testOneGroupingID,
+		Digest:              d(t, digestA),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, {
+		ExpectationRecordID: recordIDTwo,
+		GroupingID:          testTwoGroupingID,
+		Digest:              d(t, digestD),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, {
+		ExpectationRecordID: recordIDTwo,
+		GroupingID:          testTwoGroupingID,
+		Digest:              d(t, digestC),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelNegative,
+	}}, tables.ExpectationDeltas)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          testOneGroupingID,
+		Digest:              d(t, digestA),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &recordIDOne,
+	}, {
+		GroupingID:          testTwoGroupingID,
+		Digest:              d(t, digestD),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &recordIDTwo,
+	}, {
+		GroupingID:          testTwoGroupingID,
+		Digest:              d(t, digestC),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: &recordIDTwo,
+	}, {
+		GroupingID:          testOneGroupingID,
+		Digest:              d(t, digestB),
+		Label:               schema.LabelUntriaged,
+		ExpectationRecordID: nil,
+	}}, tables.Expectations)
 }
 
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
@@ -632,6 +691,60 @@ func TestGenerateStructs_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
 		IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	assert.Panics(t, func() {
 		b.GenerateStructs()
+	})
+}
+
+func TestTriageEvent_NoGroupingKeys_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	assert.Panics(t, func() {
+		b.TriageEvent("user", "2020-12-05T16:00:00Z")
+	})
+}
+
+func TestTriageEvent_InvalidTime_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	assert.Panics(t, func() {
+		b.TriageEvent("user", "invalid time")
+	})
+}
+
+func TestExpectationsForGrouping_KeyMissingFromGrouping_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	eb := b.TriageEvent("user", "2020-12-05T16:00:00Z")
+	assert.Panics(t, func() {
+		eb.ExpectationsForGrouping(paramtools.Params{"oops": "missing"})
+	})
+}
+
+func TestExpectationsBuilderPositive_InvalidDigest_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	eb := b.TriageEvent("user", "2020-12-05T16:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{types.CorpusField: "whatever"})
+	assert.Panics(t, func() {
+		eb.Positive("invalid")
+	})
+}
+
+func TestExpectationsBuilderNegative_InvalidDigest_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	eb := b.TriageEvent("user", "2020-12-05T16:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{types.CorpusField: "whatever"})
+	assert.Panics(t, func() {
+		eb.Negative("invalid")
 	})
 }
 

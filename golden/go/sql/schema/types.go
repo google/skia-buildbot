@@ -3,6 +3,8 @@ package schema
 import (
 	"crypto/md5"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // MD5Hash is a specialized type for an array of bytes representing an MD5Hash. We use MD5 hashes
@@ -37,15 +39,26 @@ const (
 	NBTrue  NullableBool = 2
 )
 
+type ExpectationLabel int
+
+const (
+	LabelUntriaged ExpectationLabel = 0
+	LabelPositive  ExpectationLabel = 1
+	LabelNegative  ExpectationLabel = 2
+)
+
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
-// more easily generate test data (see sqldatabuilder).
+// more easily generate test data (see sql/databuilder).
 type Tables struct {
-	TraceValues []TraceValueRow
-	Commits     []CommitRow
-	Traces      []TraceRow
-	Groupings   []GroupingRow
-	Options     []OptionsRow
-	SourceFiles []SourceFileRow
+	Commits            []CommitRow
+	ExpectationDeltas  []ExpectationDeltaRow
+	ExpectationRecords []ExpectationRecordRow
+	Expectations       []ExpectationRow
+	Groupings          []GroupingRow
+	Options            []OptionsRow
+	SourceFiles        []SourceFileRow
+	TraceValues        []TraceValueRow
+	Traces             []TraceRow
 }
 
 // TODO(kjlubick) add code to generate SQL statements from these struct tags
@@ -146,4 +159,56 @@ type SourceFileRow struct {
 	SourceFile string `sql:"source_file STRING NOT NULL"`
 	// LastIngested is the time at which this file was most recently read in.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+type ExpectationRecordRow struct {
+	// ExpectationRecordID is a unique ID for a triage event, which could impact one or more
+	// digests across one or more groupings.
+	ExpectationRecordID uuid.UUID `sql:"expectation_record_id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
+	// BranchName identifies to which branch the triage event happened. Can be nil for the
+	// primary branch.
+	BranchName *string `sql:"branch_name STRING"`
+	// UserName is the email address of the logged-on user who initiated the triage event.
+	UserName string `sql:"user_name STRING NOT NULL"`
+	// TriageTime is the time at which this event happened.
+	TriageTime time.Time `sql:"triage_time TIMESTAMP WITH TIME ZONE NOT NULL"`
+	// NumChanges is how many digests were affected. It corresponds to the number of
+	// ExpectationDeltaRows have this record as their parent.
+	NumChanges int `sql:"num_changes INT4 NOT NULL"`
+}
+
+type ExpectationDeltaRow struct {
+	// ExpectationRecordID corresponds to the parent ExpectationRecordRow.
+	ExpectationRecordID uuid.UUID `sql:"expectation_record_id UUID"`
+	// GroupingID identifies the grouping that was triaged by this change. This is a foreign key
+	// into the Groupings table.
+	GroupingID GroupingID `sql:"grouping_id BYTES"`
+	// Digest is the MD5 hash of the pixel data. It identifies the image that was triaged in a
+	// given grouping.
+	Digest DigestBytes `sql:"digest BYTES"`
+	// LabelBefore is the label that was applied to this digest in this grouping before the
+	// parent expectation event happened. By storing this, we can undo that event in the future.
+	LabelBefore ExpectationLabel `sql:"label_before SMALLINT NOT NULL"`
+	// LabelAfter is the label that was applied as a result of the parent expectation event.
+	LabelAfter ExpectationLabel `sql:"label_after SMALLINT NOT NULL"`
+	// In any given expectation event, a single digest in a single grouping can only be affected
+	// once, so it makes sense to use a composite primary key here. Additionally, this gives the
+	// deltas good locality for a given record.
+	primaryKey struct{} `sql:"PRIMARY KEY (expectation_record_id, grouping_id, digest)"`
+}
+
+// ExpectationRow contains an entry for every recent digest+grouping pair. This includes untriaged
+// digests, because that allows us to have an index against label and just extract the untriaged
+// ones instead of having to do a LEFT JOIN and look for nulls (which is slow at scale).
+type ExpectationRow struct {
+	// GroupingID identifies the grouping to which the triaged digest belongs. This is a foreign key
+	// into the Groupings table.
+	GroupingID GroupingID `sql:"grouping_id BYTES"`
+	// Digest is the MD5 hash of the pixel data. It identifies the image that is currently triaged.
+	Digest DigestBytes `sql:"digest BYTES"`
+	// Label is the current label associated with the given digest in the given grouping.
+	Label ExpectationLabel `sql:"label SMALLINT NOT NULL"`
+	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
+	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
+	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
 }
