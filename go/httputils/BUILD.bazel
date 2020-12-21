@@ -1,29 +1,29 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "httputils",
     srcs = ["http.go"],
     importpath = "go.skia.org/infra/go/httputils",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/metrics2:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/timer:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_cenkalti_backoff//:go_default_library",
-        "@com_github_fiorix_go_web//autogzip:go_default_library",
-        "@org_golang_x_oauth2//:go_default_library",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/timer",
+        "//go/util",
+        "@com_github_cenkalti_backoff//:backoff",
+        "@com_github_fiorix_go_web//autogzip",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "httputils_test",
     srcs = ["http_test.go"],
-    embed = [":go_default_library"],
+    embed = [":httputils"],
     deps = [
-        "//go/mockhttpclient:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

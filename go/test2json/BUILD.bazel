@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "test2json",
     srcs = [
         "test2json.go",
         "testutils.go",
@@ -9,24 +9,23 @@ go_library(
     importpath = "go.skia.org/infra/go/test2json",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/exec:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/exec",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "test2json_test",
     srcs = ["test2json_test.go"],
-    embed = [":go_default_library"],
+    embed = [":test2json"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/exec:go_default_library",
-        "//go/sktest:go_default_library",
-        "//go/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/exec",
+        "//go/sktest",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
     ],
 )

@@ -1,21 +1,22 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "new-branch-cq_lib",
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/go/cq/cmd/new-branch-cq",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/common:go_default_library",
-        "//go/cq:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@org_chromium_go_luci//cq/api/config/v2:go_default_library",
+        "//go/common",
+        "//go/cq",
+        "//go/git",
+        "//go/sklog",
+        "//go/util",
+        "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
 )
 
 go_binary(
     name = "new-branch-cq",
-    embed = [":go_default_library"],
+    embed = [":new-branch-cq_lib"],
     visibility = ["//visibility:public"],
 )
