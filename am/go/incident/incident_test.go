@@ -170,7 +170,7 @@ func TestIsSilenced(t *testing.T) {
 }
 
 func TestAlertArrival(t *testing.T) {
-	unittest.LargeTest(t)
+	unittest.ManualTest(t) // Disabled due to flaky cloud emulator on the CI
 
 	cleanup := testutil.InitDatastore(t, ds.INCIDENT_AM, ds.INCIDENT_ACTIVE_PARENT_AM)
 	defer cleanup()
