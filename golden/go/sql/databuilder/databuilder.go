@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -18,10 +20,11 @@ import (
 // SQLDataBuilder has methods on it for generating trace data and other related data in a way
 // that can be easily turned into SQL table rows.
 type SQLDataBuilder struct {
-	commitBuilder   *CommitBuilder
-	groupingKeys    []string
-	symbolsToDigest map[rune]schema.DigestBytes
-	traceBuilders   []*TraceBuilder
+	commitBuilder       *CommitBuilder
+	expectationBuilders []*ExpectationsBuilder
+	groupingKeys        []string
+	symbolsToDigest     map[rune]schema.DigestBytes
+	traceBuilders       []*TraceBuilder
 }
 
 // Commits returns a new CommitBuilder linked to this builder which will have a set. It panics if
@@ -88,6 +91,79 @@ func (b *SQLDataBuilder) TracesWithCommonKeys(params paramtools.Params) *TraceBu
 	}
 	b.traceBuilders = append(b.traceBuilders, tb)
 	return tb
+}
+
+func (b *SQLDataBuilder) TriageEvent(user, triageTime string) *ExpectationsBuilder {
+	if len(b.groupingKeys) == 0 {
+		logAndPanic("Must add grouping keys before expectations")
+	}
+	ts, err := time.Parse(time.RFC3339, triageTime)
+	if err != nil {
+		logAndPanic("Invalid triage time %q: %s", triageTime, err)
+	}
+	eb := &ExpectationsBuilder{
+		groupingKeys: b.groupingKeys,
+		record: &schema.ExpectationRecordRow{
+			ExpectationRecordID: uuid.New(),
+			BranchName:          nil,
+			UserName:            user,
+			TriageTime:          ts,
+		},
+	}
+	b.expectationBuilders = append(b.expectationBuilders, eb)
+	return eb
+}
+
+// finalizeExpectations finds the final state of the expectations for each digest+grouping pair.
+// This includes identifying untriaged digests. It panics if any of the ExpectationDeltas have
+// preconditions.
+func (b *SQLDataBuilder) finalizeExpectations() []*schema.ExpectationRow {
+	var expectations []*schema.ExpectationRow
+	find := func(g schema.GroupingID, d schema.DigestBytes) *schema.ExpectationRow {
+		for _, e := range expectations {
+			if bytes.Equal(e.GroupingID, g) && bytes.Equal(e.Digest, d) {
+				return e
+			}
+		}
+		return nil
+	}
+	for _, eb := range b.expectationBuilders {
+		eb.record.NumChanges = len(eb.deltas)
+		for _, ed := range eb.deltas {
+			existingRecord := find(ed.GroupingID, ed.Digest)
+			if existingRecord == nil {
+				expectations = append(expectations, &schema.ExpectationRow{
+					GroupingID:          ed.GroupingID,
+					Digest:              ed.Digest,
+					Label:               ed.LabelAfter,
+					ExpectationRecordID: &ed.ExpectationRecordID,
+				})
+				continue
+			}
+			if existingRecord.Label != ed.LabelBefore {
+				logAndPanic("Expectation Delta precondition is incorrect. Label before was %d: %#v", existingRecord.Label, ed)
+			}
+		}
+	}
+	// Fill in untriaged values.
+	for _, tb := range b.traceBuilders {
+		for _, trace := range tb.traceValues {
+			for _, tv := range trace {
+				if tv == nil {
+					continue
+				}
+				existingRecord := find(tv.GroupingID, tv.Digest)
+				if existingRecord == nil {
+					expectations = append(expectations, &schema.ExpectationRow{
+						GroupingID: tv.GroupingID,
+						Digest:     tv.Digest,
+						Label:      schema.LabelUntriaged,
+					})
+				}
+			}
+		}
+	}
+	return expectations
 }
 
 // GenerateStructs should be called when all the data has been loaded in for a given setup and
@@ -158,6 +234,16 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 		cid := rv.Commits[i].CommitID
 		if commitsWithData[cid] {
 			rv.Commits[i].HasData = true
+		}
+	}
+	exp := b.finalizeExpectations()
+	for _, e := range exp {
+		rv.Expectations = append(rv.Expectations, *e)
+	}
+	for _, eb := range b.expectationBuilders {
+		rv.ExpectationRecords = append(rv.ExpectationRecords, *eb.record)
+		for _, ed := range eb.deltas {
+			rv.ExpectationDeltas = append(rv.ExpectationDeltas, ed)
 		}
 	}
 	return rv
@@ -380,6 +466,57 @@ func (b *TraceBuilder) IngestedFrom(filenames, ingestedDates []string) *TraceBui
 			}
 		}
 	}
+	return b
+}
+
+type ExpectationsBuilder struct {
+	currentGroupingID schema.GroupingID
+	deltas            []schema.ExpectationDeltaRow
+	groupingKeys      []string
+	record            *schema.ExpectationRecordRow
+}
+
+func (b *ExpectationsBuilder) ExpectationsForGrouping(keys paramtools.Params) *ExpectationsBuilder {
+	for _, key := range b.groupingKeys {
+		if _, ok := keys[key]; !ok {
+			logAndPanic("Grouping is missing key %q", key)
+		}
+	}
+	_, b.currentGroupingID = sql.SerializeMap(keys)
+	return b
+}
+
+// Positive marks the given digest as positive for the current grouping. It assumes that the
+// previous triage state was untriaged (as this is quite common for test data).
+func (b *ExpectationsBuilder) Positive(d types.Digest) *ExpectationsBuilder {
+	db, err := sql.DigestToBytes(d)
+	if err != nil {
+		logAndPanic("Invalid digest %q: %s", d, err)
+	}
+	b.deltas = append(b.deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: b.record.ExpectationRecordID,
+		GroupingID:          b.currentGroupingID,
+		Digest:              db,
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	})
+	return b
+}
+
+// Negative marks the given digest as negative for the current grouping. It assumes that the
+// previous triage state was untriaged (as this is quite common for test data).
+func (b *ExpectationsBuilder) Negative(d types.Digest) *ExpectationsBuilder {
+	db, err := sql.DigestToBytes(d)
+	if err != nil {
+		logAndPanic("Invalid digest %q: %s", d, err)
+	}
+	b.deltas = append(b.deltas, schema.ExpectationDeltaRow{
+		ExpectationRecordID: b.record.ExpectationRecordID,
+		GroupingID:          b.currentGroupingID,
+		Digest:              db,
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelNegative,
+	})
 	return b
 }
 
