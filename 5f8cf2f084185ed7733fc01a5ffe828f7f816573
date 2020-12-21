@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d69e1319_a1b155e2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:52:44Z",
+      "side": 1,
+      "message": "Please don\u0027t include *.googleplex.com links in commit messages. (they are fine as comments in Gerrit, IIRC)",
+      "range": {
+        "startLine": 9,
+        "startChar": 27,
+        "endLine": 9,
+        "endChar": 37
+      },
+      "revId": "5f8cf2f084185ed7733fc01a5ffe828f7f816573",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "378830d4_4a356e22",
+        "filename": "chromeextensions/skia-dev/manifest.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T18:52:44Z",
+      "side": 1,
+      "message": "uberubernit: Semantic versioning would go to 3.10 or 3.9.1, right?",
+      "range": {
+        "startLine": 3,
+        "startChar": 15,
+        "endLine": 3,
+        "endChar": 19
+      },
+      "revId": "5f8cf2f084185ed7733fc01a5ffe828f7f816573",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
