@@ -65,6 +65,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a784bbe3_25b6a47e",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Thanks for explaining! Would you mind leaving a comment with this rationale for future reference?",
+      "parentUuid": "27742c37_5c13a019",
+      "range": {
+        "startLine": 15,
+        "startChar": 13,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6b5a45e2_755790b1",
@@ -347,6 +371,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d21065e6_bee3be89",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f990bf35_91826fbe",
+      "range": {
+        "startLine": 45,
+        "startChar": 5,
+        "endLine": 45,
+        "endChar": 18
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1fc587d4_9ca98936",
@@ -384,6 +432,30 @@
       "side": 1,
       "message": "Maybe? I wasn\u0027t able to get MOD to work in the computed column, but it could have simply been a typo.",
       "parentUuid": "1fc587d4_9ca98936",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 30
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5f5fea17_4acad241",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1613981d_339734e2",
       "range": {
         "startLine": 47,
         "startChar": 0,
@@ -441,6 +513,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d96f1bf2_2715114a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0f3aa72c_a3d5799f",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 39
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "05acff4a_6782c164",
@@ -478,6 +574,30 @@
       "side": 1,
       "message": "It is redundant to label something in a composite primary key as non-null (for CockroachDB at least).",
       "parentUuid": "05acff4a_6782c164",
+      "range": {
+        "startLine": 53,
+        "startChar": 35,
+        "endLine": 53,
+        "endChar": 40
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "96ddb227_f3e2774a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ah, I missed that it is part of the primary key. Makes sense.",
+      "parentUuid": "3cae1a10_a3fbb8cd",
       "range": {
         "startLine": 53,
         "startChar": 35,
@@ -535,6 +655,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d724f4db_f88a0126",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "0bb5ce3c_5a61b91a",
+      "range": {
+        "startLine": 58,
+        "startChar": 60,
+        "endLine": 58,
+        "endChar": 68
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "61b41b15_c6e546ea",
@@ -582,6 +726,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d6cbac22_029e9abd",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "da5daf52_dda870c6",
+      "range": {
+        "startLine": 65,
+        "startChar": 20,
+        "endLine": 65,
+        "endChar": 81
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f0c6bffd_097b2fad",
@@ -619,6 +787,30 @@
       "side": 1,
       "message": "This is still in flux. When I get around to generating the SQL, I\u0027ll keep the type in mind as I make any necessary changes (especially involving indexes). Notice it\u0027s unexported, so I don\u0027t think a named type is really necessary.",
       "parentUuid": "f0c6bffd_097b2fad",
+      "range": {
+        "startLine": 71,
+        "startChar": 12,
+        "endLine": 71,
+        "endChar": 20
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "735fa1df_dc1f84ea",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e12eb896_5c813700",
       "range": {
         "startLine": 71,
         "startChar": 12,
@@ -678,6 +870,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "52ff0011_1c970846",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Should we rename this column to AuthorEmail or just Email for self documentation purposes?",
+      "parentUuid": "037799e6_c14b8aa9",
+      "range": {
+        "startLine": 81,
+        "startChar": 18,
+        "endLine": 81,
+        "endChar": 31
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "74bed635_a9dedffb",
         "filename": "golden/go/sql/schema/types.go",
         "patchSetId": 3
@@ -713,6 +929,30 @@
       "side": 1,
       "message": "When looking for commits that have data (it\u0027s not just a one-off commit search):\nSELECT DISTINCT commit_id from TraceValues;",
       "parentUuid": "74bed635_a9dedffb",
+      "range": {
+        "startLine": 87,
+        "startChar": 11,
+        "endLine": 87,
+        "endChar": 43
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b99b8c09_f946160d",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5c4b1b35_373e9daa",
       "range": {
         "startLine": 87,
         "startChar": 11,
@@ -866,6 +1106,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "bbe7902b_50086883",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Thanks for explaining! Does that mean matches_any_ignore_rule is set to false (as opposed to NULL) when the only matching ignore rule is deleted? (This is after the background process populates this field for the first time).",
+      "parentUuid": "dcd450cf_ec2872bd",
+      "range": {
+        "startLine": 109,
+        "startChar": 10,
+        "endLine": 109,
+        "endChar": 22
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9527f303_00ce741a",
         "filename": "golden/go/sql/schema/types.go",
         "patchSetId": 3
@@ -901,6 +1165,30 @@
       "side": 1,
       "message": "No. I don\u0027t want to hardcode the grouping in the SQL schema. I believe that will make it difficult to change later and difficult to have it be different for individual corpora or projects.",
       "parentUuid": "9527f303_00ce741a",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 60
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2dc93b12_2dd9caf5",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:18:25Z",
+      "side": 1,
+      "message": "Ah, that makes sense. Thanks for explaining!",
+      "parentUuid": "f9e7c3ff_72b0fe73",
       "range": {
         "startLine": 118,
         "startChar": 0,
