@@ -89,6 +89,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "050c4267_ab5e1cfd",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T19:37:34Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "a784bbe3_25b6a47e",
+      "range": {
+        "startLine": 15,
+        "startChar": 13,
+        "endLine": 15,
+        "endChar": 19
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6b5a45e2_755790b1",
@@ -892,6 +916,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "164ecfd0_3ce374c6",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T19:37:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52ff0011_1c970846",
+      "range": {
+        "startLine": 81,
+        "startChar": 18,
+        "endLine": 81,
+        "endChar": 31
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "74bed635_a9dedffb",
@@ -1118,6 +1166,30 @@
       "side": 1,
       "message": "Thanks for explaining! Does that mean matches_any_ignore_rule is set to false (as opposed to NULL) when the only matching ignore rule is deleted? (This is after the background process populates this field for the first time).",
       "parentUuid": "dcd450cf_ec2872bd",
+      "range": {
+        "startLine": 109,
+        "startChar": 10,
+        "endLine": 109,
+        "endChar": 22
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5120e55b_a220d03e",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-21T19:37:34Z",
+      "side": 1,
+      "message": "Yes. (sorry, I forgot to answer the second part of your question).",
+      "parentUuid": "bbe7902b_50086883",
       "range": {
         "startLine": 109,
         "startChar": 10,
