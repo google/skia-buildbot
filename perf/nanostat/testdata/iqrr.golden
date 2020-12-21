@@ -1,7 +1,7 @@
-         old         new  delta      stats            name
-  0.74 ±  3%  0.70 ±  1%   -5%   (p=0.001,   n=10+9)  desk_googledocs.skp
-  0.24 ±  0%  0.24 ±  1%   -2%   (p=0.000,    n=9+9)  mobi_googlenews.skp
-  0.25 ±  5%  0.31 ±  1%   26%   (p=0.000,   n=10+9)  mobi_googlesearch.skp
-  2.25 ±  2%  3.24 ±  1%   44%   (p=0.000,  n=10+10)  desk_googlespreadsheet.skp
-  0.82 ±  2%  1.22 ±  2%   49%   (p=0.000,  n=10+10)  desk_googlecalendar.skp
-  0.69 ±  2%  1.05 ±  0%   52%   (p=0.000,  n=10+10)  desk_googleimagesearch.skp
+         old         new  delta      stats                                                test  name
+  0.74 ±  3%  0.70 ±  1%   -5%   (p=0.001,   n=10+9)           desk_googledocs.skp_1_1000_1000  desk_googledocs.skp
+  0.24 ±  0%  0.24 ±  1%   -2%   (p=0.000,    n=9+9)           mobi_googlenews.skp_1_1000_1000  mobi_googlenews.skp
+  0.25 ±  5%  0.31 ±  1%   26%   (p=0.000,   n=10+9)         mobi_googlesearch.skp_1_1000_1000  mobi_googlesearch.skp
+  2.25 ±  2%  3.24 ±  1%   44%   (p=0.000,  n=10+10)    desk_googlespreadsheet.skp_1_1000_1000  desk_googlespreadsheet.skp
+  0.82 ±  2%  1.22 ±  2%   49%   (p=0.000,  n=10+10)       desk_googlecalendar.skp_1_1000_1000  desk_googlecalendar.skp
+  0.69 ±  2%  1.05 ±  0%   52%   (p=0.000,  n=10+10)    desk_googleimagesearch.skp_1_1000_1000  desk_googleimagesearch.skp
