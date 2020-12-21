@@ -8,11 +8,6 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-const (
-	SHERIFF_URL = "https://tree-status.skia.org/current-sheriff"
-	TROOPER_URL = "https://tree-status.skia.org/current-trooper"
-)
-
 func get(ctx context.Context, c *http.Client, name, url string) ([]string, error) {
 	var reviewers []string
 	return reviewers, td.Do(ctx, td.Props(name).Infra(), func(ctx context.Context) error {
@@ -22,10 +17,10 @@ func get(ctx context.Context, c *http.Client, name, url string) ([]string, error
 	})
 }
 
-func GetCurrentSheriff(ctx context.Context, c *http.Client) ([]string, error) {
-	return get(ctx, c, "Get current sheriff", SHERIFF_URL)
+func GetCurrentSkiaGardener(ctx context.Context, c *http.Client) ([]string, error) {
+	return get(ctx, c, "Get current Skia Gardener", rotations.SkiaGardenerURL)
 }
 
-func GetCurrentTrooper(ctx context.Context, c *http.Client) ([]string, error) {
-	return get(ctx, c, "Get current trooper", TROOPER_URL)
+func GetCurrentInfraGardener(ctx context.Context, c *http.Client) ([]string, error) {
+	return get(ctx, c, "Get current Infra Gardener", rotations.InfraGardenerURL)
 }

@@ -234,7 +234,7 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	reviewers, err := rotations.GetCurrentTrooper(ctx, c)
+	reviewers, err := rotations.GetCurrentInfraGardener(ctx, c)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
