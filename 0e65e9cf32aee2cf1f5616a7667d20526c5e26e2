@@ -1200,6 +1200,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a9286da0_2f6c933c",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T19:44:20Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5120e55b_a220d03e",
+      "range": {
+        "startLine": 109,
+        "startChar": 10,
+        "endLine": 109,
+        "endChar": 22
+      },
+      "revId": "0e65e9cf32aee2cf1f5616a7667d20526c5e26e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9527f303_00ce741a",
