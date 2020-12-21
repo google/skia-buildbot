@@ -252,34 +252,32 @@ func TestGetBotUsage_MultipleDimensionSets_ValidResponse(t *testing.T) {
 	}).Once()
 	resp, err := server.GetBotUsage(ctx, &GetBotUsageRequest{})
 	require.NoError(t, err)
-	assert.Equal(t, &GetBotUsageResponse{
-		BotSets: []*BotSet{
-			{
-				Dimensions: map[string]string{
-					"gpu":  "8086:3ea5-26.20.100.7463",
-					"os":   "Windows-10-18363",
-					"pool": "Skia",
-				},
-				BotCount:    3,
-				CqTasks:     1,
-				MsPerCq:     300000,
-				TotalTasks:  2,
-				MsPerCommit: 1080000,
-			}, {
-				Dimensions: map[string]string{
-					"cpu":    "widget5",
-					"device": "Pixel2",
-					"os":     "Android",
-					"pool":   "Skia",
-				},
-				BotCount:    1,
-				CqTasks:     0,
-				MsPerCq:     0,
-				TotalTasks:  1,
-				MsPerCommit: 300000,
+	assert.ElementsMatch(t, []*BotSet{
+		{
+			Dimensions: map[string]string{
+				"gpu":  "8086:3ea5-26.20.100.7463",
+				"os":   "Windows-10-18363",
+				"pool": "Skia",
 			},
+			BotCount:    3,
+			CqTasks:     1,
+			MsPerCq:     300000,
+			TotalTasks:  2,
+			MsPerCommit: 1080000,
+		}, {
+			Dimensions: map[string]string{
+				"cpu":    "widget5",
+				"device": "Pixel2",
+				"os":     "Android",
+				"pool":   "Skia",
+			},
+			BotCount:    1,
+			CqTasks:     0,
+			MsPerCq:     0,
+			TotalTasks:  1,
+			MsPerCommit: 300000,
 		},
-	}, resp)
+	}, resp.BotSets)
 }
 
 // TODO(weston): Add tests for the remainder of status after adding testing helpers for iCache etc.
