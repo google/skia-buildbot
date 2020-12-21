@@ -1,28 +1,28 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "gitauth",
     srcs = ["gitauth.go"],
     importpath = "go.skia.org/infra/go/gitauth",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/exec:go_default_library",
-        "//go/git:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@org_golang_x_oauth2//:go_default_library",
+        "//go/exec",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "gitauth_test",
     srcs = ["gitauth_test.go"],
-    embed = [":go_default_library"],
+    embed = [":gitauth"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@org_golang_x_oauth2//:go_default_library",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )

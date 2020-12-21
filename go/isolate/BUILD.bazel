@@ -1,28 +1,28 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "isolate",
     srcs = ["isolate.go"],
     importpath = "go.skia.org/infra/go/isolate",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/exec:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/util:go_default_library",
-        "@org_chromium_go_luci//common/isolated:go_default_library",
+        "//go/exec",
+        "//go/skerr",
+        "//go/util",
+        "@org_chromium_go_luci//common/isolated",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "isolate_test",
     srcs = ["isolate_test.go"],
-    embed = [":go_default_library"],
+    embed = [":isolate"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/exec:go_default_library",
-        "//go/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
-        "@org_chromium_go_luci//common/isolated:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/exec",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/isolated",
     ],
 )

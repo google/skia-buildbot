@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "rbe",
+    srcs = ["rbe.go"],
+    importpath = "go.skia.org/infra/go/cas/rbe",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cas",
+        "//go/skerr",
+        "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:execution",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/chunker",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/command",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest",
+        "@com_github_bazelbuild_remote_apis_sdks//go/pkg/filemetadata",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "@org_golang_google_grpc//credentials/oauth",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "rbe_test",
+    srcs = ["rbe_test.go"],
+    embed = [":rbe"],
+    deps = [
+        "//go/auth",
+        "//go/deepequal/assertdeep",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_api//compute/v1:compute",
+    ],
+)

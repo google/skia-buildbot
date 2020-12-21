@@ -1,12 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "beta_test",
     srcs = ["beta.go"],
     importpath = "go.skia.org/infra/go/skerr/beta_test",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/skerr:go_default_library",
-        "//go/skerr/alpha_test:go_default_library",
+        "//go/skerr",
+        "//go/skerr/alpha_test",
     ],
 )
