@@ -1,16 +1,16 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "bt",
     srcs = ["bt.go"],
     importpath = "go.skia.org/infra/go/bt",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@com_google_cloud_go_bigtable//:go_default_library",
-        "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//status:go_default_library",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
     ],
 )

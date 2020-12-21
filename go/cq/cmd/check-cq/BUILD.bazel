@@ -1,24 +1,24 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "check-cq_lib",
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/go/cq/cmd/check-cq",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/common:go_default_library",
-        "//go/cq:go_default_library",
-        "//go/git:go_default_library",
-        "//go/gitiles:go_default_library",
-        "//go/sklog:go_default_library",
+        "//go/common",
+        "//go/cq",
+        "//go/git",
+        "//go/gitiles",
+        "//go/sklog",
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@org_chromium_go_luci//cq/api/config/v2:go_default_library",
+        "@org_chromium_go_luci//cv/api/config/v2:config",
         "@org_skia_go_infra//task_scheduler/go/specs:go_default_library",
     ],
 )
 
 go_binary(
     name = "check-cq",
-    embed = [":go_default_library"],
+    embed = [":check-cq_lib"],
     visibility = ["//visibility:public"],
 )
