@@ -42,8 +42,9 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalStringMap turns the given string map into a []byte slice that is the JSON encoded version
-// of that map. It will produce the same output as json.Marshal. Unlike json.Marshal, it does not
-// return an error because the errors json.Marshal could return (e.g. for cyclic data) do not apply.
+// of that map. It will produce the same output as json.Marshal. This includes the keys being sorted
+// lexicographically. Unlike json.Marshal, it does not return an error because the errors
+// json.Marshal could return (e.g. for cyclic data) do not apply.
 func MarshalStringMap(m map[string]string) (data []byte) {
 	if len(m) == 0 {
 		// This behavior matches json.Marshal
