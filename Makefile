@@ -147,13 +147,14 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
+# Directories with Go code that is built using Gazelle-generated BUILD files.
+GAZELLE_DIRS=\
+	./go \
+	./machine
+
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle ./go/
-
-.PHONY: update-machine-bazel-files
-update-machine-bazel-files:
-	bazel run //:gazelle ./machine/
+	bazel run //:gazelle -- $(GAZELLE_DIRS)
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:

@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "cq",
     srcs = [
         "cq.go",
         "update.go",
@@ -9,29 +9,31 @@ go_library(
     importpath = "go.skia.org/infra/go/cq",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/common:go_default_library",
-        "//go/gerrit:go_default_library",
-        "//go/gitiles:go_default_library",
-        "//go/metrics2:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/common",
+        "//go/gerrit",
+        "//go/git",
+        "//go/gitiles",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
-        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
-        "@org_chromium_go_luci//cq/api/config/v2:go_default_library",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "cq_test",
     srcs = ["update_test.go"],
-    embed = [":go_default_library"],
+    embed = [":cq"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/git",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
-        "@org_chromium_go_luci//cq/api/config/v2:go_default_library",
+        "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
 )
