@@ -45,6 +45,7 @@ replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/skia-dev/pro
 
 require (
 	cloud.google.com/go v0.70.0
+	cloud.google.com/go/bigquery v1.8.0
 	cloud.google.com/go/bigtable v1.6.0
 	cloud.google.com/go/datastore v1.3.0
 	cloud.google.com/go/firestore v1.3.0
@@ -55,7 +56,7 @@ require (
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.6.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/OneOfOne/struct2ts v1.0.4 // indirect
 	github.com/PuerkitoBio/goquery v1.6.0
@@ -64,10 +65,11 @@ require (
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
-	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
+	github.com/bazelbuild/bazel-gazelle v0.21.1
 	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b
-	github.com/bazelbuild/remote-apis v0.0.0-20201030192148-aa8e718768c2
+	github.com/bazelbuild/remote-apis v0.0.0-20201209220655-9e72daff42c9
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20201110004117-e776219c9bb7
+	github.com/bazelbuild/rules_go v0.25.0
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
@@ -78,13 +80,14 @@ require (
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/dustin/go-humanize v1.0.0
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/go-python/gpython v0.0.3
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
+	github.com/gogo/protobuf v1.3.1
 	github.com/golang-migrate/migrate/v4 v4.13.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
@@ -116,17 +119,19 @@ require (
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kisielk/errcheck v1.2.0
+	github.com/kisielk/gotool v1.0.0
 	github.com/klauspost/compress v1.11.2 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
+	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/luci/gtreap v0.0.0-20161228054646-35df89791e8f // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
+	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b
 	github.com/maruel/ut v1.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
@@ -141,9 +146,10 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/peterh/liner v1.2.0 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.8.0
-	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
+	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -151,6 +157,7 @@ require (
 	github.com/skia-dev/go2ts v1.4.0
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/smartystreets/assertions v1.2.0 // indirect
+	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/afero v1.4.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.1
@@ -177,12 +184,12 @@ require (
 	golang.org/x/net v0.0.0-20201029221708-28c70e62bb1d // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
+	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	golang.org/x/tools v0.0.0-20201030010431-2feb2bb1ff51
 	google.golang.org/api v0.34.0
-	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/appengine v1.6.7
 	google.golang.org/genproto v0.0.0-20201029200359-8ce4113da6f7
 	google.golang.org/grpc v1.33.1
 	google.golang.org/protobuf v1.25.0

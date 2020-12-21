@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "cache",
+    srcs = ["cache.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/db/cache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+    ],
+)
+
+go_test(
+    name = "cache_test",
+    srcs = ["cache_test.go"],
+    embed = [":cache"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "//go/util",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/memory",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+        "@com_github_stretchr_testify//require",
+    ],
+)

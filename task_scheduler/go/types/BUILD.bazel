@@ -1,0 +1,48 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "types",
+    srcs = [
+        "comments.go",
+        "job.go",
+        "repo_state.go",
+        "task.go",
+        "testutil.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/types",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cas/rbe",
+        "//go/common",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/gitiles",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "types_test",
+    srcs = [
+        "comments_test.go",
+        "job_test.go",
+        "repo_state_test.go",
+        "task_test.go",
+    ],
+    embed = [":types"],
+    deps = [
+        "//go/common",
+        "//go/deepequal/assertdeep",
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/swarming",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)

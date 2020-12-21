@@ -94,7 +94,10 @@ main() {
   done
 
   # Run tests.
-  "$TEST_BIN"
+  #
+  # For some reason go_test binaries do not work if they are not invoked with an absolute path, so
+  # we prepend it with $(pwd).
+  $(pwd)/$TEST_BIN
   local test_exit_code=$?
   log "Test exit code: $test_exit_code"
 

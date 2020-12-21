@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "flakes",
+    srcs = ["flakes.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/flakes",
+    visibility = ["//visibility:public"],
+    deps = ["//task_scheduler/go/types"],
+)

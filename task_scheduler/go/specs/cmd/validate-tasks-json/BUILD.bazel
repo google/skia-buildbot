@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "validate-tasks-json_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/specs/cmd/validate-tasks-json",
+    visibility = ["//visibility:private"],
+    deps = ["//task_scheduler/go/specs"],
+)
+
+go_binary(
+    name = "validate-tasks-json",
+    embed = [":validate-tasks-json_lib"],
+    visibility = ["//visibility:public"],
+)

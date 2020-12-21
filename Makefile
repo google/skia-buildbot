@@ -147,25 +147,29 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
+# Directories with Go code that can be compiled using Gazelle-generated BUILD files.
+GAZELLE_DIRS=\
+	./bazel \
+	./go \
+	./machine \
+	./task_scheduler
+
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle ./go/
-
-.PHONY: update-machine-bazel-files
-update-machine-bazel-files:
-	bazel run //:gazelle ./machine/
+	bazel run //:gazelle -- $(GAZELLE_DIRS)
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
-	bazel run //:gazelle -- update-repos -from_file=go.mod
+	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
 
 # Known good Bazel build targets. Eventually this should be replaced with "bazel build all".
 BAZEL_BUILD_TARGETS=\
 	//bazel/... \
+	//go/... \
 	//infra-sk/... \
-	//machine/modules/... \
-	//machine/pages/... \
+	//machine/... \
 	//puppeteer-tests/... \
+	//task_scheduler/...
 
 # Known good Bazel test targets. Eventually this should be replaced with "bazel test all".
 BAZEL_TEST_TARGETS=\
