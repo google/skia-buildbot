@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8607eab7_2f1d662c",
+        "filename": "golden/go/sql/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:30:02Z",
+      "side": 1,
+      "message": "Please mention how keys are sorted. This will save the reader from having to go to the jsonutils.MarshalStringMap function definition to find out.",
+      "range": {
+        "startLine": 24,
+        "startChar": 34,
+        "endLine": 24,
+        "endChar": 45
+      },
+      "revId": "e8ae953f4837bfa0c40229b64bd1d07bdb1b9c37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ec7622d5_c333b481",
+        "filename": "golden/go/sql/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:30:02Z",
+      "side": 1,
+      "message": "schema.MD5Hash",
+      "range": {
+        "startLine": 26,
+        "startChar": 63,
+        "endLine": 26,
+        "endChar": 69
+      },
+      "revId": "e8ae953f4837bfa0c40229b64bd1d07bdb1b9c37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e961edcd_a897df9c",
+        "filename": "golden/go/sql/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:30:02Z",
+      "side": 1,
+      "message": "Please see my comment on the parent CL about using a computed column for the trace shard. If you accept said suggestion, we can probably remove this.",
+      "range": {
+        "startLine": 41,
+        "startChar": 3,
+        "endLine": 41,
+        "endChar": 42
+      },
+      "revId": "e8ae953f4837bfa0c40229b64bd1d07bdb1b9c37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6429d560_c60cfc91",
+        "filename": "golden/go/sql/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:30:02Z",
+      "side": 1,
+      "message": "Golink?",
+      "range": {
+        "startLine": 44,
+        "startChar": 28,
+        "endLine": 44,
+        "endChar": 50
+      },
+      "revId": "e8ae953f4837bfa0c40229b64bd1d07bdb1b9c37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "15e36805_2f8d923e",
+        "filename": "golden/go/sql/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-21T18:30:02Z",
+      "side": 1,
+      "message": "traceID schema.TraceID",
+      "range": {
+        "startLine": 46,
+        "startChar": 28,
+        "endLine": 46,
+        "endChar": 44
+      },
+      "revId": "e8ae953f4837bfa0c40229b64bd1d07bdb1b9c37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
