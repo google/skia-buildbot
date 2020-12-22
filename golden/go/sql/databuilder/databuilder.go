@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -35,9 +36,10 @@ type SQLDataBuilder struct {
 	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
 	groupingKeys        []string
+	ignoreRules         []schema.IgnoreRuleRow
 	symbolsToDigest     map[rune]schema.DigestBytes
-	traceBuilders       []*TraceBuilder
 	tileWidth           int
+	traceBuilders       []*TraceBuilder
 }
 
 // Commits returns a new CommitBuilder linked to this builder which will have a set. It panics if
@@ -299,6 +301,33 @@ func openNRGBAFromDisk(basePath string, digest types.Digest) *image.NRGBA {
 	return img
 }
 
+// AddIgnoreRule adds an ignore rule with the given information. It will be applied to traces during
+// the generation of structs.
+func (b *SQLDataBuilder) AddIgnoreRule(created, updated, updateTS, note string, query paramtools.ParamSet) uuid.UUID {
+	ts, err := time.Parse(time.RFC3339, updateTS)
+	if err != nil {
+		logAndPanic("invalid time %q: %s", updateTS, err)
+	}
+	if len(query) == 0 {
+		logAndPanic("Cannot use empty rule")
+	}
+	jb, err := json.Marshal(query)
+	if err != nil {
+		logAndPanic(err.Error())
+	}
+
+	id := uuid.New()
+	b.ignoreRules = append(b.ignoreRules, schema.IgnoreRuleRow{
+		IgnoreRuleID: id,
+		CreatorEmail: created,
+		UpdatedEmail: updated,
+		Expires:      ts,
+		Note:         note,
+		Query:        schema.SerializedParamSet(jb),
+	})
+	return id
+}
+
 // GenerateStructs should be called when all the data has been loaded in for a given setup and
 // it will generate the SQL rows as represented in a schema.Tables. If any validation steps fail,
 // it will panic.
@@ -346,12 +375,37 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 					logAndPanic("Duplicate trace found: %v", t.Keys)
 				}
 			}
+			ignored := false
+			var keys paramtools.Params
+			if err := json.Unmarshal([]byte(t.Keys), &keys); err != nil {
+				panic(err.Error()) // should never happen
+			}
+			for _, ir := range b.ignoreRules {
+				var q paramtools.ParamSet
+				if err := json.Unmarshal([]byte(ir.Query), &q); err != nil {
+					panic(err.Error()) // should never happen
+				}
+				if q.MatchesParams(keys) {
+					ignored = true
+					break
+				}
+			}
+			matches := schema.NBNull
+			if len(b.ignoreRules) > 0 {
+				if ignored {
+					matches = schema.NBTrue
+				} else {
+					matches = schema.NBFalse
+				}
+			}
+			t.MatchesAnyIgnoreRule = matches
 			rv.Traces = append(rv.Traces, t)
 			valuesAtHead[sql.AsMD5Hash(t.TraceID)] = &schema.ValueAtHeadRow{
-				TraceID:    t.TraceID,
-				GroupingID: t.GroupingID,
-				Corpus:     t.Corpus,
-				Keys:       t.Keys,
+				TraceID:              t.TraceID,
+				GroupingID:           t.GroupingID,
+				Corpus:               t.Corpus,
+				Keys:                 t.Keys,
+				MatchesAnyIgnoreRule: matches,
 			}
 		}
 		for _, xtv := range builder.traceValues {
@@ -404,6 +458,7 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 		}
 		rv.ValuesAtHead = append(rv.ValuesAtHead, *atHead)
 	}
+	rv.IgnoreRules = b.ignoreRules
 	return rv
 }
 
@@ -610,7 +665,7 @@ func (b *TraceBuilder) Keys(keys []paramtools.Params) *TraceBuilder {
 		logAndPanic("Expected one set of keys for each trace")
 	}
 	// We now have enough data to make all the traces.
-	seenTraces := map[schema.SerializedJSON]bool{}
+	seenTraces := map[schema.SerializedParams]bool{}
 	for i, traceParams := range keys {
 		traceParams.Add(b.commonKeys)
 		grouping := make(map[string]string, len(keys))
