@@ -13,13 +13,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Buildifier. #
 ###############
 
-# We suffix this target's name with "_http_archive" because there's a go_repository target of the
-# same name defined below.
-#
-# See
-# https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md#setup-and-usage-via-bazel
 http_archive(
-    name = "com_github_bazelbuild_buildtools_http_archive",
+    name = "com_github_bazelbuild_buildtools",
     sha256 = "1dbb1f39c17b1cbc011cc22394e6e88b0de13ad101eb40047c603297286c8398",
     strip_prefix = "buildtools-master",
     url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
