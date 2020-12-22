@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "092f107d_40313d40",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-22T16:40:43Z",
+      "side": 1,
+      "message": "To be clear, it needs to be fixed in the long run, not right now, and not in this CL.",
+      "parentUuid": "a40f2c32_d9caa479",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 99
+      },
+      "revId": "901011924d47e5a568f65e090421f8f2f6917a6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5cef741d_27f66ae6",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
