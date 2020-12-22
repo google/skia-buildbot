@@ -52,7 +52,7 @@ flutter_license_script_failure
 ------------------------------
 
 The Skia->Flutter roller has failed due to errors from Flutter's license script.
-Inform the Skia [sheriff](http://tree-status.skia.org/sheriff) that the
+Inform the [Skia Gardener](https://rotations.corp.google.com/rotation/4699606003744768) that the
 Skia->Flutter roller is failing the license script and that you are investigating.
 
 Take a look at the cloud logs of the roller [here](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fautoroll-be-skia-flutter-autoroll%22).

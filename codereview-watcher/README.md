@@ -12,11 +12,6 @@ find ([screenshot](https://screenshot.googleplex.com/6FU2sfCeZWPGA8i)).
 The codereview-watcher framework attempts to fix that by updating the PR with a
 descriptive message.
 
-Cannot make Copybara config read Skia's rotation URLs (eg:
-https://tree-status.skia.org/sheriff). So the codereview-watcher frameworks will
-automatically set the sheriff (or trooper) as the review for changes created by
-Copybara from Github PRs.
-
 This framework is turned on for https://github.com/google/skia and
 https://github.com/google/skia-buildbot.
 
