@@ -351,6 +351,72 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		DimensionsDiffer: false,
 		Timestamp:        ts,
 	}}, tables.DiffMetrics)
+	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{{
+		TraceID:       h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		StartCommitID: 0,
+		Digest:        d(t, digestA),
+	}, {
+		TraceID:       h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		StartCommitID: 0,
+		Digest:        d(t, digestB),
+	}, {
+		TraceID:       h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
+		StartCommitID: 0,
+		Digest:        d(t, digestD),
+	}, {
+		TraceID:       h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
+		StartCommitID: 0,
+		Digest:        d(t, digestC),
+	}, {
+		TraceID:       h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
+		StartCommitID: 0,
+		Digest:        d(t, digestD),
+	}}, tables.TiledTraceDigests)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "name", Value: "test_one", StartCommitID: 0},
+		{Key: "name", Value: "test_two", StartCommitID: 0},
+		{Key: "device", Value: "Crosshatch", StartCommitID: 0},
+		{Key: "device", Value: "NUC1234", StartCommitID: 0},
+		{Key: "os", Value: "Android", StartCommitID: 0},
+		{Key: "os", Value: "Windows10.7", StartCommitID: 0},
+		{Key: "color_mode", Value: "rgb", StartCommitID: 0},
+		{Key: "source_type", Value: "corpus_one", StartCommitID: 0},
+		{Key: "ext", Value: "png", StartCommitID: 0},
+	}, tables.PrimaryBranchParams)
+	assert.ElementsMatch(t, []schema.ValueAtHeadRow{{
+		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		MostRecentCommitID:   4,
+		Digest:               d(t, digestB),
+		OptionsID:            pngOptionsID,
+		GroupingID:           testOneGroupingID,
+		Corpus:               "corpus_one",
+		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
+		Label:                schema.LabelUntriaged,
+		ExpectationRecordID:  nil,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
+		MostRecentCommitID:   4,
+		Digest:               d(t, digestD),
+		OptionsID:            pngOptionsID,
+		GroupingID:           testTwoGroupingID,
+		Corpus:               "corpus_one",
+		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
+		Label:                schema.LabelPositive,
+		ExpectationRecordID:  &recordIDTwo,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:              h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
+		MostRecentCommitID:   3,
+		Digest:               d(t, digestD),
+		OptionsID:            pngOptionsID,
+		GroupingID:           testTwoGroupingID,
+		Corpus:               "corpus_one",
+		Keys:                 `{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`,
+		Label:                schema.LabelPositive,
+		ExpectationRecordID:  &recordIDTwo,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, tables.ValuesAtHead)
 }
 
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
