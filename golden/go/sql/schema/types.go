@@ -51,6 +51,7 @@ const (
 // more easily generate test data (see sql/databuilder).
 type Tables struct {
 	Commits            []CommitRow
+	DiffMetrics        []DiffMetricRow
 	ExpectationDeltas  []ExpectationDeltaRow
 	ExpectationRecords []ExpectationRecordRow
 	Expectations       []ExpectationRow
@@ -211,4 +212,38 @@ type ExpectationRow struct {
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
+}
+
+// DiffMetricRow represents the pixel-by-pixel comparison between two images (identified by their
+// digests). To avoid having n^2 comparisons (where n is the number of unique digests ever seen),
+// we only calculate diffs against recent images that are in the same grouping. These rows don't
+// contain the grouping information for the following reasons: 1) regardless of which grouping or
+// groupings an image may have been generated in, the difference between any two images is the same;
+// 2) images can be produced by multiple groupings. To make certain queries easier, data for a given
+// image pariing is inserted twice - once with A being Left, B being Right and once with A being
+// Right and B being Left. See diff.go for more about how these fields are computed.
+type DiffMetricRow struct {
+	// LeftDigest represents one of the images compared.
+	LeftDigest DigestBytes `sql:"left_digest BYTES"`
+	// RightDigest represents the other image compared.
+	RightDigest DigestBytes `sql:"left_digest BYTES"`
+	// NumDiffPixels represents the number of pixels that differ between the two images.
+	NumDiffPixels int `sql:"num_diff_pixels INT4 NOT NULL"`
+	// PixelDiffPercent is the percentage of pixels that are different.
+	PixelDiffPercent float32 `sql:"pixel_diff_percent FLOAT4 NOT NULL"`
+	// MaxRGBADiffs is the maximum delta between the two images in the red, green, blue, and
+	// alpha channels.
+	MaxRGBADiffs [4]int `sql:"max_rgba_diffs INT2[] NOT NULL"`
+	// MaxChannelDiff is max(MaxRGBADiffs). This is its own field because using max() on an array
+	// field is not supported.
+	MaxChannelDiff int `sql:"max_channel_diff INT2 NOT NULL"`
+	// CombinedMetric is a value in [0, 10] that represents how large the diff is between two
+	// images. It is based off the MaxRGBADiffs and PixelDiffPercent.
+	CombinedMetric float32 `sql:"combined_metric FLOAT4 NOT NULL"`
+	// DimensionsDiffer is true if the dimensions between the two images are different.
+	DimensionsDiffer bool `sql:"dimensions_differ BOOL NOT NULL"`
+	// Timestamp represents when this metric was computed or verified (i.e. still in use). This
+	// allows for us to periodically clean up this large table.
+	Timestamp  time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+	primaryKey struct{}  `sql:"PRIMARY KEY (left_digest, right_digest)"`
 }

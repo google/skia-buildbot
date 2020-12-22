@@ -5,9 +5,20 @@ package databuilder
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	"image"
+	"image/png"
+	"io"
+	"io/ioutil"
+	"path/filepath"
+	"sort"
 	"strings"
 	"time"
+
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 
 	"github.com/google/uuid"
 
@@ -21,6 +32,7 @@ import (
 // that can be easily turned into SQL table rows.
 type SQLDataBuilder struct {
 	commitBuilder       *CommitBuilder
+	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
 	groupingKeys        []string
 	symbolsToDigest     map[rune]schema.DigestBytes
@@ -166,6 +178,127 @@ func (b *SQLDataBuilder) finalizeExpectations() []*schema.ExpectationRow {
 	return expectations
 }
 
+// ComputeDiffMetricsFromImages generates all the diff metrics from the observed images/digests
+// and from the trace history. It reads the images from disk to use in order to compute the diffs.
+// It is expected that the images are in the provided directory named [digest].png.
+func (b *SQLDataBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr string) {
+	if len(b.diffMetrics) != 0 {
+		logAndPanic("Must call ComputeDiffMetricsFromImages only once")
+	}
+	if len(b.symbolsToDigest) == 0 {
+		logAndPanic("Must call ComputeDiffMetricsFromImages after UseDigests")
+	}
+	if len(b.traceBuilders) == 0 {
+		logAndPanic("Must call ComputeDiffMetricsFromImages after inserting trace data")
+	}
+	now, err := time.Parse(time.RFC3339, nowStr)
+	if err != nil {
+		logAndPanic("Invalid time for now: %s", err)
+	}
+	_, err = ioutil.ReadDir(imgDir)
+	if err != nil {
+		logAndPanic("Error reading directory %q: %s", imgDir, err)
+	}
+	images := make(map[types.Digest]*image.NRGBA, len(b.symbolsToDigest))
+	for _, db := range b.symbolsToDigest {
+		d := types.Digest(hex.EncodeToString(db))
+		images[d] = openNRGBAFromDisk(imgDir, d)
+	}
+
+	// Maps groupingID to digests that appear in that grouping across all the trace data.
+	toCompute := map[schema.MD5Hash]types.DigestSet{}
+	for _, tb := range b.traceBuilders {
+		for _, trace := range tb.traceValues {
+			for _, tv := range trace {
+				if tv != nil {
+					var groupingID schema.MD5Hash
+					copy(groupingID[:], tv.GroupingID)
+					if _, ok := toCompute[groupingID]; !ok {
+						toCompute[groupingID] = types.DigestSet{}
+					}
+					d := types.Digest(hex.EncodeToString(tv.Digest))
+					toCompute[groupingID][d] = true
+				}
+			}
+		}
+	}
+	// For each grouping, compare each digest to every other digest and create the metric rows
+	// for that.
+	for _, xd := range toCompute {
+		digests := xd.Keys()
+		sort.Sort(digests)
+		for leftIdx, leftDigest := range digests {
+			leftImg := images[leftDigest]
+			for rightIdx := leftIdx + 1; rightIdx < len(digests); rightIdx++ {
+				rightDigest := digests[rightIdx]
+				rightImg := images[rightDigest]
+				dm := diff.ComputeDiffMetrics(leftImg, rightImg)
+				if dm.NumDiffPixels == 0 {
+					logAndPanic("%s and %s aren't different", leftDigest, rightDigest)
+				}
+				ld, err := sql.DigestToBytes(leftDigest)
+				if err != nil {
+					logAndPanic(err.Error())
+				}
+				rd, err := sql.DigestToBytes(rightDigest)
+				if err != nil {
+					logAndPanic(err.Error())
+				}
+				b.diffMetrics = append(b.diffMetrics, schema.DiffMetricRow{
+					LeftDigest:       ld,
+					RightDigest:      rd,
+					NumDiffPixels:    dm.NumDiffPixels,
+					PixelDiffPercent: dm.PixelDiffPercent,
+					MaxRGBADiffs:     dm.MaxRGBADiffs,
+					MaxChannelDiff:   max(dm.MaxRGBADiffs),
+					CombinedMetric:   dm.CombinedMetric,
+					DimensionsDiffer: dm.DimDiffer,
+					Timestamp:        now,
+				})
+				// And in the other order of left-right
+				b.diffMetrics = append(b.diffMetrics, schema.DiffMetricRow{
+					LeftDigest:       rd,
+					RightDigest:      ld,
+					NumDiffPixels:    dm.NumDiffPixels,
+					PixelDiffPercent: dm.PixelDiffPercent,
+					MaxRGBADiffs:     dm.MaxRGBADiffs,
+					MaxChannelDiff:   max(dm.MaxRGBADiffs),
+					CombinedMetric:   dm.CombinedMetric,
+					DimensionsDiffer: dm.DimDiffer,
+					Timestamp:        now,
+				})
+			}
+		}
+	}
+}
+
+func max(d [4]int) int {
+	m := -1
+	for _, i := range d {
+		if i > m {
+			m = i
+		}
+	}
+	return m
+}
+
+func openNRGBAFromDisk(basePath string, digest types.Digest) *image.NRGBA {
+	var img *image.NRGBA
+	path := filepath.Join(basePath, string(digest)+".png")
+	err := util.WithReadFile(path, func(r io.Reader) error {
+		im, err := png.Decode(r)
+		if err != nil {
+			return skerr.Wrapf(err, "decoding %s", path)
+		}
+		img = diff.GetNRGBA(im)
+		return nil
+	})
+	if err != nil {
+		logAndPanic(err.Error())
+	}
+	return img
+}
+
 // GenerateStructs should be called when all the data has been loaded in for a given setup and
 // it will generate the SQL rows as represented in a schema.Tables. If any validation steps fail,
 // it will panic.
@@ -246,6 +379,7 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 			rv.ExpectationDeltas = append(rv.ExpectationDeltas, ed)
 		}
 	}
+	rv.DiffMetrics = b.diffMetrics
 	return rv
 }
 
