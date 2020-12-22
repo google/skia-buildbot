@@ -1,17 +1,17 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "testutils",
     srcs = ["testutils.go"],
     importpath = "go.skia.org/infra/go/gerrit/testutils",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/buildbucket/bb_testutils:go_default_library",
-        "//go/gerrit:go_default_library",
-        "//go/mockhttpclient:go_default_library",
-        "//go/sktest:go_default_library",
-        "//go/testutils:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
-        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
+        "//go/buildbucket/bb_testutils",
+        "//go/gerrit",
+        "//go/mockhttpclient",
+        "//go/sktest",
+        "//go/testutils",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//buildbucket/proto",
     ],
 )

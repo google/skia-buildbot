@@ -19,7 +19,7 @@ go_test(
         "example_test.go",
     ],
     tags = ["manual"],
-    deps = ["//go/testutils/unittest:go_default_library"],
+    deps = ["//go/testutils/unittest"],
 )
 
 nodejs_mocha_test(

@@ -1,20 +1,20 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "ts_lib",
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/machine/go/machine/ts",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "//machine/go/machine:go_default_library",
-        "@com_github_skia_dev_go2ts//:go_default_library",
+        "//go/sklog",
+        "//go/util",
+        "//machine/go/machine",
+        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 
 go_binary(
     name = "ts",
-    embed = [":go_default_library"],
+    embed = [":ts_lib"],
     visibility = ["//visibility:public"],
 )
