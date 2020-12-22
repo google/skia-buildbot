@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f8ce6e90_b865f2d7",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-22T14:43:45Z",
+      "side": 1,
+      "message": "Is there a type for the JSON?",
+      "revId": "d3b6e6a2119f166f03b460aa3291a9e1f06e5f4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
