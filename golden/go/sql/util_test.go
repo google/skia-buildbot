@@ -68,9 +68,53 @@ func TestSerializeMap_Success(t *testing.T) {
 	assert.Equal(t, "99914b932bd37a50b983c5e7c90ae93b", hex.EncodeToString(expectedHash[:]))
 }
 
+func TestDeserializeMap_ValidInput_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	m, err := DeserializeMap(`{}`)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{}, m)
+
+	m, err = DeserializeMap(`{"gamma":"delta","alpha":"beta"}`)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{
+		"alpha": "beta",
+		"gamma": "delta",
+	}, m)
+}
+
+func TestDeserializeMap_InvalidInput_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	_, err := DeserializeMap(`{this is invalid}`)
+	assert.Error(t, err)
+}
+
 func TestComputeTraceValueShard_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	assert.Equal(t, byte(0x05), ComputeTraceValueShard(schema.TraceID{0xed, 0x12}))
 	assert.Equal(t, byte(0x03), ComputeTraceValueShard(schema.TraceID{0x13, 0x14}))
+}
+
+func TestComputeTileStartID_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, schema.CommitID(0), ComputeTileStartID(87, 100))
+	assert.Equal(t, schema.CommitID(100), ComputeTileStartID(127, 100))
+	assert.Equal(t, schema.CommitID(1200), ComputeTileStartID(1234, 100))
+
+	assert.Equal(t, schema.CommitID(0), ComputeTileStartID(87, 500))
+	assert.Equal(t, schema.CommitID(0), ComputeTileStartID(127, 500))
+	assert.Equal(t, schema.CommitID(1000), ComputeTileStartID(1234, 500))
+}
+
+func TestAsMD5Hash_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	db, err := DigestToBytes("aaaabbbbccccddddeeeeffff00001111")
+	require.NoError(t, err)
+	assert.Equal(t, schema.MD5Hash{
+		0xaa, 0xaa, 0xbb, 0xbb, 0xcc, 0xcc, 0xdd, 0xdd, 0xee, 0xee, 0xff, 0xff, 0x00, 0x00, 0x11, 0x11,
+	}, AsMD5Hash(db))
 }
