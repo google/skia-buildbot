@@ -136,7 +136,7 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 //
 // CSP failures will be logged as structured log events.
 //
-// Static resources, e.g. webpack output, will be served at '/static/' and will
+// Static resources, e.g. webpack output, will be served at '/dist/' and will
 // serve the contents of the '/dist' directory.
 func Serve(constructor Constructor, allowedHosts []string) {
 	// Do common init.
@@ -161,7 +161,11 @@ func Serve(constructor Constructor, allowedHosts []string) {
 	// Add all routing.
 	r := mux.NewRouter()
 	r.HandleFunc("/cspreport", cspReporter).Methods("POST")
+	// The /static/ path is kept for legacy apps, but all apps should migrate to /dist/
+	// to work with puppeteer.
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
+	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*ResourcesDir))))
+
 	app.AddHandlers(r)
 
 	// Layer on all the middleware.
