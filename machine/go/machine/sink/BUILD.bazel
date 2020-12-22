@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "sink",
     srcs = [
         "impl.go",
         "sink.go",
@@ -9,28 +9,28 @@ go_library(
     importpath = "go.skia.org/infra/machine/go/machine/sink",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/metrics2:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//machine/go/common:go_default_library",
-        "//machine/go/machine:go_default_library",
-        "//machine/go/machineserver/config:go_default_library",
-        "@com_google_cloud_go_pubsub//:go_default_library",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//machine/go/common",
+        "//machine/go/machine",
+        "//machine/go/machineserver/config",
+        "@com_google_cloud_go_pubsub//:pubsub",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "sink_test",
     srcs = ["impl_test.go"],
-    embed = [":go_default_library"],
+    embed = [":sink"],
     deps = [
-        "//go/auth:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "//machine/go/machine:go_default_library",
-        "//machine/go/machineserver/config:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
-        "@com_google_cloud_go_pubsub//:go_default_library",
-        "@org_golang_google_api//option:go_default_library",
+        "//go/auth",
+        "//go/testutils/unittest",
+        "//machine/go/machine",
+        "//machine/go/machineserver/config",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
     ],
 )

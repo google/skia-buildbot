@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "allowed",
     srcs = [
         "allowed.go",
         "infra_auth_allowed.go",
@@ -9,21 +9,21 @@ go_library(
     importpath = "go.skia.org/infra/go/allowed",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/sklog",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "allowed_test",
     srcs = [
         "allowed_test.go",
         "infra_auth_allowed_test.go",
     ],
-    embed = [":go_default_library"],
+    embed = [":allowed"],
     deps = [
-        "//go/mockhttpclient:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
     ],
 )

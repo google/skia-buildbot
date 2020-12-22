@@ -1,19 +1,19 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "base-image_lib",
     srcs = ["create_image.go"],
     importpath = "go.skia.org/infra/go/gce/server/base-image",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/common:go_default_library",
-        "//go/gce:go_default_library",
-        "//go/sklog:go_default_library",
+        "//go/common",
+        "//go/gce",
+        "//go/sklog",
     ],
 )
 
 go_binary(
     name = "base-image",
-    embed = [":go_default_library"],
+    embed = [":base-image_lib"],
     visibility = ["//visibility:public"],
 )

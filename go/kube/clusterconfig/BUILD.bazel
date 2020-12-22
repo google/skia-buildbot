@@ -1,12 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "clusterconfig",
     srcs = ["clusterconfig.go"],
     importpath = "go.skia.org/infra/go/kube/clusterconfig",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/git:go_default_library",
-        "//go/skerr:go_default_library",
+        "//go/git",
+        "//go/skerr",
     ],
 )

@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "shared_tests",
+    srcs = ["shared_tests.go"],
+    importpath = "go.skia.org/infra/go/vfs/shared_tests",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sktest",
+        "//go/testutils",
+        "//go/vfs",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+go_test(
+    name = "shared_tests_test",
+    srcs = [
+        "local_test.go",
+        "vfs_test.go",
+    ],
+    embed = [":shared_tests"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "//go/vfs",
+        "//go/vfs/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

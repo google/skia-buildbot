@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "mockhttpclient",
     srcs = [
         "muxclient.go",
         "urlmock.go",
@@ -9,26 +9,26 @@ go_library(
     importpath = "go.skia.org/infra/go/mockhttpclient",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_gorilla_mux//:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
-        "@com_github_texttheater_golang_levenshtein//levenshtein:go_default_library",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_github_texttheater_golang_levenshtein//levenshtein",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "mockhttpclient_test",
     srcs = [
         "muxclient_test.go",
         "urlmock_test.go",
     ],
-    embed = [":go_default_library"],
+    embed = [":mockhttpclient"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_gorilla_mux//:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_stretchr_testify//require",
     ],
 )

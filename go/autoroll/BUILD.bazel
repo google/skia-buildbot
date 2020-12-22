@@ -1,34 +1,34 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "autoroll",
     srcs = ["autoroll.go"],
     importpath = "go.skia.org/infra/go/autoroll",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/buildbucket:go_default_library",
-        "//go/comment:go_default_library",
-        "//go/github:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/buildbucket",
+        "//go/comment",
+        "//go/github",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
+        "@org_chromium_go_luci//buildbucket/proto",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "autoroll_test",
     srcs = ["autoroll_test.go"],
-    embed = [":go_default_library"],
+    embed = [":autoroll"],
     deps = [
-        "//go/comment:go_default_library",
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/github:go_default_library",
-        "//go/testutils/unittest:go_default_library",
+        "//go/comment",
+        "//go/deepequal/assertdeep",
+        "//go/github",
+        "//go/testutils/unittest",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_github_stretchr_testify//require",
         "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
-        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
+        "@org_chromium_go_luci//buildbucket/proto",
     ],
 )

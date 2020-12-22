@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "vfs",
+    srcs = [
+        "local.go",
+        "vfs.go",
+    ],
+    importpath = "go.skia.org/infra/go/vfs",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
+)

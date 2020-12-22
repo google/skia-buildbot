@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "CloseFS.go",
+        "FS.go",
+        "File.go",
+        "ReadDirFile.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/go/vfs/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/vfs",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "twirp_auth",
+    srcs = ["twirp_auth.go"],
+    importpath = "go.skia.org/infra/go/twirp_auth",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/allowed",
+        "//go/login",
+        "@com_github_twitchtv_twirp//:twirp",
+    ],
+)

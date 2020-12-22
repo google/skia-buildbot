@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "tar",
     srcs = ["tar.go"],
     importpath = "go.skia.org/infra/go/tar",
     visibility = ["//visibility:public"],

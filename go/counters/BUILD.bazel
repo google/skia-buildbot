@@ -1,27 +1,27 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "counters",
     srcs = ["counters.go"],
     importpath = "go.skia.org/infra/go/counters",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gcs:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@com_google_cloud_go_storage//:go_default_library",
+        "//go/gcs",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "counters_test",
     srcs = ["counters_test.go"],
-    embed = [":go_default_library"],
+    embed = [":counters"],
     deps = [
-        "//go/gcs:go_default_library",
-        "//go/gcs/mem_gcsclient:go_default_library",
-        "//go/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/gcs",
+        "//go/gcs/mem_gcsclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )

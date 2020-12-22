@@ -1,24 +1,24 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "imports",
     srcs = ["imports.go"],
     importpath = "go.skia.org/infra/go/imports",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/exec:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/exec",
+        "//go/sklog",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "imports_test",
     srcs = ["imports_test.go"],
-    embed = [":go_default_library"],
+    embed = [":imports"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
     ],
 )

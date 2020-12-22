@@ -1,40 +1,44 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "git",
     srcs = [
         "checkout.go",
         "gitdir.go",
         "repo.go",
         "util.go",
+        "vfs.go",
     ],
     importpath = "go.skia.org/infra/go/git",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/exec:go_default_library",
-        "//go/git/git_common:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/vcsinfo:go_default_library",
+        "//go/exec",
+        "//go/git/git_common",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vcsinfo",
+        "//go/vfs",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "git_test",
     srcs = [
         "checkout_test.go",
         "gitdir_test.go",
         "repo_test.go",
         "util_test.go",
+        "vfs_test.go",
     ],
-    embed = [":go_default_library"],
+    embed = [":git"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/exec/testutils:go_default_library",
-        "//go/git/testutils:go_default_library",
-        "//go/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/exec/testutils",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vfs/shared_tests",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

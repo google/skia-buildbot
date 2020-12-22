@@ -1,18 +1,18 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "atomic_miss_cache",
     srcs = ["atomic_miss_cache.go"],
     importpath = "go.skia.org/infra/go/atomic_miss_cache",
     visibility = ["//visibility:public"],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "atomic_miss_cache_test",
     srcs = ["atomic_miss_cache_test.go"],
-    embed = [":go_default_library"],
+    embed = [":atomic_miss_cache"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )

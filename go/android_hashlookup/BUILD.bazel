@@ -1,23 +1,23 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "android_hashlookup_lib",
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/go/android_hashlookup",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/androidbuild:go_default_library",
-        "//go/androidbuildinternal/v2beta1:go_default_library",
-        "//go/auth:go_default_library",
-        "//go/common:go_default_library",
-        "//go/httputils:go_default_library",
-        "//go/sklog:go_default_library",
-        "@org_golang_google_api//storage/v1:go_default_library",
+        "//go/androidbuild",
+        "//go/androidbuildinternal/v2beta1",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "@org_golang_google_api//storage/v1:storage",
     ],
 )
 
 go_binary(
     name = "android_hashlookup",
-    embed = [":go_default_library"],
+    embed = [":android_hashlookup_lib"],
     visibility = ["//visibility:public"],
 )

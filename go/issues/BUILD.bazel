@@ -1,13 +1,13 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "issues",
     srcs = ["issues.go"],
     importpath = "go.skia.org/infra/go/issues",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/common:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/common",
+        "//go/sklog",
+        "//go/util",
     ],
 )

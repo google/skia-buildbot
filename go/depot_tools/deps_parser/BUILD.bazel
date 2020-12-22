@@ -1,30 +1,30 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "deps_parser",
     srcs = ["deps_parser.go"],
     importpath = "go.skia.org/infra/go/depot_tools/deps_parser",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/cipd:go_default_library",
-        "//go/git:go_default_library",
-        "//go/skerr:go_default_library",
-        "@com_github_go_python_gpython//ast:go_default_library",
-        "@com_github_go_python_gpython//builtin:go_default_library",
-        "@com_github_go_python_gpython//parser:go_default_library",
-        "@com_github_go_python_gpython//py:go_default_library",
+        "//go/cipd",
+        "//go/git",
+        "//go/skerr",
+        "@com_github_go_python_gpython//ast",
+        "@com_github_go_python_gpython//builtin",
+        "@com_github_go_python_gpython//parser",
+        "@com_github_go_python_gpython//py",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "deps_parser_test",
     srcs = ["deps_parser_test.go"],
-    embed = [":go_default_library"],
+    embed = [":deps_parser"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/gitiles:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_go_python_gpython//ast:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/gitiles",
+        "//go/testutils/unittest",
+        "@com_github_go_python_gpython//ast",
+        "@com_github_stretchr_testify//require",
     ],
 )

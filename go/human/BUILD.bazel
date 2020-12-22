@@ -1,16 +1,16 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "human",
     srcs = ["human.go"],
     importpath = "go.skia.org/infra/go/human",
     visibility = ["//visibility:public"],
-    deps = ["//go/sklog:go_default_library"],
+    deps = ["//go/sklog"],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "human_test",
     srcs = ["human_test.go"],
-    embed = [":go_default_library"],
-    deps = ["//go/testutils/unittest:go_default_library"],
+    embed = [":human"],
+    deps = ["//go/testutils/unittest"],
 )

@@ -1,12 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "sklog",
     srcs = ["sklog.go"],
     importpath = "go.skia.org/infra/go/sklog",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog/glog_and_cloud:go_default_library",
-        "//go/sklog/sklog_impl:go_default_library",
+        "//go/sklog/glog_and_cloud",
+        "//go/sklog/sklog_impl",
     ],
 )

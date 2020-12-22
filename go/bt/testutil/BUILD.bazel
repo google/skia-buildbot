@@ -1,15 +1,15 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "testutil",
     srcs = ["testutil.go"],
     importpath = "go.skia.org/infra/go/bt/testutil",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/bt:go_default_library",
-        "//go/sktest:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_google_uuid//:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/bt",
+        "//go/sktest",
+        "//go/testutils/unittest",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//require",
     ],
 )

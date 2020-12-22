@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "testutils",
     srcs = [
         "repo.go",
         "vcsinfo_testutils.go",
@@ -9,11 +9,12 @@ go_library(
     importpath = "go.skia.org/infra/go/vcsinfo/testutils",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/sktest:go_default_library",
-        "//go/util/zip:go_default_library",
-        "//go/vcsinfo:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/git",
+        "//go/sklog",
+        "//go/sktest",
+        "//go/util/zip",
+        "//go/vcsinfo",
+        "@com_github_stretchr_testify//require",
     ],
 )

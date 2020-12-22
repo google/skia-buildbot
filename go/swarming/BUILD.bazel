@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "swarming",
     srcs = [
         "apiclient.go",
         "mock_apiclient.go",
@@ -11,12 +11,14 @@ go_library(
     importpath = "go.skia.org/infra/go/swarming",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/cipd:go_default_library",
-        "//go/common:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_stretchr_testify//mock:go_default_library",
-        "@com_google_cloud_go_pubsub//:go_default_library",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+        "//go/cas/rbe",
+        "//go/cipd",
+        "//go/common",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_stretchr_testify//mock",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )

@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "alerts",
     srcs = ["alerts.go"],
     importpath = "go.skia.org/infra/go/alerts",
     visibility = ["//visibility:public"],

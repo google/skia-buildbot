@@ -1,26 +1,27 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "new-branch_lib",
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/go/supported_branches/cmd/new-branch",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth:go_default_library",
-        "//go/common:go_default_library",
-        "//go/cq:go_default_library",
-        "//go/gerrit:go_default_library",
-        "//go/gitiles:go_default_library",
-        "//go/httputils:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/supported_branches:go_default_library",
-        "//go/util:go_default_library",
-        "@org_chromium_go_luci//cq/api/config/v2:go_default_library",
+        "//go/auth",
+        "//go/common",
+        "//go/cq",
+        "//go/gerrit",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/supported_branches",
+        "//go/util",
+        "@org_chromium_go_luci//cv/api/config/v2:config",
     ],
 )
 
 go_binary(
     name = "new-branch",
-    embed = [":go_default_library"],
+    embed = [":new-branch_lib"],
     visibility = ["//visibility:public"],
 )

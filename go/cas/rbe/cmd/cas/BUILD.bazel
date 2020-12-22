@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cas_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/cas/rbe/cmd/cas",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/cas/rbe",
+        "@org_golang_google_api//compute/v0.beta:v0_beta",
+    ],
+)
+
+go_binary(
+    name = "cas",
+    embed = [":cas_lib"],
+    visibility = ["//visibility:public"],
+)

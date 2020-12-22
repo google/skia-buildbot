@@ -1,9 +1,9 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "android_skia_checkout",
     srcs = ["android_skia_checkout.go"],
     importpath = "go.skia.org/infra/go/android_skia_checkout",
     visibility = ["//visibility:public"],
-    deps = ["//go/exec:go_default_library"],
+    deps = ["//go/exec"],
 )

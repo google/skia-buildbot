@@ -1,21 +1,21 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "issues_helper_lib",
     srcs = ["main.go"],
     importpath = "go.skia.org/infra/go/issues/issues_helper",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/auth:go_default_library",
-        "//go/common:go_default_library",
-        "//go/httputils:go_default_library",
-        "//go/issues:go_default_library",
-        "//go/sklog:go_default_library",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/issues",
+        "//go/sklog",
     ],
 )
 
 go_binary(
     name = "issues_helper",
-    embed = [":go_default_library"],
+    embed = [":issues_helper_lib"],
     visibility = ["//visibility:public"],
 )

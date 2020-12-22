@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "taskname",
     srcs = [
         "mock_task_name_schema.go",
         "task_name_schema.go",
@@ -9,15 +9,15 @@ go_library(
     ],
     importpath = "go.skia.org/infra/go/taskname",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_stretchr_testify//mock:go_default_library"],
+    deps = ["@com_github_stretchr_testify//mock"],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "taskname_test",
     srcs = ["task_name_schema_test.go"],
-    embed = [":go_default_library"],
+    embed = [":taskname"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )

@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "pubsub",
     srcs = [
         "graph.go",
         "pubsub.go",
@@ -9,32 +9,32 @@ go_library(
     importpath = "go.skia.org/infra/go/gitstore/pubsub",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/cleanup:go_default_library",
-        "//go/git/repograph:go_default_library",
-        "//go/gitstore:go_default_library",
-        "//go/gitstore/bt_gitstore:go_default_library",
-        "//go/skerr:go_default_library",
-        "//go/sklog:go_default_library",
-        "@com_google_cloud_go_pubsub//:go_default_library",
-        "@org_golang_google_api//option:go_default_library",
-        "@org_golang_x_oauth2//:go_default_library",
+        "//go/cleanup",
+        "//go/git/repograph",
+        "//go/gitstore",
+        "//go/gitstore/bt_gitstore",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "pubsub_test",
     srcs = ["pubsub_test.go"],
-    embed = [":go_default_library"],
+    embed = [":pubsub"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/git:go_default_library",
-        "//go/git/repograph:go_default_library",
-        "//go/git/testutils:go_default_library",
-        "//go/gitstore/bt_gitstore:go_default_library",
-        "//go/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_google_uuid//:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_google_cloud_go_pubsub//:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/gitstore/bt_gitstore",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//assert",
+        "@com_google_cloud_go_pubsub//:pubsub",
     ],
 )

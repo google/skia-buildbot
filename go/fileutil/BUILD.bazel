@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "fileutil",
     srcs = [
         "filepath.go",
         "fileutil.go",
@@ -9,22 +9,22 @@ go_library(
     importpath = "go.skia.org/infra/go/fileutil",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/sklog",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "fileutil_test",
     srcs = [
         "filepath_test.go",
         "fileutil_test.go",
     ],
     data = glob(["testdata/**"]),
-    embed = [":go_default_library"],
+    embed = [":fileutil"],
     deps = [
-        "//go/deepequal/assertdeep:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
     ],
 )

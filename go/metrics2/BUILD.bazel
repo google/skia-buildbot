@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "metrics2",
     srcs = [
         "counter.go",
         "docs.go",
@@ -14,23 +14,23 @@ go_library(
     importpath = "go.skia.org/infra/go/metrics2",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_golang_glog//:go_default_library",
-        "@com_github_gorilla_mux//:go_default_library",
-        "@com_github_prometheus_client_golang//prometheus:go_default_library",
-        "@com_github_prometheus_client_golang//prometheus/promhttp:go_default_library",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_golang_glog//:glog",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@com_github_prometheus_client_golang//prometheus/promhttp",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "metrics2_test",
     srcs = ["prom_test.go"],
-    embed = [":go_default_library"],
+    embed = [":metrics2"],
     deps = [
-        "//go/metrics2/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_prometheus_client_golang//prometheus:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/metrics2/testutils",
+        "//go/testutils/unittest",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@com_github_stretchr_testify//require",
     ],
 )

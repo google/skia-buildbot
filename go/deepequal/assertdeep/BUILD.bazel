@@ -1,26 +1,27 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "assertdeep",
     srcs = ["assertdeep.go"],
     importpath = "go.skia.org/infra/go/deepequal/assertdeep",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/deepequal:go_default_library",
-        "//go/sktest:go_default_library",
-        "@com_github_davecgh_go_spew//spew:go_default_library",
-        "@com_github_pmezard_go_difflib//difflib:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/deepequal",
+        "//go/sklog",
+        "//go/sktest",
+        "@com_github_davecgh_go_spew//spew",
+        "@com_github_pmezard_go_difflib//difflib",
+        "@com_github_stretchr_testify//require",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "assertdeep_test",
     srcs = ["assertdeep_test.go"],
-    embed = [":go_default_library"],
+    embed = [":assertdeep"],
     deps = [
-        "//go/sktest:go_default_library",
-        "//go/testutils:go_default_library",
-        "//go/testutils/unittest:go_default_library",
+        "//go/sktest",
+        "//go/testutils",
+        "//go/testutils/unittest",
     ],
 )

@@ -1,25 +1,25 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "webhook",
     srcs = ["webhook.go"],
     importpath = "go.skia.org/infra/go/webhook",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/metadata:go_default_library",
-        "//go/sklog:go_default_library",
-        "//go/util:go_default_library",
+        "//go/metadata",
+        "//go/sklog",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "webhook_test",
     srcs = ["webhook_test.go"],
-    embed = [":go_default_library"],
+    embed = [":webhook"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "//go/util:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

@@ -1,9 +1,9 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "go_install",
     srcs = ["go_install.go"],
     importpath = "go.skia.org/infra/go/go_install",
     visibility = ["//visibility:public"],
-    deps = ["//go/cipd:go_default_library"],
+    deps = ["//go/cipd"],
 )

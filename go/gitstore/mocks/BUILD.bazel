@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "mocks",
     srcs = [
         "GitStore.go",
         "generate.go",
@@ -9,8 +9,8 @@ go_library(
     importpath = "go.skia.org/infra/go/gitstore/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gitstore:go_default_library",
-        "//go/vcsinfo:go_default_library",
-        "@com_github_stretchr_testify//mock:go_default_library",
+        "//go/gitstore",
+        "//go/vcsinfo",
+        "@com_github_stretchr_testify//mock",
     ],
 )
