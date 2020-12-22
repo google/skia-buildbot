@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "rtcache",
     srcs = [
         "memrtc.go",
         "rtcache.go",
@@ -9,18 +9,18 @@ go_library(
     importpath = "go.skia.org/infra/go/rtcache",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/skerr:go_default_library",
-        "@com_github_hashicorp_golang_lru//:go_default_library",
+        "//go/skerr",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "rtcache_test",
     srcs = ["memrtc_test.go"],
-    embed = [":go_default_library"],
+    embed = [":rtcache"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )
