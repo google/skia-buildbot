@@ -3,6 +3,7 @@ package sql
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/skerr"
@@ -35,6 +36,16 @@ func SerializeMap(m map[string]string) (schema.SerializedJSON, []byte) {
 	return schema.SerializedJSON(jsonBytes), h[:]
 }
 
+// DeserializeMap returns the given JSON string as a map of string to string.
+func DeserializeMap(s schema.SerializedJSON) (map[string]string, error) {
+	m := map[string]string{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return m, nil
+}
+
 // TraceValuesShards is the number of shards we use in the TraceValues Table.
 const TraceValuesShards = 8
 
@@ -45,4 +56,16 @@ const TraceValuesShards = 8
 // data locality and sharding.
 func ComputeTraceValueShard(traceID schema.TraceID) byte {
 	return traceID[0] % TraceValuesShards
+}
+
+// ComputeTileStartID returns the commit id is the beginning of the tile that the commit is in.
+func ComputeTileStartID(cid schema.CommitID, tileWidth int) schema.CommitID {
+	return (cid / schema.CommitID(tileWidth)) * schema.CommitID(tileWidth)
+}
+
+// AsMD5Hash returns the given byte slice as an MD5Hash (for easier use with maps)
+func AsMD5Hash(b []byte) schema.MD5Hash {
+	var m schema.MD5Hash
+	copy(m[:], b)
+	return m
 }

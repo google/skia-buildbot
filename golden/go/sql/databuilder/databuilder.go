@@ -37,6 +37,7 @@ type SQLDataBuilder struct {
 	groupingKeys        []string
 	symbolsToDigest     map[rune]schema.DigestBytes
 	traceBuilders       []*TraceBuilder
+	tileWidth           int
 }
 
 // Commits returns a new CommitBuilder linked to this builder which will have a set. It panics if
@@ -211,8 +212,7 @@ func (b *SQLDataBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr stri
 		for _, trace := range tb.traceValues {
 			for _, tv := range trace {
 				if tv != nil {
-					var groupingID schema.MD5Hash
-					copy(groupingID[:], tv.GroupingID)
+					groupingID := sql.AsMD5Hash(tv.GroupingID)
 					if _, ok := toCompute[groupingID]; !ok {
 						toCompute[groupingID] = types.DigestSet{}
 					}
@@ -303,8 +303,12 @@ func openNRGBAFromDisk(basePath string, digest types.Digest) *image.NRGBA {
 // it will generate the SQL rows as represented in a schema.Tables. If any validation steps fail,
 // it will panic.
 func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
+	if b.tileWidth == 0 {
+		b.tileWidth = 100 // default
+	}
 	var rv schema.Tables
 	commitsWithData := map[schema.CommitID]bool{}
+	valuesAtHead := map[schema.MD5Hash]*schema.ValueAtHeadRow{}
 	for _, builder := range b.traceBuilders {
 		// Add unique rows from the tables gathered by tracebuilders.
 	nextOption:
@@ -343,6 +347,12 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 				}
 			}
 			rv.Traces = append(rv.Traces, t)
+			valuesAtHead[sql.AsMD5Hash(t.TraceID)] = &schema.ValueAtHeadRow{
+				TraceID:    t.TraceID,
+				GroupingID: t.GroupingID,
+				Corpus:     t.Corpus,
+				Keys:       t.Keys,
+			}
 		}
 		for _, xtv := range builder.traceValues {
 			for _, tv := range xtv {
@@ -358,10 +368,16 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 					}
 					rv.TraceValues = append(rv.TraceValues, *tv)
 					commitsWithData[tv.CommitID] = true
+					vHead := valuesAtHead[sql.AsMD5Hash(tv.TraceID)]
+					vHead.Digest = tv.Digest
+					vHead.MostRecentCommitID = tv.CommitID
+					vHead.OptionsID = tv.OptionsID
 				}
 			}
 		}
 	}
+	rv.TiledTraceDigests = b.computeTiledTraceDigests()
+	rv.PrimaryBranchParams = b.computePrimaryBranchParams()
 	rv.Commits = b.commitBuilder.commits
 	for i := range rv.Commits {
 		cid := rv.Commits[i].CommitID
@@ -375,11 +391,128 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 	}
 	for _, eb := range b.expectationBuilders {
 		rv.ExpectationRecords = append(rv.ExpectationRecords, *eb.record)
-		for _, ed := range eb.deltas {
-			rv.ExpectationDeltas = append(rv.ExpectationDeltas, ed)
-		}
+		rv.ExpectationDeltas = append(rv.ExpectationDeltas, eb.deltas...)
 	}
 	rv.DiffMetrics = b.diffMetrics
+	for _, atHead := range valuesAtHead {
+		for _, exp := range rv.Expectations {
+			if bytes.Equal(exp.GroupingID, atHead.GroupingID) && bytes.Equal(exp.Digest, atHead.Digest) {
+				atHead.ExpectationRecordID = exp.ExpectationRecordID
+				atHead.Label = exp.Label
+				break
+			}
+		}
+		rv.ValuesAtHead = append(rv.ValuesAtHead, *atHead)
+	}
+	return rv
+}
+
+type tiledTraceDigest struct {
+	startCommitID schema.CommitID
+	traceID       schema.MD5Hash
+	digest        schema.MD5Hash
+}
+
+func (b *SQLDataBuilder) computeTiledTraceDigests() []schema.TiledTraceDigestRow {
+	seenRows := map[tiledTraceDigest]bool{}
+	for _, builder := range b.traceBuilders {
+		for _, xtv := range builder.traceValues {
+			for _, tv := range xtv {
+				if tv == nil {
+					continue
+				}
+				tiledID := sql.ComputeTileStartID(tv.CommitID, b.tileWidth)
+				seenRows[tiledTraceDigest{
+					startCommitID: tiledID,
+					traceID:       sql.AsMD5Hash(tv.TraceID),
+					digest:        sql.AsMD5Hash(tv.Digest),
+				}] = true
+			}
+		}
+	}
+	var rv []schema.TiledTraceDigestRow
+	for row := range seenRows {
+		tID := make(schema.TraceID, len(schema.MD5Hash{}))
+		db := make(schema.DigestBytes, len(schema.MD5Hash{}))
+		copy(tID, row.traceID[:])
+		copy(db, row.digest[:])
+		rv = append(rv, schema.TiledTraceDigestRow{
+			StartCommitID: row.startCommitID,
+			TraceID:       tID,
+			Digest:        db,
+		})
+	}
+	return rv
+}
+
+type tiledKeyValue struct {
+	startCommitID schema.CommitID
+	key           string
+	value         string
+}
+
+func (b *SQLDataBuilder) computePrimaryBranchParams() []schema.PrimaryBranchParamRow {
+	seenRows := map[tiledKeyValue]bool{}
+	for _, builder := range b.traceBuilders {
+		findTraceKeys := func(traceID schema.TraceID) paramtools.Params {
+			for _, tr := range builder.traces {
+				if bytes.Equal(tr.TraceID, traceID) {
+					p, err := sql.DeserializeMap(tr.Keys)
+					if err != nil {
+						logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
+					}
+					return p
+				}
+			}
+			logAndPanic("missing trace id %x", traceID)
+			return nil
+		}
+		findOptions := func(optID schema.OptionsID) paramtools.Params {
+			for _, opt := range builder.options {
+				if bytes.Equal(opt.OptionsID, optID) {
+					p, err := sql.DeserializeMap(opt.Keys)
+					if err != nil {
+						logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
+					}
+					return p
+				}
+			}
+			logAndPanic("missing options id %x", optID)
+			return nil
+		}
+		for _, xtv := range builder.traceValues {
+			for _, tv := range xtv {
+				if tv == nil {
+					continue
+				}
+				tiledID := sql.ComputeTileStartID(tv.CommitID, b.tileWidth)
+				keys := findTraceKeys(tv.TraceID)
+				for k, v := range keys {
+					seenRows[tiledKeyValue{
+						startCommitID: tiledID,
+						key:           k,
+						value:         v,
+					}] = true
+				}
+				options := findOptions(tv.OptionsID)
+				for k, v := range options {
+					seenRows[tiledKeyValue{
+						startCommitID: tiledID,
+						key:           k,
+						value:         v,
+					}] = true
+				}
+			}
+		}
+	}
+	var rv []schema.PrimaryBranchParamRow
+	for row := range seenRows {
+		rv = append(rv, schema.PrimaryBranchParamRow{
+			StartCommitID: row.startCommitID,
+			Key:           row.key,
+			Value:         row.value,
+		})
+	}
 	return rv
 }
 

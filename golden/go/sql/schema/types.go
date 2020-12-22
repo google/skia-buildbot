@@ -50,16 +50,19 @@ const (
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
 // more easily generate test data (see sql/databuilder).
 type Tables struct {
-	Commits            []CommitRow
-	DiffMetrics        []DiffMetricRow
-	ExpectationDeltas  []ExpectationDeltaRow
-	ExpectationRecords []ExpectationRecordRow
-	Expectations       []ExpectationRow
-	Groupings          []GroupingRow
-	Options            []OptionsRow
-	SourceFiles        []SourceFileRow
-	TraceValues        []TraceValueRow
-	Traces             []TraceRow
+	Commits             []CommitRow
+	DiffMetrics         []DiffMetricRow
+	ExpectationDeltas   []ExpectationDeltaRow
+	ExpectationRecords  []ExpectationRecordRow
+	Expectations        []ExpectationRow
+	Groupings           []GroupingRow
+	Options             []OptionsRow
+	PrimaryBranchParams []PrimaryBranchParamRow
+	SourceFiles         []SourceFileRow
+	TiledTraceDigests   []TiledTraceDigestRow
+	TraceValues         []TraceValueRow
+	Traces              []TraceRow
+	ValuesAtHead        []ValueAtHeadRow
 }
 
 // TODO(kjlubick) add code to generate SQL statements from these struct tags
@@ -116,7 +119,7 @@ type TraceRow struct {
 	TraceID TraceID `sql:"trace_id BYTES PRIMARY KEY"`
 	// Corpus is the value associated with the "source_type" key. It is its own field for easier
 	// searches and joins.
-	Corpus string `sql:"corpus STRING AS (keys->>'id') STORED NOT NULL"`
+	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED NOT NULL"`
 	// GroupingID is the MD5 hash of the subset of keys that make up the grouping. It is its own
 	// field for easier searches and joins. This is a foreign key into the Groupings table.
 	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
@@ -246,4 +249,75 @@ type DiffMetricRow struct {
 	// allows for us to periodically clean up this large table.
 	Timestamp  time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
 	primaryKey struct{}  `sql:"PRIMARY KEY (left_digest, right_digest)"`
+}
+
+// ValueAtHeadRow represents the most recent data point for a each trace. It contains some
+// denormalized data to reduce the number of joins needed to do some frequent queries.
+type ValueAtHeadRow struct {
+	// TraceID is the MD5 hash of the keys and values describing how this data point (i.e. the
+	// Digest) was drawn. This is a foreign key into the Traces table.
+	TraceID TraceID `sql:"trace_id BYTES PRIMARY KEY"`
+	// MostRecentCommitID represents when in time this data was drawn. This is a foreign key into
+	// the CommitIDs table.
+	MostRecentCommitID CommitID `sql:"most_recent_commit_id INT4 NOT NULL"`
+	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at this point in time
+	// (specified by MostRecentCommitID) and by the machine (specified by TraceID).
+	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
+	// OptionsID is the MD5 hash of the key/values that belong to the options. Options do not impact
+	// the TraceID and thus act as metadata. This is a foreign key into the Options table.
+	OptionsID OptionsID `sql:"options_id BYTES NOT NULL"`
+	// GroupingID is the MD5 hash of the key/values belonging to the grouping (e.g. corpus +
+	// test name).
+
+	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
+	// Corpus is the value associated with the "source_type" key. It is its own field for easier
+	// searches and joins.
+	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED NOT NULL"`
+	// Keys is a serialized JSON representation of a map[string]string that are the trace keys.
+	Keys SerializedJSON `sql:"keys JSONB NOT NULL"`
+
+	// Label represents the current triage status of the given digest for its grouping.
+	Label ExpectationLabel `sql:"expectation_label SMALLINT NOT NULL"`
+	// ExpectationRecordID (if set) is the record ID of the triage record. This allows fast lookup
+	// of who triaged this when.
+	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
+	// MatchesAnyIgnoreRule is true if this trace is matched by any of the ignore rules.
+	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
+}
+
+// PrimaryBranchParamRow corresponds to a given key/value pair that was seen withing a range (tile)
+// of commits. Originally, we had done a join between Traces and TraceValues to find the params
+// where commit_id was in a given range. However, this took several minutes when there were 1M+
+// traces per commit. This table is effectively an index for getting just that data. Note, this
+// contains Keys *and* Options because users can search/filter/query by both of those and this table
+// is used to fill in the UI widgets with the available search options.
+type PrimaryBranchParamRow struct {
+	// StartCommitID is the commit id that is the beginning of the tile for which this row
+	// corresponds. For example, with a tile width of 100, data from commit 73 would correspond to
+	// StartCommitID == 0; data from commit 1234 would correspond with StartCommitID == 1200 and
+	// so on. This is a foreign key into the CommitIDs table.
+	StartCommitID CommitID `sql:"start_commit_id INT4"`
+	// Key is the key of a trace key or option.
+	Key string `sql:"key STRING"`
+	// Value is the value associated with the key.
+	Value string `sql:"value STRING"`
+	// We generally want locality by tile, so that goes first in the primary key.
+	primaryKey struct{} `sql:"PRIMARY KEY (start_commit_id, key, value)"`
+}
+
+// TiledTraceDigestRow corresponds to a given trace producing a given digest within a range (tile)
+// of commits. Originally, we did a SELECT DISTINCT over TraceValues, but that was too slow for
+// many queries when the number of TraceValues was high.
+type TiledTraceDigestRow struct {
+	// TraceID is the MD5 hash of the keys and values describing how this data point (i.e. the
+	// Digest) was drawn. This is a foreign key into the Traces table.
+	TraceID TraceID `sql:"trace_id BYTES"`
+	// StartCommitID is the commit id that is the beginning of the tile for which this row
+	// corresponds.
+	StartCommitID CommitID `sql:"start_commit_id INT4"`
+	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at least once in the tile
+	// specified by StartCommitID and by the machine (specified by TraceID).
+	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
+	// We generally want locality by TraceID, so that goes first in the primary key.
+	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, start_commit_id, digest)"`
 }
