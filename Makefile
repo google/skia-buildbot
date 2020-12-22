@@ -158,7 +158,7 @@ update-go-bazel-files:
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
-	bazel run //:gazelle -- update-repos -from_file=go.mod
+	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
 
 # Known good Bazel build targets. Eventually this should be replaced with "bazel build all".
 BAZEL_BUILD_TARGETS=\
