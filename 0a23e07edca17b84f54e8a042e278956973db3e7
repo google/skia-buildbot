@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cdd5b087_aff6c5b6",
+        "filename": "codereview-watcher/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-12-22T15:52:23Z",
+      "side": 0,
+      "message": "Right now I am CC\u0027ed on all changes. Will redo this doc if the Skia Gardener is included on changes in the future.",
+      "revId": "0a23e07edca17b84f54e8a042e278956973db3e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
