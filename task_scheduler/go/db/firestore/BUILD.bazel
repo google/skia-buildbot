@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "firestore",
+    srcs = [
+        "comments.go",
+        "firestore.go",
+        "jobs.go",
+        "modified_chan.go",
+        "tasks.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/db/firestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore",
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/types",
+        "@com_github_cenkalti_backoff//:backoff",
+        "@com_google_cloud_go_firestore//:firestore",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "firestore_test",
+    srcs = [
+        "firestore_test.go",
+        "modified_chan_test.go",
+    ],
+    embed = [":firestore"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/firestore",
+        "//go/testutils/unittest",
+        "//task_scheduler/go/db",
+        "@com_github_stretchr_testify//require",
+    ],
+)

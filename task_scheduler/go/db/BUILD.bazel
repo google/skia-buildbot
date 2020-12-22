@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "db",
+    srcs = [
+        "comments.go",
+        "db.go",
+        "modified_chan_testutil.go",
+        "testutil.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/db",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/common",
+        "//go/deepequal/assertdeep",
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/sktest",
+        "//go/swarming",
+        "//go/testutils",
+        "//go/util",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "db_test",
+    srcs = ["search_test.go"],
+    embed = [":db"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
