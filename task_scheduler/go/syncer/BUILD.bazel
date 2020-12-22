@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "syncer",
+    srcs = ["syncer.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/syncer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/types",
+    ],
+)
+
+go_test(
+    name = "syncer_test",
+    srcs = ["syncer_test.go"],
+    embed = [":syncer"],
+    deps = [
+        "//go/depot_tools/testutils",
+        "//go/exec",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_scheduler/go/task_cfg_cache/testutils",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)

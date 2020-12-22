@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "testutils",
+    srcs = ["testutils.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/bt/testutil",
+        "//go/git/testutils",
+        "//go/sktest",
+        "//go/testutils",
+        "//task_scheduler/go/specs",
+    ],
+)

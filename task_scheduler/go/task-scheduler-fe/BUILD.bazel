@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "task-scheduler-fe_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/task-scheduler-fe",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/auth",
+        "//go/cleanup",
+        "//go/common",
+        "//go/gerrit",
+        "//go/git/repograph",
+        "//go/gitstore/bt_gitstore",
+        "//go/gitstore/pubsub",
+        "//go/httputils",
+        "//go/login",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/rpc",
+        "//task_scheduler/go/skip_tasks",
+        "//task_scheduler/go/task_cfg_cache",
+        "//task_scheduler/go/types",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_pubsub//:pubsub",
+    ],
+)
+
+go_binary(
+    name = "task-scheduler-fe",
+    embed = [":task-scheduler-fe_lib"],
+    visibility = ["//visibility:public"],
+)

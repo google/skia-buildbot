@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "validate_db_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/db/validate_db",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/types",
+    ],
+)
+
+go_binary(
+    name = "validate_db",
+    embed = [":validate_db_lib"],
+    visibility = ["//visibility:public"],
+)

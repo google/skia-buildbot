@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "isolate_cache",
+    srcs = [
+        "isolate_cache.go",
+        "testutils.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/isolate_cache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/atomic_miss_cache",
+        "//go/bt",
+        "//go/bt/testutil",
+        "//go/isolate",
+        "//go/sktest",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_chromium_go_luci//common/isolated",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "isolate_cache_test",
+    srcs = ["isolate_cache_test.go"],
+    embed = [":isolate_cache"],
+    deps = [
+        "//go/atomic_miss_cache",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/isolated",
+    ],
+)

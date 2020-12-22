@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "testutils",
+    srcs = [
+        "swarming_helpers.go",
+        "testutils.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/testutils",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "//task_scheduler/go/specs",
+        "@com_github_google_uuid//:uuid",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)

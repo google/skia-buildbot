@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "perftest_lib",
+    srcs = ["perftest.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/scheduling/perftest",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/cas/rbe",
+        "//go/common",
+        "//go/exec",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/isolate",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "//task_scheduler/go/db/cache",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/isolate_cache",
+        "//task_scheduler/go/scheduling",
+        "//task_scheduler/go/specs",
+        "//task_scheduler/go/task_cfg_cache",
+        "//task_scheduler/go/testutils",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+        "@com_github_davecgh_go_spew//spew",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_binary(
+    name = "perftest",
+    embed = [":perftest_lib"],
+    visibility = ["//visibility:public"],
+)

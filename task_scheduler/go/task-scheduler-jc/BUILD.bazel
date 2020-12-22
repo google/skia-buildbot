@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "task-scheduler-jc_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/task-scheduler-jc",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/cas/rbe",
+        "//go/cleanup",
+        "//go/common",
+        "//go/depot_tools",
+        "//go/gerrit",
+        "//go/gitauth",
+        "//go/gitstore/bt_gitstore",
+        "//go/gitstore/pubsub",
+        "//go/httputils",
+        "//go/human",
+        "//go/isolate",
+        "//go/periodic",
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/isolate_cache",
+        "//task_scheduler/go/job_creation",
+        "//task_scheduler/go/task_cfg_cache",
+        "//task_scheduler/go/tryjobs",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//compute/v1:compute",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_binary(
+    name = "task-scheduler-jc",
+    embed = [":task-scheduler-jc_lib"],
+    visibility = ["//visibility:public"],
+)

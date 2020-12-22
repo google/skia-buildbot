@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "delete_firestore_lib",
+    srcs = ["delete_firestore.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/db/delete_firestore",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/firestore",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "delete_firestore",
+    embed = [":delete_firestore_lib"],
+    visibility = ["//visibility:public"],
+)

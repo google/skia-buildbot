@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "skip_tasks",
+    srcs = ["skip_tasks.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/skip_tasks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore",
+        "//go/git/repograph",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_firestore//:firestore",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "skip_tasks_test",
+    srcs = ["skip_tasks_test.go"],
+    embed = [":skip_tasks"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/firestore",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

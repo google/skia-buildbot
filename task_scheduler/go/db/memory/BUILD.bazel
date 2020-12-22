@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "memory",
+    srcs = [
+        "comments.go",
+        "memory.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/db/memory",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/types",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "memory_test",
+    srcs = [
+        "comments_test.go",
+        "memory_test.go",
+        "modified_chan_test.go",
+    ],
+    embed = [":memory"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "//task_scheduler/go/db",
+    ],
+)

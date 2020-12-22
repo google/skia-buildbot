@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "task_cfg_cache",
+    srcs = ["task_cfg_cache.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/task_cfg_cache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/atomic_miss_cache",
+        "//go/git/repograph",
+        "//go/sklog",
+        "//task_scheduler/go/specs",
+        "//task_scheduler/go/types",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "task_cfg_cache_test",
+    srcs = ["task_cfg_cache_test.go"],
+    embed = [":task_cfg_cache"],
+    deps = [
+        "//go/atomic_miss_cache",
+        "//go/deepequal/assertdeep",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_scheduler/go/task_cfg_cache/testutils",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)
