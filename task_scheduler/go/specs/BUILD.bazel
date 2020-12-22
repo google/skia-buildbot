@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "specs",
+    srcs = [
+        "helpers.go",
+        "specs.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/specs",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cas/rbe",
+        "//go/cipd",
+        "//go/common",
+        "//go/git",
+        "//go/periodic",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/types",
+        "@com_github_pmezard_go_difflib//difflib",
+    ],
+)
+
+go_test(
+    name = "specs_test",
+    srcs = ["specs_test.go"],
+    embed = [":specs"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
