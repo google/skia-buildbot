@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "window",
+    srcs = ["window.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/window",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git/repograph",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "window_test",
+    srcs = ["window_test.go"],
+    embed = [":window"],
+    deps = [
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

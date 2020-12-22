@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "parse_task_cfg_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/parse_task_cfg",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/sklog",
+        "//task_scheduler/go/specs",
+    ],
+)
+
+go_binary(
+    name = "parse_task_cfg",
+    embed = [":parse_task_cfg_lib"],
+    visibility = ["//visibility:public"],
+)
