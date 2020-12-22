@@ -1,22 +1,23 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "paramtools",
     srcs = ["params.go"],
     importpath = "go.skia.org/infra/go/paramtools",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/skerr:go_default_library",
-        "//go/util:go_default_library",
+        "//go/skerr",
+        "//go/util",
     ],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "paramtools_test",
     srcs = ["params_test.go"],
-    embed = [":go_default_library"],
+    embed = [":paramtools"],
     deps = [
-        "//go/testutils/unittest:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

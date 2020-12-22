@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "calc",
     srcs = [
         "doc.go",
         "funcs.go",
@@ -10,20 +10,20 @@ go_library(
     ],
     importpath = "go.skia.org/infra/go/calc",
     visibility = ["//visibility:public"],
-    deps = ["//go/vec32:go_default_library"],
+    deps = ["//go/vec32"],
 )
 
 go_test(
-    name = "go_default_test",
+    name = "calc_test",
     srcs = [
         "lex_test.go",
         "parser_test.go",
     ],
-    embed = [":go_default_library"],
+    embed = [":calc"],
     deps = [
-        "//go/query:go_default_library",
-        "//go/testutils/unittest:go_default_library",
-        "//go/vec32:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
+        "//go/query",
+        "//go/testutils/unittest",
+        "//go/vec32",
+        "@com_github_stretchr_testify//assert",
     ],
 )
