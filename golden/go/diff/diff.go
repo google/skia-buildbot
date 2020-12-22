@@ -67,7 +67,8 @@ type DiffMetrics struct {
 	// images. It is based off the MaxRGBADiffs and PixelDiffPercent.
 	CombinedMetric float32
 
-	// PixelDiffPercent is the percentage of pixels that are different.
+	// PixelDiffPercent is the percentage of pixels that are different. The denominator here is
+	// (maximum width of the two images) * (maximum height of the two images).
 	PixelDiffPercent float32
 
 	// MaxRGBADiffs contains the maximum difference of each channel.
