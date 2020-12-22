@@ -150,7 +150,8 @@ test-frontend-ci:
 # Directories with Go code that is built using Gazelle-generated BUILD files.
 GAZELLE_DIRS=\
 	./go \
-	./machine
+	./machine \
+	./task_scheduler \
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
@@ -163,10 +164,12 @@ update-go-bazel-deps:
 # Known good Bazel build targets. Eventually this should be replaced with "bazel build all".
 BAZEL_BUILD_TARGETS=\
 	//bazel/... \
+	//go/... \
 	//infra-sk/... \
 	//machine/modules/... \
 	//machine/pages/... \
 	//puppeteer-tests/... \
+	//task_scheduler/... \
 
 # Known good Bazel test targets. Eventually this should be replaced with "bazel test all".
 BAZEL_TEST_TARGETS=\

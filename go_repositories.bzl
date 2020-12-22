@@ -239,13 +239,19 @@ def go_repositories():
     )
     go_repository(
         name = "com_github_bazelbuild_remote_apis",
+        # The BUILD files included in this Go module use the go_default_library naming convention.
+        # See https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository.
+        build_naming_convention = "go_default_library",
         importpath = "github.com/bazelbuild/remote-apis",
-        sum = "h1:in8ww8rHwdcmLN3J9atiRDvAaYHobXBJzp7uAxlUREU=",
-        version = "v0.0.0-20201030192148-aa8e718768c2",
+        sum = "h1:/EMHYfINZDLrrr4f72+MxCYvmJ9EYcL8PYbQFHrnm38=",
+        version = "v0.0.0-20201209220655-9e72daff42c9",
     )
 
     go_repository(
         name = "com_github_bazelbuild_remote_apis_sdks",
+        # The BUILD files included in this Go module use the go_default_library naming convention.
+        # See https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository.
+        build_naming_convention = "go_default_library",
         importpath = "github.com/bazelbuild/remote-apis-sdks",
         sum = "h1:0SkXdQd6uHU6pDzy0ZJw4KUWsBnil6QAzBj+SljxRaM=",
         version = "v0.0.0-20201110004117-e776219c9bb7",
@@ -3005,7 +3011,6 @@ def go_repositories():
 
     go_repository(
         name = "com_google_cloud_go_pubsub",
-        build_file_proto_mode = "disable",  # Manually added, some proto files are broken.
         importpath = "cloud.google.com/go/pubsub",
         sum = "h1:PpS9dq+D7eSjQ0YAx5fxO33LjqHVpAlXFrpvt/LoVy8=",
         version = "v1.8.2",
@@ -3320,7 +3325,15 @@ def go_repositories():
 
     go_repository(
         name = "org_chromium_go_luci",
-        build_file_proto_mode = "disable",  # Manually added, some proto files are broken.
+        # LUCI is distributed with pre-generated .pb.go files, so we disable generation of
+        # go_proto_library targets.
+        #
+        # Should we disable generation of go_proto_library targets for our entire repository and
+        # use pre-generated .pb.go files instead? This will allow us to continue to build our
+        # codebase with "go build", and seems to be the recommended approach for established Go
+        # projects:
+        # https://github.com/bazelbuild/rules_go/blob/master/proto/core.rst#option-2-use-pre-generated-pb-go-files
+        build_file_proto_mode = "disable",
         importpath = "go.chromium.org/luci",
         sum = "h1:NU60UEpWAebRM4M5vF/ZzhyPH+v6kZQF0SIeQ0wMjxs=",
         version = "v0.0.0-20201029184154-594d11850ebf",
@@ -3362,6 +3375,10 @@ def go_repositories():
 
     go_repository(
         name = "org_golang_google_grpc",
+        # Uncomment if we ever need to build go_proto_library targets with the gRPC plugin.
+        # https://github.com/bazelbuild/rules_go/blob/master/go/dependencies.rst#grpc-dependencies
+        #
+        # build_file_proto_mode = "disable",
         importpath = "google.golang.org/grpc",
         sum = "h1:DGeFlSan2f+WEtCERJ4J9GJWk15TxUi8QGagfI87Xyc=",
         version = "v1.33.1",

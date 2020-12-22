@@ -58,16 +58,45 @@ go_register_toolchains(version = "1.14")
 
 gazelle_dependencies()
 
+##########################
+# Other Go dependencies. #
+##########################
+
+# Needed by @com_github_bazelbuild_remote_apis.
+load("@com_github_bazelbuild_remote_apis//:repository_rules.bzl", "switched_rules_by_language")
+switched_rules_by_language(
+    name = "bazel_remote_apis_imports",
+    go = True,
+)
+
+# Needed by @com_github_bazelbuild_remote_apis.
 http_archive(
     name = "com_google_protobuf",
     sha256 = "9748c0d90e54ea09e5e75fb7fac16edce15d2028d4356f32211cfa3c0e956564",
     strip_prefix = "protobuf-3.11.4",
     urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.4.zip"],
 )
-
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
 protobuf_deps()
+
+# Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
+http_archive(
+    name = "googleapis",
+    build_file = "BUILD.googleapis",
+    sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
+    strip_prefix = "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d",
+    urls = ["https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip"],
+)
+
+# Needed by @com_github_bazelbuild_remote_apis for gRPC.
+http_archive(
+    name = "com_github_grpc_grpc",
+    sha256 = "b391a327429279f6f29b9ae7e5317cd80d5e9d49cc100e6d682221af73d984a6",
+    strip_prefix = "grpc-93e8830070e9afcbaa992c75817009ee3f4b63a0",  # v1.24.3 with fixes
+    urls = ["https://github.com/grpc/grpc/archive/93e8830070e9afcbaa992c75817009ee3f4b63a0.zip"],
+)
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+grpc_deps()
 
 ###################################################
 # JavaScript / TypeScript rules and dependencies. #
