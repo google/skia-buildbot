@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/testutils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -80,8 +82,10 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 			types.PrimaryKeyField: "test_two"}).
 		Positive(digestD).
 		Negative(digestC)
-	// TODO(kjlubick) add support for diff metrics.
-	// b.ComputeDiffMetricsFromImages("path/to/testdata")
+
+	dir, err := testutils.TestDataDir()
+	require.NoError(t, err)
+	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
 
 	tables := b.GenerateStructs()
 	assert.Equal(t, []schema.OptionsRow{{
@@ -305,6 +309,48 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		Label:               schema.LabelUntriaged,
 		ExpectationRecordID: nil,
 	}}, tables.Expectations)
+	ts := time.Date(2020, time.December, 14, 14, 14, 14, 0, time.UTC)
+	assert.ElementsMatch(t, []schema.DiffMetricRow{{
+		LeftDigest:       d(t, digestA),
+		RightDigest:      d(t, digestB),
+		NumDiffPixels:    7,
+		PixelDiffPercent: 10.9375,
+		MaxRGBADiffs:     [4]int{250, 244, 197, 51},
+		MaxChannelDiff:   250,
+		CombinedMetric:   2.9445405,
+		DimensionsDiffer: false,
+		Timestamp:        ts,
+	}, {
+		LeftDigest:       d(t, digestB),
+		RightDigest:      d(t, digestA),
+		NumDiffPixels:    7,
+		PixelDiffPercent: 10.9375,
+		MaxRGBADiffs:     [4]int{250, 244, 197, 51},
+		MaxChannelDiff:   250,
+		CombinedMetric:   2.9445405,
+		DimensionsDiffer: false,
+		Timestamp:        ts,
+	}, {
+		LeftDigest:       d(t, digestC),
+		RightDigest:      d(t, digestD),
+		NumDiffPixels:    36,
+		PixelDiffPercent: 56.25,
+		MaxRGBADiffs:     [4]int{106, 21, 21, 0},
+		MaxChannelDiff:   106,
+		CombinedMetric:   3.4844475,
+		DimensionsDiffer: false,
+		Timestamp:        ts,
+	}, {
+		LeftDigest:       d(t, digestD),
+		RightDigest:      d(t, digestC),
+		NumDiffPixels:    36,
+		PixelDiffPercent: 56.25,
+		MaxRGBADiffs:     [4]int{106, 21, 21, 0},
+		MaxChannelDiff:   106,
+		CombinedMetric:   3.4844475,
+		DimensionsDiffer: false,
+		Timestamp:        ts,
+	}}, tables.DiffMetrics)
 }
 
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
@@ -745,6 +791,59 @@ func TestExpectationsBuilderNegative_InvalidDigest_Panics(t *testing.T) {
 		ExpectationsForGrouping(paramtools.Params{types.CorpusField: "whatever"})
 	assert.Panics(t, func() {
 		eb.Negative("invalid")
+	})
+}
+
+func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+	testDir, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	assert.Panics(t, func() {
+		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
+	})
+	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	assert.Panics(t, func() {
+		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
+	})
+	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+		History([]string{"A"})
+	// We should have the right data now.
+	assert.NotPanics(t, func() {
+		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
+	})
+}
+
+func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+	testDir, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+		History([]string{"A"})
+	assert.Panics(t, func() {
+		b.ComputeDiffMetricsFromImages(testDir, "not a valid time")
+	})
+}
+
+func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	b.SetGroupingKeys(types.CorpusField)
+	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+		History([]string{"A"})
+	assert.Panics(t, func() {
+		b.ComputeDiffMetricsFromImages("Not a valid directory", "2020-12-05T16:00:00Z")
 	})
 }
 
