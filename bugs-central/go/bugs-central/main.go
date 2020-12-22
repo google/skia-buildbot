@@ -20,7 +20,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 
-	"go.skia.org/infra/bugs-central/go/aliases_watcher"
 	"go.skia.org/infra/bugs-central/go/db"
 	"go.skia.org/infra/bugs-central/go/poller"
 	"go.skia.org/infra/bugs-central/go/types"
@@ -42,8 +41,7 @@ var (
 	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 	authAllowList      = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 
-	pollInterval           = flag.Duration("poll_interval", 2*time.Hour, "How often the server will poll the different issue frameworks for open issues.")
-	aliasesWatcherInterval = flag.Duration("aliases_watcher_interval", 2*time.Minute, "How often the server will look for issues assigned to rotation aliases.")
+	pollInterval = flag.Duration("poll_interval", 2*time.Hour, "How often the server will poll the different issue frameworks for open issues.")
 )
 
 type ClientConfig struct {
@@ -84,15 +82,6 @@ func New() (baseapp.App, error) {
 	}
 	if err := pollerClient.Start(ctx, *pollInterval); err != nil {
 		sklog.Fatalf("Could not start poller: %s", err)
-	}
-
-	// Instantiate aliases_watcher and turn it on.
-	aliasesWatcher, err := aliases_watcher.New(ctx, ts, *serviceAccountFile)
-	if err != nil {
-		sklog.Fatalf("Could not init watcher: %s", err)
-	}
-	if err := aliasesWatcher.Start(ctx, *aliasesWatcherInterval); err != nil {
-		sklog.Fatalf("Could not start aliases watcher: %s", err)
 	}
 
 	srv := &Server{
