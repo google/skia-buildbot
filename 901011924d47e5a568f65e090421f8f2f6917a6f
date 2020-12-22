@@ -50,6 +50,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "bd8b284c_14017229",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-22T21:21:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "092f107d_40313d40",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 99
+      },
+      "revId": "901011924d47e5a568f65e090421f8f2f6917a6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "5cef741d_27f66ae6",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
@@ -61,6 +85,24 @@
       "writtenOn": "2020-12-22T16:19:43Z",
       "side": 1,
       "message": "Were most of the BUILD.bazel files generated automatically from Gazelle?",
+      "revId": "901011924d47e5a568f65e090421f8f2f6917a6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eedc00ab_cbc8d092",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-22T21:21:45Z",
+      "side": 1,
+      "message": "All of these BUILD files were automatically generated. I\u0027ve updated the CL description to make this explicit.",
+      "parentUuid": "5cef741d_27f66ae6",
       "revId": "901011924d47e5a568f65e090421f8f2f6917a6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
