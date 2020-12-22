@@ -122,9 +122,9 @@ function displayIncident(incident) {
   return s;
 }
 
-function trooper(ele) {
-  if (ele._trooper === ele._user) {
-    return html`<notifications-icon-sk title='You are the trooper, awesome!'></notifications-icon-sk>`;
+function infraGardener(ele) {
+  if (ele._infra_gardener === ele._user) {
+    return html`<notifications-icon-sk title='You are the Infra Gardener, awesome!'></notifications-icon-sk>`;
   }
   return '';
 }
@@ -247,7 +247,7 @@ function botCentricBtn(ele) {
 }
 
 const template = (ele) => html`
-<header>${trooper(ele)}</header>
+<header>${infraGardener(ele)}</header>
 <section class=nav>
   <tabs-sk @tab-selected-sk=${ele._tabSwitch} selected=${ele._state.tab}>
     <button>Mine</button>
@@ -261,7 +261,7 @@ const template = (ele) => html`
         ${assignMultiple(ele)}
         ${clearSelections(ele)}
       </span>
-      ${incidentList(ele, ele._incidents.filter((i) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._trooper || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))), false)}
+      ${incidentList(ele, ele._incidents.filter((i) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._infra_gardener || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))), false)}
     </section>
     <section class=incidents>
       ${botCentricBtn(ele)}
@@ -330,13 +330,13 @@ define('alert-manager-sk', class extends HTMLElement {
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
     this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences recently expired.
     this._user = 'barney@example.org';
-    this._trooper = '';
+    this._infra_gardener = '';
     this._state = {
       tab: 0, // The selected tab.
       alert_id: '', // The selected alert (if any).
     };
-    fetch('https://tree-status.skia.org/current-trooper', { mode: 'cors' }).then(jsonOrThrow).then((json) => {
-      this._trooper = json.username;
+    fetch('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', { mode: 'cors' }).then(jsonOrThrow).then((json) => {
+      this._infra_gardener = json.emails[0];
       this._render();
     });
     Login.then((loginstatus) => {
@@ -853,11 +853,11 @@ define('alert-manager-sk', class extends HTMLElement {
     });
   }
 
-  _needsTriaging(incident, isTrooper) {
+  _needsTriaging(incident, isInfraGardener) {
     if (incident.active
       && (incident.params.__silence_state !== 'silenced')
       && (
-        (isTrooper && !incident.params.assigned_to)
+        (isInfraGardener && !incident.params.assigned_to)
         || (incident.params.assigned_to === this._user)
         || (incident.params.owner === this._user
             && !incident.params.assigned_to)
@@ -911,14 +911,14 @@ define('alert-manager-sk', class extends HTMLElement {
     this._rationalize();
     render(template(this), this, { eventContext: this });
     // Update the icon.
-    const isTrooper = this._user === this._trooper;
-    const numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isTrooper) ? 1 : 0, 0);
+    const isInfraGardener = this._user === this._infra_gardener;
+    const numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isInfraGardener) ? 1 : 0, 0);
 
     // Show desktop notifications only if permission was granted and only if
     // silences have been successfully fetched. If silences have not been
     // fetched yet then we might end up notifying on silenced incidents.
     if (Notification.permission === 'granted' && this._silences.length !== 0) {
-      const unNotifiedIncidents = this._incidents.filter((i) => !this._incidents_notified[i.key] && this._needsTriaging(i, isTrooper));
+      const unNotifiedIncidents = this._incidents.filter((i) => !this._incidents_notified[i.key] && this._needsTriaging(i, isInfraGardener));
       this._sendDesktopNotification(unNotifiedIncidents);
       unNotifiedIncidents.forEach((i) => this._incidents_notified[i.key] = true);
     }
