@@ -27,9 +27,12 @@ type SourceFileID []byte
 
 type CommitID int32
 
-// SerializedJSON is the string form of a JSON-encoded map[string]string. Following the convention
+// SerializedParams is the string form of a JSON-encoded map[string]string. Following the convention
 // of the golang json encoder, keys must be in alphabetical order (for determinism).
-type SerializedJSON string
+type SerializedParams string
+
+// SerializedParamSet is the string form of a JSON-encoded map[string][]string.
+type SerializedParamSet string
 
 type NullableBool int
 
@@ -56,6 +59,7 @@ type Tables struct {
 	ExpectationRecords  []ExpectationRecordRow
 	Expectations        []ExpectationRow
 	Groupings           []GroupingRow
+	IgnoreRules         []IgnoreRuleRow
 	Options             []OptionsRow
 	PrimaryBranchParams []PrimaryBranchParamRow
 	SourceFiles         []SourceFileRow
@@ -126,7 +130,7 @@ type TraceRow struct {
 	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
 	// map describe how a series of data points were created. We store this as a JSON map because
 	// CockroachDB supports searching for traces by key/values in this field.
-	Keys SerializedJSON `sql:"keys JSONB NOT NULL"`
+	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 	// MatchesAnyIgnoreRule is true if this trace is matched by any of the ignore rules. If true,
 	// this trace will be ignored from most queries by default. This is stored here because
 	// recalculating it on the fly is too expensive and only needs updating if an ignore rule is
@@ -143,7 +147,7 @@ type GroupingRow struct {
 	GroupingID GroupingID `sql:"grouping_id BYTES PRIMARY KEY"`
 	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
 	// map are the grouping.
-	Keys SerializedJSON `sql:"keys JSONB NOT NULL"`
+	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 }
 
 type OptionsRow struct {
@@ -152,7 +156,7 @@ type OptionsRow struct {
 	OptionsID OptionsID `sql:"options_id BYTES PRIMARY KEY"`
 	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
 	// map are the options.
-	Keys SerializedJSON `sql:"keys JSONB NOT NULL"`
+	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 }
 
 type SourceFileRow struct {
@@ -274,7 +278,7 @@ type ValueAtHeadRow struct {
 	// searches and joins.
 	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED NOT NULL"`
 	// Keys is a serialized JSON representation of a map[string]string that are the trace keys.
-	Keys SerializedJSON `sql:"keys JSONB NOT NULL"`
+	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 
 	// Label represents the current triage status of the given digest for its grouping.
 	Label ExpectationLabel `sql:"expectation_label SMALLINT NOT NULL"`
@@ -320,4 +324,20 @@ type TiledTraceDigestRow struct {
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
 	// We generally want locality by TraceID, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, start_commit_id, digest)"`
+}
+
+type IgnoreRuleRow struct {
+	// IgnoreRuleID is the id for this rule.
+	IgnoreRuleID uuid.UUID `sql:"ignore_rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
+	// CreatorEmail is the email address of the user who originally created this rule.
+	CreatorEmail string `sql:"creator_email STRING NOT NULL"`
+	// UpdatedEmail is the email address of the user who most recently updated this rule.
+	UpdatedEmail string `sql:"updated_email STRING NOT NULL"`
+	// Expires represents when this rule should be re-evaluated for validity.
+	Expires time.Time `sql:"expires TIMESTAMP WITH TIME ZONE"`
+	// Note is a comment explaining this rule. It typically links to a bug.
+	Note string `sql:"note STRING"`
+	// Query is a serialized map[string][]string that describe which traces should be ignored.
+	// Note that this can only apply to trace keys, not options.
+	Query SerializedParamSet `sql:"query JSONB"`
 }

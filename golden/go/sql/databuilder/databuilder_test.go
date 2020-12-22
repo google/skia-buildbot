@@ -83,6 +83,16 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		Positive(digestD).
 		Negative(digestC)
 
+	firstIgnoreRuleID := b.AddIgnoreRule("ignore_author_one", "ignore_author_two", "2021-03-14T15:09:27Z", "note 1",
+		paramtools.ParamSet{
+			"does not": []string{"apply", "to any trace"},
+		})
+	secondIgnoreRuleID := b.AddIgnoreRule("ignore_author_two", "ignore_author_one", "2021-06-28T03:18:53Z", "note 2",
+		paramtools.ParamSet{
+			"os":     []string{"Windows10.7", "Windows10.8"},
+			"device": []string{"NUC1234"},
+		})
+
 	dir, err := testutils.TestDataDir()
 	require.NoError(t, err)
 	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
@@ -133,19 +143,19 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_one","source_type":"corpus_one"}`),
 		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_two","source_type":"corpus_one"}`),
 		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_two","source_type":"corpus_one"}`),
 		Keys:                 `{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`,
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBTrue,
 	}}, tables.Traces)
 	assert.Equal(t, []schema.CommitRow{{
 		CommitID:    1,
@@ -393,7 +403,7 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
 		Label:                schema.LabelUntriaged,
 		ExpectationRecordID:  nil,
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
 		MostRecentCommitID:   4,
@@ -404,7 +414,7 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
 		Label:                schema.LabelPositive,
 		ExpectationRecordID:  &recordIDTwo,
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
 		MostRecentCommitID:   3,
@@ -415,8 +425,23 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		Keys:                 `{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`,
 		Label:                schema.LabelPositive,
 		ExpectationRecordID:  &recordIDTwo,
-		MatchesAnyIgnoreRule: schema.NBNull,
+		MatchesAnyIgnoreRule: schema.NBTrue,
 	}}, tables.ValuesAtHead)
+	assert.Equal(t, []schema.IgnoreRuleRow{{
+		IgnoreRuleID: firstIgnoreRuleID,
+		CreatorEmail: "ignore_author_one",
+		UpdatedEmail: "ignore_author_two",
+		Expires:      time.Date(2021, time.March, 14, 15, 9, 27, 0, time.UTC),
+		Note:         "note 1",
+		Query:        `{"does not":["apply","to any trace"]}`,
+	}, {
+		IgnoreRuleID: secondIgnoreRuleID,
+		CreatorEmail: "ignore_author_two",
+		UpdatedEmail: "ignore_author_one",
+		Expires:      time.Date(2021, time.June, 28, 03, 18, 53, 0, time.UTC),
+		Note:         "note 2",
+		Query:        `{"device":["NUC1234"],"os":["Windows10.7","Windows10.8"]}`,
+	}}, tables.IgnoreRules)
 }
 
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
@@ -910,6 +935,28 @@ func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
 		History([]string{"A"})
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages("Not a valid directory", "2020-12-05T16:00:00Z")
+	})
+}
+
+func TestAddIgnoreRule_InvalidDate_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	assert.Panics(t, func() {
+		b.AddIgnoreRule("fine", "fine", "Invalid date", "whatever",
+			paramtools.ParamSet{"what": []string{"ever"}})
+	})
+}
+
+func TestAddIgnoreRule_InvalidQuery_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	assert.Panics(t, func() {
+		b.AddIgnoreRule("fine", "fine", "2020-12-05T16:00:00Z", "whatever", nil)
+	})
+	assert.Panics(t, func() {
+		b.AddIgnoreRule("fine", "fine", "2020-12-05T16:00:00Z", "whatever", paramtools.ParamSet{})
 	})
 }
 

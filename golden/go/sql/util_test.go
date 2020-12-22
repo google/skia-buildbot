@@ -46,7 +46,7 @@ func TestSerializeMap_Success(t *testing.T) {
 	mJSON, expectedHash := SerializeMap(map[string]string{
 		"opt": "png",
 	})
-	assert.Equal(t, schema.SerializedJSON(`{"opt":"png"}`), mJSON)
+	assert.Equal(t, schema.SerializedParams(`{"opt":"png"}`), mJSON)
 	assert.Equal(t, "5869c277f132c3d777ebd81d01f694fc", hex.EncodeToString(expectedHash[:]))
 
 	mJSON, expectedHash = SerializeMap(map[string]string{
@@ -55,16 +55,16 @@ func TestSerializeMap_Success(t *testing.T) {
 		"by":   "key",
 		"when": "turned into json",
 	})
-	assert.Equal(t, schema.SerializedJSON(`{"be":"realphabetized","by":"key","this":"should","when":"turned into json"}`), mJSON)
+	assert.Equal(t, schema.SerializedParams(`{"be":"realphabetized","by":"key","this":"should","when":"turned into json"}`), mJSON)
 	assert.Equal(t, "d3f07017f2f702c8337767343860703b", hex.EncodeToString(expectedHash[:]))
 
 	mJSON, expectedHash = SerializeMap(map[string]string{})
-	assert.Equal(t, schema.SerializedJSON(`{}`), mJSON)
+	assert.Equal(t, schema.SerializedParams(`{}`), mJSON)
 	assert.Equal(t, "99914b932bd37a50b983c5e7c90ae93b", hex.EncodeToString(expectedHash[:]))
 
 	// As a special case, we expect nil maps to be treated as empty maps.
 	mJSON, expectedHash = SerializeMap(nil)
-	assert.Equal(t, schema.SerializedJSON(`{}`), mJSON)
+	assert.Equal(t, schema.SerializedParams(`{}`), mJSON)
 	assert.Equal(t, "99914b932bd37a50b983c5e7c90ae93b", hex.EncodeToString(expectedHash[:]))
 }
 
