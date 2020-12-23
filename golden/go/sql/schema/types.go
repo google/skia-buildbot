@@ -50,23 +50,36 @@ const (
 	LabelNegative  ExpectationLabel = 2
 )
 
+type ChangelistStatus int
+
+const (
+	StatusOpen      ChangelistStatus = 0
+	StatusAbandoned ChangelistStatus = 1
+	StatusLanded    ChangelistStatus = 2
+)
+
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
 // more easily generate test data (see sql/databuilder).
 type Tables struct {
-	Commits             []CommitRow
-	DiffMetrics         []DiffMetricRow
-	ExpectationDeltas   []ExpectationDeltaRow
-	ExpectationRecords  []ExpectationRecordRow
-	Expectations        []ExpectationRow
-	Groupings           []GroupingRow
-	IgnoreRules         []IgnoreRuleRow
-	Options             []OptionsRow
-	PrimaryBranchParams []PrimaryBranchParamRow
-	SourceFiles         []SourceFileRow
-	TiledTraceDigests   []TiledTraceDigestRow
-	TraceValues         []TraceValueRow
-	Traces              []TraceRow
-	ValuesAtHead        []ValueAtHeadRow
+	Changelists           []ChangelistRow
+	Commits               []CommitRow
+	DiffMetrics           []DiffMetricRow
+	ExpectationDeltas     []ExpectationDeltaRow
+	ExpectationRecords    []ExpectationRecordRow
+	Expectations          []ExpectationRow
+	Groupings             []GroupingRow
+	IgnoreRules           []IgnoreRuleRow
+	Options               []OptionsRow
+	Patchsets             []PatchsetRow
+	PrimaryBranchParams   []PrimaryBranchParamRow
+	SecondaryBranchParams []SecondaryBranchParamRow
+	SecondaryBranchValues []SecondaryBranchValueRow
+	SourceFiles           []SourceFileRow
+	TiledTraceDigests     []TiledTraceDigestRow
+	TraceValues           []TraceValueRow
+	Traces                []TraceRow
+	Tryjobs               []TryjobRow
+	ValuesAtHead          []ValueAtHeadRow
 }
 
 // TODO(kjlubick) add code to generate SQL statements from these struct tags
@@ -289,7 +302,7 @@ type ValueAtHeadRow struct {
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
 }
 
-// PrimaryBranchParamRow corresponds to a given key/value pair that was seen withing a range (tile)
+// PrimaryBranchParamRow corresponds to a given key/value pair that was seen within a range (tile)
 // of commits. Originally, we had done a join between Traces and TraceValues to find the params
 // where commit_id was in a given range. However, this took several minutes when there were 1M+
 // traces per commit. This table is effectively an index for getting just that data. Note, this
@@ -340,4 +353,102 @@ type IgnoreRuleRow struct {
 	// Query is a serialized map[string][]string that describe which traces should be ignored.
 	// Note that this can only apply to trace keys, not options.
 	Query SerializedParamSet `sql:"query JSONB"`
+}
+
+type ChangelistRow struct {
+	// ChangelistID is the fully qualified id of this changelist. "Fully qualified" means it has
+	// the system as a prefix (e.g "gerrit_1234") which simplifies joining logic and ensures
+	// uniqueness
+	ChangelistID string `sql:"changelist_id STRING PRIMARY KEY"`
+	// System is the Code Review System to which this changelist belongs.
+	System string `sql:"system STRING NOT NULL"`
+	// Status indicates if this CL is open or not.
+	Status ChangelistStatus `sql:"status INT2 NOT NULL"`
+	// OwnerEmail is the email address of the CL's owner.
+	OwnerEmail string `sql:"owner_email STRING NOT NULL"`
+	// Subject is the first line of the CL's commit message (usually).
+	Subject string `sql:"subject STRING NOT NULL"`
+	// LastIngestedData indicates when Gold last saw data for this CL.
+	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+type PatchsetRow struct {
+	// PatchsetID is the fully qualified id of this patchset. "Fully qualified" means it has
+	// the system as a prefix (e.g "gerrit_abcde") which simplifies joining logic and ensures
+	// uniqueness.
+	PatchsetID string `sql:"patchset_id STRING PRIMARY KEY"`
+	// System is the Code Review System to which this patchset belongs.
+	System string `sql:"system STRING NOT NULL"`
+	// ChangelistID refers to the parent CL.
+	ChangelistID string `sql:"changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id)"`
+	// Order is a 1 indexed number telling us where this PS fits in time.
+	Order int `sql:"ps_order INT2 NOT NULL"`
+	// GitHash is the hash associated with the patchset. For many CRS, it is the same as the
+	// unqualified PatchsetID.
+	GitHash string `sql:"git_hash STRING NOT NULL"`
+}
+
+type TryjobRow struct {
+	// PatchsetID is the fully qualified id of this patchset. "Fully qualified" means it has
+	// the system as a prefix (e.g "buildbucket_1234") which simplifies joining logic and ensures
+	// uniqueness.
+	TryjobID string `sql:"tryjob_id STRING PRIMARY KEY"`
+	// System is the Continuous Integration System to which this tryjob belongs.
+	System string `sql:"system STRING NOT NULL"`
+	// ChangelistID refers to the CL for which this Tryjob produced data.
+	ChangelistID string `sql:"changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id)"`
+	// PatchsetID refers to the PS for which this Tryjob produced data.
+	PatchsetID string `sql:"patchset_id STRING NOT NULL REFERENCES Patchsets (patchset_id)"`
+	// DisplayName is a human readable name for this Tryjob.
+	DisplayName string `sql:"display_name STRING NOT NULL"`
+	// LastIngestedData indicates when Gold last saw data from this Tryjob.
+	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// SecondaryBranchValueRow corresponds to a data point produced by a changelist or on a branch.
+type SecondaryBranchValueRow struct {
+	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.
+	BranchName string `sql:"branch_name STRING"`
+	// VersionName is something like the patchset id or a branch commit hash to identify when
+	// along the branch the data happened.
+	VersionName string `sql:"version_name STRING"`
+	// TraceID is the MD5 hash of the keys and values describing how this data point (i.e. the
+	// Digest) was drawn. This is a foreign key into the Traces table.
+	TraceID TraceID `sql:"secondary_branch_trace_id BYTES"`
+	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at this point in time
+	// (specified by CommitID) and by the machine (specified by TraceID).
+	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
+	// GroupingID is the MD5 hash of the key/values belonging to the grouping (e.g. corpus +
+	// test name). If the grouping changes, this would require changing the entire column here and
+	// in several other tables. In theory, changing the grouping should be done very rarely. This
+	// is a foreign key into the Groupings table.
+	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
+	// OptionsID is the MD5 hash of the key/values that belong to the options. Options do not impact
+	// the TraceID and thus act as metadata. This is a foreign key into the Options table.
+	OptionsID OptionsID `sql:"options_id BYTES NOT NULL"`
+	// SourceFileID is the MD5 hash of the source file that produced this data point. This is a
+	// foreign key into the SourceFiles table.
+	SourceFileID SourceFileID `sql:"source_file_id BYTES NOT NULL"`
+	// TryjobID corresponds to the tryjob (if any) that produced this data.
+	TryjobID string `sql:"tryjob_id string"`
+	// By creating the primary key using the shard and the commit_id, we give some data locality
+	// to data from the same trace, but in different commits w/o overloading a single range (if
+	// commit_id were first) and w/o spreading our data too thin (if trace_id were first).
+	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id)"`
+}
+
+// SecondaryBranchParamRow corresponds to a given key/value pair that was seen in data from a
+// specific patchset or commit on a branch.
+type SecondaryBranchParamRow struct {
+	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.
+	BranchName string `sql:"branch_name STRING"`
+	// VersionName is something like the patchset id or a branch commit hash to identify when
+	// along the branch the data happened.
+	VersionName string `sql:"version_name STRING"`
+	// Key is the key of a trace key or option.
+	Key string `sql:"key STRING"`
+	// Value is the value associated with the key.
+	Value string `sql:"value STRING"`
+	// We generally want locality by branch_name, so that goes first in the primary key.
+	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, key, value)"`
 }
