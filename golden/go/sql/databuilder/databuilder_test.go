@@ -444,6 +444,287 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 	}}, tables.IgnoreRules)
 }
 
+func TestGenerateStructs_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := SQLDataBuilder{}
+	b.Commits().
+		Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.UseDigests(map[rune]types.Digest{
+		// by convention, upper case are positively triaged, lowercase
+		// are untriaged, numbers are negative, symbols are special.
+		'A': digestA,
+		'b': digestB,
+		'1': digestC,
+		'D': digestD,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+	b.TracesWithCommonKeys(paramtools.Params{
+		"os":              "Android",
+		"device":          "Crosshatch",
+		"color_mode":      "rgb",
+		types.CorpusField: "corpus_one",
+	}).History([]string{
+		"A",
+		"D",
+	}).Keys([]paramtools.Params{{
+		types.PrimaryKeyField: "test_one",
+	}, {
+		types.PrimaryKeyField: "test_two",
+	}}).OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom([]string{"crosshatch_file1"}, []string{"2020-12-11T10:09:00Z"})
+
+	cl := b.AddChangelist("changelist_one", "gerrit", "owner_one", "First CL", schema.StatusAbandoned)
+	cl.AddPatchset("ps_2", "ps_hash_2", 2).
+		DataWithCommonKeys(paramtools.Params{
+			"os":              "Android",
+			"device":          "Crosshatch",
+			"color_mode":      "rgb",
+			types.CorpusField: "corpus_one",
+		}).Digests([]types.Digest{digestB, digestC, digestD}).
+		Keys([]paramtools.Params{{
+			types.PrimaryKeyField: "test_one",
+		}, {
+			types.PrimaryKeyField: "test_two",
+		}, {
+			types.PrimaryKeyField: "test_three",
+		}}).OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob("tryjob_001", "bb", "Test-Crosshatch", "tryjob_file1", "2020-12-11T10:11:00Z")
+	cl.AddPatchset("ps_3", "ps_hash_3", 3).
+		DataWithCommonKeys(paramtools.Params{
+			"os":              "Android",
+			"device":          "Crosshatch",
+			"color_mode":      "rgb",
+			types.CorpusField: "corpus_one",
+		}).Digests([]types.Digest{digestB, digestC, digestA}).
+		Keys([]paramtools.Params{{
+			types.PrimaryKeyField: "test_one",
+		}, {
+			types.PrimaryKeyField: "test_two",
+		}, {
+			types.PrimaryKeyField: "test_three",
+		}}).OptionsPerPoint([]paramtools.Params{
+		{"ext": "png"},
+		{"ext": "png"},
+		{"ext": "png", "matcher": "fuzzy", "threshold": "2"},
+	}).
+		FromTryjob("tryjob_002", "bb", "Test-Crosshatch", "tryjob_file2", "2020-12-11T11:12:13Z")
+
+	//cl.TriageEvent("user_one", "2020-12-11T11:40:00Z").
+	//	ExpectationsForGrouping(map[string]string{
+	//		types.CorpusField:     "corpus_one",
+	//		types.PrimaryKeyField: "test_three"}).
+	//	Negative(digestD)
+	b.TriageEvent("user_one", "2020-12-12T12:12:12Z").
+		ExpectationsForGrouping(map[string]string{
+			types.CorpusField:     "corpus_one",
+			types.PrimaryKeyField: "test_one"}).
+		Positive(digestA).
+		ExpectationsForGrouping(map[string]string{
+			types.CorpusField:     "corpus_one",
+			types.PrimaryKeyField: "test_two"}).
+		Positive(digestD)
+
+	b.AddIgnoreRule("ignore_author", "ignore_author", "2021-03-14T15:09:27Z", "note 1",
+		paramtools.ParamSet{
+			types.PrimaryKeyField: []string{"test_two"},
+		})
+
+	dir, err := testutils.TestDataDir()
+	require.NoError(t, err)
+	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
+
+	tables := b.GenerateStructs()
+	assert.Equal(t, []schema.OptionsRow{{
+		OptionsID: h(`{"ext":"png"}`),
+		Keys:      `{"ext":"png"}`,
+	}, {
+		OptionsID: h(`{"ext":"png","matcher":"fuzzy","threshold":"2"}`),
+		Keys:      `{"ext":"png","matcher":"fuzzy","threshold":"2"}`,
+	}}, tables.Options)
+	assert.Equal(t, []schema.GroupingRow{{
+		GroupingID: h(`{"name":"test_one","source_type":"corpus_one"}`),
+		Keys:       `{"name":"test_one","source_type":"corpus_one"}`,
+	}, {
+		GroupingID: h(`{"name":"test_two","source_type":"corpus_one"}`),
+		Keys:       `{"name":"test_two","source_type":"corpus_one"}`,
+	}, {
+		GroupingID: h(`{"name":"test_three","source_type":"corpus_one"}`),
+		Keys:       `{"name":"test_three","source_type":"corpus_one"}`,
+	}}, tables.Groupings)
+	assert.Equal(t, []schema.SourceFileRow{{
+		SourceFileID: h("crosshatch_file1"),
+		SourceFile:   "crosshatch_file1",
+		LastIngested: time.Date(2020, time.December, 11, 10, 9, 0, 0, time.UTC),
+	}, {
+		SourceFileID: h("tryjob_file1"),
+		SourceFile:   "tryjob_file1",
+		LastIngested: time.Date(2020, time.December, 11, 10, 11, 0, 0, time.UTC),
+	}, {
+		SourceFileID: h("tryjob_file2"),
+		SourceFile:   "tryjob_file2",
+		LastIngested: time.Date(2020, time.December, 11, 11, 12, 13, 0, time.UTC),
+	}}, tables.SourceFiles)
+	assert.Equal(t, []schema.TraceRow{{
+		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		Corpus:               "corpus_one",
+		GroupingID:           h(`{"name":"test_one","source_type":"corpus_one"}`),
+		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
+		MatchesAnyIgnoreRule: schema.NBFalse,
+	}, {
+		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
+		Corpus:               "corpus_one",
+		GroupingID:           h(`{"name":"test_two","source_type":"corpus_one"}`),
+		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
+		MatchesAnyIgnoreRule: schema.NBTrue,
+	}, {
+		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`),
+		Corpus:               "corpus_one",
+		GroupingID:           h(`{"name":"test_three","source_type":"corpus_one"}`),
+		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`,
+		MatchesAnyIgnoreRule: schema.NBFalse,
+	}}, tables.Traces)
+	assert.Equal(t, []schema.TraceValueRow{{
+		Shard:        0x3,
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		CommitID:     1,
+		Digest:       d(t, digestA),
+		GroupingID:   h(`{"name":"test_one","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("crosshatch_file1"),
+	}, {
+		Shard:        0x4,
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
+		CommitID:     1,
+		Digest:       d(t, digestD),
+		GroupingID:   h(`{"name":"test_two","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("crosshatch_file1"),
+	}}, tables.TraceValues)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "name", Value: "test_one", StartCommitID: 0},
+		{Key: "name", Value: "test_two", StartCommitID: 0},
+		{Key: "device", Value: "Crosshatch", StartCommitID: 0},
+		{Key: "os", Value: "Android", StartCommitID: 0},
+		{Key: "color_mode", Value: "rgb", StartCommitID: 0},
+		{Key: "source_type", Value: "corpus_one", StartCommitID: 0},
+		{Key: "ext", Value: "png", StartCommitID: 0},
+	}, tables.PrimaryBranchParams)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     "gerrit_changelist_one",
+		System:           "gerrit",
+		Status:           schema.StatusAbandoned,
+		OwnerEmail:       "owner_one",
+		Subject:          "First CL",
+		LastIngestedData: time.Date(2020, time.December, 11, 11, 12, 13, 0, time.UTC),
+	}}, tables.Changelists)
+	assert.Equal(t, []schema.PatchsetRow{{
+		PatchsetID:   "gerrit_ps_2",
+		System:       "gerrit",
+		ChangelistID: "gerrit_changelist_one",
+		Order:        2,
+		GitHash:      "ps_hash_2",
+	}, {
+		PatchsetID:   "gerrit_ps_3",
+		System:       "gerrit",
+		ChangelistID: "gerrit_changelist_one",
+		Order:        3,
+		GitHash:      "ps_hash_3",
+	}}, tables.Patchsets)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         "bb_tryjob_001",
+		System:           "bb",
+		ChangelistID:     "gerrit_changelist_one",
+		PatchsetID:       "gerrit_ps_2",
+		DisplayName:      "Test-Crosshatch",
+		LastIngestedData: time.Date(2020, time.December, 11, 10, 11, 0, 0, time.UTC),
+	}, {
+		TryjobID:         "bb_tryjob_002",
+		System:           "bb",
+		ChangelistID:     "gerrit_changelist_one",
+		PatchsetID:       "gerrit_ps_3",
+		DisplayName:      "Test-Crosshatch",
+		LastIngestedData: time.Date(2020, time.December, 11, 11, 12, 13, 0, time.UTC),
+	}}, tables.Tryjobs)
+	assert.ElementsMatch(t, []schema.SecondaryBranchParamRow{
+		{Key: "name", Value: "test_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "name", Value: "test_two", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "name", Value: "test_three", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "device", Value: "Crosshatch", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "os", Value: "Android", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "color_mode", Value: "rgb", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "source_type", Value: "corpus_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "ext", Value: "png", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+
+		{Key: "name", Value: "test_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "name", Value: "test_two", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "name", Value: "test_three", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "device", Value: "Crosshatch", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "os", Value: "Android", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "color_mode", Value: "rgb", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "source_type", Value: "corpus_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "ext", Value: "png", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "matcher", Value: "fuzzy", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "threshold", Value: "2", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+	}, tables.SecondaryBranchParams)
+	assert.Equal(t, []schema.SecondaryBranchValueRow{{
+		BranchName:   "gerrit_changelist_one",
+		VersionName:  "gerrit_ps_2",
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		Digest:       d(t, digestB),
+		GroupingID:   h(`{"name":"test_one","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("tryjob_file1"),
+		TryjobID:     "bb_tryjob_001",
+	}, {
+		BranchName:   "gerrit_changelist_one",
+		VersionName:  "gerrit_ps_2",
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
+		Digest:       d(t, digestC),
+		GroupingID:   h(`{"name":"test_two","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("tryjob_file1"),
+		TryjobID:     "bb_tryjob_001",
+	}, {
+		BranchName:   "gerrit_changelist_one",
+		VersionName:  "gerrit_ps_2",
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`),
+		Digest:       d(t, digestD),
+		GroupingID:   h(`{"name":"test_three","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("tryjob_file1"),
+		TryjobID:     "bb_tryjob_001",
+	}, {
+		BranchName:   "gerrit_changelist_one",
+		VersionName:  "gerrit_ps_3",
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
+		Digest:       d(t, digestB),
+		GroupingID:   h(`{"name":"test_one","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("tryjob_file2"),
+		TryjobID:     "bb_tryjob_002",
+	}, {
+		BranchName:   "gerrit_changelist_one",
+		VersionName:  "gerrit_ps_3",
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
+		Digest:       d(t, digestC),
+		GroupingID:   h(`{"name":"test_two","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png"}`),
+		SourceFileID: h("tryjob_file2"),
+		TryjobID:     "bb_tryjob_002",
+	}, {
+		BranchName:   "gerrit_changelist_one",
+		VersionName:  "gerrit_ps_3",
+		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`),
+		Digest:       d(t, digestA),
+		GroupingID:   h(`{"name":"test_three","source_type":"corpus_one"}`),
+		OptionsID:    h(`{"ext":"png","matcher":"fuzzy","threshold":"2"}`),
+		SourceFileID: h("tryjob_file2"),
+		TryjobID:     "bb_tryjob_002",
+	}}, tables.SecondaryBranchValues)
+	// TODO(kjlubick) assert diff metrics are computed.
+}
+
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
