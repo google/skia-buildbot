@@ -31,6 +31,7 @@ import (
 // SQLDataBuilder has methods on it for generating trace data and other related data in a way
 // that can be easily turned into SQL table rows.
 type SQLDataBuilder struct {
+	changelistBuilders  []*ChangelistBuilder
 	commitBuilder       *CommitBuilder
 	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
@@ -325,6 +326,28 @@ func (b *SQLDataBuilder) AddIgnoreRule(created, updated, updateTS, note string, 
 		Query:        schema.SerializedParamSet(jb),
 	})
 	return id
+}
+
+func qualify(system, id string) string {
+	return system + "_" + id
+}
+
+func (b *SQLDataBuilder) AddChangelist(id, crs, owner, subject string, status schema.ChangelistStatus) *ChangelistBuilder {
+	if len(b.groupingKeys) == 0 {
+		logAndPanic("Must add grouping keys before traces")
+	}
+	cb := &ChangelistBuilder{
+		changelist: schema.ChangelistRow{
+			ChangelistID: qualify(crs, id),
+			System:       crs,
+			Status:       status,
+			OwnerEmail:   owner,
+			Subject:      subject,
+		},
+		groupingKeys: b.groupingKeys,
+	}
+	b.changelistBuilders = append(b.changelistBuilders, cb)
+	return cb
 }
 
 // GenerateStructs should be called when all the data has been loaded in for a given setup and
@@ -843,4 +866,57 @@ func (b *ExpectationsBuilder) Negative(d types.Digest) *ExpectationsBuilder {
 
 func logAndPanic(msg string, args ...interface{}) {
 	panic(fmt.Sprintf(msg, args...))
+}
+
+type ChangelistBuilder struct {
+	changelist   schema.ChangelistRow
+	groupingKeys []string
+	patchsets    []*PatchsetBuilder
+}
+
+func (b *ChangelistBuilder) AddPatchset(psID, gitHash string, order int) *PatchsetBuilder {
+	pb := &PatchsetBuilder{
+		patchset: schema.PatchsetRow{
+			PatchsetID:   qualify(b.changelist.System, psID),
+			System:       b.changelist.System,
+			ChangelistID: b.changelist.ChangelistID,
+			Order:        order,
+			GitHash:      gitHash,
+		},
+		groupingKeys: b.groupingKeys,
+	}
+	b.patchsets = append(b.patchsets, pb)
+	return pb
+}
+
+type PatchsetBuilder struct {
+	patchset     schema.PatchsetRow
+	groupingKeys []string
+	commonKeys   paramtools.Params
+	dataPoints   [][]schema.SecondaryBranchValueRow
+}
+
+func (b *PatchsetBuilder) DataWithCommonKeys(keys paramtools.Params) *PatchsetBuilder {
+	if b.commonKeys != nil {
+		logAndPanic("Cannot call DataWithCommonKeys twice")
+	}
+	b.commonKeys = keys
+	return b
+}
+
+func (b *PatchsetBuilder) Digests(digests []types.Digest) *PatchsetBuilder {
+	newData := make([]schema.SecondaryBranchValueRow, 0, len(digests))
+	for _, d := range digests {
+		db, err := sql.DigestToBytes(d)
+		if err != nil {
+			logAndPanic("Invalid digest %q: %s", d, err)
+		}
+		newData = append(newData, schema.SecondaryBranchValueRow{
+			BranchName:  b.patchset.ChangelistID,
+			VersionName: b.patchset.PatchsetID,
+			Digest:      db,
+		})
+	}
+	b.dataPoints = append(b.dataPoints, newData)
+	return b
 }
