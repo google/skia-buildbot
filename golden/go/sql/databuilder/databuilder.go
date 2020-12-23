@@ -31,6 +31,7 @@ import (
 // SQLDataBuilder has methods on it for generating trace data and other related data in a way
 // that can be easily turned into SQL table rows.
 type SQLDataBuilder struct {
+	changelistBuilders  []*ChangelistBuilder
 	commitBuilder       *CommitBuilder
 	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
@@ -327,6 +328,29 @@ func (b *SQLDataBuilder) AddIgnoreRule(created, updated, updateTS, note string, 
 	return id
 }
 
+func qualify(system, id string) string {
+	return system + "_" + id
+}
+
+// AddChangelist returns a builder for data belonging to a changelist.
+func (b *SQLDataBuilder) AddChangelist(id, crs, owner, subject string, status schema.ChangelistStatus) *ChangelistBuilder {
+	if len(b.groupingKeys) == 0 {
+		logAndPanic("Must add grouping keys before traces")
+	}
+	cb := &ChangelistBuilder{
+		changelist: schema.ChangelistRow{
+			ChangelistID: qualify(crs, id),
+			System:       crs,
+			Status:       status,
+			OwnerEmail:   owner,
+			Subject:      subject,
+		},
+		groupingKeys: b.groupingKeys,
+	}
+	b.changelistBuilders = append(b.changelistBuilders, cb)
+	return cb
+}
+
 // GenerateStructs should be called when all the data has been loaded in for a given setup and
 // it will generate the SQL rows as represented in a schema.Tables. If any validation steps fail,
 // it will panic.
@@ -337,68 +361,83 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 	var rv schema.Tables
 	commitsWithData := map[schema.CommitID]bool{}
 	valuesAtHead := map[schema.MD5Hash]*schema.ValueAtHeadRow{}
-	for _, builder := range b.traceBuilders {
-		// Add unique rows from the tables gathered by tracebuilders.
-	nextOption:
-		for _, opt := range builder.options {
-			for _, existingOpt := range rv.Options {
-				if bytes.Equal(opt.OptionsID, existingOpt.OptionsID) {
-					continue nextOption
-				}
+	addOptionIfUnique := func(opt schema.OptionsRow) {
+		for _, existingOpt := range rv.Options {
+			if bytes.Equal(opt.OptionsID, existingOpt.OptionsID) {
+				return
 			}
-			rv.Options = append(rv.Options, opt)
 		}
-	nextGrouping:
-		for _, g := range builder.groupings {
-			for _, existingG := range rv.Groupings {
-				if bytes.Equal(g.GroupingID, existingG.GroupingID) {
-					continue nextGrouping
-				}
+		rv.Options = append(rv.Options, opt)
+	}
+	addGroupingIfUnique := func(g schema.GroupingRow) {
+		for _, existingG := range rv.Groupings {
+			if bytes.Equal(g.GroupingID, existingG.GroupingID) {
+				return
 			}
-			rv.Groupings = append(rv.Groupings, g)
 		}
-	nextSource:
-		for _, sf := range builder.sourceFiles {
-			for _, existingSF := range rv.SourceFiles {
-				if bytes.Equal(sf.SourceFileID, existingSF.SourceFileID) {
-					continue nextSource
-				}
+		rv.Groupings = append(rv.Groupings, g)
+	}
+	addSourceFileIfUnique := func(sf schema.SourceFileRow) {
+		for _, existingSF := range rv.SourceFiles {
+			if bytes.Equal(sf.SourceFileID, existingSF.SourceFileID) {
+				return
 			}
-			rv.SourceFiles = append(rv.SourceFiles, sf)
 		}
-		for _, t := range builder.traces {
-			for _, existingT := range rv.Traces {
-				if bytes.Equal(t.TraceID, existingT.TraceID) {
-					// Having a duplicate trace means that there are duplicate TraceValues entries
-					// and that is not intended.
-					logAndPanic("Duplicate trace found: %v", t.Keys)
+		rv.SourceFiles = append(rv.SourceFiles, sf)
+	}
+	addTrace := func(t schema.TraceRow, allowDuplicates bool) schema.NullableBool {
+		for _, existingT := range rv.Traces {
+			if bytes.Equal(t.TraceID, existingT.TraceID) {
+				if allowDuplicates {
+					// When adding traces from patchsets, it is expected for there to be duplicate
+					// traces because patchsets can build onto existing traces or make new ones.
+					return existingT.MatchesAnyIgnoreRule
 				}
+				// Having a duplicate trace means that there are duplicate TraceValues entries
+				// and that is not intended.
+				logAndPanic("Duplicate trace found: %v", t.Keys)
 			}
-			ignored := false
-			var keys paramtools.Params
-			if err := json.Unmarshal([]byte(t.Keys), &keys); err != nil {
+		}
+		ignored := false
+		var keys paramtools.Params
+		if err := json.Unmarshal([]byte(t.Keys), &keys); err != nil {
+			panic(err.Error()) // should never happen
+		}
+		for _, ir := range b.ignoreRules {
+			var q paramtools.ParamSet
+			if err := json.Unmarshal([]byte(ir.Query), &q); err != nil {
 				panic(err.Error()) // should never happen
 			}
-			for _, ir := range b.ignoreRules {
-				var q paramtools.ParamSet
-				if err := json.Unmarshal([]byte(ir.Query), &q); err != nil {
-					panic(err.Error()) // should never happen
-				}
-				if q.MatchesParams(keys) {
-					ignored = true
-					break
-				}
+			if q.MatchesParams(keys) {
+				ignored = true
+				break
 			}
-			matches := schema.NBNull
-			if len(b.ignoreRules) > 0 {
-				if ignored {
-					matches = schema.NBTrue
-				} else {
-					matches = schema.NBFalse
-				}
+		}
+		matches := schema.NBNull
+		if len(b.ignoreRules) > 0 {
+			if ignored {
+				matches = schema.NBTrue
+			} else {
+				matches = schema.NBFalse
 			}
-			t.MatchesAnyIgnoreRule = matches
-			rv.Traces = append(rv.Traces, t)
+		}
+		t.MatchesAnyIgnoreRule = matches
+		rv.Traces = append(rv.Traces, t)
+		return matches
+	}
+	for _, builder := range b.traceBuilders {
+		// Add unique rows from the tables gathered by tracebuilders.
+		for _, opt := range builder.options {
+			addOptionIfUnique(opt)
+		}
+		for _, g := range builder.groupings {
+			addGroupingIfUnique(g)
+		}
+		for _, sf := range builder.sourceFiles {
+			addSourceFileIfUnique(sf)
+		}
+		for _, t := range builder.traces {
+			matches := addTrace(t, false)
 			valuesAtHead[sql.AsMD5Hash(t.TraceID)] = &schema.ValueAtHeadRow{
 				TraceID:              t.TraceID,
 				GroupingID:           t.GroupingID,
@@ -438,6 +477,37 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 			rv.Commits[i].HasData = true
 		}
 	}
+	for _, cl := range b.changelistBuilders {
+		for _, ps := range cl.patchsets {
+			for _, opt := range ps.options {
+				addOptionIfUnique(opt)
+			}
+			for _, g := range ps.groupings {
+				addGroupingIfUnique(g)
+			}
+			for _, sf := range ps.sourceFiles {
+				addSourceFileIfUnique(sf)
+			}
+			for _, t := range ps.traces {
+				addTrace(t, true)
+			}
+			for _, tj := range ps.tryjobs {
+				rv.Tryjobs = append(rv.Tryjobs, tj)
+				if cl.changelist.LastIngestedData.Before(tj.LastIngestedData) {
+					cl.changelist.LastIngestedData = tj.LastIngestedData
+				}
+			}
+			for _, xdp := range ps.dataPoints {
+				for _, dp := range xdp {
+					rv.SecondaryBranchValues = append(rv.SecondaryBranchValues, *dp)
+				}
+			}
+			rv.Patchsets = append(rv.Patchsets, ps.patchset)
+		}
+		rv.Changelists = append(rv.Changelists, cl.changelist)
+	}
+	rv.SecondaryBranchParams = b.computeSecondaryBranchParams()
+
 	exp := b.finalizeExpectations()
 	for _, e := range exp {
 		rv.Expectations = append(rv.Expectations, *e)
@@ -499,14 +569,10 @@ func (b *SQLDataBuilder) computeTiledTraceDigests() []schema.TiledTraceDigestRow
 	return rv
 }
 
-type tiledKeyValue struct {
-	startCommitID schema.CommitID
-	key           string
-	value         string
-}
-
+// computePrimaryBranchParams goes through all trace data and returns the PrimaryBranchParamRow
+// with the appropriately tiled key/value pairs that showed up in the trace keys and params.
 func (b *SQLDataBuilder) computePrimaryBranchParams() []schema.PrimaryBranchParamRow {
-	seenRows := map[tiledKeyValue]bool{}
+	seenRows := map[schema.PrimaryBranchParamRow]bool{}
 	for _, builder := range b.traceBuilders {
 		findTraceKeys := func(traceID schema.TraceID) paramtools.Params {
 			for _, tr := range builder.traces {
@@ -542,18 +608,18 @@ func (b *SQLDataBuilder) computePrimaryBranchParams() []schema.PrimaryBranchPara
 				tiledID := sql.ComputeTileStartID(tv.CommitID, b.tileWidth)
 				keys := findTraceKeys(tv.TraceID)
 				for k, v := range keys {
-					seenRows[tiledKeyValue{
-						startCommitID: tiledID,
-						key:           k,
-						value:         v,
+					seenRows[schema.PrimaryBranchParamRow{
+						StartCommitID: tiledID,
+						Key:           k,
+						Value:         v,
 					}] = true
 				}
 				options := findOptions(tv.OptionsID)
 				for k, v := range options {
-					seenRows[tiledKeyValue{
-						startCommitID: tiledID,
-						key:           k,
-						value:         v,
+					seenRows[schema.PrimaryBranchParamRow{
+						StartCommitID: tiledID,
+						Key:           k,
+						Value:         v,
 					}] = true
 				}
 			}
@@ -561,11 +627,52 @@ func (b *SQLDataBuilder) computePrimaryBranchParams() []schema.PrimaryBranchPara
 	}
 	var rv []schema.PrimaryBranchParamRow
 	for row := range seenRows {
-		rv = append(rv, schema.PrimaryBranchParamRow{
-			StartCommitID: row.startCommitID,
-			Key:           row.key,
-			Value:         row.value,
-		})
+		rv = append(rv, row)
+	}
+	return rv
+}
+
+// computeSecondaryBranchParams goes through every PS of every built CL and creates a row for each
+// key/value pair from the traces and the options and returns it (without duplicates). This assumes
+// that traces are only made on a patchset that has some data associated with it. It is simpler
+// than computePrimaryBranchParams because we don't need to worry about tiling.
+func (b *SQLDataBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchParamRow {
+	seenRows := map[schema.SecondaryBranchParamRow]bool{}
+	for _, cl := range b.changelistBuilders {
+		for _, ps := range cl.patchsets {
+			for _, tr := range ps.traces {
+				p, err := sql.DeserializeMap(tr.Keys)
+				if err != nil {
+					logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
+				}
+				for k, v := range p {
+					seenRows[schema.SecondaryBranchParamRow{
+						BranchName:  ps.patchset.ChangelistID,
+						VersionName: ps.patchset.PatchsetID,
+						Key:         k,
+						Value:       v,
+					}] = true
+				}
+			}
+			for _, opt := range ps.options {
+				p, err := sql.DeserializeMap(opt.Keys)
+				if err != nil {
+					logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
+				}
+				for k, v := range p {
+					seenRows[schema.SecondaryBranchParamRow{
+						BranchName:  ps.patchset.ChangelistID,
+						VersionName: ps.patchset.PatchsetID,
+						Key:         k,
+						Value:       v,
+					}] = true
+				}
+			}
+		}
+	}
+	var rv []schema.SecondaryBranchParamRow
+	for row := range seenRows {
+		rv = append(rv, row)
 	}
 	return rv
 }
@@ -843,4 +950,175 @@ func (b *ExpectationsBuilder) Negative(d types.Digest) *ExpectationsBuilder {
 
 func logAndPanic(msg string, args ...interface{}) {
 	panic(fmt.Sprintf(msg, args...))
+}
+
+type ChangelistBuilder struct {
+	changelist   schema.ChangelistRow
+	groupingKeys []string
+	patchsets    []*PatchsetBuilder
+}
+
+// AddPatchset returns a builder for data associated with the given patchset.
+func (b *ChangelistBuilder) AddPatchset(psID, gitHash string, order int) *PatchsetBuilder {
+	pb := &PatchsetBuilder{
+		patchset: schema.PatchsetRow{
+			PatchsetID:   qualify(b.changelist.System, psID),
+			System:       b.changelist.System,
+			ChangelistID: b.changelist.ChangelistID,
+			Order:        order,
+			GitHash:      gitHash,
+		},
+		groupingKeys: b.groupingKeys,
+	}
+	b.patchsets = append(b.patchsets, pb)
+	return pb
+}
+
+type PatchsetBuilder struct {
+	commonKeys   paramtools.Params
+	dataPoints   [][]*schema.SecondaryBranchValueRow
+	groupingKeys []string
+	groupings    []schema.GroupingRow
+	options      []schema.OptionsRow
+	patchset     schema.PatchsetRow
+	sourceFiles  []schema.SourceFileRow
+	traces       []schema.TraceRow
+	tryjobs      []schema.TryjobRow
+}
+
+// DataWithCommonKeys sets it so the next calls to Digests will use these trace keys.
+func (b *PatchsetBuilder) DataWithCommonKeys(keys paramtools.Params) *PatchsetBuilder {
+	if b.commonKeys != nil {
+		logAndPanic("Cannot call DataWithCommonKeys twice")
+	}
+	b.commonKeys = keys
+	return b
+}
+
+// Digests adds some data to this patchset. Each digest represents a single data point on a
+// single trace.
+func (b *PatchsetBuilder) Digests(digests []types.Digest) *PatchsetBuilder {
+	if len(digests) == 0 {
+		panic("Cannot add empty data")
+	}
+	newData := make([]*schema.SecondaryBranchValueRow, 0, len(digests))
+	for _, d := range digests {
+		db, err := sql.DigestToBytes(d)
+		if err != nil {
+			logAndPanic("Invalid digest %q: %s", d, err)
+		}
+		newData = append(newData, &schema.SecondaryBranchValueRow{
+			BranchName:  b.patchset.ChangelistID,
+			VersionName: b.patchset.PatchsetID,
+			Digest:      db,
+		})
+	}
+	b.dataPoints = append(b.dataPoints, newData)
+	return b
+}
+
+// Keys applies the given keys to the previous set of data added with Digests(), including
+// a previously set common keys. The length of keys should match the earlier call to Digests().
+func (b *PatchsetBuilder) Keys(keys []paramtools.Params) *PatchsetBuilder {
+	if len(b.dataPoints) == 0 {
+		logAndPanic("Must call Digests before Keys()")
+	}
+	lastData := b.dataPoints[len(b.dataPoints)-1]
+	if len(lastData) != len(keys) {
+		logAndPanic("Expected %d keys", len(lastData))
+	}
+	for i, traceParams := range keys {
+		traceParams.Add(b.commonKeys)
+		grouping := make(map[string]string, len(keys))
+		for _, gk := range b.groupingKeys {
+			val, ok := traceParams[gk]
+			if !ok {
+				logAndPanic("Missing grouping key %q from %v", gk, traceParams)
+			}
+			grouping[gk] = val
+		}
+		groupingJSON, groupingID := sql.SerializeMap(grouping)
+		traceJSON, traceID := sql.SerializeMap(traceParams)
+		lastData[i].GroupingID = groupingID
+		lastData[i].TraceID = traceID
+		b.groupings = append(b.groupings, schema.GroupingRow{
+			GroupingID: groupingID,
+			Keys:       groupingJSON,
+		})
+		b.traces = append(b.traces, schema.TraceRow{
+			TraceID:              traceID,
+			Corpus:               traceParams[types.CorpusField],
+			GroupingID:           groupingID,
+			Keys:                 traceJSON,
+			MatchesAnyIgnoreRule: schema.NBNull,
+		})
+	}
+	return b
+}
+
+// OptionsAll applies the given options to the entire previous set of data added with Digests().
+func (b *PatchsetBuilder) OptionsAll(opts paramtools.Params) *PatchsetBuilder {
+	if len(b.dataPoints) == 0 {
+		logAndPanic("OptionsAll must be called after history loaded")
+	}
+	lastData := b.dataPoints[len(b.dataPoints)-1]
+	xopts := make([]paramtools.Params, len(lastData))
+	for i := range xopts {
+		xopts[i] = opts
+	}
+	return b.OptionsPerPoint(xopts)
+}
+
+// OptionsPerPoint applies the given options to the previous set of data added with Digests(). The
+// length of keys should match the earlier call to Digests().
+func (b *PatchsetBuilder) OptionsPerPoint(xopts []paramtools.Params) *PatchsetBuilder {
+	if len(b.dataPoints) == 0 {
+		logAndPanic("OptionsPerPoint must be called after history loaded")
+	}
+	lastData := b.dataPoints[len(b.dataPoints)-1]
+	if len(lastData) != len(xopts) {
+		logAndPanic("Expected %d options", len(lastData))
+	}
+	for i, opts := range xopts {
+		optJSON, optionsID := sql.SerializeMap(opts)
+		b.options = append(b.options, schema.OptionsRow{
+			OptionsID: optionsID,
+			Keys:      optJSON,
+		})
+		lastData[i].OptionsID = optionsID
+	}
+	return b
+}
+
+// FromTryjob assigns all data previously added with Digests() to be from the given tryjob.
+func (b *PatchsetBuilder) FromTryjob(id, cis, name, file, ingestedTS string) *PatchsetBuilder {
+	if len(b.dataPoints) == 0 {
+		logAndPanic("FromTryjob must be called after history loaded")
+	}
+	updated, err := time.Parse(time.RFC3339, ingestedTS)
+	if err != nil {
+		logAndPanic("invalid timestamp %q: %s", ingestedTS, err)
+	}
+	qID := qualify(cis, id)
+	b.tryjobs = append(b.tryjobs, schema.TryjobRow{
+		TryjobID:         qID,
+		System:           cis,
+		ChangelistID:     b.patchset.ChangelistID,
+		PatchsetID:       b.patchset.PatchsetID,
+		DisplayName:      name,
+		LastIngestedData: updated,
+	})
+	h := md5.Sum([]byte(file))
+	sourceID := h[:]
+	b.sourceFiles = append(b.sourceFiles, schema.SourceFileRow{
+		SourceFileID: sourceID,
+		SourceFile:   file,
+		LastIngested: updated,
+	})
+	lastData := b.dataPoints[len(b.dataPoints)-1]
+	for _, d := range lastData {
+		d.TryjobID = qID
+		d.SourceFileID = sourceID
+	}
+	return b
 }
