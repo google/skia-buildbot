@@ -67,4 +67,4 @@ type FileWriteOptions struct {
 	Metadata           map[string]string
 }
 
-var FILE_WRITE_OPTS_TEXT = FileWriteOptions{ContentEncoding: "text/plain"}
+var FILE_WRITE_OPTS_TEXT = FileWriteOptions{ContentType: "text/plain"}
