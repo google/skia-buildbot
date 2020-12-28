@@ -42,20 +42,20 @@ const (
 	NBTrue  NullableBool = 2
 )
 
-type ExpectationLabel int
+type ExpectationLabel rune
 
 const (
-	LabelUntriaged ExpectationLabel = 0
-	LabelPositive  ExpectationLabel = 1
-	LabelNegative  ExpectationLabel = 2
+	LabelUntriaged ExpectationLabel = 'u'
+	LabelPositive  ExpectationLabel = 'p'
+	LabelNegative  ExpectationLabel = 'n'
 )
 
-type ChangelistStatus int
+type ChangelistStatus string
 
 const (
-	StatusOpen      ChangelistStatus = 0
-	StatusAbandoned ChangelistStatus = 1
-	StatusLanded    ChangelistStatus = 2
+	StatusOpen      ChangelistStatus = "open"
+	StatusAbandoned ChangelistStatus = "abandoned"
+	StatusLanded    ChangelistStatus = "landed"
 )
 
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
@@ -194,7 +194,7 @@ type ExpectationRecordRow struct {
 	// TriageTime is the time at which this event happened.
 	TriageTime time.Time `sql:"triage_time TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// NumChanges is how many digests were affected. It corresponds to the number of
-	// ExpectationDeltaRows have this record as their parent.
+	// ExpectationDelta rows have this record as their parent. It is a denormalized field.
 	NumChanges int `sql:"num_changes INT4 NOT NULL"`
 }
 
@@ -209,9 +209,9 @@ type ExpectationDeltaRow struct {
 	Digest DigestBytes `sql:"digest BYTES"`
 	// LabelBefore is the label that was applied to this digest in this grouping before the
 	// parent expectation event happened. By storing this, we can undo that event in the future.
-	LabelBefore ExpectationLabel `sql:"label_before SMALLINT NOT NULL"`
+	LabelBefore ExpectationLabel `sql:"label_before CHAR NOT NULL"`
 	// LabelAfter is the label that was applied as a result of the parent expectation event.
-	LabelAfter ExpectationLabel `sql:"label_after SMALLINT NOT NULL"`
+	LabelAfter ExpectationLabel `sql:"label_after CHAR NOT NULL"`
 	// In any given expectation event, a single digest in a single grouping can only be affected
 	// once, so it makes sense to use a composite primary key here. Additionally, this gives the
 	// deltas good locality for a given record.
@@ -228,7 +228,7 @@ type ExpectationRow struct {
 	// Digest is the MD5 hash of the pixel data. It identifies the image that is currently triaged.
 	Digest DigestBytes `sql:"digest BYTES"`
 	// Label is the current label associated with the given digest in the given grouping.
-	Label ExpectationLabel `sql:"label SMALLINT NOT NULL"`
+	Label ExpectationLabel `sql:"label CHAR NOT NULL"`
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
@@ -240,17 +240,17 @@ type ExpectationRow struct {
 // contain the grouping information for the following reasons: 1) regardless of which grouping or
 // groupings an image may have been generated in, the difference between any two images is the same;
 // 2) images can be produced by multiple groupings. To make certain queries easier, data for a given
-// image pariing is inserted twice - once with A being Left, B being Right and once with A being
+// image pairing is inserted twice - once with A being Left, B being Right and once with A being
 // Right and B being Left. See diff.go for more about how these fields are computed.
 type DiffMetricRow struct {
 	// LeftDigest represents one of the images compared.
 	LeftDigest DigestBytes `sql:"left_digest BYTES"`
 	// RightDigest represents the other image compared.
 	RightDigest DigestBytes `sql:"left_digest BYTES"`
-	// NumDiffPixels represents the number of pixels that differ between the two images.
-	NumDiffPixels int `sql:"num_diff_pixels INT4 NOT NULL"`
-	// PixelDiffPercent is the percentage of pixels that are different.
-	PixelDiffPercent float32 `sql:"pixel_diff_percent FLOAT4 NOT NULL"`
+	// NumPixelsDiff represents the number of pixels that differ between the two images.
+	NumPixelsDiff int `sql:"num_pixels_diff INT4 NOT NULL"`
+	// PercentPixelsDiff is the percentage of pixels that are different.
+	PercentPixelsDiff float32 `sql:"percent_pixels_diff FLOAT4 NOT NULL"`
 	// MaxRGBADiffs is the maximum delta between the two images in the red, green, blue, and
 	// alpha channels.
 	MaxRGBADiffs [4]int `sql:"max_rgba_diffs INT2[] NOT NULL"`
@@ -294,7 +294,7 @@ type ValueAtHeadRow struct {
 	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 
 	// Label represents the current triage status of the given digest for its grouping.
-	Label ExpectationLabel `sql:"expectation_label SMALLINT NOT NULL"`
+	Label ExpectationLabel `sql:"expectation_label CHAR NOT NULL"`
 	// ExpectationRecordID (if set) is the record ID of the triage record. This allows fast lookup
 	// of who triaged this when.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
@@ -363,7 +363,7 @@ type ChangelistRow struct {
 	// System is the Code Review System to which this changelist belongs.
 	System string `sql:"system STRING NOT NULL"`
 	// Status indicates if this CL is open or not.
-	Status ChangelistStatus `sql:"status INT2 NOT NULL"`
+	Status ChangelistStatus `sql:"status STRING NOT NULL"`
 	// OwnerEmail is the email address of the CL's owner.
 	OwnerEmail string `sql:"owner_email STRING NOT NULL"`
 	// Subject is the first line of the CL's commit message (usually).
