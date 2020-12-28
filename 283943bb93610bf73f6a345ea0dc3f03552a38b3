@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "797f120a_4cdcb334",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:46:34Z",
+      "side": 1,
+      "message": "Nit: blank lines before/after each function for easier navigation.",
+      "range": {
+        "startLine": 363,
+        "startChar": 0,
+        "endLine": 363,
+        "endChar": 51
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e9bfa3d5_24db921f",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:46:34Z",
+      "side": 1,
+      "message": "Consider turning these into methods.",
+      "range": {
+        "startLine": 371,
+        "startChar": 1,
+        "endLine": 371,
+        "endChar": 20
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f5bba590_fdc4c70f",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:46:34Z",
+      "side": 1,
+      "message": "Blank line before/after the traces for loop.",
+      "range": {
+        "startLine": 427,
+        "startChar": 0,
+        "endLine": 427,
+        "endChar": 1
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fb3dd210_e0e82194",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:46:34Z",
+      "side": 1,
+      "message": "false /* \u003dallowDuplicates */",
+      "range": {
+        "startLine": 439,
+        "startChar": 26,
+        "endLine": 439,
+        "endChar": 31
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f4372a0_b27459ed",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:46:34Z",
+      "side": 1,
+      "message": "true /* \u003dallowDuplicates */",
+      "range": {
+        "startLine": 491,
+        "startChar": 16,
+        "endLine": 491,
+        "endChar": 20
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bef5592d_d6a32ca1",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:46:34Z",
+      "side": 1,
+      "message": "\"o\", \"a\", \"l\". Same rationale as previous suggestion to use \"u\", \"n\" and \"p\" for expectation labels.",
+      "range": {
+        "startLine": 56,
+        "startChar": 36,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
