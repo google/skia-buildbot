@@ -47,10 +47,10 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		"device":          "Crosshatch",
 		"color_mode":      "rgb",
 		types.CorpusField: "corpus_one",
-	}).History([]string{
+	}).History(
 		"AAbb",
 		"D--D",
-	}).Keys([]paramtools.Params{{
+	).Keys([]paramtools.Params{{
 		types.PrimaryKeyField: "test_one",
 	}, {
 		types.PrimaryKeyField: "test_two",
@@ -64,9 +64,8 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		"color_mode":          "rgb",
 		types.CorpusField:     "corpus_one",
 		types.PrimaryKeyField: "test_two",
-	}).History([]string{
-		"11D-",
-	}).Keys([]paramtools.Params{{types.PrimaryKeyField: "test_one"}}).
+	}).History("11D-").
+		Keys([]paramtools.Params{{types.PrimaryKeyField: "test_one"}}).
 		OptionsPerTrace([]paramtools.Params{{"ext": "png"}}).
 		IngestedFrom([]string{"windows_file1", "windows_file2", "windows_file3", ""},
 			[]string{"2020-12-11T14:15:00Z", "2020-12-11T15:16:00Z", "2020-12-11T16:17:00Z", ""})
@@ -464,10 +463,10 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		"device":          "Crosshatch",
 		"color_mode":      "rgb",
 		types.CorpusField: "corpus_one",
-	}).History([]string{
+	}).History(
 		"A",
 		"D",
-	}).Keys([]paramtools.Params{{
+	).Keys([]paramtools.Params{{
 		types.PrimaryKeyField: "test_one",
 	}, {
 		types.PrimaryKeyField: "test_two",
@@ -481,7 +480,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 			"device":          "Crosshatch",
 			"color_mode":      "rgb",
 			types.CorpusField: "corpus_one",
-		}).Digests([]types.Digest{digestB, digestC, digestD}).
+		}).Digests(digestB, digestC, digestD).
 		Keys([]paramtools.Params{{
 			types.PrimaryKeyField: "test_one",
 		}, {
@@ -496,7 +495,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 			"device":          "Crosshatch",
 			"color_mode":      "rgb",
 			types.CorpusField: "corpus_one",
-		}).Digests([]types.Digest{digestB, digestC, digestA}).
+		}).Digests(digestB, digestC, digestA).
 		Keys([]paramtools.Params{{
 			types.PrimaryKeyField: "test_one",
 		}, {
@@ -935,9 +934,9 @@ func TestHistory_CalledMultipleTimes_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
-		tb.History([]string{"A"})
+		tb.History("A")
 	})
 }
 
@@ -951,15 +950,15 @@ func TestHistory_WrongSizeTraces_Panics(t *testing.T) {
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	// Expected length is 1
 	assert.Panics(t, func() {
-		tb.History([]string{"AA"})
+		tb.History("AA")
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
-		tb.History([]string{"A", "-A"})
+		tb.History("A", "-A")
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
-		tb.History([]string{"A", ""})
+		tb.History("A", "")
 	})
 }
 func TestHistory_UnknownSymbol_Panics(t *testing.T) {
@@ -971,7 +970,7 @@ func TestHistory_UnknownSymbol_Panics(t *testing.T) {
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
-		tb.History([]string{"?"})
+		tb.History("?")
 	})
 }
 
@@ -996,7 +995,7 @@ func TestKeys_CalledMultipleTimes_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	tb.Keys([]paramtools.Params{{types.CorpusField: "whatever"}})
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{types.CorpusField: "whatever"}})
@@ -1011,17 +1010,17 @@ func TestKeys_IncorrectLength_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.Keys(nil)
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{})
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{types.CorpusField: "too"}, {types.CorpusField: "many"}})
 	})
@@ -1035,7 +1034,7 @@ func TestKeys_MissingGrouping_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		// missing group2
 		tb.Keys([]paramtools.Params{{"group1": "whatever"}})
@@ -1050,7 +1049,7 @@ func TestKeys_IdenticalTraces_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A", "-"})
+	tb.History("A", "-")
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{"group1": "identical"}, {"group1": "identical"}})
 	})
@@ -1077,7 +1076,7 @@ func TestOptionsPerTrace_CalledMultipleTimes_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	tb.OptionsPerTrace([]paramtools.Params{{"opt": "whatever"}})
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{{"opt": "whatever"}})
@@ -1092,17 +1091,17 @@ func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace(nil)
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{})
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{{"opt": "too"}, {"opt": "many"}})
 	})
@@ -1129,7 +1128,7 @@ func TestIngestedFrom_CalledMultipleTimes_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
@@ -1144,22 +1143,22 @@ func TestIngestedFrom_IncorrectLength_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{""})
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{""}, []string{"2020-12-05T16:00:00Z"})
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{})
 	})
 	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{}, []string{"2020-12-05T16:00:00Z"})
 	})
@@ -1173,7 +1172,7 @@ func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{"not valid date"})
 	})
@@ -1187,7 +1186,7 @@ func TestGenerateStructs_IncompleteData_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
-	tb.History([]string{"A"})
+	tb.History("A")
 	assert.Panics(t, func() {
 		b.Build()
 	})
@@ -1214,12 +1213,12 @@ func TestGenerateStructs_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
-		History([]string{"A"}).
+		History("A").
 		Keys([]paramtools.Params{{types.CorpusField: "identical"}}).
 		OptionsAll(paramtools.Params{"opts": "something"}).
 		IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
-		History([]string{"A"}).
+		History("A").
 		Keys([]paramtools.Params{{types.CorpusField: "identical"}}).
 		OptionsAll(paramtools.Params{"opts": "does not impact trace identity"}).
 		IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
@@ -1298,7 +1297,7 @@ func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
 	})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
-		History([]string{"A"})
+		History("A")
 	// We should have the right data now.
 	assert.NotPanics(t, func() {
 		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
@@ -1315,7 +1314,7 @@ func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
-		History([]string{"A"})
+		History("A")
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages(testDir, "not a valid time")
 	})
@@ -1329,7 +1328,7 @@ func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
-		History([]string{"A"})
+		History("A")
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages("Not a valid directory", "2020-12-05T16:00:00Z")
 	})
