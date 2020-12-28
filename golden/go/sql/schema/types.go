@@ -42,12 +42,12 @@ const (
 	NBTrue  NullableBool = 2
 )
 
-type ExpectationLabel int
+type ExpectationLabel rune
 
 const (
-	LabelUntriaged ExpectationLabel = 0
-	LabelPositive  ExpectationLabel = 1
-	LabelNegative  ExpectationLabel = 2
+	LabelUntriaged ExpectationLabel = 'u'
+	LabelPositive  ExpectationLabel = 'p'
+	LabelNegative  ExpectationLabel = 'n'
 )
 
 type ChangelistStatus int
@@ -194,7 +194,7 @@ type ExpectationRecordRow struct {
 	// TriageTime is the time at which this event happened.
 	TriageTime time.Time `sql:"triage_time TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// NumChanges is how many digests were affected. It corresponds to the number of
-	// ExpectationDeltaRows have this record as their parent.
+	// ExpectationDelta rows have this record as their parent. It is a denormalized field.
 	NumChanges int `sql:"num_changes INT4 NOT NULL"`
 }
 
@@ -209,9 +209,9 @@ type ExpectationDeltaRow struct {
 	Digest DigestBytes `sql:"digest BYTES"`
 	// LabelBefore is the label that was applied to this digest in this grouping before the
 	// parent expectation event happened. By storing this, we can undo that event in the future.
-	LabelBefore ExpectationLabel `sql:"label_before SMALLINT NOT NULL"`
+	LabelBefore ExpectationLabel `sql:"label_before CHAR NOT NULL"`
 	// LabelAfter is the label that was applied as a result of the parent expectation event.
-	LabelAfter ExpectationLabel `sql:"label_after SMALLINT NOT NULL"`
+	LabelAfter ExpectationLabel `sql:"label_after CHAR NOT NULL"`
 	// In any given expectation event, a single digest in a single grouping can only be affected
 	// once, so it makes sense to use a composite primary key here. Additionally, this gives the
 	// deltas good locality for a given record.
@@ -228,7 +228,7 @@ type ExpectationRow struct {
 	// Digest is the MD5 hash of the pixel data. It identifies the image that is currently triaged.
 	Digest DigestBytes `sql:"digest BYTES"`
 	// Label is the current label associated with the given digest in the given grouping.
-	Label ExpectationLabel `sql:"label SMALLINT NOT NULL"`
+	Label ExpectationLabel `sql:"label CHAR NOT NULL"`
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
@@ -294,7 +294,7 @@ type ValueAtHeadRow struct {
 	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 
 	// Label represents the current triage status of the given digest for its grouping.
-	Label ExpectationLabel `sql:"expectation_label SMALLINT NOT NULL"`
+	Label ExpectationLabel `sql:"expectation_label CHAR NOT NULL"`
 	// ExpectationRecordID (if set) is the record ID of the triage record. This allows fast lookup
 	// of who triaged this when.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
