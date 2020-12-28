@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "be62e015_fafed0d1",
+        "filename": "golden/go/sql/exporter/tosql/tosql.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T20:34:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "691dcbec_e76cfcff",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 75
+      },
+      "revId": "c463eec3325f0075b6e4cba314b2287fd42d5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "957c9651_6b12ecf3",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-28T20:26:29Z",
       "side": 1,
       "message": "Nit: Move this into the tosql.go file. It\u0027s the obvious place to go looking for such a go:generate comment, and it feels weird to combine // Godoc and //go:generate comments in one single block.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 93
+      },
+      "revId": "c463eec3325f0075b6e4cba314b2287fd42d5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e8130a70_14caa359",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T20:34:35Z",
+      "side": 1,
+      "message": "I put it here because I thought it would be easier to find. Given that the output is in this package and the definition is right here.",
+      "parentUuid": "957c9651_6b12ecf3",
       "range": {
         "startLine": 64,
         "startChar": 0,
