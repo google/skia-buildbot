@@ -776,7 +776,69 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: &primaryBranchRecordID,
 	}}, tables.Expectations)
-	// TODO(kjlubick) assert diff metrics are computed.
+	ts := time.Date(2020, time.December, 14, 14, 14, 14, 0, time.UTC)
+	assert.ElementsMatch(t, []schema.DiffMetricRow{{
+		// These first 4 are the same as the first test.
+		LeftDigest:        d(t, digestA),
+		RightDigest:       d(t, digestB),
+		NumPixelsDiff:     7,
+		PercentPixelsDiff: 10.9375,
+		MaxRGBADiffs:      [4]int{250, 244, 197, 51},
+		MaxChannelDiff:    250,
+		CombinedMetric:    2.9445405,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
+	}, {
+		LeftDigest:        d(t, digestB),
+		RightDigest:       d(t, digestA),
+		NumPixelsDiff:     7,
+		PercentPixelsDiff: 10.9375,
+		MaxRGBADiffs:      [4]int{250, 244, 197, 51},
+		MaxChannelDiff:    250,
+		CombinedMetric:    2.9445405,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
+	}, {
+		LeftDigest:        d(t, digestC),
+		RightDigest:       d(t, digestD),
+		NumPixelsDiff:     36,
+		PercentPixelsDiff: 56.25,
+		MaxRGBADiffs:      [4]int{106, 21, 21, 0},
+		MaxChannelDiff:    106,
+		CombinedMetric:    3.4844475,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
+	}, {
+		LeftDigest:        d(t, digestD),
+		RightDigest:       d(t, digestC),
+		NumPixelsDiff:     36,
+		PercentPixelsDiff: 56.25,
+		MaxRGBADiffs:      [4]int{106, 21, 21, 0},
+		MaxChannelDiff:    106,
+		CombinedMetric:    3.4844475,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
+	}, { // The following 2 were calculated on the new test introduced by this CL
+		LeftDigest:        d(t, digestA),
+		RightDigest:       d(t, digestD),
+		NumPixelsDiff:     64,
+		PercentPixelsDiff: 100,
+		MaxRGBADiffs:      [4]int{250, 244, 197, 255},
+		MaxChannelDiff:    255,
+		CombinedMetric:    9.653383,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
+	}, {
+		LeftDigest:        d(t, digestD),
+		RightDigest:       d(t, digestA),
+		NumPixelsDiff:     64,
+		PercentPixelsDiff: 100,
+		MaxRGBADiffs:      [4]int{250, 244, 197, 255},
+		MaxChannelDiff:    255,
+		CombinedMetric:    9.653383,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
+	}}, tables.DiffMetrics)
 }
 
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
