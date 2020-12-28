@@ -16,6 +16,23 @@
       "message": "Ping",
       "revId": "7b065f8a45b117f71c123968865413bb655fd7e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9ff282af_2a9ca94c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:09:02Z",
+      "side": 1,
+      "message": "Thanks! LGTM.\n\nSome of the suggestions below borrow ideas from go/java-practices/builders, which is a great example of a battle-tested pattern for fluent builder APIs. Some others are based on looking at how this pattern is used in Google3.\n\nIf you accept any of these suggestions, feel free to address them after landing this initial chain of CLs.",
+      "revId": "7b065f8a45b117f71c123968865413bb655fd7e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
