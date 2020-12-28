@@ -28,23 +28,23 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// SQLDataBuilder has methods on it for generating trace data and other related data in a way
+// TablesBuilder has methods on it for generating trace data and other related data in a way
 // that can be easily turned into SQL table rows.
-type SQLDataBuilder struct {
+type TablesBuilder struct {
 	changelistBuilders  []*ChangelistBuilder
 	commitBuilder       *CommitBuilder
 	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
 	groupingKeys        []string
 	ignoreRules         []schema.IgnoreRuleRow
-	symbolsToDigest     map[rune]schema.DigestBytes
+	runeToDigest        map[rune]schema.DigestBytes
 	tileWidth           int
 	traceBuilders       []*TraceBuilder
 }
 
 // Commits returns a new CommitBuilder linked to this builder which will have a set. It panics if
 // called more than once.
-func (b *SQLDataBuilder) Commits() *CommitBuilder {
+func (b *TablesBuilder) Commits() *CommitBuilder {
 	if b.commitBuilder != nil {
 		logAndPanic("Cannot call Commits() more than once.")
 	}
@@ -52,15 +52,15 @@ func (b *SQLDataBuilder) Commits() *CommitBuilder {
 	return b.commitBuilder
 }
 
-// UseDigests loads a mapping of symbols (runes) to the digest that they represent. This allows
+// SetDigests loads a mapping of runes to the digest that they represent. This allows
 // specifying the trace history be done with a string of characters. If a rune is invalid or
 // the digests are invalid, this will panic. It panics if called more than once.
-func (b *SQLDataBuilder) UseDigests(symbolsToDigest map[rune]types.Digest) {
-	if b.symbolsToDigest != nil {
-		logAndPanic("Cannot call UseDigests() more than once.")
+func (b *TablesBuilder) SetDigests(runeToDigest map[rune]types.Digest) {
+	if b.runeToDigest != nil {
+		logAndPanic("Cannot call SetDigests() more than once.")
 	}
-	m := make(map[rune]schema.DigestBytes, len(symbolsToDigest))
-	for symbol, digest := range symbolsToDigest {
+	m := make(map[rune]schema.DigestBytes, len(runeToDigest))
+	for symbol, digest := range runeToDigest {
 		if symbol == '-' {
 			logAndPanic("Cannot map something to -")
 		}
@@ -70,22 +70,22 @@ func (b *SQLDataBuilder) UseDigests(symbolsToDigest map[rune]types.Digest) {
 		}
 		m[symbol] = d
 	}
-	b.symbolsToDigest = m
+	b.runeToDigest = m
 }
 
 // SetGroupingKeys specifies which keys from a Trace's params will be used to define the grouping.
 // It panics if called more than once.
-func (b *SQLDataBuilder) SetGroupingKeys(fields ...string) {
+func (b *TablesBuilder) SetGroupingKeys(fields ...string) {
 	if b.groupingKeys != nil {
 		logAndPanic("Cannot call SetGroupingKeys() more than once.")
 	}
 	b.groupingKeys = fields
 }
 
-// TracesWithCommonKeys returns a new TraceBuilder for building a set of related traces. This can
+// AddTracesWithCommonKeys returns a new TraceBuilder for building a set of related traces. This can
 // be called more than once - all data will be combined at the end. It panics if any of its
 // prerequisites have not been called.
-func (b *SQLDataBuilder) TracesWithCommonKeys(params paramtools.Params) *TraceBuilder {
+func (b *TablesBuilder) AddTracesWithCommonKeys(params paramtools.Params) *TraceBuilder {
 	if b.commitBuilder == nil {
 		logAndPanic("Must add commits before traces")
 	}
@@ -95,20 +95,20 @@ func (b *SQLDataBuilder) TracesWithCommonKeys(params paramtools.Params) *TraceBu
 	if len(b.groupingKeys) == 0 {
 		logAndPanic("Must add grouping keys before traces")
 	}
-	if len(b.symbolsToDigest) == 0 {
+	if len(b.runeToDigest) == 0 {
 		logAndPanic("Must add digests before traces")
 	}
 	tb := &TraceBuilder{
 		commits:         b.commitBuilder.commits,
 		commonKeys:      params,
-		symbolsToDigest: b.symbolsToDigest,
+		symbolsToDigest: b.runeToDigest,
 		groupingKeys:    b.groupingKeys,
 	}
 	b.traceBuilders = append(b.traceBuilders, tb)
 	return tb
 }
 
-func (b *SQLDataBuilder) TriageEvent(user, triageTime string) *ExpectationsBuilder {
+func (b *TablesBuilder) AddTriageEvent(user, triageTime string) *ExpectationsBuilder {
 	if len(b.groupingKeys) == 0 {
 		logAndPanic("Must add grouping keys before expectations")
 	}
@@ -132,7 +132,7 @@ func (b *SQLDataBuilder) TriageEvent(user, triageTime string) *ExpectationsBuild
 // finalizeExpectations finds the final state of the expectations for each digest+grouping pair.
 // This includes identifying untriaged digests. It panics if any of the ExpectationDeltas have
 // preconditions.
-func (b *SQLDataBuilder) finalizeExpectations() []*schema.ExpectationRow {
+func (b *TablesBuilder) finalizeExpectations() []*schema.ExpectationRow {
 	var expectations []*schema.ExpectationRow
 	find := func(g schema.GroupingID, d schema.DigestBytes) *schema.ExpectationRow {
 		for _, e := range expectations {
@@ -184,12 +184,12 @@ func (b *SQLDataBuilder) finalizeExpectations() []*schema.ExpectationRow {
 // ComputeDiffMetricsFromImages generates all the diff metrics from the observed images/digests
 // and from the trace history. It reads the images from disk to use in order to compute the diffs.
 // It is expected that the images are in the provided directory named [digest].png.
-func (b *SQLDataBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr string) {
+func (b *TablesBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr string) {
 	if len(b.diffMetrics) != 0 {
 		logAndPanic("Must call ComputeDiffMetricsFromImages only once")
 	}
-	if len(b.symbolsToDigest) == 0 {
-		logAndPanic("Must call ComputeDiffMetricsFromImages after UseDigests")
+	if len(b.runeToDigest) == 0 {
+		logAndPanic("Must call ComputeDiffMetricsFromImages after SetDigests")
 	}
 	if len(b.traceBuilders) == 0 {
 		logAndPanic("Must call ComputeDiffMetricsFromImages after inserting trace data")
@@ -202,8 +202,8 @@ func (b *SQLDataBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr stri
 	if err != nil {
 		logAndPanic("Error reading directory %q: %s", imgDir, err)
 	}
-	images := make(map[types.Digest]*image.NRGBA, len(b.symbolsToDigest))
-	for _, db := range b.symbolsToDigest {
+	images := make(map[types.Digest]*image.NRGBA, len(b.runeToDigest))
+	for _, db := range b.runeToDigest {
 		d := types.Digest(hex.EncodeToString(db))
 		images[d] = openNRGBAFromDisk(imgDir, d)
 	}
@@ -247,27 +247,27 @@ func (b *SQLDataBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr stri
 					logAndPanic(err.Error())
 				}
 				b.diffMetrics = append(b.diffMetrics, schema.DiffMetricRow{
-					LeftDigest:       ld,
-					RightDigest:      rd,
-					NumDiffPixels:    dm.NumDiffPixels,
-					PixelDiffPercent: dm.PixelDiffPercent,
-					MaxRGBADiffs:     dm.MaxRGBADiffs,
-					MaxChannelDiff:   max(dm.MaxRGBADiffs),
-					CombinedMetric:   dm.CombinedMetric,
-					DimensionsDiffer: dm.DimDiffer,
-					Timestamp:        now,
+					LeftDigest:        ld,
+					RightDigest:       rd,
+					NumPixelsDiff:     dm.NumDiffPixels,
+					PercentPixelsDiff: dm.PixelDiffPercent,
+					MaxRGBADiffs:      dm.MaxRGBADiffs,
+					MaxChannelDiff:    max(dm.MaxRGBADiffs),
+					CombinedMetric:    dm.CombinedMetric,
+					DimensionsDiffer:  dm.DimDiffer,
+					Timestamp:         now,
 				})
 				// And in the other order of left-right
 				b.diffMetrics = append(b.diffMetrics, schema.DiffMetricRow{
-					LeftDigest:       rd,
-					RightDigest:      ld,
-					NumDiffPixels:    dm.NumDiffPixels,
-					PixelDiffPercent: dm.PixelDiffPercent,
-					MaxRGBADiffs:     dm.MaxRGBADiffs,
-					MaxChannelDiff:   max(dm.MaxRGBADiffs),
-					CombinedMetric:   dm.CombinedMetric,
-					DimensionsDiffer: dm.DimDiffer,
-					Timestamp:        now,
+					LeftDigest:        rd,
+					RightDigest:       ld,
+					NumPixelsDiff:     dm.NumDiffPixels,
+					PercentPixelsDiff: dm.PixelDiffPercent,
+					MaxRGBADiffs:      dm.MaxRGBADiffs,
+					MaxChannelDiff:    max(dm.MaxRGBADiffs),
+					CombinedMetric:    dm.CombinedMetric,
+					DimensionsDiffer:  dm.DimDiffer,
+					Timestamp:         now,
 				})
 			}
 		}
@@ -276,9 +276,9 @@ func (b *SQLDataBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr stri
 
 func max(d [4]int) int {
 	m := -1
-	for _, i := range d {
-		if i > m {
-			m = i
+	for _, k := range d {
+		if k > m {
+			m = k
 		}
 	}
 	return m
@@ -303,7 +303,7 @@ func openNRGBAFromDisk(basePath string, digest types.Digest) *image.NRGBA {
 
 // AddIgnoreRule adds an ignore rule with the given information. It will be applied to traces during
 // the generation of structs.
-func (b *SQLDataBuilder) AddIgnoreRule(created, updated, updateTS, note string, query paramtools.ParamSet) uuid.UUID {
+func (b *TablesBuilder) AddIgnoreRule(created, updated, updateTS, note string, query paramtools.ParamSet) uuid.UUID {
 	ts, err := time.Parse(time.RFC3339, updateTS)
 	if err != nil {
 		logAndPanic("invalid time %q: %s", updateTS, err)
@@ -333,7 +333,7 @@ func qualify(system, id string) string {
 }
 
 // AddChangelist returns a builder for data belonging to a changelist.
-func (b *SQLDataBuilder) AddChangelist(id, crs, owner, subject string, status schema.ChangelistStatus) *ChangelistBuilder {
+func (b *TablesBuilder) AddChangelist(id, crs, owner, subject string, status schema.ChangelistStatus) *ChangelistBuilder {
 	if len(b.groupingKeys) == 0 {
 		logAndPanic("Must add grouping keys before traces")
 	}
@@ -351,102 +351,41 @@ func (b *SQLDataBuilder) AddChangelist(id, crs, owner, subject string, status sc
 	return cb
 }
 
-// GenerateStructs should be called when all the data has been loaded in for a given setup and
-// it will generate the SQL rows as represented in a schema.Tables. If any validation steps fail,
-// it will panic.
-func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
+// Build should be called when all the data has been loaded in for a given setup. It will generate
+// the SQL rows as represented in a schema.Tables. If any validation steps fail, it will panic.
+func (b *TablesBuilder) Build() schema.Tables {
 	if b.tileWidth == 0 {
 		b.tileWidth = 100 // default
 	}
-	var rv schema.Tables
+	var tables schema.Tables
 	commitsWithData := map[schema.CommitID]bool{}
 	valuesAtHead := map[schema.MD5Hash]*schema.ValueAtHeadRow{}
-	addOptionIfUnique := func(opt schema.OptionsRow) {
-		for _, existingOpt := range rv.Options {
-			if bytes.Equal(opt.OptionsID, existingOpt.OptionsID) {
-				return
-			}
-		}
-		rv.Options = append(rv.Options, opt)
-	}
-	addGroupingIfUnique := func(g schema.GroupingRow) {
-		for _, existingG := range rv.Groupings {
-			if bytes.Equal(g.GroupingID, existingG.GroupingID) {
-				return
-			}
-		}
-		rv.Groupings = append(rv.Groupings, g)
-	}
-	addSourceFileIfUnique := func(sf schema.SourceFileRow) {
-		for _, existingSF := range rv.SourceFiles {
-			if bytes.Equal(sf.SourceFileID, existingSF.SourceFileID) {
-				return
-			}
-		}
-		rv.SourceFiles = append(rv.SourceFiles, sf)
-	}
-	addTrace := func(t schema.TraceRow, allowDuplicates bool) schema.NullableBool {
-		for _, existingT := range rv.Traces {
-			if bytes.Equal(t.TraceID, existingT.TraceID) {
-				if allowDuplicates {
-					// When adding traces from patchsets, it is expected for there to be duplicate
-					// traces because patchsets can build onto existing traces or make new ones.
-					return existingT.MatchesAnyIgnoreRule
-				}
-				// Having a duplicate trace means that there are duplicate TraceValues entries
-				// and that is not intended.
-				logAndPanic("Duplicate trace found: %v", t.Keys)
-			}
-		}
-		ignored := false
-		var keys paramtools.Params
-		if err := json.Unmarshal([]byte(t.Keys), &keys); err != nil {
-			panic(err.Error()) // should never happen
-		}
-		for _, ir := range b.ignoreRules {
-			var q paramtools.ParamSet
-			if err := json.Unmarshal([]byte(ir.Query), &q); err != nil {
-				panic(err.Error()) // should never happen
-			}
-			if q.MatchesParams(keys) {
-				ignored = true
-				break
-			}
-		}
-		matches := schema.NBNull
-		if len(b.ignoreRules) > 0 {
-			if ignored {
-				matches = schema.NBTrue
-			} else {
-				matches = schema.NBFalse
-			}
-		}
-		t.MatchesAnyIgnoreRule = matches
-		rv.Traces = append(rv.Traces, t)
-		return matches
-	}
-	for _, builder := range b.traceBuilders {
+	for _, traceBuilder := range b.traceBuilders {
 		// Add unique rows from the tables gathered by tracebuilders.
-		for _, opt := range builder.options {
-			addOptionIfUnique(opt)
+		for _, opt := range traceBuilder.options {
+			tables.Options = addOptionIfUnique(tables.Options, opt)
 		}
-		for _, g := range builder.groupings {
-			addGroupingIfUnique(g)
+		for _, g := range traceBuilder.groupings {
+			tables.Groupings = addGroupingIfUnique(tables.Groupings, g)
 		}
-		for _, sf := range builder.sourceFiles {
-			addSourceFileIfUnique(sf)
+		for _, sf := range traceBuilder.sourceFiles {
+			tables.SourceFiles = addSourceFileIfUnique(tables.SourceFiles, sf)
 		}
-		for _, t := range builder.traces {
-			matches := addTrace(t, false)
+
+		for _, t := range traceBuilder.traces {
+			var matchesAnyIgnoreRule schema.NullableBool
+			// prevent accidental duplicates on primary branch.
+			tables.Traces, matchesAnyIgnoreRule = b.addTrace(tables.Traces, t, false)
 			valuesAtHead[sql.AsMD5Hash(t.TraceID)] = &schema.ValueAtHeadRow{
 				TraceID:              t.TraceID,
 				GroupingID:           t.GroupingID,
 				Corpus:               t.Corpus,
 				Keys:                 t.Keys,
-				MatchesAnyIgnoreRule: matches,
+				MatchesAnyIgnoreRule: matchesAnyIgnoreRule,
 			}
 		}
-		for _, xtv := range builder.traceValues {
+
+		for _, xtv := range traceBuilder.traceValues {
 			for _, tv := range xtv {
 				if tv != nil {
 					if tv.TraceID == nil || tv.GroupingID == nil {
@@ -458,7 +397,7 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 					if tv.SourceFileID == nil {
 						panic("Incomplete data - you must call IngestedFrom()")
 					}
-					rv.TraceValues = append(rv.TraceValues, *tv)
+					tables.TraceValues = append(tables.TraceValues, *tv)
 					commitsWithData[tv.CommitID] = true
 					vHead := valuesAtHead[sql.AsMD5Hash(tv.TraceID)]
 					vHead.Digest = tv.Digest
@@ -468,67 +407,135 @@ func (b *SQLDataBuilder) GenerateStructs() schema.Tables {
 			}
 		}
 	}
-	rv.TiledTraceDigests = b.computeTiledTraceDigests()
-	rv.PrimaryBranchParams = b.computePrimaryBranchParams()
-	rv.Commits = b.commitBuilder.commits
-	for i := range rv.Commits {
-		cid := rv.Commits[i].CommitID
+	tables.TiledTraceDigests = b.computeTiledTraceDigests()
+	tables.PrimaryBranchParams = b.computePrimaryBranchParams()
+	tables.Commits = b.commitBuilder.commits
+	for i := range tables.Commits {
+		cid := tables.Commits[i].CommitID
 		if commitsWithData[cid] {
-			rv.Commits[i].HasData = true
+			tables.Commits[i].HasData = true
 		}
 	}
 	for _, cl := range b.changelistBuilders {
 		for _, ps := range cl.patchsets {
 			for _, opt := range ps.options {
-				addOptionIfUnique(opt)
+				tables.Options = addOptionIfUnique(tables.Options, opt)
 			}
 			for _, g := range ps.groupings {
-				addGroupingIfUnique(g)
+				tables.Groupings = addGroupingIfUnique(tables.Groupings, g)
 			}
 			for _, sf := range ps.sourceFiles {
-				addSourceFileIfUnique(sf)
+				tables.SourceFiles = addSourceFileIfUnique(tables.SourceFiles, sf)
 			}
 			for _, t := range ps.traces {
-				addTrace(t, true)
+				// duplicates allowed for different changelists.
+				tables.Traces, _ = b.addTrace(tables.Traces, t, true)
 			}
 			for _, tj := range ps.tryjobs {
-				rv.Tryjobs = append(rv.Tryjobs, tj)
+				tables.Tryjobs = append(tables.Tryjobs, tj)
 				if cl.changelist.LastIngestedData.Before(tj.LastIngestedData) {
 					cl.changelist.LastIngestedData = tj.LastIngestedData
 				}
 			}
 			for _, xdp := range ps.dataPoints {
 				for _, dp := range xdp {
-					rv.SecondaryBranchValues = append(rv.SecondaryBranchValues, *dp)
+					tables.SecondaryBranchValues = append(tables.SecondaryBranchValues, *dp)
 				}
 			}
-			rv.Patchsets = append(rv.Patchsets, ps.patchset)
+			tables.Patchsets = append(tables.Patchsets, ps.patchset)
 		}
-		rv.Changelists = append(rv.Changelists, cl.changelist)
+		tables.Changelists = append(tables.Changelists, cl.changelist)
 	}
-	rv.SecondaryBranchParams = b.computeSecondaryBranchParams()
+	tables.SecondaryBranchParams = b.computeSecondaryBranchParams()
 
 	exp := b.finalizeExpectations()
 	for _, e := range exp {
-		rv.Expectations = append(rv.Expectations, *e)
+		tables.Expectations = append(tables.Expectations, *e)
 	}
 	for _, eb := range b.expectationBuilders {
-		rv.ExpectationRecords = append(rv.ExpectationRecords, *eb.record)
-		rv.ExpectationDeltas = append(rv.ExpectationDeltas, eb.deltas...)
+		tables.ExpectationRecords = append(tables.ExpectationRecords, *eb.record)
+		tables.ExpectationDeltas = append(tables.ExpectationDeltas, eb.deltas...)
 	}
-	rv.DiffMetrics = b.diffMetrics
+	tables.DiffMetrics = b.diffMetrics
 	for _, atHead := range valuesAtHead {
-		for _, exp := range rv.Expectations {
+		for _, exp := range tables.Expectations {
 			if bytes.Equal(exp.GroupingID, atHead.GroupingID) && bytes.Equal(exp.Digest, atHead.Digest) {
 				atHead.ExpectationRecordID = exp.ExpectationRecordID
 				atHead.Label = exp.Label
 				break
 			}
 		}
-		rv.ValuesAtHead = append(rv.ValuesAtHead, *atHead)
+		tables.ValuesAtHead = append(tables.ValuesAtHead, *atHead)
 	}
-	rv.IgnoreRules = b.ignoreRules
-	return rv
+	tables.IgnoreRules = b.ignoreRules
+	return tables
+}
+
+func addOptionIfUnique(existing []schema.OptionsRow, opt schema.OptionsRow) []schema.OptionsRow {
+	for _, existingOpt := range existing {
+		if bytes.Equal(opt.OptionsID, existingOpt.OptionsID) {
+			return existing
+		}
+	}
+	return append(existing, opt)
+}
+
+func addGroupingIfUnique(existing []schema.GroupingRow, g schema.GroupingRow) []schema.GroupingRow {
+	for _, existingG := range existing {
+		if bytes.Equal(g.GroupingID, existingG.GroupingID) {
+			return existing
+		}
+	}
+	return append(existing, g)
+}
+
+func addSourceFileIfUnique(existing []schema.SourceFileRow, sf schema.SourceFileRow) []schema.SourceFileRow {
+	for _, existingSF := range existing {
+		if bytes.Equal(sf.SourceFileID, existingSF.SourceFileID) {
+			return existing
+		}
+	}
+	return append(existing, sf)
+}
+
+func (b *TablesBuilder) addTrace(existing []schema.TraceRow, t schema.TraceRow, allowDuplicates bool) ([]schema.TraceRow, schema.NullableBool) {
+	for _, existingT := range existing {
+		if bytes.Equal(t.TraceID, existingT.TraceID) {
+			if allowDuplicates {
+				// When adding traces from patchsets, it is expected for there to be duplicate
+				// traces because patchsets can build onto existing traces or make new ones.
+				return existing, existingT.MatchesAnyIgnoreRule
+			}
+			// Having a duplicate trace means that there are duplicate TraceValues entries
+			// and that is not intended.
+			logAndPanic("Duplicate trace found: %v", t.Keys)
+		}
+	}
+	ignored := false
+	var keys paramtools.Params
+	if err := json.Unmarshal([]byte(t.Keys), &keys); err != nil {
+		panic(err.Error()) // should never happen
+	}
+	for _, ir := range b.ignoreRules {
+		var q paramtools.ParamSet
+		if err := json.Unmarshal([]byte(ir.Query), &q); err != nil {
+			panic(err.Error()) // should never happen
+		}
+		if q.MatchesParams(keys) {
+			ignored = true
+			break
+		}
+	}
+	matches := schema.NBNull
+	if len(b.ignoreRules) > 0 {
+		if ignored {
+			matches = schema.NBTrue
+		} else {
+			matches = schema.NBFalse
+		}
+	}
+	t.MatchesAnyIgnoreRule = matches
+	return append(existing, t), matches
 }
 
 type tiledTraceDigest struct {
@@ -537,7 +544,7 @@ type tiledTraceDigest struct {
 	digest        schema.MD5Hash
 }
 
-func (b *SQLDataBuilder) computeTiledTraceDigests() []schema.TiledTraceDigestRow {
+func (b *TablesBuilder) computeTiledTraceDigests() []schema.TiledTraceDigestRow {
 	seenRows := map[tiledTraceDigest]bool{}
 	for _, builder := range b.traceBuilders {
 		for _, xtv := range builder.traceValues {
@@ -571,7 +578,7 @@ func (b *SQLDataBuilder) computeTiledTraceDigests() []schema.TiledTraceDigestRow
 
 // computePrimaryBranchParams goes through all trace data and returns the PrimaryBranchParamRow
 // with the appropriately tiled key/value pairs that showed up in the trace keys and params.
-func (b *SQLDataBuilder) computePrimaryBranchParams() []schema.PrimaryBranchParamRow {
+func (b *TablesBuilder) computePrimaryBranchParams() []schema.PrimaryBranchParamRow {
 	seenRows := map[schema.PrimaryBranchParamRow]bool{}
 	for _, builder := range b.traceBuilders {
 		findTraceKeys := func(traceID schema.TraceID) paramtools.Params {
@@ -636,7 +643,7 @@ func (b *SQLDataBuilder) computePrimaryBranchParams() []schema.PrimaryBranchPara
 // key/value pair from the traces and the options and returns it (without duplicates). This assumes
 // that traces are only made on a patchset that has some data associated with it. It is simpler
 // than computePrimaryBranchParams because we don't need to worry about tiling.
-func (b *SQLDataBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchParamRow {
+func (b *TablesBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchParamRow {
 	seenRows := map[schema.SecondaryBranchParamRow]bool{}
 	for _, cl := range b.changelistBuilders {
 		for _, ps := range cl.patchsets {
@@ -724,7 +731,7 @@ type TraceBuilder struct {
 
 // History takes in a slice of strings, with each string representing the history of a trace. Each
 // string must have a number of symbols equal to the length of the number of commits. A dash '-'
-// means no data at that commit; any other symbol must match the previous call to UseDigests().
+// means no data at that commit; any other symbol must match the previous call to SetDigests().
 // If any data is invalid or missing, this method panics.
 func (b *TraceBuilder) History(traceHistories []string) *TraceBuilder {
 	if len(b.traceValues) > 0 {
