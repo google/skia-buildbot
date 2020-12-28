@@ -22,6 +22,30 @@
       },
       "revId": "e9d4c57f5a0ac873f58cd53d303540bb542925d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "04fbf818_d6c2255e",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:08:52Z",
+      "side": 1,
+      "message": "I think it\u0027s fine as is.",
+      "parentUuid": "372c4e4c_bccf548d",
+      "range": {
+        "startLine": 301,
+        "startChar": 1,
+        "endLine": 301,
+        "endChar": 28
+      },
+      "revId": "e9d4c57f5a0ac873f58cd53d303540bb542925d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
