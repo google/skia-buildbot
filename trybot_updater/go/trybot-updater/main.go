@@ -125,7 +125,7 @@ func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.R
 	sklog.Infof("Uploaded change https://skia-review.googlesource.com/c/%s/+/%d", project, ci.Issue)
 
 	if *submit {
-		// TODO(rmistry): Change reviewer to be the trooper after verifying that things work.
+		// TODO(rmistry): Change reviewer to be the Infra Gardener after verifying that things work.
 		reviewers := []string{"rmistry@google.com"}
 		if err := g.SetReview(ctx, ci, "", gerrit.CONFIG_CHROMIUM.SelfApproveLabels, reviewers); err != nil {
 			return abandonGerritChange(ctx, g, ci, err)

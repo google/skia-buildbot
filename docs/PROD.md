@@ -6,7 +6,7 @@ This file documents things that don't belong to a specific service.
 Other Resources (For Googlers only)
 -----------------------------------
 
- - [https://goto.google.com/skia-infra-trooper]
+ - [https://goto.google.com/skia-infra-gardener]
  - [https://goto.google.com/skolo-maintenance]
  - [https://goto.google.com/skolo-playbook]
 
