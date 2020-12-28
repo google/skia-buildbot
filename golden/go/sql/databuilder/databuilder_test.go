@@ -510,11 +510,11 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 	}).
 		FromTryjob("tryjob_002", "bb", "Test-Crosshatch", "tryjob_file2", "2020-12-11T11:12:13Z")
 
-	//cl.AddTriageEvent("user_one", "2020-12-11T11:40:00Z").
-	//	ExpectationsForGrouping(map[string]string{
-	//		types.CorpusField:     "corpus_one",
-	//		types.PrimaryKeyField: "test_three"}).
-	//	Negative(digestD)
+	cl.AddTriageEvent("cl_user", "2020-12-11T11:40:00Z").
+		ExpectationsForGrouping(map[string]string{
+			types.CorpusField:     "corpus_one",
+			types.PrimaryKeyField: "test_three"}).
+		Negative(digestD)
 	b.AddTriageEvent("user_one", "2020-12-12T12:12:12Z").
 		ExpectationsForGrouping(map[string]string{
 			types.CorpusField:     "corpus_one",
@@ -610,8 +610,9 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		{Key: "source_type", Value: "corpus_one", StartCommitID: 0},
 		{Key: "ext", Value: "png", StartCommitID: 0},
 	}, tables.PrimaryBranchParams)
+	qualifiedCLID := "gerrit_changelist_one"
 	assert.Equal(t, []schema.ChangelistRow{{
-		ChangelistID:     "gerrit_changelist_one",
+		ChangelistID:     qualifiedCLID,
 		System:           "gerrit",
 		Status:           schema.StatusAbandoned,
 		OwnerEmail:       "owner_one",
@@ -621,54 +622,54 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 	assert.Equal(t, []schema.PatchsetRow{{
 		PatchsetID:   "gerrit_ps_2",
 		System:       "gerrit",
-		ChangelistID: "gerrit_changelist_one",
+		ChangelistID: qualifiedCLID,
 		Order:        2,
 		GitHash:      "ps_hash_2",
 	}, {
 		PatchsetID:   "gerrit_ps_3",
 		System:       "gerrit",
-		ChangelistID: "gerrit_changelist_one",
+		ChangelistID: qualifiedCLID,
 		Order:        3,
 		GitHash:      "ps_hash_3",
 	}}, tables.Patchsets)
 	assert.Equal(t, []schema.TryjobRow{{
 		TryjobID:         "bb_tryjob_001",
 		System:           "bb",
-		ChangelistID:     "gerrit_changelist_one",
+		ChangelistID:     qualifiedCLID,
 		PatchsetID:       "gerrit_ps_2",
 		DisplayName:      "Test-Crosshatch",
 		LastIngestedData: time.Date(2020, time.December, 11, 10, 11, 0, 0, time.UTC),
 	}, {
 		TryjobID:         "bb_tryjob_002",
 		System:           "bb",
-		ChangelistID:     "gerrit_changelist_one",
+		ChangelistID:     qualifiedCLID,
 		PatchsetID:       "gerrit_ps_3",
 		DisplayName:      "Test-Crosshatch",
 		LastIngestedData: time.Date(2020, time.December, 11, 11, 12, 13, 0, time.UTC),
 	}}, tables.Tryjobs)
 	assert.ElementsMatch(t, []schema.SecondaryBranchParamRow{
-		{Key: "name", Value: "test_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "name", Value: "test_two", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "name", Value: "test_three", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "device", Value: "Crosshatch", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "os", Value: "Android", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "color_mode", Value: "rgb", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "source_type", Value: "corpus_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
-		{Key: "ext", Value: "png", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_2"},
+		{Key: "name", Value: "test_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "name", Value: "test_two", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "name", Value: "test_three", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "device", Value: "Crosshatch", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "os", Value: "Android", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "color_mode", Value: "rgb", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "source_type", Value: "corpus_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
+		{Key: "ext", Value: "png", BranchName: qualifiedCLID, VersionName: "gerrit_ps_2"},
 
-		{Key: "name", Value: "test_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "name", Value: "test_two", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "name", Value: "test_three", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "device", Value: "Crosshatch", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "os", Value: "Android", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "color_mode", Value: "rgb", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "source_type", Value: "corpus_one", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "ext", Value: "png", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "matcher", Value: "fuzzy", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
-		{Key: "threshold", Value: "2", BranchName: "gerrit_changelist_one", VersionName: "gerrit_ps_3"},
+		{Key: "name", Value: "test_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "name", Value: "test_two", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "name", Value: "test_three", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "device", Value: "Crosshatch", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "os", Value: "Android", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "color_mode", Value: "rgb", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "source_type", Value: "corpus_one", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "ext", Value: "png", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "matcher", Value: "fuzzy", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
+		{Key: "threshold", Value: "2", BranchName: qualifiedCLID, VersionName: "gerrit_ps_3"},
 	}, tables.SecondaryBranchParams)
 	assert.Equal(t, []schema.SecondaryBranchValueRow{{
-		BranchName:   "gerrit_changelist_one",
+		BranchName:   qualifiedCLID,
 		VersionName:  "gerrit_ps_2",
 		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
 		Digest:       d(t, digestB),
@@ -677,7 +678,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		SourceFileID: h("tryjob_file1"),
 		TryjobID:     "bb_tryjob_001",
 	}, {
-		BranchName:   "gerrit_changelist_one",
+		BranchName:   qualifiedCLID,
 		VersionName:  "gerrit_ps_2",
 		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
 		Digest:       d(t, digestC),
@@ -686,7 +687,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		SourceFileID: h("tryjob_file1"),
 		TryjobID:     "bb_tryjob_001",
 	}, {
-		BranchName:   "gerrit_changelist_one",
+		BranchName:   qualifiedCLID,
 		VersionName:  "gerrit_ps_2",
 		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`),
 		Digest:       d(t, digestD),
@@ -695,7 +696,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		SourceFileID: h("tryjob_file1"),
 		TryjobID:     "bb_tryjob_001",
 	}, {
-		BranchName:   "gerrit_changelist_one",
+		BranchName:   qualifiedCLID,
 		VersionName:  "gerrit_ps_3",
 		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
 		Digest:       d(t, digestB),
@@ -704,7 +705,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		SourceFileID: h("tryjob_file2"),
 		TryjobID:     "bb_tryjob_002",
 	}, {
-		BranchName:   "gerrit_changelist_one",
+		BranchName:   qualifiedCLID,
 		VersionName:  "gerrit_ps_3",
 		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
 		Digest:       d(t, digestC),
@@ -713,7 +714,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		SourceFileID: h("tryjob_file2"),
 		TryjobID:     "bb_tryjob_002",
 	}, {
-		BranchName:   "gerrit_changelist_one",
+		BranchName:   qualifiedCLID,
 		VersionName:  "gerrit_ps_3",
 		TraceID:      h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`),
 		Digest:       d(t, digestA),
@@ -722,6 +723,59 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		SourceFileID: h("tryjob_file2"),
 		TryjobID:     "bb_tryjob_002",
 	}}, tables.SecondaryBranchValues)
+	require.Len(t, tables.ExpectationRecords, 2)
+	primaryBranchRecordID := tables.ExpectationRecords[0].ExpectationRecordID
+	clRecordID := tables.ExpectationRecords[1].ExpectationRecordID
+	assert.Equal(t, []schema.ExpectationRecordRow{{
+		ExpectationRecordID: primaryBranchRecordID,
+		BranchName:          nil, // primary branch
+		UserName:            "user_one",
+		TriageTime:          time.Date(2020, time.December, 12, 12, 12, 12, 0, time.UTC),
+		NumChanges:          2,
+	}, {
+		ExpectationRecordID: clRecordID,
+		BranchName:          &qualifiedCLID,
+		UserName:            "cl_user",
+		TriageTime:          time.Date(2020, time.December, 11, 11, 40, 0, 0, time.UTC),
+		NumChanges:          1,
+	}}, tables.ExpectationRecords)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: primaryBranchRecordID,
+		GroupingID:          h(`{"name":"test_one","source_type":"corpus_one"}`),
+		Digest:              d(t, digestA),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, {
+		ExpectationRecordID: primaryBranchRecordID,
+		GroupingID:          h(`{"name":"test_two","source_type":"corpus_one"}`),
+		Digest:              d(t, digestD),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, {
+		ExpectationRecordID: clRecordID,
+		GroupingID:          h(`{"name":"test_three","source_type":"corpus_one"}`),
+		Digest:              d(t, digestD),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelNegative,
+	}}, tables.ExpectationDeltas)
+	assert.Equal(t, []schema.SecondaryBranchExpectationRow{{
+		BranchName:          qualifiedCLID,
+		GroupingID:          h(`{"name":"test_three","source_type":"corpus_one"}`),
+		Digest:              d(t, digestD),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: &clRecordID,
+	}}, tables.SecondaryBranchExpectations)
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          h(`{"name":"test_one","source_type":"corpus_one"}`),
+		Digest:              d(t, digestA),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &primaryBranchRecordID,
+	}, {
+		GroupingID:          h(`{"name":"test_two","source_type":"corpus_one"}`),
+		Digest:              d(t, digestD),
+		Label:               schema.LabelPositive,
+		ExpectationRecordID: &primaryBranchRecordID,
+	}}, tables.Expectations)
 	// TODO(kjlubick) assert diff metrics are computed.
 }
 
