@@ -108,6 +108,8 @@ func (b *TablesBuilder) AddTracesWithCommonKeys(params paramtools.Params) *Trace
 	return tb
 }
 
+// AddTriageEvent returns a builder for a series of triage events on the primary branch. These
+// events will be attributed to the given user and timestamp.
 func (b *TablesBuilder) AddTriageEvent(user, triageTime string) *ExpectationsBuilder {
 	if len(b.groupingKeys) == 0 {
 		logAndPanic("Must add grouping keys before expectations")
@@ -416,6 +418,15 @@ func (b *TablesBuilder) Build() schema.Tables {
 			tables.Commits[i].HasData = true
 		}
 	}
+	exp := b.finalizeExpectations()
+	for _, e := range exp {
+		tables.Expectations = append(tables.Expectations, *e)
+	}
+	for _, eb := range b.expectationBuilders {
+		tables.ExpectationRecords = append(tables.ExpectationRecords, *eb.record)
+		tables.ExpectationDeltas = append(tables.ExpectationDeltas, eb.deltas...)
+	}
+
 	for _, cl := range b.changelistBuilders {
 		for _, ps := range cl.patchsets {
 			for _, opt := range ps.options {
@@ -445,17 +456,24 @@ func (b *TablesBuilder) Build() schema.Tables {
 			tables.Patchsets = append(tables.Patchsets, ps.patchset)
 		}
 		tables.Changelists = append(tables.Changelists, cl.changelist)
+		for _, clExpBuilder := range cl.expectationBuilders {
+			record := *clExpBuilder.record
+			record.NumChanges = len(clExpBuilder.deltas)
+			tables.ExpectationRecords = append(tables.ExpectationRecords, record)
+			tables.ExpectationDeltas = append(tables.ExpectationDeltas, clExpBuilder.deltas...)
+			for _, delta := range clExpBuilder.deltas {
+				tables.SecondaryBranchExpectations = append(tables.SecondaryBranchExpectations, schema.SecondaryBranchExpectationRow{
+					BranchName:          *record.BranchName,
+					GroupingID:          delta.GroupingID,
+					Digest:              delta.Digest,
+					Label:               delta.LabelAfter,
+					ExpectationRecordID: &record.ExpectationRecordID,
+				})
+			}
+		}
 	}
 	tables.SecondaryBranchParams = b.computeSecondaryBranchParams()
 
-	exp := b.finalizeExpectations()
-	for _, e := range exp {
-		tables.Expectations = append(tables.Expectations, *e)
-	}
-	for _, eb := range b.expectationBuilders {
-		tables.ExpectationRecords = append(tables.ExpectationRecords, *eb.record)
-		tables.ExpectationDeltas = append(tables.ExpectationDeltas, eb.deltas...)
-	}
 	tables.DiffMetrics = b.diffMetrics
 	for _, atHead := range valuesAtHead {
 		for _, exp := range tables.Expectations {
@@ -960,9 +978,10 @@ func logAndPanic(msg string, args ...interface{}) {
 }
 
 type ChangelistBuilder struct {
-	changelist   schema.ChangelistRow
-	groupingKeys []string
-	patchsets    []*PatchsetBuilder
+	changelist          schema.ChangelistRow
+	expectationBuilders []*ExpectationsBuilder
+	groupingKeys        []string
+	patchsets           []*PatchsetBuilder
 }
 
 // AddPatchset returns a builder for data associated with the given patchset.
@@ -979,6 +998,29 @@ func (b *ChangelistBuilder) AddPatchset(psID, gitHash string, order int) *Patchs
 	}
 	b.patchsets = append(b.patchsets, pb)
 	return pb
+}
+
+// AddTriageEvent returns a builder for a series of triage events on the current CL. These
+// events will be attributed to the given user and timestamp.
+func (b *ChangelistBuilder) AddTriageEvent(user, triageTime string) *ExpectationsBuilder {
+	if len(b.groupingKeys) == 0 {
+		logAndPanic("Must add grouping keys before expectations")
+	}
+	ts, err := time.Parse(time.RFC3339, triageTime)
+	if err != nil {
+		logAndPanic("Invalid triage time %q: %s", triageTime, err)
+	}
+	eb := &ExpectationsBuilder{
+		groupingKeys: b.groupingKeys,
+		record: &schema.ExpectationRecordRow{
+			ExpectationRecordID: uuid.New(),
+			BranchName:          &b.changelist.ChangelistID,
+			UserName:            user,
+			TriageTime:          ts,
+		},
+	}
+	b.expectationBuilders = append(b.expectationBuilders, eb)
+	return eb
 }
 
 type PatchsetBuilder struct {

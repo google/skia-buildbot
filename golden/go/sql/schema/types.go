@@ -61,25 +61,26 @@ const (
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
 // more easily generate test data (see sql/databuilder).
 type Tables struct {
-	Changelists           []ChangelistRow
-	Commits               []CommitRow
-	DiffMetrics           []DiffMetricRow
-	ExpectationDeltas     []ExpectationDeltaRow
-	ExpectationRecords    []ExpectationRecordRow
-	Expectations          []ExpectationRow
-	Groupings             []GroupingRow
-	IgnoreRules           []IgnoreRuleRow
-	Options               []OptionsRow
-	Patchsets             []PatchsetRow
-	PrimaryBranchParams   []PrimaryBranchParamRow
-	SecondaryBranchParams []SecondaryBranchParamRow
-	SecondaryBranchValues []SecondaryBranchValueRow
-	SourceFiles           []SourceFileRow
-	TiledTraceDigests     []TiledTraceDigestRow
-	TraceValues           []TraceValueRow
-	Traces                []TraceRow
-	Tryjobs               []TryjobRow
-	ValuesAtHead          []ValueAtHeadRow
+	Changelists                 []ChangelistRow
+	Commits                     []CommitRow
+	DiffMetrics                 []DiffMetricRow
+	ExpectationDeltas           []ExpectationDeltaRow
+	ExpectationRecords          []ExpectationRecordRow
+	Expectations                []ExpectationRow
+	Groupings                   []GroupingRow
+	IgnoreRules                 []IgnoreRuleRow
+	Options                     []OptionsRow
+	Patchsets                   []PatchsetRow
+	PrimaryBranchParams         []PrimaryBranchParamRow
+	SecondaryBranchExpectations []SecondaryBranchExpectationRow
+	SecondaryBranchParams       []SecondaryBranchParamRow
+	SecondaryBranchValues       []SecondaryBranchValueRow
+	SourceFiles                 []SourceFileRow
+	TiledTraceDigests           []TiledTraceDigestRow
+	TraceValues                 []TraceValueRow
+	Traces                      []TraceRow
+	Tryjobs                     []TryjobRow
+	ValuesAtHead                []ValueAtHeadRow
 }
 
 // TODO(kjlubick) add code to generate SQL statements from these struct tags
@@ -451,4 +452,22 @@ type SecondaryBranchParamRow struct {
 	Value string `sql:"value STRING"`
 	// We generally want locality by branch_name, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, key, value)"`
+}
+
+// SecondaryBranchExpectationRow responds to a new expectation rule applying to a single Changelist.
+// We save expectations per Changelist to avoid the extra effort having having to re-triage
+// everything if a new Patchset was updated that fixes something slightly.
+type SecondaryBranchExpectationRow struct {
+	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.
+	BranchName string `sql:"branch_name STRING"`
+	// GroupingID identifies the grouping to which the triaged digest belongs. This is a foreign key
+	// into the Groupings table.
+	GroupingID GroupingID `sql:"grouping_id BYTES"`
+	// Digest is the MD5 hash of the pixel data. It identifies the image that is currently triaged.
+	Digest DigestBytes `sql:"digest BYTES"`
+	// Label is the current label associated with the given digest in the given grouping.
+	Label ExpectationLabel `sql:"label CHAR NOT NULL"`
+	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
+	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
+	primaryKey          struct{}   `sql:"PRIMARY KEY (branch_name, grouping_id, digest)"`
 }
