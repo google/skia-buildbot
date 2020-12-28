@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a02769f1_84072a0c",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "797f120a_4cdcb334",
+      "range": {
+        "startLine": 363,
+        "startChar": 0,
+        "endLine": 363,
+        "endChar": 51
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e9bfa3d5_24db921f",
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-28T14:46:34Z",
       "side": 1,
       "message": "Consider turning these into methods.",
+      "range": {
+        "startLine": 371,
+        "startChar": 1,
+        "endLine": 371,
+        "endChar": 20
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dd8c3a1b_f2eac92b",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9bfa3d5_24db921f",
       "range": {
         "startLine": 371,
         "startChar": 1,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6d1a06e_b64ed5e3",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5bba590_fdc4c70f",
+      "range": {
+        "startLine": 427,
+        "startChar": 0,
+        "endLine": 427,
+        "endChar": 1
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fb3dd210_e0e82194",
@@ -83,6 +155,30 @@
       "writtenOn": "2020-12-28T14:46:34Z",
       "side": 1,
       "message": "false /* \u003dallowDuplicates */",
+      "range": {
+        "startLine": 439,
+        "startChar": 26,
+        "endLine": 439,
+        "endChar": 31
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "428d6a68_b1afb188",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb3dd210_e0e82194",
       "range": {
         "startLine": 439,
         "startChar": 26,
@@ -116,6 +212,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9892458_b77733ea",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:27:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5f4372a0_b27459ed",
+      "range": {
+        "startLine": 491,
+        "startChar": 16,
+        "endLine": 491,
+        "endChar": 20
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bef5592d_d6a32ca1",
@@ -129,6 +249,30 @@
       "writtenOn": "2020-12-28T14:46:34Z",
       "side": 1,
       "message": "\"o\", \"a\", \"l\". Same rationale as previous suggestion to use \"u\", \"n\" and \"p\" for expectation labels.",
+      "range": {
+        "startLine": 56,
+        "startChar": 36,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "283943bb93610bf73f6a345ea0dc3f03552a38b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de9c64b1_7a8c6423",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:27:30Z",
+      "side": 1,
+      "message": "Done. Because there will be many fewer changelists than expectations, I went with a full string instead of just a character.",
+      "parentUuid": "bef5592d_d6a32ca1",
       "range": {
         "startLine": 56,
         "startChar": 36,
