@@ -24,16 +24,16 @@ const (
 	digestD = types.Digest("dddddddddddddddddddddddddddddddd")
 )
 
-func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
+func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.Commits().
 		Append("author_one", "subject_one", "2020-12-05T16:00:00Z").
 		Append("author_two", "subject_two", "2020-12-06T17:00:00Z").
 		Append("author_three", "subject_three", "2020-12-07T18:00:00Z").
 		Append("author_four", "subject_four", "2020-12-08T19:00:00Z")
-	b.UseDigests(map[rune]types.Digest{
+	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
 		// are untriaged, numbers are negative, symbols are special.
 		'A': digestA,
@@ -42,7 +42,7 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		'D': digestD,
 	})
 	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
-	b.TracesWithCommonKeys(paramtools.Params{
+	b.AddTracesWithCommonKeys(paramtools.Params{
 		"os":              "Android",
 		"device":          "Crosshatch",
 		"color_mode":      "rgb",
@@ -58,7 +58,7 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		IngestedFrom([]string{"crosshatch_file1", "crosshatch_file2", "crosshatch_file3", "crosshatch_file4"},
 			[]string{"2020-12-11T10:09:00Z", "2020-12-11T10:10:00Z", "2020-12-11T10:11:00Z", "2020-12-11T10:12:13Z"})
 
-	b.TracesWithCommonKeys(paramtools.Params{
+	b.AddTracesWithCommonKeys(paramtools.Params{
 		"os":                  "Windows10.7",
 		"device":              "NUC1234",
 		"color_mode":          "rgb",
@@ -71,12 +71,12 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 		IngestedFrom([]string{"windows_file1", "windows_file2", "windows_file3", ""},
 			[]string{"2020-12-11T14:15:00Z", "2020-12-11T15:16:00Z", "2020-12-11T16:17:00Z", ""})
 
-	b.TriageEvent("user_one", "2020-12-12T12:12:12Z").
+	b.AddTriageEvent("user_one", "2020-12-12T12:12:12Z").
 		ExpectationsForGrouping(map[string]string{
 			types.CorpusField:     "corpus_one",
 			types.PrimaryKeyField: "test_one"}).
 		Positive(digestA)
-	b.TriageEvent("user_two", "2020-12-13T13:13:13Z").
+	b.AddTriageEvent("user_two", "2020-12-13T13:13:13Z").
 		ExpectationsForGrouping(map[string]string{
 			types.CorpusField:     "corpus_one",
 			types.PrimaryKeyField: "test_two"}).
@@ -97,7 +97,7 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 	require.NoError(t, err)
 	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
 
-	tables := b.GenerateStructs()
+	tables := b.Build()
 	assert.Equal(t, []schema.OptionsRow{{
 		OptionsID: h(`{"ext":"png"}`),
 		Keys:      `{"ext":"png"}`,
@@ -321,45 +321,45 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 	}}, tables.Expectations)
 	ts := time.Date(2020, time.December, 14, 14, 14, 14, 0, time.UTC)
 	assert.ElementsMatch(t, []schema.DiffMetricRow{{
-		LeftDigest:       d(t, digestA),
-		RightDigest:      d(t, digestB),
-		NumDiffPixels:    7,
-		PixelDiffPercent: 10.9375,
-		MaxRGBADiffs:     [4]int{250, 244, 197, 51},
-		MaxChannelDiff:   250,
-		CombinedMetric:   2.9445405,
-		DimensionsDiffer: false,
-		Timestamp:        ts,
+		LeftDigest:        d(t, digestA),
+		RightDigest:       d(t, digestB),
+		NumPixelsDiff:     7,
+		PercentPixelsDiff: 10.9375,
+		MaxRGBADiffs:      [4]int{250, 244, 197, 51},
+		MaxChannelDiff:    250,
+		CombinedMetric:    2.9445405,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
 	}, {
-		LeftDigest:       d(t, digestB),
-		RightDigest:      d(t, digestA),
-		NumDiffPixels:    7,
-		PixelDiffPercent: 10.9375,
-		MaxRGBADiffs:     [4]int{250, 244, 197, 51},
-		MaxChannelDiff:   250,
-		CombinedMetric:   2.9445405,
-		DimensionsDiffer: false,
-		Timestamp:        ts,
+		LeftDigest:        d(t, digestB),
+		RightDigest:       d(t, digestA),
+		NumPixelsDiff:     7,
+		PercentPixelsDiff: 10.9375,
+		MaxRGBADiffs:      [4]int{250, 244, 197, 51},
+		MaxChannelDiff:    250,
+		CombinedMetric:    2.9445405,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
 	}, {
-		LeftDigest:       d(t, digestC),
-		RightDigest:      d(t, digestD),
-		NumDiffPixels:    36,
-		PixelDiffPercent: 56.25,
-		MaxRGBADiffs:     [4]int{106, 21, 21, 0},
-		MaxChannelDiff:   106,
-		CombinedMetric:   3.4844475,
-		DimensionsDiffer: false,
-		Timestamp:        ts,
+		LeftDigest:        d(t, digestC),
+		RightDigest:       d(t, digestD),
+		NumPixelsDiff:     36,
+		PercentPixelsDiff: 56.25,
+		MaxRGBADiffs:      [4]int{106, 21, 21, 0},
+		MaxChannelDiff:    106,
+		CombinedMetric:    3.4844475,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
 	}, {
-		LeftDigest:       d(t, digestD),
-		RightDigest:      d(t, digestC),
-		NumDiffPixels:    36,
-		PixelDiffPercent: 56.25,
-		MaxRGBADiffs:     [4]int{106, 21, 21, 0},
-		MaxChannelDiff:   106,
-		CombinedMetric:   3.4844475,
-		DimensionsDiffer: false,
-		Timestamp:        ts,
+		LeftDigest:        d(t, digestD),
+		RightDigest:       d(t, digestC),
+		NumPixelsDiff:     36,
+		PercentPixelsDiff: 56.25,
+		MaxRGBADiffs:      [4]int{106, 21, 21, 0},
+		MaxChannelDiff:    106,
+		CombinedMetric:    3.4844475,
+		DimensionsDiffer:  false,
+		Timestamp:         ts,
 	}}, tables.DiffMetrics)
 	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{{
 		TraceID:       h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
@@ -444,13 +444,13 @@ func TestGenerateStructs_CalledWithValidInput_ProducesCorrectData(t *testing.T) 
 	}}, tables.IgnoreRules)
 }
 
-func TestGenerateStructs_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
+func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.Commits().
 		Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	b.UseDigests(map[rune]types.Digest{
+	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
 		// are untriaged, numbers are negative, symbols are special.
 		'A': digestA,
@@ -459,7 +459,7 @@ func TestGenerateStructs_CalledWithChangelistData_ProducesCorrectData(t *testing
 		'D': digestD,
 	})
 	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
-	b.TracesWithCommonKeys(paramtools.Params{
+	b.AddTracesWithCommonKeys(paramtools.Params{
 		"os":              "Android",
 		"device":          "Crosshatch",
 		"color_mode":      "rgb",
@@ -510,12 +510,12 @@ func TestGenerateStructs_CalledWithChangelistData_ProducesCorrectData(t *testing
 	}).
 		FromTryjob("tryjob_002", "bb", "Test-Crosshatch", "tryjob_file2", "2020-12-11T11:12:13Z")
 
-	//cl.TriageEvent("user_one", "2020-12-11T11:40:00Z").
+	//cl.AddTriageEvent("user_one", "2020-12-11T11:40:00Z").
 	//	ExpectationsForGrouping(map[string]string{
 	//		types.CorpusField:     "corpus_one",
 	//		types.PrimaryKeyField: "test_three"}).
 	//	Negative(digestD)
-	b.TriageEvent("user_one", "2020-12-12T12:12:12Z").
+	b.AddTriageEvent("user_one", "2020-12-12T12:12:12Z").
 		ExpectationsForGrouping(map[string]string{
 			types.CorpusField:     "corpus_one",
 			types.PrimaryKeyField: "test_one"}).
@@ -534,7 +534,7 @@ func TestGenerateStructs_CalledWithChangelistData_ProducesCorrectData(t *testing
 	require.NoError(t, err)
 	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
 
-	tables := b.GenerateStructs()
+	tables := b.Build()
 	assert.Equal(t, []schema.OptionsRow{{
 		OptionsID: h(`{"ext":"png"}`),
 		Keys:      `{"ext":"png"}`,
@@ -728,7 +728,7 @@ func TestGenerateStructs_CalledWithChangelistData_ProducesCorrectData(t *testing
 func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.Commits()
 	assert.Panics(t, func() {
 		b.Commits()
@@ -738,87 +738,87 @@ func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
 func TestCommits_InvalidTime_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	assert.Panics(t, func() {
 		b.Commits().Append("fine", "dandy", "no good")
 	})
 }
 
-func TestUseDigests_CalledMultipleTimes_Panics(t *testing.T) {
+func TestSetDigests_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b := TablesBuilder{}
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	assert.Panics(t, func() {
-		b.UseDigests(map[rune]types.Digest{'A': digestA})
+		b.SetDigests(map[rune]types.Digest{'A': digestA})
 	})
 }
 
-func TestUseDigests_InvalidData_Panics(t *testing.T) {
+func TestSetDigests_InvalidData_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
 	assert.Panics(t, func() {
-		b := SQLDataBuilder{}
-		b.UseDigests(map[rune]types.Digest{'-': digestA})
+		b := TablesBuilder{}
+		b.SetDigests(map[rune]types.Digest{'-': digestA})
 	})
 	assert.Panics(t, func() {
-		b := SQLDataBuilder{}
-		b.UseDigests(map[rune]types.Digest{'a': "Invalid digest!"})
+		b := TablesBuilder{}
+		b.SetDigests(map[rune]types.Digest{'a': "Invalid digest!"})
 	})
 }
 
 func TestSetGroupingKeys_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys("foo")
 	assert.Panics(t, func() {
 		b.SetGroupingKeys("bar")
 	})
 }
 
-func TestTracesWithCommonKeys_MissingSetupCalls_Panics(t *testing.T) {
+func TestAddTracesWithCommonKeys_MissingSetupCalls_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	assert.Panics(t, func() {
-		b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	assert.Panics(t, func() {
-		b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
 	b.SetGroupingKeys(types.CorpusField)
 	assert.Panics(t, func() {
-		b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	// Everything should be setup now
 	assert.NotPanics(t, func() {
-		b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
 }
 
-func TestTracesWithCommonKeys_ZeroCommitsSpecified_Panics(t *testing.T) {
+func TestAddTracesWithCommonKeys_ZeroCommitsSpecified_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits() // oops, no commits
 	assert.Panics(t, func() {
-		b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
 }
 
 func TestHistory_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.History([]string{"A"})
@@ -828,20 +828,20 @@ func TestHistory_CalledMultipleTimes_Panics(t *testing.T) {
 func TestHistory_WrongSizeTraces_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	// Expected length is 1
 	assert.Panics(t, func() {
 		tb.History([]string{"AA"})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.History([]string{"A", "-A"})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.History([]string{"A", ""})
 	})
@@ -849,11 +849,11 @@ func TestHistory_WrongSizeTraces_Panics(t *testing.T) {
 func TestHistory_UnknownSymbol_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.History([]string{"?"})
 	})
@@ -862,11 +862,11 @@ func TestHistory_UnknownSymbol_Panics(t *testing.T) {
 func TestKeys_CalledWithoutHistory_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{types.CorpusField: "whatever"}})
 	})
@@ -875,11 +875,11 @@ func TestKeys_CalledWithoutHistory_Panics(t *testing.T) {
 func TestKeys_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	tb.Keys([]paramtools.Params{{types.CorpusField: "whatever"}})
 	assert.Panics(t, func() {
@@ -890,21 +890,21 @@ func TestKeys_CalledMultipleTimes_Panics(t *testing.T) {
 func TestKeys_IncorrectLength_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.Keys(nil)
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{types.CorpusField: "too"}, {types.CorpusField: "many"}})
@@ -914,11 +914,11 @@ func TestKeys_IncorrectLength_Panics(t *testing.T) {
 func TestKeys_MissingGrouping_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys("group1", "group2")
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		// missing group2
@@ -929,11 +929,11 @@ func TestKeys_MissingGrouping_Panics(t *testing.T) {
 func TestKeys_IdenticalTraces_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys("group1")
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A", "-"})
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{"group1": "identical"}, {"group1": "identical"}})
@@ -943,11 +943,11 @@ func TestKeys_IdenticalTraces_Panics(t *testing.T) {
 func TestOptionsPerTrace_CalledWithoutHistory_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{{"opt": "whatever"}})
 	})
@@ -956,11 +956,11 @@ func TestOptionsPerTrace_CalledWithoutHistory_Panics(t *testing.T) {
 func TestOptionsPerTrace_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	tb.OptionsPerTrace([]paramtools.Params{{"opt": "whatever"}})
 	assert.Panics(t, func() {
@@ -971,21 +971,21 @@ func TestOptionsPerTrace_CalledMultipleTimes_Panics(t *testing.T) {
 func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace(nil)
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{{"opt": "too"}, {"opt": "many"}})
@@ -995,11 +995,11 @@ func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
 func TestIngestedFrom_CalledWithoutHistory_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	})
@@ -1008,11 +1008,11 @@ func TestIngestedFrom_CalledWithoutHistory_Panics(t *testing.T) {
 func TestIngestedFrom_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	assert.Panics(t, func() {
@@ -1023,26 +1023,26 @@ func TestIngestedFrom_CalledMultipleTimes_Panics(t *testing.T) {
 func TestIngestedFrom_IncorrectLength_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{""})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{""}, []string{"2020-12-05T16:00:00Z"})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{})
 	})
-	tb = b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb = b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{}, []string{"2020-12-05T16:00:00Z"})
@@ -1052,11 +1052,11 @@ func TestIngestedFrom_IncorrectLength_Panics(t *testing.T) {
 func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{"not valid date"})
@@ -1066,77 +1066,77 @@ func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
 func TestGenerateStructs_IncompleteData_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	tb := b.TracesWithCommonKeys(paramtools.Params{"os": "Android"})
+	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History([]string{"A"})
 	assert.Panics(t, func() {
-		b.GenerateStructs()
+		b.Build()
 	})
 	tb.Keys([]paramtools.Params{{types.CorpusField: "a corpus"}})
 	assert.Panics(t, func() {
-		b.GenerateStructs()
+		b.Build()
 	})
 	tb.OptionsAll(paramtools.Params{"opts": "something"})
 	assert.Panics(t, func() {
-		b.GenerateStructs()
+		b.Build()
 	})
 	tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	assert.NotPanics(t, func() {
 		// should be good now
-		b.GenerateStructs()
+		b.Build()
 	})
 }
 
 func TestGenerateStructs_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History([]string{"A"}).
 		Keys([]paramtools.Params{{types.CorpusField: "identical"}}).
 		OptionsAll(paramtools.Params{"opts": "something"}).
 		IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
-	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History([]string{"A"}).
 		Keys([]paramtools.Params{{types.CorpusField: "identical"}}).
 		OptionsAll(paramtools.Params{"opts": "does not impact trace identity"}).
 		IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
 	assert.Panics(t, func() {
-		b.GenerateStructs()
+		b.Build()
 	})
 }
 
-func TestTriageEvent_NoGroupingKeys_Panics(t *testing.T) {
+func TestAddTriageEvent_NoGroupingKeys_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	assert.Panics(t, func() {
-		b.TriageEvent("user", "2020-12-05T16:00:00Z")
+		b.AddTriageEvent("user", "2020-12-05T16:00:00Z")
 	})
 }
 
-func TestTriageEvent_InvalidTime_Panics(t *testing.T) {
+func TestAddTriageEvent_InvalidTime_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	assert.Panics(t, func() {
-		b.TriageEvent("user", "invalid time")
+		b.AddTriageEvent("user", "invalid time")
 	})
 }
 
 func TestExpectationsForGrouping_KeyMissingFromGrouping_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	eb := b.TriageEvent("user", "2020-12-05T16:00:00Z")
+	eb := b.AddTriageEvent("user", "2020-12-05T16:00:00Z")
 	assert.Panics(t, func() {
 		eb.ExpectationsForGrouping(paramtools.Params{"oops": "missing"})
 	})
@@ -1145,9 +1145,9 @@ func TestExpectationsForGrouping_KeyMissingFromGrouping_Panics(t *testing.T) {
 func TestExpectationsBuilderPositive_InvalidDigest_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	eb := b.TriageEvent("user", "2020-12-05T16:00:00Z").
+	eb := b.AddTriageEvent("user", "2020-12-05T16:00:00Z").
 		ExpectationsForGrouping(paramtools.Params{types.CorpusField: "whatever"})
 	assert.Panics(t, func() {
 		eb.Positive("invalid")
@@ -1157,9 +1157,9 @@ func TestExpectationsBuilderPositive_InvalidDigest_Panics(t *testing.T) {
 func TestExpectationsBuilderNegative_InvalidDigest_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	eb := b.TriageEvent("user", "2020-12-05T16:00:00Z").
+	eb := b.AddTriageEvent("user", "2020-12-05T16:00:00Z").
 		ExpectationsForGrouping(paramtools.Params{types.CorpusField: "whatever"})
 	assert.Panics(t, func() {
 		eb.Negative("invalid")
@@ -1171,17 +1171,17 @@ func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
 	testDir, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
 	})
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
 	})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History([]string{"A"})
 	// We should have the right data now.
 	assert.NotPanics(t, func() {
@@ -1194,11 +1194,11 @@ func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
 	testDir, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History([]string{"A"})
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages(testDir, "not a valid time")
@@ -1208,11 +1208,11 @@ func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
 func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
-	b.UseDigests(map[rune]types.Digest{'A': digestA})
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
 	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
-	b.TracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History([]string{"A"})
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages("Not a valid directory", "2020-12-05T16:00:00Z")
@@ -1222,7 +1222,7 @@ func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
 func TestAddIgnoreRule_InvalidDate_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	assert.Panics(t, func() {
 		b.AddIgnoreRule("fine", "fine", "Invalid date", "whatever",
 			paramtools.ParamSet{"what": []string{"ever"}})
@@ -1232,7 +1232,7 @@ func TestAddIgnoreRule_InvalidDate_Panics(t *testing.T) {
 func TestAddIgnoreRule_InvalidQuery_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
-	b := SQLDataBuilder{}
+	b := TablesBuilder{}
 	assert.Panics(t, func() {
 		b.AddIgnoreRule("fine", "fine", "2020-12-05T16:00:00Z", "whatever", nil)
 	})
