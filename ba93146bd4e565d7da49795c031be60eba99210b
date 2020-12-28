@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f3b560d5_500285e5",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 898,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T18:46:51Z",
+      "side": 1,
+      "message": "Variadic?",
+      "range": {
+        "startLine": 898,
+        "startChar": 47,
+        "endLine": 898,
+        "endChar": 69
+      },
+      "revId": "ba93146bd4e565d7da49795c031be60eba99210b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f64141a2_e4c5ba74",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1066,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T18:46:51Z",
+      "side": 1,
+      "message": "Variadic? (it\u0027s a string alias)",
+      "range": {
+        "startLine": 1066,
+        "startChar": 42,
+        "endLine": 1066,
+        "endChar": 56
+      },
+      "revId": "ba93146bd4e565d7da49795c031be60eba99210b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
