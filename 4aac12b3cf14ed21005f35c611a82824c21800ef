@@ -16,6 +16,29 @@
       "message": "Here is the addressed feedback from the previous CLs.",
       "revId": "4aac12b3cf14ed21005f35c611a82824c21800ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5c686a0c_6fbf3077",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 736,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T18:19:06Z",
+      "side": 1,
+      "message": "Something I forgot to mention in the original CL: consider turning this, and any other public methods that take slices as arguments, into variadic methods. This will simplify code at the callsite (e.g. b.History(h1, h2, h3) vs. b.History([]string{h1, h2, h3})).",
+      "range": {
+        "startLine": 736,
+        "startChar": 31,
+        "endLine": 736,
+        "endChar": 54
+      },
+      "revId": "4aac12b3cf14ed21005f35c611a82824c21800ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
