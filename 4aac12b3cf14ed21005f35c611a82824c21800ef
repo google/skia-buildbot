@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "29fe8df2_f6eb4cd0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:32:14Z",
+      "side": 1,
+      "message": "Here is the addressed feedback from the previous CLs.",
+      "revId": "4aac12b3cf14ed21005f35c611a82824c21800ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
