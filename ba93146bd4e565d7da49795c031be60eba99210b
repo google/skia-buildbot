@@ -96,6 +96,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "467c2718_4384707d",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 898,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T19:16:02Z",
+      "side": 1,
+      "message": "Oh, my bad.",
+      "parentUuid": "e89a6081_3979fb25",
+      "range": {
+        "startLine": 898,
+        "startChar": 47,
+        "endLine": 898,
+        "endChar": 69
+      },
+      "revId": "ba93146bd4e565d7da49795c031be60eba99210b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f64141a2_e4c5ba74",
