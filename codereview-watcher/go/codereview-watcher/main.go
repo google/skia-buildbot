@@ -155,7 +155,7 @@ func startPoller(ctx context.Context, githubClient *github.GitHub, gerritClient 
 				}
 
 				// Add reviews@skia.org to CC list.
-				// In the future maybe also add the sheriff/trooper to the here.
+				// In the future maybe also add the Skia or Infra gardener here.
 				if err := gerritClient.AddCC(ctx, gerritChangeInfo, []string{skiaTeamReviewsList}); err != nil {
 					sklog.Errorf("Could not add %s to CC of %s: %s", skiaTeamReviewsList, gerritURL, err)
 				}

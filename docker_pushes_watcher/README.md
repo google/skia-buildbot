@@ -28,8 +28,8 @@ failures and diagnose problems. The framework was replaced with task drivers and
 docker-pushes-watcher app.
 
 Now all failures when building apps cause the corresponding jobs to turn red on status.skia.org for
-the commits that break things, this makes failures much easier to find for the sheriff.
-Failures in the docker-pushes-watcher app show up as alerts for the trooper to diagnose and fix.
+the commits that break things, this makes failures much easier to find for the Skia Gardener.
+Failures in the docker-pushes-watcher app show up as alerts for the Infra Gardener to diagnose and fix.
 
 
 ### Task Drivers
