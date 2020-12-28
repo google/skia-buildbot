@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b801c9c2_5d07a27f",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 898,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T18:55:06Z",
+      "side": 1,
+      "message": "No - those are two different parameters.",
+      "parentUuid": "f3b560d5_500285e5",
+      "range": {
+        "startLine": 898,
+        "startChar": 47,
+        "endLine": 898,
+        "endChar": 69
+      },
+      "revId": "ba93146bd4e565d7da49795c031be60eba99210b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "f64141a2_e4c5ba74",
         "filename": "golden/go/sql/databuilder/databuilder.go",
         "patchSetId": 2
@@ -37,6 +61,30 @@
       "writtenOn": "2020-12-28T18:46:51Z",
       "side": 1,
       "message": "Variadic? (it\u0027s a string alias)",
+      "range": {
+        "startLine": 1066,
+        "startChar": 42,
+        "endLine": 1066,
+        "endChar": 56
+      },
+      "revId": "ba93146bd4e565d7da49795c031be60eba99210b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "30ac5c1b_8f1cbeac",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1066,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T18:55:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f64141a2_e4c5ba74",
       "range": {
         "startLine": 1066,
         "startChar": 42,
