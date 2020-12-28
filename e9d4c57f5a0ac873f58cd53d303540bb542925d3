@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "372c4e4c_bccf548d",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:32:17Z",
+      "side": 1,
+      "message": "KeyOrOption, key_or_option",
+      "range": {
+        "startLine": 301,
+        "startChar": 1,
+        "endLine": 301,
+        "endChar": 28
+      },
+      "revId": "e9d4c57f5a0ac873f58cd53d303540bb542925d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
