@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2452db9c_247b06a8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T20:26:29Z",
+      "side": 1,
+      "message": "This is very cool!",
+      "revId": "c463eec3325f0075b6e4cba314b2287fd42d5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "691dcbec_e76cfcff",
+        "filename": "golden/go/sql/exporter/tosql/tosql.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T20:26:29Z",
+      "side": 1,
+      "message": "Nit: Fail loudly with a panic. This is most likely a bug.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 75
+      },
+      "revId": "c463eec3325f0075b6e4cba314b2287fd42d5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "957c9651_6b12ecf3",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T20:26:29Z",
+      "side": 1,
+      "message": "Nit: Move this into the tosql.go file. It\u0027s the obvious place to go looking for such a go:generate comment, and it feels weird to combine // Godoc and //go:generate comments in one single block.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 93
+      },
+      "revId": "c463eec3325f0075b6e4cba314b2287fd42d5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
