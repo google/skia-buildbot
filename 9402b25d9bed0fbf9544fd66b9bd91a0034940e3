@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "df46d2d4_77b87c14",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:07:35Z",
+      "side": 1,
+      "message": "https://skia-review.googlesource.com/c/buildbot/+/347800/",
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "616a9a3c_00b38a57",
@@ -14,6 +31,30 @@
       "writtenOn": "2020-12-28T14:26:14Z",
       "side": 1,
       "message": "Ubernit: most folks will read \"i\" as \"index\", but this particular range statement ignores the returned index; I suggest naming this \"k\" or something else.",
+      "range": {
+        "startLine": 277,
+        "startChar": 8,
+        "endLine": 277,
+        "endChar": 9
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a0d0df3_2c9523a9",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:07:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "616a9a3c_00b38a57",
       "range": {
         "startLine": 277,
         "startChar": 8,
@@ -47,6 +88,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "26237180_8804a97d",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:07:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e55c6b2f_4d063c7a",
+      "range": {
+        "startLine": 223,
+        "startChar": 9,
+        "endLine": 223,
+        "endChar": 16
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "44ccd8d7_59d973cb",
@@ -70,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "92313f52_3d7cbb22",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:07:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44ccd8d7_59d973cb",
+      "range": {
+        "startLine": 233,
+        "startChar": 1,
+        "endLine": 233,
+        "endChar": 50
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b0ab7fad_21214661",
@@ -83,6 +172,30 @@
       "writtenOn": "2020-12-28T14:26:14Z",
       "side": 1,
       "message": "Optional: Now would be a good time to think of a more descriptive name for this metric.",
+      "range": {
+        "startLine": 242,
+        "startChar": 30,
+        "endLine": 242,
+        "endChar": 45
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c4f901cc_cb2c074a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:07:35Z",
+      "side": 1,
+      "message": "I think it\u0027s fine as is. IIRC, it\u0027s a metric that stephana@ and/or mtklein@ invented.",
+      "parentUuid": "b0ab7fad_21214661",
       "range": {
         "startLine": 242,
         "startChar": 30,
