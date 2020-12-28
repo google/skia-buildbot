@@ -226,6 +226,23 @@ func (b *TablesBuilder) ComputeDiffMetricsFromImages(imgDir string, nowStr strin
 			}
 		}
 	}
+	// Add all the data from the CLs to the respective groupings.
+	for _, clb := range b.changelistBuilders {
+		for _, psb := range clb.patchsets {
+			for _, ps := range psb.dataPoints {
+				for _, dp := range ps {
+					if dp != nil {
+						groupingID := sql.AsMD5Hash(dp.GroupingID)
+						if _, ok := toCompute[groupingID]; !ok {
+							toCompute[groupingID] = types.DigestSet{}
+						}
+						d := types.Digest(hex.EncodeToString(dp.Digest))
+						toCompute[groupingID][d] = true
+					}
+				}
+			}
+		}
+	}
 	// For each grouping, compare each digest to every other digest and create the metric rows
 	// for that.
 	for _, xd := range toCompute {
