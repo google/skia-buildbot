@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8fffd24c_b04b0aa7",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62889113_c60b4fd1",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 9
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fae1a582_76695700",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-28T16:37:45Z",
       "side": 1,
       "message": "Could this just be a string instead of a struct containing a string? Maybe comment that this is a hex encoded sha256 hash?",
+      "range": {
+        "startLine": 139,
+        "startChar": 13,
+        "endLine": 139,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "19b57702_241802bf",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Every time I\u0027ve done that it\u0027s always been a mistake, the object allows adding more fields.\n\nCreated a new type SHA256 string to clarify Hash.",
+      "parentUuid": "fae1a582_76695700",
       "range": {
         "startLine": 139,
         "startChar": 13,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "225d4f44_100a84e8",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "I will think about that one, if I do change it I\u0027ll do the rename later after the API code lands.",
+      "parentUuid": "cbdc3ffc_5b57074a",
+      "range": {
+        "startLine": 144,
+        "startChar": 5,
+        "endLine": 144,
+        "endChar": 9
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2e43bd4d_0e06d4b6",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-12-28T16:37:45Z",
       "side": 1,
       "message": "If you take the above suggestion, this can become ScrapID",
+      "range": {
+        "startLine": 145,
+        "startChar": 13,
+        "endLine": 145,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0097543c_3e4d2d84",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Changed to SHA256.",
+      "parentUuid": "2e43bd4d_0e06d4b6",
       "range": {
         "startLine": 145,
         "startChar": 13,
@@ -133,6 +229,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cf9c2c16_3d6ca962",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3201fa4d_bfa38af9",
+      "range": {
+        "startLine": 195,
+        "startChar": 4,
+        "endLine": 195,
+        "endChar": 7
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9d5cc517_785e6769",
@@ -146,6 +266,30 @@
       "writtenOn": "2020-12-28T16:37:45Z",
       "side": 1,
       "message": "Maybe include what the invalid string is?",
+      "range": {
+        "startLine": 218,
+        "startChar": 15,
+        "endLine": 218,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b327cb6b_a59fc82f",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done.\n\nAlso switched to using inValidType().",
+      "parentUuid": "9d5cc517_785e6769",
       "range": {
         "startLine": 218,
         "startChar": 15,
@@ -179,6 +323,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f8fa37cc_1a0a17e7",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Change all isValid* functions into validate* functions that return an skerr wrapped error with the invalid value added to the error message.",
+      "parentUuid": "52d66393_0aab5fb5",
+      "range": {
+        "startLine": 227,
+        "startChar": 15,
+        "endLine": 227,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "21dbec04_f2f3a9fd",
@@ -192,6 +360,30 @@
       "writtenOn": "2020-12-28T16:37:45Z",
       "side": 1,
       "message": "hex.EncodeToString is more clear and probably faster.",
+      "range": {
+        "startLine": 287,
+        "startChar": 12,
+        "endLine": 287,
+        "endChar": 16
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "980baaa0_390d31bd",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21dbec04_f2f3a9fd",
       "range": {
         "startLine": 287,
         "startChar": 12,
@@ -225,6 +417,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ba0590a9_f45ea3cf",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b7a6f53_d4008cdf",
+      "range": {
+        "startLine": 328,
+        "startChar": 15,
+        "endLine": 328,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9c97d0a3_b73d1cd1",
@@ -238,6 +454,30 @@
       "writtenOn": "2020-12-28T16:37:45Z",
       "side": 1,
       "message": "filepath is os-dependent, but GCS always uses forward slashes. path is probably what you want here (with a comment justifying it).",
+      "range": {
+        "startLine": 409,
+        "startChar": 10,
+        "endLine": 409,
+        "endChar": 18
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "edf6ae86_40a5096a",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c97d0a3_b73d1cd1",
       "range": {
         "startLine": 409,
         "startChar": 10,
@@ -271,6 +511,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "309306a8_60d716ff",
+        "filename": "scrap/go/scrap/scrap_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b06a606_6235d60d",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 13
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d779ecad_069f15ec",
@@ -294,6 +558,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "63f503c4_11a902f5",
+        "filename": "scrap/go/scrap/scrap_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d779ecad_069f15ec",
+      "range": {
+        "startLine": 215,
+        "startChar": 32,
+        "endLine": 215,
+        "endChar": 39
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "05eed88d_c4b58786",
@@ -307,6 +595,30 @@
       "writtenOn": "2020-12-28T16:37:45Z",
       "side": 1,
       "message": "suggestion: An alternative to nested maps is to introduce a struct with Lang and Type and use that as the key in a map. I find those easier to read/use/initialize than nested maps.",
+      "range": {
+        "startLine": 10,
+        "startChar": 17,
+        "endLine": 10,
+        "endChar": 35
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f242876c_d08b107d",
+        "filename": "scrap/go/scrap/templates.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-28T17:19:16Z",
+      "side": 1,
+      "message": "I had tried something similar and the code ended up harder to read.",
+      "parentUuid": "05eed88d_c4b58786",
       "range": {
         "startLine": 10,
         "startChar": 17,
