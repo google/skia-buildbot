@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9a671a4d_64c19cca",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:15:53Z",
+      "side": 1,
+      "message": "Nit: ExpectationDelta rows.",
+      "range": {
+        "startLine": 176,
+        "startChar": 4,
+        "endLine": 176,
+        "endChar": 24
+      },
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "52e0bd6f_21e7e3cd",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:15:53Z",
+      "side": 1,
+      "message": "Please make it explicit that this is denormalized from the ExpectationDelta table.",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 0
+      },
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6d9b305_a835055c",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:15:53Z",
+      "side": 1,
+      "message": "WDYT about using chars for this? Personally I would find \"u\", \"n\" and \"p\" easier to remember than 0, 1, 2, especially when performing ad-hoc queries. Storage-wise it should be the same.",
+      "range": {
+        "startLine": 210,
+        "startChar": 36,
+        "endLine": 210,
+        "endChar": 44
+      },
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
