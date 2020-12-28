@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "616a9a3c_00b38a57",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:26:14Z",
+      "side": 1,
+      "message": "Ubernit: most folks will read \"i\" as \"index\", but this particular range statement ignores the returned index; I suggest naming this \"k\" or something else.",
+      "range": {
+        "startLine": 277,
+        "startChar": 8,
+        "endLine": 277,
+        "endChar": 9
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e55c6b2f_4d063c7a",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:26:14Z",
+      "side": 1,
+      "message": "Typo: pair, or pairing",
+      "range": {
+        "startLine": 223,
+        "startChar": 9,
+        "endLine": 223,
+        "endChar": 16
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "44ccd8d7_59d973cb",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:26:14Z",
+      "side": 1,
+      "message": "PctDiffPixels, pct_diff_pixels",
+      "range": {
+        "startLine": 233,
+        "startChar": 1,
+        "endLine": 233,
+        "endChar": 50
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b0ab7fad_21214661",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-12-28T14:26:14Z",
+      "side": 1,
+      "message": "Optional: Now would be a good time to think of a more descriptive name for this metric.",
+      "range": {
+        "startLine": 242,
+        "startChar": 30,
+        "endLine": 242,
+        "endChar": 45
+      },
+      "revId": "9402b25d9bed0fbf9544fd66b9bd91a0034940e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
