@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2cd11975_2dc68acf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:01:40Z",
+      "side": 1,
+      "message": "https://skia-review.googlesource.com/c/buildbot/+/347800/ has the changes",
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9a671a4d_64c19cca",
@@ -14,6 +31,30 @@
       "writtenOn": "2020-12-28T14:15:53Z",
       "side": 1,
       "message": "Nit: ExpectationDelta rows.",
+      "range": {
+        "startLine": 176,
+        "startChar": 4,
+        "endLine": 176,
+        "endChar": 24
+      },
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "16e476af_e56c1c10",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:01:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a671a4d_64c19cca",
       "range": {
         "startLine": 176,
         "startChar": 4,
@@ -47,6 +88,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "81ba6fae_124fa3e6",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:01:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52e0bd6f_21e7e3cd",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 0
+      },
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e6d9b305_a835055c",
@@ -60,6 +125,30 @@
       "writtenOn": "2020-12-28T14:15:53Z",
       "side": 1,
       "message": "WDYT about using chars for this? Personally I would find \"u\", \"n\" and \"p\" easier to remember than 0, 1, 2, especially when performing ad-hoc queries. Storage-wise it should be the same.",
+      "range": {
+        "startLine": 210,
+        "startChar": 36,
+        "endLine": 210,
+        "endChar": 44
+      },
+      "revId": "24fdea6d0ff76ad73be79ea5eee600f2d657cbae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d33b4a21_65c4b846",
+        "filename": "golden/go/sql/schema/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T15:01:40Z",
+      "side": 1,
+      "message": "Good idea. Done.",
+      "parentUuid": "e6d9b305_a835055c",
       "range": {
         "startLine": 210,
         "startChar": 36,
