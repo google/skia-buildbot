@@ -1,0 +1,320 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "96c0e29d_4629ae00",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "LGTM. suggestions/nits below.",
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "62889113_c60b4fd1",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "nit: Lang is",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 9
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fae1a582_76695700",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "Could this just be a string instead of a struct containing a string? Maybe comment that this is a hex encoded sha256 hash?",
+      "range": {
+        "startLine": 139,
+        "startChar": 13,
+        "endLine": 139,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cbdc3ffc_5b57074a",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "Maybe NameMetadata to indicate this isn\u0027t the name itself (which is stored elsewhere)",
+      "range": {
+        "startLine": 144,
+        "startChar": 5,
+        "endLine": 144,
+        "endChar": 9
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2e43bd4d_0e06d4b6",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "If you take the above suggestion, this can become ScrapID",
+      "range": {
+        "startLine": 145,
+        "startChar": 13,
+        "endLine": 145,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3201fa4d_bfa38af9",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "nil, to make the \"no error\" explicit",
+      "range": {
+        "startLine": 195,
+        "startChar": 4,
+        "endLine": 195,
+        "endChar": 7
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9d5cc517_785e6769",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "Maybe include what the invalid string is?",
+      "range": {
+        "startLine": 218,
+        "startChar": 15,
+        "endLine": 218,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "52d66393_0aab5fb5",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "Maybe include the invalid language?",
+      "range": {
+        "startLine": 227,
+        "startChar": 15,
+        "endLine": 227,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "21dbec04_f2f3a9fd",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "hex.EncodeToString is more clear and probably faster.",
+      "range": {
+        "startLine": 287,
+        "startChar": 12,
+        "endLine": 287,
+        "endChar": 16
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6b7a6f53_d4008cdf",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "Maybe include hash and hashOrName?",
+      "range": {
+        "startLine": 328,
+        "startChar": 15,
+        "endLine": 328,
+        "endChar": 19
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9c97d0a3_b73d1cd1",
+        "filename": "scrap/go/scrap/scrap.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "filepath is os-dependent, but GCS always uses forward slashes. path is probably what you want here (with a comment justifying it).",
+      "range": {
+        "startLine": 409,
+        "startChar": 10,
+        "endLine": 409,
+        "endChar": 18
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b06a606_6235d60d",
+        "filename": "scrap/go/scrap/scrap_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "nit: const (\n ... all consts here\n)",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 13
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d779ecad_069f15ec",
+        "filename": "scrap/go/scrap/scrap_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "Suggestion: _ReturnsError instead of _Failure",
+      "range": {
+        "startLine": 215,
+        "startChar": 32,
+        "endLine": 215,
+        "endChar": 39
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "05eed88d_c4b58786",
+        "filename": "scrap/go/scrap/templates.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-28T16:37:45Z",
+      "side": 1,
+      "message": "suggestion: An alternative to nested maps is to introduce a struct with Lang and Type and use that as the key in a map. I find those easier to read/use/initialize than nested maps.",
+      "range": {
+        "startLine": 10,
+        "startChar": 17,
+        "endLine": 10,
+        "endChar": 35
+      },
+      "revId": "a4ba47de34846007fc48c53792951e2bf7a03a56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
