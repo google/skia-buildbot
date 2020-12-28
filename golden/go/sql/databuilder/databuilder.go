@@ -768,7 +768,7 @@ type TraceBuilder struct {
 // string must have a number of symbols equal to the length of the number of commits. A dash '-'
 // means no data at that commit; any other symbol must match the previous call to SetDigests().
 // If any data is invalid or missing, this method panics.
-func (b *TraceBuilder) History(traceHistories []string) *TraceBuilder {
+func (b *TraceBuilder) History(traceHistories ...string) *TraceBuilder {
 	if len(b.traceValues) > 0 {
 		logAndPanic("History must be called only once.")
 	}
