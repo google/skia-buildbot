@@ -149,6 +149,23 @@ and then set the environment:
 	}
 }
 
+// RequiresCockroachDB is a function that documents a unittest requires a local running version
+// of the CockroachDB executable. It must be configured with the appropriate environment variable.
+// For historical reasons, the environment variable uses "EMULATOR" in the name, despite it being
+// an actual instance.
+func RequiresCockroachDB(t sktest.TestingT) {
+	s := os.Getenv("COCKROACHDB_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires a local CockroachDB executable, which you can start with
+./scripts/run_emulators/run_emulators start
+and then set the environment variables it prints out.
+If you need to install CockroachDB, follow the instructions at:
+	https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html
+and make sure the environment variable COCKROACHDB_EMULATOR_HOST is set.
+`)
+	}
+}
+
 // LinuxOnlyTest is a function which should be called at the beginning of a test
 // which should only run on Linux.
 func LinuxOnlyTest(t sktest.TestingT) {

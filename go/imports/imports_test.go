@@ -28,6 +28,7 @@ var testPackages = []string{
 	"go.skia.org/infra/perf/go/alerts/alertstest",
 	"go.skia.org/infra/perf/go/regression/regressiontest",
 	"go.skia.org/infra/perf/go/git/gittest",
+	"go.skia.org/infra/golden/go/sql/sqltest",
 }
 
 // TODO(borenet): this list should be empty.
@@ -63,10 +64,10 @@ var legacyTestImportExceptions = map[string][]string{
 // package, ie. it is allowed to import other test packages and non-test
 // packages are not allowed to import it.
 func isTestPackage(pkg string) bool {
-	return (strings.HasSuffix(pkg, "shared_tests") ||
+	return strings.HasSuffix(pkg, "shared_tests") ||
 		strings.HasSuffix(pkg, "testutil") ||
 		strings.HasSuffix(pkg, "testutils") ||
-		util.In(pkg, testPackages))
+		util.In(pkg, testPackages)
 }
 
 // testImportAllowed returns true if the given non-test package is allowed

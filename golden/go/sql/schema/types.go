@@ -59,7 +59,9 @@ const (
 )
 
 // Tables represents all SQL tables used by Gold. We define them as Go structs so that we can
-// more easily generate test data (see sql/databuilder).
+// more easily generate test data (see sql/databuilder). With the following command, the struct
+// is turned into an actual SQL statement.
+//go:generate go run ../exporter/tosql --output_file sql.go --logtostderr --output_pkg schema
 type Tables struct {
 	Changelists                 []ChangelistRow
 	Commits                     []CommitRow
@@ -83,7 +85,6 @@ type Tables struct {
 	ValuesAtHead                []ValueAtHeadRow
 }
 
-// TODO(kjlubick) add code to generate SQL statements from these struct tags
 type TraceValueRow struct {
 	// Shard is a small piece of the trace id to slightly break up trace data. TODO(kjlubick) could
 	//   this be a computed column?
@@ -247,7 +248,7 @@ type DiffMetricRow struct {
 	// LeftDigest represents one of the images compared.
 	LeftDigest DigestBytes `sql:"left_digest BYTES"`
 	// RightDigest represents the other image compared.
-	RightDigest DigestBytes `sql:"left_digest BYTES"`
+	RightDigest DigestBytes `sql:"right_digest BYTES"`
 	// NumPixelsDiff represents the number of pixels that differ between the two images.
 	NumPixelsDiff int `sql:"num_pixels_diff INT4 NOT NULL"`
 	// PercentPixelsDiff is the percentage of pixels that are different.
