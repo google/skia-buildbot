@@ -138,7 +138,7 @@ type TraceRow struct {
 	TraceID TraceID `sql:"trace_id BYTES PRIMARY KEY"`
 	// Corpus is the value associated with the "source_type" key. It is its own field for easier
 	// searches and joins.
-	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED NOT NULL"`
+	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED" sql_import:"corpus STRING NOT NULL"`
 	// GroupingID is the MD5 hash of the subset of keys that make up the grouping. It is its own
 	// field for easier searches and joins. This is a foreign key into the Groupings table.
 	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
@@ -285,13 +285,13 @@ type ValueAtHeadRow struct {
 	// OptionsID is the MD5 hash of the key/values that belong to the options. Options do not impact
 	// the TraceID and thus act as metadata. This is a foreign key into the Options table.
 	OptionsID OptionsID `sql:"options_id BYTES NOT NULL"`
+
 	// GroupingID is the MD5 hash of the key/values belonging to the grouping (e.g. corpus +
 	// test name).
-
 	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
 	// Corpus is the value associated with the "source_type" key. It is its own field for easier
 	// searches and joins.
-	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED NOT NULL"`
+	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED" sql_import:"corpus STRING NOT NULL"`
 	// Keys is a serialized JSON representation of a map[string]string that are the trace keys.
 	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 
@@ -382,7 +382,7 @@ type PatchsetRow struct {
 	// System is the Code Review System to which this patchset belongs.
 	System string `sql:"system STRING NOT NULL"`
 	// ChangelistID refers to the parent CL.
-	ChangelistID string `sql:"changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id)"`
+	ChangelistID string `sql:"changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id)" sql_import:"changelist_id STRING NOT NULL"`
 	// Order is a 1 indexed number telling us where this PS fits in time.
 	Order int `sql:"ps_order INT2 NOT NULL"`
 	// GitHash is the hash associated with the patchset. For many CRS, it is the same as the
@@ -398,9 +398,9 @@ type TryjobRow struct {
 	// System is the Continuous Integration System to which this tryjob belongs.
 	System string `sql:"system STRING NOT NULL"`
 	// ChangelistID refers to the CL for which this Tryjob produced data.
-	ChangelistID string `sql:"changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id)"`
+	ChangelistID string `sql:"changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id)" sql_import:"changelist_id STRING NOT NULL"`
 	// PatchsetID refers to the PS for which this Tryjob produced data.
-	PatchsetID string `sql:"patchset_id STRING NOT NULL REFERENCES Patchsets (patchset_id)"`
+	PatchsetID string `sql:"patchset_id STRING NOT NULL REFERENCES Patchsets (patchset_id)" sql_import:"patchset_id STRING NOT NULL"`
 	// DisplayName is a human readable name for this Tryjob.
 	DisplayName string `sql:"display_name STRING NOT NULL"`
 	// LastIngestedData indicates when Gold last saw data from this Tryjob.

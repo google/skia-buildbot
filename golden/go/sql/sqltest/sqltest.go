@@ -2,10 +2,11 @@ package sqltest
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math"
+	"math/big"
 	"os/exec"
-	"strconv"
 	"testing"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -17,12 +18,15 @@ import (
 
 // NewCockroachDBForTests creates a randomly named database on the presumed to be running
 // cockroachDB instance as configured by the COCKROACHDB_EMULATOR_HOST environment variable.
+// The returned pool will automatically be closed after the test finishes.
 func NewCockroachDBForTests(ctx context.Context, t *testing.T) *pgxpool.Pool {
 	unittest.RequiresCockroachDB(t)
 	out, err := exec.Command("cockroach", "version").CombinedOutput()
 	require.NoError(t, err, "Do you have 'cockroach' on your path? %s", out)
 
-	dbName := "for_tests" + strconv.Itoa(rand.Int())
+	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+	require.NoError(t, err)
+	dbName := "for_tests" + n.String()
 	port := sql.GetCockroachDBEmulatorHost()
 
 	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+port,

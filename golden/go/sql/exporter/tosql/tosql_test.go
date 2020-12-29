@@ -14,8 +14,8 @@ type testTables struct {
 }
 
 type tableOneRow struct {
-	ColumnOne string `sql:"column_one STRING PRIMARY KEY"`
-	ColumnTwo int    `sql:"column_two INT8 NOT NULL"`
+	ColumnOne string `sql:"column_one STRING PRIMARY KEY REFERENCES TableTwo (comp_one)" sql_import:"column_one STRING PRIMARY KEY"`
+	ColumnTwo int    `sql:"column_two INT8 AS (char_length(column_one)) STORED NOT NULL" sql_import:"column_two INT8 NOT NULL"`
 }
 
 type tableTwoRow struct {
@@ -40,8 +40,8 @@ func TestGenerateSQL_WellFormedInput_CorrectOutput(t *testing.T) {
 // DO NOT EDIT
 
 const Schema = $$CREATE TABLE IF NOT EXISTS TableOne (
-  column_one STRING PRIMARY KEY,
-  column_two INT8 NOT NULL
+  column_one STRING PRIMARY KEY REFERENCES TableTwo (comp_one),
+  column_two INT8 AS (char_length(column_one)) STORED NOT NULL
 );
 CREATE TABLE IF NOT EXISTS TableTwo (
   comp_one BYTES,
@@ -50,6 +50,19 @@ CREATE TABLE IF NOT EXISTS TableTwo (
   INDEX comp_two_desc_idx (comp_two DESC),
   INDEX comp_two_asc_idx (comp_two ASC)
 );
+$$
+
+const ImportTSVTemplate = $$IMPORT TABLE TableOne (
+  column_one STRING PRIMARY KEY,
+  column_two INT8 NOT NULL
+) CSV DATA ('%s') WITH delimiter = e'\t', nullif = 'NULL';
+IMPORT TABLE TableTwo (
+  comp_one BYTES,
+  comp_two BYTES,
+  PRIMARY KEY (comp_one, comp_two),
+  INDEX comp_two_desc_idx (comp_two DESC),
+  INDEX comp_two_asc_idx (comp_two ASC)
+) CSV DATA ('%s') WITH delimiter = e'\t', nullif = 'NULL';
 $$
 `, "$$", "`")
 
