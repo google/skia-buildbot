@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "585d00b5_04f56171",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-29T15:01:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6883af6c_fe9601a2",
+      "range": {
+        "startLine": 45,
+        "startChar": 30,
+        "endLine": 45,
+        "endChar": 36
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5f18b2ae_8b6d7289",
@@ -54,6 +78,30 @@
       "writtenOn": "2020-12-29T14:21:56Z",
       "side": 1,
       "message": "Reminder: Protected endpoints are only available from server to server, not available to users over HTTP.",
+      "range": {
+        "startLine": 49,
+        "startChar": 48,
+        "endLine": 49,
+        "endChar": 59
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ae927222_7a4bb15c",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-29T15:01:04Z",
+      "side": 1,
+      "message": "True, but that\u0027s a policy decision at the app level and not at this level, here we merely allow controlling which subset of endpoints are added to the router.",
+      "parentUuid": "5f18b2ae_8b6d7289",
       "range": {
         "startLine": 49,
         "startChar": 48,
@@ -87,6 +135,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2773b9ee_608d38e8",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-29T15:01:04Z",
+      "side": 1,
+      "message": "Versioning sounds good, I will presume \u0027_\u0027 is v1 and that if a v2 is needed add /v2/ versions.\n\nAlso added call metrics to each handler and tests.",
+      "parentUuid": "b231c5df_a4965e29",
+      "range": {
+        "startLine": 66,
+        "startChar": 9,
+        "endLine": 66,
+        "endChar": 10
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9167534_6b96d268",
@@ -100,6 +172,30 @@
       "writtenOn": "2020-12-29T14:21:56Z",
       "side": 1,
       "message": "Shouldn\u0027t there be a 4XX error code here? Same question to other early returns.",
+      "range": {
+        "startLine": 190,
+        "startChar": 2,
+        "endLine": 190,
+        "endChar": 8
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dbbefdd8_9270dd53",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-29T15:01:04Z",
+      "side": 1,
+      "message": "hashOrNameAndType and nameAndType already set the error code and response. I have updated their docs to make that clear.",
+      "parentUuid": "d9167534_6b96d268",
       "range": {
         "startLine": 190,
         "startChar": 2,
@@ -127,6 +223,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e683144_b90395bd",
+        "filename": "scrap/go/api/api_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-29T15:01:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d94bfe3_3c2372d6",
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8fd2a402_4b57cb5e",
@@ -140,6 +254,30 @@
       "writtenOn": "2020-12-29T14:21:56Z",
       "side": 1,
       "message": "FWIW: I think I have had issues before panicking in the Run(). This was solved by using assert instead of require in the Run() function.",
+      "range": {
+        "startLine": 293,
+        "startChar": 2,
+        "endLine": 293,
+        "endChar": 9
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c8264897_0f4290ec",
+        "filename": "scrap/go/api/api_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-29T15:01:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8fd2a402_4b57cb5e",
       "range": {
         "startLine": 293,
         "startChar": 2,
