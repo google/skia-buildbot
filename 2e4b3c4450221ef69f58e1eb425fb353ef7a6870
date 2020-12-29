@@ -159,6 +159,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1c9c8883_cc83b590",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T15:26:00Z",
+      "side": 1,
+      "message": "sgtm.",
+      "parentUuid": "2773b9ee_608d38e8",
+      "range": {
+        "startLine": 66,
+        "startChar": 9,
+        "endLine": 66,
+        "endChar": 10
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9167534_6b96d268",
