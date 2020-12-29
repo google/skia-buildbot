@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7a1c357e_9b8178ea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "One semi-major question about versioning and several suggestions.",
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6883af6c_fe9601a2",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 45,
+        "startChar": 30,
+        "endLine": 45,
+        "endChar": 36
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5f18b2ae_8b6d7289",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "Reminder: Protected endpoints are only available from server to server, not available to users over HTTP.",
+      "range": {
+        "startLine": 49,
+        "startChar": 48,
+        "endLine": 49,
+        "endChar": 59
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b231c5df_a4965e29",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "I\u0027m sorry I didn\u0027t think of this when reading the design doc, but one lesson we learned in Gold was to version our APIs so that if we needed to migrate, we didn\u0027t have to worry about as much breakage. I think we would want to do the same thing here for a service that is designed to be used by different clients.\n\nI would suggest something as simple as /v1/ instead of /_/\n\nAlso handy on Gold was metrics showing per-API and per-Version usage\nhttps://github.com/google/skia-buildbot/blob/5c3f9d88dec9e4cc381c145fbf5fe185d0e0aad1/golden/cmd/skiacorrectness/skiacorrectness.go#L885",
+      "range": {
+        "startLine": 66,
+        "startChar": 9,
+        "endLine": 66,
+        "endChar": 10
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9167534_6b96d268",
+        "filename": "scrap/go/api/api.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "Shouldn\u0027t there be a 4XX error code here? Same question to other early returns.",
+      "range": {
+        "startLine": 190,
+        "startChar": 2,
+        "endLine": 190,
+        "endChar": 8
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d94bfe3_3c2372d6",
+        "filename": "scrap/go/api/api_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "suggestion (and apology if I\u0027ve made this suggestion before): define a test helper function instead of an anonymous struct\nhttps://github.com/google/skia-buildbot/blob/5c3f9d88dec9e4cc381c145fbf5fe185d0e0aad1/golden/go/web/web_test.go#L1136\n\nbenefits: \n - If a test fails - the failure line is closer to the inputs (e.g. failing at the function call instead of down in the for loop)\n - Generally more compact",
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8fd2a402_4b57cb5e",
+        "filename": "scrap/go/api/api_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T14:21:56Z",
+      "side": 1,
+      "message": "FWIW: I think I have had issues before panicking in the Run(). This was solved by using assert instead of require in the Run() function.",
+      "range": {
+        "startLine": 293,
+        "startChar": 2,
+        "endLine": 293,
+        "endChar": 9
+      },
+      "revId": "2e4b3c4450221ef69f58e1eb425fb353ef7a6870",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
