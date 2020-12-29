@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 	cwd, err := os.Getwd()
 	if err != nil {
-		sklog.Fatalf("Could not get working dir")
+		sklog.Fatalf("Could not get working dir: %s", err)
 	}
 
 	generatedText := generateSQL(schema.Tables{}, *outputPkg)
