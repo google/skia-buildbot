@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4d2c7de6_5aa6a227",
+        "filename": "scrap/go/scrapexchange/main.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T17:52:50Z",
+      "side": 1,
+      "message": "skerr.Wrap? (here and in a few other places)",
+      "range": {
+        "startLine": 48,
+        "startChar": 15,
+        "endLine": 48,
+        "endChar": 18
+      },
+      "revId": "59eb5f75aada1b4daa2a421a9b8a73a5851cee9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "17e4e750_f8d34faa",
+        "filename": "scrap/package.json",
+        "patchSetId": 36
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T17:52:50Z",
+      "side": 1,
+      "message": "scrap",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "59eb5f75aada1b4daa2a421a9b8a73a5851cee9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c90a5224_6dbd3e36",
+        "filename": "scrap/pages/index.scss",
+        "patchSetId": 36
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-29T17:52:50Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "59eb5f75aada1b4daa2a421a9b8a73a5851cee9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
