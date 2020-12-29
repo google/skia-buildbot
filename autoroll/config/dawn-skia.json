@@ -94,6 +94,16 @@
         "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
         "path": "DEPS"
       }
+    },
+    {
+      "child": {
+        "id": "https://dawn.googlesource.com/tint",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://dawn.googlesource.com/tint",
+        "path": "DEPS"
+      }
     }
   ]
 }
