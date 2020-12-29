@@ -19,7 +19,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, *memory.InMemoryDB, *git_testutils.GitBuilder, func()) {
+func setup(t *testing.T) (context.Context, string, *IncrementalCacheImpl, repograph.Map, *memory.InMemoryDB, *git_testutils.GitBuilder, func()) {
 	unittest.LargeTest(t)
 	d := memory.NewInMemoryDB()
 
@@ -51,7 +51,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 	w, err := window.New(24*time.Hour, 100, repos)
 	require.NoError(t, err)
 
-	cache, err := NewIncrementalCache(ctx, d, w, repos, 100, "https://swarming", "https://task-scheduler")
+	cache, err := NewIncrementalCacheImpl(ctx, d, w, repos, 100, "https://swarming", "https://task-scheduler")
 	require.NoError(t, err)
 
 	return ctx, workdir, cache, repos, d, gb, func() {
@@ -60,7 +60,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 	}
 }
 
-func update(t *testing.T, ctx context.Context, repo string, c *IncrementalCache, ts time.Time) (*Update, time.Time) {
+func update(t *testing.T, ctx context.Context, repo string, c *IncrementalCacheImpl, ts time.Time) (*Update, time.Time) {
 	require.NoError(t, c.Update(ctx, false))
 	now := time.Now()
 	u, err := c.Get(repo, ts, 100)
@@ -68,7 +68,7 @@ func update(t *testing.T, ctx context.Context, repo string, c *IncrementalCache,
 	return u, now
 }
 
-func TestIncrementalCache(t *testing.T) {
+func TestIncrementalCacheImpl(t *testing.T) {
 	ctx, _, cache, repos, taskDb, gb, cleanup := setup(t)
 	defer cleanup()
 
