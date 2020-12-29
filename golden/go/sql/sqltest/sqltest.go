@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
@@ -17,12 +18,13 @@ import (
 
 // NewCockroachDBForTests creates a randomly named database on the presumed to be running
 // cockroachDB instance as configured by the COCKROACHDB_EMULATOR_HOST environment variable.
+// The returned pool will automatically be closed after the test finishes.
 func NewCockroachDBForTests(ctx context.Context, t *testing.T) *pgxpool.Pool {
 	unittest.RequiresCockroachDB(t)
 	out, err := exec.Command("cockroach", "version").CombinedOutput()
 	require.NoError(t, err, "Do you have 'cockroach' on your path? %s", out)
 
-	dbName := "for_tests" + strconv.Itoa(rand.Int())
+	dbName := "for_tests" + strconv.Itoa(rand.Int()^int(time.Now().UnixNano()))
 	port := sql.GetCockroachDBEmulatorHost()
 
 	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+port,
