@@ -2,6 +2,8 @@ package schema
 
 import (
 	"crypto/md5"
+	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,11 +38,26 @@ type SerializedParamSet string
 
 type NullableBool int
 
+// ToTSV returns this type in an appropriate way for writing to TSV.
+func (b NullableBool) ToTSV() string {
+	switch b {
+	case NBNull:
+		return sqlNull
+	case NBFalse:
+		return "false"
+	case NBTrue:
+		return "true"
+	}
+	return sqlNull
+}
+
 const (
 	NBNull  NullableBool = 0
 	NBFalse NullableBool = 1
 	NBTrue  NullableBool = 2
 )
+
+const sqlNull = "NULL"
 
 type ExpectationLabel rune
 
@@ -85,6 +102,20 @@ type Tables struct {
 	ValuesAtHead                []ValueAtHeadRow
 }
 
+// b2s returns the given byte array as an escaped, hex-encoded string that can be used
+// as a CockroachDB literal
+func b2s(b []byte) string {
+	return `\x` + hex.EncodeToString(b)
+}
+
+// This formats the time to have millisecond precision in a format CockroachDB understands
+// https://www.cockroachlabs.com/docs/v20.2/time.html#timetz
+const sqlFormatString = "2006-01-02 15:04:05.000-07:00"
+
+func formatTime(t time.Time) string {
+	return t.Format(sqlFormatString)
+}
+
 type TraceValueRow struct {
 	// Shard is a small piece of the trace id to slightly break up trace data. TODO(kjlubick) could
 	//   this be a computed column?
@@ -115,6 +146,12 @@ type TraceValueRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (shard, commit_id, trace_id)"`
 }
 
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r TraceValueRow) ToTSV() string {
+	return fmt.Sprintf("%d\t%s\t%d\t%s\t%s\t%s\t%s",
+		r.Shard, b2s(r.TraceID), r.CommitID, b2s(r.Digest), b2s(r.GroupingID), b2s(r.OptionsID), b2s(r.SourceFileID))
+}
+
 type CommitRow struct {
 	// CommitID is a monotonically increasing number as we follow the primary repo through time.
 	CommitID CommitID `sql:"commit_id INT4 PRIMARY KEY"`
@@ -131,6 +168,12 @@ type CommitRow struct {
 	// with a DISTINCT search over TraceValues, but that takes several minutes when there are
 	// 1M+ traces per commit.
 	HasData bool `sql:"has_data BOOL NOT NULL"`
+}
+
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r CommitRow) ToTSV() string {
+	return fmt.Sprintf("%d\t%s\t%s\t%s\t%s\t%t",
+		r.CommitID, r.GitHash, formatTime(r.CommitTime), r.AuthorEmail, r.Subject, r.HasData)
 }
 
 type TraceRow struct {
@@ -154,6 +197,12 @@ type TraceRow struct {
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
 }
 
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r TraceRow) ToTSV() string {
+	return fmt.Sprintf("%s\t%s\t%s\t%s\t%s",
+		b2s(r.TraceID), r.Corpus, b2s(r.GroupingID), r.Keys, r.MatchesAnyIgnoreRule.ToTSV())
+}
+
 type GroupingRow struct {
 	// GroupingID is the MD5 hash of the key/values belonging to the grouping, that is, the
 	// mechanism by which we partition our test data into "things that should all look the same".
@@ -165,6 +214,11 @@ type GroupingRow struct {
 	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
 }
 
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r GroupingRow) ToTSV() string {
+	return fmt.Sprintf("%s\t%s", b2s(r.GroupingID), r.Keys)
+}
+
 type OptionsRow struct {
 	// OptionsID is the MD5 hash of the key/values that act as metadata and do not impact the
 	// uniqueness of traces.
@@ -172,6 +226,11 @@ type OptionsRow struct {
 	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
 	// map are the options.
 	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
+}
+
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r OptionsRow) ToTSV() string {
+	return fmt.Sprintf("%s\t%s", b2s(r.OptionsID), r.Keys)
 }
 
 type SourceFileRow struct {
@@ -182,6 +241,11 @@ type SourceFileRow struct {
 	SourceFile string `sql:"source_file STRING NOT NULL"`
 	// LastIngested is the time at which this file was most recently read in.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r SourceFileRow) ToTSV() string {
+	return fmt.Sprintf("%s\t%s\t%s", b2s(r.SourceFileID), r.SourceFile, formatTime(r.LastIngested))
 }
 
 type ExpectationRecordRow struct {
@@ -198,6 +262,16 @@ type ExpectationRecordRow struct {
 	// NumChanges is how many digests were affected. It corresponds to the number of
 	// ExpectationDelta rows have this record as their parent. It is a denormalized field.
 	NumChanges int `sql:"num_changes INT4 NOT NULL"`
+}
+
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r ExpectationRecordRow) ToTSV() string {
+	bn := sqlNull
+	if r.BranchName != nil {
+		bn = *r.BranchName
+	}
+	return fmt.Sprintf("%s\t%s\t%s\t%s\t%d",
+		r.ExpectationRecordID, bn, r.UserName, formatTime(r.TriageTime), r.NumChanges)
 }
 
 type ExpectationDeltaRow struct {
@@ -220,6 +294,12 @@ type ExpectationDeltaRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (expectation_record_id, grouping_id, digest)"`
 }
 
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r ExpectationDeltaRow) ToTSV() string {
+	return fmt.Sprintf("%s\t%s\t%s\t%s\t%s",
+		r.ExpectationRecordID, b2s(r.GroupingID), b2s(r.Digest), string(r.LabelBefore), string(r.LabelAfter))
+}
+
 // ExpectationRow contains an entry for every recent digest+grouping pair. This includes untriaged
 // digests, because that allows us to have an index against label and just extract the untriaged
 // ones instead of having to do a LEFT JOIN and look for nulls (which is slow at scale).
@@ -234,6 +314,16 @@ type ExpectationRow struct {
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
+}
+
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r ExpectationRow) ToTSV() string {
+	recordID := sqlNull
+	if r.ExpectationRecordID != nil {
+		recordID = r.ExpectationRecordID.String()
+	}
+	return fmt.Sprintf("%s\t%s\t%s\t%s",
+		b2s(r.GroupingID), b2s(r.Digest), string(r.Label), recordID)
 }
 
 // DiffMetricRow represents the pixel-by-pixel comparison between two images (identified by their
@@ -268,6 +358,14 @@ type DiffMetricRow struct {
 	// allows for us to periodically clean up this large table.
 	Timestamp  time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
 	primaryKey struct{}  `sql:"PRIMARY KEY (left_digest, right_digest)"`
+}
+
+// ToTSV implements the sql/exporter/totsv/TSVExporter interface.
+func (r DiffMetricRow) ToTSV() string {
+	return fmt.Sprintf("%s\t%s\t%d\t%1.5f\tARRAY[%d,%d,%d,%d]\t%d\t%1.5f\t%t\t%s",
+		b2s(r.LeftDigest), b2s(r.RightDigest), r.NumPixelsDiff, r.PercentPixelsDiff,
+		r.MaxRGBADiffs[0], r.MaxRGBADiffs[1], r.MaxRGBADiffs[2], r.MaxRGBADiffs[3],
+		r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, formatTime(r.Timestamp))
 }
 
 // ValueAtHeadRow represents the most recent data point for a each trace. It contains some
