@@ -61,3 +61,12 @@ leasing-scaffold-sk {
     font-size: 20px;
   }
 }
+
+
+// Make sure the app doesn't leave empty space on the bottom. e.g. blank
+// white in darkmode.
+html,
+body,
+app-sk {
+  height: 100%;
+}
