@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "156c42ff_615e7105",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "405fb790_06ee626e",
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a37c39e9_69bd449e",
@@ -31,6 +49,30 @@
       "writtenOn": "2020-12-29T19:13:50Z",
       "side": 1,
       "message": "As per convention, ctx should be the first parameter.\n\"At Google, we require that Go programmers pass a Context parameter as the first argument to every function on the call path between incoming and outgoing requests.\" https://blog.golang.org/context",
+      "range": {
+        "startLine": 74,
+        "startChar": 1,
+        "endLine": 74,
+        "endChar": 11
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c4aed4ba_7299321d",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done, but nit about your reference: it is referring to functions on the request path, which this is not.",
+      "parentUuid": "a37c39e9_69bd449e",
       "range": {
         "startLine": 74,
         "startChar": 1,
@@ -64,6 +106,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6ed4fbcd_1c6c779d",
+        "filename": "status/go/incremental/incremental_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21e3a28b_025518f3",
+      "range": {
+        "startLine": 28,
+        "startChar": 26,
+        "endLine": 28,
+        "endChar": 31
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8c7011e9_f30c84f4",
@@ -77,6 +143,30 @@
       "writtenOn": "2020-12-29T19:13:50Z",
       "side": 1,
       "message": "idea: I like to make my mock/test data tell a story, so it\u0027s easier to understand. Is there a story here? Or is it simply \"arbitrary data\"? If possible, a brief summary/story in the commit message would save readers from having to carefully read all the data below to figure out how it fits together (or at least make that job easier).",
+      "range": {
+        "startLine": 68,
+        "startChar": 50,
+        "endLine": 68,
+        "endChar": 56
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3fdf1f0b_1894e7d3",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Added a brief description to the function comment.",
+      "parentUuid": "8c7011e9_f30c84f4",
       "range": {
         "startLine": 68,
         "startChar": 50,
@@ -110,6 +200,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a5f47eb5_1130c9ca",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bde536fe_1addc9f4",
+      "range": {
+        "startLine": 269,
+        "startChar": 42,
+        "endLine": 269,
+        "endChar": 44
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f4bc4d87_49baa51a",
@@ -123,6 +237,30 @@
       "writtenOn": "2020-12-29T19:13:50Z",
       "side": 1,
       "message": "I\u0027m a little skeptical of only testing interactions. See go/choose-test-double#prefer-testing-state\n\nIs there even a small assertion you could make to verify the return value is correct? It doesn\u0027t have to be a full fledged equality, but spotchecking something.\n\nCase in point, I don\u0027t see that you assert the incremental cache actually gets called. (usually done with defer mocks.AssertExpectations(t)) If you comment out the call in the code to Get(), this test appears to still pass.\n\nBe sure to add that call to AssertExpectations in all cases where you need to be sure the interaction happened (especially calls to remotedb)",
+      "range": {
+        "startLine": 278,
+        "startChar": 33,
+        "endLine": 278,
+        "endChar": 49
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "85fce384_19fbee04",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done, added the AssertExpectations everywhere (assumed .Once() was strict, rather than \u0027at most\u0027, I still think in a world where there are destructors :D ), also added a basic check on the result value.",
+      "parentUuid": "f4bc4d87_49baa51a",
       "range": {
         "startLine": 278,
         "startChar": 33,
@@ -156,6 +294,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "94832fda_03527efb",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eda02d02_ab59dddf",
+      "range": {
+        "startLine": 285,
+        "startChar": 90,
+        "endLine": 285,
+        "endChar": 93
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1b7873ed_28adec66",
@@ -169,6 +331,30 @@
       "writtenOn": "2020-12-29T19:13:50Z",
       "side": 1,
       "message": "please extract this as a local variable.\nI also find the pattern\n\n```\nmatchTask :\u003d mock.MatchedBy(func(c *types.TaskSpecComment) {\n  assert.Equal(t, \"skia\", c.Repo)\n  ...\n  return true\n}\n```\n\nto be easier to debug. When a mock doesn\u0027t match the matchers, the error can sometimes be a little hard to parse. By using assertions, it\u0027s generally more clear what things don\u0027t line up.\n\nSame advice for matchers seen below.",
+      "range": {
+        "startLine": 341,
+        "startChar": 46,
+        "endLine": 341,
+        "endChar": 55
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b34263e5_280ab26b",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "done, great note about asserts vs \u0026\u0026",
+      "parentUuid": "1b7873ed_28adec66",
       "range": {
         "startLine": 341,
         "startChar": 46,
@@ -202,6 +388,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "162715b4_f4e537c4",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f1331f7c_62348feb",
+      "range": {
+        "startLine": 352,
+        "startChar": 1,
+        "endLine": 352,
+        "endChar": 4
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9ac2ed74_60e1d74c",
@@ -215,6 +425,30 @@
       "writtenOn": "2020-12-29T19:13:50Z",
       "side": 1,
       "message": "I don\u0027t think chaining the next On() aids readability here.\n\nSee also below.",
+      "range": {
+        "startLine": 370,
+        "startChar": 2,
+        "endLine": 370,
+        "endChar": 4
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bc3a6fb1_ebf434d0",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ac2ed74_60e1d74c",
       "range": {
         "startLine": 370,
         "startChar": 2,
@@ -248,6 +482,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b5461a20_5b49f03b",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "50003d4d_80e583b8",
+      "range": {
+        "startLine": 468,
+        "startChar": 5,
+        "endLine": 468,
+        "endChar": 22
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a550107d_29f969e0",
@@ -271,6 +529,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a7ee94fd_ac42d1fe",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a550107d_29f969e0",
+      "range": {
+        "startLine": 471,
+        "startChar": 9,
+        "endLine": 471,
+        "endChar": 12
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3a2b8863_461d9ae5",
@@ -284,6 +566,30 @@
       "writtenOn": "2020-12-29T19:13:50Z",
       "side": 1,
       "message": "I think this would be easier to understand if you just did\nexpected.Update \u003d \u0026IncrementalUpdate{\n //... all the things here.\n}\n\nEven better would be to move lines 559 and 560 up to after 483 and then just do assert.Equal(t, \u0026GetIncrementalCommitsResponse{\n ... make all the data here from scratch.\n}\n\nWhen I was initially reading all this, my brain tried to understand this as \"setup for the next call\", but that\u0027s not what\u0027s going on. Reordering it will make it clear what\u0027s being tested and what is here for assertions and checks.",
+      "range": {
+        "startLine": 486,
+        "startChar": 10,
+        "endLine": 486,
+        "endChar": 16
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43f031de_887c4ac4",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-12-30T15:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a2b8863_461d9ae5",
       "range": {
         "startLine": 486,
         "startChar": 10,
