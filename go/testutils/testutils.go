@@ -1,4 +1,4 @@
-// Convenience utilities for testing.
+// Package testutils contains convenience utilities for testing.
 package testutils
 
 import (
@@ -10,7 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -42,7 +42,7 @@ func TestDataDir() (string, error) {
 			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
 		}
 		if file != thisFile {
-			return path.Join(path.Dir(file), "testdata"), nil
+			return filepath.Join(filepath.Dir(file), "testdata"), nil
 		}
 	}
 }
@@ -52,7 +52,7 @@ func readFile(filename string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
 	}
-	f, err := os.Open(path.Join(dir, filename))
+	f, err := os.Open(filepath.Join(dir, filename))
 	if err != nil {
 		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
 	}
