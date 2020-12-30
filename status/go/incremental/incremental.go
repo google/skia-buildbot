@@ -33,7 +33,7 @@ type Task struct {
 }
 
 // Update represents all of the new information we obtained in a single Update()
-// tick. Every time Update() is called on IncrementalCache, a new Update object
+// tick. Every time Update() is called on IncrementalCacheImpl, a new Update object
 // is stored internally. When the client calls any variant of Get, any new
 // Updates are found and merged into a single Update object to return.
 type Update struct {
@@ -53,7 +53,28 @@ type Update struct {
 // client. New data is obtained at each Update() tick and stored internally with
 // a timestamp. When the client requests new data, we return a combined set of
 // Updates.
-type IncrementalCache struct {
+type IncrementalCache interface {
+	// Get returns all newly-obtained data since the given time, trimmed to
+	// maxCommits.
+	Get(repo string, since time.Time, maxCommits int) (*Update, error)
+
+	// GetAll returns all of the data in the cache, trimmed to maxCommits.
+	GetAll(repo string, maxCommits int) (*Update, error)
+
+	// GetRange returns all newly-obtained data in the given time range,
+	// trimmed to maxCommits.
+	GetRange(repo string, from, to time.Time, maxCommits int) (*Update, error)
+
+	// Update obtains new data and stores it internally keyed by the current
+	// time.
+	Update(ctx context.Context, reset bool) error
+
+	// UpdateLoop runs c.Update() in a loop. Automatically resets the cache
+	// every 24 hours.
+	UpdateLoop(ctx context.Context, frequency time.Duration)
+}
+
+type IncrementalCacheImpl struct {
 	comments         *commentsCache
 	commits          *commitsCache
 	mtx              sync.RWMutex
@@ -67,9 +88,9 @@ type IncrementalCache struct {
 	w       *window.Window
 }
 
-// NewIncrementalCache returns an IncrementalCache instance.
-func NewIncrementalCache(ctx context.Context, d db.RemoteDB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCache, error) {
-	c := &IncrementalCache{
+// NewIncrementalCacheImpl returns an IncrementalCacheImpl instance.
+func NewIncrementalCacheImpl(ctx context.Context, d db.RemoteDB, w *window.Window, repos repograph.Map, numCommits int, swarmingUrl, taskSchedulerUrl string) (*IncrementalCacheImpl, error) {
+	c := &IncrementalCacheImpl{
 		comments:         newCommentsCache(d, repos),
 		commits:          newCommitsCache(repos),
 		numCommits:       numCommits,
@@ -83,7 +104,7 @@ func NewIncrementalCache(ctx context.Context, d db.RemoteDB, w *window.Window, r
 
 // getUpdatesInRange is a helper function which retrieves all Update objects
 // within a given time range.
-func (c *IncrementalCache) getUpdatesInRange(repo string, from, to time.Time) []*Update {
+func (c *IncrementalCacheImpl) getUpdatesInRange(repo string, from, to time.Time) []*Update {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	from = from.UTC()
@@ -100,9 +121,8 @@ func (c *IncrementalCache) getUpdatesInRange(repo string, from, to time.Time) []
 	return updates
 }
 
-// GetRange returns all newly-obtained data in the given time range, trimmed
-// to maxCommits.
-func (c *IncrementalCache) GetRange(repo string, from, to time.Time, maxCommits int) (*Update, error) {
+// GetRange implements IncrementalCache.
+func (c *IncrementalCacheImpl) GetRange(repo string, from, to time.Time, maxCommits int) (*Update, error) {
 	defer metrics2.FuncTimer().Stop()
 	updates := c.getUpdatesInRange(repo, from, to)
 	// Merge the updates.
@@ -168,19 +188,18 @@ func (c *IncrementalCache) GetRange(repo string, from, to time.Time, maxCommits 
 	return rv, nil
 }
 
-// Get returns all newly-obtained data since the given time, trimmed to
-// maxCommits.
-func (c *IncrementalCache) Get(repo string, since time.Time, maxCommits int) (*Update, error) {
+// Get implements IncrementalCache.
+func (c *IncrementalCacheImpl) Get(repo string, since time.Time, maxCommits int) (*Update, error) {
 	return c.GetRange(repo, since, time.Now().UTC(), maxCommits)
 }
 
-// GetAll returns all of the data in the cache, trimmed to maxCommits.
-func (c *IncrementalCache) GetAll(repo string, maxCommits int) (*Update, error) {
+// GetAll implements IncrementalCache.
+func (c *IncrementalCacheImpl) GetAll(repo string, maxCommits int) (*Update, error) {
 	return c.Get(repo, c.w.Start(repo), maxCommits)
 }
 
-// Update obtains new data and stores it internally keyed by the current time.
-func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
+// Update implements IncrementalCache.
+func (c *IncrementalCacheImpl) Update(ctx context.Context, reset bool) error {
 	defer metrics2.FuncTimer().Stop()
 	c.updateMtx.Lock()
 	defer c.updateMtx.Unlock()
@@ -267,9 +286,8 @@ func (c *IncrementalCache) Update(ctx context.Context, reset bool) error {
 	return nil
 }
 
-// UpdateLoop runs c.Update() in a loop. Automatically resets the cache every
-// 24 hours.
-func (c *IncrementalCache) UpdateLoop(frequency time.Duration, ctx context.Context) {
+// UpdateLoop implements IncrementalCache.
+func (c *IncrementalCacheImpl) UpdateLoop(ctx context.Context, frequency time.Duration) {
 	lv := metrics2.NewLiveness("last_successful_incremental_cache_update")
 	lastReset := time.Now()
 	go util.RepeatCtx(ctx, frequency, func(ctx context.Context) {

@@ -78,7 +78,7 @@ var (
 	capacityClient      *capacity.CapacityClientImpl       = nil
 	capacityTemplate    *template.Template                 = nil
 	commitsTemplate     *template.Template                 = nil
-	iCache              *incremental.IncrementalCache      = nil
+	iCache              *incremental.IncrementalCacheImpl  = nil
 	lkgrObj             *lkgr.LKGR                         = nil
 	taskDb              db.RemoteDB                        = nil
 	taskDriverDb        task_driver_db.DB                  = nil
@@ -800,16 +800,16 @@ func main() {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
 
-	// Create the IncrementalCache.
+	// Create the IncrementalCacheImpl.
 	w, err := window.New(time.Minute, MAX_COMMITS_TO_LOAD, repos)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
-	iCache, err = incremental.NewIncrementalCache(ctx, taskDb, w, repos, MAX_COMMITS_TO_LOAD, *swarmingUrl, *taskSchedulerUrl)
+	iCache, err = incremental.NewIncrementalCacheImpl(ctx, taskDb, w, repos, MAX_COMMITS_TO_LOAD, *swarmingUrl, *taskSchedulerUrl)
 	if err != nil {
-		sklog.Fatalf("Failed to create IncrementalCache: %s", err)
+		sklog.Fatalf("Failed to create IncrementalCacheImpl: %s", err)
 	}
-	iCache.UpdateLoop(60*time.Second, ctx)
+	iCache.UpdateLoop(ctx, 60*time.Second)
 
 	// Create a regular task cache.
 	tCache, err = cache.NewTaskCache(ctx, taskDb, w, nil)
