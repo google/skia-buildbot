@@ -44,22 +44,22 @@ func New() (baseapp.App, error) {
 	if *bucket == "" {
 		return nil, skerr.Fmt("--bucket is a required flag.")
 	}
-	var allow allowed.Allow
+	var admin allowed.Allow
 	if !*baseapp.Local {
 		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-		allow, err = allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
+		admin, err = allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	} else {
-		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
+		admin = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
 
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, admin, nil, nil)
 
 	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeReadOnly)
@@ -117,18 +117,14 @@ func (srv *server) user(r *http.Request) string {
 
 // AddHandlers implements baseapp.App.
 func (srv *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", srv.mainHandler)
+	r.HandleFunc("/", login.RestrictAdminFn(srv.mainHandler))
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 	srv.apiEndpoints.AddHandlers(r, api.DoNotAddProtectedEndpoints)
 }
 
 // AddMiddleware implements baseapp.App.
 func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
-	ret := []mux.MiddlewareFunc{}
-	if !*baseapp.Local {
-		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
-	}
-	return ret
+	return []mux.MiddlewareFunc{}
 }
 
 func (srv *server) startInternalServer() {
@@ -141,6 +137,5 @@ func (srv *server) startInternalServer() {
 }
 
 func main() {
-	// allowedHosts is the empty list since we want all hosts to be able to use the REST API endpoints.
-	baseapp.Serve(New, []string{""})
+	baseapp.Serve(New, []string{"scrap.skia.org"})
 }
