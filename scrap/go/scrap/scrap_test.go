@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	svgHash          = "975c5b1ad481d0e8b0875e03b0bf2b375da68593d8beac607f23f40b2e53ca31"
+	svgHash          = "f7b0bac33b5f5b3ac86bec9f33c2d1c3ef025a9e4282ca7a8b9bc01e40d40556"
 	scrapName        = "@MyScrapName"
 	scrapName2       = "@MyScrapName2"
 	invalidScrapName = "not-a-valid-scrap-name-missing-@-prefix"

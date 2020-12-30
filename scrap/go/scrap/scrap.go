@@ -140,9 +140,9 @@ type ScrapBody struct {
 	Body string
 
 	// Type specific metadata:
-	SVGMetaData       SVGMetaData       `json:",omitempty"`
-	SKSLMetaData      SKSLMetaData      `json:",omitempty"`
-	ParticlesMetaData ParticlesMetaData `json:",omitempty"`
+	SVGMetaData       *SVGMetaData       `json:",omitempty"`
+	SKSLMetaData      *SKSLMetaData      `json:",omitempty"`
+	ParticlesMetaData *ParticlesMetaData `json:",omitempty"`
 }
 
 // ScrapID contains the identity of a newly created scrap.

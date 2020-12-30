@@ -41,6 +41,9 @@ type server struct {
 
 // New implements baseapp.Constructor.
 func New() (baseapp.App, error) {
+	if *bucket == "" {
+		return nil, skerr.Fmt("--bucket is a required flag.")
+	}
 	var allow allowed.Allow
 	if !*baseapp.Local {
 		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
