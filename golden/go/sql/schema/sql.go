@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   grouping_id BYTES,
   digest BYTES,
   label CHAR NOT NULL,
-  expectation_record_id UUID,
+  expectation_record_id UUID NOT NULL,
   PRIMARY KEY (branch_name, grouping_id, digest)
 );
 CREATE TABLE IF NOT EXISTS SecondaryBranchParams (

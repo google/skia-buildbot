@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -330,10 +329,6 @@ func (b *TablesBuilder) AddIgnoreRule(created, updated, updateTS, note string, q
 	if len(query) == 0 {
 		logAndPanic("Cannot use empty rule")
 	}
-	jb, err := json.Marshal(query)
-	if err != nil {
-		logAndPanic(err.Error())
-	}
 
 	id := uuid.New()
 	b.ignoreRules = append(b.ignoreRules, schema.IgnoreRuleRow{
@@ -342,7 +337,7 @@ func (b *TablesBuilder) AddIgnoreRule(created, updated, updateTS, note string, q
 		UpdatedEmail: updated,
 		Expires:      ts,
 		Note:         note,
-		Query:        schema.SerializedParamSet(jb),
+		Query:        query.FrozenCopy(), // make a copy to ensure immutability
 	})
 	return id
 }
@@ -484,7 +479,7 @@ func (b *TablesBuilder) Build() schema.Tables {
 					GroupingID:          delta.GroupingID,
 					Digest:              delta.Digest,
 					Label:               delta.LabelAfter,
-					ExpectationRecordID: &record.ExpectationRecordID,
+					ExpectationRecordID: record.ExpectationRecordID,
 				})
 			}
 		}
@@ -547,16 +542,8 @@ func (b *TablesBuilder) addTrace(existing []schema.TraceRow, t schema.TraceRow, 
 		}
 	}
 	ignored := false
-	var keys paramtools.Params
-	if err := json.Unmarshal([]byte(t.Keys), &keys); err != nil {
-		panic(err.Error()) // should never happen
-	}
 	for _, ir := range b.ignoreRules {
-		var q paramtools.ParamSet
-		if err := json.Unmarshal([]byte(ir.Query), &q); err != nil {
-			panic(err.Error()) // should never happen
-		}
-		if q.MatchesParams(keys) {
+		if ir.Query.MatchesParams(t.Keys) {
 			ignored = true
 			break
 		}
@@ -619,11 +606,7 @@ func (b *TablesBuilder) computePrimaryBranchParams() []schema.PrimaryBranchParam
 		findTraceKeys := func(traceID schema.TraceID) paramtools.Params {
 			for _, tr := range builder.traces {
 				if bytes.Equal(tr.TraceID, traceID) {
-					p, err := sql.DeserializeMap(tr.Keys)
-					if err != nil {
-						logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
-					}
-					return p
+					return tr.Keys.Copy() // Copy to ensure immutability
 				}
 			}
 			logAndPanic("missing trace id %x", traceID)
@@ -632,11 +615,7 @@ func (b *TablesBuilder) computePrimaryBranchParams() []schema.PrimaryBranchParam
 		findOptions := func(optID schema.OptionsID) paramtools.Params {
 			for _, opt := range builder.options {
 				if bytes.Equal(opt.OptionsID, optID) {
-					p, err := sql.DeserializeMap(opt.Keys)
-					if err != nil {
-						logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
-					}
-					return p
+					return opt.Keys.Copy() // Copy to ensure immutability
 				}
 			}
 			logAndPanic("missing options id %x", optID)
@@ -683,11 +662,7 @@ func (b *TablesBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchP
 	for _, cl := range b.changelistBuilders {
 		for _, ps := range cl.patchsets {
 			for _, tr := range ps.traces {
-				p, err := sql.DeserializeMap(tr.Keys)
-				if err != nil {
-					logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
-				}
-				for k, v := range p {
+				for k, v := range tr.Keys {
 					seenRows[schema.SecondaryBranchParamRow{
 						BranchName:  ps.patchset.ChangelistID,
 						VersionName: ps.patchset.PatchsetID,
@@ -697,11 +672,7 @@ func (b *TablesBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchP
 				}
 			}
 			for _, opt := range ps.options {
-				p, err := sql.DeserializeMap(opt.Keys)
-				if err != nil {
-					logAndPanic("Unexpected invalid JSON: %s", err) // should never happen
-				}
-				for k, v := range p {
+				for k, v := range opt.Keys {
 					seenRows[schema.SecondaryBranchParamRow{
 						BranchName:  ps.patchset.ChangelistID,
 						VersionName: ps.patchset.PatchsetID,
@@ -813,10 +784,10 @@ func (b *TraceBuilder) Keys(keys []paramtools.Params) *TraceBuilder {
 		logAndPanic("Expected one set of keys for each trace")
 	}
 	// We now have enough data to make all the traces.
-	seenTraces := map[schema.SerializedParams]bool{}
+	seenTraces := map[string]bool{} // maps serialized keys to if we have seen them.
 	for i, traceParams := range keys {
 		traceParams.Add(b.commonKeys)
-		grouping := make(map[string]string, len(keys))
+		grouping := make(paramtools.Params, len(keys))
 		for _, gk := range b.groupingKeys {
 			val, ok := traceParams[gk]
 			if !ok {
@@ -824,7 +795,7 @@ func (b *TraceBuilder) Keys(keys []paramtools.Params) *TraceBuilder {
 			}
 			grouping[gk] = val
 		}
-		groupingJSON, groupingID := sql.SerializeMap(grouping)
+		_, groupingID := sql.SerializeMap(grouping)
 		traceJSON, traceID := sql.SerializeMap(traceParams)
 		if seenTraces[traceJSON] {
 			logAndPanic("Found identical trace %s", traceJSON)
@@ -839,13 +810,13 @@ func (b *TraceBuilder) Keys(keys []paramtools.Params) *TraceBuilder {
 		}
 		b.groupings = append(b.groupings, schema.GroupingRow{
 			GroupingID: groupingID,
-			Keys:       groupingJSON,
+			Keys:       grouping,
 		})
 		b.traces = append(b.traces, schema.TraceRow{
 			TraceID:              traceID,
 			Corpus:               traceParams[types.CorpusField],
 			GroupingID:           groupingID,
-			Keys:                 traceJSON,
+			Keys:                 traceParams.Copy(), // make a copy to ensure immutability
 			MatchesAnyIgnoreRule: schema.NBNull,
 		})
 	}
@@ -875,10 +846,10 @@ func (b *TraceBuilder) OptionsPerTrace(xopts []paramtools.Params) *TraceBuilder 
 		logAndPanic("Must have one options per trace")
 	}
 	for i, opts := range xopts {
-		optJSON, optionsID := sql.SerializeMap(opts)
+		_, optionsID := sql.SerializeMap(opts)
 		b.options = append(b.options, schema.OptionsRow{
 			OptionsID: optionsID,
-			Keys:      optJSON,
+			Keys:      opts.Copy(), // make a copy to ensure immutability
 		})
 		// apply it to every trace value in the ith trace
 		for _, tv := range b.traceValues[i] {
@@ -1095,7 +1066,7 @@ func (b *PatchsetBuilder) Keys(keys []paramtools.Params) *PatchsetBuilder {
 	}
 	for i, traceParams := range keys {
 		traceParams.Add(b.commonKeys)
-		grouping := make(map[string]string, len(keys))
+		grouping := make(paramtools.Params, len(keys))
 		for _, gk := range b.groupingKeys {
 			val, ok := traceParams[gk]
 			if !ok {
@@ -1103,19 +1074,19 @@ func (b *PatchsetBuilder) Keys(keys []paramtools.Params) *PatchsetBuilder {
 			}
 			grouping[gk] = val
 		}
-		groupingJSON, groupingID := sql.SerializeMap(grouping)
-		traceJSON, traceID := sql.SerializeMap(traceParams)
+		_, groupingID := sql.SerializeMap(grouping)
+		_, traceID := sql.SerializeMap(traceParams)
 		lastData[i].GroupingID = groupingID
 		lastData[i].TraceID = traceID
 		b.groupings = append(b.groupings, schema.GroupingRow{
 			GroupingID: groupingID,
-			Keys:       groupingJSON,
+			Keys:       grouping,
 		})
 		b.traces = append(b.traces, schema.TraceRow{
 			TraceID:              traceID,
 			Corpus:               traceParams[types.CorpusField],
 			GroupingID:           groupingID,
-			Keys:                 traceJSON,
+			Keys:                 traceParams.Copy(), // make a copy to ensure immutability
 			MatchesAnyIgnoreRule: schema.NBNull,
 		})
 	}
@@ -1146,10 +1117,10 @@ func (b *PatchsetBuilder) OptionsPerPoint(xopts []paramtools.Params) *PatchsetBu
 		logAndPanic("Expected %d options", len(lastData))
 	}
 	for i, opts := range xopts {
-		optJSON, optionsID := sql.SerializeMap(opts)
+		_, optionsID := sql.SerializeMap(opts)
 		b.options = append(b.options, schema.OptionsRow{
 			OptionsID: optionsID,
-			Keys:      optJSON,
+			Keys:      opts.Copy(), // make a copy to ensure immutability
 		})
 		lastData[i].OptionsID = optionsID
 	}

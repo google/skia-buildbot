@@ -46,7 +46,7 @@ func TestSerializeMap_Success(t *testing.T) {
 	mJSON, expectedHash := SerializeMap(map[string]string{
 		"opt": "png",
 	})
-	assert.Equal(t, schema.SerializedParams(`{"opt":"png"}`), mJSON)
+	assert.Equal(t, `{"opt":"png"}`, mJSON)
 	assert.Equal(t, "5869c277f132c3d777ebd81d01f694fc", hex.EncodeToString(expectedHash[:]))
 
 	mJSON, expectedHash = SerializeMap(map[string]string{
@@ -55,39 +55,17 @@ func TestSerializeMap_Success(t *testing.T) {
 		"by":   "key",
 		"when": "turned into json",
 	})
-	assert.Equal(t, schema.SerializedParams(`{"be":"realphabetized","by":"key","this":"should","when":"turned into json"}`), mJSON)
+	assert.Equal(t, `{"be":"realphabetized","by":"key","this":"should","when":"turned into json"}`, mJSON)
 	assert.Equal(t, "d3f07017f2f702c8337767343860703b", hex.EncodeToString(expectedHash[:]))
 
 	mJSON, expectedHash = SerializeMap(map[string]string{})
-	assert.Equal(t, schema.SerializedParams(`{}`), mJSON)
+	assert.Equal(t, `{}`, mJSON)
 	assert.Equal(t, "99914b932bd37a50b983c5e7c90ae93b", hex.EncodeToString(expectedHash[:]))
 
 	// As a special case, we expect nil maps to be treated as empty maps.
 	mJSON, expectedHash = SerializeMap(nil)
-	assert.Equal(t, schema.SerializedParams(`{}`), mJSON)
+	assert.Equal(t, `{}`, mJSON)
 	assert.Equal(t, "99914b932bd37a50b983c5e7c90ae93b", hex.EncodeToString(expectedHash[:]))
-}
-
-func TestDeserializeMap_ValidInput_Success(t *testing.T) {
-	unittest.SmallTest(t)
-
-	m, err := DeserializeMap(`{}`)
-	require.NoError(t, err)
-	assert.Equal(t, map[string]string{}, m)
-
-	m, err = DeserializeMap(`{"gamma":"delta","alpha":"beta"}`)
-	require.NoError(t, err)
-	assert.Equal(t, map[string]string{
-		"alpha": "beta",
-		"gamma": "delta",
-	}, m)
-}
-
-func TestDeserializeMap_InvalidInput_ReturnsError(t *testing.T) {
-	unittest.SmallTest(t)
-
-	_, err := DeserializeMap(`{this is invalid}`)
-	assert.Error(t, err)
 }
 
 func TestComputeTraceValueShard_Success(t *testing.T) {
