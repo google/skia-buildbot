@@ -31,6 +31,21 @@ type CommitID int32
 
 type NullableBool int
 
+func (b NullableBool) toSQL() *bool {
+	var rv bool
+	switch b {
+	case NBNull:
+		return nil
+	case NBFalse:
+		rv = false
+	case NBTrue:
+		rv = true
+	default:
+		return nil
+	}
+	return &rv
+}
+
 const (
 	NBNull  NullableBool = 0
 	NBFalse NullableBool = 1
@@ -110,6 +125,12 @@ type TraceValueRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (shard, commit_id, trace_id)"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r TraceValueRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"shard", "trace_id", "commit_id", "digest", "grouping_id", "options_id", "source_file_id"},
+		[]interface{}{r.Shard, r.TraceID, r.CommitID, r.Digest, r.GroupingID, r.OptionsID, r.SourceFileID}
+}
+
 type CommitRow struct {
 	// CommitID is a monotonically increasing number as we follow the primary repo through time.
 	CommitID CommitID `sql:"commit_id INT4 PRIMARY KEY"`
@@ -126,6 +147,12 @@ type CommitRow struct {
 	// with a DISTINCT search over TraceValues, but that takes several minutes when there are
 	// 1M+ traces per commit.
 	HasData bool `sql:"has_data BOOL NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r CommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"commit_id", "git_hash", "commit_time", "author_email", "subject", "has_data"},
+		[]interface{}{r.CommitID, r.GitHash, r.CommitTime, r.AuthorEmail, r.Subject, r.HasData}
 }
 
 type TraceRow struct {
@@ -149,6 +176,12 @@ type TraceRow struct {
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r TraceRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"trace_id", "grouping_id", "keys", "matches_any_ignore_rule"},
+		[]interface{}{r.TraceID, r.GroupingID, r.Keys, r.MatchesAnyIgnoreRule.toSQL()}
+}
+
 type GroupingRow struct {
 	// GroupingID is the MD5 hash of the key/values belonging to the grouping, that is, the
 	// mechanism by which we partition our test data into "things that should all look the same".
@@ -160,6 +193,12 @@ type GroupingRow struct {
 	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r GroupingRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"grouping_id", "keys"},
+		[]interface{}{r.GroupingID, r.Keys}
+}
+
 type OptionsRow struct {
 	// OptionsID is the MD5 hash of the key/values that act as metadata and do not impact the
 	// uniqueness of traces.
@@ -167,6 +206,12 @@ type OptionsRow struct {
 	// Keys is a JSON representation of a map[string]string. The keys and values of that
 	// map are the options.
 	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r OptionsRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"options_id", "keys"},
+		[]interface{}{r.OptionsID, r.Keys}
 }
 
 type SourceFileRow struct {
@@ -177,6 +222,12 @@ type SourceFileRow struct {
 	SourceFile string `sql:"source_file STRING NOT NULL"`
 	// LastIngested is the time at which this file was most recently read in.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r SourceFileRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"source_file_id", "source_file", "last_ingested"},
+		[]interface{}{r.SourceFileID, r.SourceFile, r.LastIngested}
 }
 
 type ExpectationRecordRow struct {
@@ -193,6 +244,12 @@ type ExpectationRecordRow struct {
 	// NumChanges is how many digests were affected. It corresponds to the number of
 	// ExpectationDelta rows have this record as their parent. It is a denormalized field.
 	NumChanges int `sql:"num_changes INT4 NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ExpectationRecordRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"expectation_record_id", "branch_name", "user_name", "triage_time", "num_changes"},
+		[]interface{}{r.ExpectationRecordID, r.BranchName, r.UserName, r.TriageTime, r.NumChanges}
 }
 
 type ExpectationDeltaRow struct {
@@ -215,6 +272,12 @@ type ExpectationDeltaRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (expectation_record_id, grouping_id, digest)"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ExpectationDeltaRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"expectation_record_id", "grouping_id", "digest", "label_before", "label_after"},
+		[]interface{}{r.ExpectationRecordID, r.GroupingID, r.Digest, string(r.LabelBefore), string(r.LabelAfter)}
+}
+
 // ExpectationRow contains an entry for every recent digest+grouping pair. This includes untriaged
 // digests, because that allows us to have an index against label and just extract the untriaged
 // ones instead of having to do a LEFT JOIN and look for nulls (which is slow at scale).
@@ -229,6 +292,12 @@ type ExpectationRow struct {
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
 	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	primaryKey          struct{}   `sql:"PRIMARY KEY (grouping_id, digest)"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"grouping_id", "digest", "label", "expectation_record_id"},
+		[]interface{}{r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
 }
 
 // DiffMetricRow represents the pixel-by-pixel comparison between two images (identified by their
@@ -265,6 +334,14 @@ type DiffMetricRow struct {
 	primaryKey struct{}  `sql:"PRIMARY KEY (left_digest, right_digest)"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r DiffMetricRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"left_digest", "right_digest", "num_pixels_diff", "percent_pixels_diff", "max_rgba_diffs",
+			"max_channel_diff", "combined_metric", "dimensions_differ", "ts"},
+		[]interface{}{r.LeftDigest, r.RightDigest, r.NumPixelsDiff, r.PercentPixelsDiff, r.MaxRGBADiffs,
+			r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, r.Timestamp}
+}
+
 // ValueAtHeadRow represents the most recent data point for a each trace. It contains some
 // denormalized data to reduce the number of joins needed to do some frequent queries.
 type ValueAtHeadRow struct {
@@ -299,6 +376,14 @@ type ValueAtHeadRow struct {
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ValueAtHeadRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"trace_id", "most_recent_commit_id", "digest", "options_id", "grouping_id",
+			"keys", "expectation_label", "expectation_record_id", "matches_any_ignore_rule"},
+		[]interface{}{r.TraceID, r.MostRecentCommitID, r.Digest, r.OptionsID, r.GroupingID,
+			r.Keys, string(r.Label), r.ExpectationRecordID, r.MatchesAnyIgnoreRule.toSQL()}
+}
+
 // PrimaryBranchParamRow corresponds to a given key/value pair that was seen within a range (tile)
 // of commits. Originally, we had done a join between Traces and TraceValues to find the params
 // where commit_id was in a given range. However, this took several minutes when there were 1M+
@@ -319,6 +404,12 @@ type PrimaryBranchParamRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (start_commit_id, key, value)"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r PrimaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"start_commit_id", "key", "value"},
+		[]interface{}{r.StartCommitID, r.Key, r.Value}
+}
+
 // TiledTraceDigestRow corresponds to a given trace producing a given digest within a range (tile)
 // of commits. Originally, we did a SELECT DISTINCT over TraceValues, but that was too slow for
 // many queries when the number of TraceValues was high.
@@ -336,6 +427,12 @@ type TiledTraceDigestRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, start_commit_id, digest)"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r TiledTraceDigestRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"trace_id", "start_commit_id", "digest"},
+		[]interface{}{r.TraceID, r.StartCommitID, r.Digest}
+}
+
 type IgnoreRuleRow struct {
 	// IgnoreRuleID is the id for this rule.
 	IgnoreRuleID uuid.UUID `sql:"ignore_rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
@@ -350,6 +447,12 @@ type IgnoreRuleRow struct {
 	// Query is a map[string][]string that describe which traces should be ignored.
 	// Note that this can only apply to trace keys, not options.
 	Query paramtools.ReadOnlyParamSet `sql:"query JSONB"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r IgnoreRuleRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"ignore_rule_id", "creator_email", "updated_email", "expires", "note", "query"},
+		[]interface{}{r.IgnoreRuleID, r.CreatorEmail, r.UpdatedEmail, r.Expires, r.Note, r.Query}
 }
 
 type ChangelistRow struct {
@@ -369,6 +472,12 @@ type ChangelistRow struct {
 	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ChangelistRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"changelist_id", "system", "status", "owner_email", "subject", "last_ingested_data"},
+		[]interface{}{r.ChangelistID, r.System, r.Status, r.OwnerEmail, r.Subject, r.LastIngestedData}
+}
+
 type PatchsetRow struct {
 	// PatchsetID is the fully qualified id of this patchset. "Fully qualified" means it has
 	// the system as a prefix (e.g "gerrit_abcde") which simplifies joining logic and ensures
@@ -383,6 +492,12 @@ type PatchsetRow struct {
 	// GitHash is the hash associated with the patchset. For many CRS, it is the same as the
 	// unqualified PatchsetID.
 	GitHash string `sql:"git_hash STRING NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r PatchsetRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"patchset_id", "system", "changelist_id", "ps_order", "git_hash"},
+		[]interface{}{r.PatchsetID, r.System, r.ChangelistID, r.Order, r.GitHash}
 }
 
 type TryjobRow struct {
@@ -400,6 +515,12 @@ type TryjobRow struct {
 	DisplayName string `sql:"display_name STRING NOT NULL"`
 	// LastIngestedData indicates when Gold last saw data from this Tryjob.
 	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r TryjobRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"tryjob_id", "system", "changelist_id", "patchset_id", "display_name", "last_ingested_data"},
+		[]interface{}{r.TryjobID, r.System, r.ChangelistID, r.PatchsetID, r.DisplayName, r.LastIngestedData}
 }
 
 // SecondaryBranchValueRow corresponds to a data point produced by a changelist or on a branch.
@@ -434,6 +555,14 @@ type SecondaryBranchValueRow struct {
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id)"`
 }
 
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchValueRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"branch_name", "version_name", "secondary_branch_trace_id", "digest", "grouping_id",
+			"options_id", "source_file_id", "tryjob_id"},
+		[]interface{}{r.BranchName, r.VersionName, r.TraceID, r.Digest, r.GroupingID,
+			r.OptionsID, r.SourceFileID, r.TryjobID}
+}
+
 // SecondaryBranchParamRow corresponds to a given key/value pair that was seen in data from a
 // specific patchset or commit on a branch.
 type SecondaryBranchParamRow struct {
@@ -448,6 +577,12 @@ type SecondaryBranchParamRow struct {
 	Value string `sql:"value STRING"`
 	// We generally want locality by branch_name, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, key, value)"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"branch_name", "version_name", "key", "value"},
+		[]interface{}{r.BranchName, r.VersionName, r.Key, r.Value}
 }
 
 // SecondaryBranchExpectationRow responds to a new expectation rule applying to a single Changelist.
@@ -468,4 +603,10 @@ type SecondaryBranchExpectationRow struct {
 	// secondary branch expectations for triaged events.
 	ExpectationRecordID uuid.UUID `sql:"expectation_record_id UUID NOT NULL"`
 	primaryKey          struct{}  `sql:"PRIMARY KEY (branch_name, grouping_id, digest)"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"branch_name", "grouping_id", "digest", "label", "expectation_record_id"},
+		[]interface{}{r.BranchName, r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
 }
