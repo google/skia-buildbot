@@ -126,6 +126,13 @@ cp -r /src/debugger-app/modules             /tests/debugger-app
 cp -r /src/debugger-app/build               /tests/debugger-app
 cp -r /src/debugger-app/static              /tests/debugger-app
 
+mkdir /tests/scrap
+cp -r /src/scrap/package*          /tests/scrap
+cp -r /src/scrap/webpack.config.ts /tests/scrap
+cp -r /src/scrap/tsconfig.json     /tests/scrap
+cp -r /src/scrap/modules           /tests/scrap
+
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -164,6 +171,9 @@ cd /tests/task_scheduler
 npm ci
 
 cd /tests/debugger-app
+npm ci
+
+cd /tests/scrap
 npm ci
 
 ################################################################################
@@ -210,4 +220,7 @@ cd /tests/task_scheduler
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/debugger-app
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/scrap
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
