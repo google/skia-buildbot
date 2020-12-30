@@ -1,0 +1,22 @@
+scrap-exchange-sk {
+  header {
+    padding: 8px;
+    background: var(--surface-1dp);
+    width: calc(100% - 16px);
+    border-bottom: solid 1px var(--on-surface);
+    position: fixed;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  main {
+    margin-top: 40px;
+  }
+
+  a:visited,
+  a {
+    color: var(--primary);
+  }
+}
