@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"go.skia.org/infra/go/paramtools"
 )
 
 // MD5Hash is a specialized type for an array of bytes representing an MD5Hash. We use MD5 hashes
@@ -26,13 +28,6 @@ type DigestBytes []byte
 type SourceFileID []byte
 
 type CommitID int32
-
-// SerializedParams is the string form of a JSON-encoded map[string]string. Following the convention
-// of the golang json encoder, keys must be in alphabetical order (for determinism).
-type SerializedParams string
-
-// SerializedParamSet is the string form of a JSON-encoded map[string][]string.
-type SerializedParamSet string
 
 type NullableBool int
 
@@ -142,10 +137,10 @@ type TraceRow struct {
 	// GroupingID is the MD5 hash of the subset of keys that make up the grouping. It is its own
 	// field for easier searches and joins. This is a foreign key into the Groupings table.
 	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
-	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
+	// Keys is a JSON representation of a map[string]string. The keys and values of that
 	// map describe how a series of data points were created. We store this as a JSON map because
 	// CockroachDB supports searching for traces by key/values in this field.
-	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
+	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
 	// MatchesAnyIgnoreRule is true if this trace is matched by any of the ignore rules. If true,
 	// this trace will be ignored from most queries by default. This is stored here because
 	// recalculating it on the fly is too expensive and only needs updating if an ignore rule is
@@ -160,18 +155,18 @@ type GroupingRow struct {
 	// This is commonly corpus + test name, but could include things like the color_type (e.g.
 	// RGB vs greyscale).
 	GroupingID GroupingID `sql:"grouping_id BYTES PRIMARY KEY"`
-	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
+	// Keys is a JSON representation of a map[string]string. The keys and values of that
 	// map are the grouping.
-	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
+	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
 }
 
 type OptionsRow struct {
 	// OptionsID is the MD5 hash of the key/values that act as metadata and do not impact the
 	// uniqueness of traces.
 	OptionsID OptionsID `sql:"options_id BYTES PRIMARY KEY"`
-	// Keys is a serialized JSON representation of a map[string]string. The keys and values of that
+	// Keys is a JSON representation of a map[string]string. The keys and values of that
 	// map are the options.
-	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
+	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
 }
 
 type SourceFileRow struct {
@@ -257,7 +252,7 @@ type DiffMetricRow struct {
 	// alpha channels.
 	MaxRGBADiffs [4]int `sql:"max_rgba_diffs INT2[] NOT NULL"`
 	// MaxChannelDiff is max(MaxRGBADiffs). This is its own field because using max() on an array
-	// field is not supported.
+	// field is not supported. TODO(kjlubick) could this be computed with array_upper()?
 	MaxChannelDiff int `sql:"max_channel_diff INT2 NOT NULL"`
 	// CombinedMetric is a value in [0, 10] that represents how large the diff is between two
 	// images. It is based off the MaxRGBADiffs and PixelDiffPercent.
@@ -292,8 +287,8 @@ type ValueAtHeadRow struct {
 	// Corpus is the value associated with the "source_type" key. It is its own field for easier
 	// searches and joins.
 	Corpus string `sql:"corpus STRING AS (keys->>'source_type') STORED NOT NULL"`
-	// Keys is a serialized JSON representation of a map[string]string that are the trace keys.
-	Keys SerializedParams `sql:"keys JSONB NOT NULL"`
+	// Keys is a JSON representation of a map[string]string that are the trace keys.
+	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
 
 	// Label represents the current triage status of the given digest for its grouping.
 	Label ExpectationLabel `sql:"expectation_label CHAR NOT NULL"`
@@ -352,9 +347,9 @@ type IgnoreRuleRow struct {
 	Expires time.Time `sql:"expires TIMESTAMP WITH TIME ZONE"`
 	// Note is a comment explaining this rule. It typically links to a bug.
 	Note string `sql:"note STRING"`
-	// Query is a serialized map[string][]string that describe which traces should be ignored.
+	// Query is a map[string][]string that describe which traces should be ignored.
 	// Note that this can only apply to trace keys, not options.
-	Query SerializedParamSet `sql:"query JSONB"`
+	Query paramtools.ReadOnlyParamSet `sql:"query JSONB"`
 }
 
 type ChangelistRow struct {
@@ -469,6 +464,8 @@ type SecondaryBranchExpectationRow struct {
 	// Label is the current label associated with the given digest in the given grouping.
 	Label ExpectationLabel `sql:"label CHAR NOT NULL"`
 	// ExpectationRecordID corresponds to most recent ExpectationRecordRow that set the given label.
-	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
-	primaryKey          struct{}   `sql:"PRIMARY KEY (branch_name, grouping_id, digest)"`
+	// Unlike the primary branch, this can never be nil/null because we only keep track of
+	// secondary branch expectations for triaged events.
+	ExpectationRecordID uuid.UUID `sql:"expectation_record_id UUID NOT NULL"`
+	primaryKey          struct{}  `sql:"PRIMARY KEY (branch_name, grouping_id, digest)"`
 }
