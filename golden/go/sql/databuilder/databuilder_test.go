@@ -98,14 +98,14 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 	tables := b.Build()
 	assert.Equal(t, []schema.OptionsRow{{
 		OptionsID: h(`{"ext":"png"}`),
-		Keys:      `{"ext":"png"}`,
+		Keys:      paramtools.Params{"ext": "png"},
 	}}, tables.Options)
 	assert.Equal(t, []schema.GroupingRow{{
 		GroupingID: h(`{"name":"test_one","source_type":"corpus_one"}`),
-		Keys:       `{"name":"test_one","source_type":"corpus_one"}`,
+		Keys:       paramtools.Params{"name": "test_one", "source_type": "corpus_one"},
 	}, {
 		GroupingID: h(`{"name":"test_two","source_type":"corpus_one"}`),
-		Keys:       `{"name":"test_two","source_type":"corpus_one"}`,
+		Keys:       paramtools.Params{"name": "test_two", "source_type": "corpus_one"},
 	}}, tables.Groupings)
 	assert.Equal(t, []schema.SourceFileRow{{
 		SourceFileID: h("crosshatch_file1"),
@@ -140,19 +140,19 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_one","source_type":"corpus_one"}`),
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_one", "os": "Android", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_two","source_type":"corpus_one"}`),
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_two", "os": "Android", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_two","source_type":"corpus_one"}`),
-		Keys:                 `{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "NUC1234", "name": "test_two", "os": "Windows10.7", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBTrue,
 	}}, tables.Traces)
 	assert.Equal(t, []schema.CommitRow{{
@@ -398,7 +398,7 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		OptionsID:            pngOptionsID,
 		GroupingID:           testOneGroupingID,
 		Corpus:               "corpus_one",
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_one", "os": "Android", "source_type": "corpus_one"},
 		Label:                schema.LabelUntriaged,
 		ExpectationRecordID:  nil,
 		MatchesAnyIgnoreRule: schema.NBFalse,
@@ -409,7 +409,7 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		OptionsID:            pngOptionsID,
 		GroupingID:           testTwoGroupingID,
 		Corpus:               "corpus_one",
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_two", "os": "Android", "source_type": "corpus_one"},
 		Label:                schema.LabelPositive,
 		ExpectationRecordID:  &recordIDTwo,
 		MatchesAnyIgnoreRule: schema.NBFalse,
@@ -420,7 +420,7 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		OptionsID:            pngOptionsID,
 		GroupingID:           testTwoGroupingID,
 		Corpus:               "corpus_one",
-		Keys:                 `{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "NUC1234", "name": "test_two", "os": "Windows10.7", "source_type": "corpus_one"},
 		Label:                schema.LabelPositive,
 		ExpectationRecordID:  &recordIDTwo,
 		MatchesAnyIgnoreRule: schema.NBTrue,
@@ -431,14 +431,14 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		UpdatedEmail: "ignore_author_two",
 		Expires:      time.Date(2021, time.March, 14, 15, 9, 27, 0, time.UTC),
 		Note:         "note 1",
-		Query:        `{"does not":["apply","to any trace"]}`,
+		Query:        paramtools.ReadOnlyParamSet{"does not": []string{"apply", "to any trace"}},
 	}, {
 		IgnoreRuleID: secondIgnoreRuleID,
 		CreatorEmail: "ignore_author_two",
 		UpdatedEmail: "ignore_author_one",
 		Expires:      time.Date(2021, time.June, 28, 03, 18, 53, 0, time.UTC),
 		Note:         "note 2",
-		Query:        `{"device":["NUC1234"],"os":["Windows10.7","Windows10.8"]}`,
+		Query:        paramtools.ReadOnlyParamSet{"device": []string{"NUC1234"}, "os": []string{"Windows10.7", "Windows10.8"}},
 	}}, tables.IgnoreRules)
 }
 
@@ -535,20 +535,20 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 	tables := b.Build()
 	assert.Equal(t, []schema.OptionsRow{{
 		OptionsID: h(`{"ext":"png"}`),
-		Keys:      `{"ext":"png"}`,
+		Keys:      paramtools.Params{"ext": "png"},
 	}, {
 		OptionsID: h(`{"ext":"png","matcher":"fuzzy","threshold":"2"}`),
-		Keys:      `{"ext":"png","matcher":"fuzzy","threshold":"2"}`,
+		Keys:      paramtools.Params{"ext": "png", "matcher": "fuzzy", "threshold": "2"},
 	}}, tables.Options)
 	assert.Equal(t, []schema.GroupingRow{{
 		GroupingID: h(`{"name":"test_one","source_type":"corpus_one"}`),
-		Keys:       `{"name":"test_one","source_type":"corpus_one"}`,
+		Keys:       paramtools.Params{"name": "test_one", "source_type": "corpus_one"},
 	}, {
 		GroupingID: h(`{"name":"test_two","source_type":"corpus_one"}`),
-		Keys:       `{"name":"test_two","source_type":"corpus_one"}`,
+		Keys:       paramtools.Params{"name": "test_two", "source_type": "corpus_one"},
 	}, {
 		GroupingID: h(`{"name":"test_three","source_type":"corpus_one"}`),
-		Keys:       `{"name":"test_three","source_type":"corpus_one"}`,
+		Keys:       paramtools.Params{"name": "test_three", "source_type": "corpus_one"},
 	}}, tables.Groupings)
 	assert.Equal(t, []schema.SourceFileRow{{
 		SourceFileID: h("crosshatch_file1"),
@@ -567,19 +567,19 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_one","source_type":"corpus_one"}`),
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_one","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_one", "os": "Android", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_two","source_type":"corpus_one"}`),
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_two", "os": "Android", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBTrue,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`),
 		Corpus:               "corpus_one",
 		GroupingID:           h(`{"name":"test_three","source_type":"corpus_one"}`),
-		Keys:                 `{"color_mode":"rgb","device":"Crosshatch","name":"test_three","os":"Android","source_type":"corpus_one"}`,
+		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_three", "os": "Android", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBFalse,
 	}}, tables.Traces)
 	assert.Equal(t, []schema.TraceValueRow{{
@@ -761,7 +761,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 		GroupingID:          h(`{"name":"test_three","source_type":"corpus_one"}`),
 		Digest:              d(t, digestD),
 		Label:               schema.LabelNegative,
-		ExpectationRecordID: &clRecordID,
+		ExpectationRecordID: clRecordID,
 	}}, tables.SecondaryBranchExpectations)
 	assert.Equal(t, []schema.ExpectationRow{{
 		GroupingID:          h(`{"name":"test_one","source_type":"corpus_one"}`),
