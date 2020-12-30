@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "27d3e708_9135e39b",
+        "filename": "scrap/go/scrapexchange/main.go",
+        "patchSetId": 36
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-30T12:54:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d2c7de6_5aa6a227",
+      "range": {
+        "startLine": 48,
+        "startChar": 15,
+        "endLine": 48,
+        "endChar": 18
+      },
+      "revId": "59eb5f75aada1b4daa2a421a9b8a73a5851cee9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "17e4e750_f8d34faa",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c1d290a2_0dc71932",
+        "filename": "scrap/package.json",
+        "patchSetId": 36
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-30T12:54:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17e4e750_f8d34faa",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "59eb5f75aada1b4daa2a421a9b8a73a5851cee9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c90a5224_6dbd3e36",
@@ -60,6 +108,30 @@
       "writtenOn": "2020-12-29T17:52:50Z",
       "side": 1,
       "message": "Is this needed?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "59eb5f75aada1b4daa2a421a9b8a73a5851cee9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f4848dd0_57a46c50",
+        "filename": "scrap/pages/index.scss",
+        "patchSetId": 36
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-12-30T12:54:42Z",
+      "side": 1,
+      "message": "Yes, since we use the Roboto font below.",
+      "parentUuid": "c90a5224_6dbd3e36",
       "range": {
         "startLine": 1,
         "startChar": 8,
