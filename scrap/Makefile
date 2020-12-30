@@ -49,3 +49,6 @@ build-frontend-ci:
 test-frontend-ci:
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+start-local-server:
+	 scrapexchange --local --logtostderr --bucket=skia-public-scrap-exchange
