@@ -29,3 +29,8 @@ following features:
   child shaders, and filling in the C++ code template appropriately.
 
 See http://go/scrap-exchange for more details.
+
+## Auth
+
+Uses the `skia-public-auth@skia-public.iam.gserviceaccount.com` service account,
+originally created in `//infra/am`, to talk to the Chrome Infra Auth API.
