@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a013ede4_3d42070d",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-30T15:52:16Z",
+      "side": 1,
+      "message": "No longer required?",
+      "range": {
+        "startLine": 176,
+        "startChar": 55,
+        "endLine": 176,
+        "endChar": 79
+      },
+      "revId": "579acdf3d77cf7397d5ec513b2fa07e656e7891c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f6ce09c_a2a5ad00",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-30T15:52:16Z",
+      "side": 1,
+      "message": "quick/spot?",
+      "range": {
+        "startLine": 300,
+        "startChar": 53,
+        "endLine": 300,
+        "endChar": 58
+      },
+      "revId": "579acdf3d77cf7397d5ec513b2fa07e656e7891c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f3e6fc9_c2ea707e",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-30T15:52:16Z",
+      "side": 1,
+      "message": "copypasta?",
+      "range": {
+        "startLine": 323,
+        "startChar": 53,
+        "endLine": 323,
+        "endChar": 58
+      },
+      "revId": "579acdf3d77cf7397d5ec513b2fa07e656e7891c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c8d97e7_c45b309e",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-30T15:52:16Z",
+      "side": 1,
+      "message": "nit: Explicitly add StartOver: false to make it more clear what\u0027s different between here and the one below.",
+      "range": {
+        "startLine": 530,
+        "startChar": 14,
+        "endLine": 530,
+        "endChar": 25
+      },
+      "revId": "579acdf3d77cf7397d5ec513b2fa07e656e7891c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

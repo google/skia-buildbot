@@ -177,6 +177,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0d5f76e_21b5ea5a",
+        "filename": "status/go/rpc/server_impl_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-12-30T15:52:16Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "3fdf1f0b_1894e7d3",
+      "range": {
+        "startLine": 68,
+        "startChar": 50,
+        "endLine": 68,
+        "endChar": 56
+      },
+      "revId": "72c5f4f2b0cae3deefa96af52c82797c7eb76545",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bde536fe_1addc9f4",
