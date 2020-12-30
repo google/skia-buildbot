@@ -20,15 +20,15 @@ import (
 
 // Endpoint names used for metrics.
 const (
-	scrapsCreateCallMetric = "scrap-exchange-api-scraps-create"
-	scrapsGetCallMetric    = "scrap-exchange-api-scraps-get"
-	scrapsDeleteCallMetric = "scrap-exchange-api-scraps-delete"
-	rawGetCallMetric       = "scrap-exchange-api-raw-get"
-	templateGetCallMetric  = "scrap-exchange-api-template-get"
-	namesPutCallMetric     = "scrap-exchange-api-names-put"
-	namesGetCallMetric     = "scrap-exchange-api-names-get"
-	namesDeleteCallMetric  = "scrap-exchange-api-names-delete"
-	namesListCallMetric    = "scrap-exchange-api-names-list"
+	scrapsCreateCallMetric = "scrap_exchange_api_scraps_create"
+	scrapsGetCallMetric    = "scrap_exchange_api_scraps_get"
+	scrapsDeleteCallMetric = "scrap_exchange_api_scraps_delete"
+	rawGetCallMetric       = "scrap_exchange_api_raw_get"
+	templateGetCallMetric  = "scrap_exchange_api_template_get"
+	namesPutCallMetric     = "scrap_exchange_api_names_put"
+	namesGetCallMetric     = "scrap_exchange_api_names_get"
+	namesDeleteCallMetric  = "scrap_exchange_api_names_delete"
+	namesListCallMetric    = "scrap_exchange_api_names_list"
 )
 
 // Api supplies the handlers for the scrap exchange REST API.
