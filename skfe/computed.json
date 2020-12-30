@@ -1419,6 +1419,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "scrapexchange",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "scrapexchange",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "scrapexchange",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf",
           "endpoints": [
             {
@@ -3700,6 +3726,23 @@
                           },
                           "route": {
                             "cluster": "push",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "scrap.skia.org",
+                      "name": "scrap.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "scrapexchange",
                             "timeout": {
                               "seconds": 600
                             }
