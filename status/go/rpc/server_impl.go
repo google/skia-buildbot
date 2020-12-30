@@ -25,7 +25,7 @@ import (
 //go:generate protoc --twirp_typescript_out=../../modules/rpc status.proto
 
 type statusServerImpl struct {
-	iCache                *incremental.IncrementalCache
+	iCache                incremental.IncrementalCache
 	taskDb                db.RemoteDB
 	capacityClient        capacity.CapacityClient
 	getAutorollerStatuses func() *GetAutorollerStatusesResponse
@@ -235,7 +235,7 @@ func (s *statusServerImpl) GetBotUsage(ctx context.Context, req *GetBotUsageRequ
 }
 
 // newStatusServerImpl creates and returns a statusServerImpl instance.
-func newStatusServerImpl(iCache *incremental.IncrementalCache, taskDb db.RemoteDB, capacityClient capacity.CapacityClient, getAutorollerStatuses func() *GetAutorollerStatusesResponse, getRepo func(string) (string, string, error), maxCommitsToLoad, defaultCommitsToLoad int, podID string) *statusServerImpl {
+func newStatusServerImpl(iCache incremental.IncrementalCache, taskDb db.RemoteDB, capacityClient capacity.CapacityClient, getAutorollerStatuses func() *GetAutorollerStatusesResponse, getRepo func(string) (string, string, error), maxCommitsToLoad, defaultCommitsToLoad int, podID string) *statusServerImpl {
 	return &statusServerImpl{
 		iCache:                iCache,
 		taskDb:                taskDb,
@@ -249,7 +249,7 @@ func newStatusServerImpl(iCache *incremental.IncrementalCache, taskDb db.RemoteD
 
 // NewStatusServer creates and returns a Twirp HTTP Server.
 func NewStatusServer(
-	iCache *incremental.IncrementalCache,
+	iCache incremental.IncrementalCache,
 	taskDb db.RemoteDB,
 	capacityClient capacity.CapacityClient,
 	getAutorollerStatuses func() *GetAutorollerStatusesResponse,
