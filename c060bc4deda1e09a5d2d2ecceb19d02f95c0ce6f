@@ -16,6 +16,23 @@
       "message": "Is this all it takes?",
       "revId": "c060bc4deda1e09a5d2d2ecceb19d02f95c0ce6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc460976_345059fc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 8036
+      },
+      "writtenOn": "2021-01-04T10:01:45Z",
+      "side": 1,
+      "message": "Looks good but I\u0027m not an OWNER.",
+      "revId": "c060bc4deda1e09a5d2d2ecceb19d02f95c0ce6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
