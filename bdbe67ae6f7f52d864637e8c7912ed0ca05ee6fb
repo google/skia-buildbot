@@ -16,6 +16,23 @@
       "message": "Eric: the names were intentionally such because I had issues with the presubmit calling one name \"too long\". Is this causing a bug?",
       "revId": "bdbe67ae6f7f52d864637e8c7912ed0ca05ee6fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eca45617_aa3b7ec0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-01-05T16:33:36Z",
+      "side": 1,
+      "message": "Ah, n/m, you cut of the \u0027autoroll\u0027 bit to make it fit. LGTM",
+      "revId": "bdbe67ae6f7f52d864637e8c7912ed0ca05ee6fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
