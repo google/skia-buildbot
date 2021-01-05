@@ -33,6 +33,23 @@
       "message": "Looks good but I\u0027m not an OWNER.",
       "revId": "c060bc4deda1e09a5d2d2ecceb19d02f95c0ce6f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "07b7c40b_196b6e6b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-05T15:03:59Z",
+      "side": 1,
+      "message": "LGTM, please land when you\u0027re ready and I\u0027ll update the roller.",
+      "revId": "c060bc4deda1e09a5d2d2ecceb19d02f95c0ce6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
