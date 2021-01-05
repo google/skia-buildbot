@@ -6,11 +6,9 @@
     "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
+    "includeTbrLine": true
   },
-  "contacts": [
-    "angle-team@google.com",
-  ],
+  "contacts": ["angle-team@google.com"],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
     "project": "vulkan-deps",
@@ -21,11 +19,9 @@
   "ownerSecondary": "rmistry",
   "parentDisplayName": "vulkan-deps",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "vulkan-tools-deps-autoroll",
+  "rollerName": "vulkan-tools-vulkan-deps-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "angle-bots+autoroll-info@google.com"
-  ],
+  "sheriff": ["angle-bots+autoroll-info@google.com"],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
