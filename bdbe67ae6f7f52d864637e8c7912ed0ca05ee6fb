@@ -33,6 +33,24 @@
       "message": "Ah, n/m, you cut of the \u0027autoroll\u0027 bit to make it fit. LGTM",
       "revId": "bdbe67ae6f7f52d864637e8c7912ed0ca05ee6fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8f91d67d_ac34ea15",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-05T17:26:35Z",
+      "side": 1,
+      "message": "Yeah, \"autoroll\" is vestigial (they\u0027re all autorollers, after all)",
+      "parentUuid": "eca45617_aa3b7ec0",
+      "revId": "bdbe67ae6f7f52d864637e8c7912ed0ca05ee6fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
