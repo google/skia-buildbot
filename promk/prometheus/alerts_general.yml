@@ -578,7 +578,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.yaml }}'
-      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }}'
+      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }}'
 
   - alert: DirtyRunningK8sConfig
     expr: dirty_config_metric == 1
@@ -588,7 +588,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
@@ -608,7 +608,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_app }}'
-      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: CheckedInK8sContainerNotRunning
     expr: container_running_metric == 0
@@ -618,7 +618,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.project }}/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: RunningK8sAppNotCheckedIn
     expr: running_app_has_config_metric == 0
