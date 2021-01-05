@@ -1,0 +1,24 @@
+{
+  "scrapexchange": {
+    "urls": [
+      "https://scrap.skia.org/"
+    ],
+    "method": "GET",
+    "expected": [
+      403
+    ],
+    "body": "",
+    "mimetype": ""
+  },
+  "scrapexchange-internal": {
+    "urls": [
+      "http://scrapexchange:9000/_/names/svg/"
+    ],
+    "method": "GET",
+    "expected": [
+      200
+    ],
+    "body": "",
+    "mimetype": "application/json"
+  }
+}
