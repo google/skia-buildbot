@@ -62,7 +62,7 @@ func New() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, admin, nil, nil)
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeReadOnly)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, storage.ScopeFullControl)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
