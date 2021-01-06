@@ -42,7 +42,15 @@ var templates = map[string]string{
 // TODO(jcgregorio) Doesn't actually work yet, svg isn't turned on in fiddle.
 const svgCpp = `
 void draw(SkCanvas* canvas) {
-    sk_sp<SkData> data(SkData::MakeWithCString("{{ .Body }}"));
+
+	// .Body must be broken up in lines with \n endings.
+	const char * svg = "<svg width='100' height='100'><rect width='100' height='100' fill='green'/> </svg>\n";
+	
+	sk_sp<SkData> data(SkData::MakeWithCString("{{ .Body }}"));
+
+
+	sk_sp<SkData> data(SkData::MakeWithoutCopy(svg, strlen(svg)));
+
 
     SkMemoryStream stream(std::move(data));
     sk_sp<SkSVGDOM> svgDom = SkSVGDOM::MakeFromStream(stream);
