@@ -31,7 +31,8 @@ import (
 // that can be easily turned into SQL table rows.
 type TablesBuilder struct {
 	changelistBuilders  []*ChangelistBuilder
-	commitBuilder       *CommitBuilder
+	commitsWithData     *CommitBuilder
+	commitsWithNoData   *CommitBuilder
 	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
 	groupingKeys        []string
@@ -41,14 +42,23 @@ type TablesBuilder struct {
 	traceBuilders       []*TraceBuilder
 }
 
-// Commits returns a new CommitBuilder linked to this builder which will have a set. It panics if
-// called more than once.
-func (b *TablesBuilder) Commits() *CommitBuilder {
-	if b.commitBuilder != nil {
+// CommitsWithData returns a new CommitBuilder to which the trace data will be connected.
+// It panics if called more than once.
+func (b *TablesBuilder) CommitsWithData() *CommitBuilder {
+	if b.commitsWithData != nil {
 		logAndPanic("Cannot call Commits() more than once.")
 	}
-	b.commitBuilder = &CommitBuilder{}
-	return b.commitBuilder
+	b.commitsWithData = &CommitBuilder{}
+	return b.commitsWithData
+}
+
+// CommitsWithNoData returns a new CommitBuilder that will explicitly not be connected to data.
+func (b *TablesBuilder) CommitsWithNoData() *CommitBuilder {
+	if b.commitsWithNoData != nil {
+		logAndPanic("Cannot call Commits() more than once.")
+	}
+	b.commitsWithNoData = &CommitBuilder{}
+	return b.commitsWithNoData
 }
 
 // SetDigests loads a mapping of runes to the digest that they represent. This allows
@@ -85,10 +95,10 @@ func (b *TablesBuilder) SetGroupingKeys(fields ...string) {
 // be called more than once - all data will be combined at the end. It panics if any of its
 // prerequisites have not been called.
 func (b *TablesBuilder) AddTracesWithCommonKeys(params paramtools.Params) *TraceBuilder {
-	if b.commitBuilder == nil {
+	if b.commitsWithData == nil {
 		logAndPanic("Must add commits before traces")
 	}
-	if len(b.commitBuilder.commits) == 0 {
+	if len(b.commitsWithData.commits) == 0 {
 		logAndPanic("Must specify at least one commit")
 	}
 	if len(b.groupingKeys) == 0 {
@@ -98,7 +108,7 @@ func (b *TablesBuilder) AddTracesWithCommonKeys(params paramtools.Params) *Trace
 		logAndPanic("Must add digests before traces")
 	}
 	tb := &TraceBuilder{
-		commits:         b.commitBuilder.commits,
+		commits:         b.commitsWithData.commits,
 		commonKeys:      params,
 		symbolsToDigest: b.runeToDigest,
 		groupingKeys:    b.groupingKeys,
@@ -159,6 +169,8 @@ func (b *TablesBuilder) finalizeExpectations() []*schema.ExpectationRow {
 			if existingRecord.Label != ed.LabelBefore {
 				logAndPanic("Expectation Delta precondition is incorrect. Label before was %d: %#v", existingRecord.Label, ed)
 			}
+			existingRecord.Label = ed.LabelAfter
+			existingRecord.ExpectationRecordID = &ed.ExpectationRecordID
 		}
 	}
 	// Fill in untriaged values.
@@ -423,12 +435,15 @@ func (b *TablesBuilder) Build() schema.Tables {
 	}
 	tables.TiledTraceDigests = b.computeTiledTraceDigests()
 	tables.PrimaryBranchParams = b.computePrimaryBranchParams()
-	tables.Commits = b.commitBuilder.commits
+	tables.Commits = b.commitsWithData.commits
 	for i := range tables.Commits {
 		cid := tables.Commits[i].CommitID
 		if commitsWithData[cid] {
 			tables.Commits[i].HasData = true
 		}
+	}
+	if b.commitsWithNoData != nil {
+		tables.Commits = append(tables.Commits, b.commitsWithNoData.commits...)
 	}
 	exp := b.finalizeExpectations()
 	for _, e := range exp {
@@ -699,7 +714,15 @@ type CommitBuilder struct {
 // Append adds a commit whose ID is one higher than the previous commits ID. It panics if
 // the commitTime is not formatted to RFC3339.
 func (b *CommitBuilder) Append(author, subject, commitTime string) *CommitBuilder {
-	commitID := b.previousID + 1
+	return b.Insert(b.previousID+1, author, subject, commitTime)
+}
+
+// Insert adds a commit with the given data. It panics if the commitTime is not formatted to
+// RFC3339 or if the commitID is not monotonically increasing from the last one.
+func (b *CommitBuilder) Insert(commitID int, author, subject, commitTime string) *CommitBuilder {
+	if commitID <= b.previousID {
+		panic("Must insert commits in monotonically increasing order")
+	}
 	gitHash := fmt.Sprintf("%04d", commitID)
 	// A true githash is 40 hex characters, so we repeat the 4 digits of the commitID 10 times.
 	gitHash = strings.Repeat(gitHash, 10)
@@ -836,26 +859,46 @@ func (b *TraceBuilder) OptionsAll(opts paramtools.Params) *TraceBuilder {
 // of options is expected to match the number of traces. It panics if called more than once or
 // at the wrong time.
 func (b *TraceBuilder) OptionsPerTrace(xopts []paramtools.Params) *TraceBuilder {
+	if len(xopts) != len(b.traceValues) {
+		logAndPanic("Must have one options per trace")
+	}
+	optsPerTrace := make([][]paramtools.Params, len(b.traceValues))
+	for i, optForThisTrace := range xopts {
+		optsPerTrace[i] = make([]paramtools.Params, len(b.commits))
+		for j := range b.commits {
+			optsPerTrace[i][j] = optForThisTrace
+		}
+	}
+	return b.OptionsPerPoint(optsPerTrace)
+}
+
+// OptionsPerPoint applies the given optional params to the each data point in the provided traces.
+// The number of rows should equal the number of traces and the number of cols should equal the
+// number of commits.
+func (b *TraceBuilder) OptionsPerPoint(optsByTrace [][]paramtools.Params) *TraceBuilder {
 	if len(b.traceValues) == 0 {
 		logAndPanic("Options* must be called after history loaded")
 	}
 	if len(b.options) > 0 {
 		logAndPanic("Must call Options* only once")
 	}
-	if len(xopts) != len(b.traceValues) {
-		logAndPanic("Must have one options per trace")
+	if len(optsByTrace) != len(b.traceValues) {
+		logAndPanic("Must have the number of rows match the number of traces")
 	}
-	for i, opts := range xopts {
-		_, optionsID := sql.SerializeMap(opts)
-		b.options = append(b.options, schema.OptionsRow{
-			OptionsID: optionsID,
-			Keys:      opts.Copy(), // make a copy to ensure immutability
-		})
-		// apply it to every trace value in the ith trace
-		for _, tv := range b.traceValues[i] {
+	if len(optsByTrace[0]) != len(b.commits) {
+		logAndPanic("Must have the number of cols match the number of commits")
+	}
+	for r := range optsByTrace {
+		for c := range optsByTrace[r] {
+			tv := b.traceValues[r][c]
 			if tv == nil {
 				continue
 			}
+			_, optionsID := sql.SerializeMap(optsByTrace[r][c])
+			b.options = append(b.options, schema.OptionsRow{
+				OptionsID: optionsID,
+				Keys:      optsByTrace[r][c].Copy(), // make a copy to ensure immutability
+			})
 			tv.OptionsID = optionsID
 		}
 	}
@@ -930,23 +973,21 @@ func (b *ExpectationsBuilder) ExpectationsForGrouping(keys paramtools.Params) *E
 // Positive marks the given digest as positive for the current grouping. It assumes that the
 // previous triage state was untriaged (as this is quite common for test data).
 func (b *ExpectationsBuilder) Positive(d types.Digest) *ExpectationsBuilder {
-	db, err := sql.DigestToBytes(d)
-	if err != nil {
-		logAndPanic("Invalid digest %q: %s", d, err)
-	}
-	b.deltas = append(b.deltas, schema.ExpectationDeltaRow{
-		ExpectationRecordID: b.record.ExpectationRecordID,
-		GroupingID:          b.currentGroupingID,
-		Digest:              db,
-		LabelBefore:         schema.LabelUntriaged,
-		LabelAfter:          schema.LabelPositive,
-	})
-	return b
+	return b.Triage(d, schema.LabelUntriaged, schema.LabelPositive)
 }
 
 // Negative marks the given digest as negative for the current grouping. It assumes that the
 // previous triage state was untriaged (as this is quite common for test data).
 func (b *ExpectationsBuilder) Negative(d types.Digest) *ExpectationsBuilder {
+	return b.Triage(d, schema.LabelUntriaged, schema.LabelNegative)
+}
+
+// Triage allows an event to be added that has some custom setup. E.g. changing a postively
+// triaged digest to be negatively triaged.
+func (b *ExpectationsBuilder) Triage(d types.Digest, before, after schema.ExpectationLabel) *ExpectationsBuilder {
+	if b.currentGroupingID == nil {
+		logAndPanic("You must call ExpectationsForGrouping first")
+	}
 	db, err := sql.DigestToBytes(d)
 	if err != nil {
 		logAndPanic("Invalid digest %q: %s", d, err)
@@ -955,8 +996,8 @@ func (b *ExpectationsBuilder) Negative(d types.Digest) *ExpectationsBuilder {
 		ExpectationRecordID: b.record.ExpectationRecordID,
 		GroupingID:          b.currentGroupingID,
 		Digest:              db,
-		LabelBefore:         schema.LabelUntriaged,
-		LabelAfter:          schema.LabelNegative,
+		LabelBefore:         before,
+		LabelAfter:          after,
 	})
 	return b
 }
