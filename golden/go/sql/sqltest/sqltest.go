@@ -103,6 +103,9 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 		}
 		arguments = append(arguments, args...)
 	}
+	if len(arguments) == 0 {
+		return nil
+	}
 
 	vp := sql.ValuesPlaceholders(len(colNames), table.Len())
 	insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s`, name, strings.Join(colNames, ","), vp)
