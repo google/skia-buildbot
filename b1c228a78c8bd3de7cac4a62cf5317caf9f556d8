@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "41a20961_6ba82790",
+        "filename": "golden/go/sql/databuilder/databuilder.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 974,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-06T20:20:17Z",
+      "side": 1,
+      "message": "That is already checked when the expectations are gathered.",
+      "parentUuid": "ef20996e_eddb0d3f",
+      "range": {
+        "startLine": 973,
+        "startChar": 73,
+        "endLine": 974,
+        "endChar": 38
+      },
+      "revId": "b1c228a78c8bd3de7cac4a62cf5317caf9f556d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5c0966df_49838e70",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-06T19:38:43Z",
       "side": 1,
       "message": "Nit: Blank line before each AddTraces... block.",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 77
+      },
+      "revId": "b1c228a78c8bd3de7cac4a62cf5317caf9f556d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "315b3c4e_50340c77",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-06T20:20:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c0966df_49838e70",
       "range": {
         "startLine": 68,
         "startChar": 0,
