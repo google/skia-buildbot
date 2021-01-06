@@ -29,10 +29,10 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	row := db.QueryRow(ctx, "SELECT count(*) from TraceValues")
 	count := 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 2, count)
+	assert.Equal(t, 141, count)
 
-	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE corpus = $1", "corpus_one")
+	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE corpus = $1", "round")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 3, count)
+	assert.Equal(t, 8, count)
 }
