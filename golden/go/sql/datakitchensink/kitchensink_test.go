@@ -29,10 +29,36 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	row := db.QueryRow(ctx, "SELECT count(*) from TraceValues")
 	count := 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 2, count)
+	assert.Equal(t, 180, count)
 
-	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE corpus = $1", "corpus_one")
+	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE corpus = $1", "round")
 	count = 0
 	assert.NoError(t, row.Scan(&count))
-	assert.Equal(t, 3, count)
+	assert.Equal(t, 11, count)
+
+	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE matches_any_ignore_rule = $1", true)
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 2, count)
+	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE matches_any_ignore_rule = $1", false)
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 31, count)
+	row = db.QueryRow(ctx, "SELECT count(*) from Traces WHERE matches_any_ignore_rule IS NULL")
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 0, count)
+
+	row = db.QueryRow(ctx, "SELECT count(*) from Expectations WHERE label = $1", string(schema.LabelPositive))
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 9, count)
+	row = db.QueryRow(ctx, "SELECT count(*) from Expectations WHERE label = $1", string(schema.LabelNegative))
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 4, count)
+	row = db.QueryRow(ctx, "SELECT count(*) from Expectations WHERE label = $1", string(schema.LabelUntriaged))
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 7, count)
 }
