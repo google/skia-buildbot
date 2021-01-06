@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa8db3b6_553a553a",
+        "filename": "golden/go/sql/sqltest/sqltest.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-06T19:12:45Z",
+      "side": 1,
+      "message": "Suggestion: If you assert that table is of type []SQLExporter, then writeToTable can take a []SQLExporter slice instead of a reflect.Value, which makes writeToTable a bit simpler to read, and keeps all the reflection logic in one single place (that is, the BulkInsertDataTables function).",
+      "range": {
+        "startLine": 79,
+        "startChar": 45,
+        "endLine": 79,
+        "endChar": 50
+      },
+      "revId": "fb0b2df6e06ab2e9b5ecee28043f7f99462cbf3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c1e0047b_07c9ff60",
+        "filename": "golden/go/sql/sqltest/sqltest_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-06T19:12:45Z",
+      "side": 1,
+      "message": "Given the small size of the test dataset (5 rows) and the importance of this function, I\u0027d recommend asserting that the entire contents of the database are what we expect (instead of spotchecking a subset of its contents).",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 18
+      },
+      "revId": "fb0b2df6e06ab2e9b5ecee28043f7f99462cbf3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
