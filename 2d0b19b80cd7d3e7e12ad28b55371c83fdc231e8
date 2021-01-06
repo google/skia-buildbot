@@ -22,6 +22,30 @@
       },
       "revId": "2d0b19b80cd7d3e7e12ad28b55371c83fdc231e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b369176_0e64528a",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-06T20:14:06Z",
+      "side": 1,
+      "message": "We\u0027ll see as we import this in tests.",
+      "parentUuid": "620164fb_84b6257e",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "2d0b19b80cd7d3e7e12ad28b55371c83fdc231e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
