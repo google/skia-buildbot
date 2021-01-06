@@ -96,3 +96,33 @@ func TestAsMD5Hash_Success(t *testing.T) {
 		0xaa, 0xaa, 0xbb, 0xbb, 0xcc, 0xcc, 0xdd, 0xdd, 0xee, 0xee, 0xff, 0xff, 0x00, 0x00, 0x11, 0x11,
 	}, AsMD5Hash(db))
 }
+
+func TestValuesPlaceholders_ValidInputs_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	v := ValuesPlaceholders(3, 2)
+	assert.Equal(t, "($1,$2,$3),($4,$5,$6)", v)
+
+	v = ValuesPlaceholders(2, 4)
+	assert.Equal(t, "($1,$2),($3,$4),($5,$6),($7,$8)", v)
+
+	v = ValuesPlaceholders(1, 1)
+	assert.Equal(t, "($1)", v)
+
+	v = ValuesPlaceholders(1, 3)
+	assert.Equal(t, "($1),($2),($3)", v)
+}
+
+func TestValuesPlaceholders_InvalidInputs_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Panics(t, func() {
+		ValuesPlaceholders(-3, 2)
+	})
+	assert.Panics(t, func() {
+		ValuesPlaceholders(2, -4)
+	})
+	assert.Panics(t, func() {
+		ValuesPlaceholders(0, 0)
+	})
+}
