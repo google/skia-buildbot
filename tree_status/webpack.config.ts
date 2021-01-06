@@ -18,22 +18,6 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
         from: resolve(__dirname, 'images/favicon.ico'),
         to: 'favicon.ico',
       },
-      {
-        from: resolve(__dirname, 'images/robocop.jpg'),
-        to: 'robocop.jpg',
-      },
-      {
-        from: resolve(__dirname, 'images/sheriff.jpg'),
-        to: 'sheriff.jpg',
-      },
-      {
-        from: resolve(__dirname, 'images/trooper.jpg'),
-        to: 'trooper.jpg',
-      },
-      {
-        from: resolve(__dirname, 'images/wrangler.jpg'),
-        to: 'wrangler.jpg',
-      },
     ]),
   );
 
