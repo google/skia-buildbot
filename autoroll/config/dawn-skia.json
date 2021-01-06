@@ -13,9 +13,7 @@
     "includeTbrLine": true,
     "includeTests": true
   },
-  "contacts": [
-    "cwallez@google.com"
-  ],
+  "contacts": ["cwallez@google.com"],
   "gerrit": {
     "url": "https://skia-review.googlesource.com",
     "project": "skia",
@@ -72,16 +70,6 @@
       },
       "parent": {
         "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
-        "path": "DEPS"
-      }
-    },
-    {
-      "child": {
-        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
-        "path": "DEPS"
-      },
-      "parent": {
-        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
         "path": "DEPS"
       }
     },
