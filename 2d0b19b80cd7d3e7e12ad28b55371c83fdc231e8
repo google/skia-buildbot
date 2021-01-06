@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "620164fb_84b6257e",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-06T19:39:03Z",
+      "side": 1,
+      "message": "Ubernit: Can we call this kitchensinkdataset, or kitchensink_dataset? (I know, underscores in Go package names are unconventional).\n\nThis requires renaming the parent directory so feel free to address after landing the current chain of CLs.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "2d0b19b80cd7d3e7e12ad28b55371c83fdc231e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
