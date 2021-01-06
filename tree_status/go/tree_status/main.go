@@ -26,14 +26,13 @@ import (
 // Flags
 var (
 	modifyGroup        = flag.String("modify_group", "project-skia-committers", "The chrome infra auth group to use for who is allowed to change tree status.")
-	adminGroup         = flag.String("admin_group", "google/skia-staff@google.com", "The chrome infra auth group to use for who is allowed to update rotations.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	namespace          = flag.String("namespace", "tree-status-staging", "The Cloud Datastore namespace.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
 )
 
 var (
-	// dsClient is the Cloud Datastore client to access tree statuses and rotations.
+	// dsClient is the Cloud Datastore client to access tree statuses.
 	dsClient *datastore.Client
 )
 
@@ -41,7 +40,6 @@ var (
 type Server struct {
 	templates  *template.Template
 	modify     allowed.Allow // Who is allowed to modify tree status.
-	admin      allowed.Allow // Who is allowed to modify rotations.
 	autorollDB status.DB
 }
 
@@ -75,7 +73,6 @@ func New() (baseapp.App, error) {
 	}
 
 	var modify allowed.Allow
-	var admin allowed.Allow
 	if !*baseapp.Local {
 		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
 		if err != nil {
@@ -86,20 +83,14 @@ func New() (baseapp.App, error) {
 		if err != nil {
 			return nil, err
 		}
-		admin, err = allowed.NewAllowedFromChromeInfraAuth(client, *adminGroup)
-		if err != nil {
-			return nil, err
-		}
 	} else {
 		modify = allowed.NewAllowedFromList([]string{"barney@example.org"})
-		admin = allowed.NewAllowedFromList([]string{"barney@example.org"})
 	}
 
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, admin, modify, nil /* Everyone is allowed to access */)
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil /* Admins not needed */, modify, nil /* Everyone is allowed to access */)
 
 	srv := &Server{
 		modify:     modify,
-		admin:      admin,
 		autorollDB: autorollDB,
 	}
 	srv.loadTemplates()
@@ -113,7 +104,6 @@ func (srv *Server) loadTemplates() {
 	blah := *baseapp.ResourcesDir
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(blah, "index.html"),
-		filepath.Join(blah, "rotations.html"),
 	))
 }
 
@@ -144,29 +134,6 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	appRouter.HandleFunc("/_/get_autorollers", srv.autorollersHandler).Methods("POST")
 	appRouter.HandleFunc("/_/recent_statuses", srv.recentStatusesHandler).Methods("POST")
 	r.HandleFunc("/current", httputils.CorsHandler(srv.bannerStatusHandler)).Methods("GET")
-
-	// For rotations.
-	appRouter.HandleFunc("/sheriff", srv.sheriffHandler).Methods("GET")
-	appRouter.HandleFunc("/robocop", srv.robocopHandler).Methods("GET")
-	appRouter.HandleFunc("/wrangler", srv.wranglerHandler).Methods("GET")
-	appRouter.HandleFunc("/trooper", srv.trooperHandler).Methods("GET")
-
-	appRouter.HandleFunc("/update_sheriff_rotations", srv.updateSheriffRotationsHandler).Methods("GET")
-	appRouter.HandleFunc("/update_robocop_rotations", srv.updateRobocopRotationsHandler).Methods("GET")
-	appRouter.HandleFunc("/update_wrangler_rotations", srv.updateWranglerRotationsHandler).Methods("GET")
-	appRouter.HandleFunc("/update_trooper_rotations", srv.updateTrooperRotationsHandler).Methods("GET")
-
-	appRouter.HandleFunc("/_/get_rotations", srv.autorollersHandler).Methods("POST")
-
-	r.HandleFunc("/current-sheriff", httputils.CorsHandler(srv.currentSheriffHandler)).Methods("GET")
-	r.HandleFunc("/current-robocop", httputils.CorsHandler(srv.currentRobocopHandler)).Methods("GET")
-	r.HandleFunc("/current-wrangler", httputils.CorsHandler(srv.currentWranglerHandler)).Methods("GET")
-	r.HandleFunc("/current-trooper", httputils.CorsHandler(srv.currentTrooperHandler)).Methods("GET")
-
-	r.HandleFunc("/next-sheriff", httputils.CorsHandler(srv.nextSheriffHandler)).Methods("GET")
-	r.HandleFunc("/next-robocop", httputils.CorsHandler(srv.nextRobocopHandler)).Methods("GET")
-	r.HandleFunc("/next-wrangler", httputils.CorsHandler(srv.nextWranglerHandler)).Methods("GET")
-	r.HandleFunc("/next-trooper", httputils.CorsHandler(srv.nextTrooperHandler)).Methods("GET")
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication.
 	appHandler := http.Handler(appRouter)

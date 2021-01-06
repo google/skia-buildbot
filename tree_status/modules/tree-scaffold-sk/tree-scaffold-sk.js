@@ -14,13 +14,9 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/android-icon-sk';
-import 'elements-sk/icon/bug-report-icon-sk';
 import 'elements-sk/icon/folder-icon-sk';
-import 'elements-sk/icon/gesture-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/icon/star-icon-sk';
 import 'elements-sk/nav-button-sk';
 import 'elements-sk/nav-links-sk';
 
@@ -31,10 +27,6 @@ const template = (ele) => html`
     <nav-button-sk></nav-button-sk>
     <nav-links-sk>
       <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a>
-      <a href="/sheriff" tab-index=0 ><star-icon-sk></star-icon-sk><span>Sheriff Schedule<span></a>
-      <a href="/wrangler" tab-index=0 ><gesture-icon-sk></gesture-icon-sk><span>Wrangler Schedule<span></a>
-      <a href="/robocop" tab-index=0 ><android-icon-sk></android-icon-sk><span>Robocop Schedule<span></a>
-      <a href="/trooper" tab-index=0 ><bug-report-icon-sk></bug-report-icon-sk><span>Trooper Schedule<span></a>
       <a href="http://go/skia-tree-status-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
       <a href="https://github.com/google/skia-buildbot/tree/master/tree_status" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
     </nav-links-sk>
