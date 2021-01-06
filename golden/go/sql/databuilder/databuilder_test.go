@@ -27,11 +27,12 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
-	b.Commits().
+	b.CommitsWithData().
 		Append("author_one", "subject_one", "2020-12-05T16:00:00Z").
 		Append("author_two", "subject_two", "2020-12-06T17:00:00Z").
 		Append("author_three", "subject_three", "2020-12-07T18:00:00Z").
 		Append("author_four", "subject_four", "2020-12-08T19:00:00Z")
+	b.CommitsWithNoData().Insert(5, "author_five", "no data yet", "2020-12-08T20:00:00Z")
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
 		// are untriaged, numbers are negative, symbols are special.
@@ -183,6 +184,13 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		AuthorEmail: "author_four",
 		Subject:     "subject_four",
 		HasData:     true,
+	}, {
+		CommitID:    5,
+		GitHash:     "0005000500050005000500050005000500050005",
+		CommitTime:  time.Date(2020, time.December, 8, 20, 0, 0, 0, time.UTC),
+		AuthorEmail: "author_five",
+		Subject:     "no data yet",
+		HasData:     false,
 	}}, tables.Commits)
 
 	pngOptionsID := h(`{"ext":"png"}`)
@@ -446,7 +454,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
-	b.Commits().
+	b.CommitsWithData().
 		Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
@@ -843,9 +851,9 @@ func TestCommits_CalledMultipleTimes_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
-	b.Commits()
+	b.CommitsWithData()
 	assert.Panics(t, func() {
-		b.Commits()
+		b.CommitsWithData()
 	})
 }
 
@@ -854,7 +862,52 @@ func TestCommits_InvalidTime_Panics(t *testing.T) {
 
 	b := TablesBuilder{}
 	assert.Panics(t, func() {
-		b.Commits().Append("fine", "dandy", "no good")
+		b.CommitsWithData().Append("fine", "dandy", "no good")
+	})
+}
+
+func TestCommits_InsertInMonotonicOrder_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.CommitsWithData().
+		Insert(98, "author_one", "subject_98", "2020-12-05T15:00:00Z").
+		Append("author_one", "subject_99", "2020-12-05T16:00:00Z").
+		Insert(2000, "author_2k", "subject_2k", "2022-02-02T02:02:00Z")
+	tables := b.Build()
+	assert.Equal(t, []schema.CommitRow{{
+		CommitID:    98,
+		GitHash:     "0098009800980098009800980098009800980098",
+		CommitTime:  time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
+		AuthorEmail: "author_one",
+		Subject:     "subject_98",
+		HasData:     false,
+	}, {
+		CommitID:    99,
+		GitHash:     "0099009900990099009900990099009900990099",
+		CommitTime:  time.Date(2020, time.December, 5, 16, 0, 0, 0, time.UTC),
+		AuthorEmail: "author_one",
+		Subject:     "subject_99",
+		HasData:     false,
+	}, {
+		CommitID:    2000,
+		GitHash:     "2000200020002000200020002000200020002000",
+		CommitTime:  time.Date(2022, time.February, 2, 2, 2, 0, 0, time.UTC),
+		AuthorEmail: "author_2k",
+		Subject:     "subject_2k",
+		HasData:     false,
+	}}, tables.Commits)
+}
+
+func TestCommits_InsertOutOfOrder_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	assert.Panics(t, func() {
+		b.CommitsWithData().
+			Insert(2000, "author_2k", "subject_2k", "2022-02-02T02:02:00Z").
+			Insert(98, "author_one", "subject_98", "2020-12-05T15:00:00Z").
+			Append("author_one", "subject_99", "2020-12-05T16:00:00Z")
 	})
 }
 
@@ -898,7 +951,7 @@ func TestAddTracesWithCommonKeys_MissingSetupCalls_Panics(t *testing.T) {
 	assert.Panics(t, func() {
 		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	assert.Panics(t, func() {
 		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
@@ -919,7 +972,7 @@ func TestAddTracesWithCommonKeys_ZeroCommitsSpecified_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits() // oops, no commits
+	b.CommitsWithData() // oops, no commits
 	assert.Panics(t, func() {
 		b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	})
@@ -931,7 +984,7 @@ func TestHistory_CalledMultipleTimes_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -945,7 +998,7 @@ func TestHistory_WrongSizeTraces_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	// Expected length is 1
 	assert.Panics(t, func() {
@@ -966,7 +1019,7 @@ func TestHistory_UnknownSymbol_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.History("?")
@@ -979,7 +1032,7 @@ func TestKeys_CalledWithoutHistory_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.Keys([]paramtools.Params{{types.CorpusField: "whatever"}})
@@ -992,7 +1045,7 @@ func TestKeys_CalledMultipleTimes_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	tb.Keys([]paramtools.Params{{types.CorpusField: "whatever"}})
@@ -1007,7 +1060,7 @@ func TestKeys_IncorrectLength_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -1031,7 +1084,7 @@ func TestKeys_MissingGrouping_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys("group1", "group2")
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -1046,7 +1099,7 @@ func TestKeys_IdenticalTraces_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys("group1")
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A", "-")
 	assert.Panics(t, func() {
@@ -1060,7 +1113,7 @@ func TestOptionsPerTrace_CalledWithoutHistory_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.OptionsPerTrace([]paramtools.Params{{"opt": "whatever"}})
@@ -1073,7 +1126,7 @@ func TestOptionsPerTrace_CalledMultipleTimes_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	tb.OptionsPerTrace([]paramtools.Params{{"opt": "whatever"}})
@@ -1088,7 +1141,7 @@ func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -1106,13 +1159,49 @@ func TestOptionsPerTrace_IncorrectLength_Panics(t *testing.T) {
 	})
 }
 
+func TestOptionsPerPoint_CorrectDataLinedUp(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.SetGroupingKeys("test")
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
+	b.CommitsWithData().
+		Append("author_one", "subject_one", "2020-12-05T16:00:00Z").
+		Append("author_one", "subject_two", "2020-12-05T17:00:00Z")
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+		History("AA", "AA").
+		Keys([]paramtools.Params{{"test": "one"}, {"test": "two"}}).
+		OptionsPerPoint([][]paramtools.Params{
+			{{"option": "cell 1"}, {"option": "cell 2"}},
+			{{"option": "cell 3"}, {"option": "cell 4"}},
+		}).IngestedFrom([]string{"first", "second"}, []string{"2020-12-05T16:30:00Z", "2020-12-05T17:30:00Z"})
+	data := b.Build()
+	assert.Equal(t, []schema.OptionsRow{{
+		OptionsID: h(`{"option":"cell 1"}`),
+		Keys:      paramtools.Params{"option": "cell 1"},
+	}, {
+		OptionsID: h(`{"option":"cell 2"}`),
+		Keys:      paramtools.Params{"option": "cell 2"},
+	}, {
+		OptionsID: h(`{"option":"cell 3"}`),
+		Keys:      paramtools.Params{"option": "cell 3"},
+	}, {
+		OptionsID: h(`{"option":"cell 4"}`),
+		Keys:      paramtools.Params{"option": "cell 4"},
+	}}, data.Options)
+	assert.Equal(t, schema.OptionsID(h(`{"option":"cell 1"}`)), data.TraceValues[0].OptionsID)
+	assert.Equal(t, schema.OptionsID(h(`{"option":"cell 2"}`)), data.TraceValues[1].OptionsID)
+	assert.Equal(t, schema.OptionsID(h(`{"option":"cell 3"}`)), data.TraceValues[2].OptionsID)
+	assert.Equal(t, schema.OptionsID(h(`{"option":"cell 4"}`)), data.TraceValues[3].OptionsID)
+}
+
 func TestIngestedFrom_CalledWithoutHistory_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	assert.Panics(t, func() {
 		tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
@@ -1125,7 +1214,7 @@ func TestIngestedFrom_CalledMultipleTimes_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	tb.IngestedFrom([]string{"file1"}, []string{"2020-12-05T16:00:00Z"})
@@ -1140,7 +1229,7 @@ func TestIngestedFrom_IncorrectLength_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -1169,7 +1258,7 @@ func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -1177,13 +1266,13 @@ func TestIngestedFrom_InvalidDateFormat_Panics(t *testing.T) {
 	})
 }
 
-func TestGenerateStructs_IncompleteData_Panics(t *testing.T) {
+func TestBuild_IncompleteData_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	tb := b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"})
 	tb.History("A")
 	assert.Panics(t, func() {
@@ -1204,13 +1293,13 @@ func TestGenerateStructs_IncompleteData_Panics(t *testing.T) {
 	})
 }
 
-func TestGenerateStructs_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
+func TestBuild_IdenticalTracesFromTwoSets_Panics(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History("A").
 		Keys([]paramtools.Params{{types.CorpusField: "identical"}}).
@@ -1243,6 +1332,49 @@ func TestAddTriageEvent_InvalidTime_Panics(t *testing.T) {
 	assert.Panics(t, func() {
 		b.AddTriageEvent("user", "invalid time")
 	})
+}
+
+func TestTriage_ReplacingPreviousExpectations_LabelAndRecordOverwritten(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.SetGroupingKeys("test")
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+		History("A").Keys([]paramtools.Params{{"test": "one"}}).
+		OptionsAll(paramtools.Params{"opt": "opt"}).
+		IngestedFrom([]string{"first"}, []string{"2020-12-05T16:30:00Z"})
+
+	b.AddTriageEvent("mistake_user", "2020-12-05T16:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{"test": "one"}).
+		Positive(digestA)
+	b.AddTriageEvent("mistake_user", "2020-12-05T16:00:05Z").
+		ExpectationsForGrouping(paramtools.Params{"test": "one"}).
+		Triage(digestA, schema.LabelPositive, schema.LabelNegative)
+	data := b.Build()
+	require.Len(t, data.ExpectationRecords, 2)
+	firstID := data.ExpectationRecords[0].ExpectationRecordID
+	secondID := data.ExpectationRecords[1].ExpectationRecordID
+	assert.Equal(t, []schema.ExpectationRow{{
+		GroupingID:          h(`{"test":"one"}`),
+		Digest:              d(t, digestA),
+		Label:               schema.LabelNegative,
+		ExpectationRecordID: &secondID,
+	}}, data.Expectations)
+	assert.Equal(t, []schema.ExpectationDeltaRow{{
+		ExpectationRecordID: firstID,
+		GroupingID:          h(`{"test":"one"}`),
+		Digest:              d(t, digestA),
+		LabelBefore:         schema.LabelUntriaged,
+		LabelAfter:          schema.LabelPositive,
+	}, {
+		ExpectationRecordID: secondID,
+		GroupingID:          h(`{"test":"one"}`),
+		Digest:              d(t, digestA),
+		LabelBefore:         schema.LabelPositive,
+		LabelAfter:          schema.LabelNegative,
+	}}, data.ExpectationDeltas)
 }
 
 func TestExpectationsForGrouping_KeyMissingFromGrouping_Panics(t *testing.T) {
@@ -1294,7 +1426,7 @@ func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
 	assert.Panics(t, func() {
 		b.ComputeDiffMetricsFromImages(testDir, "2020-12-05T16:00:00Z")
 	})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History("A")
 	// We should have the right data now.
@@ -1311,7 +1443,7 @@ func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History("A")
 	assert.Panics(t, func() {
@@ -1325,7 +1457,7 @@ func TestComputeDiffMetricsFromImages_InvalidDirectory_Panics(t *testing.T) {
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
 	b.SetDigests(map[rune]types.Digest{'A': digestA})
-	b.Commits().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
 	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
 		History("A")
 	assert.Panics(t, func() {
