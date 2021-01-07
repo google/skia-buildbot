@@ -41,6 +41,72 @@ Logs for Gold instances in skia-public/skia-corp are in the usual
 GKE container grouping, for example:
 <https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container&logName=projects%2Fskia-public%2Flogs%2Fgold-flutter-skiacorrectness>
 
+Managing the CockroachDB (SQL) database
+=======================================
+The most reliable way to have open and use a connection to the SQL database is to create an
+ephemeral k8s pod that runs the CockroachDB SQL CLI.
+```
+kubectl run -it --rm gold-cockroachdb-temp-0 --restart=Never --image=cockroachdb/cockroach:v20.2.0 \
+  -- sql --insecure --host gold-cockroachdb:26234 --database [instance_name]
+```
+The CockroachDB cluster is currently 5 nodes, with a replication factor of 3. By connecting to the
+host `gold-cockroachdb:26234`, the ephemeral k8s pod will connect to one of the nodes at random.
+
+The single cluster houses data from all instances, each under their own database. You'll need to
+fill in the instance name above. Not sure which instances are there? Omit the --database param
+from the above command and then run `SHOW DATABASES;` after connecting.
+
+CockroachDB was setup using [the recommended k8s flow](https://www.cockroachlabs.com/docs/v20.2/orchestrate-cockroachdb-with-kubernetes-insecure#manual).
+Some adjustments were made to the default config to allow for more RAM and disk size per node.
+
+Updating the version of CockroachDB
+-----------------------------------
+The k8s configuration that is used for CockroachDB should be able to be easily upgraded by modifying
+the version indicated in the
+[.yaml file](https://skia.googlesource.com/k8s-config/+/refs/heads/master/skia-public/gold-cockroach-statefulset.yaml).
+Applying this will automatically take one node down at a time and restart it with the new binary.
+See [this procedure](https://www.cockroachlabs.com/docs/stable/orchestrate-cockroachdb-with-kubernetes.html#upgrade-the-cluster)
+to make sure there aren't any steps needed for minor or major version upgrades.
+
+Debugging and Information Gathering Tips
+----------------------------------------
+
+  - `SHOW QUERIES` and `SHOW JOBS` is a way to see the ongoing queries (if things appear jammed up).
+  - `SHOW STATISTICS FOR TABLE [foo]` is a handy way to get row counts and distinct value counts.
+  - `SHOW RANGES FROM TABLE [foo]` is a good way to see the ranges, how full each is and where the
+    keys are partitioned.
+
+Replacing a Node
+----------------
+Suppose a node is jammed or wedged or otherwise seems to be having issues. One thing to try is to
+decommission it, delete it, and recreate it. For this example, let's suppose node 2 is the node
+we want to replace.
+
+First, let's decommission node 2, that is, we tell other nodes to stop using node 2.
+```
+kubectl run -it --rm gold-cockroachdb-temp-0 --restart=Never --image=cockroachdb/cockroach:v20.2.0 \
+  -- node decommission 2 --insecure --host gold-cockroachdb:26234
+```
+This process makes new copies of the ranges that were on node 2 and makes them available on the
+other nodes. While this is running, we can delete node 2 and its underlying disk.
+```
+# Temporarily stop k8s from healing the pod
+kubectl delete statefulsets gold-cockroachdb --cascade=false
+kubectl delete pod gold-cockroachdb-2
+kubectl delete pvc datadir-gold-cockroachdb-2
+# Make sure the disk is gone
+kubectl get persistentvolumes | grep gold
+```
+When the node is deleted, we should be able to re-apply the statefulset k8s yaml and the missing
+pod will be re-created. It should automatically connect to the cluster. Then, some ranges will
+assigned to it. Note that this new node may have a different number according to cockroachDB than
+the k8s pod id.
+
+Advice for a staging instance
+-----------------------------
+If a staging instance is desired, it is recommended to use TSV files and IMPORT to load the
+database with a non-trivial amount of data.
+
 Alerts
 ======
 
