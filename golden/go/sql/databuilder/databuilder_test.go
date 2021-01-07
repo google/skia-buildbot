@@ -1487,6 +1487,65 @@ func TestAddIgnoreRule_InvalidQuery_Panics(t *testing.T) {
 	})
 }
 
+func TestPatchsetBuilder_DataWithCommonKeysChained_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	b := TablesBuilder{}
+	b.SetGroupingKeys("test")
+	b.SetDigests(map[rune]types.Digest{'A': digestA})
+	b.CommitsWithData().Append("author_one", "subject_one", "2020-12-05T16:00:00Z")
+	b.AddTracesWithCommonKeys(paramtools.Params{"os": "Android"}).
+		History("A").Keys([]paramtools.Params{{"test": "one"}}).
+		OptionsAll(paramtools.Params{"opt": "opt"}).
+		IngestedFrom([]string{"first"}, []string{"2020-12-05T16:30:00Z"})
+
+	cl := b.AddChangelist("cl1", "gerrit", "user1", "whatever", schema.StatusOpen)
+	ps := cl.AddPatchset("ps1", "ffff111111111111111111111111111111111111", 1)
+	ps.DataWithCommonKeys(paramtools.Params{"os": "Android"}).
+		Digests(digestB).Keys([]paramtools.Params{{"test": "one"}}).
+		OptionsAll(paramtools.Params{"opt": "opt"}).
+		FromTryjob("tryjob1", "bb", "TRYJOB1", "tryjob1.txt", "2020-12-05T16:30:00Z")
+
+	ps.DataWithCommonKeys(paramtools.Params{"os": "Mac"}).
+		Digests(digestC).Keys([]paramtools.Params{{"test": "one"}}).
+		OptionsAll(paramtools.Params{"opt": "opt"}).
+		FromTryjob("tryjob2", "bb", "TRYJOB2", "tryjob2.txt", "2020-12-05T16:30:00Z")
+
+	data := b.Build()
+	assert.Equal(t, []schema.TraceRow{{
+		TraceID:              h(`{"os":"Android","test":"one"}`),
+		Corpus:               "",
+		GroupingID:           h(`{"test":"one"}`),
+		Keys:                 paramtools.Params{"os": "Android", "test": "one"},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:              h(`{"os":"Mac","test":"one"}`),
+		Corpus:               "",
+		GroupingID:           h(`{"test":"one"}`),
+		Keys:                 paramtools.Params{"os": "Mac", "test": "one"},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, data.Traces)
+	assert.Equal(t, []schema.SecondaryBranchValueRow{{
+		BranchName:   "gerrit_cl1",
+		VersionName:  "gerrit_ps1",
+		TraceID:      h(`{"os":"Android","test":"one"}`),
+		Digest:       d(t, digestB),
+		GroupingID:   h(`{"test":"one"}`),
+		OptionsID:    h(`{"opt":"opt"}`),
+		SourceFileID: h("tryjob1.txt"),
+		TryjobID:     "bb_tryjob1",
+	}, {
+		BranchName:   "gerrit_cl1",
+		VersionName:  "gerrit_ps1",
+		TraceID:      h(`{"os":"Mac","test":"one"}`),
+		Digest:       d(t, digestC),
+		GroupingID:   h(`{"test":"one"}`),
+		OptionsID:    h(`{"opt":"opt"}`),
+		SourceFileID: h("tryjob2.txt"),
+		TryjobID:     "bb_tryjob2",
+	}}, data.SecondaryBranchValues)
+}
+
 // h returns the MD5 hash of the provided string.
 func h(s string) []byte {
 	hash := md5.Sum([]byte(s))

@@ -274,6 +274,61 @@ func Build() schema.Tables {
 			types.CorpusField: []string{CornersCorpus},
 		})
 
+	// This changelist has one patchset that adds some data which corrects the iOS glitch on the
+	// iPads, but not for the iPhones.
+	cl := b.AddChangelist(ChangeListIDThatAttemptsToFixIOS, GerritCRS, UserOne, "Fix iOS", schema.StatusOpen)
+	ps := cl.AddPatchset(PatchSetIDFixesIPadButNotIPhone, "ffff111111111111111111111111111111111111", 3)
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: ApplePhoneOS, DeviceKey: IPhoneDevice, ColorModeKey: RGBColorMode,
+	}).Digests(DigestA01Pos, // same as primary branch
+		DigestB01Pos,    // same as primary branch
+		DigestC07Unt_CL, // Newly seen digest (still not correct).
+	).Keys([]paramtools.Params{
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob01RGBIPhone, BuildBucketCIS, "Test-iPhone-RGB", TryjobFile01RGBIPhone, "2020-12-10T04:05:06Z")
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: ApplePhoneOS, DeviceKey: IPadDevice,
+	}).Digests(DigestA01Pos, // same as primary branch
+		DigestB01Pos,    // on this CL, the digest has been (incorrectly) marked as untriaged.
+		DigestC06Pos_CL, // not on primary branch, triaged on CL.
+		DigestA02Pos,    // same as primary branch
+		DigestB02Pos,    // same as primary branch
+		DigestC02Pos).   // Now correct (primary branch is producing untriaged).
+		Keys([]paramtools.Params{
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest, ColorModeKey: RGBColorMode},
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest, ColorModeKey: RGBColorMode},
+			{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest, ColorModeKey: RGBColorMode},
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest, ColorModeKey: GreyColorMode},
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest, ColorModeKey: GreyColorMode},
+			{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest, ColorModeKey: GreyColorMode},
+		}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob02IPad, BuildBucketCIS, "Test-iPad-ALL", Tryjob02FileIPad, "2020-12-10T03:02:01Z")
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: AndroidOS, DeviceKey: TaimenDevice, ColorModeKey: RGBColorMode,
+	}).Digests(DigestA09Neg, // On primary branch, should be ignored.
+		DigestB01Pos, // on this CL, the digest has been (incorrectly) marked as untriaged.
+		DigestC05Unt, // On primary branch, should be ignored.
+	).Keys([]paramtools.Params{
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+	}).Keys([]paramtools.Params{
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob03TaimenRGB, BuildBucketCIS, "Test-taimen-RGB", Tryjob03FileTaimenRGB, "2020-12-10T03:44:44Z")
+	cl.AddTriageEvent(UserOne, "2020-12-10T05:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest}).
+		Triage(DigestB01Pos, schema.LabelPositive, schema.LabelUntriaged) // accidental triage
+	cl.AddTriageEvent(UserOne, "2020-12-10T05:00:02Z").
+		ExpectationsForGrouping(paramtools.Params{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest}).
+		Positive(DigestC06Pos_CL)
+
 	b.ComputeDiffMetricsFromImages("img", "2020-12-12T12:12:12Z")
 
 	return b.Build()
@@ -357,6 +412,19 @@ const (
 	UserThree      = "userThree@example.com"
 	UserFour       = "userFour@example.com"
 	AutoTriageUser = "fuzzy" // we use the algorithm name as the user name for auto triaging.
+
+	GerritCRS         = "gerrit"
+	GerritInternalCRS = "gerrit_internal"
+
+	BuildBucketCIS         = "buildbucket"
+	BuildBucketInternalCIS = "buildbucketInternal"
+
+	ChangeListIDThatAttemptsToFixIOS = "CL_fix_ios"
+	PatchSetIDFixesIPadButNotIPhone  = "PS_fixes_ipad_but_not_iphone"
+
+	Tryjob01RGBIPhone = "tryjob_01"
+	Tryjob02IPad      = "tryjob_02"
+	Tryjob03TaimenRGB = "tryjob_03"
 )
 
 const (
@@ -401,4 +469,8 @@ const (
 	TaimenFile8  = "gcs://skia-gold-test/dm-json-v1/2020/12/09/00/0108010801080108010801080108010801080108/waterfall/taimenfile8.json"
 	TaimenFile9  = "gcs://skia-gold-test/dm-json-v1/2020/12/10/00/0109010901090109010901090109010901090109/waterfall/taimenfile9.json"
 	TaimenFile10 = "gcs://skia-gold-test/dm-json-v1/2020/12/11/00/0110011001100110011001100110011001100110/waterfall/taimenfile10.json"
+
+	TryjobFile01RGBIPhone = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/04/PS_fixes_ipad_but_not_iphone/iphonergb.json"
+	Tryjob02FileIPad      = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/ipad.json"
+	Tryjob03FileTaimenRGB = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/taimen.json"
 )

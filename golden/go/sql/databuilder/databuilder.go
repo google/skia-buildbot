@@ -1066,9 +1066,6 @@ type PatchsetBuilder struct {
 
 // DataWithCommonKeys sets it so the next calls to Digests will use these trace keys.
 func (b *PatchsetBuilder) DataWithCommonKeys(keys paramtools.Params) *PatchsetBuilder {
-	if b.commonKeys != nil {
-		logAndPanic("Cannot call DataWithCommonKeys twice")
-	}
 	b.commonKeys = keys
 	return b
 }
