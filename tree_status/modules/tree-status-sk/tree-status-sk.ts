@@ -25,9 +25,12 @@ const template = (ele) => html`
 <display-tree-status-sk .statuses=${ele._statuses}></display-tree-status-sk>
 `;
 
-define('tree-status-sk', class extends ElementSk {
+export class TreeStatusSk extends ElementSk {
+  private statuses: string[] = [];
+  private 
+
   constructor() {
-    super(template);
+    super(TreeStatusSk.template);
     this._statuses = [];
     this._autorollers = [];
   }
