@@ -30,6 +30,8 @@ import 'elements-sk/radio-sk';
 export class ListAutorollersSk extends ElementSk {
   private checkedAutorollers: Set<string> = new Set();
 
+  private autorollersData: AutorollerSnapshot[] = [];
+
   private selectedTreeStatus: string = '';
 
   constructor() {
@@ -79,7 +81,7 @@ export class ListAutorollersSk extends ElementSk {
     return this.autorollers.map((autoroller) => html`
   <tr>
     <td>
-      <checkbox-sk ?checked=${this.checkedAutorollers.has(autoroller.name)} @click=${this.clickHandler} id=${autoroller.name}></checkbox-sk>
+      <checkbox-sk ?checked=${this.checkedAutorollers.has(autoroller.name)} @change=${this.clickHandler} id=${autoroller.name}></checkbox-sk>
     </td>
     <td>
       <a href="${autoroller.url}" target="_blank">${autoroller.name}</a>
@@ -93,22 +95,19 @@ export class ListAutorollersSk extends ElementSk {
 
   /** @prop autorollers {string} The list of autorollers. */
   get autorollers(): AutorollerSnapshot[] {
-    return (this.getAttribute('autorollers') as unknown) as AutorollerSnapshot[];
+    return this.autorollersData;
   }
 
   set autorollers(val: AutorollerSnapshot[]) {
-    this.setAttribute('autorollers', (val as unknown) as string);
-  }
-
-  static get observedAttributes(): string[] {
-    return ['autorollers'];
+    this.autorollersData = val;
+    this._render();
   }
 
   private submit() {
-    this.dispatchEvent(new KeyboardEvent('keyup', { key: '13' }));
+    this.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
   }
 
-  private clickHandler(e: MouseEvent) {
+  private clickHandler(e: Event) {
     const checkbox = findParent(e.target as HTMLElement, 'CHECKBOX-SK') as CheckOrRadio;
     if (checkbox.checked) {
       this.checkedAutorollers.add(checkbox.id);

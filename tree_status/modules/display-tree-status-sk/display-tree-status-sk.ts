@@ -20,6 +20,8 @@ const CAUTION = 'caution';
 const CLOSED = 'closed';
 
 export class DisplayTreeStatusSk extends ElementSk {
+  statusesData: Status[] = [];
+
   constructor() {
     super(DisplayTreeStatusSk.template);
   }
@@ -59,7 +61,7 @@ export class DisplayTreeStatusSk extends ElementSk {
   }
 
   private recentStatuses() {
-    return this.statuses.map((status) => html`
+    return this.statusesData.map((status) => html`
   <tr class=${this.getStatusClass(status.message)}>
     <td>${status.username}</td>
     <td>${this.getLocalDate(status.date)}</td>
@@ -70,11 +72,12 @@ export class DisplayTreeStatusSk extends ElementSk {
 
   /** @prop statuses {string} The list of recent tree statuses. */
   get statuses(): Status[] {
-    return (this.getAttribute('statuses') as unknown) as Status[];
+    return this.statusesData;
   }
 
   set statuses(val: Status[]) {
-    this.setAttribute('statuses', (val as unknown) as string);
+    this.statusesData = val;
+    this._render();
   }
 }
 

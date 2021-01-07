@@ -33,9 +33,13 @@ import { AutorollerSnapshot } from '../json';
 import { ListAutorollersSk } from '../list-autorollers-sk/list-autorollers-sk';
 
 export class EnterTreeStatus extends ElementSk {
-  constructor() {
-    super(EnterTreeStatus.template);
-  }
+private autorollersData: AutorollerSnapshot[] = [];
+
+private statusValue: string = '';
+
+constructor() {
+  super(EnterTreeStatus.template);
+}
 
   private static template = (ele: EnterTreeStatus) => html`
 <input id='tree_status' size=60 placeholder='Add tree status with text containing either of (open/close/caution)' value=${ele.status_value}></input>
@@ -56,7 +60,7 @@ export class EnterTreeStatus extends ElementSk {
   }
 
   private submitIfEnter(e: KeyboardEvent): void {
-    if (e.key === '13') {
+    if (e.key === 'Enter') {
       e.preventDefault();
       this.addTreeStatus();
     }
@@ -64,24 +68,23 @@ export class EnterTreeStatus extends ElementSk {
 
   /** @prop autorollers {string} The list of autorollers. */
   get autorollers(): AutorollerSnapshot[] {
-    return (this.getAttribute('autorollers') as unknown) as AutorollerSnapshot[];
+    return this.autorollersData;
   }
 
   set autorollers(val: AutorollerSnapshot[]) {
-    this.setAttribute('autorollers', (val as unknown) as string);
+    this.autorollersData = val;
+    this._render();
   }
 
   /** @prop status_value {string} String to prefill the tree status text field with. */
   get status_value(): string {
-    return this.getAttribute('status_value')!;
+    return this.statusValue;
   }
 
   set status_value(val: string) {
-    this.setAttribute('status_value', val);
-  }
-
-  static get observedAttributes(): string[] {
-    return ['autorollers', 'status_value'];
+    ($$('#tree_status', this) as HTMLInputElement).value = val;
+    this.statusValue = val;
+    this._render();
   }
 
   // Toggles the autorollers element. The status field is cleared and enabled
