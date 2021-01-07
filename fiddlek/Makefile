@@ -97,10 +97,12 @@ testcpp: build
 	./bin/fiddle_secwrap ./bin/fail_mknod; test $$? -eq 255
 	echo "SUCCESS"
 
+# This presumes a fiddler is available at port :8000 and scrapexchange is available at port :9000.
 .PHONY: run_local_fiddle
 run_local_fiddle:
-	fiddle --local --logtostderr --port=:8080 --source_image_dir=/etc/fiddle/source
+	fiddle --local --logtostderr --port=:8080 --source_image_dir=/etc/fiddle/source --scrapexchange=localhost:9000
 
+# Runs a local fiddler.
 .PHONY: run_local_fiddler
 run_local_fiddler:
 	docker run -ti -p8000:8000 --cap-add=SYS_PTRACE fiddler
