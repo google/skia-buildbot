@@ -127,8 +127,6 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	angleDiffServer := makeID(goldpushk.Angle, goldpushk.DiffServer)
 	chromeBaselineServer := makeID(goldpushk.Chrome, goldpushk.BaselineServer)
 	chromeDiffServer := makeID(goldpushk.Chrome, goldpushk.DiffServer)
-	chromeGpuDiffServer := makeID(goldpushk.ChromeGPU, goldpushk.DiffServer)
-	chromeGpuSkiaCorrectness := makeID(goldpushk.ChromeGPU, goldpushk.SkiaCorrectness)
 	chromeIngestionBT := makeID(goldpushk.Chrome, goldpushk.IngestionBT)
 	chromeSkiaCorrectness := makeID(goldpushk.Chrome, goldpushk.SkiaCorrectness)
 	chromePublicSkiaCorrectness := makeID(goldpushk.ChromePublic, goldpushk.SkiaCorrectness)
@@ -240,23 +238,23 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	test("All instances, single service, no canary",
 		[]string{"all"}, []string{"skiacorrectness"}, nil,
-		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
 		nil)
 	test("All instances, single service, one canary",
 		[]string{"all"}, []string{"skiacorrectness"}, []string{"skia-public:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness, skiaInfraSkiaCorrectness},
 		[]goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness})
 	test("All instances, single service, multiple canaries",
 		[]string{"all"}, []string{"skiacorrectness"}, []string{"skia-infra:skiacorrectness", "skia-public:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, chromeSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastSkiaCorrectness, flutterSkiaCorrectness, flutterEngineSkiaCorrectness, fuchsiaSkiaCorrectness, fuchsiaPublicSkiaCorrectness, lottieSkiaCorrectness, pdfiumSkiaCorrectness, skiaSkiaCorrectness},
 		[]goldpushk.DeployableUnitID{skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness})
 	test("All instances, multiple services, no canary",
 		[]string{"all"}, []string{"diffserver", "skiacorrectness"}, nil,
-		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastDiffServer, chromiumTastSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastDiffServer, chromiumTastSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness, skiaPublicSkiaCorrectness},
 		nil)
 	test("All instances, multiple services, one canary",
 		[]string{"all"}, []string{"diffserver", "skiacorrectness"}, []string{"skia-public:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromeGpuDiffServer, chromeGpuSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastDiffServer, chromiumTastSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{angleSkiaCorrectness, angleDiffServer, chromeDiffServer, chromeSkiaCorrectness, chromePublicSkiaCorrectness, chromiumTastDiffServer, chromiumTastSkiaCorrectness, flutterDiffServer, flutterSkiaCorrectness, flutterEngineDiffServer, flutterEngineSkiaCorrectness, fuchsiaDiffServer, fuchsiaSkiaCorrectness, fuchsiaPublicDiffServer, fuchsiaPublicSkiaCorrectness, lottieDiffServer, lottieSkiaCorrectness, pdfiumDiffServer, pdfiumSkiaCorrectness, skiaDiffServer, skiaSkiaCorrectness, skiaInfraDiffServer, skiaInfraSkiaCorrectness},
 		[]goldpushk.DeployableUnitID{skiaPublicSkiaCorrectness})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

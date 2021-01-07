@@ -4,7 +4,6 @@
      "urls": [
        "https://angle-gold.skia.org/healthz",
        "https://chrome-gold.skia.org/healthz",
-       "https://chrome-gpu-gold.skia.org/healthz",
        "https://chrome-public-gold.skia.org/healthz",
        "https://flutter-engine-gold.skia.org/healthz",
        "https://flutter-gold.skia.org/healthz",
@@ -33,7 +32,6 @@
      "urls": [
        "https://angle-gold.skia.org/json/v2/expectations",
        "https://chrome-gold.skia.org/json/v2/expectations",
-       "https://chrome-gpu-gold.skia.org/json/v2/expectations",
        "https://flutter-engine-gold.skia.org/json/v2/expectations",
        "https://flutter-gold.skia.org/json/v2/expectations",
        "https://fuchsia-public-gold.skia.org/json/v2/expectations",
