@@ -1,7 +1,10 @@
 default: build package-lock.json
 	npx webpack --mode=development
 
-build:
+./modules/json/index.ts:
+	go run ./go/types/ts -o modules/json/index.ts
+
+build: ./modules/json/index.ts
 	go install ./go/tree_status
 
 release: build package-lock.json

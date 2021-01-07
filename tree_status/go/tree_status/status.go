@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/tree_status/go/types"
 )
 
 const (
@@ -31,23 +32,8 @@ var (
 	statusMtx sync.RWMutex
 )
 
-// Status - A Tree status.
-type Status struct {
-	Date     time.Time `json:"date" datastore:"date"`
-	Message  string    `json:"message" datastore:"message"`
-	Rollers  string    `json:"rollers" datastore:"rollers"`
-	Username string    `json:"username" datastore:"username"`
-
-	// Only specified for backwards compatibility.
-	FirstRev int `json:"first_rev,omitempty" datastore:"first_rev"`
-	LastRev  int `json:"last_rev,omitempty" datastore:"last_rev"`
-
-	// Should be one of open/closed/caution.
-	GeneralState string `json:"general_state" datastore:"general_state,omitempty"`
-}
-
 func AddStatus(message, username, generalState, rollers string) error {
-	s := &Status{
+	s := &types.Status{
 		Date:         time.Now(),
 		Message:      message,
 		Rollers:      rollers,
@@ -71,7 +57,7 @@ func AddStatus(message, username, generalState, rollers string) error {
 	return nil
 }
 
-func GetLatestStatus() (*Status, error) {
+func GetLatestStatus() (*types.Status, error) {
 	statuses, err := GetStatuses(1)
 	if err != nil {
 		return nil, err
@@ -79,12 +65,12 @@ func GetLatestStatus() (*Status, error) {
 	return statuses[0], nil
 }
 
-func GetStatuses(num int) ([]*Status, error) {
-	statuses := []*Status{}
+func GetStatuses(num int) ([]*types.Status, error) {
+	statuses := []*types.Status{}
 	q := datastore.NewQuery("Status").Namespace(*namespace).Order("-date").Limit(num)
 	it := dsClient.Run(context.TODO(), q)
 	for {
-		s := &Status{}
+		s := &types.Status{}
 		_, err := it.Next(s)
 		if err == iterator.Done {
 			break
