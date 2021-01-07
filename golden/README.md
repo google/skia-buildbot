@@ -57,3 +57,11 @@ run
 which will rebuild all the frontend pages. When in --local mode, the skiacorrectness
 server will reload the templates/pages every time, so you don't have to restart it to
 see the re-built pages.
+
+Backend Storage
+---------------
+
+Gold uses [CockroachDB](https://www.cockroachlabs.com/get-cockroachdb/) to store all data necessary
+for running the backend servers. (Caveat: We are in the middle of a migration towards this goal.)
+
+For production-specific advice, see docs/PROD.md.
