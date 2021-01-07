@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d77f1485_26f7704f",
+        "filename": "tree_status/modules/list-autorollers-sk/list-autorollers-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-07T21:01:07Z",
+      "side": 1,
+      "message": "In TS the annotation, name, and type aren\u0027t needed.",
+      "range": {
+        "startLine": 96,
+        "startChar": 6,
+        "endLine": 96,
+        "endChar": 32
+      },
+      "revId": "4ad044a1bf5401b435f646242597511dde99ed17",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
