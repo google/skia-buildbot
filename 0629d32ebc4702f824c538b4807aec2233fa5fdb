@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "928294a9_0cddcf64",
+        "filename": "tree_status/modules/tree-status-sk/tree-status-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-07T20:59:33Z",
+      "side": 1,
+      "message": "I believe this can just be:\n\n.catch(errorMessage);",
+      "range": {
+        "startLine": 67,
+        "startChar": 6,
+        "endLine": 69,
+        "endChar": 7
+      },
+      "revId": "0629d32ebc4702f824c538b4807aec2233fa5fdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
