@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "02c8aa0c_84c4b358",
+        "filename": "tree_status/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-07T21:07:31Z",
+      "side": 1,
+      "message": "go generate ./go/...",
+      "range": {
+        "startLine": 5,
+        "startChar": 1,
+        "endLine": 5,
+        "endChar": 43
+      },
+      "revId": "5c415a4f15c9391e9ef5645710bff6a4b528f07d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
