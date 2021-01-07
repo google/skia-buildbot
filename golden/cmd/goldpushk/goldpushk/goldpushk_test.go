@@ -603,8 +603,6 @@ func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
 	units := []DeployableUnit{}
 	units = appendUnit(t, units, s, Chrome, BaselineServer)
 	units = appendUnit(t, units, s, Chrome, DiffServer)
-	units = appendUnit(t, units, s, ChromeGPU, BaselineServer)
-	units = appendUnit(t, units, s, ChromeGPU, DiffServer)
 	units = appendUnit(t, units, s, Flutter, BaselineServer)
 	units = appendUnit(t, units, s, Flutter, DiffServer)
 
@@ -629,13 +627,9 @@ func TestGoldpushk_GetUptimesSingleCluster_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert that we get the expected uptimes.
-	require.Len(t, uptime, 3)
-	require.Equal(t, 8*time.Minute, uptime[makeID(Chrome, BaselineServer)])     // 17:30:00 - 17:22:00
-	require.Equal(t, 5*time.Minute, uptime[makeID(Chrome, DiffServer)])         // 17:30:00 - 17:25:00
-	require.Equal(t, 18*time.Minute, uptime[makeID(ChromeGPU, BaselineServer)]) // 17:30:00 - 17:12:00
-
-	// Its only pod is not yet ready.
-	require.NotContains(t, uptime, makeID(ChromeGPU, DiffServer))
+	require.Len(t, uptime, 2)
+	require.Equal(t, 8*time.Minute, uptime[makeID(Chrome, BaselineServer)]) // 17:30:00 - 17:22:00
+	require.Equal(t, 5*time.Minute, uptime[makeID(Chrome, DiffServer)])     // 17:30:00 - 17:25:00
 
 	// One of its pods is not yet ready.
 	require.NotContains(t, uptime, makeID(Flutter, BaselineServer))

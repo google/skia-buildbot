@@ -7,7 +7,6 @@ const (
 	// Gold instances.
 	Angle             Instance = "angle"
 	Chrome            Instance = "chrome"
-	ChromeGPU         Instance = "chrome-gpu"
 	ChromePublic      Instance = "chrome-public"
 	ChromiumOSTastDev Instance = "cros-tast-dev"
 	Flutter           Instance = "flutter"
@@ -55,7 +54,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		knownInstances: []Instance{
 			Angle,
 			Chrome,
-			ChromeGPU,
 			ChromePublic,
 			ChromiumOSTastDev,
 			Flutter,
@@ -91,7 +89,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
-		Angle, Chrome, ChromeGPU, ChromiumOSTastDev, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
+		Angle, Chrome, ChromiumOSTastDev, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)
