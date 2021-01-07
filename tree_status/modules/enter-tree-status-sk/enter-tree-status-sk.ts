@@ -29,6 +29,8 @@ import '../list-autorollers-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+import { AutorollerSnapshot } from '../json';
+
 const template = (ele) => html`
 <input id='tree_status' size=60 placeholder='Add tree status with text containing either of (open/close/caution)' value=${ele._status_value}></input>
 <button @click=${ele._addTreeStatus}>Submit</button>
@@ -39,51 +41,58 @@ const template = (ele) => html`
 <list-autorollers-sk .autorollers=${ele._autorollers} collapsable collapsed></list-autorollers-sk>
 `;
 
-define('enter-tree-status-sk', class extends ElementSk {
+export class EnterTreeStatus extends ElementSk {
+  // public autorollers: AutorollerSnapshot[] = [];
+
+  // public status_value: string = '';
+
   constructor() {
     super(template);
-    this._autorollers = [];
-    this._status_value = '';
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
-    $$('#tree_status').addEventListener('keyup', (e) => this.submitIfEnter(e));
-    $$('list-autorollers-sk').addEventListener('keyup', (e) => this.submitIfEnter(e));
+    $$('#tree_status')!.addEventListener('keyup', (e) => this.submitIfEnter(e as KeyboardEvent));
+    $$('list-autorollers-sk')!.addEventListener('keyup', (e) => this.submitIfEnter(e as KeyboardEvent));
   }
 
-  submitIfEnter(e) {
-    if (e.keyCode === 13) {
+  private submitIfEnter(e: KeyboardEvent): void {
+    if (e.key === '13') {
       e.preventDefault();
-      this._addTreeStatus(e);
+      this.addTreeStatus();
     }
   }
 
   /** @prop autorollers {string} The list of autorollers. */
-  get autorollers() { return this._autorollers; }
+  get autorollers(): AutorollerSnapshot[] {
+    return (this.getAttribute('autorollers') as unknown) as AutorollerSnapshot[];
+  }
 
-  set autorollers(val) {
-    this._autorollers = val;
-    this._render();
+  set autorollers(val: AutorollerSnapshot[]) {
+    this.setAttribute('autorollers', (val as unknown) as string);
   }
 
   /** @prop status_value {string} String to prefill the tree status text field with. */
-  get status_value() { return this._status_value; }
+  get status_value(): string {
+    return this.getAttribute('status_value')!;
+  }
 
-  set status_value(val) {
-    $$('#tree_status', this).value = val;
-    this._status_value = val;
-    this._render();
+  set status_value(val: string) {
+    this.setAttribute('status_value', val);
+  }
+
+  static get observedAttributes(): string[] {
+    return ['autorollers', 'status_value'];
   }
 
   // Toggles the autorollers element. The status field is cleared and enabled
   // when the element is collapsed. When the element is displayed the status
   // field is disabled.
-  _toggleAutorollers() {
+  private toggleAutorollers() {
     const autorollersTable = $$('list-autorollers-sk');
-    const treeStatusField = $$('#tree_status');
+    const treeStatusField = $$('#tree_status') as HTMLInputElement;
     if (autorollersTable.hasAttribute('collapsed')) {
       autorollersTable.removeAttribute('collapsed');
       treeStatusField.setAttribute('disabled', '');
@@ -95,11 +104,13 @@ define('enter-tree-status-sk', class extends ElementSk {
 
   // Sends the new-tree-status event with the tree status message and list of
   // autorollers when called.
-  _addTreeStatus() {
-    const treeStatus = $$('#tree_status', this);
+  private addTreeStatus() {
+    const treeStatus = $$('#tree_status', this) as HTMLInputElement;
     const detail = { message: treeStatus.value, rollers: $$('list-autorollers-sk').getSelectedRollerNames() };
     this.dispatchEvent(new CustomEvent('new-tree-status', { detail: detail, bubbles: true }));
     $$('list-autorollers-sk').reset();
     treeStatus.removeAttribute('disabled');
   }
-});
+}
+
+define('enter-tree-status-sk', EnterTreeStatus);
