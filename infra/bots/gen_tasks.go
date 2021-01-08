@@ -277,6 +277,8 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		// which include the properties required by goldctl (issue, patchset, etc).
 		task = kitchenTask(name, "puppeteer_tests", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), EXTRA_PROPS, OUTPUT_NONE)
 		task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GOLDCTL...)
+		task.IoTimeout = 60 * time.Minute
+		task.ExecutionTimeout = 60 * time.Minute
 	} else {
 		task = kitchenTask(name, "swarm_infra", CAS_WHOLE_REPO, SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 	}
