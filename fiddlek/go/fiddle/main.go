@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	ttemplate "html/template"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -31,6 +32,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/scrap/go/scrap"
 )
 
 // flags
@@ -40,6 +42,7 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	scrapExchange  = flag.String("scrapexchange", "scrapexchange:9000", "Scrap exchange service HTTP address.")
 	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
 )
 
@@ -109,12 +112,13 @@ var (
 	runs                = metrics2.GetCounter("runs", nil)
 	tryNamedLiveness    = metrics2.NewLiveness("try_named")
 
-	fiddleStore  *store.Store
+	fiddleStore  store.Store
 	src          *source.Source
 	names        *named.Named
 	failingNamed = []store.Named{}
 	failingMutex = sync.Mutex{}
 	run          *runner.Runner
+	httpClient   *http.Client
 )
 
 func loadTemplates() {
@@ -259,6 +263,33 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 	if err := templates.ExecuteTemplate(w, "newindex.html", context); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
+}
+
+// scrapHandler handles links to scrap exchange expanded templates and turns them into fiddles.
+func scrapHandler(w http.ResponseWriter, r *http.Request) {
+	// Load the scrap.
+	typ := mux.Vars(r)["type"]
+	hashOrName := mux.Vars(r)["hashOrName"]
+	resp, err := httpClient.Get(fmt.Sprintf("http://%s/_/tmpl/%s/%s/%s", *scrapExchange, typ, hashOrName, scrap.CPP))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		httputils.ReportError(w, err, "Failed to load templated scrap.", http.StatusInternalServerError)
+		return
+	}
+	defer util.Close(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to read templated scrap.", http.StatusInternalServerError)
+		return
+	}
+
+	// Create the fiddle.
+	fiddleHash, err := fiddleStore.Put(string(b), defaultFiddle.Options, nil)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to write fiddle.", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/c/"+fiddleHash, http.StatusTemporaryRedirect)
 }
 
 // imageHandler serves up images from the fiddle store.
@@ -534,6 +565,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
 	}
+	httpClient = httputils.DefaultClientConfig().With2xxOnly().Client()
 	run, err = runner.New(*local, *sourceImageDir)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize runner: %s", err)
@@ -551,6 +583,7 @@ func main() {
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
 	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
+	r.HandleFunc("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler).Methods("GET")
 	r.HandleFunc("/f/", failedHandler)
 	r.HandleFunc("/named/", namedHandler)
 	r.HandleFunc("/new", basicModeHandler)
