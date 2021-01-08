@@ -40,7 +40,7 @@ func TestStart_ProcessesDataFromSources_Success(t *testing.T) {
 	// rf from the channel.
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	mis.On("SetResultFileHash", testutils.AnyContext, fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
+	mis.On("SetIngested", testutils.AnyContext, fakeResultFileName, fakeResultFileHash, mock.AnythingOfType("time.Time")).Run(func(_ mock.Arguments) {
 		wg.Done()
 	}).Return(nil)
 
@@ -65,7 +65,7 @@ func TestStart_ProcessesDataFromSources_Success(t *testing.T) {
 	sourceOne.resultCh <- rf
 
 	// Wait for the ingestionstore to get the signal that ingestion completed correctly.
-	// Note, this test will timeout if SetResultFileHash is not called on ingestionstore.
+	// Note, this test will timeout if SetIngested is not called on ingestionstore.
 	wg.Wait()
 
 	// Make sure Process was called with the appropriate file.
@@ -86,7 +86,7 @@ func TestStart_PollsDataFromSources_ResultsAlreadyProcessed_Success(t *testing.T
 	// rf from the channel.
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	mis.On("ContainsResultFileHash", testutils.AnyContext, fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
+	mis.On("WasIngested", testutils.AnyContext, fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
 		wg.Done()
 	}).Return(true, nil)
 
@@ -105,7 +105,7 @@ func TestStart_PollsDataFromSources_ResultsAlreadyProcessed_Success(t *testing.T
 	require.NoError(t, ingester.Start(ctx))
 
 	// Wait for the ingestionstore to get the signal that ingestion completed correctly.
-	// Note, this test will timeout if ContainsResultFileHash is not called on ingestionstore.
+	// Note, this test will timeout if WasIngested is not called on ingestionstore.
 	wg.Wait()
 }
 
@@ -123,7 +123,7 @@ func TestStart_PollsDataFromSources_EventPublished_Success(t *testing.T) {
 	mp := &mockProcessor{}
 
 	// Pretend the ingestionstore is empty.
-	mis.On("ContainsResultFileHash", testutils.AnyContext, mock.Anything, mock.Anything).Return(false, nil)
+	mis.On("WasIngested", testutils.AnyContext, mock.Anything, mock.Anything).Return(false, nil)
 
 	// Using a wait group is the easiest way to safely wait for the ingestion goroutine to pick up
 	// rf from the channel.

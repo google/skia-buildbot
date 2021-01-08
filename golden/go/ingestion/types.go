@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"go.skia.org/infra/go/config"
 )
@@ -60,15 +61,17 @@ type Processor interface {
 	Process(ctx context.Context, resultsFile ResultFileLocation) error
 }
 
-// IngestionStore keeps track of files being ingested based on their MD5 hashes.
+// IngestionStore keeps track of files that were ingested already. When we poll the buckets for
+// files we might have missed, we use this store to not try to reingest files we know we succeeded
+// in ingesting earlier.
 type IngestionStore interface {
-	// SetResultFileHash indicates that we have ingested the given filename
-	// with the given md5hash.
-	SetResultFileHash(ctx context.Context, fileName, md5 string) error
+	// SetIngested indicates that we have ingested the given filename. Implementations may make use
+	// of the MD5 hash of the contents. Implementations may make use of the ingested timestamp.
+	SetIngested(ctx context.Context, fileName, md5 string, ts time.Time) error
 
-	// ContainsResultFileHash returns true if the provided file and md5 hash
-	// were previously set with SetResultFileHash.
-	ContainsResultFileHash(ctx context.Context, fileName, md5 string) (bool, error)
+	// WasIngested returns true if the provided file has been ingested previously. Implementations
+	// may use the MD5 hash of the contents as well.
+	WasIngested(ctx context.Context, fileName, md5 string) (bool, error)
 }
 
 // Config is the configuration for a single ingester.
