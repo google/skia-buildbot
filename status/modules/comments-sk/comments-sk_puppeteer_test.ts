@@ -2,15 +2,17 @@ import * as path from 'path';
 import { expect } from 'chai';
 import {
   addEventListenersToPuppeteerPage,
-  EventPromiseFactory,
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
+  EventPromiseFactory, loadCachedTestBed,
+  takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('comments-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
-  );
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
+  });
   let eventPromise: EventPromiseFactory;
   beforeEach(async () => {
     eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['data-update']);
