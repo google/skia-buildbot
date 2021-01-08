@@ -1,16 +1,24 @@
 import { expect } from 'chai';
-import { addEventListenersToPuppeteerPage, EventName, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
+import {
+  addEventListenersToPuppeteerPage,
+  EventName,
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed
+} from '../../../puppeteer-tests/util';
 import { SearchPageSkPO } from './search-page-sk_po';
+import path from "path";
 
 describe('search-page-sk', () => {
-  let testBed: TestBed;
   let eventPromiseFactory:  <T>(eventName: EventName) => Promise<T>;
 
   let searchPageSkPO: SearchPageSkPO;
 
+  let testBed: TestBed;
   before(async () => {
-    testBed = await loadGoldWebpack();
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
   });
 
   const goToPage = async (queryString = '') => {

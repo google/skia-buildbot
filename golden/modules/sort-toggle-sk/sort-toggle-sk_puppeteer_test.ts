@@ -1,13 +1,17 @@
 import { expect } from 'chai';
-import { addEventListenersToPuppeteerPage, EventName,
-    takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
+import {
+    addEventListenersToPuppeteerPage, EventName, loadCachedTestBed,
+    takeScreenshot, TestBed
+} from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
+import path from "path";
 
 describe('sort-toggle-sk', () => {
     let testBed: TestBed;
     before(async () => {
-        testBed = await loadGoldWebpack();
+        testBed = await loadCachedTestBed(
+            path.join(__dirname, '..', '..', 'webpack.config.ts')
+        );
     });
 
     let promiseFactory: <T>(eventName: EventName) => Promise<T>;

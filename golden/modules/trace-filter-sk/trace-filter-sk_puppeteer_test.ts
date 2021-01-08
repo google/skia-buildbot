@@ -1,14 +1,16 @@
 import { expect } from 'chai';
-import { takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { TraceFilterSkPO } from './trace-filter-sk_po';
+import path from "path";
 
 describe('trace-filter-sk', () => {
-  let testBed: TestBed;
   let traceFilterSkPO: TraceFilterSkPO;
 
+  let testBed: TestBed;
   before(async () => {
-    testBed = await loadGoldWebpack();
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
   });
 
   beforeEach(async () => {
