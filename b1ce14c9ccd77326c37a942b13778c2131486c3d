@@ -22,6 +22,30 @@
       },
       "revId": "b1ce14c9ccd77326c37a942b13778c2131486c3d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a850b0b5_9fc71dd9",
+        "filename": "golden/go/ingestion/sqlingestionstore/sqlingestionstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-08T19:28:32Z",
+      "side": 1,
+      "message": "I know that\u0027s where we typically put them. I read somewhere (Dangerous words, I know) that since this is effectively a test, it is probably better to put it in the _test.go file. I think I agree with that philosophy and plan to try it out.\n\nWDYT?",
+      "parentUuid": "2059dd20_fdee24e7",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 0
+      },
+      "revId": "b1ce14c9ccd77326c37a942b13778c2131486c3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
