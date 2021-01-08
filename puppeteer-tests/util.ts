@@ -116,71 +116,6 @@ export interface TestBed {
 };
 
 /**
- * This function sets up the before(Each) and after(Each) hooks required for
- * test suites that take screenshots of demo pages.
- *
- * Test cases can access the demo page server's base URL and a Puppeteer page
- * ready to be used via the return value's baseUrl and page objects, respectively.
- *
- * This function assumes that each test case uses exactly one Puppeteer page
- * (that's why it doesn't expose the Browser instance to tests). The page is set
- * up with a cookie (name: "puppeteer", value: "true") to give demo pages a
- * means to detect whether they are running within Puppeteer or not.
- *
- * Call this function at the beginning of a Mocha describe() block.
- */
-export const setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigTs: string): TestBed => {
-  let browser: puppeteer.Browser;
-  let stopDemoPageServer: () => Promise<void>;
-
-  // The test bed is initially empty and will be populated before each test
-  // case is executed.
-  const testBed: Partial<TestBed> = {};
-
-  before(async () => {
-    if (inBazel()) {
-      // Read the demo page server's TCP port.
-      const envDir = process.env.ENV_DIR;
-      if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
-      const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
-      testBed.baseUrl = `http://localhost:${port}`
-    } else {
-      // Not in Bazel - Start the Webpack-based demo page server.
-      let baseUrl;
-      ({ baseUrl, stopDemoPageServer } = await startWebpackDemoPageServer(pathToWebpackConfigTs));
-      testBed.baseUrl = baseUrl; // Make baseUrl available to tests.
-    }
-
-    browser = await exports.launchBrowser();
-  });
-
-  after(async () => {
-    await browser.close();
-    if (!inBazel()) await stopDemoPageServer();
-  });
-
-  beforeEach(async () => {
-    testBed.page = await browser.newPage(); // Make page available to tests.
-
-    // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
-    // latency, render animations or exhibit any other non-deterministic
-    // behavior that could result in differences in the screenshots uploaded to
-    // Gold.
-    await testBed.page.setCookie({
-      url: testBed.baseUrl,
-      name: 'puppeteer',
-      value: 'true'
-    });
-  });
-
-  afterEach(async () => {
-    await testBed.page!.close();
-  });
-
-  return testBed as TestBed;
-};
-
-/**
  * Starts a web server that serves custom element demo pages. Equivalent to
  * running "npx webpack-dev-server" on the terminal.
  *
@@ -279,6 +214,15 @@ let testBed: Partial<TestBed>;
  * Once per mocha invocation, loadCachedTestBed will compile all the demo pages and launch a
  * puppeteer browser window to run the tests. On all subsequent calls, it will return essentially
  * a cached handle to that invocation.
+ *
+ * Test cases can access the demo page server's base URL and a Puppeteer page
+ * ready to be used via the return value's baseUrl and page objects, respectively.
+ *
+ * This function assumes that each test case uses exactly one Puppeteer page
+ * (that's why it doesn't expose the Browser instance to tests). The page is set
+ * up with a cookie (name: "puppeteer", value: "true") to give demo pages a
+ * means to detect whether they are running within Puppeteer or not.
+ *
  */
 export async function loadCachedTestBed(pathToWebpackConfigTs: string) {
   if (testBed) {
@@ -286,9 +230,19 @@ export async function loadCachedTestBed(pathToWebpackConfigTs: string) {
   }
   const newTestBed: Partial<TestBed> = {};
 
-  let baseUrl;
-  ({ baseUrl } = await startWebpackDemoPageServer(pathToWebpackConfigTs));
-  newTestBed.baseUrl = baseUrl;
+  if (inBazel()) {
+    // Read the demo page server's TCP port.
+    const envDir = process.env.ENV_DIR;
+    if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
+    const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
+    newTestBed.baseUrl = `http://localhost:${port}`
+  } else {
+    // Not in Bazel - Start the Webpack-based demo page server.
+    let baseUrl;
+    ({ baseUrl } = await startWebpackDemoPageServer(pathToWebpackConfigTs));
+    newTestBed.baseUrl = baseUrl; // Make baseUrl available to tests.
+  }
+
   browser = await launchBrowser();
   testBed = newTestBed;
   setBeforeAfterHooks();

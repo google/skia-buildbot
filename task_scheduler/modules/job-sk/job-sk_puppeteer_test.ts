@@ -1,15 +1,16 @@
 import * as path from 'path';
 import {
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
+  loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 describe('job-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
-  );
-
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
+  });
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/job-sk.html`);
     await testBed.page.setViewport({ width: 835, height: 1110 });

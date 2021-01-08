@@ -1,13 +1,21 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, EventPromiseFactory, takeScreenshot } from '../../../puppeteer-tests/util';
+import {
+  addEventListenersToPuppeteerPage,
+  EventPromiseFactory,
+  takeScreenshot,
+  TestBed, loadCachedTestBed
+} from '../../../puppeteer-tests/util';
 import { ParamSetSkClickEventDetail } from './paramset-sk';
 import { ParamSetSkPO } from './paramset-sk_po';
 
 describe('paramset-sk', () => {
-  const testBed =
-    setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
-
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
+  });
   let eventPromise: EventPromiseFactory;
 
   beforeEach(async () => {

@@ -1,14 +1,16 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
+  loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('algo-select-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts'),
-  );
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
+  });
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/algo-select-sk.html`);

@@ -1,11 +1,19 @@
 import * as path from 'path';
 import { expect } from 'chai';
-import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
+import {
+  loadCachedTestBed,
+  takeScreenshot,
+  TestBed
+} from '../../../puppeteer-tests/util';
 import { ElementHandle } from 'puppeteer';
 
 describe('autogrow-textarea-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
-
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
+  });
   let textarea: ElementHandle;
 
   beforeEach(async () => {
