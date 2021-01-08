@@ -1,15 +1,17 @@
 import * as path from 'path';
 import { expect } from 'chai';
 import {
-  setUpPuppeteerAndDemoPageServer,
-  takeScreenshot,
+  loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 describe('job-trigger-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(
-    path.join(__dirname, '..', '..', 'webpack.config.ts')
-  );
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
+  });
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/job-trigger-sk.html`);
