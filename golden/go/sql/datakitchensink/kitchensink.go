@@ -274,6 +274,153 @@ func Build() schema.Tables {
 			types.CorpusField: []string{CornersCorpus},
 		})
 
+	// This changelist has one patchset that adds some data which corrects the iOS glitch on the
+	// iPads, but not for the iPhones.
+	cl := b.AddChangelist(ChangelistIDThatAttemptsToFixIOS, GerritCRS, UserOne, "Fix iOS", schema.StatusOpen)
+	ps := cl.AddPatchset(PatchSetIDFixesIPadButNotIPhone, "ffff111111111111111111111111111111111111", 3)
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: ApplePhoneOS, DeviceKey: IPhoneDevice, ColorModeKey: RGBColorMode,
+	}).Digests(DigestA01Pos, // same as primary branch
+		DigestB01Pos,    // same as primary branch
+		DigestC07Unt_CL, // Newly seen digest (still not correct).
+	).Keys([]paramtools.Params{
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob01IPhoneRGB, BuildBucketCIS, "Test-iPhone-RGB", TryjobFile01IPhoneRGB, "2020-12-10T04:05:06Z")
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: ApplePhoneOS, DeviceKey: IPadDevice,
+	}).Digests(DigestA01Pos, // same as primary branch
+		DigestB01Pos,    // on this CL, the digest has been (incorrectly) marked as untriaged.
+		DigestC06Pos_CL, // not on primary branch, triaged on CL.
+		DigestA02Pos,    // same as primary branch
+		DigestB02Pos,    // same as primary branch
+		DigestC02Pos).   // Now correct (primary branch is producing untriaged).
+		Keys([]paramtools.Params{
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest, ColorModeKey: RGBColorMode},
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest, ColorModeKey: RGBColorMode},
+			{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest, ColorModeKey: RGBColorMode},
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest, ColorModeKey: GreyColorMode},
+			{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest, ColorModeKey: GreyColorMode},
+			{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest, ColorModeKey: GreyColorMode},
+		}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob02IPad, BuildBucketCIS, "Test-iPad-ALL", Tryjob02FileIPad, "2020-12-10T03:02:01Z")
+	ps.DataWithCommonKeys(paramtools.Params{
+		OSKey: AndroidOS, DeviceKey: TaimenDevice, ColorModeKey: RGBColorMode,
+	}).Digests(DigestA09Neg, // On primary branch, should be ignored.
+		DigestB01Pos, // on this CL, the digest has been (incorrectly) marked as untriaged.
+		DigestC05Unt, // On primary branch, should be ignored.
+	).Keys([]paramtools.Params{
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+	}).Keys([]paramtools.Params{
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob03TaimenRGB, BuildBucketCIS, "Test-taimen-RGB", Tryjob03FileTaimenRGB, "2020-12-10T03:44:44Z")
+	cl.AddTriageEvent(UserOne, "2020-12-10T05:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest}).
+		Triage(DigestB01Pos, schema.LabelPositive, schema.LabelUntriaged) // accidental triage
+	cl.AddTriageEvent(UserOne, "2020-12-10T05:00:02Z").
+		ExpectationsForGrouping(paramtools.Params{types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest}).
+		Positive(DigestC06Pos_CL)
+
+	// This CL adds some new tests over two patchsets. Additionally, this CL has data coming in
+	// from an internal CRS and CIS.
+	cl = b.AddChangelist(ChangelistIDThatAddsNewTests, GerritInternalCRS, UserTwo, "Increase test coverage", schema.StatusOpen)
+	ps1 := cl.AddPatchset(PatchsetIDAddsNewCorpus, "eeee222222222222222222222222222222222222", 1)
+	ps2 := cl.AddPatchset(PatchsetIDAddsNewCorpusAndTest, "eeee333333333333333333333333333333333333", 4)
+	// Oops, the first PS adds a new corpus (containing one test), but the output is all blank.
+	// All other data is what was drawn at head.
+	ps1.DataWithCommonKeys(paramtools.Params{
+		OSKey:     Windows10dot3OS,
+		DeviceKey: QuadroDevice,
+	}).Digests(DigestA01Pos, DigestB01Pos, DigestC03Unt, DigestBlank,
+		DigestA03Pos, DigestB02Pos, DigestC04Unt, DigestBlank).
+		Keys([]paramtools.Params{
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+			{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+			{ColorModeKey: RGBColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+			{ColorModeKey: RGBColorMode, types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest},
+			{ColorModeKey: GreyColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+			{ColorModeKey: GreyColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+			{ColorModeKey: GreyColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+			{ColorModeKey: GreyColorMode, types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob04Windows, BuildBucketInternalCIS, "Test-Windows10.3-ALL", Tryjob04FileWindows, "2020-12-12T08:09:10Z")
+	// The second PS fixes the text corpus test and adds a round rect test to the existing
+	// round corpus. Windows draws the new RoundRect test fine, but not the walleye device.
+	ps2.DataWithCommonKeys(paramtools.Params{
+		OSKey:     Windows10dot3OS,
+		DeviceKey: QuadroDevice,
+	}).Digests(DigestA01Pos, DigestB01Pos, DigestC03Unt,
+		DigestE01Pos_CL, // Windows draws RoundRect test RGB correctly
+		DigestD01Pos_CL, // Windows draws Text test correctly (intentionally the same as GREY)
+		DigestA03Pos, DigestB02Pos, DigestC04Unt,
+		DigestE02Pos_CL, // Windows draws RoundRect test GREY correctly
+		DigestD01Pos_CL, // Windows draws Text test correctly (intentionally the same as RGB)
+	).Keys([]paramtools.Params{
+		{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		FromTryjob(Tryjob05Windows, BuildBucketInternalCIS, "Test-Windows10.3-ALL", Tryjob05FileWindows, "2020-12-12T09:00:00Z")
+	// Data from the walleye is the same as head, except it draws the RoundRect incorrectly in RGB.
+	ps2.DataWithCommonKeys(paramtools.Params{
+		OSKey:     AndroidOS,
+		DeviceKey: WalleyeDevice,
+	}).Digests(DigestA07Pos, DigestB01Pos, DigestC01Pos,
+		DigestE03Unt_CL, // Windows draws RoundRect test RGB wrong.
+		DigestD01Pos_CL, DigestA02Pos, DigestB02Pos, DigestC02Pos,
+		DigestE02Pos_CL, // Windows draws RoundRect test GREY correctly
+		DigestD01Pos_CL, // Walleye draws Text test correctly (intentionally the same as RGB)
+	).Keys([]paramtools.Params{
+		{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest},
+		{ColorModeKey: RGBColorMode, types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: SquareTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: CornersCorpus, types.PrimaryKeyField: TriangleTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: CircleTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest},
+		{ColorModeKey: GreyColorMode, types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest}}).
+		OptionsPerPoint([]paramtools.Params{
+			walleyeFuzzyParams, {"ext": "png"}, {"ext": "png"}, {"ext": "png"}, {"ext": "png"},
+			{"ext": "png"}, {"ext": "png"}, {"ext": "png"}, {"ext": "png"}, {"ext": "png"},
+		}).
+		FromTryjob(Tryjob06Walleye, BuildBucketInternalCIS, "Test-Walleye-ALL", Tryjob06FileWalleye, "2020-12-12T09:20:33Z")
+
+	cl.AddTriageEvent(UserTwo, "2020-12-12T09:30:00Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
+		}).Positive(DigestE01Pos_CL).Positive(DigestE02Pos_CL)
+	cl.AddTriageEvent(UserTwo, "2020-12-12T09:30:12Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: TextCorpus, types.PrimaryKeyField: SevenTest,
+		}).Positive(DigestD01Pos_CL)
+	// Another accidental triage
+	cl.AddTriageEvent(UserTwo, "2020-12-12T09:31:19Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
+		}).Negative(DigestE03Unt_CL)
+	// Triage it correctly now.
+	cl.AddTriageEvent(UserTwo, "2020-12-12T09:31:32Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
+		}).Triage(DigestE03Unt_CL, schema.LabelNegative, schema.LabelUntriaged)
+
 	b.ComputeDiffMetricsFromImages("img", "2020-12-12T12:12:12Z")
 
 	return b.Build()
@@ -357,6 +504,26 @@ const (
 	UserThree      = "userThree@example.com"
 	UserFour       = "userFour@example.com"
 	AutoTriageUser = "fuzzy" // we use the algorithm name as the user name for auto triaging.
+
+	GerritCRS         = "gerrit"
+	GerritInternalCRS = "gerrit_internal"
+
+	BuildBucketCIS         = "buildbucket"
+	BuildBucketInternalCIS = "buildbucketInternal"
+
+	ChangelistIDThatAttemptsToFixIOS = "CL_fix_ios"
+	PatchSetIDFixesIPadButNotIPhone  = "PS_fixes_ipad_but_not_iphone"
+
+	ChangelistIDThatAddsNewTests   = "CL_new_tests"
+	PatchsetIDAddsNewCorpus        = "PS_adds_new_corpus"
+	PatchsetIDAddsNewCorpusAndTest = "PS_adds_new_corpus_and_test"
+
+	Tryjob01IPhoneRGB = "tryjob_01_iphonergb"
+	Tryjob02IPad      = "tryjob_02_ipad"
+	Tryjob03TaimenRGB = "tryjob_03_taimenrgb"
+	Tryjob04Windows   = "tryjob_04_windows"
+	Tryjob05Windows   = "tryjob_05_windows"
+	Tryjob06Walleye   = "tryjob_06_walleye"
 )
 
 const (
@@ -401,4 +568,11 @@ const (
 	TaimenFile8  = "gcs://skia-gold-test/dm-json-v1/2020/12/09/00/0108010801080108010801080108010801080108/waterfall/taimenfile8.json"
 	TaimenFile9  = "gcs://skia-gold-test/dm-json-v1/2020/12/10/00/0109010901090109010901090109010901090109/waterfall/taimenfile9.json"
 	TaimenFile10 = "gcs://skia-gold-test/dm-json-v1/2020/12/11/00/0110011001100110011001100110011001100110/waterfall/taimenfile10.json"
+
+	TryjobFile01IPhoneRGB = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/04/PS_fixes_ipad_but_not_iphone/iphonergb.json"
+	Tryjob02FileIPad      = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/ipad.json"
+	Tryjob03FileTaimenRGB = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/03/PS_fixes_ipad_but_not_iphone/taimen.json"
+	Tryjob04FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/12/08/PS_adds_new_corpus/windows.json"
+	Tryjob05FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/windows.json"
+	Tryjob06FileWalleye   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
 )

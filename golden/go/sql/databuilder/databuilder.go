@@ -483,21 +483,40 @@ func (b *TablesBuilder) Build() schema.Tables {
 			tables.Patchsets = append(tables.Patchsets, ps.patchset)
 		}
 		tables.Changelists = append(tables.Changelists, cl.changelist)
+		var clExpectations []schema.SecondaryBranchExpectationRow
+		find := func(g schema.GroupingID, d schema.DigestBytes) *schema.SecondaryBranchExpectationRow {
+			for i, e := range clExpectations {
+				if bytes.Equal(e.GroupingID, g) && bytes.Equal(e.Digest, d) {
+					return &clExpectations[i]
+				}
+			}
+			return nil
+		}
 		for _, clExpBuilder := range cl.expectationBuilders {
 			record := *clExpBuilder.record
 			record.NumChanges = len(clExpBuilder.deltas)
 			tables.ExpectationRecords = append(tables.ExpectationRecords, record)
 			tables.ExpectationDeltas = append(tables.ExpectationDeltas, clExpBuilder.deltas...)
 			for _, delta := range clExpBuilder.deltas {
-				tables.SecondaryBranchExpectations = append(tables.SecondaryBranchExpectations, schema.SecondaryBranchExpectationRow{
-					BranchName:          *record.BranchName,
-					GroupingID:          delta.GroupingID,
-					Digest:              delta.Digest,
-					Label:               delta.LabelAfter,
-					ExpectationRecordID: record.ExpectationRecordID,
-				})
+				existingRecord := find(delta.GroupingID, delta.Digest)
+				if existingRecord == nil {
+					clExpectations = append(clExpectations, schema.SecondaryBranchExpectationRow{
+						BranchName:          *record.BranchName,
+						GroupingID:          delta.GroupingID,
+						Digest:              delta.Digest,
+						Label:               delta.LabelAfter,
+						ExpectationRecordID: record.ExpectationRecordID,
+					})
+					continue
+				}
+				if existingRecord.Label != delta.LabelBefore {
+					logAndPanic("Expectation Delta precondition is incorrect. Label before was %d: %#v", existingRecord.Label, delta)
+				}
+				existingRecord.Label = delta.LabelAfter
+				existingRecord.ExpectationRecordID = delta.ExpectationRecordID
 			}
 		}
+		tables.SecondaryBranchExpectations = append(tables.SecondaryBranchExpectations, clExpectations...)
 	}
 	tables.SecondaryBranchParams = b.computeSecondaryBranchParams()
 
@@ -1066,9 +1085,6 @@ type PatchsetBuilder struct {
 
 // DataWithCommonKeys sets it so the next calls to Digests will use these trace keys.
 func (b *PatchsetBuilder) DataWithCommonKeys(keys paramtools.Params) *PatchsetBuilder {
-	if b.commonKeys != nil {
-		logAndPanic("Cannot call DataWithCommonKeys twice")
-	}
 	b.commonKeys = keys
 	return b
 }
