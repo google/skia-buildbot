@@ -46,6 +46,30 @@
       },
       "revId": "b1ce14c9ccd77326c37a942b13778c2131486c3d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f3bcd9d_f79f34b9",
+        "filename": "golden/go/ingestion/sqlingestionstore/sqlingestionstore_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-08T19:31:15Z",
+      "side": 1,
+      "message": "I don\u0027t see it as a test as much as I see it as a compiler check. As in, the unit will fail to compile if the struct does not fulfill the interface. From that POV it makes sense to me to place this along with the struct definition.",
+      "parentUuid": "a850b0b5_9fc71dd9",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 0
+      },
+      "revId": "b1ce14c9ccd77326c37a942b13778c2131486c3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
