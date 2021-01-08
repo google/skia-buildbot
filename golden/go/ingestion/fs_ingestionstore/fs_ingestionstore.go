@@ -52,8 +52,8 @@ func New(client *ifirestore.Client) *Store {
 	}
 }
 
-// SetResultFileHash fulfills the IngestionStore interface
-func (s *Store) SetResultFileHash(ctx context.Context, fileName, md5 string) error {
+// SetIngested fulfills the IngestionStore interface
+func (s *Store) SetIngested(ctx context.Context, fileName, md5 string, _ time.Time) error {
 	defer metrics2.FuncTimer().Stop()
 	ir := s.client.Collection(ingestionCollection).NewDoc()
 	record := ingestedEntry{
@@ -66,8 +66,8 @@ func (s *Store) SetResultFileHash(ctx context.Context, fileName, md5 string) err
 	return nil
 }
 
-// ContainsResultFileHash fulfills the IngestionStore interface
-func (s *Store) ContainsResultFileHash(ctx context.Context, fileName, md5 string) (bool, error) {
+// WasIngested fulfills the IngestionStore interface
+func (s *Store) WasIngested(ctx context.Context, fileName, md5 string) (bool, error) {
 	defer metrics2.FuncTimer().Stop()
 	c := combine(fileName, md5)
 	q := s.client.Collection(ingestionCollection).Where(fileHashField, "==", c).Limit(1)
