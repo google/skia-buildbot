@@ -1,4 +1,4 @@
-// Stores and retrieves fiddles and associated assets in Google Storage.
+// Package store stores and retrieves fiddles and associated assets in Google Storage.
 package store
 
 import (
@@ -94,7 +94,101 @@ type cacheEntry struct {
 
 // Store is used to read and write user code and media to and from Google
 // Storage.
-type Store struct {
+type Store interface {
+	// Put writes the code and media to Google Storage.
+	//
+	//    code - The user's code.
+	//    options - The options the user chose to run the code under.
+	//    results - The results from running fiddle_run.
+	//
+	// Code is written to:
+	//
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/draw.cpp
+	//
+	// And media files are written to:
+	//
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/cpu.png
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/gpu.png
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/skp.skp
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/pdf.pdf
+	//
+	// If results is nil then only the code is written.
+	//
+	// Returns the fiddleHash.
+	Put(code string, options types.Options, results *types.Result) (string, error)
+
+	// PutMedia writes the media for the given fiddleHash to Google Storage.
+	//
+	//    fiddleHash - The fiddle hash.
+	//    results - The results from running fiddle_run.
+	//
+	// Media files are written to:
+	//
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/cpu.png
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/gpu.png
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/skp.skp
+	//   gs://skia-fiddle/fiddle/<fiddleHash>/pdf.pdf
+	//
+	// If results is nil then only the code is written.
+	//
+	// Returns the fiddleHash.
+	PutMedia(options types.Options, fiddleHash string, results *types.Result) error
+
+	// GetCode returns the code and options for the given fiddle hash.
+	//
+	//    fiddleHash - The fiddle hash.
+	//
+	// Returns the code and the options the code was run under.
+	GetCode(fiddleHash string) (string, *types.Options, error)
+
+	// GetMedia returns the file, content-type, filename, and error for a given fiddle hash and type of media.
+	//
+	//    fiddleHash - The hash of the fiddle.
+	//    media - The type of the file to read.
+	//
+	// Returns the media file contents as a byte slice, the content-type, and the filename of the media.
+	GetMedia(fiddleHash string, media Media) ([]byte, string, string, error)
+
+	// ListAllNames returns the list of all named fiddles.
+	ListAllNames() ([]Named, error)
+
+	// GetHashFromName loads the fiddle hash for the given name.
+	GetHashFromName(name string) (string, error)
+
+	// ValidName returns true if the name conforms to the restrictions on names.
+	//
+	//   name - The name of the fidde.
+	ValidName(name string) bool
+
+	// WriteName writes the name file for a named fiddle.
+	//
+	//   name - The name of the fidde.
+	//   hash - The fiddle hash.
+	//   user - The email of the user that created the name.
+	//   status - The current status of the named fiddle. An empty string means it
+	//       is working. Non-empty string implies the fiddle is broken.
+	WriteName(name, hash, user, status string) error
+
+	// SetStatus updates just the status of a named fiddle.
+	//
+	//   name - The name of the fidde.
+	//   status - The current status of the named fiddle. An empty string means it
+	//       is working. Non-empty string implies the fiddle is broken.
+	SetStatus(name, status string) error
+
+	// DeleteName deletes a named fiddle.
+	//
+	//   name - The name of the fidde.
+	DeleteName(name string) error
+
+	// Exists returns true if the hash exists.
+	//
+	//   hash - A fiddle hash, maybe.
+	Exists(hash string) error
+}
+
+// store implements Store.
+type store struct {
 	bucket *storage.BucketHandle
 
 	// cache is an in-memory cache of PNGs, where the keys are <fiddlehash>-<media>.
@@ -109,10 +203,10 @@ func shouldBeCached(media Media) bool {
 	return media == CPU || media == GPU
 }
 
-// New creates a new Store.
+// New creates a new *store, which implements Store.
 //
 // local - True if running locally.
-func New(local bool) (*Store, error) {
+func New(local bool) (*store, error) {
 	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_FULL_CONTROL)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
@@ -126,7 +220,7 @@ func New(local bool) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed creating cache: %s", err)
 	}
-	return &Store{
+	return &store{
 		bucket: storageClient.Bucket(FIDDLE_STORAGE_BUCKET),
 		cache:  cache,
 	}, nil
@@ -137,7 +231,7 @@ func New(local bool) (*Store, error) {
 //    media - The type of the file to write.
 //    fiddleHash - The hash of the fiddle.
 //    b64 - The contents of the media file base64 encoded.
-func (s *Store) writeMediaFile(media Media, fiddleHash, b64 string) error {
+func (s *store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 	if b64 == "" && media != TXT {
 		return fmt.Errorf("An empty file is not a valid %s file.", string(media))
 	}
@@ -184,27 +278,8 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, b64 string) error {
 	return nil
 }
 
-// Put writes the code and media to Google Storage.
-//
-//    code - The user's code.
-//    options - The options the user chose to run the code under.
-//    results - The results from running fiddle_run.
-//
-// Code is written to:
-//
-//   gs://skia-fiddle/fiddle/<fiddleHash>/draw.cpp
-//
-// And media files are written to:
-//
-//   gs://skia-fiddle/fiddle/<fiddleHash>/cpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/gpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/skp.skp
-//   gs://skia-fiddle/fiddle/<fiddleHash>/pdf.pdf
-//
-// If results is nil then only the code is written.
-//
-// Returns the fiddleHash.
-func (s *Store) Put(code string, options types.Options, results *types.Result) (string, error) {
+// Put implements Store.
+func (s *store) Put(code string, options types.Options, results *types.Result) (string, error) {
 	fiddleHash, err := options.ComputeHash(code)
 	if err != nil {
 		return "", fmt.Errorf("Could not compute hash for the code: %s", err)
@@ -244,22 +319,8 @@ func (s *Store) Put(code string, options types.Options, results *types.Result) (
 	return fiddleHash, nil
 }
 
-// PutMedia writes the media for the given fiddleHash to Google Storage.
-//
-//    fiddleHash - The fiddle hash.
-//    results - The results from running fiddle_run.
-//
-// Media files are written to:
-//
-//   gs://skia-fiddle/fiddle/<fiddleHash>/cpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/gpu.png
-//   gs://skia-fiddle/fiddle/<fiddleHash>/skp.skp
-//   gs://skia-fiddle/fiddle/<fiddleHash>/pdf.pdf
-//
-// If results is nil then only the code is written.
-//
-// Returns the fiddleHash.
-func (s *Store) PutMedia(options types.Options, fiddleHash string, results *types.Result) error {
+// PutMedia implements Store.
+func (s *store) PutMedia(options types.Options, fiddleHash string, results *types.Result) error {
 	// Write each of the media files.
 	if options.TextOnly {
 		err := s.writeMediaFile(TXT, fiddleHash, results.Execute.Output.Text)
@@ -304,12 +365,8 @@ func (s *Store) PutMedia(options types.Options, fiddleHash string, results *type
 	return nil
 }
 
-// GetCode returns the code and options for the given fiddle hash.
-//
-//    fiddleHash - The fiddle hash.
-//
-// Returns the code and the options the code was run under.
-func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
+// GetCode implements Store.
+func (s *store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	o := s.bucket.Object(fmt.Sprintf("fiddle/%s/draw.cpp", fiddleHash))
 	r, err := o.NewReader(context.Background())
 	if err != nil {
@@ -373,13 +430,8 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	return string(b), options, nil
 }
 
-// GetMedia returns the file, content-type, filename, and error for a given fiddle hash and type of media.
-//
-//    fiddleHash - The hash of the fiddle.
-//    media - The type of the file to read.
-//
-// Returns the media file contents as a byte slice, the content-type, and the filename of the media.
-func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string, error) {
+// GetMedia implements Store.
+func (s *store) GetMedia(fiddleHash string, media Media) ([]byte, string, string, error) {
 	ctx := context.Background()
 	key := cacheKey(fiddleHash, media)
 	if c, ok := s.cache.Get(key); ok {
@@ -444,8 +496,8 @@ type Named struct {
 	Status string // If a non-empty string then this named fiddle is broken and the string contains some information about the breakage.
 }
 
-// ListAllNames returns the list of all named fiddles.
-func (s *Store) ListAllNames() ([]Named, error) {
+// ListAllNames implements Store.
+func (s *store) ListAllNames() ([]Named, error) {
 	ret := []Named{}
 	ctx := context.Background()
 	q := &storage.Query{
@@ -480,8 +532,8 @@ func (s *Store) ListAllNames() ([]Named, error) {
 	return ret, nil
 }
 
-// GetHashFromName loads the fiddle hash for the given name.
-func (s *Store) GetHashFromName(name string) (string, error) {
+// GetHashFromName implements Store.
+func (s *store) GetHashFromName(name string) (string, error) {
 	ctx := context.Background()
 	r, err := s.bucket.Object(fmt.Sprintf("named/%s", name)).NewReader(ctx)
 	if err != nil {
@@ -495,21 +547,13 @@ func (s *Store) GetHashFromName(name string) (string, error) {
 	return string(b), nil
 }
 
-// ValidName returns true if the name conforms to the restrictions on names.
-//
-//   name - The name of the fidde.
-func (s *Store) ValidName(name string) bool {
+// ValidName implements Store.
+func (s *store) ValidName(name string) bool {
 	return validName.MatchString(name)
 }
 
-// WriteName writes the name file for a named fiddle.
-//
-//   name - The name of the fidde.
-//   hash - The fiddle hash.
-//   user - The email of the user that created the name.
-//   status - The current status of the named fiddle. An empty string means it
-//       is working. Non-empty string implies the fiddle is broken.
-func (s *Store) WriteName(name, hash, user, status string) error {
+// WriteName implements Store.
+func (s *store) WriteName(name, hash, user, status string) error {
 	if !s.ValidName(name) {
 		return fmt.Errorf("Invalid character found in name.")
 	}
@@ -529,12 +573,8 @@ func (s *Store) WriteName(name, hash, user, status string) error {
 	return nil
 }
 
-// SetStatus updates just the status of a named fiddle.
-//
-//   name - The name of the fidde.
-//   status - The current status of the named fiddle. An empty string means it
-//       is working. Non-empty string implies the fiddle is broken.
-func (s *Store) SetStatus(name, status string) error {
+// SetStatus implements Store.
+func (s *store) SetStatus(name, status string) error {
 	if !s.ValidName(name) {
 		return fmt.Errorf("Invalid character found in name.")
 	}
@@ -550,20 +590,19 @@ func (s *Store) SetStatus(name, status string) error {
 	return nil
 }
 
-// DeleteName deletes a named fiddle.
-//
-//   name - The name of the fidde.
-func (s *Store) DeleteName(name string) error {
+// DeleteName implements Store.
+func (s *store) DeleteName(name string) error {
 	ctx := context.Background()
 	return s.bucket.Object(fmt.Sprintf("named/%s", name)).Delete(ctx)
 }
 
-// Exists returns true if the hash exists.
-//
-//   hash - A fiddle hash, maybe.
-func (s *Store) Exists(hash string) error {
+// Exists implements Store.
+func (s *store) Exists(hash string) error {
 	ctx := context.Background()
 	o := s.bucket.Object(fmt.Sprintf("fiddle/%s/draw.cpp", hash))
 	_, err := o.Attrs(ctx)
 	return err
 }
+
+// Confirm the *store implements Store.
+var _ Store = (*store)(nil)
