@@ -1,17 +1,18 @@
 import { expect } from 'chai';
-import { takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { BulkTriageSkPO } from './bulk-triage-sk_po';
 import { ElementHandle } from 'puppeteer';
+import path from "path";
 
 describe('bulk-triage-sk', () => {
-  let testBed: TestBed;
-
   let bulkTriageSk: ElementHandle;
   let bulkTriageSkPO: BulkTriageSkPO;
 
+  let testBed: TestBed;
   before(async () => {
-    testBed = await loadGoldWebpack();
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
   });
 
   beforeEach(async () => {

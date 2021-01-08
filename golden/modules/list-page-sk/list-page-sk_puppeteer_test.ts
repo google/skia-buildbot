@@ -1,12 +1,19 @@
 import { expect } from 'chai';
-import { addEventListenersToPuppeteerPage, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
+import {
+    addEventListenersToPuppeteerPage,
+    loadCachedTestBed,
+    takeScreenshot,
+    TestBed
+} from '../../../puppeteer-tests/util';
 import { Page } from 'puppeteer';
+import path from "path";
 
 describe('list-page-sk', () => {
     let testBed: TestBed;
     before(async () => {
-        testBed = await loadGoldWebpack();
+        testBed = await loadCachedTestBed(
+            path.join(__dirname, '..', '..', 'webpack.config.ts')
+        );
     });
 
     it('should render the demo page', async () => {
