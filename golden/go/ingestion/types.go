@@ -61,9 +61,7 @@ type Processor interface {
 	Process(ctx context.Context, resultsFile ResultFileLocation) error
 }
 
-// IngestionStore keeps track of files that were ingested already. When we poll the buckets for
-// files we might have missed, we use this store to not try to reingest files we know we succeeded
-// in ingesting earlier.
+// IngestionStore keeps track of files being ingested based on their MD5 hashes.
 type IngestionStore interface {
 	// SetIngested indicates that we have ingested the given filename. Implementations may make use
 	// of the MD5 hash of the contents. Implementations may make use of the ingested timestamp.

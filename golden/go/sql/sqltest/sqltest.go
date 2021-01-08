@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 // cockroachDBEmulatorHostEnvVar is the name of the environment variable
@@ -53,6 +54,13 @@ this sets up a real version of cockroachdb.
 		conn.Close()
 	})
 	return conn
+}
+
+// CreateProductionSchema creates all the SQL tables that would be in a production database in
+// the provided SQL db using schema.Schema.
+func CreateProductionSchema(ctx context.Context, t *testing.T, db *pgxpool.Pool) {
+	_, err := db.Exec(ctx, schema.Schema)
+	require.NoError(t, err)
 }
 
 // SQLExporter is an abstraction around a type that can be written as a single row in a SQL table.
