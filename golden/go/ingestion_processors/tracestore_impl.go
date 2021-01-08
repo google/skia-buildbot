@@ -28,9 +28,10 @@ const (
 	btTableConfig    = "BTTable"
 )
 
-// Register the processor with the ingestion framework.
-func init() {
-	ingestion.Register(btGoldIngester, newBTTraceStoreProcessor)
+// PrimaryBranchBigTable exposes the registration information for an ingester that writes data
+// to a BigTable implementation.
+func PrimaryBranchBigTable() (id string, constructor ingestion.Constructor) {
+	return btGoldIngester, newBTTraceStoreProcessor
 }
 
 // newTraceStoreProcessor implements the ingestion.Constructor signature and creates
