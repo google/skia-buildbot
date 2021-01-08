@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0ba9bcc_888f1a3d",
+        "filename": "puppeteer-tests/util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-08T19:14:25Z",
+      "side": 1,
+      "message": "Nit: extra blank line.",
+      "revId": "5cc14c1880c9307f5b2cd2acafe63c15262baa69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7771f6ed_823c6fa9",
+        "filename": "puppeteer-tests/util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-08T19:14:25Z",
+      "side": 1,
+      "message": "loadCachedTestBed",
+      "range": {
+        "startLine": 279,
+        "startChar": 30,
+        "endLine": 279,
+        "endChar": 45
+      },
+      "revId": "5cc14c1880c9307f5b2cd2acafe63c15262baa69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3706ca55_6d7cec92",
+        "filename": "puppeteer-tests/util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-08T19:14:25Z",
+      "side": 1,
+      "message": "Nit: Since this is an exported (i.e. public) function, please turn this comment into JSDoc:\n\n  /**\n   * Once per mocha invocation, ...\n   */",
+      "range": {
+        "startLine": 279,
+        "startChar": 0,
+        "endLine": 281,
+        "endChar": 38
+      },
+      "revId": "5cc14c1880c9307f5b2cd2acafe63c15262baa69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
