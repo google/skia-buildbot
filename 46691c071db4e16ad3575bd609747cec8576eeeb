@@ -22,6 +22,30 @@
       },
       "revId": "46691c071db4e16ad3575bd609747cec8576eeeb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4b9929d2_390675b5",
+        "filename": "fiddlek/go/fiddle/main_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-08T16:18:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fe3973bd_a9a8f0fc",
+      "range": {
+        "startLine": 46,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 6
+      },
+      "revId": "46691c071db4e16ad3575bd609747cec8576eeeb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
