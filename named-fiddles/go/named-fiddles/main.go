@@ -34,7 +34,7 @@ var (
 
 // Server is the state of the server.
 type Server struct {
-	store *store.Store
+	store store.Store
 	repo  *gitinfo.GitInfo
 
 	livenessExamples    metrics2.Liveness    // liveness of the naming the Skia examples.
