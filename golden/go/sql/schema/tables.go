@@ -93,6 +93,10 @@ type Tables struct {
 	Traces                      []TraceRow
 	Tryjobs                     []TryjobRow
 	ValuesAtHead                []ValueAtHeadRow
+
+	// DeprecatedIngestedFiles allows us to keep track of files ingested with the old FS/BT ways
+	// until all the SQL ingestion is ready.
+	DeprecatedIngestedFiles []DeprecatedIngestedFileRow
 }
 
 type TraceValueRow struct {
@@ -220,7 +224,8 @@ type SourceFileRow struct {
 	// SourceFile is the fully qualified name of the source file that was ingested, e.g.
 	// "gs://bucket/2020/01/02/03/15/foo.json"
 	SourceFile string `sql:"source_file STRING NOT NULL"`
-	// LastIngested is the time at which this file was most recently read in.
+	// LastIngested is the time at which this file was most recently read in and successfully
+	// processed.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
 }
 
@@ -228,6 +233,17 @@ type SourceFileRow struct {
 func (r SourceFileRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"source_file_id", "source_file", "last_ingested"},
 		[]interface{}{r.SourceFileID, r.SourceFile, r.LastIngested}
+}
+
+type DeprecatedIngestedFileRow struct {
+	// SourceFileID is the MD5 hash of the source file that has been ingested.
+	SourceFileID SourceFileID `sql:"source_file_id BYTES PRIMARY KEY"`
+	// SourceFile is the fully qualified name of the source file that was ingested, e.g.
+	// "gs://bucket/2020/01/02/03/15/foo.json"
+	SourceFile string `sql:"source_file STRING NOT NULL"`
+	// LastIngested is the time at which this file was most recently read in and successfully
+	// processed.
+	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
 }
 
 type ExpectationRecordRow struct {
