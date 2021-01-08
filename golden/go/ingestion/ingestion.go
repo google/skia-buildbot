@@ -12,13 +12,7 @@ import (
 	"go.skia.org/infra/golden/go/eventbus"
 )
 
-// Tag names used to collect metrics.
 const (
-	MEASUREMENT_INGESTION = "ingestion"
-	TAG_INGESTION_METRIC  = "metric"
-	TAG_INGESTER_ID       = "ingester"
-	TAG_INGESTER_SOURCE   = "source"
-
 	// nConcurrentProcessors is the maximum number of go-routines that run Processors.
 	// The number is chosen experimentally and should be adjusted to optimize throughput.
 	// It can be small, as the number of ingesters can be increased with more
@@ -262,9 +256,6 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context, now time.Time) (t
 	return detail.Timestamp, nil
 }
 
-// Shorthand type to define helpers.
-type tags map[string]string
-
 // processMetrics contains the metrics we are interested for processing results.
 type processMetrics struct {
 	ignoredByPollingGauge   metrics2.Int64Metric
@@ -273,14 +264,34 @@ type processMetrics struct {
 	processLiveness         metrics2.Liveness
 }
 
+const (
+	ingestionMetric    = "ingestion"
+	ingestionMetricTag = "metric"
+	idTag              = "ingester"
+	sourceTag          = "source"
+)
+
 // newProcessMetrics instantiates the metrics to track processing and registers them
 // with the metrics package.
 func newProcessMetrics(id string) *processMetrics {
-	commonTags := tags{TAG_INGESTER_ID: id, TAG_INGESTER_SOURCE: "poll"}
 	return &processMetrics{
-		ignoredByPollingGauge:   metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "ignored"}),
-		processedByPollingGauge: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "processed"}),
-		pollingLiveness:         metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "poll", TAG_INGESTION_METRIC: "since-last-run"}),
-		processLiveness:         metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: "gcs_event", TAG_INGESTION_METRIC: "last-successful-process"}),
+		ignoredByPollingGauge: metrics2.GetInt64Metric(ingestionMetric, map[string]string{
+			idTag:              id,
+			sourceTag:          "poll",
+			ingestionMetricTag: "ignored",
+		}),
+		processedByPollingGauge: metrics2.GetInt64Metric(ingestionMetric, map[string]string{
+			idTag:              id,
+			sourceTag:          "poll",
+			ingestionMetricTag: "processed",
+		}),
+		pollingLiveness: metrics2.NewLiveness(id, map[string]string{
+			sourceTag:          "poll",
+			ingestionMetricTag: "since-last-run",
+		}),
+		processLiveness: metrics2.NewLiveness(id, map[string]string{
+			sourceTag:          "gcs_event",
+			ingestionMetricTag: "last-successful-process",
+		}),
 	}
 }

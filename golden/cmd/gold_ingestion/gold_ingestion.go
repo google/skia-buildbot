@@ -1,6 +1,5 @@
 // gold_ingestion is the server process that runs an arbitrary number of
-// ingesters and stores them in traceDB backends.
-
+// ingesters and stores them to the appropriate backends.
 package main
 
 import (
@@ -14,6 +13,8 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
@@ -28,12 +29,7 @@ import (
 	"go.skia.org/infra/golden/go/gevent"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/ingestion/fs_ingestionstore"
-	"google.golang.org/api/option"
-
-	// The init() of this package register several ingestion.Processors to
-	// handle the files we locate in GCS (e.g. master branch, tryjobs, etc).
-	// TODO(kjlubick) Remove the need to depend on init() and registration.
-	_ "go.skia.org/infra/golden/go/ingestion_processors"
+	"go.skia.org/infra/golden/go/ingestion_processors"
 )
 
 const (
@@ -99,6 +95,9 @@ func main() {
 	}
 
 	common.InitWithMust(appName, logOpts...)
+
+	ingestion.Register(ingestion_processors.PrimaryBranchBigTable())
+	ingestion.Register(ingestion_processors.ChangelistFirestore())
 
 	ctx := context.Background()
 

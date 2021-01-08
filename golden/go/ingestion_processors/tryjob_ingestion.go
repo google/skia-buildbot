@@ -53,9 +53,10 @@ const (
 	cirrusCIS         = "cirrus"
 )
 
-// Register the ingestion Processor with the ingestion framework.
-func init() {
-	ingestion.Register(firestoreTryJobIngester, newModularTryjobProcessor)
+// ChangelistFirestore exposes the registration information for an ingester that writes data
+// to a Firestore implementation.
+func ChangelistFirestore() (id string, constructor ingestion.Constructor) {
+	return firestoreTryJobIngester, newModularTryjobProcessor
 }
 
 // goldTryjobProcessor implements the ingestion.Processor interface to ingest tryjob results.
