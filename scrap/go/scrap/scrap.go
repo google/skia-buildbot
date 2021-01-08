@@ -20,11 +20,14 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const maxScrapSize = 128 * 1024
+
 var (
 	ErrInvalidScrapType = errors.New("Invalid scrap type.")
 	ErrInvalidScrapName = errors.New("Invalid scrap name.")
 	ErrInvalidLanguage  = errors.New("Invalid language.")
 	ErrInvalidHash      = errors.New("Invalid SHA256 hash.")
+	ErrInvalidScrapSize = errors.New("Scrap is too large.")
 )
 
 // SHA256 is a SHA 256 hash encoded in hex.
@@ -296,6 +299,9 @@ func (s *scrapExchange) CreateScrap(ctx context.Context, scrap ScrapBody) (Scrap
 	var b bytes.Buffer
 	if err := json.NewEncoder(&b).Encode(scrap); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to JSON encode scrap.")
+	}
+	if b.Len() > maxScrapSize {
+		return ret, ErrInvalidScrapSize
 	}
 	unencodedBody := b.Bytes()
 	hashAsByteArray := sha256.Sum256(unencodedBody)

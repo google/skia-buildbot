@@ -284,6 +284,24 @@ func TestCreateScrap_InvalidScrapType_ReturnsError(t *testing.T) {
 	require.Contains(t, err.Error(), ErrInvalidScrapType.Error())
 }
 
+func TestCreateScrap_TooLargeScrap_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+	s := &test_gcsclient.GCSClient{}
+	se, err := New(s)
+	require.NoError(t, err)
+
+	largeBody := make([]byte, maxScrapSize+1)
+	for i := range largeBody {
+		largeBody[i] = 'a'
+	}
+	sentBody := ScrapBody{
+		Type: SVG,
+		Body: string(largeBody),
+	}
+	_, err = se.CreateScrap(context.Background(), sentBody)
+	require.Contains(t, err.Error(), ErrInvalidScrapSize.Error())
+}
+
 func TestCreateScrap_FileWriterFailsOnWrite_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	s := &test_gcsclient.GCSClient{}
