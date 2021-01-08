@@ -156,4 +156,9 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   expectation_record_id UUID,
   matches_any_ignore_rule BOOL
 );
+CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
+  source_file_id BYTES PRIMARY KEY,
+  source_file STRING NOT NULL,
+  last_ingested TIMESTAMP WITH TIME ZONE NOT NULL
+);
 `
