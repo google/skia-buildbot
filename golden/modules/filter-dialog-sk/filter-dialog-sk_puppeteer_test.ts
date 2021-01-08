@@ -1,15 +1,17 @@
 import { expect } from 'chai';
-import { takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
-import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
+import {loadCachedTestBed, takeScreenshot, TestBed} from '../../../puppeteer-tests/util';
 import { FilterDialogSkPO } from './filter-dialog-sk_po';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
+import path from "path";
 
 describe('filter-dialog-sk', () => {
-  let testBed: TestBed;
   let filterDialogSkPO: FilterDialogSkPO;
 
+  let testBed: TestBed;
   before(async () => {
-    testBed = await loadGoldWebpack();
+    testBed = await loadCachedTestBed(
+        path.join(__dirname, '..', '..', 'webpack.config.ts')
+    );
   });
 
   beforeEach(async () => {
