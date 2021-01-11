@@ -12,24 +12,28 @@ display-tree-status-sk {
   }
 
   td, th {
-    border: 1px solid black;
+    border: 1px solid var(--on-background);
     padding: 0.5em;
     font-size: 1.2em;
   }
 
   th {
-    background-color: var(--purple);
+    background-color: var(--primary);
+    color: var(--on-primary);
   }
 
   .closed {
     background-color: var(--red);
+    color: var(--black);
   }
 
   .open {
     background-color: var(--green);
+    color: var(--black);
   }
 
   .caution {
     background-color: var(--yellow);
+    color: var(--black);
   }
 }
