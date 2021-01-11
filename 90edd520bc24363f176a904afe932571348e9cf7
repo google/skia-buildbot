@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "490e2bc5_b4305907",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:28Z",
+      "side": 1,
+      "message": "Thanks! Just some nitpicking on wording and naming.\n\nI would recommend calling this //golden/cmd/sqlcreatedb/sqlcreatedb.go or something similar. The rationale being that \"initializing\" can be interpreted as populating something that already exists, when in fact this program will create a database from scratch, and all the tables as per the schema.",
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "15793497_6b5cec12",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:28Z",
+      "side": 1,
+      "message": "creates",
+      "range": {
+        "startLine": 1,
+        "startChar": 26,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0cad0291_82f847c3",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:28Z",
+      "side": 1,
+      "message": "Just the word \"schema\" is probably sufficient here.",
+      "range": {
+        "startLine": 2,
+        "startChar": 2,
+        "endLine": 2,
+        "endChar": 20
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5241364e_487992a4",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:28Z",
+      "side": 1,
+      "message": "This is a property of the SQL in the schema.Schema constant, not a property of this executable. I\u0027d recommend slightly changing the wording to be a bit more precise.",
+      "range": {
+        "startLine": 2,
+        "startChar": 43,
+        "endLine": 2,
+        "endChar": 58
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4983318c_b63d1965",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:28Z",
+      "side": 1,
+      "message": "tables",
+      "range": {
+        "startLine": 2,
+        "startChar": 63,
+        "endLine": 2,
+        "endChar": 76
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d18fe9b0_6cc8017a",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:28Z",
+      "side": 1,
+      "message": "I\u0027d suggest using the phrase \"Creating the database schema\", or \"Instantiating the database schema\", or some variation of that. On first read, I interpreted \"initializing\" as populating pre-existing tables with some initial rows.",
+      "range": {
+        "startLine": 38,
+        "startChar": 14,
+        "endLine": 38,
+        "endChar": 33
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
