@@ -16,6 +16,24 @@
       "message": "nit: This might be more readable as a text/template.",
       "revId": "913c457c0fd7be1407b300d1941955d97ca85dad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2f4b2eec_8ce652d6",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-11T18:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "412308f7_eed07a54",
+      "revId": "913c457c0fd7be1407b300d1941955d97ca85dad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
