@@ -1,7 +1,4 @@
-@import '~elements-sk/colors';
-
 tree-scaffold-sk {
-  display: block;
   text-align: center;
 
   * {
@@ -25,56 +22,32 @@ tree-scaffold-sk {
     font-size: 14px;
   }
 
-  nav-button-sk button {
-    fill: var(--white);
-    color: var(--white);
-    background: var(--blue);
-    border: none;
-    box-shadow: none;
-  }
-
-  nav-button-sk button:hover {
-    background: var(--light-blue);
-  }
-
   nav {
     display: flex;
-    align-items: center;
-    color: var(--white);
-    background: var(--blue);
+    flex-direction: column;
     text-align: left;
-  }
-
-  nav a[href] {
-    color: var(--black);
-    text-decoration: none;
-  }
-
-  nav a[href]:hover {
-    text-decoration: underline;
-  }
-
-  nav a span {
-    vertical-align: middle;
-    padding: 0.2em;
-    padding-left: 1em;
-    color: var(--blue);
-  }
-
-  nav div {
-    margin: 1em;
-  }
-
-  nav-links-sk {
-    top: 4em;
+    a {
+      padding: 1em 1em;
+      color: var(--on-surface); /* Override User Agent SS*/
+      text-decoration: none;
+    }
+    span {
+      padding: 0 0.5em;
+      vertical-align: middle;
+      font-size: 1.4em;
+    }
+    span:hover {
+      text-decoration: underline;
+    }
   }
 
   login-sk {
-    margin-left: auto;
     margin-right: 1em;
-    display: block;
-    color: var(--white);
-    --login-sk-color: var(--white);
+  }
+
+  /* Overrides to elements-sk elements since they set color internally. */
+  svg.icon-sk-svg {
+    fill: var(--on-surface);
   }
 
   h1 {
