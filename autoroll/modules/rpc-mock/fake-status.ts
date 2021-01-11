@@ -5,6 +5,8 @@ import {
   AutoRollCL_Result,
   TryJob_Status,
   TryJob_Result,
+  ManualRoll_Result,
+  ManualRoll_Status,
 } from '../rpc/rpc';
 
 export function GetFakeStatus(): AutoRollStatus {
@@ -29,6 +31,21 @@ export function GetFakeStatus(): AutoRollStatus {
     fullHistoryUrl:
       'https://skia-review.googlesource.com/q/owner:skia-autoroll@skia-public.iam.gserviceaccount.com',
     issueUrlBase: 'https://skia-review.googlesource.com/c/',
+    manualRolls: [
+      {
+        dryRun: false,
+        id: 'dEj3GAGLfIFn67MirRhC',
+        noEmail: false,
+        noResolveRevision: false,
+        requester: 'borenet@google.com',
+        result: ManualRoll_Result.UNKNOWN,
+        revision: '193bb22c8c9dcc29bb05196f8cb0acf0284ca4fb',
+        rollerId: 'chromium-angle-autoroll',
+        status: ManualRoll_Status.PENDING,
+        timestamp: '2021-01-11T14:52:32.341356Z',
+        url: 'https://chromium-review.googlesource.com/c/2621713',
+      },
+    ],
     mode: {
       rollerId: 'skia-skiabot-test-autoroll',
       message: 'resume running',
@@ -36,6 +53,16 @@ export function GetFakeStatus(): AutoRollStatus {
       user: 'borenet@google.com',
       time: new Date(1574425975 * 1000).toString(),
     },
+    notRolledRevisions: [
+      {
+        description: '[PartitionAlloc] More (UN)LIKELY annotations.',
+        display: 'd489e255b1e9',
+        id: 'd489e255b1e9d0a1cab1f7d1f043761399617f9b',
+        time: '2021-01-11T15:23:01Z',
+        url:
+          'https://chromium.googlesource.com/chromium/src.git/+show/d489e255b1e9d0a1cab1f7d1f043761399617f9b',
+      },
+    ],
     strategy: {
       rollerId: 'skia-skiabot-test-autoroll',
       message: 'set strategy',
