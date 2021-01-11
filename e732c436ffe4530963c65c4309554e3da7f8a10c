@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c38b6b1d_3179266b",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:13:27Z",
+      "side": 1,
+      "message": "I see we\u0027re using store.List here, but we query the database directly on TestCreate_RulesAppearInSQLTableAndCanBeListed. What\u0027s the rationale for this difference? Should we use the same criteria for all tests? I\u0027m slightly inclined towards testing against the sqlignorestore API exclusively so as to treat this as a unit test, and also so that the tests are simpler, but either works. If we choose to use different approaches on different tests, it would be helpful to include the rationale in a comment.",
+      "range": {
+        "startLine": 129,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 13
+      },
+      "revId": "e732c436ffe4530963c65c4309554e3da7f8a10c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
