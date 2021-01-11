@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d94da79_734827a2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-11T19:28:08Z",
+      "side": 1,
+      "message": "In the case where a manual roll references a revision which is not in the set of known not-rolled revisions (eg. patch ref or a Chromium revision where we have to truncate the list due to the large number of them), we were getting some weird results, eg. https://screenshot.googleplex.com/J9FRG33E8pxgnEg",
+      "revId": "1cc884094989f08c4c20aaeac3d3321a81b2de02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
