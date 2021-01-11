@@ -49,62 +49,63 @@ trap cleanup EXIT
 # The buildbot repository should be mounted at /src.                           #
 ################################################################################
 
-cp -r /src/.mocharc.json                    /tests
+cp -r /src/.mocharc.json                     /tests
 
 mkdir /tests/infra-sk
-cp -r /src/infra-sk/package*                /tests/infra-sk
-cp -r /src/infra-sk/*.ts                    /tests/infra-sk
-cp -r /src/infra-sk/tsconfig.json           /tests/infra-sk
-cp -r /src/infra-sk/modules                 /tests/infra-sk
-cp -r /src/infra-sk/pulito                  /tests/infra-sk
+cp -r /src/infra-sk/package*                 /tests/infra-sk
+cp -r /src/infra-sk/*.ts                     /tests/infra-sk
+cp -r /src/infra-sk/*.scss                   /tests/infra-sk
+cp -r /src/infra-sk/tsconfig.json            /tests/infra-sk
+cp -r /src/infra-sk/modules                  /tests/infra-sk
+cp -r /src/infra-sk/pulito                   /tests/infra-sk
 
 mkdir /tests/puppeteer-tests
-cp -r /src/puppeteer-tests/package*         /tests/puppeteer-tests
-cp -r /src/puppeteer-tests/*.ts             /tests/puppeteer-tests
-cp -r /src/puppeteer-tests/tsconfig.json    /tests/puppeteer-tests
+cp -r /src/puppeteer-tests/package*          /tests/puppeteer-tests
+cp -r /src/puppeteer-tests/*.ts              /tests/puppeteer-tests
+cp -r /src/puppeteer-tests/tsconfig.json     /tests/puppeteer-tests
 
 mkdir /tests/golden
-cp -r /src/golden/package*                  /tests/golden
-cp -r /src/golden/webpack.config.ts         /tests/golden
-cp -r /src/golden/tsconfig.json             /tests/golden
-cp -r /src/golden/modules                   /tests/golden
-cp -r /src/golden/demo-page-assets          /tests/golden
+cp -r /src/golden/package*                   /tests/golden
+cp -r /src/golden/webpack.config.ts          /tests/golden
+cp -r /src/golden/tsconfig.json              /tests/golden
+cp -r /src/golden/modules                    /tests/golden
+cp -r /src/golden/demo-page-assets           /tests/golden
 
 mkdir /tests/perf
-cp -r /src/perf/package*                    /tests/perf
-cp -r /src/perf/webpack.config.ts           /tests/perf
-cp -r /src/perf/tsconfig.json               /tests/perf
-cp -r /src/perf/modules                     /tests/perf
+cp -r /src/perf/package*                     /tests/perf
+cp -r /src/perf/webpack.config.ts            /tests/perf
+cp -r /src/perf/tsconfig.json                /tests/perf
+cp -r /src/perf/modules                      /tests/perf
 
 mkdir /tests/am
-cp -r /src/am/package*                      /tests/am
-cp -r /src/am/webpack.config.ts             /tests/am
-cp -r /src/am/tsconfig.json                 /tests/am
-cp -r /src/am/modules                       /tests/am
+cp -r /src/am/package*                       /tests/am
+cp -r /src/am/webpack.config.ts              /tests/am
+cp -r /src/am/tsconfig.json                  /tests/am
+cp -r /src/am/modules                        /tests/am
 
 mkdir /tests/bugs-central
-cp -r /src/bugs-central/package*            /tests/bugs-central
-cp -r /src/bugs-central/webpack.config.ts   /tests/bugs-central
-cp -r /src/bugs-central/tsconfig.json       /tests/bugs-central
-cp -r /src/bugs-central/modules             /tests/bugs-central
+cp -r /src/bugs-central/package*             /tests/bugs-central
+cp -r /src/bugs-central/webpack.config.ts    /tests/bugs-central
+cp -r /src/bugs-central/tsconfig.json        /tests/bugs-central
+cp -r /src/bugs-central/modules              /tests/bugs-central
 
 mkdir /tests/ct
-cp -r /src/ct/package*                      /tests/ct
-cp -r /src/ct/webpack.config.ts             /tests/ct
-cp -r /src/ct/tsconfig.json                 /tests/ct
-cp -r /src/ct/modules                       /tests/ct
+cp -r /src/ct/package*                       /tests/ct
+cp -r /src/ct/webpack.config.ts              /tests/ct
+cp -r /src/ct/tsconfig.json                  /tests/ct
+cp -r /src/ct/modules                        /tests/ct
 
 mkdir /tests/new_element
-cp -r /src/new_element/package*             /tests/new_element
-cp -r /src/new_element/webpack.config.ts    /tests/new_element
-cp -r /src/new_element/tsconfig.json        /tests/new_element
-cp -r /src/new_element/modules              /tests/new_element
+cp -r /src/new_element/package*              /tests/new_element
+cp -r /src/new_element/webpack.config.ts     /tests/new_element
+cp -r /src/new_element/tsconfig.json         /tests/new_element
+cp -r /src/new_element/modules               /tests/new_element
 
 mkdir /tests/fiddlek
-cp -r /src/fiddlek/package*                 /tests/fiddlek
-cp -r /src/fiddlek/webpack.config.ts        /tests/fiddlek
-cp -r /src/fiddlek/tsconfig.json            /tests/fiddlek
-cp -r /src/fiddlek/modules                  /tests/fiddlek
+cp -r /src/fiddlek/package*                  /tests/fiddlek
+cp -r /src/fiddlek/webpack.config.ts         /tests/fiddlek
+cp -r /src/fiddlek/tsconfig.json             /tests/fiddlek
+cp -r /src/fiddlek/modules                   /tests/fiddlek
 
 mkdir /tests/status
 cp -r /src/status/package*                   /tests/status
@@ -113,25 +114,24 @@ cp -r /src/status/tsconfig.json              /tests/status
 cp -r /src/status/modules                    /tests/status
 
 mkdir /tests/task_scheduler
-cp -r /src/task_scheduler/package*          /tests/task_scheduler
-cp -r /src/task_scheduler/webpack.config.ts /tests/task_scheduler
-cp -r /src/task_scheduler/tsconfig.json     /tests/task_scheduler
-cp -r /src/task_scheduler/modules           /tests/task_scheduler
+cp -r /src/task_scheduler/package*           /tests/task_scheduler
+cp -r /src/task_scheduler/webpack.config.ts  /tests/task_scheduler
+cp -r /src/task_scheduler/tsconfig.json      /tests/task_scheduler
+cp -r /src/task_scheduler/modules            /tests/task_scheduler
 
 mkdir /tests/debugger-app
-cp -r /src/debugger-app/package*            /tests/debugger-app
-cp -r /src/debugger-app/webpack.config.ts   /tests/debugger-app
-cp -r /src/debugger-app/tsconfig.json       /tests/debugger-app
-cp -r /src/debugger-app/modules             /tests/debugger-app
-cp -r /src/debugger-app/build               /tests/debugger-app
-cp -r /src/debugger-app/static              /tests/debugger-app
+cp -r /src/debugger-app/package*             /tests/debugger-app
+cp -r /src/debugger-app/webpack.config.ts    /tests/debugger-app
+cp -r /src/debugger-app/tsconfig.json        /tests/debugger-app
+cp -r /src/debugger-app/modules              /tests/debugger-app
+cp -r /src/debugger-app/build                /tests/debugger-app
+cp -r /src/debugger-app/static               /tests/debugger-app
 
 mkdir /tests/scrap
-cp -r /src/scrap/package*          /tests/scrap
-cp -r /src/scrap/webpack.config.ts /tests/scrap
-cp -r /src/scrap/tsconfig.json     /tests/scrap
-cp -r /src/scrap/modules           /tests/scrap
-
+cp -r /src/scrap/package*                    /tests/scrap
+cp -r /src/scrap/webpack.config.ts           /tests/scrap
+cp -r /src/scrap/tsconfig.json               /tests/scrap
+cp -r /src/scrap/modules                     /tests/scrap
 
 ################################################################################
 # Install node modules.                                                        #
