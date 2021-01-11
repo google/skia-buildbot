@@ -3,6 +3,7 @@ package sql
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -88,4 +89,12 @@ func ValuesPlaceholders(valuesPerRow, numRows int) string {
 		_, _ = values.WriteString(")")
 	}
 	return values.String()
+}
+
+// GetConnectionURL returns a full connection URL with the correct protocol and connection options
+// given the username, host, port, and database name.
+func GetConnectionURL(userHostPort, dbName string) string {
+	// We choose not to use SSL because all communication should be in the same k8s cluster
+	// and the cumbersomeness of using https is not yet worth it.
+	return fmt.Sprintf("postgresql://%s/%s?sslmode=disable", userHostPort, dbName)
 }
