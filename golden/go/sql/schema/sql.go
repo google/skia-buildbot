@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS IgnoreRules (
   ignore_rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creator_email STRING NOT NULL,
   updated_email STRING NOT NULL,
-  expires TIMESTAMP WITH TIME ZONE,
+  expires TIMESTAMP WITH TIME ZONE NOT NULL,
   note STRING,
-  query JSONB
+  query JSONB NOT NULL
 );
 CREATE TABLE IF NOT EXISTS Options (
   options_id BYTES PRIMARY KEY,

@@ -457,12 +457,12 @@ type IgnoreRuleRow struct {
 	// UpdatedEmail is the email address of the user who most recently updated this rule.
 	UpdatedEmail string `sql:"updated_email STRING NOT NULL"`
 	// Expires represents when this rule should be re-evaluated for validity.
-	Expires time.Time `sql:"expires TIMESTAMP WITH TIME ZONE"`
+	Expires time.Time `sql:"expires TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// Note is a comment explaining this rule. It typically links to a bug.
 	Note string `sql:"note STRING"`
 	// Query is a map[string][]string that describe which traces should be ignored.
 	// Note that this can only apply to trace keys, not options.
-	Query paramtools.ReadOnlyParamSet `sql:"query JSONB"`
+	Query paramtools.ReadOnlyParamSet `sql:"query JSONB NOT NULL"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
