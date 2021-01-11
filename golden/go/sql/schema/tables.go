@@ -73,30 +73,30 @@ const (
 // is turned into an actual SQL statement.
 //go:generate go run ../exporter/tosql --output_file sql.go --logtostderr --output_pkg schema
 type Tables struct {
-	Changelists                 []ChangelistRow
-	Commits                     []CommitRow
-	DiffMetrics                 []DiffMetricRow
-	ExpectationDeltas           []ExpectationDeltaRow
-	ExpectationRecords          []ExpectationRecordRow
-	Expectations                []ExpectationRow
-	Groupings                   []GroupingRow
-	IgnoreRules                 []IgnoreRuleRow
-	Options                     []OptionsRow
-	Patchsets                   []PatchsetRow
-	PrimaryBranchParams         []PrimaryBranchParamRow
-	SecondaryBranchExpectations []SecondaryBranchExpectationRow
-	SecondaryBranchParams       []SecondaryBranchParamRow
-	SecondaryBranchValues       []SecondaryBranchValueRow
-	SourceFiles                 []SourceFileRow
-	TiledTraceDigests           []TiledTraceDigestRow
-	TraceValues                 []TraceValueRow
-	Traces                      []TraceRow
-	Tryjobs                     []TryjobRow
-	ValuesAtHead                []ValueAtHeadRow
+	Changelists                 []ChangelistRow                 `sql_backup:"weekly"`
+	Commits                     []CommitRow                     `sql_backup:"daily"`
+	DiffMetrics                 []DiffMetricRow                 `sql_backup:"monthly"`
+	ExpectationDeltas           []ExpectationDeltaRow           `sql_backup:"daily"`
+	ExpectationRecords          []ExpectationRecordRow          `sql_backup:"daily"`
+	Expectations                []ExpectationRow                `sql_backup:"daily"`
+	Groupings                   []GroupingRow                   `sql_backup:"monthly"`
+	IgnoreRules                 []IgnoreRuleRow                 `sql_backup:"daily"`
+	Options                     []OptionsRow                    `sql_backup:"monthly"`
+	Patchsets                   []PatchsetRow                   `sql_backup:"weekly"`
+	PrimaryBranchParams         []PrimaryBranchParamRow         `sql_backup:"monthly"`
+	SecondaryBranchExpectations []SecondaryBranchExpectationRow `sql_backup:"daily"`
+	SecondaryBranchParams       []SecondaryBranchParamRow       `sql_backup:"monthly"`
+	SecondaryBranchValues       []SecondaryBranchValueRow       `sql_backup:"monthly"`
+	SourceFiles                 []SourceFileRow                 `sql_backup:"monthly"`
+	TiledTraceDigests           []TiledTraceDigestRow           `sql_backup:"monthly"`
+	TraceValues                 []TraceValueRow                 `sql_backup:"monthly"`
+	Traces                      []TraceRow                      `sql_backup:"monthly"`
+	Tryjobs                     []TryjobRow                     `sql_backup:"weekly"`
+	ValuesAtHead                []ValueAtHeadRow                `sql_backup:"monthly"`
 
 	// DeprecatedIngestedFiles allows us to keep track of files ingested with the old FS/BT ways
 	// until all the SQL ingestion is ready.
-	DeprecatedIngestedFiles []DeprecatedIngestedFileRow
+	DeprecatedIngestedFiles []DeprecatedIngestedFileRow `sql_backup:"daily"`
 }
 
 type TraceValueRow struct {
