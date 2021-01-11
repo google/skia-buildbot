@@ -5,14 +5,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/jackc/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/databuilder"
+	"go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestCreate_RulesAppearInSQLTableAndCanBeListed(t *testing.T) {
@@ -44,7 +51,7 @@ func TestCreate_RulesAppearInSQLTableAndCanBeListed(t *testing.T) {
 	var actualRows []schema.IgnoreRuleRow
 	for rows.Next() {
 		var r schema.IgnoreRuleRow
-		assert.NoError(t, rows.Scan(&r.IgnoreRuleID, &r.CreatorEmail, &r.UpdatedEmail, &r.Expires, &r.Note, &r.Query))
+		require.NoError(t, rows.Scan(&r.IgnoreRuleID, &r.CreatorEmail, &r.UpdatedEmail, &r.Expires, &r.Note, &r.Query))
 		r.Expires = r.Expires.UTC()
 		actualRows = append(actualRows, r)
 	}
@@ -99,6 +106,114 @@ func TestCreate_InvalidQuery_ReturnsError(t *testing.T) {
 		Query:     "%NOT A VALID QUERY",
 		Note:      "skbug.com/1234",
 	}))
+}
+
+func TestCreate_AllTracesUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTests(ctx, t)
+	sqltest.CreateProductionSchema(ctx, t, db)
+	loadTestData(t, ctx, db)
+
+	store := New(db)
+	require.NoError(t, store.Create(ctx, ignore.Rule{
+		CreatedBy: "me@example.com",
+		Expires:   time.Date(2020, time.May, 11, 10, 9, 0, 0, time.UTC),
+		Query:     "model=Sailfish&os=Android",
+		Note:      "skbug.com/1234",
+	}))
+
+	rows, err := db.Query(ctx, `SELECT trace_id, corpus, grouping_id, keys, matches_any_ignore_rule FROM Traces`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualTraces []schema.TraceRow
+	for rows.Next() {
+		var r schema.TraceRow
+		var matches pgtype.Bool
+		require.NoError(t, rows.Scan(&r.TraceID, &r.Corpus, &r.GroupingID, &r.Keys, &matches))
+		r.MatchesAnyIgnoreRule = convertToNullableBool(matches)
+		actualTraces = append(actualTraces, r)
+	}
+	assert.ElementsMatch(t, []schema.TraceRow{
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "One"}, schema.NBTrue), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "Two"}, schema.NBTrue),
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "Three"}, schema.NBTrue), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "One"}, schema.NBFalse),  // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "Two"}, schema.NBTrue),   // still ignored
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "Three"}, schema.NBFalse),
+	}, actualTraces)
+
+	counts, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM ValuesAtHead`)
+	require.NoError(t, err)
+	defer counts.Close()
+	actualValuesAtHead := map[string]schema.NullableBool{}
+	for counts.Next() {
+		var model string
+		var name string
+		var matches pgtype.Bool
+		require.NoError(t, counts.Scan(&model, &name, &matches))
+		actualValuesAtHead[model+name] = convertToNullableBool(matches)
+	}
+	assert.Equal(t, map[string]schema.NullableBool{
+		"SailfishOne":   schema.NBTrue, // changed
+		"SailfishTwo":   schema.NBTrue,
+		"SailfishThree": schema.NBTrue,  // changed
+		"BullheadOne":   schema.NBFalse, // changed
+		"BullheadTwo":   schema.NBTrue,  // still ignored
+		"BullheadThree": schema.NBFalse,
+	}, actualValuesAtHead)
+}
+
+func loadTestData(t *testing.T, ctx context.Context, db *pgxpool.Pool) {
+	data := databuilder.TablesBuilder{}
+	data.CommitsWithData().Append("whoever@example.com", "initial commit", "2021-01-11T16:00:00Z")
+	data.SetDigests(map[rune]types.Digest{
+		'a': datakitchensink.DigestA04Unt,
+	})
+	data.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+	data.AddTracesWithCommonKeys(paramtools.Params{types.CorpusField: "gm", "os": "Android"}).
+		History("a", "a", "a", "a", "a", "a").Keys([]paramtools.Params{
+		{"model": "Sailfish", types.PrimaryKeyField: "One"},
+		{"model": "Sailfish", types.PrimaryKeyField: "Two"},
+		{"model": "Sailfish", types.PrimaryKeyField: "Three"},
+		{"model": "Bullhead", types.PrimaryKeyField: "One"},
+		{"model": "Bullhead", types.PrimaryKeyField: "Two"},
+		{"model": "Bullhead", types.PrimaryKeyField: "Three"},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom([]string{"file"}, []string{"2021-01-11T16:05:00Z"})
+	data.AddIgnoreRule("me@example.com", "me@example.com", "2021-01-11T17:00:00Z", "ignore test 2",
+		paramtools.ParamSet{types.PrimaryKeyField: []string{"Two"}})
+	b := data.Build()
+	b.Traces[0].MatchesAnyIgnoreRule = schema.NBNull // pretend test 1 is null
+	b.Traces[3].MatchesAnyIgnoreRule = schema.NBNull // pretend test 1 is null
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b))
+}
+
+func convertToNullableBool(b pgtype.Bool) schema.NullableBool {
+	if b.Status != pgtype.Present {
+		return schema.NBNull
+	}
+	if b.Bool {
+		return schema.NBTrue
+	}
+	return schema.NBFalse
+}
+
+func traceRow(params paramtools.Params, ignoreState schema.NullableBool) schema.TraceRow {
+	params[types.CorpusField] = "gm"
+	_, traceID := sql.SerializeMap(params)
+	grouping := paramtools.Params{
+		types.CorpusField: "gm", types.PrimaryKeyField: params[types.PrimaryKeyField],
+	}
+	_, groupingID := sql.SerializeMap(grouping)
+	return schema.TraceRow{
+		TraceID:              traceID,
+		Corpus:               "gm",
+		GroupingID:           groupingID,
+		Keys:                 params,
+		MatchesAnyIgnoreRule: ignoreState,
+	}
 }
 
 func TestUpdate_ExistingRule_RuleIsModified(t *testing.T) {
@@ -183,6 +298,64 @@ func TestUpdate_InvalidID_NothingIsModified(t *testing.T) {
 	}, rules[0])
 }
 
+func TestUpdated_AllTracesUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTests(ctx, t)
+	sqltest.CreateProductionSchema(ctx, t, db)
+	loadTestData(t, ctx, db)
+
+	store := New(db)
+	rules, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, rules, 1)
+
+	r := rules[0]
+	r.Query = "model=Sailfish&os=Android"
+	require.NoError(t, store.Update(ctx, r))
+
+	rows, err := db.Query(ctx, `SELECT trace_id, corpus, grouping_id, keys, matches_any_ignore_rule FROM Traces`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualTraces []schema.TraceRow
+	for rows.Next() {
+		var r schema.TraceRow
+		var matches pgtype.Bool
+		require.NoError(t, rows.Scan(&r.TraceID, &r.Corpus, &r.GroupingID, &r.Keys, &matches))
+		r.MatchesAnyIgnoreRule = convertToNullableBool(matches)
+		actualTraces = append(actualTraces, r)
+	}
+	assert.ElementsMatch(t, []schema.TraceRow{
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "One"}, schema.NBTrue), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "Two"}, schema.NBTrue),
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "Three"}, schema.NBTrue), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "One"}, schema.NBFalse),  // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "Two"}, schema.NBFalse),  // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "Three"}, schema.NBFalse),
+	}, actualTraces)
+
+	counts, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM ValuesAtHead`)
+	require.NoError(t, err)
+	defer counts.Close()
+	actualValuesAtHead := map[string]schema.NullableBool{}
+	for counts.Next() {
+		var model string
+		var name string
+		var matches pgtype.Bool
+		require.NoError(t, counts.Scan(&model, &name, &matches))
+		actualValuesAtHead[model+name] = convertToNullableBool(matches)
+	}
+	assert.Equal(t, map[string]schema.NullableBool{
+		"SailfishOne":   schema.NBTrue, // changed
+		"SailfishTwo":   schema.NBTrue,
+		"SailfishThree": schema.NBTrue,  // changed
+		"BullheadOne":   schema.NBFalse, // changed
+		"BullheadTwo":   schema.NBFalse, // changed
+		"BullheadThree": schema.NBFalse,
+	}, actualValuesAtHead)
+}
+
 func TestUpdate_InvalidQuery_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -263,4 +436,82 @@ func TestDelete_MissingID_NothingIsDeleted(t *testing.T) {
 	rules, err = store.List(ctx)
 	require.NoError(t, err)
 	require.Len(t, rules, 1)
+}
+
+func TestDelete_NoRulesRemain_NothingIsIgnored(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTests(ctx, t)
+	sqltest.CreateProductionSchema(ctx, t, db)
+	loadTestData(t, ctx, db)
+
+	store := New(db)
+	rules, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, rules, 1)
+
+	require.NoError(t, store.Delete(ctx, rules[0].ID))
+
+	rows, err := db.Query(ctx, `SELECT trace_id, corpus, grouping_id, keys, matches_any_ignore_rule FROM Traces`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualTraces []schema.TraceRow
+	for rows.Next() {
+		var r schema.TraceRow
+		var matches pgtype.Bool
+		require.NoError(t, rows.Scan(&r.TraceID, &r.Corpus, &r.GroupingID, &r.Keys, &matches))
+		r.MatchesAnyIgnoreRule = convertToNullableBool(matches)
+		actualTraces = append(actualTraces, r)
+	}
+	assert.ElementsMatch(t, []schema.TraceRow{
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "One"}, schema.NBFalse), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "Two"}, schema.NBFalse), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Sailfish", "name": "Three"}, schema.NBFalse),
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "One"}, schema.NBFalse), // changed
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "Two"}, schema.NBFalse),
+		traceRow(paramtools.Params{"os": "Android", "model": "Bullhead", "name": "Three"}, schema.NBFalse),
+	}, actualTraces)
+
+	counts, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM ValuesAtHead`)
+	require.NoError(t, err)
+	defer counts.Close()
+	for counts.Next() {
+		var model string
+		var name string
+		var matches pgtype.Bool
+		require.NoError(t, counts.Scan(&model, &name, &matches))
+		actual := convertToNullableBool(matches)
+		assert.Equal(t, schema.NBFalse, actual, "Value at head %s %s", model, name)
+	}
+}
+
+func TestConvertIgnoreRules_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	condition, args := convertIgnoreRules(nil)
+	assert.Equal(t, "false", condition)
+	assert.Empty(t, args)
+
+	condition, args = convertIgnoreRules([]paramtools.ParamSet{
+		{
+			"key1": []string{"alpha"},
+		},
+	})
+	assert.Equal(t, `((keys ->> $1::STRING IN ($2)))`, condition)
+	assert.Equal(t, []interface{}{"key1", "alpha"}, args)
+
+	condition, args = convertIgnoreRules([]paramtools.ParamSet{
+		{
+			"key1": []string{"alpha", "beta"},
+			"key2": []string{"gamma"},
+		},
+		{
+			"key3": []string{"delta", "epsilon", "zeta"},
+		},
+	})
+	const expectedCondition = `((keys ->> $1::STRING IN ($2, $3) AND keys ->> $4::STRING IN ($5))
+OR (keys ->> $6::STRING IN ($7, $8, $9)))`
+	assert.Equal(t, expectedCondition, condition)
+	assert.Equal(t, []interface{}{"key1", "alpha", "beta", "key2", "gamma", "key3", "delta", "epsilon", "zeta"}, args)
 }
