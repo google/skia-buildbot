@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "be42336b_f5543e18",
+        "filename": "tree_status/modules/enter-tree-status-sk/enter-tree-status-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-11T15:24:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b72162e6_724a7a20",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "82dd60292587360da0f4ca4edc6e0ab27d0d6e12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ce358e4e_8a28ea48",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "61772af6_866e3084",
+        "filename": "tree_status/modules/enter-tree-status-sk/enter-tree-status-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-11T15:24:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce358e4e_8a28ea48",
+      "range": {
+        "startLine": 69,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 32
+      },
+      "revId": "82dd60292587360da0f4ca4edc6e0ab27d0d6e12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "4752d218_17dccb09",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-01-07T21:03:05Z",
       "side": 1,
       "message": "Same as above.",
+      "range": {
+        "startLine": 79,
+        "startChar": 6,
+        "endLine": 79,
+        "endChar": 33
+      },
+      "revId": "82dd60292587360da0f4ca4edc6e0ab27d0d6e12",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1de8a4bd_04c1af92",
+        "filename": "tree_status/modules/enter-tree-status-sk/enter-tree-status-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-11T15:24:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4752d218_17dccb09",
       "range": {
         "startLine": 79,
         "startChar": 6,
