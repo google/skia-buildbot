@@ -1,4 +1,5 @@
 @import 'elements-sk/themes/themes';
+@import '../../infra-sk/themes';
 
 body,
 html {
@@ -88,19 +89,6 @@ body {
   --surface: var(--grey-200);
   --surface-1dp: var(--grey-300);
   --surface-1dp: var(--grey-400);
-  --success: rgb(102, 166, 30);
-  --success-alpha: rgba(102, 166, 30, 0.3);
-  --warning: rgb(255, 167, 38);
-  --warning-alpha: rgb(255, 171, 64, 0.8);
-  --failure: rgb(217, 95, 2);
-  --failure-alpha: rgba(217, 95, 2, 0.8);
-  --on-success: var(--black);
-  --on-failure: var(--black);
-  --on-warning: var(--black);
-  --unexpected: rgb(117, 112, 179);
-  --unexpected-alpha: rgba(117, 112, 179, 1);
-  --disabled: var(--grey-500);
-  --disabled-alpha: rgba(117, 117, 117, 1);
 
   .darkmode {
     --grey-850: #303030;
@@ -108,8 +96,6 @@ body {
     --on-primary: var(--grey-200);
     --secondary: #9a7200;
     --on-secondary: var(--grey-200);
-    --warning-alpha: rgb(255, 171, 64, 0.5);
-    --failure-alpha: rgba(217, 95, 2, 0.5);
     --on-background: var(--grey-300);
     --on-surface: var(--grey-400);
     --on-primary: var(--grey-200);
