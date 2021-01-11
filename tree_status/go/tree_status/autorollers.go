@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/tree_status/go/types"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -24,14 +25,6 @@ import (
 type Autoroller struct {
 	ID   string
 	Host string
-}
-
-// AutorollerSnapshot - contains the current state of an autoroller with
-// it's display name (eg: "Chrome") and URL (eg: "https://autoroll.skia.org/r/skia-autoroll").
-type AutorollerSnapshot struct {
-	DisplayName string `json:"name"`
-	NumFailed   int    `json:"num_failed"`
-	Url         string `json:"url"`
 }
 
 var (
@@ -51,14 +44,14 @@ var (
 	rollersToWatch = make(chan string, 1)
 )
 
-func getAutorollersSnapshot(ctx context.Context, db status.DB) ([]*AutorollerSnapshot, error) {
-	autorollersSnapshot := []*AutorollerSnapshot{}
+func getAutorollersSnapshot(ctx context.Context, db status.DB) ([]*types.AutorollerSnapshot, error) {
+	autorollersSnapshot := []*types.AutorollerSnapshot{}
 	for name, autoroller := range nameToAutoroller {
 		s, err := db.Get(ctx, autoroller.ID)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get the status of %s: %s", autoroller.ID, err)
 		}
-		snapshot := &AutorollerSnapshot{
+		snapshot := &types.AutorollerSnapshot{
 			DisplayName: name,
 			NumFailed:   s.AutoRollMiniStatus.NumFailedRolls,
 			Url:         fmt.Sprintf("https://%s/r/%s", autoroller.Host, autoroller.ID),

@@ -10,6 +10,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
     "@types/copy-webpack-plugin": "^5.0.1",
+    "@types/mocha": "^7.0.2",
     "@types/webpack": "^4.41.13",
     "autoprefixer": "^9.6.1",
     "chai": "~4.2.0",
