@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d91a6fa2_38623048",
+        "filename": "tree_status/modules/colors.css",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-11T19:04:43Z",
+      "side": 1,
+      "message": "Aren\u0027t there common colors for these already defined for status? Can we move them to a common combined location and reuse them?",
+      "range": {
+        "startLine": 11,
+        "startChar": 16,
+        "endLine": 11,
+        "endChar": 29
+      },
+      "revId": "297266d3f75d1ea95d98f133b82a33a39e04ad1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
