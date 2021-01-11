@@ -34,16 +34,13 @@ import {
   ManualRoll_Result,
   ManualRoll_Status,
   Mode,
-  ModeChange,
   Revision,
   Strategy,
-  StrategyChange,
   TryJob,
   SetModeResponse,
   SetStrategyResponse,
   GetStatusResponse,
   AutoRollCL_Result,
-  TryJob_Status,
   TryJob_Result,
 } from '../rpc';
 
@@ -386,7 +383,11 @@ export class ARBStatusSk extends ElementSk {
                     ? truncate(rollCandidate.revision.description, 100)
                     : html``}
                 </td>
-                <td>${localeTime(new Date(rollCandidate.revision.time!))}</td>
+                <td>
+                  ${!!rollCandidate.revision.time
+                    ? localeTime(new Date(rollCandidate.revision.time!))
+                    : html``}
+                </td>
                 <td>
                   ${rollCandidate.roll ? rollCandidate.roll.requester : html``}
                 </td>
@@ -431,7 +432,10 @@ export class ARBStatusSk extends ElementSk {
                             rollCandidate.roll
                           )}"
                         >
-                          ${rollCandidate.roll.result}
+                          ${rollCandidate.roll.result ==
+                          ManualRoll_Result.UNKNOWN
+                            ? html``
+                            : rollCandidate.roll.result}
                         </span>
                       `
                     : html``}
@@ -744,9 +748,6 @@ export class ARBStatusSk extends ElementSk {
     // Pick the next window.
     openTimes.sort((a, b) => a.getTime() - b.getTime());
     const rollWindowStart = openTimes[0].toString();
-    console.log('window start: ' + rollWindowStart);
-    console.log('locale: ' + openTimes[0].toLocaleString());
-    console.log('result: ' + localeTime(openTimes[0]));
     return openTimes[0];
   }
 
