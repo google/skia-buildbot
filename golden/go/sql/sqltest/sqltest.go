@@ -121,3 +121,18 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 	_, err := db.Exec(ctx, insert, arguments...)
 	return skerr.Wrapf(err, "Inserting %d rows into table %s", table.Len(), name)
 }
+
+// BulkInsertTable allows users to insert a list of rows into a provided table. data is expected
+// to be a slice of SQLExporter, although that can't be enforced via golang's current typing.
+func BulkInsertTable(ctx context.Context, db *pgxpool.Pool, tableName string, data interface{}) error {
+	table := reflect.ValueOf(data)
+	if table.Kind() != reflect.Slice {
+		panic(`Expected table should be a slice: ` + tableName)
+	}
+
+	if err := writeToTable(ctx, db, tableName, table); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+
+}
