@@ -22,6 +22,30 @@
       },
       "revId": "e732c436ffe4530963c65c4309554e3da7f8a10c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1ff5393_19b839a4",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-11T21:23:03Z",
+      "side": 1,
+      "message": "Done.\n\nI wanted to test the database directly once, so I could then trust List() in other tests.",
+      "parentUuid": "c38b6b1d_3179266b",
+      "range": {
+        "startLine": 129,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 13
+      },
+      "revId": "e732c436ffe4530963c65c4309554e3da7f8a10c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
