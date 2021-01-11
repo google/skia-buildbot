@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6c09a817_fbc96fb0",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:37Z",
+      "side": 1,
+      "message": "Creating",
+      "range": {
+        "startLine": 60,
+        "startChar": 14,
+        "endLine": 60,
+        "endChar": 26
+      },
+      "revId": "d22f0f4c809dbd7d4e74e712c9718573c351817d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "79032fa7_a26bbc76",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:37Z",
+      "side": 1,
+      "message": "A comment with examples of possible values here could be helpful (none, daily, weekly, monthly, etc.).",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 15
+      },
+      "revId": "d22f0f4c809dbd7d4e74e712c9718573c351817d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3d8ed01c_7d80e7bb",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T21:15:37Z",
+      "side": 1,
+      "message": "Suggestion (please address in a separate CL if you accept this): I feel like I\u0027ve seen this type of iteration over tables and rows using the reflection API in a couple places now. Maybe we should consider adding a few methods to the schema.Tables struct implementing a visitor pattern or something similar.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 36
+      },
+      "revId": "d22f0f4c809dbd7d4e74e712c9718573c351817d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
