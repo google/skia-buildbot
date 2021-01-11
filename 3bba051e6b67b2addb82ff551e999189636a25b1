@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73564c6a_eb2d7241",
+        "filename": "golden/k8s-instances/skia-infra/skia-infra.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-11T18:45:45Z",
+      "side": 1,
+      "message": "Ubernit: Can we call this \"skia-infra\", so as not to deviate from the naming scheme used for other things? (e.g. skia-infra.json5, skia-infra-gold.skia.org, \"skia-infra\" as in the goldpushk command-line, etc.)",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 26
+      },
+      "revId": "3bba051e6b67b2addb82ff551e999189636a25b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
