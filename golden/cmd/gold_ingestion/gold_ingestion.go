@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
@@ -29,7 +30,9 @@ import (
 	"go.skia.org/infra/golden/go/gevent"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/ingestion/fs_ingestionstore"
+	"go.skia.org/infra/golden/go/ingestion/sqlingestionstore"
 	"go.skia.org/infra/golden/go/ingestion_processors"
+	"go.skia.org/infra/golden/go/sql"
 )
 
 const (
@@ -38,6 +41,9 @@ const (
 	// By setting the subscriber ID to be the same on all instances of the ingester,
 	// only one of the ingesters will get each event (usually).
 	subscriptionID = "gold-ingestion"
+
+	// Arbitrarily picked.
+	maxSQLConnections = 10
 )
 
 type ingestionServerConfig struct {
@@ -108,13 +114,31 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().WithDialTimeout(time.Second * 10).Client()
 
-	// Auth note: the underlying firestore.NewClient looks at the GOOGLE_APPLICATION_CREDENTIALS
-	// env variable, so we don't need to supply a token source.
-	fsClient, err := firestore.NewClient(context.Background(), isc.FirestoreProjectID, "gold", isc.FirestoreNamespace, nil)
-	if err != nil {
-		sklog.Fatalf("Unable to configure Firestore: %s", err)
+	var ingestionStore ingestion.IngestionStore
+	if isc.SQLDatabaseName != "" {
+		url := sql.GetConnectionURL(isc.SQLConnection, isc.SQLDatabaseName)
+		conf, err := pgxpool.ParseConfig(url)
+		if err != nil {
+			sklog.Fatalf("error getting postgres config %s: %s", url, err)
+		}
+
+		conf.MaxConns = maxSQLConnections
+		db, err := pgxpool.ConnectConfig(ctx, conf)
+		if err != nil {
+			sklog.Fatalf("error connecting to the database: %s", err)
+		}
+		ingestionStore = sqlingestionstore.New(db)
+		sklog.Infof("Using new SQL ingestion store")
+	} else {
+		// Auth note: the underlying firestore.NewClient looks at the GOOGLE_APPLICATION_CREDENTIALS
+		// env variable, so we don't need to supply a token source.
+		fsClient, err := firestore.NewClient(context.Background(), isc.FirestoreProjectID, "gold", isc.FirestoreNamespace, nil)
+		if err != nil {
+			sklog.Fatalf("Unable to configure Firestore: %s", err)
+		}
+		ingestionStore = fs_ingestionstore.New(fsClient)
+		sklog.Infof("Using old SQL ingestion store")
 	}
-	ingestionStore := fs_ingestionstore.New(fsClient)
 
 	// Set up the eventbus.
 	var eventBus eventbus.EventBus

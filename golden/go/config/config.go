@@ -40,12 +40,18 @@ type Common struct {
 	// itself, it pulls the data from BigTable, which is put there via gitsync.
 	GitRepoURL string `json:"git_repo_url"`
 
-	// Firestore Namespace; typically the instance id. e.g. 'flutter', 'skia', etc"
+	// Firestore Namespace; typically the instance id. e.g. 'flutter', 'skia', etc
 	FirestoreNamespace string `json:"fs_namespace"`
 
 	// The project with the Firestore instance. Datastore and Firestore can't be enabled the same
 	// project.
 	FirestoreProjectID string `json:"fs_project_id"`
+
+	// SQL username, host and port; typically root@localhost:26234 or root@gold-cockroachdb:26234
+	SQLConnection string `json:"sql_connection" optional:"true"`
+
+	// SQL Database name; typically the instance id. e.g. 'flutter', 'skia', etc
+	SQLDatabaseName string `json:"sql_database" optional:"true"`
 
 	// GCS path, where the known hashes file should be stored. Format: <bucket>/<path>.
 	KnownHashesGCSPath string `json:"known_hashes_gcs_path"`
