@@ -22,6 +22,30 @@
       },
       "revId": "297266d3f75d1ea95d98f133b82a33a39e04ad1f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "77200dee_6c8ec0ad",
+        "filename": "tree_status/modules/colors.css",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-11T19:26:48Z",
+      "side": 1,
+      "message": "I can try that. What would be a good location?\nsomething like infra-sk/tree-colors/tree.scss ?",
+      "parentUuid": "d91a6fa2_38623048",
+      "range": {
+        "startLine": 11,
+        "startChar": 16,
+        "endLine": 11,
+        "endChar": 29
+      },
+      "revId": "297266d3f75d1ea95d98f133b82a33a39e04ad1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
