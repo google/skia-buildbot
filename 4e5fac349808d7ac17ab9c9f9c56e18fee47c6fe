@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2bc5b5be_24da6719",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2021-01-11T16:38:56Z",
+      "side": 1,
+      "message": "The issue was about the reverse direction autoroll, but I think it will be good to enable manual rolls on this one as well.",
+      "revId": "4e5fac349808d7ac17ab9c9f9c56e18fee47c6fe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
