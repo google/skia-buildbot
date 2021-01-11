@@ -5,9 +5,19 @@
     @import '../colors';
 */
 
-html {
-  --purple: #CCCCFF;
-  --red: #F0A8A8;
-  --yellow: #FFFD99;
-  --green: #90EE90;
+:root {
+  --primary: rgb(63, 81, 181);
+
+  --closed: rgb(240, 168, 168);
+  --caution: rgb(255, 253, 153);
+  --open: rgb(144, 238, 144);
+
+  .darkmode {
+    --primary: var(--blue-grey-600);
+    --on-primary: var(--white);
+
+    --closed: rgb(217, 95, 2);
+    --caution: rgb(255, 167, 38);
+    --open: rgb(102, 166, 30);
+  }
 }
