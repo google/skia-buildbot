@@ -22,6 +22,30 @@
       },
       "revId": "3bba051e6b67b2addb82ff551e999189636a25b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0bacefdd_f942ac44",
+        "filename": "golden/k8s-instances/skia-infra/skia-infra.json5",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-11T18:53:22Z",
+      "side": 1,
+      "message": "dashes are not valid in database names.",
+      "parentUuid": "73564c6a_eb2d7241",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 26
+      },
+      "revId": "3bba051e6b67b2addb82ff551e999189636a25b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
