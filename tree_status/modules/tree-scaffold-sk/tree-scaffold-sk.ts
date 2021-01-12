@@ -17,10 +17,10 @@ import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/folder-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/icon/home-icon-sk';
-import 'elements-sk/nav-button-sk';
-import 'elements-sk/nav-links-sk';
 
+import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 /**
  * Moves the elements from one NodeList to another NodeList.
@@ -41,19 +41,28 @@ export class TreeScaffoldSk extends ElementSk {
 
 
   private static template = (ele: TreeScaffoldSk) => html`
-  <nav>
-    <nav-button-sk></nav-button-sk>
-    <nav-links-sk>
-      <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a>
-      <a href="http://go/skia-tree-status-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
-      <a href="https://github.com/google/skia-buildbot/tree/master/tree_status" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
-    </nav-links-sk>
-    <h1 class=name>${ele.appTitle}</h1>
-    <login-sk></login-sk>
-  </nav>
-  <main>
-  </main>
-  <error-toast-sk></error-toast-sk>
+  <app-sk>
+    <header class="primary-container-themes-sk">
+      <h1 class=name>${ele.appTitle}</h1>
+      <div class="spacer"></div>
+      <login-sk></login-sk>
+      <theme-chooser-sk></theme-chooser-sk>
+    </header>
+
+    <aside class="surface-themes-sk">
+      <nav>
+        <a href="/" tab-index=0 ><home-icon-sk></home-icon-sk><span>Skia Tree Status</span></a>
+        <a href="http://go/skia-tree-status-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a>
+        <a href="https://github.com/google/skia-buildbot/tree/master/tree_status" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
+      </nav>
+    </aside>
+
+    <main></main>
+
+    <footer>
+      <error-toast-sk></error-toast-sk>
+    </footer>
+  </app-sk>
 `;
 
   connectedCallback(): void {

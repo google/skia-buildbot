@@ -5,9 +5,17 @@
     @import '../colors';
 */
 
-html {
-  --purple: #CCCCFF;
-  --red: #F0A8A8;
-  --yellow: #FFFD99;
-  --green: #90EE90;
+@import '../../infra-sk/themes';
+
+:root {
+  --primary: rgb(63, 81, 181);
+
+  --closed: var(--failure-alpha);
+  --caution: var(--warning-alpha);
+  --open: var(--success-alpha);
+
+  .darkmode {
+    --primary: var(--blue-grey-600);
+    --on-primary: var(--white);
+  }
 }

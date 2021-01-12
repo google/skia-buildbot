@@ -45,6 +45,7 @@ export class EnterTreeStatus extends ElementSk {
 <input id='tree_status' size=60 placeholder='Add tree status with text containing either of (open/close/caution)' value=${ele.status_value}></input>
 <button @click=${ele.addTreeStatus}>Submit</button>
 <br/>
+<br/>
 <button id='display_autorollers' @click=${ele.toggleAutorollers}>Caution/Close till Roll Lands</button>
 <br/>
 <br/>

@@ -6,7 +6,7 @@ list-autorollers-sk {
   }
 
   div.autorollers {
-    border: 1px solid black;
+    border: 1px solid var(--on-background);
     padding: 1em;
     display: inline-block;
     font-size: 1.2em;
@@ -19,6 +19,10 @@ list-autorollers-sk {
 
   div, td, th, a, label, span {
     font-size: 1.2em;
+  }
+
+  a[href] {
+    color: var(--on-background);
   }
 
   radio-sk {
