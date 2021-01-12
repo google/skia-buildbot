@@ -46,6 +46,9 @@ ct-scaffold-sk {
   }
 
   /* Overrides to elements-sk elements since they set color internally. */
+  svg.icon-sk-svg {
+    fill: var(--on-surface);
+  }
   app-sk, app-sk > aside {
     background-color: var(--background);
     color: var(--on-background);
