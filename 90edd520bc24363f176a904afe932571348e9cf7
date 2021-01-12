@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a15d100d_57f5ba53",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:08:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15793497_6b5cec12",
+      "range": {
+        "startLine": 1,
+        "startChar": 26,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0cad0291_82f847c3",
@@ -110,6 +134,78 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9f3ef68f_6c3c053a",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:08:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cad0291_82f847c3",
+      "range": {
+        "startLine": 2,
+        "startChar": 2,
+        "endLine": 2,
+        "endChar": 20
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8307ed6e_96653bda",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:08:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4983318c_b63d1965",
+      "range": {
+        "startLine": 2,
+        "startChar": 63,
+        "endLine": 2,
+        "endChar": 76
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4e50a34_5bde9b82",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:08:59Z",
+      "side": 1,
+      "message": "I doubt schema.Schema is going to change in that regard, so I\u0027m leaving this wording as is.",
+      "parentUuid": "5241364e_487992a4",
+      "range": {
+        "startLine": 2,
+        "startChar": 43,
+        "endLine": 2,
+        "endChar": 58
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d18fe9b0_6cc8017a",
@@ -123,6 +219,30 @@
       "writtenOn": "2021-01-11T21:15:28Z",
       "side": 1,
       "message": "I\u0027d suggest using the phrase \"Creating the database schema\", or \"Instantiating the database schema\", or some variation of that. On first read, I interpreted \"initializing\" as populating pre-existing tables with some initial rows.",
+      "range": {
+        "startLine": 38,
+        "startChar": 14,
+        "endLine": 38,
+        "endChar": 33
+      },
+      "revId": "90edd520bc24363f176a904afe932571348e9cf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d788b767_3e810b48",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:08:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d18fe9b0_6cc8017a",
       "range": {
         "startLine": 38,
         "startChar": 14,
