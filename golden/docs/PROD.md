@@ -275,3 +275,23 @@ and <https://skbug.com/10768> for more context on these.
 This is potentially problematic in that the excess load could be causing Gold to act slowly
 or even affect other tenants of the k8s pod. The cause of this load should be identified.
 
+Backups
+=======
+We use CockroachDB's [automated backup system](https://www.cockroachlabs.com/docs/stable/create-schedule-for-backup.html)
+to automatically backup tables. These scheduled activities are stored cluster-wide and can be seen
+by running `SHOW SCHEDULES;`
+
+Restoring from automatic backups
+--------------------------------
+The following shows an example of restoring two tables from backups.
+```
+RESTORE skiainfra.commits, skiainfra.expectationdeltas
+FROM 'gs://skia-gold-sql-backups/skiainfra/daily/2021/01/12-000000.00'
+WITH into_db = 'skiainfra';
+```
+
+The location on the second line leads to the directory with the backup files. The third line is
+optional and can be modified to restore into a different database than the backup originated (maybe
+to set up a staging instance or otherwise verify the backup data).
+
+See the [CockroachDB docs](https://www.cockroachlabs.com/docs/v20.2/restore) for more details.
