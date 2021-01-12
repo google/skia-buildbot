@@ -16,6 +16,8 @@
   git_repo_url: "https://github.com/flutter/engine",
   fs_namespace: "flutter-engine",
   fs_project_id: "skia-firestore",
+  sql_connection: "root@gold-cockroachdb:26234",
+  sql_database: "flutterengine",
   known_hashes_gcs_path: "skia-gold-flutter-engine/hash_files/gold-flutter-engine-hashes.txt",
 
   // These values affect the k8s deployment; they are not read in by the binary.
