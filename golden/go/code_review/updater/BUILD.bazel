@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "updater",
+    srcs = ["updater.go"],
+    importpath = "go.skia.org/infra/golden/go/code_review/updater",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vcsinfo",
+        "//golden/go/clstore",
+        "//golden/go/code_review",
+        "//golden/go/expectations",
+    ],
+)
+
+go_test(
+    name = "updater_test",
+    srcs = ["updater_test.go"],
+    embed = [":updater"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//golden/go/clstore",
+        "//golden/go/clstore/mocks",
+        "//golden/go/code_review",
+        "//golden/go/code_review/mocks",
+        "//golden/go/expectations",
+        "//golden/go/expectations/mocks",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

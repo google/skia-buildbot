@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "ignore",
+    srcs = ["ignore.go"],
+    importpath = "go.skia.org/infra/golden/go/ignore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/tiling",
+    ],
+)
+
+go_test(
+    name = "ignore_test",
+    srcs = ["ignore_test.go"],
+    embed = [":ignore"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//golden/go/testutils/data_three_devices",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

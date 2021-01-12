@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "fs_ingestionstore",
+    srcs = ["fs_ingestionstore.go"],
+    importpath = "go.skia.org/infra/golden/go/ingestion/fs_ingestionstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore",
+        "//go/metrics2",
+        "//go/skerr",
+        "//golden/go/ingestion",
+        "@com_google_cloud_go_firestore//:firestore",
+    ],
+)
+
+go_test(
+    name = "fs_ingestionstore_test",
+    srcs = ["fs_ingestionstore_test.go"],
+    embed = [":fs_ingestionstore"],
+    deps = [
+        "//go/firestore",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

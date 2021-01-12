@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "data_one_by_five",
+    srcs = ["one_by_five.go"],
+    importpath = "go.skia.org/infra/golden/go/testutils/data_one_by_five",
+    visibility = ["//visibility:public"],
+)

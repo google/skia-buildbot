@@ -150,6 +150,7 @@ test-frontend-ci:
 # Directories with Go code that is built using Gazelle-generated BUILD files.
 GAZELLE_DIRS=\
 	./go \
+	./golden \
 	./machine \
 	./task_scheduler \
 
@@ -165,6 +166,7 @@ update-go-bazel-deps:
 BAZEL_BUILD_TARGETS=\
 	//bazel/... \
 	//go/... \
+	//golden/... \
 	//infra-sk/... \
 	//machine/modules/... \
 	//machine/pages/... \
