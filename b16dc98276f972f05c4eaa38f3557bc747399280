@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "93b29d1d_eac6299b",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-12T19:42:34Z",
+      "side": 1,
+      "message": "Without reading the rollbackAndLogError function body, I thought this would roll back the transaction even if it\u0027s successful. I would recommend naming this \"rollbackAndLogIfError\". See my comment below for some extra rationale.",
+      "range": {
+        "startLine": 40,
+        "startChar": 7,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a70c6534_5a944f3d",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-12T19:42:34Z",
+      "side": 1,
+      "message": "Per https://pkg.go.dev/github.com/jackc/pgx#Tx.Rollback, this will return ErrTxClosed when the transaction was successful (see e.g. the deferred call to rollbackAndLogError on line 40). So this function will produce an \"Error while rolling back\" warning even for successful transactions, which will probably be quite noisy. Should we only log said warning if the error type is not ErrTxClosed?\n\nIf so, I recommend renaming this \"rollbackAndLogIfError\" to make this a bit clearer.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 24
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3151a487_a44735aa",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-12T19:42:34Z",
+      "side": 1,
+      "message": "Ubernit: line length.",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 101
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "18b4c99a_d84a82ab",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-12T19:42:34Z",
+      "side": 1,
+      "message": "Ubernit: remove?",
+      "range": {
+        "startLine": 122,
+        "startChar": 58,
+        "endLine": 122,
+        "endChar": 59
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c8e68694_97d50841",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-12T19:42:34Z",
+      "side": 1,
+      "message": "Why is this important? What happens if we don\u0027t include the RETURNING parameter? I suspect we\u0027ll get the number of updated rows, as per https://www.cockroachlabs.com/docs/v20.2/update, though the documentation isn\u0027t very clear. But if that\u0027s correct, why is it important to explicitly return nothing instead of just letting CRDB do the default thing and ignore the returned single scalar value?",
+      "range": {
+        "startLine": 141,
+        "startChar": 16,
+        "endLine": 141,
+        "endChar": 33
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d345aafc_23167f4f",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-12T19:42:34Z",
+      "side": 1,
+      "message": "Nice test 😊",
+      "range": {
+        "startLine": 489,
+        "startChar": 0,
+        "endLine": 489,
+        "endChar": 51
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
