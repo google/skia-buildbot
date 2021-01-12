@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6f51b66_90198278",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T18:37:32Z",
+      "side": 1,
+      "message": "Do you think it\u0027s worthwhile to have the Methods() defined for other handlers?",
+      "range": {
+        "startLine": 546,
+        "startChar": 80,
+        "endLine": 546,
+        "endChar": 95
+      },
+      "revId": "ff94cf693ed9baa5e285acfaf406b68f8d568a23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5176f15f_0e99e3e8",
+        "filename": "fiddlek/go/fiddle/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 580,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T18:37:32Z",
+      "side": 1,
+      "message": "Fatalf (but it might not matter much)",
+      "range": {
+        "startLine": 580,
+        "startChar": 8,
+        "endLine": 580,
+        "endChar": 13
+      },
+      "revId": "ff94cf693ed9baa5e285acfaf406b68f8d568a23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6ce2f45_33c73da0",
+        "filename": "fiddlek/go/fiddle/main_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T18:37:32Z",
+      "side": 1,
+      "message": "args.Get() has a nicer panic message if it goes wrong.",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 19
+      },
+      "revId": "ff94cf693ed9baa5e285acfaf406b68f8d568a23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
