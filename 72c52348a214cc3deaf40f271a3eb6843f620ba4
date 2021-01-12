@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0b82028_54fdb42f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-12T13:20:11Z",
+      "side": 1,
+      "message": "Infra-PerCommit-Puppeteer is now green. Thanks to Leandro who uploaded a patch here to fix that bot.",
+      "revId": "72c52348a214cc3deaf40f271a3eb6843f620ba4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
