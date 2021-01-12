@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/scrap/go/api"
+	"go.skia.org/infra/scrap/go/scrap"
 	"google.golang.org/api/option"
 )
 
@@ -72,10 +73,12 @@ func New() (baseapp.App, error) {
 		return nil, skerr.Wrap(err)
 	}
 	gcsClient := gcsclient.New(storageClient, *bucket)
-	apiEndpoints, err := api.New(gcsClient)
+	scrapExchange, err := scrap.New(gcsClient)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "Failed to create ScrapExchange.")
 	}
+
+	apiEndpoints := api.New(scrapExchange)
 
 	srv := &server{
 		apiEndpoints: apiEndpoints,

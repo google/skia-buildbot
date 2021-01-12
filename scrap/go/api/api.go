@@ -10,10 +10,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/scrap/go/scrap"
 )
@@ -37,14 +35,10 @@ type Api struct {
 }
 
 // New returns a new Api instance.
-func New(client *gcsclient.StorageClient) (*Api, error) {
-	se, err := scrap.New(client)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create ScrapExchange.")
-	}
+func New(scrapExchange scrap.ScrapExchange) *Api {
 	return &Api{
-		scrapExchange: se,
-	}, nil
+		scrapExchange: scrapExchange,
+	}
 }
 
 // The URL variable names used in the mux Path handlers. See ApplyHandlers.

@@ -69,8 +69,7 @@ func makeRequest(scrapExchange *mocks.ScrapExchange, w http.ResponseWriter, r *h
 }
 
 func testMethodAndPathReturnExpectedStatusCode(t *testing.T, method string, path string, expectedCode int) {
-	a, err := New(nil)
-	require.NoError(t, err)
+	a := New(nil)
 
 	// Make the request through a mux.Router so the URL paths get parsed and
 	// routed correctly.
@@ -82,7 +81,6 @@ func testMethodAndPathReturnExpectedStatusCode(t *testing.T, method string, path
 
 	router.ServeHTTP(w, r)
 	require.Equal(t, expectedCode, w.Code, "path: %s method: %s", path, method)
-
 }
 
 func TestAddHandlers_DoNotEnableProtectedEndpoints_ProtectedEndpointsReturn4xxStatusCodes(t *testing.T) {
