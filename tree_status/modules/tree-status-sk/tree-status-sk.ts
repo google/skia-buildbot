@@ -32,7 +32,9 @@ export class TreeStatusSk extends ElementSk {
   }
 
   private static template = (ele: TreeStatusSk) => html`
+  <br/>
   <enter-tree-status-sk .autorollers=${ele.autorollers}></enter-tree-status-sk>
+  <br/>
   <display-tree-status-sk .statuses=${ele.statuses}></display-tree-status-sk>
 `;
 
