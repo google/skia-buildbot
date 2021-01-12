@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "72e851f7_efa157c8",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T19:58:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93b29d1d_eac6299b",
+      "range": {
+        "startLine": 40,
+        "startChar": 7,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a70c6534_5a944f3d",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-12T19:42:34Z",
       "side": 1,
       "message": "Per https://pkg.go.dev/github.com/jackc/pgx#Tx.Rollback, this will return ErrTxClosed when the transaction was successful (see e.g. the deferred call to rollbackAndLogError on line 40). So this function will produce an \"Error while rolling back\" warning even for successful transactions, which will probably be quite noisy. Should we only log said warning if the error type is not ErrTxClosed?\n\nIf so, I recommend renaming this \"rollbackAndLogIfError\" to make this a bit clearer.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 24
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "067561c7_da951a72",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T19:58:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a70c6534_5a944f3d",
       "range": {
         "startLine": 51,
         "startChar": 0,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c0dd53ef_fe75a567",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T19:58:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3151a487_a44735aa",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 101
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "18b4c99a_d84a82ab",
@@ -93,6 +165,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2b8d64d_7c8d04f3",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T19:58:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18b4c99a_d84a82ab",
+      "range": {
+        "startLine": 122,
+        "startChar": 58,
+        "endLine": 122,
+        "endChar": 59
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c8e68694_97d50841",
@@ -106,6 +202,30 @@
       "writtenOn": "2021-01-12T19:42:34Z",
       "side": 1,
       "message": "Why is this important? What happens if we don\u0027t include the RETURNING parameter? I suspect we\u0027ll get the number of updated rows, as per https://www.cockroachlabs.com/docs/v20.2/update, though the documentation isn\u0027t very clear. But if that\u0027s correct, why is it important to explicitly return nothing instead of just letting CRDB do the default thing and ignore the returned single scalar value?",
+      "range": {
+        "startLine": 141,
+        "startChar": 16,
+        "endLine": 141,
+        "endChar": 33
+      },
+      "revId": "b16dc98276f972f05c4eaa38f3557bc747399280",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eff53fac_fd22cf63",
+        "filename": "golden/go/ignore/sqlignorestore/sqlignorestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T19:58:14Z",
+      "side": 1,
+      "message": "I can\u0027t find the primary source that showed me this trick during exploratory design, but here\u0027s the comment I added \"\nRETURNING NOTHING hints the SQL engine that it can shard this out w/o having to count the total number of rows modified, which can lead to slightly faster queries.\"",
+      "parentUuid": "c8e68694_97d50841",
       "range": {
         "startLine": 141,
         "startChar": 16,
