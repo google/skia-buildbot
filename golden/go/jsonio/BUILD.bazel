@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "jsonio",
+    srcs = ["jsonio.go"],
+    importpath = "go.skia.org/infra/golden/go/jsonio",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "jsonio_test",
+    srcs = ["jsonio_test.go"],
+    embed = [":jsonio"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)

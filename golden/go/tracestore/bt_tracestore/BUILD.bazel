@@ -1,0 +1,53 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "bt_tracestore",
+    srcs = [
+        "bt_tracestore.go",
+        "types.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/tracestore/bt_tracestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/bt",
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "//golden/go/tiling",
+        "//golden/go/tracestore",
+        "//golden/go/types",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "bt_tracestore_test",
+    srcs = [
+        "bt_tracestore_test.go",
+        "types_test.go",
+        "util_test.go",
+    ],
+    embed = [":bt_tracestore"],
+    deps = [
+        "//go/bt",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//go/vcsinfo/mocks",
+        "//golden/go/testutils/data_bug_revert",
+        "//golden/go/testutils/data_three_devices",
+        "//golden/go/tiling",
+        "//golden/go/tracestore",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
