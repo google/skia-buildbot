@@ -3,6 +3,31 @@ load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 
+# Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
+#
+# We opt out of this feature for the following reasons:
+#
+# 1) Generated files are invisible to code editors and IDEs, which breaks features such as code
+#    completion, automated refactors, etc. This can be fixed with editor plugins (see
+#    https://github.com/bazelbuild/rules_go/issues/512), but none are available at this time.
+#
+# 2) Leveraging the preexisting, checked-in .pb.go is the fastest way to roll out Bazel as the build
+#    system for our repository, and is the recommended approach for already established projects, or
+#    for projects that also need to build with "go build". See
+#    https://github.com/bazelbuild/rules_go/blob/master/proto/core.rst#option-2-use-pre-generated-pbgo-files.
+#
+# In the future, we might decide to leverage Gazelle's generation of go_proto_library rules. To
+# address point 1) above, a potential approach is to check in any files generated via
+# go_proto_library targets. This works because if there's a source file checked in the repository,
+# and a build target that generates a file of the same name, Bazel will ignore the checked in file
+# and use the generated file instead. To keep the checked in and generated files in sync, a rule
+# such as generated_file_test can be used, as mentioned here:
+# https://github.com/bazelbuild/rules_go/issues/512#issuecomment-747844469.
+#
+# Documentation for this directive: https://github.com/bazelbuild/bazel-gazelle#directives.
+#
+# gazelle:proto disable
+
 # gazelle:prefix go.skia.org/infra
 gazelle(name = "gazelle")
 
