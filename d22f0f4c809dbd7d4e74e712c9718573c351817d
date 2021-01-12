@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "527703ac_380ebf4c",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:20:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c09a817_fbc96fb0",
+      "range": {
+        "startLine": 60,
+        "startChar": 14,
+        "endLine": 60,
+        "endChar": 26
+      },
+      "revId": "d22f0f4c809dbd7d4e74e712c9718573c351817d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "79032fa7_a26bbc76",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e18dd28c_4863cc73",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:20:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79032fa7_a26bbc76",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 15
+      },
+      "revId": "d22f0f4c809dbd7d4e74e712c9718573c351817d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3d8ed01c_7d80e7bb",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-01-11T21:15:37Z",
       "side": 1,
       "message": "Suggestion (please address in a separate CL if you accept this): I feel like I\u0027ve seen this type of iteration over tables and rows using the reflection API in a couple places now. Maybe we should consider adding a few methods to the schema.Tables struct implementing a visitor pattern or something similar.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 36
+      },
+      "revId": "d22f0f4c809dbd7d4e74e712c9718573c351817d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9840c7f_b41789bb",
+        "filename": "golden/cmd/sqlinit/sqlinit.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-12T13:20:28Z",
+      "side": 1,
+      "message": "At the moment, I don\u0027t think it\u0027s worth abstracting it out.",
+      "parentUuid": "3d8ed01c_7d80e7bb",
       "range": {
         "startLine": 89,
         "startChar": 0,
