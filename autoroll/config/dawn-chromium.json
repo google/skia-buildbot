@@ -55,5 +55,17 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "4h"
+  "maxRollFrequency": "4h",
+  "transitiveDeps": [
+    {
+      "child": {
+        "id": "https://dawn.googlesource.com/tint",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://dawn.googlesource.com/tint",
+        "path": "DEPS"
+      }
+    }
+  ]
 }
