@@ -7,9 +7,9 @@
  * </p>
  */
 
-import { html } from 'lit-html'
-
-import { define } from 'elements-sk/define'
+import { html } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
+import { define } from 'elements-sk/define';
 import 'elements-sk/styles/table';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -22,6 +22,11 @@ import {
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
+  <div>
+    Filter: <input id="filter" type="text" @input="${
+      ele.updateFiltered
+    }"></input>
+  </div>
   <table>
     <tr>
       <th>Roller ID</th>
@@ -29,19 +34,24 @@ export class ARBTableSk extends ElementSk {
       <th>Num Behind</th>
       <th>Num Failed</th>
     </tr>
-    ${ele.rollers?.map((st) => html`
-    <tr>
-      <td>
-        <a href="/r/${st.rollerId}">${st.childName} into ${st.parentName}</a>
-      </td>
-      <td>${st.mode.toLowerCase()}</td>
-      <td>${st.numBehind}</td>
-      <td>${st.numFailed}</td>
-    </tr>
-  `)}
+    ${ele.filtered.map(
+      (st) => html`
+        <tr>
+          <td>
+            <a href="/r/${st.rollerId}"
+              >${st.childName} into ${st.parentName}</a
+            >
+          </td>
+          <td>${st.mode.toLowerCase()}</td>
+          <td>${st.numBehind}</td>
+          <td>${st.numFailed}</td>
+        </tr>
+      `
+    )}
   </table>
 `;
   private rollers: AutoRollMiniStatus[] = [];
+  private filtered: AutoRollMiniStatus[] = [];
   private rpc: AutoRollService;
 
   constructor() {
@@ -57,8 +67,24 @@ export class ARBTableSk extends ElementSk {
   private reload() {
     this.rpc.getRollers({}).then((resp: GetRollersResponse) => {
       this.rollers = resp.rollers!;
-      this._render();
+      this.updateFiltered();
     });
+  }
+
+  private updateFiltered() {
+    this.filtered = this.rollers;
+    const filterInput = $$<HTMLInputElement>('#filter', this);
+    if (!!filterInput && !!filterInput.value) {
+      const regex = new RegExp(filterInput!.value);
+      this.filtered = this.rollers.filter((st: AutoRollMiniStatus) => {
+        return (
+          st.rollerId.match(regex) ||
+          st.childName.match(regex) ||
+          st.parentName.match(regex)
+        );
+      });
+    }
+    this._render();
   }
 }
 
