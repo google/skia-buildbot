@@ -204,6 +204,7 @@ container_pull(
 
 rbe_autoconfig(
     name = "rbe_default",
+    # Digest of the rbe-ubuntu16-04 image pulled above.
     base_container_digest = "sha256:f6568d8168b14aafd1b707019927a63c2d37113a03bcee188218f99bd0327ea1",
     # Digest of the most recent gcr.io/skia-public/rbe-container-skia-infra image.
     #

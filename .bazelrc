@@ -14,6 +14,10 @@
 
 build --workspace_status_command=bazel/get_workspace_status.sh
 
+# Tags such as no-remote and no-cache have no effect without this. See
+# https://github.com/bazelbuild/bazel/issues/8830.
+build --experimental_allow_tags_propagation
+
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
 # Setting it too high can result in jobs that timeout, however, while waiting
