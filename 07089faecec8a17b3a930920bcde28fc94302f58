@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0c40544d_6046b2ae",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "I would expect this to be bound to an event (@apply) not passing in a bound function.",
+      "range": {
+        "startLine": 104,
+        "startChar": 5,
+        "endLine": 104,
+        "endChar": 10
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9f22e39f_ff84dd18",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "ubernit: always wrap args, even if there is only one.",
+      "range": {
+        "startLine": 445,
+        "startChar": 11,
+        "endLine": 445,
+        "endChar": 14
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "876c7d04_62a69d79",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "please run eslint --fix to catch the easy stuff (e.g. missing semicolons)",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 9
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7787d0b7_88a492c3",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "I don\u0027t see this event be emitted.",
+      "range": {
+        "startLine": 11,
+        "startChar": 8,
+        "endLine": 11,
+        "endChar": 13
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d00c41c1_7d16e483",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "Please don\u0027t nest templates like this - it makes it much harder to read. Break it out into a helper function.",
+      "range": {
+        "startLine": 26,
+        "startChar": 42,
+        "endLine": 30,
+        "endChar": 11
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9e31abcd_42f85bca",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "As above, please break this nested template out into a helper function.",
+      "range": {
+        "startLine": 47,
+        "startChar": 46,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "be870e23_9e0fd634",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "Is this meant to be part of the public API? I don\u0027t see it be called anywhere.\n\nIn any case, because this is the crux of this implementation, I would really appreciate some documentation explaining what the overall purpose of this function is, as well as explaining some of the tricky chained methods below.",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 110,
+        "endChar": 12
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e371546_fd080ee0",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "ubernit: always wrap arguments, even if there is just one.",
+      "range": {
+        "startLine": 112,
+        "startChar": 12,
+        "endLine": 112,
+        "endChar": 17
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "94788919_5dfb7a50",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "I would appreciate a named constant here instead of a magic number. Same for the 5 below.",
+      "range": {
+        "startLine": 112,
+        "startChar": 34,
+        "endLine": 112,
+        "endChar": 35
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "023ca7bb_5f873cd3",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "As someone who is not super familiar with the lottie format, this is beyond my understanding. Please add some comments.",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 39
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7cf0d528_6e6920d4",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "Again, I would prefer named constants over magic numbers.",
+      "range": {
+        "startLine": 168,
+        "startChar": 33,
+        "endLine": 168,
+        "endChar": 35
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7822bd6d_06ee51a3",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "ubernit: we usually put the callbacks for connected/disconnected underneath the constructor so they are grouped together.",
+      "range": {
+        "startLine": 185,
+        "startChar": 2,
+        "endLine": 185,
+        "endChar": 19
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ba45b3f3_ea8bac4a",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "please remove commented out code",
+      "range": {
+        "startLine": 186,
+        "startChar": 4,
+        "endLine": 186,
+        "endChar": 35
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0885b0c_230cc76b",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-13T14:03:17Z",
+      "side": 1,
+      "message": "Please add the fact that there is an animation property that is read exactly once at load time to the docs (@prop). Is it intended that this only be set once? If the parent updates the animation and we want this element to also update, then I would suggest creating a property setter that calls buildTexts() and _render().",
+      "range": {
+        "startLine": 187,
+        "startChar": 53,
+        "endLine": 187,
+        "endChar": 62
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
