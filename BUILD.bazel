@@ -24,6 +24,19 @@ buildifier(
 # Generates a custom toolchain container for Remote Build Execution which extends the default RBE
 # ubuntu16-04 container with any extra dependencies needed for Skia Infrastructure build targets.
 #
+# This container can be pushed to GCR via the container_push target defined below.
+#
+# Notes:
+#
+#  - This target is tagged with "no-remote" because the container_run_and_commit rule calls the
+#    Docker binary, which requires the Docker daemon to be running. This fails on RBE with error
+#    "Cannot connect to the Docker daemon at [...]. Is the docker daemon running?". By tagging this
+#    target with "no-remote", we tell Bazel to build this target locally, even with --config=remote.
+#
+#  - The output of this rule is a >3GB .tar with the container image, so this target can take
+#    several minutes to build. This is OK because we only need to rebuild this container very
+#    occasionally, and Bazel will cache the output artifact.
+#
 # Reference:
 # https://cloud.google.com/remote-build-execution/docs/create-custom-toolchain#creating_a_custom_toolchain_container
 container_run_and_commit(
@@ -63,8 +76,13 @@ container_run_and_commit(
         ]),
     ],
     image = "@rbe_ubuntu1604//image",
+    tags = ["no-remote"],
 )
 
+# This target can be used to upload the custom RBE container toolchain to GCR. It will be available
+# as gcr.io/skia-public/rbe-container-skia-infra.
+#
+# Note: this can take several minutes to finish because it will upload a >3GB .tar file to GCR.
 container_push(
     name = "push_rbe_container_skia_infra",
     format = "Docker",
