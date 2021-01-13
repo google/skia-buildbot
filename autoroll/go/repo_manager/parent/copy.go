@@ -35,7 +35,7 @@ func (e CopyEntry) Validate() error {
 }
 
 // CopyConfig provides configuration for a Parent which copies the Child
-// into itself. It uses a local git checkout and uploads changes to Gerrit.
+// into itself. It uses Gitiles and Gerrit instead of a local checkout.
 type CopyConfig struct {
 	GitilesConfig
 
