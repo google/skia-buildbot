@@ -22,11 +22,15 @@ import (
 
 func main() {
 	backupBucket := flag.String("backup_bucket", "skia-gold-sql-backups", "The bucket backups should be written to. Defaults to public bucket.")
+	dbCluster := flag.String("db_cluster", "gold-cockroachdb:26234", "The name of the cluster")
 	dbName := flag.String("db_name", "", "name of database to init")
 
 	flag.Parse()
 	if *dbName == "" {
 		sklog.Fatalf("Must supply db_name")
+	}
+	if *dbCluster == "" {
+		sklog.Fatalf("Must supply db_cluster")
 	}
 	if *backupBucket == "" {
 		sklog.Fatalf("Must supply backup_bucket")
@@ -40,7 +44,7 @@ func main() {
 		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.3",
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
-		"--insecure", "--host=gold-cockroachdb:26234",
+		"--insecure", "--host="+*dbCluster,
 		"--execute=CREATE DATABASE IF NOT EXISTS "+normalizedDB,
 	).CombinedOutput()
 	if err != nil {
@@ -53,7 +57,7 @@ func main() {
 		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.3",
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
-		"--insecure", "--host=gold-cockroachdb:26234", "--database="+normalizedDB,
+		"--insecure", "--host="+*dbCluster, "--database="+normalizedDB,
 		"--execute="+schema.Schema,
 	).CombinedOutput()
 	if err != nil {
@@ -68,7 +72,7 @@ func main() {
 		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.3",
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
-		"--insecure", "--host=gold-cockroachdb:26234",
+		"--insecure", "--host="+*dbCluster,
 		"--execute="+getSchedules(schema.Tables{}, *backupBucket, normalizedDB, rng),
 	).CombinedOutput()
 	if err != nil {
