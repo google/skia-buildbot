@@ -165,6 +165,8 @@ func TestCreate_AllTracesUpdated(t *testing.T) {
 	}, actualValuesAtHead)
 }
 
+// loadTestData creates 6 traces of varying ignore states (2 each of NULL, True, False) with
+// a single ignore rule.
 func loadTestData(t *testing.T, ctx context.Context, db *pgxpool.Pool) {
 	data := databuilder.TablesBuilder{}
 	data.CommitsWithData().Append("whoever@example.com", "initial commit", "2021-01-11T16:00:00Z")
