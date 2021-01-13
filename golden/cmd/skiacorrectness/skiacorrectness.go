@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/metrics2"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -52,10 +53,12 @@ import (
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
+	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
@@ -72,6 +75,9 @@ const (
 
 	// callbackPath is callback endpoint used for the OAuth2 flow
 	callbackPath = "/oauth2callback/"
+
+	// Arbitrarily picked.
+	maxSQLConnections = 20
 )
 
 type frontendServerConfig struct {
@@ -201,6 +207,8 @@ func main() {
 
 	client := mustMakeAuthenticatedHTTPClient(fsc.Local)
 
+	db := maybeInitSQLDatabase(ctx, fsc)
+
 	diffStore := mustMakeDiffStore(ctx, fsc)
 
 	gitStore := mustMakeGitStore(ctx, fsc, appName)
@@ -217,7 +225,7 @@ func main() {
 
 	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
 
-	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient)
+	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient, db)
 
 	tjs := fs_tjstore.New(fsClient)
 
@@ -302,6 +310,27 @@ func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
 	return httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+}
+
+// maybeInitSQLDatabase initializes a SQL database if configured. If there are any errors, it
+// will panic via sklog.Fatal. If not configured, it returns nil.
+func maybeInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpool.Pool {
+	if fsc.SQLDatabaseName == "" {
+		return nil
+	}
+	url := sql.GetConnectionURL(fsc.SQLConnection, fsc.SQLDatabaseName)
+	conf, err := pgxpool.ParseConfig(url)
+	if err != nil {
+		sklog.Fatalf("error getting postgres config %s: %s", url, err)
+	}
+
+	conf.MaxConns = maxSQLConnections
+	db, err := pgxpool.ConnectConfig(ctx, conf)
+	if err != nil {
+		sklog.Fatalf("error connecting to the database: %s", err)
+	}
+	sklog.Infof("Connected to SQL database %s", fsc.SQLDatabaseName)
+	return db
 }
 
 // mustMakeDiffStore returns a diff.DiffStore that speaks to a remote diff server via gRPC.
@@ -444,8 +473,16 @@ func mustMakePubliclyViewableParams(fsc *frontendServerConfig) publicparams.Matc
 
 // mustMakeIgnoreStore returns a new ignore.Store and starts a monitoring routine that counts the
 // the number of expired ignore rules and exposes this as a metric.
-func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClient *firestore.Client) ignore.Store {
-	ignoreStore := fs_ignorestore.New(ctx, fsClient)
+func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClient *firestore.Client, db *pgxpool.Pool) ignore.Store {
+	var ignoreStore ignore.Store
+	if db != nil {
+		ignoreStore = sqlignorestore.New(db)
+		sklog.Info("Using new SQL Ignore store")
+	} else {
+		ignoreStore = fs_ignorestore.New(ctx, fsClient)
+		sklog.Info("Using deprecated Firestore Ignore store")
+	}
+
 	if err := ignore.StartMetrics(ctx, ignoreStore, fsc.TileFreshness.Duration); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
