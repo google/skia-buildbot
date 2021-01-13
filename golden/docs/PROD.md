@@ -107,6 +107,27 @@ Advice for a staging instance
 If a staging instance is desired, it is recommended to use TSV files and IMPORT to load the
 database with a non-trivial amount of data.
 
+Cluster Authentication
+----------------------
+How does the CockroachDB cluster authenticate to GCS to write backups?
+
+There are two service accounts (one for public, one for corp) that have been loaded
+into the cluster, as a cluster setting and are used as the default credentials.
+ - `gold-cockroachdb@skia-public.iam.gserviceaccount.com`
+ - `gold-cockroachdb@skia-corp.google.com.iam.gserviceaccount.com`
+
+These service accounts have been granted the appropriate read/write credentials for
+making backups. That is, the accounts can read/write the appropriate backup bucket **only**.
+See the [CockroachDB docs](https://www.cockroachlabs.com/docs/stable/use-cloud-storage-for-bulk-operations.html#considerations)
+for more information.
+
+```
+# Run this command once after the cluster has been created, using the JSON downloaded
+# from the cloud console for the appropriate service account.
+# Notice the single quotes. The JSON will be double quoted, so this works out nicely.
+set cluster setting cloudstorage.gs.default.key = '{...}'
+```
+
 Alerts
 ======
 
@@ -295,3 +316,5 @@ optional and can be modified to restore into a different database than the backu
 to set up a staging instance or otherwise verify the backup data).
 
 See the [CockroachDB docs](https://www.cockroachlabs.com/docs/v20.2/restore) for more details.
+
+The internal cluster is backed up to `gs://skia-gold-sql-corp-backups`
