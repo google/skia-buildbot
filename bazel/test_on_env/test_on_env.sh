@@ -94,7 +94,11 @@ main() {
   done
 
   # Run tests.
-  "$TEST_BIN"
+  #
+  # For some unknown reason, Go tests fail with "fork/exec [...]: no such file or directory" when
+  # invoked from this script via $TEST_BIN, which holds the path to a symlink created by Bazel.
+  # Invoking the test binary via its real path, as opposed to a symlink, prevents this error.
+  "$(realpath $TEST_BIN)"
   local test_exit_code=$?
   log "Test exit code: $test_exit_code"
 
