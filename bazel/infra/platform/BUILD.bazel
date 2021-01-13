@@ -1,0 +1,23 @@
+# Each of the below represents a unique machine configuration for which we run tasks.
+
+platform(
+    name = "pixel2xl",
+    constraint_values = [
+        "@platforms//os:android",
+        "//bazel/infra/dimensions/device_type:pixel2",
+   #     "//bazel/infra/dimensions/device_os:PPR1.180610.009"
+    ],
+)
+platform(
+    name = "linux",
+    constraint_values = [
+        "@platforms//os:linux",
+    ],
+)
+
+platform(
+    name = "windows",
+    constraint_values = [
+        "@platforms//os:windows",
+    ],
+)

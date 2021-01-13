@@ -1,0 +1,53 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+
+constraint_setting(name = "glibc_version")
+
+constraint_value(
+    name = "glibc_2_25",
+    constraint_setting = ":glibc_version",
+)
+
+constraint_value(
+    name = "glibc_2_26",
+    constraint_setting = ":glibc_version",
+)
+
+platform(
+    #name = "mac_x86-64_10.14",
+    name = "mac",
+    constraint_values = [
+        "@platforms//os:macos",
+        #"sk_dimensions/cpu:x86-64-E5-2697_v2",
+        #"sk_dimensions/os:mac-10.14.6",
+    ],
+)
+
+# https://docs.bazel.build/versions/3.7.0/tutorial/cc-toolchain-config.html
+# bazel build :hello-world --config=clang_config
+# CROSSTOOL_TOP is the old shit, platforms are the future. Sadly we probably need to use the old shit from android and ios.
+
+# TODO(westont): add a platform_mappings file to use platforms everywhere?
+# https://docs.bazel.build/versions/3.7.0/platforms-intro.html#how-to-use-platforms-today
+cc_binary(
+    name = "hello-world",
+    srcs = [
+        "hello-world.cc",
+    ],
+    deps = [],
+)
+
+cc_test(
+    name = "bazel_test",
+    srcs = [
+        "bazel_test.cc",
+    ],
+    deps = [],
+    size = "small",
+)
+
+cc_binary(
+    name = "hello-with-assets",
+    srcs = ["hello-world.cc"],
+    #deps = ["cipd/assets"],
+)
+
