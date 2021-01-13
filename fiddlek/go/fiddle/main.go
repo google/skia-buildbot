@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -9,7 +10,6 @@ import (
 	"fmt"
 	"html/template"
 	ttemplate "html/template"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/scrap/go/client"
 	"go.skia.org/infra/scrap/go/scrap"
 )
 
@@ -118,7 +119,7 @@ var (
 	failingNamed = []store.Named{}
 	failingMutex = sync.Mutex{}
 	run          *runner.Runner
-	httpClient   *http.Client
+	scrapClient  scrap.ScrapExchange
 )
 
 func loadTemplates() {
@@ -268,22 +269,16 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 // scrapHandler handles links to scrap exchange expanded templates and turns them into fiddles.
 func scrapHandler(w http.ResponseWriter, r *http.Request) {
 	// Load the scrap.
-	typ := mux.Vars(r)["type"]
+	typ := scrap.ToType(mux.Vars(r)["type"])
 	hashOrName := mux.Vars(r)["hashOrName"]
-	resp, err := httpClient.Get(fmt.Sprintf("http://%s/_/tmpl/%s/%s/%s", *scrapExchange, typ, hashOrName, scrap.CPP))
-	if err != nil || resp.StatusCode != http.StatusOK {
+	var b bytes.Buffer
+	if err := scrapClient.Expand(r.Context(), typ, hashOrName, scrap.CPP, &b); err != nil {
 		httputils.ReportError(w, err, "Failed to load templated scrap.", http.StatusInternalServerError)
-		return
-	}
-	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to read templated scrap.", http.StatusInternalServerError)
 		return
 	}
 
 	// Create the fiddle.
-	fiddleHash, err := fiddleStore.Put(string(b), defaultFiddle.Options, nil)
+	fiddleHash, err := fiddleStore.Put(b.String(), defaultFiddle.Options, nil)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to write fiddle.", http.StatusInternalServerError)
 		return
@@ -542,6 +537,21 @@ func basicModeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/c/cbb8dee39e9f1576cd97c2d504db8eee?mode=basic", http.StatusFound)
 }
 
+func addHandlers(r *mux.Router) {
+	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
+	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler).Methods("GET")
+	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle).Methods("GET")
+	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle).Methods("GET")
+	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler).Methods("GET")
+	r.HandleFunc("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler).Methods("GET")
+	r.HandleFunc("/f/", failedHandler).Methods("GET")
+	r.HandleFunc("/named/", namedHandler).Methods("GET")
+	r.HandleFunc("/new", basicModeHandler).Methods("GET")
+	r.HandleFunc("/", mainHandler).Methods("GET")
+	r.HandleFunc("/_/run", runHandler).Methods("POST")
+	r.HandleFunc("/healthz", healthzHandler).Methods("GET")
+}
+
 func main() {
 	common.InitWithMust(
 		"fiddle",
@@ -565,7 +575,10 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
 	}
-	httpClient = httputils.DefaultClientConfig().With2xxOnly().Client()
+	scrapClient, err = client.New(*scrapExchange)
+	if err != nil {
+		sklog.Fatalf("Failed to create scrap exchange client: %s", err)
+	}
 	run, err = runner.New(*local, *sourceImageDir)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize runner: %s", err)
@@ -578,18 +591,7 @@ func main() {
 	names = named.New(fiddleStore)
 
 	r := mux.NewRouter()
-	r.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
-	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
-	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
-	r.HandleFunc("/e/{id:[@0-9a-zA-Z_]+}", embedHandle)
-	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
-	r.HandleFunc("/scrap/{type:[a-z]+}/{hashOrName:[@0-9a-zA-Z-_]+}", scrapHandler).Methods("GET")
-	r.HandleFunc("/f/", failedHandler)
-	r.HandleFunc("/named/", namedHandler)
-	r.HandleFunc("/new", basicModeHandler)
-	r.HandleFunc("/", mainHandler)
-	r.HandleFunc("/_/run", runHandler)
-	r.HandleFunc("/healthz", healthzHandler)
+	addHandlers(r)
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.CrossOriginResourcePolicy(h)

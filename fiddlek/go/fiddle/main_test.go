@@ -3,15 +3,19 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"io"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/fiddlek/go/store/mocks"
 	"go.skia.org/infra/fiddlek/go/types"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/scrap/go/scrap"
+	scrapMocks "go.skia.org/infra/scrap/go/scrap/mocks"
 )
 
 const (
@@ -29,18 +33,14 @@ func TestScrapHandler_HappyPath(t *testing.T) {
 	r := httptest.NewRequest("GET", "/scrap/svg/@smiley", nil)
 	w := httptest.NewRecorder()
 
-	// Create a test server that mocks out the scrap exchange.
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := fmt.Fprint(w, code)
+	// Mock the scrapClient.
+	scrapClientMock := &scrapMocks.ScrapExchange{}
+	scrapClientMock.On("Expand", testutils.AnyContext, scrap.SVG, "@smiley", scrap.CPP, mock.Anything).Run(func(args mock.Arguments) {
+		_, err := args.Get(4).(io.Writer).Write([]byte(code))
 		require.NoError(t, err)
-	}))
-	defer func() { testServer.Close() }()
-	u, err := url.Parse(testServer.URL)
-	require.NoError(t, err)
-
-	// Configure main to point at the test server.
-	*scrapExchange = u.Host
-	httpClient = testServer.Client()
+	}).Return(nil)
+	defer scrapClientMock.AssertExpectations(t)
+	scrapClient = scrapClientMock
 
 	// Mock the fiddle store.
 	store := &mocks.Store{}
@@ -48,7 +48,12 @@ func TestScrapHandler_HappyPath(t *testing.T) {
 	defer store.AssertExpectations(t)
 	fiddleStore = store
 
-	scrapHandler(w, r)
+	// Make the request through a mux.Router so the URL paths get parsed and
+	// routed correctly.
+	router := mux.NewRouter()
+	addHandlers(router)
+
+	router.ServeHTTP(w, r)
 
 	// Should redirect to the newly created fiddle.
 	require.Equal(t, 307, w.Code)
@@ -61,22 +66,20 @@ func TestScrapHandler_ScrapExchangeFails_ReturnsInternalServerError(t *testing.T
 	r := httptest.NewRequest("GET", "/scrap/svg/@smiley", nil)
 	w := httptest.NewRecorder()
 
-	// Create a test server that mocks out the scrap exchange.
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "Failure", http.StatusInternalServerError)
-	}))
-	defer func() { testServer.Close() }()
-	u, err := url.Parse(testServer.URL)
-	require.NoError(t, err)
+	// Mock the scrapClient.
+	scrapClientMock := &scrapMocks.ScrapExchange{}
+	scrapClientMock.On("Expand", testutils.AnyContext, scrap.SVG, "@smiley", scrap.CPP, mock.Anything).Return(errMyMockError)
+	defer scrapClientMock.AssertExpectations(t)
+	scrapClient = scrapClientMock
 
-	// Configure main to point at the test server.
-	*scrapExchange = u.Host
-	httpClient = testServer.Client()
+	// Make the request through a mux.Router so the URL paths get parsed and
+	// routed correctly.
+	router := mux.NewRouter()
+	addHandlers(router)
 
-	scrapHandler(w, r)
+	router.ServeHTTP(w, r)
 
 	require.Equal(t, 500, w.Code)
-	require.Contains(t, w.Body.String(), "Failed to load")
 }
 
 func TestScrapHandler_FiddleStorePutFails_ReturnsInternalServerError(t *testing.T) {
@@ -85,27 +88,27 @@ func TestScrapHandler_FiddleStorePutFails_ReturnsInternalServerError(t *testing.
 	r := httptest.NewRequest("GET", "/scrap/svg/@smiley", nil)
 	w := httptest.NewRecorder()
 
-	// Create a test server that mocks out the scrap exchange.
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := fmt.Fprint(w, code)
+	// Mock the scrapClient.
+	scrapClientMock := &scrapMocks.ScrapExchange{}
+	scrapClientMock.On("Expand", testutils.AnyContext, scrap.SVG, "@smiley", scrap.CPP, mock.Anything).Run(func(args mock.Arguments) {
+		_, err := args[4].(io.Writer).Write([]byte(code))
 		require.NoError(t, err)
-	}))
-	defer func() { testServer.Close() }()
-	u, err := url.Parse(testServer.URL)
-	require.NoError(t, err)
-
-	// Configure main to point at the test server.
-	*scrapExchange = u.Host
-	httpClient = testServer.Client()
+	}).Return(nil)
+	defer scrapClientMock.AssertExpectations(t)
+	scrapClient = scrapClientMock
 
 	// Mock the fiddle store.
 	store := &mocks.Store{}
-	store.On("Put", code, defaultFiddle.Options, (*types.Result)(nil)).Return(hash, errMyMockError)
+	store.On("Put", code, defaultFiddle.Options, (*types.Result)(nil)).Return("", errMyMockError)
 	defer store.AssertExpectations(t)
 	fiddleStore = store
 
-	scrapHandler(w, r)
+	// Make the request through a mux.Router so the URL paths get parsed and
+	// routed correctly.
+	router := mux.NewRouter()
+	addHandlers(router)
+
+	router.ServeHTTP(w, r)
 
 	require.Equal(t, 500, w.Code)
-	require.Contains(t, w.Body.String(), "Failed to write")
 }
