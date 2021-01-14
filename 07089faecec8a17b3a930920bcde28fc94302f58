@@ -321,6 +321,30 @@
       },
       "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e9d6159b_4afae9e6",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-01-14T17:25:35Z",
+      "side": 1,
+      "message": "I added it as a @attr on the component description on my last commit. I added to the description that it only loads the animation when it\u0027s open.\nI\u0027m not that familiar with html-lite so I\u0027m not sure how I can make update it every time the base animation changes. If you can give me any directions with this, I can improve it on another PR.",
+      "parentUuid": "e0885b0c_230cc76b",
+      "range": {
+        "startLine": 187,
+        "startChar": 53,
+        "endLine": 187,
+        "endChar": 62
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

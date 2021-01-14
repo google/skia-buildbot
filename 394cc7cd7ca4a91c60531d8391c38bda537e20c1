@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21333256_42d8ce00",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-01-14T17:25:35Z",
+      "side": 1,
+      "message": "Hi! I\u0027ve made all the changes. I added one comment for one of them. Perhaps for a future PR?",
+      "revId": "394cc7cd7ca4a91c60531d8391c38bda537e20c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
