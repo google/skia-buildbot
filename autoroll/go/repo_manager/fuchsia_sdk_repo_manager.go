@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -17,8 +18,9 @@ import (
 )
 
 const (
-	FuchsiaSDKVersionFilePathLinux = "build/fuchsia/linux.sdk.sha1"
-	FuchsiaSDKVersionFilePathMac   = "build/fuchsia/mac.sdk.sha1"
+	fuchsiaSDKVersionFilePathLinux = "build/fuchsia/linux.sdk.sha1"
+	fuchsiaSDKVersionFilePathMac   = "build/fuchsia/mac.sdk.sha1"
+	fuchsiaSDKDepID                = "FuchsiaSDK"
 )
 
 // FuchsiaSDKRepoManagerConfig provides configuration for the Fuchia SDK
@@ -29,7 +31,7 @@ type FuchsiaSDKRepoManagerConfig struct {
 	IncludeMacSDK bool                     `json:"includeMacSDK,omitempty"`
 }
 
-// See documentation for RepoManagerConfig interface.
+// ValidStrategies implements roller.RepoManagerConfig.
 func (c *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
@@ -45,11 +47,11 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesConfig, 
 			{
 				Child: &version_file_common.VersionFileConfig{
 					ID:   child.FuchsiaSDKGSLatestPathMac,
-					Path: FuchsiaSDKVersionFilePathMac,
+					Path: fuchsiaSDKVersionFilePathMac,
 				},
 				Parent: &version_file_common.VersionFileConfig{
 					ID:   child.FuchsiaSDKGSLatestPathMac,
-					Path: FuchsiaSDKVersionFilePathMac,
+					Path: fuchsiaSDKVersionFilePathMac,
 				},
 			},
 		}
@@ -57,8 +59,8 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesConfig, 
 	parentCfg := parent.GitilesConfig{
 		DependencyConfig: version_file_common.DependencyConfig{
 			VersionFileConfig: version_file_common.VersionFileConfig{
-				ID:   "FuchsiaSDK",
-				Path: FuchsiaSDKVersionFilePathLinux,
+				ID:   fuchsiaSDKDepID,
+				Path: fuchsiaSDKVersionFilePathLinux,
 			},
 			TransitiveDeps: transitiveDeps,
 		},
@@ -78,6 +80,48 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesConfig, 
 		return parent.GitilesConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// FuchsiaSDKRepoManagerConfigToProto converts a FuchsiaSDKRepoManagerConfig to
+// a config.ParentChildRepoManagerConfig.
+func FuchsiaSDKRepoManagerConfigToProto(cfg *FuchsiaSDKRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: parent.GitilesConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
+			FuchsiaSdkChild: child.FuchsiaSDKConfigToProto(&childCfg),
+		},
+	}
+}
+
+// ProtoToFuchsiaSDKRepoManagerConfig converts a
+// config.ParentChildRepoManagerConfig to a FuchsiaSDKRepoManagerConfig.
+func ProtoToFuchsiaSDKRepoManagerConfig(parent *config.GitilesParentConfig, child *config.FuchsiaSDKChildConfig) *FuchsiaSDKRepoManagerConfig {
+	childBranch, err := config_vars.NewTemplate("master")
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	parentBranch, err := config_vars.NewTemplate(parent.Gitiles.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	return &FuchsiaSDKRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:  childBranch,
+				ChildPath:    "placeholder", // TODO(borenet)
+				ParentBranch: parentBranch,
+				ParentRepo:   parent.Gitiles.RepoUrl,
+			},
+		},
+		Gerrit:        codereview.ProtoToGerritConfig(parent.Gerrit),
+		IncludeMacSDK: child.IncludeMacSdk,
+	}
 }
 
 // NewFuchsiaSDKRepoManager returns a RepoManager instance which rolls the

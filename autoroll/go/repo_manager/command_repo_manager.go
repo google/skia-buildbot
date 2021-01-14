@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
@@ -49,12 +50,32 @@ type CommandConfig struct {
 	Env map[string]string `json:"env,omitempty"`
 }
 
-// See documentation for util.Validate interface.
+// Validate implements util.Validator.
 func (c CommandConfig) Validate() error {
 	if len(c.Command) == 0 {
 		return skerr.Fmt("Command is required")
 	}
 	return nil
+}
+
+// CommandConfigToProto converts a CommandConfig to a
+// config.CommandRepoManagerConfig_CommandConfig.
+func CommandConfigToProto(cfg *CommandConfig) *config.CommandRepoManagerConfig_CommandConfig {
+	return &config.CommandRepoManagerConfig_CommandConfig{
+		Command: cfg.Command,
+		Dir:     cfg.Dir,
+		Env:     cfg.Env,
+	}
+}
+
+// ProtoToCommandConfig converts a config.CommandRepoManagerConfig_CommandConfig
+// to a CommandConfig.
+func ProtoToCommandConfig(cfg *config.CommandRepoManagerConfig_CommandConfig) *CommandConfig {
+	return &CommandConfig{
+		Command: cfg.Command,
+		Dir:     cfg.Dir,
+		Env:     cfg.Env,
+	}
 }
 
 // CommandRepoManagerConfig provides configuration for CommandRepoManager.
@@ -73,7 +94,7 @@ type CommandRepoManagerConfig struct {
 	SetPinnedRev *CommandConfig `json:"setPinnedRev"`
 }
 
-// See documentation for util.Validate interface.
+// Validate implements util.Validator.
 func (c CommandRepoManagerConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -104,19 +125,47 @@ func (c CommandRepoManagerConfig) Validate() error {
 	return nil
 }
 
-// See documentation for RepoManagerConfig interface.
+// ValidStrategies implements roller.RepoManagerConfig.
 func (c CommandRepoManagerConfig) ValidStrategies() []string {
 	return []string{strategy.ROLL_STRATEGY_BATCH}
 }
 
-// See documentation for RepoManagerConfig interface.
+// DefaultStrategy implements roller.RepoManagerConfig.
 func (c CommandRepoManagerConfig) DefaultStrategy() string {
 	return strategy.ROLL_STRATEGY_BATCH
 }
 
-// See documentation for RepoMangerConfig interface.
+// NoCheckout implements roller.RepoManagerConfig.
 func (c CommandRepoManagerConfig) NoCheckout() bool {
 	return false
+}
+
+// CommandRepoManagerConfigToProto converts a CommandRepoManagerConfig to a
+// config.CommandRepoManagerConfig.
+func CommandRepoManagerConfigToProto(cfg *CommandRepoManagerConfig) *config.CommandRepoManagerConfig {
+	return &config.CommandRepoManagerConfig{
+		GitCheckout:   git_common.GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		ShortRevRegex: cfg.ShortRevRegex.String(), // TODO(borenet): How to handle config templates?
+		GetTipRev:     CommandConfigToProto(cfg.GetTipRev),
+		GetPinnedRev:  CommandConfigToProto(cfg.GetPinnedRev),
+		SetPinnedRev:  CommandConfigToProto(cfg.SetPinnedRev),
+	}
+}
+
+// ProtoToCommandRepoManagerConfig converts a config.CommandRepoManagerConfig to
+// a CommandRepoManagerConfig.
+func ProtoToCommandRepoManagerConfig(cfg *config.CommandRepoManagerConfig) *CommandRepoManagerConfig {
+	shortRevRegex, err := config_vars.NewTemplate(cfg.ShortRevRegex)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &CommandRepoManagerConfig{
+		GitCheckoutConfig: *git_common.ProtoToGitCheckoutConfig(cfg.GitCheckout),
+		ShortRevRegex:     shortRevRegex,
+		GetTipRev:         ProtoToCommandConfig(cfg.GetTipRev),
+		GetPinnedRev:      ProtoToCommandConfig(cfg.GetPinnedRev),
+		SetPinnedRev:      ProtoToCommandConfig(cfg.SetPinnedRev),
+	}
 }
 
 // CommandRepoManager implements RepoManager by shelling out to various
@@ -222,7 +271,7 @@ func (rm *CommandRepoManager) run(ctx context.Context, cmd *CommandConfig, vars 
 	return strings.TrimSpace(out), nil
 }
 
-// See documentation for RepoManager interface.
+// Update implements RepoManager.
 func (rm *CommandRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	if _, _, err := rm.co.Update(ctx); err != nil {
 		return nil, nil, nil, skerr.Wrap(err)
@@ -250,7 +299,7 @@ func (rm *CommandRepoManager) Update(ctx context.Context) (*revision.Revision, *
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
-// See documentation for RepoManager interface.
+// GetRevision implements RepoManager.
 func (rm *CommandRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	// Just return the most basic Revision with the given ID. Note that we could
 	// add a command which retrieves revision information and passes it back to
@@ -267,7 +316,7 @@ func (rm *CommandRepoManager) GetRevision(ctx context.Context, id string) (*revi
 	return rev, nil
 }
 
-// See documentation for RepoManager interface.
+// CreateNewRoll implements RepoManager.
 func (rm *CommandRepoManager) CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun bool, commitMsg string) (int64, error) {
 	return rm.co.CreateNewRoll(ctx, rollingFrom, rollingTo, revisions, reviewers, dryRun, commitMsg, rm.createRoll, rm.uploadRoll)
 }

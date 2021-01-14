@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -35,7 +36,7 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -109,6 +110,50 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfi
 		return parent.GitilesConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// NoCheckoutDEPSRepoManagerConfigToProto converts a
+// NoCheckoutDEPSRepoManagerConfig to a config.ParentChildRepoManagerConfig.
+func NoCheckoutDEPSRepoManagerConfigToProto(cfg *NoCheckoutDEPSRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: parent.GitilesConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: child.GitilesConfigToProto(&childCfg),
+		},
+	}
+}
+
+// ProtoToNoCheckoutDEPSRepoManagerConfig converts a
+// config.ParentChildRepoManagerConfig to a NoCheckoutDEPSRepoManagerConfig.
+func ProtoToNoCheckoutDEPSRepoManagerConfig(parent *config.GitilesParentConfig, child *config.GitilesChildConfig) *NoCheckoutDEPSRepoManagerConfig {
+	childBranch, err := config_vars.NewTemplate(child.Gitiles.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	parentBranch, err := config_vars.NewTemplate(parent.Gitiles.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &NoCheckoutDEPSRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:      childBranch,
+				ChildPath:        child.Path,
+				ParentBranch:     parentBranch,
+				ParentRepo:       parent.Gitiles.RepoUrl,
+				ChildRevLinkTmpl: "", // TODO(borenet)
+			},
+		},
+		Gerrit:         codereview.ProtoToGerritConfig(parent.Gerrit),
+		ChildRepo:      child.Gitiles.RepoUrl,
+		TransitiveDeps: version_file_common.ProtoToTransitiveDepConfigs(parent.Dep.Transitive),
+	}
 }
 
 // NewNoCheckoutDEPSRepoManager returns a RepoManager instance which does not

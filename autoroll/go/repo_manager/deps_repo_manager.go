@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
@@ -32,7 +33,7 @@ type DEPSRepoManagerConfig struct {
 	ParentPath string                   `json:"parentPath,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c DEPSRepoManagerConfig) Validate() error {
 	if err := c.DepotToolsRepoManagerConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -80,6 +81,57 @@ func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child
 		return parent.DEPSLocalConfig{}, child.GitCheckoutConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// DEPSRepoManagerConfigToProto converts a DEPSRepoManagerConfig to a
+// config.ParentChildRepoManagerConfig.
+func DEPSRepoManagerConfigToProto(cfg *DEPSRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGerritParent{
+			DepsLocalGerritParent: &config.DEPSLocalGerritParentConfig{
+				DepsLocal: parent.DEPSLocalConfigToProto(&parentCfg),
+				Gerrit:    codereview.GerritConfigToProto(cfg.Gerrit),
+			},
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
+			GitCheckoutChild: child.GitCheckoutConfigToProto(&childCfg),
+		},
+	}
+}
+
+// ProtoToDEPSRepoManagerConfig converts a config.ParentChildRepoManagerConfig
+// to a DEPSRepoManagerConfig.
+func ProtoToDEPSRepoManagerConfig(parentCfg *config.DEPSLocalGerritParentConfig, childCfg *config.GitCheckoutChildConfig) *DEPSRepoManagerConfig {
+	childBranch, err := config_vars.NewTemplate(childCfg.GitCheckout.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	parentBranch, err := config_vars.NewTemplate(parentCfg.DepsLocal.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &DEPSRepoManagerConfig{
+		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:      childBranch,
+				ChildPath:        "", // TODO(borenet): ???
+				ParentBranch:     parentBranch,
+				ParentRepo:       parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl,
+				ChildRevLinkTmpl: childCfg.GitCheckout.RevLinkTmpl,
+				ChildSubdir:      "", // TODO(borenet): ???
+				PreUploadSteps:   parent.ProtoToPreUploadSteps(parentCfg.DepsLocal.PreUploadSteps),
+			},
+			GClientSpec: parentCfg.DepsLocal.GclientSpec,
+			RunHooks:    parentCfg.DepsLocal.RunHooks,
+		},
+		Gerrit:     codereview.ProtoToGerritConfig(parentCfg.Gerrit),
+		ChildRepo:  childCfg.GitCheckout.RepoUrl,
+		ParentPath: parentCfg.DepsLocal.CheckoutPath,
+	}
 }
 
 // NewDEPSRepoManager returns a RepoManager instance which operates in the given
