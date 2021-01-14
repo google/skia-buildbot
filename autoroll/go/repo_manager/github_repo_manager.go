@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
@@ -36,7 +37,7 @@ type GithubRepoManagerConfig struct {
 	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *GithubRepoManagerConfig) Validate() error {
 	if c.BuildbucketRevisionFilter != nil {
 		if err := c.BuildbucketRevisionFilter.Validate(); err != nil {
@@ -98,6 +99,23 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 		return parent.GitCheckoutGithubFileConfig{}, child.GitCheckoutGithubConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// GithubRepoManagerConfigToProto converts a GithubRepoManagerConfig to a
+// config.ParentChildRepoManager.
+func GithubRepoManagerConfigToProto(cfg *GithubRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent{
+			GitCheckoutGithubFileParent: parent.GitCheckoutGithubFileConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
+			GitCheckoutGithubChild: child.GitCheckoutGithubConfigToProto(&childCfg),
+		},
+	}
 }
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given

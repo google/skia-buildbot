@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -26,7 +27,7 @@ type GitCheckoutGithubConfig struct {
 	GithubUserName string `json:"githubUserName"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -38,6 +39,26 @@ func (c GitCheckoutGithubConfig) Validate() error {
 		return skerr.Fmt("GithubUserName is required")
 	}
 	return nil
+}
+
+// GitCheckoutGithubConfigToProto converts a GitCheckoutGithubConfig to a
+// config.GitCheckoutGitHubChildConfig.
+func GitCheckoutGithubConfigToProto(cfg *GitCheckoutGithubConfig) *config.GitCheckoutGitHubChildConfig {
+	return &config.GitCheckoutGitHubChildConfig{
+		GitCheckout: GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		RepoOwner:   cfg.GithubUserName,
+		RepoName:    cfg.GithubRepoName,
+	}
+}
+
+// ProtoToGitCheckoutGithubConfig converts a config.GitCheckoutGitHubChildConfig
+// to a GitCheckoutGithubChildConfig.
+func ProtoToGitCheckoutGithubConfig(cfg *config.GitCheckoutGitHubChildConfig) *GitCheckoutGithubConfig {
+	return &GitCheckoutGithubConfig{
+		GitCheckoutConfig: *ProtoToGitCheckoutConfig(cfg.GitCheckout),
+		GithubRepoName:    cfg.RepoName,
+		GithubUserName:    cfg.RepoOwner,
+	}
 }
 
 // GitCheckoutGithubChild is an implementation of Child which uses a local Git
