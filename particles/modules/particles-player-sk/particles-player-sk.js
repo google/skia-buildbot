@@ -7,44 +7,46 @@
  * </p>
  *
  */
-import { $$ } from 'common-sk/modules/dom'
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
+import { $$ } from 'common-sk/modules/dom';
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
 
-import 'elements-sk/spinner-sk'
+import 'elements-sk/spinner-sk';
 
-const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
+import * as CanvasKitInit from '../../build/canvaskit/canvaskit';
+// const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
 const ZOOM_IN_FACTOR = 1.1; // 10%
-const ZOOM_OUT_FACTOR = 1/ZOOM_IN_FACTOR;
+const ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR;
 
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
 // Start by recording the script origin.
 const scriptOrigin = new URL(document.currentScript.src).origin;
 const kitReady = CanvasKitInit({
-  locateFile: (file) => {
-    return `${scriptOrigin}/static/${file}`;
-  },
+  locateFile: (file) => `${scriptOrigin}/static/${file}`,
 });
 
-const loadingTemplate = (ele) => html`
-<div class=player-loading title="Loading particles and engine."
-     style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
+const loadingTemplate = (ele) => html` <div
+  class="player-loading"
+  title="Loading particles and engine."
+  style="width: ${ele._config.width}px; height: ${ele._config.height}px;"
+>
   <div>Loading</div>
   <spinner-sk active></spinner-sk>
 </div>`;
 
-const runningTemplate = (ele) => html`
-<div class=container>
-   ${ele.sliders.map(floatSlider)}
+const runningTemplate = (ele) => html` <div class="container">
+  ${ele.sliders.map(floatSlider)}
   <!-- It would be more mobile friendly to use pointermove, but Safari doesn't support it-->
-  <canvas id=player
-          @wheel=${ele._wheel}
-          @mousemove=${ele._drag}
-          width=${ele._config.width * window.devicePixelRatio}
-          height=${ele._config.height * window.devicePixelRatio}
-          style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
+  <canvas
+    id="player"
+    @wheel=${ele._wheel}
+    @mousemove=${ele._drag}
+    width=${ele._config.width * window.devicePixelRatio}
+    height=${ele._config.height * window.devicePixelRatio}
+    style="width: ${ele._config.width}px; height: ${ele._config.height}px;"
+  >
     Your browser does not support the canvas tag.
   </canvas>
 </div>`;
@@ -53,11 +55,17 @@ export function floatSlider(uniform) {
   if (!uniform) {
     return '';
   }
-  return html`
-<div class=widget>
-  <input name=${uniform.id} id=${uniform.id} min=0 max=1 step=0.00001 type=range>
-  <label for=${uniform.id}>${uniform.id}</label>
-</div>`;
+  return html` <div class="widget">
+    <input
+      name=${uniform.id}
+      id=${uniform.id}
+      min="0"
+      max="1"
+      step="0.00001"
+      type="range"
+    />
+    <label for=${uniform.id}>${uniform.id}</label>
+  </div>`;
 }
 
 define('particles-player-sk', class extends HTMLElement {
@@ -65,20 +73,19 @@ define('particles-player-sk', class extends HTMLElement {
     super();
 
     this._engine = {
-      kit:       null, // CanvasKit instance
-      context:   null, // CK context.
+      kit: null, // CanvasKit instance
+      context: null, // CK context.
       animation: null, // Particles instance
-      surface:   null, // SkSurface
-      canvas:    null, // Cached SkCanvas (surface.getCanvas()).
+      surface: null, // SkSurface
+      canvas: null, // Cached SkCanvas (surface.getCanvas()).
     };
 
     this._state = {
-      loading:        true,
-      paused:         this.hasAttribute('paused'),
-      time:           0, // a monotonically increasing amount of ms
-      lastTs:         0, // last time stamp we had a frame
+      loading: true,
+      paused: this.hasAttribute('paused'),
+      time: 0, // a monotonically increasing amount of ms
+      lastTs: 0, // last time stamp we had a frame
     };
-
 
     this._lastDrag = null;
     this._zoomLevel = 1.0;
@@ -88,15 +95,16 @@ define('particles-player-sk', class extends HTMLElement {
 
   connectedCallback() {
     this._config = {
-      width:      this.hasAttribute('width')  ? +this.getAttribute('width')  : 256,
-      height:     this.hasAttribute('height') ? +this.getAttribute('height') : 256,
+      width: this.hasAttribute('width') ? +this.getAttribute('width') : 256,
+      height: this.hasAttribute('height') ? +this.getAttribute('height') : 256,
     };
 
     this.render();
   }
 
   _drag(e) {
-    if (!e.buttons || !e.shiftKey) { // ignore movements unless shift is held
+    if (!e.buttons || !e.shiftKey) {
+      // ignore movements unless shift is held
       this._lastDrag = null;
       return;
     }
@@ -104,11 +112,9 @@ define('particles-player-sk', class extends HTMLElement {
       const dx = e.clientX - this._lastDrag[0];
       const dy = e.clientY - this._lastDrag[1];
 
-      this._engine.canvas.translate(dx / this._zoomLevel,
-                                    dy / this._zoomLevel);
+      this._engine.canvas.translate(dx / this._zoomLevel, dy / this._zoomLevel);
     }
     this._lastDrag = [e.clientX, e.clientY];
-
   }
 
   _drawFrame() {
@@ -121,7 +127,7 @@ define('particles-player-sk', class extends HTMLElement {
     const particlesUniforms = this._engine.animation.particleUniforms();
     const effectsUniforms = this._engine.animation.effectUniforms();
     for (const slider of this.sliders) {
-      const s = $$('input#' + slider.id, this);
+      const s = $$(`input#${slider.id}`, this);
       if (!s) {
         continue;
       }
@@ -138,7 +144,7 @@ define('particles-player-sk', class extends HTMLElement {
     }
 
     if (this.isPlaying()) {
-      this._state.time += (Date.now() - this._state.lastTs);
+      this._state.time += Date.now() - this._state.lastTs;
     }
     this._state.lastTs = Date.now();
 
@@ -166,14 +172,15 @@ define('particles-player-sk', class extends HTMLElement {
     this._state.loading = false;
 
     // Rebuild the surface only if needed.
-    if (!this._engine.surface ||
-        this._engine.surface.width  != this._config.width ||
-        this._engine.surface.height != this._config.height) {
-
+    if (
+      !this._engine.surface ||
+      this._engine.surface.width != this._config.width ||
+      this._engine.surface.height != this._config.height
+    ) {
       this.render();
 
       this._engine.surface && this._engine.surface.delete();
-      let canvasEle = $$('#player', this);
+      const canvasEle = $$('#player', this);
       this._engine.surface = this._engine.kit.MakeCanvasSurface(canvasEle);
       if (!this._engine.surface) {
         throw new Error('Could not make SkSurface.');
@@ -187,7 +194,8 @@ define('particles-player-sk', class extends HTMLElement {
     this._engine.animation && this._engine.animation.delete();
 
     this._engine.animation = this._engine.kit.MakeParticles(
-                                          JSON.stringify(particlesJSON));
+      JSON.stringify(particlesJSON)
+    );
     if (!this._engine.animation) {
       throw new Error('Could not parse Particles JSON.');
     }
@@ -252,10 +260,11 @@ define('particles-player-sk', class extends HTMLElement {
   }
 
   render() {
-    render(this._state.loading
-               ? loadingTemplate(this)
-               : runningTemplate(this),
-           this, {eventContext: this});
+    render(
+      this._state.loading ? loadingTemplate(this) : runningTemplate(this),
+      this,
+      { eventContext: this }
+    );
   }
 
   resetView() {
@@ -266,7 +275,7 @@ define('particles-player-sk', class extends HTMLElement {
     const itt = ck.Matrix.invert(tt);
     canvas.concat(itt);
     // Zoom to the middle of the animation
-    canvas.translate(this._config.width/2, this._config.height/2);
+    canvas.translate(this._config.width / 2, this._config.height / 2);
     this._zoomLevel = 1.0;
   }
 
@@ -294,8 +303,7 @@ define('particles-player-sk', class extends HTMLElement {
     const pts = [e.clientX, e.clientY];
     ck.Matrix.mapPoints(itt, pts); // Transform DOM pts into canvas space
 
-    let matr = ck.Matrix.scaled(zoom, zoom, pts[0], pts[1]);
+    const matr = ck.Matrix.scaled(zoom, zoom, pts[0], pts[1]);
     canvas.concat(matr);
-
   }
 });
