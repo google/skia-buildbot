@@ -9,7 +9,7 @@ load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 
-def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
+def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibility = None):
     """Runs a NodeJS unit test using the Mocha test runner.
 
     For tests that should run in the browser, please use karma_mocha_test instead.
@@ -20,6 +20,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
       deps: Any ts_library dependencies.
       tags: Tags for the generated nodjs_test rule.
       args: Additional command-line arguments for the mocha test runner.
+      visibility: Visibility of the generated nodejs_test rule.
     """
     if args == None:
         args = ["$(rootpath %s)" % src for src in srcs]
@@ -42,6 +43,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None):
             "--colors",
         ] + args,
         tags = tags,
+        visibility = visibility,
     )
 
 def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):

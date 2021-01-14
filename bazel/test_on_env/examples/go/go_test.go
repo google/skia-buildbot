@@ -13,6 +13,8 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+const envPortFileBaseName = "port"
+
 // mustReadPort reads environment server's TCP port from $ENV_DIR/port.
 func mustReadPort() int {
 	envDir := os.Getenv("ENV_DIR")

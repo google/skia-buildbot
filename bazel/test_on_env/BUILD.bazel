@@ -1,5 +1,3 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
-load("//infra-sk:index.bzl", "nodejs_mocha_test")
 load(":test_on_env.bzl", "test_on_env")
 
 exports_files(
@@ -7,39 +5,14 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
-go_binary(
-    name = "example_env",
-    srcs = ["example_env.go"],
-)
-
-go_test(
-    name = "example_go_test",
-    srcs = [
-        "example_env.go",
-        "example_test.go",
-    ],
-    tags = ["manual"],
-    deps = ["//go/testutils/unittest"],
-)
-
-nodejs_mocha_test(
-    name = "example_nodejs_test",
-    srcs = ["example_test.ts"],
-    tags = ["manual"],
-    deps = [
-        "@infra-sk_npm//@types/puppeteer",
-        "@infra-sk_npm//puppeteer",
-    ],
-)
-
 test_on_env(
     name = "test_on_env_go_test",
-    env = ":example_env",
-    test = ":example_go_test",
+    env = "//bazel/test_on_env/examples:env",
+    test = "//bazel/test_on_env/examples/go:go_test",
 )
 
 test_on_env(
     name = "test_on_env_nodejs_test",
-    env = ":example_env",
-    test = ":example_nodejs_test",
+    env = "//bazel/test_on_env/examples:env",
+    test = "//bazel/test_on_env/examples/typescript:typescript_test",
 )
