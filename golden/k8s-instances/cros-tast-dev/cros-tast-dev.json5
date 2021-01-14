@@ -15,7 +15,7 @@
   git_repo_url: "https://chromium.googlesource.com/chromiumos/platform/tast-tests",
   fs_namespace: "cros-tast-dev",
   fs_project_id: "skia-firestore",
-  sql_connection: "root@gold-cockroachdb:26234",
+  sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "crostastdev",
   known_hashes_gcs_path: "skia-gold-cros-tast-dev/hash_files/gold-cros-tast-dev-hashes.txt",
 
