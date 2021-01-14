@@ -1,0 +1,17 @@
+package(default_visibility = ["//bazel/infra/platform:__pkg__"])
+
+# device_type. Represents attached device model.
+constraint_setting(name = "device_type")
+constraint_value(
+    name = "pixel2",
+    constraint_setting = ":device_type",
+)
+constraint_value(
+    name = "pixel2xl",
+    constraint_setting = ":device_type",
+)
+constraint_value(
+    name = "iphone12,1",
+    constraint_setting = ":device_type",
+)
+# ......
