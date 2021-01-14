@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fd5ad556_92b703e4",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:57:33Z",
+      "side": 1,
+      "message": "sqlDB",
+      "range": {
+        "startLine": 496,
+        "startChar": 99,
+        "endLine": 496,
+        "endChar": 101
+      },
+      "revId": "a8768bfe8ef89d580e4bac44c43be68b8e4a4c22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
