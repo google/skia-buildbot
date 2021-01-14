@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3e3dbd4b_e6779e66",
+        "filename": "golden/go/clstore/dualclstore/dualclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:57:27Z",
+      "side": 1,
+      "message": "Firestore",
+      "range": {
+        "startLine": 59,
+        "startChar": 56,
+        "endLine": 59,
+        "endChar": 63
+      },
+      "revId": "7ccfa9290d9ed59852a2894a9baecc82877df99f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "46c6c0d7_74cebc23",
+        "filename": "golden/go/clstore/dualclstore/dualclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:57:27Z",
+      "side": 1,
+      "message": "CockroachDB",
+      "range": {
+        "startLine": 62,
+        "startChar": 58,
+        "endLine": 62,
+        "endChar": 67
+      },
+      "revId": "7ccfa9290d9ed59852a2894a9baecc82877df99f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
