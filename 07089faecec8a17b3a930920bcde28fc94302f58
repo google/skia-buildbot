@@ -369,6 +369,30 @@
       },
       "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3eb5e65_9c4f700c",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-01-14T22:56:25Z",
+      "side": 1,
+      "message": "great thanks!",
+      "parentUuid": "3634b4f1_f981e909",
+      "range": {
+        "startLine": 187,
+        "startChar": 53,
+        "endLine": 187,
+        "endChar": 62
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
