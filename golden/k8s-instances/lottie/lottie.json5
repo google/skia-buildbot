@@ -15,7 +15,7 @@
   git_repo_url: "https://skia.googlesource.com/lottie-ci",
   fs_namespace: "lottie",
   fs_project_id: "skia-firestore",
-  sql_connection: "root@gold-cockroachdb:26234",
+  sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "lottie",
   known_hashes_gcs_path: "skia-gold-lottie/hash_files/gold-lottie-hashes.txt",
 

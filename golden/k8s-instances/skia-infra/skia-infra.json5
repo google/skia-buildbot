@@ -15,7 +15,7 @@
   git_repo_url: "https://skia.googlesource.com/buildbot.git",
   fs_namespace: "skia-infra",
   fs_project_id: "skia-firestore",
-  sql_connection: "root@gold-cockroachdb:26234",
+  sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "skiainfra",
   known_hashes_gcs_path: "skia-gold-skia-infra/hash_files/gold-skia-infra-hashes.txt",
 
