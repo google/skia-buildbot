@@ -148,10 +148,14 @@ test-frontend-ci:
 	cd status && $(MAKE) test-frontend-ci
 
 # Directories with Go code that is built using Gazelle-generated BUILD files.
+#
+# Eventually this should be replaced with just the root directory, i.e. we should automatically
+# generate build targets for all Go code in our repository.
 GAZELLE_DIRS=\
 	./go \
 	./machine \
 	./task_scheduler \
+	./bazel \
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
