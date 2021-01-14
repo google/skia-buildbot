@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "217c8000_6cd9f3d2",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "Nit: Might be easier for the reader if all the Changelist methods were next to each other, followed by all the Patchset methods, using the same sorting criteria, e.g.\n\n- GetChangelists\n- GetChangelist\n- PutChangelist\n- GetPatchsets\n- GetPatchset\n- GetPatchsetByOrder\n- PutPatchset",
+      "range": {
+        "startLine": 153,
+        "startChar": 20,
+        "endLine": 153,
+        "endChar": 34
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "92e19b04_7981d965",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "Nit: either inline this statement on line 188, or move it closer to where it\u0027s used.",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 76
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9b818bb4_c9df5046",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "Same nit about ordering: please group all related tests together. If possible, use the same sort criteria as with sqlclstore.go for consistency. \n\nIt will be clearer for the reader if e.g. TestPutChangelist_CLDoesNotExist_Success and TestPutChangelist_CLExists_CLUpdated are next to each other.",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 45
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "233f60b1_51cfab4c",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "Maybe we should have a function sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t), WDYT? Feel free to address separately.",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 43
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6a7eaf76_f1ca0d7b",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "Nit: TestGetChangelist_SameIdDifferentSystems_Success",
+      "range": {
+        "startLine": 64,
+        "startChar": 5,
+        "endLine": 64,
+        "endChar": 50
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6e89fdc6_16462f17",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "TestGetPatchsets_PatchsetsSavedOutOfOrder_ReturnsPatchsetsInAscendingOrder.",
+      "range": {
+        "startLine": 221,
+        "startChar": 5,
+        "endLine": 221,
+        "endChar": 55
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "182b9699_3ddfd530",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "TestGetChangelists_StartAndLimitProvided_RespectsStartAndLimit",
+      "range": {
+        "startLine": 298,
+        "startChar": 5,
+        "endLine": 298,
+        "endChar": 54
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7c1a20f2_2e1168a8",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-14T20:56:48Z",
+      "side": 1,
+      "message": "Consider consolidating with the StartAndLimit test case; reusing the test CLs/PSs might lead to more concise tests.\n\nAlternatively, consider rephrasing \"OptionsRespected\" to something more specific, as StartAndLimit are also options.",
+      "range": {
+        "startLine": 397,
+        "startChar": 5,
+        "endLine": 397,
+        "endChar": 48
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
