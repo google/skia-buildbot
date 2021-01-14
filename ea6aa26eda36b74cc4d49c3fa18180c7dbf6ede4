@@ -33,6 +33,24 @@
       "message": "You can probably skip this one as this file is being deleted in https://skia-review.googlesource.com/c/buildbot/+/353439",
       "revId": "ea6aa26eda36b74cc4d49c3fa18180c7dbf6ede4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f785e7c_c14b4e05",
+        "filename": "autoroll/config/tint-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 12359
+      },
+      "writtenOn": "2021-01-14T19:02:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87e56fce_dd322651",
+      "revId": "ea6aa26eda36b74cc4d49c3fa18180c7dbf6ede4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
