@@ -345,6 +345,30 @@
       },
       "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3634b4f1_f981e909",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-14T17:50:36Z",
+      "side": 1,
+      "message": "You would be doing something like https://github.com/google/skia-buildbot/blob/c3e21621195f513d1578d928987fefa60545cd06/skottie/modules/skottie-config-sk/skottie-config-sk.js#L145\n\nThat sort of pattern can trigger a render() or _buildTexts() or whatever when the property changes.\n\nI\u0027m fine with that happening in a follow on PR/CL",
+      "parentUuid": "e9d6159b_4afae9e6",
+      "range": {
+        "startLine": 187,
+        "startChar": 53,
+        "endLine": 187,
+        "endChar": 62
+      },
+      "revId": "07089faecec8a17b3a930920bcde28fc94302f58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
