@@ -16,6 +16,23 @@
       "message": "PTAL",
       "revId": "ea6aa26eda36b74cc4d49c3fa18180c7dbf6ede4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "87e56fce_dd322651",
+        "filename": "autoroll/config/tint-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 16084
+      },
+      "writtenOn": "2021-01-14T16:43:04Z",
+      "side": 1,
+      "message": "You can probably skip this one as this file is being deleted in https://skia-review.googlesource.com/c/buildbot/+/353439",
+      "revId": "ea6aa26eda36b74cc4d49c3fa18180c7dbf6ede4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
