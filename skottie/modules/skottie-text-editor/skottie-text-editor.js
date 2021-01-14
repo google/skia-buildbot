@@ -10,6 +10,8 @@
  * @evt apply - This event is generated when the user presses Apply.
  *         The updated json is available in the event detail.
  *
+ * @attr animation the animation json.
+ *         At the moment it only reads it at load time.
  *
  */
 import { define } from 'elements-sk/define';
