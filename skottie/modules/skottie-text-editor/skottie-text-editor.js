@@ -1,4 +1,3 @@
-/* eslint-disable */
 /**
  * @module skottie-text-editor
  * @description <h2><code>skottie-text-editor</code></h2>
@@ -16,65 +15,69 @@
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 
-const originTemplate = (group) => {
-  return html`
-    <div class="text-element-item">
-      <div class="text-element-label">
-         Origin${group.items.length > 1 ? 's': ''}:
-      </div>
-        <ul>
-          ${group.items.map((item) => html`
-            <li class="text-element-origin">
-              <b>${item.precompName}</b> > Layer ${item.layer.ind}
-            </li>
-          `)}
-        </ul>
-    </div>
-  `
-}
+const originTemplateElement = (item) => html`
+  <li class="text-element-origin">
+    <b>${item.precompName}</b> > Layer ${item.layer.ind}
+  </li>
+`;
 
-const template = (ele) => {
-  return html`
+const originTemplate = (group) => html`
+  <div class="text-element-item">
+    <div class="text-element-label">
+       Origin${group.items.length > 1 ? 's' : ''}:
+    </div>
+      <ul>
+        ${group.items.map(originTemplateElement)}
+      </ul>
+  </div>
+`;
+
+const textElement = (item, element) => html`
+  <li class="text-element">
+    <div class="text-element-wrapper">
+      <div class="text-element-item">
+        <div class="text-element-label">
+          Layer name:
+        </div>
+        <div>
+          ${item.name}
+        </div>
+      </div>
+      <div class="text-element-item">
+        <div class="text-element-label">
+          Layer text:
+        </div>
+        <textarea class="text-element-input"
+          @change=${(ev) => element._onChange(ev, item)}
+          @input=${(ev) => element._onChange(ev, item)}
+          .value=${item.text}
+        ></textarea>
+      </div>
+      <div>${originTemplate(item)}</div>
+    </div>
+  </li>
+`;
+
+const template = (ele) => html`
   <div>
     <header class="editor-header">
       <div class="editor-header-title">Text Editor</div>
       <div class="editor-header-separator"></div>
-      <button class="editor-header-save-button" @click=${ele._toggleTextsCollapse}>${ele._state.areTextsCollapsed ? 'Ungroup Texts' : 'Group Texts' }</button>
+      <button class="editor-header-save-button" @click=${ele._toggleTextsCollapse}>${ele._state.areTextsCollapsed ? 'Ungroup Texts' : 'Group Texts'}</button>
       <button class="editor-header-save-button" @click=${ele._save}>Save</button>
     </header>
     <section>
       <ul class="text-container">
-         ${ele._state.texts.map((item) => html`
-           <li class="text-element">
-             <div class="text-element-wrapper">
-               <div class="text-element-item">
-                 <div class="text-element-label">
-                    Layer name:
-                 </div>
-                 <div>
-                    ${item.name}
-                 </div>
-               </div>
-
-               <div class="text-element-item">
-                 <div class="text-element-label">
-                    Layer text:
-                 </div>
-                 <textarea class="text-element-input"
-                   @change=${ev => ele._onChange(ev, item)}
-                   @input=${ev => ele._onChange(ev, item)}
-                   .value=${item.text}
-                 ></textarea>
-               </div>
-               <div>${originTemplate(item)}</div>
-
-             </div>
-           </li>`)}
+         ${ele._state.texts.map((item) => textElement(item, ele))}
       </ul>
     <section>
   </div>
-  `;
-};
+`;
+
+const LAYER_TEXT_TYPE = 5;
+const COMP_ROOT_NAME = 'Root';
+const LINE_FEED = 10;
+const FORM_FEED = 13;
 
 class SkottieTextEditorSk extends HTMLElement {
   constructor() {
@@ -86,87 +89,87 @@ class SkottieTextEditorSk extends HTMLElement {
   }
 
   findPrecompName(animation, precompId) {
-    let animationLayers = animation.layers
-    let comp = animationLayers.find(layer => layer.refId === precompId)
+    const animationLayers = animation.layers;
+    let comp = animationLayers.find((layer) => layer.refId === precompId);
     if (comp) {
-      return comp.nm
+      return comp.nm;
     }
-    let animationAssets = animation.assets
-    animationAssets.forEach(asset => {
+    const animationAssets = animation.assets;
+    animationAssets.forEach((asset) => {
       if (asset.layers) {
-        asset.layers.forEach(layer => {
+        asset.layers.forEach((layer) => {
           if (layer.refId === precompId) {
-            comp = layer
+            comp = layer;
           }
-        })
+        });
       }
-    })
+    });
     if (comp) {
-      return comp.nm
+      return comp.nm;
     }
-    return 'not found'
+    return 'not found';
   }
 
-  buildTexts(animation) {
-    let textsData = animation.layers
-    .filter(layer => layer.ty === 5)
-    .map(layer => ({layer: layer, parentId: '', precompName: 'Root'}))
-    .concat(
-      animation.assets
-      .filter(asset => asset.layers)
-      .reduce((accumulator, precomp)=>{
-        accumulator = accumulator.concat(precomp.layers
-          .filter(layer => layer.ty === 5)
-          .map(layer => ({
-            layer: layer,
-            parentId: precomp.id,
-            precompName: this.findPrecompName(animation, precomp.id),
-          }))
-        )
-        return accumulator;
-      }, [])
-    )
-    .reduce((accumulator, item, index)=>{
-      let key = this._state.areTextsCollapsed
-        ? item.layer.nm
-        : (index + 1)
-      if (!accumulator[key]) {
-        accumulator[key] = {
-          id: item.layer.nm,
-          name: item.layer.nm,
-          items: [],
-          text: item.layer.t.d.k[0].s.t,
-          precompName: item.precompName,
+  _buildTexts(animation) {
+    const textsData = animation.layers // we iterate all layer at the root layer
+      .filter((layer) => layer.ty === LAYER_TEXT_TYPE) // we filter all layers of type text
+      .map((layer) => ({ layer: layer, parentId: '', precompName: COMP_ROOT_NAME })) // we map them to some extra data
+      .concat(
+        animation.assets // we iterate over the assets of the animation looking for precomps
+          .filter((asset) => asset.layers) // we filter assets that of type precomp (by querying if they have a layers property)
+          .reduce((accumulator, precomp) => { // we flatten into a single array layers from multiple precomps
+            accumulator = accumulator.concat(precomp.layers
+              .filter((layer) => layer.ty === LAYER_TEXT_TYPE) // we filter all layers of type text
+              .map((layer) => ({ // we map them to some extra data
+                layer: layer,
+                parentId: precomp.id,
+                precompName: this.findPrecompName(animation, precomp.id),
+              })));
+            return accumulator;
+          }, []),
+      )
+      .reduce((accumulator, item, index) => { // this creates a dictionary with all available texts
+        const key = this._state.areTextsCollapsed
+          ? item.layer.nm // if texts are collapsed the key will be the layer name (nm)
+          : (index + 1); // if they are not collapse we use the index as key to be unique
+        if (!accumulator[key]) {
+          accumulator[key] = {
+            id: item.layer.nm,
+            name: item.layer.nm,
+            items: [],
+            // this property is the text string of a text layer.
+            // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
+            text: item.layer.t.d.k[0].s.t,
+            precompName: item.precompName,
+          };
         }
-      }
 
-      accumulator[key].items.push(item);
-      return accumulator;
-    }, {})
+        accumulator[key].items.push(item);
+        return accumulator;
+      }, {});
     const texts = Object.keys(textsData)
-      .map(key => textsData[key])
-    
+      .map((key) => textsData[key]); // we map the dictionary back to an array to get the final texts to render
+
     this._state.texts = texts;
   }
 
   _save() {
-    const applyHandler = this.apply;
-    if (typeof applyHandler === 'function') {
-      applyHandler(this._animation);
-    }
+    this.dispatchEvent(new CustomEvent('apply', {
+      detail: this._animation,
+    }));
   }
 
   _toggleTextsCollapse() {
     this._state.areTextsCollapsed = !this._state.areTextsCollapsed;
-    this.buildTexts(this._animation);
+    this._buildTexts(this._animation);
     this._render();
   }
 
   _sanitizeText(text) {
-    let sanitizedText = ''
+    let sanitizedText = '';
     for (let i = 0; i < text.length; i += 1) {
-      if (text.charCodeAt(i) === 10) {
-        sanitizedText += String.fromCharCode(13);
+      if (text.charCodeAt(i) === LINE_FEED) {
+        sanitizedText += String.fromCharCode(FORM_FEED);
       } else {
         sanitizedText += text.charAt(i);
       }
@@ -177,15 +180,16 @@ class SkottieTextEditorSk extends HTMLElement {
   _onChange(event, elem) {
     const text = this._sanitizeText(event.target.value);
     elem.text = text;
-    elem.items.forEach(item => {
+    elem.items.forEach((item) => {
+      // this property is the text string of a text layer.
+      // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
       item.layer.t.d.k[0].s.t = text;
     });
   }
 
   connectedCallback() {
-    // console.log(this.animation);
     const animation = JSON.parse(JSON.stringify(this.animation));
-    this.buildTexts(animation);
+    this._buildTexts(animation);
     this._animation = animation;
     this._render();
     this.addEventListener('input', this._inputEvent);
@@ -196,7 +200,6 @@ class SkottieTextEditorSk extends HTMLElement {
   }
 
   _render() {
-    // console.log(this._state)
     render(template(this), this, { eventContext: this });
   }
 }

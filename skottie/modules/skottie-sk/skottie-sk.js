@@ -101,7 +101,7 @@ const jsonTextEditor = (ele) => {
 <section class=editor>
   <skottie-text-editor
     .animation=${ele._state.lottie}
-    .apply=${ele._applyTextEdits}
+    @apply=${ele._applyTextEdits}
   >
   </skottie-text-editor>
 </section>`;
@@ -323,8 +323,9 @@ define('skottie-sk', class extends HTMLElement {
     this.render();
   }
 
-  _applyTextEdits(data) {
-    this._state.lottie = data;
+  _applyTextEdits(event) {
+    const animation = event.detail;
+    this._state.lottie = animation;
     this._upload();
   }
 
@@ -442,7 +443,7 @@ define('skottie-sk', class extends HTMLElement {
       // Re-sync all players
       this._rewind();
     })
-    .catch(err => {
+    .catch(() => {
       this.render();
       this._initializePlayer();
       // Re-sync all players
