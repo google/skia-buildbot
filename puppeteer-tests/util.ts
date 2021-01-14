@@ -211,18 +211,17 @@ let browser: puppeteer.Browser;
 let testBed: Partial<TestBed>;
 
 /**
- * Once per mocha invocation, loadCachedTestBed will compile all the demo pages and launch a
- * puppeteer browser window to run the tests. On all subsequent calls, it will return essentially
+ * Once per Mocha invocation, loadCachedTestBed will compile all the demo pages and launch a
+ * Puppeteer browser window to run the tests. On all subsequent calls, it will return essentially
  * a cached handle to that invocation.
  *
- * Test cases can access the demo page server's base URL and a Puppeteer page
- * ready to be used via the return value's baseUrl and page objects, respectively.
+ * Test cases can access the demo page server's base URL and a Puppeteer page ready to be used via
+ * the return value's baseUrl and page objects, respectively.
  *
- * This function assumes that each test case uses exactly one Puppeteer page
- * (that's why it doesn't expose the Browser instance to tests). The page is set
- * up with a cookie (name: "puppeteer", value: "true") to give demo pages a
- * means to detect whether they are running within Puppeteer or not.
- *
+ * This function assumes that each test case uses exactly one Puppeteer page (that's why it doesn't
+ * expose the Browser instance to tests). The page is set up with a cookie (name: "puppeteer",
+ * value: "true") to give demo pages a means to detect whether they are running within Puppeteer or
+ * not.
  */
 export async function loadCachedTestBed(pathToWebpackConfigTs: string) {
   if (testBed) {
@@ -269,4 +268,12 @@ function setBeforeAfterHooks() {
   afterEach(async () => {
     await testBed.page!.close();
   });
+
+  // When running under Bazel, we need to explicitly shut down Puppeteer, otherwise tests will run
+  // forever, eventually timing out and failing.
+  if (inBazel()) {
+    after(async () => {
+      await browser.close();
+    });
+  }
 }
