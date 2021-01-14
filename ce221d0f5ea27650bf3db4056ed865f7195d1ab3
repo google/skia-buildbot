@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bf124870_b5900172",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-14T14:02:20Z",
+      "side": 1,
+      "message": "FYI: Looks like Hernan\u0027s latest patch here addressed comments.",
+      "revId": "ce221d0f5ea27650bf3db4056ed865f7195d1ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
