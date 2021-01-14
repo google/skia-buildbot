@@ -16,6 +16,46 @@
       "message": "FYI: Looks like Hernan\u0027s latest patch here addressed comments.",
       "revId": "ce221d0f5ea27650bf3db4056ed865f7195d1ab3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9097615e_6d660fd0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-14T14:14:04Z",
+      "side": 1,
+      "message": "Thank you so much for the cleanups - it is much easier for me to read!\n\nlgtm once the property is documented and the trailing spaces in the scss file.",
+      "revId": "ce221d0f5ea27650bf3db4056ed865f7195d1ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "249f85bd_f92a91ad",
+        "filename": "skottie/modules/skottie-text-editor/skottie-text-editor.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-14T14:14:04Z",
+      "side": 1,
+      "message": "Add @prop documenting the animation property and how it is read exactly once at load time.",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 2
+      },
+      "revId": "ce221d0f5ea27650bf3db4056ed865f7195d1ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
