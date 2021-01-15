@@ -508,12 +508,22 @@ type PatchsetRow struct {
 	// GitHash is the hash associated with the patchset. For many CRS, it is the same as the
 	// unqualified PatchsetID.
 	GitHash string `sql:"git_hash STRING NOT NULL"`
+	// CommentedOnCL keeps track of if Gold has commented on the CL indicating there are digests
+	// that need human attention (e.g. there are non-flaky, untriaged, and unignored digests).
+	// We should comment on a CL at most once per Patchset.
+	CommentedOnCL bool `sql:"commented_on_cl BOOL NOT NULL"`
+	// LastCheckedIfCommentNecessary remembers when we last queried the data for this PS to see
+	// if it needed a comment. It is used to avoid searching the database if there have been
+	// no updates to the CL since the last time we looked.
+	LastCheckedIfCommentNecessary time.Time `sql:"last_checked_if_comment_necessary TIMESTAMP WITH TIME ZONE NOT NULL"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r PatchsetRow) ToSQLRow() (colNames []string, colData []interface{}) {
-	return []string{"patchset_id", "system", "changelist_id", "ps_order", "git_hash"},
-		[]interface{}{r.PatchsetID, r.System, r.ChangelistID, r.Order, r.GitHash}
+	return []string{"patchset_id", "system", "changelist_id", "ps_order", "git_hash",
+			"commented_on_cl", "last_checked_if_comment_necessary"},
+		[]interface{}{r.PatchsetID, r.System, r.ChangelistID, r.Order, r.GitHash,
+			r.CommentedOnCL, r.LastCheckedIfCommentNecessary}
 }
 
 type TryjobRow struct {
