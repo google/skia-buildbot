@@ -22,6 +22,30 @@
       },
       "revId": "a8768bfe8ef89d580e4bac44c43be68b8e4a4c22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d82a969_a9ad2741",
+        "filename": "golden/cmd/skiacorrectness/skiacorrectness.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:59:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd5ad556_92b703e4",
+      "range": {
+        "startLine": 496,
+        "startChar": 99,
+        "endLine": 496,
+        "endChar": 101
+      },
+      "revId": "a8768bfe8ef89d580e4bac44c43be68b8e4a4c22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
