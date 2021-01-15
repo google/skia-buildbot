@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "expectations",
+    srcs = [
+        "expectations.go",
+        "labels.go",
+        "store.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/expectations",
+    visibility = ["//visibility:public"],
+    deps = ["//golden/go/types"],
+)
+
+go_test(
+    name = "expectations_test",
+    srcs = [
+        "expectations_test.go",
+        "labels_test.go",
+        "store_test.go",
+    ],
+    embed = [":expectations"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

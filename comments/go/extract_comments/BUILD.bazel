@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "extract_comments_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/comments/go/extract_comments",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//comments/go/extract",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "extract_comments",
+    embed = [":extract_comments_lib"],
+    visibility = ["//visibility:public"],
+)

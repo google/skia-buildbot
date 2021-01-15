@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "sqltest",
+    srcs = ["sqltest.go"],
+    importpath = "go.skia.org/infra/perf/go/sql/sqltest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/sql",
+        "//perf/go/sql/migrations",
+        "//perf/go/sql/migrations/cockroachdb",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

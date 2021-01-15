@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "incremental",
+    srcs = [
+        "comments.go",
+        "commits.go",
+        "incremental.go",
+        "tasks.go",
+    ],
+    importpath = "go.skia.org/infra/status/go/incremental",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/git/repograph",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+    ],
+)
+
+go_test(
+    name = "incremental_test",
+    srcs = [
+        "commits_test.go",
+        "incremental_test.go",
+    ],
+    embed = [":incremental"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/git",
+        "//go/git/repograph",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/util",
+        "//go/vcsinfo",
+        "//task_scheduler/go/db/memory",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+        "@com_github_stretchr_testify//require",
+    ],
+)

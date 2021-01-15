@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "blamer_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/blamer/go/blamer",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "blamer",
+    embed = [":blamer_lib"],
+    visibility = ["//visibility:public"],
+)

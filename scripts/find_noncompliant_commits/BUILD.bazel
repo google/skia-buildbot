@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "find_noncompliant_commits_lib",
+    srcs = ["find_noncompliant_commits.go"],
+    importpath = "go.skia.org/infra/scripts/find_noncompliant_commits",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "find_noncompliant_commits",
+    embed = [":find_noncompliant_commits_lib"],
+    visibility = ["//visibility:public"],
+)

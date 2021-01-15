@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "poprepo",
+    srcs = ["poprepo.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/poprepo",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "poprepo_test",
+    srcs = ["poprepo_test.go"],
+    embed = [":poprepo"],
+    deps = [
+        "//go/git",
+        "//go/git/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

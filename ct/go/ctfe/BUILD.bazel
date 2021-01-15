@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "ctfe_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/ctfe/admin_tasks",
+        "//ct/go/ctfe/chromium_analysis",
+        "//ct/go/ctfe/chromium_perf",
+        "//ct/go/ctfe/metrics_analysis",
+        "//ct/go/ctfe/pending_tasks",
+        "//ct/go/ctfe/task_common",
+        "//ct/go/ctfe/task_types",
+        "//ct/go/ctfe/util",
+        "//ct/go/util",
+        "//go/allowed",
+        "//go/auth",
+        "//go/common",
+        "//go/ds",
+        "//go/httputils",
+        "//go/login",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "ctfe",
+    embed = [":ctfe_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "named-fiddles_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/named-fiddles/go/named-fiddles",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//fiddlek/go/client",
+        "//fiddlek/go/store",
+        "//fiddlek/go/types",
+        "//go/auth",
+        "//go/common",
+        "//go/git/gitinfo",
+        "//go/gitauth",
+        "//go/metrics2",
+        "//go/sklog",
+        "//named-fiddles/go/parse",
+    ],
+)
+
+go_binary(
+    name = "named-fiddles",
+    embed = [":named-fiddles_lib"],
+    visibility = ["//visibility:public"],
+)

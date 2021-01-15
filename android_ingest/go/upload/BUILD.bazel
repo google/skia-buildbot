@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "upload",
+    srcs = ["upload.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/upload",
+    visibility = ["//visibility:public"],
+    deps = ["//perf/go/ingest/format"],
+)
+
+go_test(
+    name = "upload_test",
+    srcs = ["upload_test.go"],
+    embed = [":upload"],
+    deps = [
+        "//go/testutils/unittest",
+        "//perf/go/ingest/format",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
