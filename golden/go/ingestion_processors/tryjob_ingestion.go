@@ -259,6 +259,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		}
 		// This is a new CL, but we'll be storing it to the clstore down below when
 		// we confirm that the TryJob is valid.
+		cl.Updated = time.Time{} // store a sentinel value to CL.
 	} else if err != nil {
 		return skerr.Wrapf(err, "fetching CL from clstore with id %q", clID)
 	}
@@ -302,13 +303,19 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	} else if err != nil {
 		return skerr.Wrapf(err, "fetching TryJob with id %s", tjID)
 	}
+	// In the SQL implementation, we need to create the CL first because of foreign key constraints.
+	if cl.Updated.IsZero() {
+		sklog.Debugf("First time seeing CL %s_%s", system.ID, cl.SystemID)
+		if err = system.Store.PutChangelist(ctx, cl); err != nil {
+			return skerr.Wrapf(err, "initially storing %s CL with id %q to clstore", system.ID, clID)
+		}
+	}
 
 	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
-
 	// Store the results from the file.
 	tjr := toTryJobResults(gr)
 	if err := system.Store.PutPatchset(ctx, ps); err != nil {
-		return skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
+		return skerr.Wrapf(err, "could not store PS %s of %s CL %q to clstore", psID, system.ID, clID)
 	}
 	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, tjr, time.Now())
 	if err != nil {
@@ -320,7 +327,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	// period.
 	cl.Updated = time.Now()
 	if err = system.Store.PutChangelist(ctx, cl); err != nil {
-		return skerr.Wrapf(err, "updating CL with id %q to clstore", clID)
+		return skerr.Wrapf(err, "updating %s CL with id %q to clstore", system.ID, clID)
 	}
 	return nil
 }
