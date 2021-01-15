@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -33,7 +34,7 @@ type GithubDEPSRepoManagerConfig struct {
 	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
-// Validate the config.
+// Validate implements util.Validator.
 func (c *GithubDEPSRepoManagerConfig) Validate() error {
 	_, _, err := c.splitParentChild()
 	if err != nil {
@@ -91,6 +92,58 @@ func (c GithubDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig,
 		return parent.DEPSLocalConfig{}, child.GitCheckoutConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// GithubDEPSRepoManagerConfigToProto converts a GithubDEPSRepoManagerConfig to
+// a config.ParentChildRepoManagerConfig.
+func GithubDEPSRepoManagerConfigToProto(cfg *GithubDEPSRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{
+			DepsLocalGithubParent: &config.DEPSLocalGitHubParentConfig{
+				DepsLocal: parent.DEPSLocalConfigToProto(&parentCfg),
+				Github:    nil, // TODO(borenet): This is missing from GithubCipdDEPSRepoManagerConfig!
+			},
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
+			GitCheckoutChild: child.GitCheckoutConfigToProto(&childCfg),
+		},
+	}
+}
+
+// ProtoToGithubDEPSRepoManagerConfig converts a
+// config.ParentChildRepoManagerConfig to a GithubDEPSRepoManagerConfig.
+func ProtoToGithubDEPSRepoManagerConfig(parentCfg *config.DEPSLocalGitHubParentConfig, childCfg *config.GitCheckoutChildConfig) *GithubDEPSRepoManagerConfig {
+	childBranch, err := config_vars.NewTemplate(childCfg.GitCheckout.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	parentBranch, err := config_vars.NewTemplate(parentCfg.DepsLocal.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &GithubDEPSRepoManagerConfig{
+		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:      childBranch,
+				ChildPath:        "", // TODO
+				ParentBranch:     parentBranch,
+				ParentRepo:       parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl,
+				ChildRevLinkTmpl: childCfg.GitCheckout.RevLinkTmpl,
+				ChildSubdir:      "", // TODO
+				PreUploadSteps:   parent.ProtoToPreUploadSteps(parentCfg.DepsLocal.PreUploadSteps),
+			},
+			GClientSpec: parentCfg.DepsLocal.GclientSpec,
+			RunHooks:    parentCfg.DepsLocal.RunHooks,
+		},
+		ChildRepo:        childCfg.GitCheckout.RepoUrl,
+		ForkRepoURL:      "",                               // TODO(borenet): Missing from config!
+		GithubParentPath: parentCfg.DepsLocal.CheckoutPath, // ???
+		TransitiveDeps:   version_file_common.ProtoToTransitiveDepConfigs(parentCfg.DepsLocal.GitCheckout.Dep.Transitive),
+	}
 }
 
 // NewGithubDEPSRepoManager returns a RepoManager instance which operates in the given

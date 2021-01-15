@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
@@ -47,7 +48,7 @@ type DEPSLocalConfig struct {
 	RunHooks bool `json:"runHooks,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c DEPSLocalConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -64,6 +65,30 @@ func (c DEPSLocalConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// DEPSLocalConfigToProto converts a DEPSLocalConfig to a
+// config.DEPSLocalParentConfig.
+func DEPSLocalConfigToProto(cfg *DEPSLocalConfig) *config.DEPSLocalParentConfig {
+	return &config.DEPSLocalParentConfig{
+		GitCheckout:    GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		CheckoutPath:   cfg.CheckoutPath,
+		GclientSpec:    cfg.GClientSpec,
+		PreUploadSteps: PreUploadStepsToProto(cfg.PreUploadSteps),
+		RunHooks:       cfg.RunHooks,
+	}
+}
+
+// ProtoToDEPSLocalConfig converts a config.DEPSLocalParentConfig to a
+// DEPSLocalConfig.
+func ProtoToDEPSLocalConfig(cfg *config.DEPSLocalParentConfig) *DEPSLocalConfig {
+	return &DEPSLocalConfig{
+		GitCheckoutConfig: *ProtoToGitCheckoutConfig(cfg.GitCheckout),
+		CheckoutPath:      cfg.CheckoutPath,
+		GClientSpec:       cfg.GclientSpec,
+		PreUploadSteps:    ProtoToPreUploadSteps(cfg.PreUploadSteps),
+		RunHooks:          cfg.RunHooks,
+	}
 }
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage

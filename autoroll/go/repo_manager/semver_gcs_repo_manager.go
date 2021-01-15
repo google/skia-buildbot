@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -15,6 +16,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
+// SemVerGCSRepoManagerConfig provides configuration for a RepoManager which
+// rolls an asset in GCS which uses semantic versioning.
 type SemVerGCSRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
 	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
@@ -39,6 +42,7 @@ type SemVerGCSRepoManagerConfig struct {
 	VersionRegex *config_vars.Template `json:"versionRegex"`
 }
 
+// Validate implements util.Validator.
 func (c *SemVerGCSRepoManagerConfig) Validate() error {
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -90,6 +94,48 @@ func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, ch
 		return parent.GitilesConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// SemVerGCSRepoManagerConfigToProto converts a SemVerGCSRepoManagerConfig to a
+// config.ParentChildRepoManagerConfig.
+func SemVerGCSRepoManagerConfigToProto(cfg *SemVerGCSRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: parent.GitilesConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_SemverGcsChild{
+			SemverGcsChild: child.SemVerGCSConfigToProto(&childCfg),
+		},
+	}
+}
+
+// ProtoToSemVerGCSRepoManagerConfig converts a
+// config.ParentChildRepoManagerConfig to a SemVerGCSRepoManagerConfig.
+func ProtoToSemVerGCSRepoManagerConfig(parentCfg *config.GitilesParentConfig, childCfg *config.SemVerGCSChildConfig) *SemVerGCSRepoManagerConfig {
+	parentBranch, err := config_vars.NewTemplate(parentCfg.Gitiles.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	childCfgConv := child.ProtoToSemVerGCSConfig(childCfg)
+	return &SemVerGCSRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ParentBranch:     parentBranch,
+				ParentRepo:       parentCfg.Gitiles.RepoUrl,
+				ChildRevLinkTmpl: "", // TODO
+			},
+		},
+		Gerrit:        codereview.ProtoToGerritConfig(parentCfg.Gerrit),
+		GCSBucket:     childCfgConv.GCSBucket,
+		GCSPath:       childCfgConv.GCSPath,
+		VersionFile:   parentCfg.Dep.Primary.Path,
+		ShortRevRegex: childCfgConv.ShortRevRegex,
+		VersionRegex:  childCfgConv.VersionRegex,
+	}
 }
 
 // NewSemVerGCSRepoManager returns a gcsRepoManager which uses semantic

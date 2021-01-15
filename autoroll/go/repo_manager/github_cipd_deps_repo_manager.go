@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -24,14 +25,14 @@ type GithubCipdDEPSRepoManagerConfig struct {
 	CipdAssetTag  string `json:"cipdAssetTag"`
 }
 
-// See documentation for RepoManagerConfig interface.
+// ValidStrategies implements roller.RepoManagerConfig.
 func (c *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
 	_, _, err := c.splitParentChild()
 	return skerr.Wrap(err)
@@ -71,6 +72,58 @@ func (c GithubCipdDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalCon
 		return parent.DEPSLocalConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child.CIPDConfig is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// GithubCipdDEPSRepoManagerConfigToProto converts a
+// GithubCipdDEPSRepoManagerConfig to a config.ParentChildRepoManagerConfig.
+func GithubCipdDEPSRepoManagerConfigToProto(cfg *GithubCipdDEPSRepoManagerConfig) *config.ParentChildRepoManagerConfig {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this!
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{
+			DepsLocalGithubParent: &config.DEPSLocalGitHubParentConfig{
+				DepsLocal: parent.DEPSLocalConfigToProto(&parentCfg),
+				Github:    nil, // TODO(borenet): This is missing from GithubCipdDEPSRepoManagerConfig!
+			},
+		},
+		Child: &config.ParentChildRepoManagerConfig_CipdChild{
+			CipdChild: child.CIPDConfigToProto(&childCfg),
+		},
+	}
+}
+
+// ProtoToGithubCipdDEPSRepoManagerConfig converts a
+// config.ParentChildRepoManagerConfig to a GithubCipdDEPSRepoManagerConfig.
+func ProtoToGithubCipdDEPSRepoManagerConfig(parentCfg *config.DEPSLocalGitHubParentConfig, childCfg *config.CIPDChildConfig) *GithubCipdDEPSRepoManagerConfig {
+	parentBranch, err := config_vars.NewTemplate(parentCfg.DepsLocal.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &GithubCipdDEPSRepoManagerConfig{
+		GithubDEPSRepoManagerConfig: GithubDEPSRepoManagerConfig{
+			DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+				CommonRepoManagerConfig: CommonRepoManagerConfig{
+					ChildBranch:      nil,
+					ChildPath:        "",
+					ParentBranch:     parentBranch,
+					ParentRepo:       parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl,
+					ChildRevLinkTmpl: "", // TODO(borenet)
+					ChildSubdir:      "",
+					BugProject:       "",
+					PreUploadSteps:   nil,
+				},
+				GClientSpec: parentCfg.DepsLocal.GclientSpec,
+				RunHooks:    parentCfg.DepsLocal.RunHooks,
+			},
+			ChildRepo:        "",
+			ForkRepoURL:      "", // TODO(borenet)
+			GithubParentPath: "", // TODO(borenet)
+		},
+		CipdAssetName: childCfg.Name,
+		CipdAssetTag:  childCfg.Tag,
+	}
 }
 
 // NewGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given

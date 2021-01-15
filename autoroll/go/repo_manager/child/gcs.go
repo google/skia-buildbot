@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/skerr"
@@ -31,7 +32,7 @@ type GCSConfig struct {
 	GCSPath string
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *GCSConfig) Validate() error {
 	if c.GCSBucket == "" {
 		return errors.New("GCSBucket is required.")
@@ -40,6 +41,22 @@ func (c *GCSConfig) Validate() error {
 		return errors.New("GCSPath is required.")
 	}
 	return nil
+}
+
+// GCSConfigToProto converts a GCSConfig to a config.GCSChildConfig.
+func GCSConfigToProto(cfg *GCSConfig) *config.GCSChildConfig {
+	return &config.GCSChildConfig{
+		GcsBucket: cfg.GCSBucket,
+		GcsPath:   cfg.GCSPath,
+	}
+}
+
+// ProtoToGCSConfig converts a config.GCSChildConfig to a GCSConfig.
+func ProtoToGCSConfig(cfg *config.GCSChildConfig) *GCSConfig {
+	return &GCSConfig{
+		GCSBucket: cfg.GcsBucket,
+		GCSPath:   cfg.GcsPath,
+	}
 }
 
 // gcsVersion represents a version of a file in GCS. It can be compared to other

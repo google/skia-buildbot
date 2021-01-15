@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
 )
@@ -17,9 +19,67 @@ type FreeTypeRepoManagerConfig struct {
 	NoCheckoutDEPSRepoManagerConfig
 }
 
-// See documentation for RepoManagerConfig interface.
+// NoCheckout implements roller.RepoManagerConfig.
 func (c *FreeTypeRepoManagerConfig) NoCheckout() bool {
 	return false
+}
+
+// FreeTypeRepoManagerConfigToProto converts a FreeTypeRepoManagerConfig to a
+// config.FreeTypeRepoManagerConfig.
+func FreeTypeRepoManagerConfigToProto(cfg *FreeTypeRepoManagerConfig) *config.FreeTypeRepoManagerConfig {
+	return &config.FreeTypeRepoManagerConfig{
+		Parent: &config.FreeTypeParentConfig{
+			Gitiles: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
+					Branch:       cfg.ParentBranch.String(),
+					RepoUrl:      cfg.ParentRepo,
+					Dependencies: nil, // TODO(borenet): Transitive DEPS???
+				},
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
+						Id:   cfg.ChildRepo,
+						Path: deps_parser.DepsFileName,
+					},
+				},
+				Gerrit: codereview.GerritConfigToProto(cfg.Gerrit),
+			},
+		},
+		Child: &config.GitilesChildConfig{
+			Gitiles: &config.GitilesConfig{
+				Branch:       cfg.ChildBranch.String(), // TODO
+				RepoUrl:      cfg.ChildRepo,
+				Dependencies: nil, // TODO(borenet): Transitive DEPS???
+			},
+		},
+	}
+}
+
+// ProtoToFreeTypeRepoManagerConfig converts a config.FreeTypeRepoManagerConfig
+// to a FreeTypeRepoManagerConfig.
+func ProtoToFreeTypeRepoManagerConfig(cfg *config.FreeTypeRepoManagerConfig) *FreeTypeRepoManagerConfig {
+	childBranch, err := config_vars.NewTemplate(cfg.Child.Gitiles.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	parentBranch, err := config_vars.NewTemplate(cfg.Parent.Gitiles.Gitiles.Branch)
+	if err != nil {
+		panic(err) // TODO(borenet): Handle this.
+	}
+	return &FreeTypeRepoManagerConfig{
+		NoCheckoutDEPSRepoManagerConfig: NoCheckoutDEPSRepoManagerConfig{
+			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+				CommonRepoManagerConfig: CommonRepoManagerConfig{
+					ChildBranch:      childBranch,
+					ChildPath:        cfg.Child.Path,
+					ParentBranch:     parentBranch,
+					ParentRepo:       cfg.Parent.Gitiles.Gitiles.RepoUrl,
+					ChildRevLinkTmpl: "", // TODO(borenet)
+				},
+			},
+			Gerrit:    codereview.ProtoToGerritConfig(cfg.Parent.Gitiles.Gerrit),
+			ChildRepo: cfg.Child.Gitiles.RepoUrl,
+		},
+	}
 }
 
 // NewFreeTypeRepoManager returns a RepoManager instance which rolls FreeType
