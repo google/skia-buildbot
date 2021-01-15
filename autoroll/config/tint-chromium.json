@@ -2,6 +2,22 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Tint",
+  "contacts": [
+    "radial-bots+tint-roll@google.com"
+  ],
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "tint-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
+  ],
+  "sheriffBackup": [
+    "radial-bots+tint-roll@google.com"
+  ],
   "commitMsg": {
     "bugProject": "chromium",
     "childLogURLTmpl": "https://dawn.googlesource.com/tint.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
@@ -14,40 +30,33 @@
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true,
-    "includeTests": true
+    "includeTests": true,
+    "template": "default"
   },
-  "contacts": ["radial-bots+tint-roll@google.com"],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
     "project": "chromium/src",
     "config": "chromium"
   },
-  "isInternal": false,
-  "ownerPrimary": "borenet",
-  "ownerSecondary": "rmistry",
-  "parentDisplayName": "Chromium",
-  "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "tint-chromium-autoroll",
-  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
-  ],
-  "sheriffBackup": ["radial-bots+tint-roll@google.com"],
-  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
-    "childPath": "src/third_party/tint/src",
-    "childRepo": "https://dawn.googlesource.com/tint.git",
-    "childRevLinkTmpl": "https://dawn.googlesource.com/tint.git/+show/%s",
+    "childPath": "",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://dawn.googlesource.com/tint.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "24h"
+  "maxRollFrequency": "24h",
+  "supportsManualRolls": true
 }
