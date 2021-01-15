@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
+
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -36,7 +38,7 @@ func PrimaryBranchBigTable() (id string, constructor ingestion.Constructor) {
 
 // newTraceStoreProcessor implements the ingestion.Constructor signature and creates
 // a Processor that uses a BigTable-backed tracestore.
-func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config, _ *http.Client) (ingestion.Processor, error) {
+func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config, _ *http.Client, _ *pgxpool.Pool) (ingestion.Processor, error) {
 	btc := bt_tracestore.BTConfig{
 		ProjectID:  config.ExtraParams[btProjectConfig],
 		InstanceID: config.ExtraParams[btInstanceConfig],
