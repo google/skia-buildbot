@@ -39,7 +39,9 @@ import (
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore"
+	"go.skia.org/infra/golden/go/clstore/dualclstore"
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
+	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/commenter"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
@@ -207,7 +209,7 @@ func main() {
 
 	client := mustMakeAuthenticatedHTTPClient(fsc.Local)
 
-	db := maybeInitSQLDatabase(ctx, fsc)
+	sqlDB := mustInitSQLDatabase(ctx, fsc)
 
 	diffStore := mustMakeDiffStore(ctx, fsc)
 
@@ -225,11 +227,11 @@ func main() {
 
 	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
 
-	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient, db)
+	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient, sqlDB)
 
 	tjs := fs_tjstore.New(fsClient)
 
-	reviewSystems := mustInitializeReviewSystems(fsc, fsClient, client)
+	reviewSystems := mustInitializeReviewSystems(fsc, fsClient, client, sqlDB)
 
 	tileSource := mustMakeTileSource(ctx, fsc, expStore, ignoreStore, traceStore, vcs, publiclyViewableParams, reviewSystems)
 
@@ -312,11 +314,11 @@ func mustMakeAuthenticatedHTTPClient(local bool) *http.Client {
 	return httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 }
 
-// maybeInitSQLDatabase initializes a SQL database if configured. If there are any errors, it
-// will panic via sklog.Fatal. If not configured, it returns nil.
-func maybeInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpool.Pool {
+// mustInitSQLDatabase initializes a SQL database. If there are any errors, it will panic via
+// sklog.Fatal.
+func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpool.Pool {
 	if fsc.SQLDatabaseName == "" {
-		return nil
+		sklog.Fatalf("Must have SQL Database Information")
 	}
 	url := sql.GetConnectionURL(fsc.SQLConnection, fsc.SQLDatabaseName)
 	conf, err := pgxpool.ParseConfig(url)
@@ -491,7 +493,7 @@ func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClien
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
 // specified via the JSON configuration files.
-func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client, hc *http.Client) []clstore.ReviewSystem {
+func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client, hc *http.Client, sqlDB *pgxpool.Pool) []clstore.ReviewSystem {
 	rs := make([]clstore.ReviewSystem, 0, len(fsc.CodeReviewSystems))
 	for _, cfg := range fsc.CodeReviewSystems {
 		var crs code_review.Client
@@ -524,11 +526,12 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client
 			sklog.Fatalf("CRS flavor %s not supported.", cfg.Flavor)
 			return nil
 		}
-
+		fireCS := fs_clstore.New(fc, cfg.ID)
+		sqlCS := sqlclstore.New(sqlDB, cfg.ID)
 		rs = append(rs, clstore.ReviewSystem{
 			ID:          cfg.ID,
 			Client:      crs,
-			Store:       fs_clstore.New(fc, cfg.ID),
+			Store:       dualclstore.New(fireCS, sqlCS),
 			URLTemplate: cfg.URLTemplate,
 		})
 	}

@@ -15,6 +15,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/fileutil"
@@ -41,7 +42,7 @@ const (
 //   config is usually parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   eventBus is the eventbus to be used by the ingester (optional).
-type Constructor func(context.Context, vcsinfo.VCS, Config, *http.Client) (Processor, error)
+type Constructor func(context.Context, vcsinfo.VCS, Config, *http.Client, *pgxpool.Pool) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -61,7 +62,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, configs map[string]Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, vcs vcsinfo.VCS) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, configs map[string]Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, vcs vcsinfo.VCS, db *pgxpool.Pool) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
@@ -95,7 +96,7 @@ func IngestersFromConfig(ctx context.Context, configs map[string]Config, client 
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(ctx, vcs, ingesterConf, client)
+		processor, err := processorConstructor(ctx, vcs, ingesterConf, client, db)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create processor %q", id)
 		}

@@ -51,7 +51,7 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 		},
 	}
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient())
+	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient(), nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -79,7 +79,7 @@ func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 	}
 
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient())
+	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient(), nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 

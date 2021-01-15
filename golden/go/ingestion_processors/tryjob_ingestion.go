@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/buildbucket"
@@ -18,7 +19,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
+	"go.skia.org/infra/golden/go/clstore/dualclstore"
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
+	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	"go.skia.org/infra/golden/go/code_review/github_crs"
@@ -69,7 +72,7 @@ type goldTryjobProcessor struct {
 // newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
-func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingestion.Config, client *http.Client) (ingestion.Processor, error) {
+func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingestion.Config, client *http.Client, db *pgxpool.Pool) (ingestion.Processor, error) {
 	cisNames := strings.Split(config.ExtraParams[continuousIntegrationSystemsParam], ",")
 	if len(cisNames) == 0 {
 		return nil, skerr.Fmt("missing CI system (e.g. 'buildbucket')")
@@ -114,10 +117,12 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
 		}
+		fireCS := fs_clstore.New(fsClient, crsName)
+		sqlCS := sqlclstore.New(db, crsName)
 		reviewSystems = append(reviewSystems, clstore.ReviewSystem{
 			ID:     crsName,
 			Client: crsClient,
-			Store:  fs_clstore.New(fsClient, crsName),
+			Store:  dualclstore.New(fireCS, sqlCS),
 		})
 	}
 
