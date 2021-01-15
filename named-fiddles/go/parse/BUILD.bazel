@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "parse",
+    srcs = ["parse.go"],
+    importpath = "go.skia.org/infra/named-fiddles/go/parse",
+    visibility = ["//visibility:public"],
+    deps = ["//fiddlek/go/types"],
+)
+
+go_test(
+    name = "parse_test",
+    srcs = ["parse_test.go"],
+    embed = [":parse"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

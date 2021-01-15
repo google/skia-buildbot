@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "recorder",
+    srcs = [
+        "mock_recorder.go",
+        "recorder.go",
+    ],
+    importpath = "go.skia.org/infra/power/go/recorder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog/glog_and_cloud",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

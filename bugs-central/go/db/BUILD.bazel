@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "db",
+    srcs = ["db.go"],
+    importpath = "go.skia.org/infra/bugs-central/go/db",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bugs-central/go/types",
+        "//go/firestore",
+        "//go/skerr",
+        "@com_google_cloud_go_firestore//:firestore",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

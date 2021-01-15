@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "github_crs",
+    srcs = ["github_crs.go"],
+    importpath = "go.skia.org/infra/golden/go/code_review/github_crs",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "//golden/go/code_review",
+        "@org_golang_x_time//rate",
+    ],
+)
+
+go_test(
+    name = "github_crs_test",
+    srcs = ["github_crs_test.go"],
+    embed = [":github_crs"],
+    deps = [
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//golden/go/code_review",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

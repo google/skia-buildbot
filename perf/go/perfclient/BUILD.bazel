@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "perfclient",
+    srcs = [
+        "mock_perf_client.go",
+        "perf_client.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/perfclient",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gcs",
+        "//perf/go/ingest/format",
+        "@com_github_stretchr_testify//mock",
+    ],
+)
+
+go_test(
+    name = "perfclient_test",
+    srcs = ["perf_client_test.go"],
+    embed = [":perfclient"],
+    deps = [
+        "//go/gcs",
+        "//go/gcs/test_gcsclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//perf/go/ingest/format",
+        "@com_github_stretchr_testify//require",
+    ],
+)

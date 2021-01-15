@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "blame",
+    srcs = ["blame.go"],
+    importpath = "go.skia.org/infra/golden/go/blame",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/util",
+        "//golden/go/expectations",
+        "//golden/go/shared",
+        "//golden/go/tiling",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "blame_test",
+    srcs = ["blame_test.go"],
+    embed = [":blame"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/testutils/data_bug_revert",
+        "//golden/go/testutils/data_three_devices",
+        "//golden/go/tiling",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)

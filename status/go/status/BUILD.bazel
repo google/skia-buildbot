@@ -1,0 +1,53 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "status_lib",
+    srcs = [
+        "main.go",
+        "tasks_per_commit.go",
+    ],
+    importpath = "go.skia.org/infra/status/go/status",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/status",
+        "//go/allowed",
+        "//go/auth",
+        "//go/common",
+        "//go/ds",
+        "//go/git/repograph",
+        "//go/gitiles",
+        "//go/gitstore/bt_gitstore",
+        "//go/httputils",
+        "//go/login",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "//status/go/capacity",
+        "//status/go/incremental",
+        "//status/go/lkgr",
+        "//status/go/rpc",
+        "//task_driver/go/db",
+        "//task_driver/go/db/bigtable",
+        "//task_driver/go/handlers",
+        "//task_driver/go/logs",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/cache",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/task_cfg_cache",
+        "//task_scheduler/go/types",
+        "//task_scheduler/go/window",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_binary(
+    name = "status",
+    embed = [":status_lib"],
+    visibility = ["//visibility:public"],
+)

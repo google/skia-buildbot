@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "incident",
+    srcs = ["incident.go"],
+    importpath = "go.skia.org/infra/am/go/incident",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/note",
+        "//am/go/silence",
+        "//go/alerts",
+        "//go/ds",
+        "//go/human",
+        "//go/paramtools",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "incident_test",
+    srcs = ["incident_test.go"],
+    embed = [":incident"],
+    deps = [
+        "//am/go/note",
+        "//am/go/silence",
+        "//go/alerts",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

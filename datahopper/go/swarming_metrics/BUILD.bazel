@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "swarming_metrics",
+    srcs = [
+        "bots.go",
+        "tasks.go",
+    ],
+    importpath = "go.skia.org/infra/datahopper/go/swarming_metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/common",
+        "//go/metrics2",
+        "//go/metrics2/events",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/taskname",
+        "//go/util",
+        "//perf/go/ingest/format",
+        "//perf/go/perfclient",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "swarming_metrics_test",
+    srcs = [
+        "bots_test.go",
+        "tasks_test.go",
+    ],
+    embed = [":swarming_metrics"],
+    deps = [
+        "//go/bt/testutil",
+        "//go/common",
+        "//go/metrics2",
+        "//go/metrics2/events",
+        "//go/metrics2/testutils",
+        "//go/swarming",
+        "//go/taskname",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/util",
+        "//perf/go/ingest/format",
+        "//perf/go/perfclient",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)

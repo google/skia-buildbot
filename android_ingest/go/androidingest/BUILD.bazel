@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "androidingest_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/androidingest",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//android_ingest/go/continuous",
+        "//android_ingest/go/lookup",
+        "//android_ingest/go/parser",
+        "//android_ingest/go/recent",
+        "//android_ingest/go/upload",
+        "//go/allowed",
+        "//go/androidbuildinternal/v2beta1",
+        "//go/auth",
+        "//go/common",
+        "//go/git",
+        "//go/gitauth",
+        "//go/httputils",
+        "//go/login",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "androidingest",
+    embed = [":androidingest_lib"],
+    visibility = ["//visibility:public"],
+)

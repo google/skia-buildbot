@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "databuilder",
+    srcs = ["databuilder.go"],
+    importpath = "go.skia.org/infra/golden/go/sql/databuilder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/util",
+        "//golden/go/diff",
+        "//golden/go/sql",
+        "//golden/go/sql/schema",
+        "//golden/go/types",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "databuilder_test",
+    srcs = ["databuilder_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":databuilder"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/sql/schema",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

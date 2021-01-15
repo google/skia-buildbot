@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sqlshortcutstore",
+    srcs = ["sqlshortcutstore.go"],
+    importpath = "go.skia.org/infra/perf/go/shortcut/sqlshortcutstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/shortcut",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "sqlshortcutstore_test",
+    srcs = ["sqlshortcutstore_test.go"],
+    embed = [":sqlshortcutstore"],
+    deps = [
+        "//go/testutils/unittest",
+        "//perf/go/shortcut/shortcuttest",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "machine",
+    srcs = ["machine.go"],
+    importpath = "go.skia.org/infra/sk8s/go/bot_config/machine",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/timer",
+        "//go/util",
+        "//machine/go/machine",
+        "//machine/go/machine/sink",
+        "//machine/go/machine/store",
+        "//machine/go/machineserver/config",
+        "//sk8s/go/bot_config/adb",
+        "//sk8s/go/bot_config/swarming",
+    ],
+)
+
+go_test(
+    name = "machine_test",
+    srcs = ["machine_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":machine"],
+    deps = [
+        "//go/auth",
+        "//go/executil",
+        "//go/testutils/unittest",
+        "//machine/go/machine",
+        "//machine/go/machine/source/pubsubsource",
+        "//machine/go/machineserver/config",
+        "//sk8s/go/bot_config/swarming",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)

@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "notifier",
+    srcs = ["notifier.go"],
+    importpath = "go.skia.org/infra/autoroll/go/notifier",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/chatbot",
+        "//go/email",
+        "//go/notifier",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "notifier_test",
+    srcs = ["notifier_test.go"],
+    embed = [":notifier"],
+    deps = [
+        "//go/notifier",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

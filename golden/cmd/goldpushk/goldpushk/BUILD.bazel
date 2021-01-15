@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "goldpushk",
+    srcs = [
+        "goldpushk.go",
+        "services_map.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/golden/cmd/goldpushk/goldpushk",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "goldpushk_test",
+    srcs = [
+        "goldpushk_test.go",
+        "services_map_test.go",
+        "types_test.go",
+    ],
+    embed = [":goldpushk"],
+    deps = [
+        "//go/exec",
+        "//go/git",
+        "//go/git/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "fs_ignorestore",
+    srcs = ["fs_ignorestore.go"],
+    importpath = "go.skia.org/infra/golden/go/ignore/fs_ignorestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore",
+        "//go/skerr",
+        "//go/sklog",
+        "//golden/go/fs_utils",
+        "//golden/go/ignore",
+        "@com_google_cloud_go_firestore//:firestore",
+    ],
+)
+
+go_test(
+    name = "fs_ignorestore_test",
+    srcs = ["fs_ignorestore_test.go"],
+    embed = [":fs_ignorestore"],
+    deps = [
+        "//go/deepequal",
+        "//go/firestore",
+        "//go/testutils/unittest",
+        "//golden/go/ignore",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

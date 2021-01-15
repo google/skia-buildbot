@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "metadata_server_k8s_lib",
+    srcs = [
+        "main.go",
+        "svc_config.go",
+    ],
+    importpath = "go.skia.org/infra/skolo/go/metadata_server_k8s",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/config",
+        "//go/fileutil",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//skolo/go/skmetadata",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_binary(
+    name = "metadata_server_k8s",
+    embed = [":metadata_server_k8s_lib"],
+    visibility = ["//visibility:public"],
+)
