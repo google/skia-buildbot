@@ -399,6 +399,30 @@
       },
       "revId": "faad0141219ab5696796aab217c3deb7695e0453",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c42f146b_394137a3",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-15T19:08:01Z",
+      "side": 1,
+      "message": "Nevermind, I didn\u0027t read this test correctly.",
+      "parentUuid": "998a2e43_694e1931",
+      "range": {
+        "startLine": 397,
+        "startChar": 5,
+        "endLine": 397,
+        "endChar": 48
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
