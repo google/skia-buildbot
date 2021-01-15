@@ -16,6 +16,24 @@
       "message": "If I understand correctly, these were generated from a program called gazelle? If so, can we document the commands needed to generate them in the README or a BAZEL.md or something canonical?",
       "revId": "bb08e9d25208452154b5e925f35e3cfad2654863",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48045a0a_03849b9c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-15T20:15:47Z",
+      "side": 1,
+      "message": "Short answer: make update-go-bazel-files.\n\nLonger answer: I\u0027ll document everything in detail in the corresponding design document.",
+      "parentUuid": "5a75a2c4_60327cf0",
+      "revId": "bb08e9d25208452154b5e925f35e3cfad2654863",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
