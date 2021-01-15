@@ -160,10 +160,12 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	ps := code_review.Patchset{
-		SystemID:     unqualifiedPSID,
-		ChangelistID: unqualifiedCLID,
-		Order:        3,
-		GitHash:      "fedcba98765443321",
+		SystemID:                      unqualifiedPSID,
+		ChangelistID:                  unqualifiedCLID,
+		Order:                         3,
+		GitHash:                       "fedcba98765443321",
+		CommentedOnCL:                 true,
+		LastCheckedIfCommentNecessary: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
 	}
 
 	err = store.PutPatchset(ctx, ps)
@@ -172,13 +174,17 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 	// Check the SQL directly so we can trust GetPatchset* in other tests.
 	row := db.QueryRow(ctx, `SELECT * FROM Patchsets LIMIT 1`)
 	var r schema.PatchsetRow
-	require.NoError(t, row.Scan(&r.PatchsetID, &r.System, &r.ChangelistID, &r.Order, &r.GitHash))
+	require.NoError(t, row.Scan(&r.PatchsetID, &r.System, &r.ChangelistID, &r.Order, &r.GitHash,
+		&r.CommentedOnCL, &r.LastCheckedIfCommentNecessary))
+	r.LastCheckedIfCommentNecessary = r.LastCheckedIfCommentNecessary.UTC()
 	assert.Equal(t, schema.PatchsetRow{
-		PatchsetID:   "gerrit_abcdef",
-		System:       "gerrit",
-		ChangelistID: "gerrit_987654",
-		Order:        3,
-		GitHash:      "fedcba98765443321",
+		PatchsetID:                    "gerrit_abcdef",
+		System:                        "gerrit",
+		ChangelistID:                  "gerrit_987654",
+		Order:                         3,
+		GitHash:                       "fedcba98765443321",
+		CommentedOnCL:                 true,
+		LastCheckedIfCommentNecessary: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
 	}, r)
 
 	actual, err := store.GetPatchset(ctx, unqualifiedCLID, unqualifiedPSID)

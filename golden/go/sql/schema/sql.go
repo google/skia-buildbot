@@ -74,7 +74,9 @@ CREATE TABLE IF NOT EXISTS Patchsets (
   system STRING NOT NULL,
   changelist_id STRING NOT NULL REFERENCES Changelists (changelist_id),
   ps_order INT2 NOT NULL,
-  git_hash STRING NOT NULL
+  git_hash STRING NOT NULL,
+  commented_on_cl BOOL NOT NULL,
+  last_checked_if_comment_necessary TIMESTAMP WITH TIME ZONE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   start_commit_id INT4,

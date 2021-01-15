@@ -124,7 +124,8 @@ VALUES ($1, $2, $3, $4, $5, $6)`
 func (s *StoreImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
 	qID := qualify(s.systemID, clID)
 	rows, err := s.db.Query(ctx, `
-SELECT patchset_id, ps_order, git_hash FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qID)
+SELECT patchset_id, ps_order, git_hash, commented_on_cl, last_checked_if_comment_necessary
+FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "querying for cl %s", qID)
 	}
@@ -132,15 +133,17 @@ SELECT patchset_id, ps_order, git_hash FROM Patchsets WHERE changelist_id = $1 O
 	var rv []code_review.Patchset
 	for rows.Next() {
 		var r schema.PatchsetRow
-		err := rows.Scan(&r.PatchsetID, &r.Order, &r.GitHash)
+		err := rows.Scan(&r.PatchsetID, &r.Order, &r.GitHash, &r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Scanning data for cl %s", qID)
 		}
 		rv = append(rv, code_review.Patchset{
-			SystemID:     unqualify(r.PatchsetID),
-			ChangelistID: clID,
-			Order:        r.Order,
-			GitHash:      r.GitHash,
+			SystemID:                      unqualify(r.PatchsetID),
+			ChangelistID:                  clID,
+			Order:                         r.Order,
+			GitHash:                       r.GitHash,
+			CommentedOnCL:                 r.CommentedOnCL,
+			LastCheckedIfCommentNecessary: r.LastCheckedIfCommentNecessary.UTC(),
 		})
 	}
 	return rv, nil
@@ -150,9 +153,10 @@ SELECT patchset_id, ps_order, git_hash FROM Patchsets WHERE changelist_id = $1 O
 func (s *StoreImpl) GetPatchset(ctx context.Context, _, psID string) (code_review.Patchset, error) {
 	qID := qualify(s.systemID, psID)
 	row := s.db.QueryRow(ctx, `
-SELECT changelist_id, ps_order, git_hash FROM Patchsets WHERE patchset_id = $1`, qID)
+SELECT changelist_id, ps_order, git_hash, commented_on_cl, last_checked_if_comment_necessary
+FROM Patchsets WHERE patchset_id = $1`, qID)
 	var r schema.PatchsetRow
-	err := row.Scan(&r.ChangelistID, &r.Order, &r.GitHash)
+	err := row.Scan(&r.ChangelistID, &r.Order, &r.GitHash, &r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return code_review.Patchset{}, clstore.ErrNotFound
@@ -160,10 +164,12 @@ SELECT changelist_id, ps_order, git_hash FROM Patchsets WHERE patchset_id = $1`,
 		return code_review.Patchset{}, skerr.Wrapf(err, "querying for id %s", qID)
 	}
 	return code_review.Patchset{
-		SystemID:     psID,
-		ChangelistID: unqualify(r.ChangelistID),
-		Order:        r.Order,
-		GitHash:      r.GitHash,
+		SystemID:                      psID,
+		ChangelistID:                  unqualify(r.ChangelistID),
+		Order:                         r.Order,
+		GitHash:                       r.GitHash,
+		CommentedOnCL:                 r.CommentedOnCL,
+		LastCheckedIfCommentNecessary: r.LastCheckedIfCommentNecessary.UTC(),
 	}, nil
 }
 
@@ -171,9 +177,10 @@ SELECT changelist_id, ps_order, git_hash FROM Patchsets WHERE patchset_id = $1`,
 func (s *StoreImpl) GetPatchsetByOrder(ctx context.Context, clID string, psOrder int) (code_review.Patchset, error) {
 	qID := qualify(s.systemID, clID)
 	row := s.db.QueryRow(ctx, `
-SELECT patchset_id, git_hash FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2`, qID, psOrder)
+SELECT patchset_id, git_hash, commented_on_cl, last_checked_if_comment_necessary
+FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2`, qID, psOrder)
 	var r schema.PatchsetRow
-	err := row.Scan(&r.PatchsetID, &r.GitHash)
+	err := row.Scan(&r.PatchsetID, &r.GitHash, &r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return code_review.Patchset{}, clstore.ErrNotFound
@@ -181,10 +188,12 @@ SELECT patchset_id, git_hash FROM Patchsets WHERE changelist_id = $1 AND ps_orde
 		return code_review.Patchset{}, skerr.Wrapf(err, "querying for order %s-%d", qID, psOrder)
 	}
 	return code_review.Patchset{
-		SystemID:     unqualify(r.PatchsetID),
-		ChangelistID: clID,
-		Order:        psOrder,
-		GitHash:      r.GitHash,
+		SystemID:                      unqualify(r.PatchsetID),
+		ChangelistID:                  clID,
+		Order:                         psOrder,
+		GitHash:                       r.GitHash,
+		CommentedOnCL:                 r.CommentedOnCL,
+		LastCheckedIfCommentNecessary: r.LastCheckedIfCommentNecessary.UTC(),
 	}, nil
 }
 
@@ -194,9 +203,11 @@ func (s *StoreImpl) PutPatchset(ctx context.Context, ps code_review.Patchset) er
 	psID := qualify(s.systemID, ps.SystemID)
 	clID := qualify(s.systemID, ps.ChangelistID)
 	const statement = `
-UPSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash)
-VALUES ($1, $2, $3, $4, $5)`
-	_, err := s.db.Exec(ctx, statement, psID, s.systemID, clID, ps.Order, ps.GitHash)
+UPSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash,
+  commented_on_cl, last_checked_if_comment_necessary)
+VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := s.db.Exec(ctx, statement, psID, s.systemID, clID, ps.Order, ps.GitHash,
+		ps.CommentedOnCL, ps.LastCheckedIfCommentNecessary)
 	if err != nil {
 		return skerr.Wrapf(err, "Inserting PS %#v", ps)
 	}
