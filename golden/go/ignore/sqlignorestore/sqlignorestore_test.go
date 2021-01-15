@@ -26,8 +26,7 @@ func TestCreate_RulesAppearInSQLTableAndCanBeListed(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	require.NoError(t, store.Create(ctx, ignore.Rule{
@@ -112,8 +111,7 @@ func TestCreate_AllTracesUpdated(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	loadTestData(t, ctx, db)
 
 	store := New(db)
@@ -222,8 +220,7 @@ func TestUpdate_ExistingRule_RuleIsModified(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	require.NoError(t, store.Create(ctx, ignore.Rule{
@@ -263,8 +260,7 @@ func TestUpdate_InvalidID_NothingIsModified(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	require.NoError(t, store.Create(ctx, ignore.Rule{
@@ -304,8 +300,7 @@ func TestUpdated_AllTracesUpdated(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	loadTestData(t, ctx, db)
 
 	store := New(db)
@@ -374,8 +369,7 @@ func TestDelete_ExistingRule_RuleIsDeleted(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	require.NoError(t, store.Create(ctx, ignore.Rule{
@@ -417,8 +411,7 @@ func TestDelete_MissingID_NothingIsDeleted(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	require.NoError(t, store.Create(ctx, ignore.Rule{
@@ -444,8 +437,7 @@ func TestDelete_NoRulesRemain_NothingIsIgnored(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	loadTestData(t, ctx, db)
 
 	store := New(db)

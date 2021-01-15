@@ -17,8 +17,7 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
 	data := datakitchensink.Build()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, data))

@@ -16,8 +16,7 @@ import (
 func TestSetIngested_WritesToDeprecatedIngestedFiles(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	require.NoError(t, store.SetIngested(ctx, "gcs://my-bucket/myfile.json", "", time.Date(2021, time.January, 7, 10, 40, 0, 0, time.UTC)))
@@ -47,8 +46,7 @@ func TestSetIngested_WritesToDeprecatedIngestedFiles(t *testing.T) {
 func TestWasIngested_AlreadyStored_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	const testFile = "gcs://my-bucket/myfile.json"
@@ -67,8 +65,7 @@ func TestWasIngested_AlreadyStored_Success(t *testing.T) {
 func TestWasIngested_StoredLater_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db)
 
 	const testFile = "gcs://my-bucket/myfile.json"
