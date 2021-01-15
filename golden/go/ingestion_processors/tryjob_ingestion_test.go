@@ -101,7 +101,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	defer mcls.AssertExpectations(t)
 	defer mtjs.AssertExpectations(t)
 
-	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Once()
+	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Twice()
 	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil).Once()
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
@@ -444,10 +444,14 @@ func clWithUpdatedTime(t *testing.T, clID string, originalDate time.Time) interf
 	return mock.MatchedBy(func(cl code_review.Changelist) bool {
 		assert.Equal(t, clID, cl.SystemID)
 		assert.Equal(t, code_review.Open, cl.Status)
-		// Make sure the time is updated to be later than the original one (which was in November
-		// or August, depending on the testcase). Since this test was authored after 1 Dec 2019 and
-		// the Updated is set to time.Now(), we can just check that we are after then.
-		assert.True(t, cl.Updated.After(originalDate))
+		// If the CL is being stored with the sentinel value, we can ignore the time check.
+		if !cl.Updated.IsZero() {
+			// Make sure the time is updated to be later than the original one (which was in November
+			// or August, depending on the testcase). Since this test was authored after 1 Dec 2019 and
+			// the Updated is set to time.Now(), we can just check that we are after then.
+			assert.True(t, cl.Updated.After(originalDate))
+		}
+
 		// assert messages are easier to debug than "not matched" errors, so say that we matched,
 		// but know the test will fail if any of the above asserts fail.
 		return true
