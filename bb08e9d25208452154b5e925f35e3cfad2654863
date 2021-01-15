@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a75a2c4_60327cf0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T20:08:26Z",
+      "side": 1,
+      "message": "If I understand correctly, these were generated from a program called gazelle? If so, can we document the commands needed to generate them in the README or a BAZEL.md or something canonical?",
+      "revId": "bb08e9d25208452154b5e925f35e3cfad2654863",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
