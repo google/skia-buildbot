@@ -48,6 +48,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ee1fb162_6c097ea0",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:50:33Z",
+      "side": 1,
+      "message": "Be aware that asking this sort of thing at the beginning of a CL chain may make merges/rebases more difficult for the code author.",
+      "parentUuid": "14680890_1fac20ab",
+      "range": {
+        "startLine": 153,
+        "startChar": 20,
+        "endLine": 153,
+        "endChar": 34
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "92e19b04_7981d965",
