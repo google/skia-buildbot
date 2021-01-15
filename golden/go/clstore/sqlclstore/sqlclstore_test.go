@@ -20,8 +20,7 @@ func TestPutChangelist_CLDoesNotExist_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db, "gerrit")
 
 	const unqualifiedID = "987654"
@@ -65,8 +64,7 @@ func TestPutChangelist_CLExists_CLUpdated(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db, "gerrit")
 
 	const unqualifiedID = "987654"
@@ -101,8 +99,7 @@ func TestPutChangelist_CLExists_CLUpdated(t *testing.T) {
 func TestGetChangelist_SameIDDifferentSystems_NoConflict(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	gerrit := New(db, "gerrit")
 	github := New(db, "github")
 
@@ -143,8 +140,7 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db, "gerrit")
 
 	const unqualifiedCLID = "987654"
@@ -202,8 +198,7 @@ func TestPutPatchset_CLDoesNotExists_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db, "gerrit")
 
 	const unqualifiedCLID = "987654"
@@ -228,8 +223,7 @@ func TestGetPatchsets_PatchsetsSavedOutOfOrder_ReturnsPatchsetsInAscendingOrder(
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db, "gerrit")
 
 	const unqualifiedCLID = "987654"
@@ -271,8 +265,7 @@ func TestGetPatchsetByOrder_PSDoesNotExist_ReturnsError(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	store := New(db, "gerrit")
 
 	const unqualifiedCLID = "987654"
@@ -305,8 +298,7 @@ func TestGetChangelists_StartAndLimitProvided_RespectsStartAndLimit(t *testing.T
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, makeTestCLs()))
 
 	store := New(db, "gerrit")
@@ -404,8 +396,7 @@ func TestGetChangelists_OptionsRespected_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(ctx, t)
-	sqltest.CreateProductionSchema(ctx, t, db)
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, makeTestCLs()))
 
 	store := New(db, "gerrit")
