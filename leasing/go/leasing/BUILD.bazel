@@ -1,0 +1,46 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "leasing_lib",
+    srcs = [
+        "datastore.go",
+        "mail.go",
+        "main.go",
+        "poller.go",
+        "swarming.go",
+    ],
+    importpath = "go.skia.org/infra/leasing/go/leasing",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/auth",
+        "//go/baseapp",
+        "//go/cas",
+        "//go/cas/rbe",
+        "//go/ds",
+        "//go/email",
+        "//go/httputils",
+        "//go/isolate",
+        "//go/login",
+        "//go/metrics2",
+        "//go/rotations",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "//leasing/go/types",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_unrolled_secure//:secure",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_google_api//compute/v1:compute",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "leasing",
+    embed = [":leasing_lib"],
+    visibility = ["//visibility:public"],
+)

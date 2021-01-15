@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "silence",
+    srcs = ["silence.go"],
+    importpath = "go.skia.org/infra/am/go/silence",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/note",
+        "//go/ds",
+        "//go/human",
+        "//go/paramtools",
+        "//go/sklog",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "silence_test",
+    srcs = ["silence_test.go"],
+    embed = [":silence"],
+    deps = [
+        "//am/go/note",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

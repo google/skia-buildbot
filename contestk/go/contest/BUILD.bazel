@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "contest_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/contestk/go/contest",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+        "@org_golang_google_api//sheets/v4:sheets",
+    ],
+)
+
+go_binary(
+    name = "contest",
+    embed = [":contest_lib"],
+    visibility = ["//visibility:public"],
+)

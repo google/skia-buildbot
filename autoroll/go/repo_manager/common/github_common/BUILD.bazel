@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "github_common",
+    srcs = ["github_common.go"],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/common/github_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/skerr",
+    ],
+)

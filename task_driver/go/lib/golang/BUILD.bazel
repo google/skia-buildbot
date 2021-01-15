@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "golang",
+    srcs = ["golang.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/golang",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/test2json",
+        "//task_driver/go/lib/dirs",
+        "//task_driver/go/lib/log_parser",
+        "//task_driver/go/lib/os_steps",
+        "//task_driver/go/td",
+    ],
+)
+
+go_test(
+    name = "golang_test",
+    srcs = ["golang_test.go"],
+    embed = [":golang"],
+    deps = [
+        "//go/exec",
+        "//go/test2json",
+        "//go/testutils/unittest",
+        "//go/util",
+        "//task_driver/go/lib/dirs",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//require",
+    ],
+)

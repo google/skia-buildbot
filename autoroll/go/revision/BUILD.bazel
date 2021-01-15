@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "revision",
+    srcs = ["revision.go"],
+    importpath = "go.skia.org/infra/autoroll/go/revision",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/util",
+        "//go/vcsinfo",
+    ],
+)
+
+go_test(
+    name = "revision_test",
+    srcs = ["revision_test.go"],
+    embed = [":revision"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

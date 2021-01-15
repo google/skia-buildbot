@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "file_stream_lib",
+    srcs = ["file_stream.go"],
+    importpath = "go.skia.org/infra/task_driver/examples/file_stream",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/exec",
+        "//go/util",
+        "//task_driver/go/td",
+    ],
+)
+
+go_binary(
+    name = "file_stream",
+    embed = [":file_stream_lib"],
+    visibility = ["//visibility:public"],
+)

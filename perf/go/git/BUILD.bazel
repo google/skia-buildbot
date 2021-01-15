@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "git",
+    srcs = ["git.go"],
+    importpath = "go.skia.org/infra/perf/go/git",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/gitauth",
+        "//go/gitiles",
+        "//go/human",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/config",
+        "//perf/go/types",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "git_test",
+    srcs = ["git_test.go"],
+    embed = [":git"],
+    deps = [
+        "//go/git/testutils",
+        "//go/testutils/unittest",
+        "//perf/go/config",
+        "//perf/go/git/gittest",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

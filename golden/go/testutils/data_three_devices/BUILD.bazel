@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "data_three_devices",
+    srcs = ["three_devices.go"],
+    importpath = "go.skia.org/infra/golden/go/testutils/data_three_devices",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/util",
+        "//golden/go/baseline",
+        "//golden/go/expectations",
+        "//golden/go/tiling",
+        "//golden/go/types",
+    ],
+)

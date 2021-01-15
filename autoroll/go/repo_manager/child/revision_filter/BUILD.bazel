@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "revision_filter",
+    srcs = [
+        "buildbucket.go",
+        "revision_filter.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/revision",
+        "//go/buildbucket",
+        "//go/skerr",
+        "//go/sklog",
+        "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)

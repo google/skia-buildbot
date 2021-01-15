@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "gerrit_crs",
+    srcs = ["gerrit_crs.go"],
+    importpath = "go.skia.org/infra/golden/go/code_review/gerrit_crs",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vcsinfo",
+        "//golden/go/code_review",
+        "@org_golang_x_time//rate",
+    ],
+)
+
+go_test(
+    name = "gerrit_crs_test",
+    srcs = ["gerrit_crs_test.go"],
+    embed = [":gerrit_crs"],
+    deps = [
+        "//go/gerrit",
+        "//go/gerrit/mocks",
+        "//go/skerr",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//golden/go/code_review",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

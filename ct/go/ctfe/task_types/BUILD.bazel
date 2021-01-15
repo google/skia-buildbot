@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "task_types",
+    srcs = ["task_types.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe/task_types",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/ctfe/admin_tasks",
+        "//ct/go/ctfe/chromium_analysis",
+        "//ct/go/ctfe/chromium_perf",
+        "//ct/go/ctfe/metrics_analysis",
+        "//ct/go/ctfe/task_common",
+    ],
+)

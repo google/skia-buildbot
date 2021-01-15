@@ -1,0 +1,58 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "parent",
+    srcs = [
+        "copy.go",
+        "deps_local.go",
+        "freetype.go",
+        "git_checkout.go",
+        "git_checkout_gerrit.go",
+        "git_checkout_github.go",
+        "git_checkout_github_file.go",
+        "gitiles.go",
+        "gitiles_file.go",
+        "parent.go",
+        "pre_upload_steps.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/parent",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/codereview",
+        "//autoroll/go/config_vars",
+        "//autoroll/go/repo_manager/child",
+        "//autoroll/go/repo_manager/common/gerrit_common",
+        "//autoroll/go/repo_manager/common/git_common",
+        "//autoroll/go/repo_manager/common/github_common",
+        "//autoroll/go/repo_manager/common/gitiles_common",
+        "//autoroll/go/repo_manager/common/version_file_common",
+        "//autoroll/go/revision",
+        "//go/android_skia_checkout",
+        "//go/cipd",
+        "//go/common",
+        "//go/depot_tools",
+        "//go/depot_tools/deps_parser",
+        "//go/exec",
+        "//go/gerrit",
+        "//go/git",
+        "//go/github",
+        "//go/go_install",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vfs",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "parent_test",
+    srcs = ["pre_upload_steps_test.go"],
+    embed = [":parent"],
+    deps = [
+        "//go/exec",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

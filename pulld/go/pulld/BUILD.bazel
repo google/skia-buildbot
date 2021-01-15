@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "pulld_lib",
+    srcs = [
+        "main.go",
+        "pull.go",
+        "reboot.go",
+    ],
+    importpath = "go.skia.org/infra/pulld/go/pulld",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/metadata",
+        "//go/metrics2",
+        "//go/packages",
+        "//go/sklog",
+        "//go/systemd",
+        "//go/util",
+        "//push/go/types",
+        "@com_github_coreos_go_systemd_v22//dbus",
+        "@com_github_gorilla_mux//:mux",
+        "@org_golang_google_api//storage/v1:storage",
+    ],
+)
+
+go_binary(
+    name = "pulld",
+    embed = [":pulld_lib"],
+    visibility = ["//visibility:public"],
+)

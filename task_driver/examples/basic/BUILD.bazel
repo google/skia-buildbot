@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "basic_lib",
+    srcs = ["basic.go"],
+    importpath = "go.skia.org/infra/task_driver/examples/basic",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/exec",
+        "//go/sklog",
+        "//task_driver/go/lib/os_steps",
+        "//task_driver/go/td",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_binary(
+    name = "basic",
+    embed = [":basic_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "basic_test",
+    srcs = ["basic_test.go"],
+    embed = [":basic_lib"],
+    deps = [
+        "//go/exec",
+        "//go/testutils/unittest",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "docserverk_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/docserverk/go/docserverk",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//docserverk/go/docset",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+        "@com_github_fiorix_go_web//autogzip",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_russross_blackfriday_v2//:blackfriday",
+    ],
+)
+
+go_binary(
+    name = "docserverk",
+    embed = [":docserverk_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "powercycle",
+    srcs = [
+        "command_runner.go",
+        "edgeswitch.go",
+        "mpower.go",
+        "powercycle.go",
+    ],
+    importpath = "go.skia.org/infra/skolo/go/powercycle",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_flynn_json5//:json5",
+    ],
+)
+
+go_test(
+    name = "powercycle_test",
+    srcs = [
+        "edgeswitch_test.go",
+        "mpower_test.go",
+        "powercycle_test.go",
+    ],
+    embed = [":powercycle"],
+    deps = [
+        "//go/executil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

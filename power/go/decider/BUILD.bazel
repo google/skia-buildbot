@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "decider",
+    srcs = [
+        "decider.go",
+        "mock_decider.go",
+    ],
+    importpath = "go.skia.org/infra/power/go/decider",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//skolo/go/powercycle",
+        "@com_github_stretchr_testify//mock",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "decider_test",
+    srcs = ["decider_test.go"],
+    embed = [":decider"],
+    deps = [
+        "//go/testutils/unittest",
+        "//power/go/testdata",
+        "//skolo/go/powercycle",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)

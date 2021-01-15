@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "run_emulators_lib",
+    srcs = ["run_emulators.go"],
+    importpath = "go.skia.org/infra/scripts/run_emulators",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "run_emulators",
+    embed = [":run_emulators_lib"],
+    visibility = ["//visibility:public"],
+)

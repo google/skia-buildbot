@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "repo-sync_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/kube/go/repo-sync",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/git",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "repo-sync",
+    embed = [":repo-sync_lib"],
+    visibility = ["//visibility:public"],
+)

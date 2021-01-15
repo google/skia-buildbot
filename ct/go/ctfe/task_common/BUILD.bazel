@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "task_common",
+    srcs = ["task_common.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe/task_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/ct_autoscaler",
+        "//ct/go/ctfe/util",
+        "//ct/go/util",
+        "//go/auth",
+        "//go/ds",
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_google_api//iterator",
+    ],
+)

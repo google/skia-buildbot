@@ -1,0 +1,48 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "docker_pushes_watcher_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/docker_pushes_watcher/go/docker_pushes_watcher",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/docker/build/pubsub",
+        "//go/exec",
+        "//go/firestore",
+        "//go/gitauth",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_firestore//:firestore",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_binary(
+    name = "docker_pushes_watcher",
+    embed = [":docker_pushes_watcher_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "docker_pushes_watcher_test",
+    srcs = ["main_test.go"],
+    embed = [":docker_pushes_watcher_lib"],
+    deps = [
+        "//go/docker/build/pubsub",
+        "//go/exec",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

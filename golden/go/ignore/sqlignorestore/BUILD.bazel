@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sqlignorestore",
+    srcs = ["sqlignorestore.go"],
+    importpath = "go.skia.org/infra/golden/go/ignore/sqlignorestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/sklog",
+        "//golden/go/ignore",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "sqlignorestore_test",
+    srcs = ["sqlignorestore_test.go"],
+    embed = [":sqlignorestore"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//golden/go/ignore",
+        "//golden/go/sql",
+        "//golden/go/sql/databuilder",
+        "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "//golden/go/types",
+        "@com_github_jackc_pgtype//:pgtype",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
