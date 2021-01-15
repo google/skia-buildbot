@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "14680890_1fac20ab",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "217c8000_6cd9f3d2",
+      "range": {
+        "startLine": 153,
+        "startChar": 20,
+        "endLine": 153,
+        "endChar": 34
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "92e19b04_7981d965",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-14T20:56:48Z",
       "side": 1,
       "message": "Nit: either inline this statement on line 188, or move it closer to where it\u0027s used.",
+      "range": {
+        "startLine": 161,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 76
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc7ba236_64f7de98",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92e19b04_7981d965",
       "range": {
         "startLine": 161,
         "startChar": 0,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "807c0406_e1b4f3d9",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "I don\u0027t think the same order as sqlclstore is necessary. I tend to put the simpler to read (and to write) tests first to \"ease the reader in\" if they start at the top.",
+      "parentUuid": "9b818bb4_c9df5046",
+      "range": {
+        "startLine": 19,
+        "startChar": 5,
+        "endLine": 19,
+        "endChar": 45
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "233f60b1_51cfab4c",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-01-14T20:56:48Z",
       "side": 1,
       "message": "Maybe we should have a function sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t), WDYT? Feel free to address separately.",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 43
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d37375f_a247e513",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "I\u0027ll consider that.",
+      "parentUuid": "233f60b1_51cfab4c",
       "range": {
         "startLine": 23,
         "startChar": 1,
@@ -116,6 +212,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "32c87c93_0cffe395",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6a7eaf76_f1ca0d7b",
+      "range": {
+        "startLine": 64,
+        "startChar": 5,
+        "endLine": 64,
+        "endChar": 50
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6e89fdc6_16462f17",
@@ -129,6 +249,30 @@
       "writtenOn": "2021-01-14T20:56:48Z",
       "side": 1,
       "message": "TestGetPatchsets_PatchsetsSavedOutOfOrder_ReturnsPatchsetsInAscendingOrder.",
+      "range": {
+        "startLine": 221,
+        "startChar": 5,
+        "endLine": 221,
+        "endChar": 55
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "117ce615_6b7d4806",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e89fdc6_16462f17",
       "range": {
         "startLine": 221,
         "startChar": 5,
@@ -162,6 +306,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "08ff1abf_2f1ef5bf",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "182b9699_3ddfd530",
+      "range": {
+        "startLine": 298,
+        "startChar": 5,
+        "endLine": 298,
+        "endChar": 54
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7c1a20f2_2e1168a8",
@@ -175,6 +343,30 @@
       "writtenOn": "2021-01-14T20:56:48Z",
       "side": 1,
       "message": "Consider consolidating with the StartAndLimit test case; reusing the test CLs/PSs might lead to more concise tests.\n\nAlternatively, consider rephrasing \"OptionsRespected\" to something more specific, as StartAndLimit are also options.",
+      "range": {
+        "startLine": 397,
+        "startChar": 5,
+        "endLine": 397,
+        "endChar": 48
+      },
+      "revId": "faad0141219ab5696796aab217c3deb7695e0453",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "998a2e43_694e1931",
+        "filename": "golden/go/clstore/sqlclstore/sqlclstore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-15T13:46:59Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean, they do both use the same test CLs.",
+      "parentUuid": "7c1a20f2_2e1168a8",
       "range": {
         "startLine": 397,
         "startChar": 5,
