@@ -1,0 +1,341 @@
+/**
+ * @module particles-sk
+ * @description <h2><code>particles-sk</code></h2>
+ *
+ * <p>
+ *   The main application element for particles in Skia.
+ * </p>
+ *
+ */
+import { $$ } from 'common-sk/modules/dom';
+import { define } from 'elements-sk/define';
+import { html, TemplateResult } from 'lit-html';
+
+import 'elements-sk/spinner-sk';
+
+// import { CanvasKitInit } from '../../build/canvaskit/canvaskit';
+import { ParticlesConfig } from '../particles-config-sk/particles-config-sk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+
+import CanvasKitInit from '../../build/canvaskit/canvaskit.js';
+
+const DEFAULT_SIZE = 256;
+const ZOOM_IN_FACTOR = 1.1; // 10%
+const ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR;
+
+// This element might be loaded from a different site, and that means we need
+// to be careful about how we construct the URL back to the canvas.wasm file.
+// Start by recording the script origin.
+const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src).origin;
+const kitReady = CanvasKitInit({
+  locateFile: (file: any) => `${scriptOrigin}/dist/${file}`,
+});
+
+type UniformType = 'particle' | 'effect';
+
+interface Uniform {
+  id: string;
+  uniformSlot: string;
+  type: UniformType;
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+export function floatSlider(uniform: Uniform | null): TemplateResult {
+  if (!uniform) {
+    return html``;
+  }
+  return html` <div class="widget">
+    <input
+      name=${uniform.id}
+      id=${uniform.id}
+      min="0"
+      max="1"
+      step="0.00001"
+      type="range"
+    />
+    <label for=${uniform.id}>${uniform.id}</label>
+  </div>`;
+}
+
+export class ParticlesPlayerSk extends ElementSk {
+  private sliders: Uniform[] = [];
+
+  private zoomLevel: number = 1.0;
+
+  private kit: any = null; // CanvasKit instance
+
+  private context: any = null; // CK context.
+
+  private animation: any = null; // Particles instance
+
+  private surface: any = null; // SkSurface
+
+  private canvas: any = null; // Cached SkCanvas (surface.getCanvas()).
+
+  private loading: boolean = true;
+
+  private time: number = 0;
+
+  private lastTs: number = 0;
+
+  private _lastDrag: Point | null = null;
+
+  constructor() {
+    super(ParticlesPlayerSk.template);
+  }
+
+  private static template = (ele: ParticlesPlayerSk) => html`
+    <div class="container">
+      <div ?hidden=${!ele.loading}>Loading</div>
+      <spinner-sk ?active=${ele.loading}></spinner-sk>
+
+      ${ele.sliders.map(floatSlider)}
+      <!-- It would be more mobile friendly to use pointermove, but Safari doesn't support it-->
+      <canvas
+        id="player"
+        @wheel=${ele.wheelHandler}
+        @mousemove=${ele.dragHandler}
+        width=${ele.width * window.devicePixelRatio}
+        height=${ele.height * window.devicePixelRatio}
+        style="width: ${ele.width}px; height: ${ele.height}px;"
+      >
+        Your browser does not support the canvas tag.
+      </canvas>
+    </div>`;
+
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._render();
+  }
+
+  attributeChangedCallback(): void {
+    this._render();
+  }
+
+  initialize(config: ParticlesConfig): void {
+    this.width = config.width;
+    this.height = config.height;
+    this._render();
+
+    return kitReady.then((ck: any) => {
+      this.kit = ck;
+      this._initializeParticles(config.body);
+      this._render();
+    });
+  }
+
+  isPlaying(): boolean {
+    return !this.paused;
+  }
+
+  play(): void {
+    if (!this.isPlaying()) {
+      this.paused = false;
+    }
+    this._render();
+  }
+
+  pause(): void {
+    if (this.isPlaying()) {
+      this.paused = true;
+    }
+  }
+
+  resetView(): void {
+    const ck = this.kit;
+    const canvas = this.canvas;
+    // Reset to identity
+    const tt = canvas.getTotalMatrix();
+    const itt = ck.Matrix.invert(tt);
+    canvas.concat(itt);
+    // Zoom to the middle of the animation
+    canvas.translate(this.width / 2, this.height / 2);
+    this.zoomLevel = 1.0;
+  }
+
+  restartAnimation(): void {
+    this.time = 0;
+    this.lastTs = 0;
+  }
+
+  private dragHandler(e: MouseEvent) {
+    if (!e.buttons || !e.shiftKey) {
+      // ignore movements unless shift is held
+      // TODO(jcgregorio) See if we can drop this.
+      this._lastDrag = null;
+      return;
+    }
+    if (this._lastDrag) {
+      const dx = e.clientX - this._lastDrag.x;
+      const dy = e.clientY - this._lastDrag.y;
+
+      this.canvas.translate(dx / this.zoomLevel, dy / this.zoomLevel);
+    }
+    this._lastDrag = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+  }
+
+  private drawFrame() {
+    if (!this.animation || !this.canvas) {
+      return;
+    }
+
+    // Go through all the sliders on the page that we created and poll those inputs for their
+    // value. Plug those values (range [0.0, 1.0]) into the uniforms.
+    const particlesUniforms = this.animation.particleUniforms();
+    const effectsUniforms = this.animation.effectUniforms();
+    this.sliders.forEach((slider) => {
+      const s = $$<HTMLInputElement>(`input#${slider.id}`, this);
+      if (!s) {
+        return;
+      }
+      if (slider.type === 'particle') {
+        particlesUniforms[slider.uniformSlot] = s.valueAsNumber;
+      } else {
+        effectsUniforms[slider.uniformSlot] = s.valueAsNumber;
+      }
+    });
+    window.requestAnimationFrame(() => this.drawFrame());
+    if (!this.lastTs) {
+      this.animation.start(0, true);
+      this.lastTs = Date.now();
+    }
+
+    if (this.isPlaying()) {
+      this.time += Date.now() - this.lastTs;
+    }
+    this.lastTs = Date.now();
+
+    this.kit.setCurrentContext(this.context);
+    this.canvas.clear(this.kit.BLACK);
+    this.animation.update(this.time / 1000.0);
+    this.animation.draw(this.canvas);
+    this.surface.flush();
+  }
+
+  private _initializeParticles(particlesJSON: any) {
+    this.loading = false;
+
+    // Rebuild the surface only if needed.
+    if (
+      !this.surface
+      || this.surface.width !== this.width
+      || this.surface.height !== this.height
+    ) {
+      this._render();
+
+      // eslint-disable-next-line no-unused-expressions
+      this.surface?.delete();
+      const canvasEle = $$('#player', this);
+      this.surface = this.kit.MakeCanvasSurface(canvasEle);
+      if (!this.surface) {
+        throw new Error('Could not make SkSurface.');
+      }
+      // We don't need to call .delete() on the canvas because
+      // the parent surface will do that for us.
+      this.canvas = this.surface.getCanvas();
+      this.context = this.kit.currentContext();
+    }
+
+    // eslint-disable-next-line no-unused-expressions
+    this.animation?.delete();
+
+    this.animation = this.kit.MakeParticles(
+      JSON.stringify(particlesJSON),
+    );
+    if (!this.animation) {
+      throw new Error('Could not parse Particles JSON.');
+    }
+
+    // Go through all uniforms this animation has and look for those with the prefix 'slider_'
+    // For those uniforms, we will make a slider on the UI and then every frame, we will
+    // poll those inputs for their value and plug the values into the uniforms. In the general
+    // case, uniforms can require multiple floats, but for the purposes of the demo UI, we
+    // only support single float uniforms to be in sliders.
+    // The sliders will be in range [0.0, 1.0].
+    this.sliders = [];
+    const an = this.animation;
+    for (let i = 0; i < an.getParticleUniformCount(); i++) {
+      const name = an.getParticleUniformName(i);
+      if (name.startsWith('slider_')) {
+        const uniform = an.getParticleUniform(i);
+        this.sliders.push({
+          id: name.substring('slider_'.length),
+          uniformSlot: uniform.slot,
+          type: 'particle',
+        });
+      }
+    }
+
+    for (let i = 0; i < an.getEffectUniformCount(); i++) {
+      const name = an.getEffectUniformName(i);
+      if (name.startsWith('slider_')) {
+        const uniform = an.getEffectUniform(i);
+        this.sliders.push({
+          id: name.substring('slider_'.length),
+          uniformSlot: uniform.slot,
+          type: 'effect',
+        });
+      }
+    }
+    this._render();
+    this.canvas.clear(this.kit.BLACK);
+    this.resetView();
+    this.restartAnimation();
+    this.drawFrame();
+  }
+
+  private wheelHandler(e: WheelEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let zoom = 0;
+    if (e.deltaY < 0) {
+      zoom = ZOOM_IN_FACTOR;
+    } else {
+      zoom = ZOOM_OUT_FACTOR;
+    }
+    this.zoomLevel *= zoom;
+    const ck = this.kit;
+    const canvas = this.canvas;
+
+    const tt = canvas.getTotalMatrix();
+    const itt = ck.Matrix.invert(tt);
+    const pts = [e.clientX, e.clientY];
+    ck.Matrix.mapPoints(itt, pts); // Transform DOM pts into canvas space
+
+    const matr = ck.Matrix.scaled(zoom, zoom, pts[0], pts[1]);
+    canvas.concat(matr);
+  }
+
+  static get observedAttributes(): string[] {
+    return ['width', 'height', 'paused'];
+  }
+
+  get width(): number { return +(this.getAttribute('width') || DEFAULT_SIZE); }
+
+  set width(val: number) { this.setAttribute('width', val.toFixed(0)); }
+
+  get height(): number { return +(this.getAttribute('height') || DEFAULT_SIZE); }
+
+  set height(val: number) { this.setAttribute('height', val.toFixed(0)); }
+
+  get paused(): boolean { return this.hasAttribute('paused'); }
+
+  set paused(val: boolean) {
+    if (val) {
+      this.setAttribute('paused', '');
+    } else {
+      this.removeAttribute('paused');
+    }
+  }
+}
+
+define('particles-player-sk', ParticlesPlayerSk);
