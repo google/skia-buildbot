@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "trace",
+    srcs = ["trace.go"],
+    importpath = "go.skia.org/infra/golden/go/comment/trace",
+    visibility = ["//visibility:public"],
+    deps = ["//go/paramtools"],
+)

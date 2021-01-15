@@ -1,0 +1,64 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "autoroll-google3_lib",
+    srcs = [
+        "google3.go",
+        "main.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-google3",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/modes",
+        "//autoroll/go/recent_rolls",
+        "//autoroll/go/roller",
+        "//autoroll/go/state_machine",
+        "//autoroll/go/status",
+        "//autoroll/go/strategy",
+        "//go/auth",
+        "//go/autoroll",
+        "//go/cleanup",
+        "//go/common",
+        "//go/ds",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/jsonutils",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/webhook",
+        "@com_github_flynn_json5//:json5",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_binary(
+    name = "autoroll-google3",
+    embed = [":autoroll-google3_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "autoroll-google3_test",
+    srcs = ["google3_test.go"],
+    embed = [":autoroll-google3_lib"],
+    deps = [
+        "//autoroll/go/recent_rolls",
+        "//autoroll/go/roller",
+        "//go/autoroll",
+        "//go/deepequal/assertdeep",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/git",
+        "//go/git/testutils",
+        "//go/gitiles/testutils",
+        "//go/jsonutils",
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

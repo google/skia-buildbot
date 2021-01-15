@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "scrap",
+    srcs = [
+        "scrap.go",
+        "templates.go",
+    ],
+    importpath = "go.skia.org/infra/scrap/go/scrap",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gcs",
+        "//go/skerr",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+    ],
+)
+
+go_test(
+    name = "scrap_test",
+    srcs = [
+        "scrap_test.go",
+        "templates_test.go",
+    ],
+    embed = [":scrap"],
+    deps = [
+        "//go/gcs",
+        "//go/gcs/test_gcsclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_storage//:storage",
+    ],
+)

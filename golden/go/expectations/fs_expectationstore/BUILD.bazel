@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "fs_expectationstore",
+    srcs = ["fs_expstore.go"],
+    importpath = "go.skia.org/infra/golden/go/expectations/fs_expectationstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//golden/go/expectations",
+        "//golden/go/fs_utils",
+        "//golden/go/types",
+        "@com_google_cloud_go_firestore//:firestore",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "fs_expectationstore_test",
+    srcs = ["fs_expstore_test.go"],
+    embed = [":fs_expectationstore"],
+    deps = [
+        "//go/deepequal",
+        "//go/firestore",
+        "//go/testutils/unittest",
+        "//golden/go/expectations",
+        "//golden/go/testutils/data_three_devices",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_firestore//:firestore",
+    ],
+)

@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "lkgr",
+    srcs = ["lkgr.go"],
+    importpath = "go.skia.org/infra/status/go/lkgr",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/common",
+        "//go/depot_tools/deps_parser",
+        "//go/gitiles",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+    ],
+)

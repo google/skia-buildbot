@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "simple_baseliner",
+    srcs = ["simple_baseliner.go"],
+    importpath = "go.skia.org/infra/golden/go/baseline/simple_baseliner",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+        "//golden/go/baseline",
+        "//golden/go/expectations",
+    ],
+)
+
+go_test(
+    name = "simple_baseliner_test",
+    srcs = ["simple_baseliner_test.go"],
+    embed = [":simple_baseliner"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/expectations",
+        "//golden/go/expectations/mocks",
+        "//golden/go/testutils/data_three_devices",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

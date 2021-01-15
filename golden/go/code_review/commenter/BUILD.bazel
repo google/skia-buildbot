@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "commenter",
+    srcs = ["commenter.go"],
+    importpath = "go.skia.org/infra/golden/go/code_review/commenter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/clstore",
+        "//golden/go/code_review",
+        "//golden/go/search",
+        "//golden/go/tjstore",
+    ],
+)
+
+go_test(
+    name = "commenter_test",
+    srcs = ["commenter_test.go"],
+    embed = [":commenter"],
+    deps = [
+        "//go/metrics2/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/clstore",
+        "//golden/go/clstore/mocks",
+        "//golden/go/code_review",
+        "//golden/go/code_review/mocks",
+        "//golden/go/search/frontend",
+        "//golden/go/search/mocks",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

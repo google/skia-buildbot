@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "query_buildapi_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/query_buildapi",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//android_ingest/go/buildapi",
+        "//go/androidbuildinternal/v2beta1",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "query_buildapi",
+    embed = [":query_buildapi_lib"],
+    visibility = ["//visibility:public"],
+)

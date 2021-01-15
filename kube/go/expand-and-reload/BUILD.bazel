@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "expand-and-reload_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/kube/go/expand-and-reload",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_a8m_envsubst//:envsubst",
+        "@in_gopkg_fsnotify_v1//:fsnotify_v1",
+    ],
+)
+
+go_binary(
+    name = "expand-and-reload",
+    embed = [":expand-and-reload_lib"],
+    visibility = ["//visibility:public"],
+)

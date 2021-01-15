@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "backup-to-gcs_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/promk/go/backup-to-gcs",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "backup-to-gcs",
+    embed = [":backup-to-gcs_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "retrieve-messages_lib",
+    srcs = ["retrieve-messages.go"],
+    importpath = "go.skia.org/infra/task_driver/go/retrieve-messages",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/sklog",
+        "//go/util",
+        "//task_driver/go/db/bigtable",
+        "@com_google_cloud_go_bigtable//:bigtable",
+    ],
+)
+
+go_binary(
+    name = "retrieve-messages",
+    embed = [":retrieve-messages_lib"],
+    visibility = ["//visibility:public"],
+)

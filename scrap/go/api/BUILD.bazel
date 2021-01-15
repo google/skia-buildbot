@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "api",
+    srcs = ["api.go"],
+    importpath = "go.skia.org/infra/scrap/go/api",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//scrap/go/scrap",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_test(
+    name = "api_test",
+    srcs = ["api_test.go"],
+    embed = [":api"],
+    deps = [
+        "//go/metrics2",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//scrap/go/scrap",
+        "//scrap/go/scrap/mocks",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "rotations",
+    srcs = ["rotations.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/rotations",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/rotations",
+        "//task_driver/go/td",
+    ],
+)
