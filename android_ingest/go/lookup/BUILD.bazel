@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "lookup",
+    srcs = ["lookup.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/lookup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "lookup_test",
+    srcs = ["lookup_test.go"],
+    embed = [":lookup"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

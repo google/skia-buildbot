@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "datastore-backup-k_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ds/go/datastore-backup-k",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ds/go/backup",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "datastore-backup-k",
+    embed = [":datastore-backup-k_lib"],
+    visibility = ["//visibility:public"],
+)

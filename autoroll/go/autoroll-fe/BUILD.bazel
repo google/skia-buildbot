@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "autoroll-fe_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-fe",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/manual",
+        "//autoroll/go/modes",
+        "//autoroll/go/roller",
+        "//autoroll/go/rpc",
+        "//autoroll/go/status",
+        "//autoroll/go/strategy",
+        "//autoroll/go/unthrottle",
+        "//go/allowed",
+        "//go/auth",
+        "//go/common",
+        "//go/ds",
+        "//go/firestore",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_flynn_json5//:json5",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "autoroll-fe",
+    embed = [":autoroll-fe_lib"],
+    visibility = ["//visibility:public"],
+)

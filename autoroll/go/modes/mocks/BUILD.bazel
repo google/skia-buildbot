@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "ModeHistory.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/modes/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/modes",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

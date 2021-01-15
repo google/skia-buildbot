@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "OPSProvider.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/psrefresh/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

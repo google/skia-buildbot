@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "panic_lib",
+    srcs = ["panic.go"],
+    importpath = "go.skia.org/infra/task_driver/examples/panic",
+    visibility = ["//visibility:private"],
+    deps = ["//task_driver/go/td"],
+)
+
+go_binary(
+    name = "panic",
+    embed = [":panic_lib"],
+    visibility = ["//visibility:public"],
+)

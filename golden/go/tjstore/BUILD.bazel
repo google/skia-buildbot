@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "tjstore",
+    srcs = ["tjstore.go"],
+    importpath = "go.skia.org/infra/golden/go/tjstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//golden/go/continuous_integration",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "tjstore_test",
+    srcs = ["tjstore_test.go"],
+    embed = [":tjstore"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

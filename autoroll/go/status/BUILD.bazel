@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "status",
+    srcs = [
+        "cache.go",
+        "status.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/status",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/revision",
+        "//go/autoroll",
+        "//go/ds",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "status_test",
+    srcs = ["status_test.go"],
+    embed = [":status"],
+    deps = [
+        "//autoroll/go/modes",
+        "//autoroll/go/revision",
+        "//autoroll/go/strategy",
+        "//go/autoroll",
+        "//go/deepequal/assertdeep",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

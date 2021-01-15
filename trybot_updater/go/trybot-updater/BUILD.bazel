@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "trybot-updater_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/trybot_updater/go/trybot-updater",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/gerrit",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//task_scheduler/go/specs",
+    ],
+)
+
+go_binary(
+    name = "trybot-updater",
+    embed = [":trybot-updater_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "types_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/types",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/ctfe/admin_tasks",
+        "//ct/go/ctfe/chromium_analysis",
+        "//ct/go/ctfe/chromium_perf",
+        "//ct/go/ctfe/metrics_analysis",
+        "//ct/go/ctfe/pending_tasks",
+        "//ct/go/ctfe/task_common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_skia_dev_go2ts//:go2ts",
+    ],
+)
+
+go_binary(
+    name = "types",
+    embed = [":types_lib"],
+    visibility = ["//visibility:public"],
+)

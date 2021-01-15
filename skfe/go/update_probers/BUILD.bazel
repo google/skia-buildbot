@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "update_probers_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skfe/go/update_probers",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "@com_github_jeffail_gabs_v2//:gabs",
+    ],
+)
+
+go_binary(
+    name = "update_probers",
+    embed = [":update_probers_lib"],
+    visibility = ["//visibility:public"],
+)

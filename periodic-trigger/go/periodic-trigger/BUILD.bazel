@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "periodic-trigger_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/periodic-trigger/go/periodic-trigger",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/periodic",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "periodic-trigger",
+    embed = [":periodic-trigger_lib"],
+    visibility = ["//visibility:public"],
+)

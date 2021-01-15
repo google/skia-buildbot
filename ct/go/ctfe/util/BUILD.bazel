@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "util",
+    srcs = [
+        "mail.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/ct/go/ctfe/util",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/util",
+        "//go/email",
+        "//go/httputils",
+        "//go/login",
+        "//go/util",
+    ],
+)

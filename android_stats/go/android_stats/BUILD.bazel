@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "android_stats_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/android_stats/go/android_stats",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/metrics2",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "android_stats",
+    embed = [":android_stats_lib"],
+    visibility = ["//visibility:public"],
+)

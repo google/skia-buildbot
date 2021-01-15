@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "recent",
+    srcs = ["recent.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/recent",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "recent_test",
+    srcs = ["recent_test.go"],
+    embed = [":recent"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

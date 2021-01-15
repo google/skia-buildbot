@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "bigtable",
+    srcs = ["bigtable.go"],
+    importpath = "go.skia.org/infra/task_driver/go/db/bigtable",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//task_driver/go/db",
+        "//task_driver/go/td",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "bigtable_test",
+    srcs = ["bigtable_test.go"],
+    embed = [":bigtable"],
+    deps = [
+        "//go/bt/testutil",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_driver/go/db",
+        "//task_driver/go/db/shared_tests",
+        "@com_github_stretchr_testify//require",
+    ],
+)
