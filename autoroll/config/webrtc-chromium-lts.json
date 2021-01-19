@@ -24,7 +24,7 @@
   "serviceAccount": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": ["cros-lts-team@google.com"],
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "refs/heads/chromium/4240",
+    "childBranch": "refs/branch-heads/4240",
     "childPath": "src/third_party/webrtc",
     "childRepo": "https://webrtc.googlesource.com/src.git",
     "childRevLinkTmpl": "https://webrtc.googlesource.com/src.git/+show/%s",
