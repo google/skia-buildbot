@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "03a33e2f_9884a5ed",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-19T15:14:28Z",
+      "side": 1,
+      "message": "Noticed it by watching metrics:\nhttps://screenshot.googleplex.com/9NGuDBeDTBxRqqD\n\nAfter mitigation:\nhttps://screenshot.googleplex.com/9wpyhjHs9Qxmsu9",
+      "revId": "48de4ac9f984fd5ea4434caab827111caf577c54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
