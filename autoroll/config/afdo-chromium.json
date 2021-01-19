@@ -2,28 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "AFDO",
-  "commitMsg": {
-    "template": "{{- define \"boilerplate\" -}}\n\
-This CL may cause a small binary size increase, roughly proportional\n\
-to how long it's been since our last AFDO profile roll. For larger\n\
-increases (around or exceeding 100KB), please file a bug against\n\
-gbiv@chromium.org. Additional context: https://crbug.com/805539\n\
-\n\
-Please note that, despite rolling to chrome/android, this profile is\n\
-used for both Linux and Android.\n\
-\n\
-{{ template \"defaultBoilerplate\" . }}\n\
-{{- end -}}",
-    "includeTbrLine": true
-  },
   "contacts": [
     "gbiv@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -34,23 +15,34 @@ used for both Linux and Android.\n\
   "sheriff": [
     "gbiv@chromium.org"
   ],
+  "commitMsg": {
+    "includeTbrLine": true,
+    "template": "{{- define \"boilerplate\" -}}\nThis CL may cause a small binary size increase, roughly proportional\nto how long it's been since our last AFDO profile roll. For larger\nincreases (around or exceeding 100KB), please file a bug against\ngbiv@chromium.org. Additional context: https://crbug.com/805539\n\nPlease note that, despite rolling to chrome/android, this profile is\nused for both Linux and Android.\n\n{{ template \"defaultBoilerplate\" . }}\n{{- end -}}"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "semVerGCSRepoManager": {
-    "childBranch": "master",
-    "childPath": "chrome/android/profiles/newest.txt",
-    "gcsBucket": "chromeos-prebuilt",
-    "gcsPath": "afdo-job/llvm",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "\\d+\\.\\d+\\.\\d+\\.\\d+_rc-r\\d+-merged",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "gcsBucket": "chromeos-prebuilt",
+    "gcsPath": "afdo-job/llvm",
     "versionFile": "chrome/android/profiles/newest.txt",
+    "shortRevRegex": "\\d+\\.\\d+\\.\\d+\\.\\d+_rc-r\\d+-merged",
     "versionRegex": "^chromeos-chrome-amd64-89\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

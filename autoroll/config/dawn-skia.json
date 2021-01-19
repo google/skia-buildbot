@@ -2,23 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Dawn",
-  "commitMsg": {
-    "bugProject": "skia",
-    "childLogURLTmpl": "https://dawn.googlesource.com/dawn.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqExtraTrybots": [
-      "skia/skia.primary:Build-Debian10-Clang-x86_64-Debug-Dawn"
-    ],
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
-  "contacts": ["cwallez@google.com"],
-  "gerrit": {
-    "url": "https://skia-review.googlesource.com",
-    "project": "skia",
-    "config": "chromium"
-  },
+  "contacts": [
+    "cwallez@google.com"
+  ],
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -34,23 +20,85 @@
     "kainino@google.com",
     "enga@google.com"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "bugProject": "skia",
+    "childLogURLTmpl": "https://dawn.googlesource.com/dawn.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Build-Debian10-Clang-x86_64-Debug-Dawn"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skia",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
-    "childPath": "third_party/externals/dawn",
-    "childRepo": "https://dawn.googlesource.com/dawn.git",
-    "childRevLinkTmpl": "https://dawn.googlesource.com/dawn.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skia.git"
+    "parentRepo": "https://skia.googlesource.com/skia.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "skia",
+      "config": "chromium"
+    },
+    "childRepo": "https://dawn.googlesource.com/dawn.git",
+    "transitiveDeps": [
+      {
+        "child": {
+          "id": "https://chromium.googlesource.com/chromium/src/third_party/jinja2",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "https://chromium.googlesource.com/chromium/src/third_party/jinja2",
+          "path": "DEPS"
+        }
+      },
+      {
+        "child": {
+          "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
+          "path": "DEPS"
+        }
+      },
+      {
+        "child": {
+          "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
+          "path": "DEPS"
+        }
+      },
+      {
+        "child": {
+          "id": "https://dawn.googlesource.com/tint",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "https://dawn.googlesource.com/tint",
+          "path": "DEPS"
+        }
+      }
+    ]
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "6h",
+  "supportsManualRolls": true,
   "timeWindow": "M-F 04:00-08:00",
   "transitiveDeps": [
     {

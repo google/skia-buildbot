@@ -2,23 +2,10 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "PDFium",
-  "commitMsg": {
-    "bugProject": "chromium",
-    "childLogURLTmpl": "https://pdfium.googlesource.com/pdfium.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "dhoss@chromium.org",
     "thestig@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -29,21 +16,38 @@
   "sheriff": [
     "pdfium-deps-rolls@chromium.org"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://pdfium.googlesource.com/pdfium.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "src/third_party/pdfium",
-    "childRepo": "https://pdfium.googlesource.com/pdfium.git",
-    "childRevLinkTmpl": "https://pdfium.googlesource.com/pdfium.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://pdfium.googlesource.com/pdfium.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "24h"
+  "maxRollFrequency": "24h",
+  "supportsManualRolls": true
 }

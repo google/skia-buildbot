@@ -271,6 +271,15 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
 	}
+	if c.MaxRollFrequency != "" {
+		maxRollFreq, err := human.ParseDuration(c.MaxRollFrequency)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to parse maxRollFrequency")
+		}
+		if maxRollFreq == 0 {
+			c.MaxRollFrequency = ""
+		}
+	}
 
 	if c.CommitMsgConfig == nil {
 		return skerr.Fmt("CommitMsgConfig is required")
@@ -383,9 +392,11 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.GithubRepoManager)
 	}
 	if c.GithubCipdDEPSRepoManager != nil {
+		c.GithubCipdDEPSRepoManager.GitHub = c.Github
 		rm = append(rm, c.GithubCipdDEPSRepoManager)
 	}
 	if c.GithubDEPSRepoManager != nil {
+		c.GithubDEPSRepoManager.GitHub = c.Github
 		c.GithubDEPSRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.GithubDEPSRepoManager)
 	}
