@@ -33,7 +33,7 @@ type DEPSRepoManagerConfig struct {
 }
 
 // See documentation for util.Validator interface.
-func (c DEPSRepoManagerConfig) Validate() error {
+func (c *DEPSRepoManagerConfig) Validate() error {
 	if err := c.DepotToolsRepoManagerConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -62,6 +62,8 @@ func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child
 			},
 		},
 		CheckoutPath:   c.ParentPath,
+		ChildPath:      c.ChildPath,
+		ChildSubdir:    c.ChildSubdir,
 		GClientSpec:    c.GClientSpec,
 		PreUploadSteps: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.PreUploadSteps,
 		RunHooks:       c.RunHooks,

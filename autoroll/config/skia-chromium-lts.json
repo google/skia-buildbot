@@ -2,19 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Skia",
-  "commitMsg": {
-    "bugProject": "chromium",
-    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
-  "contacts": ["cros-lts-team@google.com"],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
+  "contacts": [
+    "cros-lts-team@google.com"
+  ],
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -22,20 +12,38 @@
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "skia-chromium-lts",
   "serviceAccount": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": ["cros-lts-team@google.com"],
+  "sheriff": [
+    "cros-lts-team@google.com"
+  ],
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "refs/heads/chrome/m86",
-    "childPath": "src/third_party/skia",
-    "childRepo": "https://skia.googlesource.com/skia.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
     "parentBranch": "refs/branch-heads/4240",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://skia.googlesource.com/skia.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   }
 }

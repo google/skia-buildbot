@@ -2,6 +2,27 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Catapult",
+  "contacts": [
+    "chrome-speed-operations@google.com",
+    "johnchen@chromium.org",
+    "wenbinzhang@google.com",
+    "dberris@chromium.org",
+    "sullivan@chromium.org",
+    "jbudorick@chromium.org"
+  ],
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "catapult-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:chromium-perf-bot-sheriff"
+  ],
+  "sheriffBackup": [
+    "wenbinzhang@google.com"
+  ],
   "commitMsg": {
     "bugProject": "chromium",
     "childLogURLTmpl": "https://chromium.googlesource.com/catapult.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
@@ -15,53 +36,39 @@
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true,
-    "includeTests": true
+    "includeTests": true,
+    "template": "default"
   },
-  "contacts": [
-    "chrome-speed-operations@google.com",
-    "johnchen@chromium.org",
-    "wenbinzhang@google.com",
-    "dberris@chromium.org",
-    "sullivan@chromium.org",
-    "jbudorick@chromium.org"
-  ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
     "project": "chromium/src",
     "config": "chromium"
   },
-  "isInternal": false,
-  "ownerPrimary": "borenet",
-  "ownerSecondary": "rmistry",
-  "parentDisplayName": "Chromium",
-  "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "catapult-autoroll",
-  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:chromium-perf-bot-sheriff"
-  ],
-  "sheriffBackup": ["wenbinzhang@google.com"],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "src/third_party/catapult",
-    "childRepo": "https://chromium.googlesource.com/catapult.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/catapult.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "0m",
   "notifiers": [
     {
       "filter": "error",
       "email": {
-        "emails": ["chrome-speed-operations@google.com"]
+        "emails": [
+          "chrome-speed-operations@google.com"
+        ]
       }
     }
   ]

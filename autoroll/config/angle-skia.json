@@ -2,6 +2,19 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "ANGLE",
+  "contacts": [
+    "jmadill@google.com"
+  ],
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Skia",
+  "parentWaterfall": "https://status.skia.org",
+  "rollerName": "angle-skia-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener"
+  ],
   "commitMsg": {
     "childLogURLTmpl": "https://chromium.googlesource.com/angle/angle.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "cqExtraTrybots": [
@@ -16,42 +29,33 @@
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true,
-    "includeTests": true
+    "includeTests": true,
+    "template": "default"
   },
-  "contacts": [
-    "jmadill@google.com"
-  ],
   "gerrit": {
     "url": "https://skia-review.googlesource.com",
     "project": "skia",
     "config": "chromium"
   },
-  "isInternal": false,
-  "ownerPrimary": "borenet",
-  "ownerSecondary": "rmistry",
-  "parentDisplayName": "Skia",
-  "parentWaterfall": "https://status.skia.org",
-  "rollerName": "angle-skia-autoroll",
-  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener"
-  ],
-  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "third_party/externals/angle2",
-    "childRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skia.git"
+    "parentRepo": "https://skia.googlesource.com/skia.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "skia",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/angle/angle.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "6h",
+  "supportsManualRolls": true,
   "timeWindow": "M-F 04:00-08:00"
 }
