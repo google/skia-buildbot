@@ -24,6 +24,7 @@ go_test(
     name = "gcssource_test",
     srcs = ["gcssource_test.go"],
     embed = [":gcssource"],
+    tags = ["manual"],
     deps = [
         "//go/auth",
         "//go/testutils/unittest",
