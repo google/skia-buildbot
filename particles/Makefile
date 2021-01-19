@@ -13,7 +13,7 @@ release_ci: app
 	rm -rf build
 	mkdir -p build/canvaskit
 	cp -r /OUT/* build
-	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
+	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.ts
 	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
@@ -37,8 +37,8 @@ wasm_libs_tot: get_latest_skia
 	# Extract them from the most recently built ones. These are built
 	# using cloudbuild.yaml in the Skia repo.
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp -r /tmp/canvaskit /OUT/
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
-	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
+	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/mak
+	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
 
 push: release skia-public
 	pushk particles
