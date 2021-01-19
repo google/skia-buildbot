@@ -486,6 +486,10 @@ type ChangelistRow struct {
 	Subject string `sql:"subject STRING NOT NULL"`
 	// LastIngestedData indicates when Gold last saw data for this CL.
 	LastIngestedData time.Time `sql:"last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	// This index helps query for recently updated, open CLs. Keep an eye on this index, as it could
+	// lead to hotspotting: https://www.cockroachlabs.com/docs/v20.2/indexes.html#indexing-columns
+	systemStatusIngestedIndex struct{} `sql:"INDEX system_status_ingested_idx (system, status, last_ingested_data)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
