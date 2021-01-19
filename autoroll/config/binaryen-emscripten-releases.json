@@ -28,11 +28,11 @@
     "wasm-waterfall@grotations.appspotmail.com"
   ],
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "master",
+    "childBranch": "main",
     "childPath": "emscripten-releases/binaryen",
     "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+show/%s",
-    "parentBranch": "master",
+    "parentBranch": "main",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
   },
   "kubernetes": {
