@@ -47,6 +47,7 @@ go_library(
 go_test(
     name = "tryjobs_test",
     srcs = ["tryjobs_test.go"],
+    data = ["//infra/config:recipes.cfg"],
     embed = [":tryjobs"],
     deps = [
         "//go/deepequal/assertdeep",
