@@ -464,7 +464,7 @@ class Data {
  */
 class RequestLimiter {
   private awaitingResponse: boolean = false;
-  private updateRequested: boolean = true;
+  private updateRequested: boolean = false;
 
   // beginUpdate returns true if a request should be sent.
   beginUpdate(): boolean {
