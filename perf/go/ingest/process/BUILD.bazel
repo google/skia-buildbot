@@ -28,14 +28,23 @@ go_library(
 go_test(
     name = "process_test",
     srcs = ["process_test.go"],
+    data = [
+        "//perf/integration:data",
+        "//perf/migrations:cockroachdb",
+    ],
     embed = [":process"],
+    # This test requires the GOOGLE_APPLICATION_CREDENTIALS environment variable to be set, which
+    # is unset when running on RBE (e.g. with --config=remote).
+    tags = ["no-remote"],
     deps = [
         "//go/auth",
         "//go/metrics2",
         "//go/paramtools",
+        "//go/testutils",
         "//go/testutils/unittest",
         "//perf/go/config",
         "//perf/go/ingestevents",
+        "//perf/go/sql",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
