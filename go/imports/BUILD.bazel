@@ -17,6 +17,7 @@ go_test(
     srcs = ["imports_test.go"],
     embed = [":imports"],
     deps = [
+        "//go/testutils",
         "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//assert",
