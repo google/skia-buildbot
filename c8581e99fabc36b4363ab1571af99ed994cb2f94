@@ -16,6 +16,24 @@
       "message": "Does GitHub support manual rolls?",
       "revId": "c8581e99fabc36b4363ab1571af99ed994cb2f94",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "45c00e21_1cc2c54d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-19T14:58:35Z",
+      "side": 1,
+      "message": "Yes, it was turned on for skia-\u003eflutter a while back. That\u0027s how the canary rolls work.\nBut, this roller is slightly different. Hopefully it works here too.",
+      "parentUuid": "2b212344_5895d96d",
+      "revId": "c8581e99fabc36b4363ab1571af99ed994cb2f94",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
