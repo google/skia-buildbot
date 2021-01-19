@@ -1,6 +1,6 @@
 {
-    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2020-12-17T13_11_01Z-kjlubick-c49f6be-clean",
-    "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2020-12-17T13_10_11Z-kjlubick-c49f6be-clean",
+    "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2021-01-19T14_28_28Z-kjlubick-450bea3-clean",
+    "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2021-01-19T14_27_42Z-kjlubick-450bea3-clean",
     "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2021-01-15T15_39_45Z-kjlubick-3b3d555-clean",
     "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2021-01-15T15_39_11Z-kjlubick-3b3d555-clean",
 
