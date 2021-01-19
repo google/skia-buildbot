@@ -25,6 +25,7 @@ go_test(
         "mpower_test.go",
         "powercycle_test.go",
     ],
+    data = ["example.json5"],
     embed = [":powercycle"],
     deps = [
         "//go/executil",
