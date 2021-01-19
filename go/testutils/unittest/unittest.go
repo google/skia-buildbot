@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -128,6 +129,14 @@ If you need to set up the Bigtable emulator, follow the instructions at:
 	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
 and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
 `)
+	}
+}
+
+// BazelTest is a function which should be called at the beginning of tests
+// which should only run under Bazel (e.g. via "bazel test ...").
+func BazelTest(t sktest.TestingT) {
+	if !bazel.InBazel() {
+		t.Skip("Not running Bazel tests from outside Bazel.")
 	}
 }
 
