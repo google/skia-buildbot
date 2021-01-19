@@ -31,6 +31,7 @@ go_test(
         "async_test.go",
         "dataframe_test.go",
     ],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":dataframe"],
     deps = [
         "//go/paramtools",
