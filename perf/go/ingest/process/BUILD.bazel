@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "process",
+    srcs = ["process.go"],
+    importpath = "go.skia.org/infra/perf/go/ingest/process",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/builders",
+        "//perf/go/config",
+        "//perf/go/file",
+        "//perf/go/git",
+        "//perf/go/ingest/parser",
+        "//perf/go/ingestevents",
+        "//perf/go/tracestore",
+        "//perf/go/tracing",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_test(
+    name = "process_test",
+    srcs = ["process_test.go"],
+    embed = [":process"],
+    deps = [
+        "//go/auth",
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//perf/go/config",
+        "//perf/go/ingestevents",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)

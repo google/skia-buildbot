@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "alertfilter",
+    srcs = ["alertfilter.go"],
+    importpath = "go.skia.org/infra/perf/go/alertfilter",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "goldpushk_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/golden/cmd/goldpushk",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sklog/glog_and_cloud",
+        "//go/util",
+        "//golden/cmd/goldpushk/goldpushk",
+        "@com_github_spf13_cobra//:cobra",
+    ],
+)
+
+go_binary(
+    name = "goldpushk",
+    embed = [":goldpushk_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "goldpushk_test",
+    srcs = ["main_test.go"],
+    embed = [":goldpushk_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/cmd/goldpushk/goldpushk",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

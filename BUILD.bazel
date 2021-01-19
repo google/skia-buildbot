@@ -1,3 +1,4 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
@@ -172,4 +173,26 @@ filegroup(
     name = "~elements-sk",
     srcs = TILDE_ELEMENTS_SK_SCSS,
     visibility = ["//infra-sk:__pkg__"],
+)
+
+go_library(
+    name = "infra_lib",
+    srcs = ["run_unittests.go"],
+    importpath = "go.skia.org/infra",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/testutils/unittest",
+        "//go/timer",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "infra",
+    embed = [":infra_lib"],
+    visibility = ["//visibility:public"],
 )

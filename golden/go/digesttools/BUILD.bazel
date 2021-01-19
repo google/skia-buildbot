@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "digesttools",
+    srcs = ["digesttools.go"],
+    importpath = "go.skia.org/infra/golden/go/digesttools",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/diff",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "digesttools_test",
+    srcs = ["digesttools_test.go"],
+    embed = [":digesttools"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/diff",
+        "//golden/go/diffstore/mocks",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/mocks",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

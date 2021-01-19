@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "dirsource",
+    srcs = ["dirsource.go"],
+    importpath = "go.skia.org/infra/perf/go/file/dirsource",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/file",
+    ],
+)
+
+go_test(
+    name = "dirsource_test",
+    srcs = ["dirsource_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":dirsource"],
+    deps = [
+        "//go/testutils/unittest",
+        "//perf/go/file",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

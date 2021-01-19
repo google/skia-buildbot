@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "backup",
+    srcs = ["backup.go"],
+    importpath = "go.skia.org/infra/ds/go/backup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ds",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+    ],
+)

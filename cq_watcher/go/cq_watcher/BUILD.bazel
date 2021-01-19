@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cq_watcher_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/cq_watcher/go/cq_watcher",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/cq",
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "cq_watcher",
+    embed = [":cq_watcher_lib"],
+    visibility = ["//visibility:public"],
+)

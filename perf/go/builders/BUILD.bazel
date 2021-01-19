@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "builders",
+    srcs = ["builders.go"],
+    importpath = "go.skia.org/infra/perf/go/builders",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/alerts",
+        "//perf/go/alerts/sqlalertstore",
+        "//perf/go/config",
+        "//perf/go/file",
+        "//perf/go/file/dirsource",
+        "//perf/go/file/gcssource",
+        "//perf/go/git",
+        "//perf/go/regression",
+        "//perf/go/regression/sqlregressionstore",
+        "//perf/go/shortcut",
+        "//perf/go/shortcut/sqlshortcutstore",
+        "//perf/go/tracestore",
+        "//perf/go/tracestore/sqltracestore",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_jackc_pgx_v4//stdlib",
+    ],
+)
+
+go_test(
+    name = "builders_test",
+    srcs = ["builders_test.go"],
+    embed = [":builders"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//perf/go/alerts/alertstest",
+        "//perf/go/config",
+        "//perf/go/file/dirsource",
+        "//perf/go/git/gittest",
+        "//perf/go/regression/regressiontest",
+        "//perf/go/shortcut/shortcuttest",
+        "//perf/go/sql",
+        "//perf/go/sql/sqltest",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

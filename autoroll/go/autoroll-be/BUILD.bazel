@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "autoroll-be_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-be",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/manual",
+        "//autoroll/go/repo_manager/parent",
+        "//autoroll/go/roller",
+        "//go/auth",
+        "//go/chatbot",
+        "//go/common",
+        "//go/ds",
+        "//go/email",
+        "//go/fileutil",
+        "//go/firestore",
+        "//go/gcs",
+        "//go/gcs/gcsclient",
+        "//go/gcs/mem_gcsclient",
+        "//go/gerrit",
+        "//go/gitauth",
+        "//go/github",
+        "//go/httputils",
+        "//go/metadata",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_flynn_json5//:json5",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_binary(
+    name = "autoroll-be",
+    embed = [":autoroll-be_lib"],
+    visibility = ["//visibility:public"],
+)

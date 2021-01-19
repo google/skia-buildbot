@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "store",
+    srcs = ["store.go"],
+    importpath = "go.skia.org/infra/perf/go/trybot/store",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/trybot",
+        "//perf/go/types",
+    ],
+)

@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "store",
+    srcs = ["store.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/store",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//fiddlek/go/types",
+        "//go/auth",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//iterator",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_test(
+    name = "store_test",
+    srcs = ["store_test.go"],
+    embed = [":store"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

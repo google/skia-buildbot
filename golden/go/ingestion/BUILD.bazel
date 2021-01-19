@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "ingestion",
+    srcs = [
+        "helpers.go",
+        "ingestion.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/ingestion",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/config",
+        "//go/fileutil",
+        "//go/gcs",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "//golden/go/eventbus",
+        "@com_github_cenkalti_backoff//:backoff",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_test(
+    name = "ingestion_test",
+    srcs = [
+        "helpers_test.go",
+        "ingestion_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":ingestion"],
+    deps = [
+        "//go/config",
+        "//go/gcs/gcs_testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//go/vcsinfo/mocks",
+        "//golden/go/eventbus",
+        "//golden/go/eventbus/mocks",
+        "//golden/go/ingestion/mocks",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

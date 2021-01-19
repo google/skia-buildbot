@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "gcssamplesloader",
+    srcs = ["gcssamplesloader.go"],
+    importpath = "go.skia.org/infra/perf/go/trybot/samplesloader/gcssamplesloader",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gcs",
+        "//go/skerr",
+        "//go/util",
+        "//perf/go/ingest/format",
+        "//perf/go/ingest/parser",
+        "//perf/go/trybot/samplesloader",
+    ],
+)
+
+go_test(
+    name = "gcssamplesloader_test",
+    srcs = ["gcssamplesloader_test.go"],
+    embed = [":gcssamplesloader"],
+    deps = [
+        "//go/gcs/test_gcsclient",
+        "//go/paramtools",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//perf/go/config",
+        "//perf/go/ingest/parser",
+        "@com_github_stretchr_testify//require",
+    ],
+)

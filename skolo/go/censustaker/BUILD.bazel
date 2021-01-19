@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "censustaker_lib",
+    srcs = [
+        "arp.go",
+        "censustaker.go",
+        "edgeswitchinterfaces.go",
+    ],
+    importpath = "go.skia.org/infra/skolo/go/censustaker",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+        "//skolo/go/powercycle",
+    ],
+)
+
+go_binary(
+    name = "censustaker",
+    embed = [":censustaker_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "censustaker_test",
+    srcs = ["censustaker_test.go"],
+    embed = [":censustaker_lib"],
+    deps = [
+        "//go/executil",
+        "//go/testutils/unittest",
+        "//skolo/go/powercycle",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

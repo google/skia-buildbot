@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "pdag",
+    srcs = ["pdag.go"],
+    importpath = "go.skia.org/infra/golden/go/pdag",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "pdag_test",
+    srcs = ["pdag_test.go"],
+    embed = [":pdag"],
+    deps = [
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

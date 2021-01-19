@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "gcs_cleanup_lib",
+    srcs = ["gcs_cleanup.go"],
+    importpath = "go.skia.org/infra/scripts/gcs_cleanup",
+    visibility = ["//visibility:private"],
+    deps = ["//go/exec"],
+)
+
+go_binary(
+    name = "gcs_cleanup",
+    embed = [":gcs_cleanup_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "results",
+    srcs = ["results.go"],
+    importpath = "go.skia.org/infra/perf/go/trybot/results",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//perf/go/dataframe",
+        "//perf/go/progress",
+        "//perf/go/types",
+    ],
+)

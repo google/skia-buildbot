@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "perf-tool_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/perf-tool",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog/glog_and_cloud",
+        "//go/urfavecli",
+        "//perf/go/builders",
+        "//perf/go/config",
+        "//perf/go/perf-tool/application",
+        "//perf/go/tracestore",
+        "//perf/go/types",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_binary(
+    name = "perf-tool",
+    embed = [":perf-tool_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "perf-tool_test",
+    srcs = ["main_test.go"],
+    embed = [":perf-tool_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "//machine/go/machineserver/config",
+        "//perf/go/perf-tool/application/mocks",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
