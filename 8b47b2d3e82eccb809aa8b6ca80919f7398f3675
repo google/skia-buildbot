@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "f7ad69e7_f5f62276",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-19T21:09:06Z",
+      "side": 1,
+      "message": "I avoided testutils.TestDataDir() because I would like this package to not depend on testutils (it feels cleaner that way). I\u0027m looking at repo_root and I\u0027m not sure it is platform independent as written.\n\nI don\u0027t quite understand what is and is not amenable to Bazel. Isn\u0027t the change https://skia-review.googlesource.com/c/buildbot/+/355498/11/golden/go/sql/datakitchensink/BUILD.bazel enough to make it work?",
+      "parentUuid": "34ba4a9a_a2d90d3b",
+      "range": {
+        "startLine": 435,
+        "startChar": 0,
+        "endLine": 439,
+        "endChar": 44
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "6ecb149e_c5687415",
         "filename": "golden/go/tjstore/sqltjstore/sqltjstore.go",
         "patchSetId": 5
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-19T20:58:47Z",
       "side": 1,
       "message": "We have identical functions in //golden/go/clstore/sqlclstore/sqlclstore.go. Please add a TODO to extract them out in a shared place, or address now if you feel like it.",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 1
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "870098fd_0469ad9f",
+        "filename": "golden/go/tjstore/sqltjstore/sqltjstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-19T21:09:06Z",
+      "side": 1,
+      "message": "I would like to avoid such an implementation dependency.\n\n\"A little copying is better than a little dependency.\"\nhttps://go-proverbs.github.io/",
+      "parentUuid": "6ecb149e_c5687415",
       "range": {
         "startLine": 100,
         "startChar": 0,
