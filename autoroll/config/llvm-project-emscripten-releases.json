@@ -28,11 +28,11 @@
     "wasm-waterfall@grotations.appspotmail.com"
   ],
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "master",
+    "childBranch": "main",
     "childPath": "emscripten-releases/llvm-project",
     "childRepo": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+show/%s",
-    "parentBranch": "master",
+    "parentBranch": "main",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
   },
   "kubernetes": {
