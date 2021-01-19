@@ -2,21 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Skia",
-  "commitMsg": {
-    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "borenet@google.com"
   ],
-  "gerrit": {
-    "url": "https://skia-review.googlesource.com",
-    "project": "skiabot-test",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -27,32 +15,53 @@
   "sheriff": [
     "borenet@google.com"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skiabot-test",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "skia",
-    "childRepo": "https://skia.googlesource.com/skia.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skiabot-test.git"
+    "parentRepo": "https://skia.googlesource.com/skiabot-test.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "skiabot-test",
+      "config": "chromium"
+    },
+    "childRepo": "https://skia.googlesource.com/skia.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "0m",
   "notifiers": [
     {
-      "includeMsgTypes": ["last n failed"],
+      "includeMsgTypes": [
+        "last n failed"
+      ],
       "monorail": {
         "project": "skia",
         "owner": "borenet",
-        "cc": ["rmistry@google.com"],
-        "components": ["AutoRoll"]
+        "cc": [
+          "rmistry@google.com"
+        ],
+        "components": [
+          "AutoRoll"
+        ]
       }
     }
-  ]
+  ],
+  "supportsManualRolls": true
 }

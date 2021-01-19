@@ -2,25 +2,10 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "skcms",
-  "commitMsg": {
-    "childLogURLTmpl": "https://skia.googlesource.com/skcms.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqExtraTrybots": [
-      "luci.chromium.try:linux-blink-rel"
-    ],
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "brianosman@google.com",
     "mtklein@google.com"
   ],
-  "gerrit": {
-    "url": "https://skia-review.googlesource.com",
-    "project": "skia",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -32,31 +17,70 @@
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener",
     "mtklein@google.com"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/skcms.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chromium.try:linux-blink-rel"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skia",
+    "config": "chromium"
+  },
   "copyRepoManager": {
     "childBranch": "master",
-    "childPath": "skia/third_party/skcms",
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "skia",
+      "config": "chromium"
+    },
     "childRepo": "https://skia.googlesource.com/skcms.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skcms.git/+show/%s",
     "copies": [
-      { "srcRelPath": "LICENSE",          "dstRelPath": "third_party/skcms/LICENSE" },
-      { "srcRelPath": "README.chromium",  "dstRelPath": "third_party/skcms/README.chromium" },
-      { "srcRelPath": "skcms.cc",         "dstRelPath": "third_party/skcms/skcms.cc" },
-      { "srcRelPath": "skcms.gni",        "dstRelPath": "third_party/skcms/skcms.gni" },
-      { "srcRelPath": "skcms_internal.h", "dstRelPath": "third_party/skcms/skcms_internal.h" },
-      { "srcRelPath": "src/",             "dstRelPath": "third_party/skcms/src/" },
-      { "srcRelPath": "skcms.h",          "dstRelPath": "include/third_party/skcms/skcms.h" }
+      {
+        "srcRelPath": "LICENSE",
+        "dstRelPath": "third_party/skcms/LICENSE"
+      },
+      {
+        "srcRelPath": "README.chromium",
+        "dstRelPath": "third_party/skcms/README.chromium"
+      },
+      {
+        "srcRelPath": "skcms.cc",
+        "dstRelPath": "third_party/skcms/skcms.cc"
+      },
+      {
+        "srcRelPath": "skcms.gni",
+        "dstRelPath": "third_party/skcms/skcms.gni"
+      },
+      {
+        "srcRelPath": "skcms_internal.h",
+        "dstRelPath": "third_party/skcms/skcms_internal.h"
+      },
+      {
+        "srcRelPath": "src/",
+        "dstRelPath": "third_party/skcms/src/"
+      },
+      {
+        "srcRelPath": "skcms.h",
+        "dstRelPath": "include/third_party/skcms/skcms.h"
+      }
     ],
     "versionFile": "third_party/skcms/version.sha1"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "600",
-    "readinessPeriodSeconds": "60",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "60"
   },
-  "maxRollFrequency": "0m"
+  "supportsManualRolls": true
 }

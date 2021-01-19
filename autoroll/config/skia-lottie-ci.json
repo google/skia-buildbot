@@ -2,24 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Skia",
-  "commitMsg": {
-    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqExtraTrybots": [
-      "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
-    ],
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "borenet@google.com"
   ],
-  "gerrit": {
-    "url": "https://skia-review.googlesource.com",
-    "project": "lottie-ci",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -30,29 +15,49 @@
   "sheriff": [
     "borenet@google.com"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "lottie-ci",
+    "config": "chromium"
+  },
   "depsRepoManager": {
     "childBranch": "master",
     "childPath": "skia",
-    "childRepo": "https://skia.googlesource.com/skia.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
     "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
     "preUploadSteps": [
       "TrainInfra"
     ],
-    "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "lottie-ci",
+      "config": "chromium"
+    },
+    "childRepo": "https://skia.googlesource.com/skia.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
-    "disk": "50Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
-    "readinessFailureThreshold": "10"
+    "disk": "50Gi"
   },
-  "maxRollFrequency": "0m",
   "safetyThrottle": {
     "attemptCount": 0,
     "timeWindow": "1h"
-  }
+  },
+  "supportsManualRolls": true
 }

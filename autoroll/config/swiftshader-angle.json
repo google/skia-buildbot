@@ -2,24 +2,12 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "SwiftShader",
-  "commitMsg": {
-    "bugProject": "angleproject",
-    "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
   "contacts": [
     "geofflang@chromium.org",
     "jmadill@chromium.org",
     "syoussefi@chromium.org",
     "ynovikov@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "angle/angle",
-    "config": "angle"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -33,21 +21,36 @@
   "sheriffBackup": [
     "ynovikov@chromium.org"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "angle/angle",
+    "config": "angle"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "third_party/SwiftShader",
-    "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
-    "childRevLinkTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "angle/angle",
+      "config": "angle"
+    },
+    "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "6h",
   "notifiers": [
@@ -61,5 +64,6 @@
       }
     }
   ],
+  "supportsManualRolls": true,
   "timeWindow": "M-F 10:00-13:00"
 }
