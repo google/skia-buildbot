@@ -122,7 +122,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		reviewSystems = append(reviewSystems, clstore.ReviewSystem{
 			ID:     crsName,
 			Client: crsClient,
-			Store:  dualclstore.New(fireCS, sqlCS),
+			Store:  dualclstore.New(sqlCS, fireCS),
 		})
 	}
 
