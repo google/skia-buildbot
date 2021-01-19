@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "34ba4a9a_a2d90d3b",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-19T20:58:47Z",
+      "side": 1,
+      "message": "Could testutils.TestDataDir() or repo_root.Get() be used here?\n\nGenerally we should prefer paths relative tot he workspace\u0027s root directory, or within a \"testdata\" directory, because these are more amenable to Bazel.\n\nSee https://skia-review.googlesource.com/c/buildbot/+/355498 for a bit of context.",
+      "range": {
+        "startLine": 435,
+        "startChar": 0,
+        "endLine": 439,
+        "endChar": 44
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6ecb149e_c5687415",
+        "filename": "golden/go/tjstore/sqltjstore/sqltjstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-19T20:58:47Z",
+      "side": 1,
+      "message": "We have identical functions in //golden/go/clstore/sqlclstore/sqlclstore.go. Please add a TODO to extract them out in a shared place, or address now if you feel like it.",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 1
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
