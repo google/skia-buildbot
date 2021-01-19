@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "reminder",
+    srcs = ["reminder.go"],
+    importpath = "go.skia.org/infra/am/go/reminder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/incident",
+        "//am/go/silence",
+        "//go/ds",
+        "//go/email",
+        "//go/httputils",
+        "//go/rotations",
+        "//go/sklog",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "reminder_test",
+    srcs = ["reminder_test.go"],
+    embed = [":reminder"],
+    deps = [
+        "//am/go/incident",
+        "//am/go/silence",
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

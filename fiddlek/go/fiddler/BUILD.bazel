@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "fiddler_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/fiddler",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//fiddlek/go/types",
+        "//go/common",
+        "//go/exec",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "//go/util/limitwriter",
+        "@com_github_gorilla_mux//:mux",
+        "@io_opencensus_go//plugin/ochttp",
+        "@io_opencensus_go//trace",
+        "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_binary(
+    name = "fiddler",
+    embed = [":fiddler_lib"],
+    visibility = ["//visibility:public"],
+)

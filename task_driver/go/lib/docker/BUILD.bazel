@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "docker",
+    srcs = ["docker.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/docker",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/docker/build/pubsub",
+        "//go/exec",
+        "//task_driver/go/lib/log_parser",
+        "//task_driver/go/lib/os_steps",
+        "//task_driver/go/td",
+        "@com_github_google_uuid//:uuid",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "docker_test",
+    srcs = ["docker_test.go"],
+    embed = [":docker"],
+    deps = [
+        "//go/exec",
+        "//go/testutils/unittest",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//require",
+    ],
+)

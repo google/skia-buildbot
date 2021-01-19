@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "progress",
+    srcs = [
+        "progress.go",
+        "tracker.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/progress",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+    ],
+)
+
+go_test(
+    name = "progress_test",
+    srcs = [
+        "progress_test.go",
+        "tracker_test.go",
+    ],
+    embed = [":progress"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

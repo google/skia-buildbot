@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "alert-to-pubsub_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/am/go/alert-to-pubsub",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/alerts",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "alert-to-pubsub",
+    embed = [":alert-to-pubsub_lib"],
+    visibility = ["//visibility:public"],
+)

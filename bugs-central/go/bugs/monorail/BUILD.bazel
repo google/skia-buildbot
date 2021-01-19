@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "monorail",
+    srcs = ["monorail.go"],
+    importpath = "go.skia.org/infra/bugs-central/go/bugs/monorail",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bugs-central/go/bugs",
+        "//bugs-central/go/db",
+        "//bugs-central/go/types",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@org_golang_google_api//idtoken",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "monorail_test",
+    srcs = ["monorail_test.go"],
+    embed = [":monorail"],
+    deps = [
+        "//bugs-central/go/bugs",
+        "//go/mockhttpclient",
+        "//go/testutils/unittest",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

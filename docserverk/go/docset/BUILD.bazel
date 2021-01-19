@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "docset",
+    srcs = ["docset.go"],
+    importpath = "go.skia.org/infra/docserverk/go/docset",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//docserverk/go/config",
+        "//go/auth",
+        "//go/gerrit",
+        "//go/git",
+        "//go/git/gitinfo",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_golang_groupcache//lru",
+    ],
+)
+
+go_test(
+    name = "docset_test",
+    srcs = ["docset_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":docset"],
+    deps = ["//go/testutils/unittest"],
+)

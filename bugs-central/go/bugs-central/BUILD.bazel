@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bugs-central_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/bugs-central/go/bugs-central",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//bugs-central/go/db",
+        "//bugs-central/go/poller",
+        "//bugs-central/go/types",
+        "//go/allowed",
+        "//go/auth",
+        "//go/baseapp",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_unrolled_secure//:secure",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "bugs-central",
+    embed = [":bugs-central_lib"],
+    visibility = ["//visibility:public"],
+)

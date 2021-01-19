@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "particles_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/particles/go/particles",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "particles",
+    embed = [":particles_lib"],
+    visibility = ["//visibility:public"],
+)

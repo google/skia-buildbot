@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "worker_common",
+    srcs = ["worker_common.go"],
+    importpath = "go.skia.org/infra/ct/go/worker_scripts/worker_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/util",
+        "//go/auth",
+        "//go/common",
+        "//go/exec",
+        "//go/httputils",
+        "//go/luciauth",
+        "//go/sklog",
+        "//go/util",
+    ],
+)

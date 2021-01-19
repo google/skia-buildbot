@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "fiddlecli_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/fiddlecli",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//fiddlek/go/client",
+        "//fiddlek/go/types",
+        "//go/common",
+        "//go/sklog",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_binary(
+    name = "fiddlecli",
+    embed = [":fiddlecli_lib"],
+    visibility = ["//visibility:public"],
+)

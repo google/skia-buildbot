@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "monorailsource",
+    srcs = ["monorailsource.go"],
+    importpath = "go.skia.org/infra/hashtag/go/monorailsource",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/monorail/v1:monorail",
+        "//go/skerr",
+        "//go/sklog",
+        "//hashtag/go/source",
+        "@com_github_spf13_viper//:viper",
+    ],
+)

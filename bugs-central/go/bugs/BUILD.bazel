@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "bugs",
+    srcs = [
+        "bugs.go",
+        "open_issues.go",
+    ],
+    importpath = "go.skia.org/infra/bugs-central/go/bugs",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bugs-central/go/db",
+        "//bugs-central/go/types",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "bugs_test",
+    srcs = ["open_issues_test.go"],
+    embed = [":bugs"],
+    deps = [
+        "//bugs-central/go/types",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

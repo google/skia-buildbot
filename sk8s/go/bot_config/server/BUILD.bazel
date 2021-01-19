@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "server",
+    srcs = ["server.go"],
+    importpath = "go.skia.org/infra/sk8s/go/bot_config/server",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//sk8s/go/bot_config/machine",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_test(
+    name = "server_test",
+    srcs = ["server_test.go"],
+    embed = [":server"],
+    deps = [
+        "//go/testutils/unittest",
+        "//machine/go/machine",
+        "//sk8s/go/bot_config/machine",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

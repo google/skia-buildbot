@@ -1,0 +1,44 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "dfloader",
+    srcs = ["dfloader.go"],
+    importpath = "go.skia.org/infra/perf/go/trybot/results/dfloader",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vec32",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/progress",
+        "//perf/go/trybot/results",
+        "//perf/go/trybot/store",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "dfloader_test",
+    srcs = ["dfloader_test.go"],
+    embed = [":dfloader"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//go/vec32",
+        "//perf/go/dataframe",
+        "//perf/go/dataframe/mocks",
+        "//perf/go/git",
+        "//perf/go/git/gittest",
+        "//perf/go/trybot/results",
+        "//perf/go/trybot/store",
+        "//perf/go/trybot/store/mocks",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

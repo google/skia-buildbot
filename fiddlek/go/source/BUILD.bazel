@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "source",
+    srcs = ["source.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/source",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//go/util",
+        "@com_github_nfnt_resize//:resize",
+    ],
+)
+
+go_test(
+    name = "source_test",
+    srcs = ["source_test.go"],
+    embed = [":source"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sqlregressionstore",
+    srcs = ["sqlregressionstore.go"],
+    importpath = "go.skia.org/infra/perf/go/regression/sqlregressionstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/alerts",
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/regression",
+        "//perf/go/types",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "sqlregressionstore_test",
+    srcs = ["sqlregressionstore_test.go"],
+    embed = [":sqlregressionstore"],
+    deps = [
+        "//go/testutils/unittest",
+        "//perf/go/regression",
+        "//perf/go/regression/regressiontest",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

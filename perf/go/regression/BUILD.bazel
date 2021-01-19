@@ -1,0 +1,54 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "regression",
+    srcs = [
+        "detector.go",
+        "fromsummary.go",
+        "regression.go",
+        "stepfit.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/regression",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vec32",
+        "//perf/go/alerts",
+        "//perf/go/clustering2",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/dfiter",
+        "//perf/go/git",
+        "//perf/go/progress",
+        "//perf/go/shortcut",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "regression_test",
+    srcs = [
+        "detector_test.go",
+        "regression_test.go",
+        "stepfit_test.go",
+    ],
+    embed = [":regression"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//go/vec32",
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/dataframe/mocks",
+        "//perf/go/progress",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "tosql_lib",
+    srcs = ["tosql.go"],
+    importpath = "go.skia.org/infra/golden/go/sql/exporter/tosql",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//golden/go/sql/schema",
+    ],
+)
+
+go_binary(
+    name = "tosql",
+    embed = [":tosql_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "tosql_test",
+    srcs = ["tosql_test.go"],
+    embed = [":tosql_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

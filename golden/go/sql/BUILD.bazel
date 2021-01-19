@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sql",
+    srcs = ["util.go"],
+    importpath = "go.skia.org/infra/golden/go/sql",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/jsonutils",
+        "//go/skerr",
+        "//golden/go/sql/schema",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "sql_test",
+    srcs = ["util_test.go"],
+    embed = [":sql"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/sql/schema",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

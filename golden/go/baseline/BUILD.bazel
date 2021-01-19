@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "baseline",
+    srcs = ["types.go"],
+    importpath = "go.skia.org/infra/golden/go/baseline",
+    visibility = ["//visibility:public"],
+    deps = ["//golden/go/expectations"],
+)

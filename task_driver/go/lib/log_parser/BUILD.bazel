@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "log_parser",
+    srcs = ["log_parser.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/log_parser",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ring",
+        "//go/skerr",
+        "//go/sklog",
+        "//task_driver/go/td",
+    ],
+)
+
+go_test(
+    name = "log_parser_test",
+    srcs = ["log_parser_test.go"],
+    embed = [":log_parser"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//require",
+    ],
+)

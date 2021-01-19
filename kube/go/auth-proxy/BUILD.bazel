@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "auth-proxy_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/kube/go/auth-proxy",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "auth-proxy",
+    embed = [":auth-proxy_lib"],
+    visibility = ["//visibility:public"],
+)

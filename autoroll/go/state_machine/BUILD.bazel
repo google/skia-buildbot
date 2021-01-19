@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "state_machine",
+    srcs = ["state_machine.go"],
+    importpath = "go.skia.org/infra/autoroll/go/state_machine",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/modes",
+        "//autoroll/go/notifier",
+        "//autoroll/go/revision",
+        "//go/autoroll",
+        "//go/counters",
+        "//go/exec",
+        "//go/gcs",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/state_machine",
+    ],
+)
+
+go_test(
+    name = "state_machine_test",
+    srcs = ["state_machine_test.go"],
+    embed = [":state_machine"],
+    deps = [
+        "//autoroll/go/modes",
+        "//autoroll/go/notifier",
+        "//autoroll/go/revision",
+        "//go/autoroll",
+        "//go/gcs",
+        "//go/gcs/mem_gcsclient",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

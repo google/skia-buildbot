@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "regressiontest",
+    srcs = ["regressiontest.go"],
+    importpath = "go.skia.org/infra/perf/go/regression/regressiontest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/regression",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

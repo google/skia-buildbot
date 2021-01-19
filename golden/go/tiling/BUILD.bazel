@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "tiling",
+    srcs = [
+        "complex_tile.go",
+        "tiling.go",
+        "trace.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/tiling",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "tiling_test",
+    srcs = ["trace_test.go"],
+    embed = [":tiling"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

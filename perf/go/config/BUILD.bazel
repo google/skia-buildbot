@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "config",
+    srcs = ["config.go"],
+    importpath = "go.skia.org/infra/perf/go/config",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/util",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_test(
+    name = "config_test",
+    srcs = ["config_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":config"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

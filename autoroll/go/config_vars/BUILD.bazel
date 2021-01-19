@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "config_vars",
+    srcs = ["config_vars.go"],
+    importpath = "go.skia.org/infra/autoroll/go/config_vars",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/chrome_branch",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "config_vars_test",
+    srcs = ["config_vars_test.go"],
+    embed = [":config_vars"],
+    deps = [
+        "//go/chrome_branch/mocks",
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

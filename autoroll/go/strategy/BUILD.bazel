@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "strategy",
+    srcs = [
+        "strategies.go",
+        "strategy.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/strategy",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/revision",
+        "//go/ds",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "strategy_test",
+    srcs = [
+        "strategies_test.go",
+        "strategy_test.go",
+    ],
+    embed = [":strategy"],
+    deps = [
+        "//autoroll/go/revision",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

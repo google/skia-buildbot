@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "linenumbers",
+    srcs = ["linenumbers.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/linenumbers",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "linenumbers_test",
+    srcs = ["linenumbers_test.go"],
+    embed = [":linenumbers"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

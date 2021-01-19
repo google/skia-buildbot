@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "metricsstore",
+    srcs = ["metricsstore.go"],
+    importpath = "go.skia.org/infra/golden/go/diffstore/metricsstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/go/diff",
+        "//golden/go/types",
+    ],
+)

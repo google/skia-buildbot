@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "k8s-checker_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/k8s-checker/go/k8s-checker",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/kube/clusterconfig",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@in_gopkg_yaml_v2//:yaml_v2",
+        "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@io_k8s_client_go//kubernetes",
+        "@io_k8s_client_go//rest",
+    ],
+)
+
+go_binary(
+    name = "k8s-checker",
+    embed = [":k8s-checker_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "run_chromium_perf_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/worker_scripts/run_chromium_perf",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/adb",
+        "//ct/go/util",
+        "//ct/go/worker_scripts/worker_common",
+        "//go/exec",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "run_chromium_perf",
+    embed = [":run_chromium_perf_lib"],
+    visibility = ["//visibility:public"],
+)

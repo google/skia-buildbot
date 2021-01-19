@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "ct_autoscaler",
+    srcs = [
+        "ct_autoscaler.go",
+        "mock_ct_autoscaler.go",
+    ],
+    importpath = "go.skia.org/infra/ct/go/ct_autoscaler",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/cleanup",
+        "//go/gce",
+        "//go/gce/autoscaler",
+        "//go/gce/ct/instance_types",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "ct_autoscaler_test",
+    srcs = ["ct_autoscaler_test.go"],
+    embed = [":ct_autoscaler"],
+    deps = [
+        "//go/gce/autoscaler",
+        "//go/swarming",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

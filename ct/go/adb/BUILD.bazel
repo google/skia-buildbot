@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "adb",
+    srcs = ["adb.go"],
+    importpath = "go.skia.org/infra/ct/go/adb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/util",
+        "//go/exec",
+        "//go/util",
+    ],
+)

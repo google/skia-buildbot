@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "code_review",
+    srcs = ["types.go"],
+    importpath = "go.skia.org/infra/golden/go/code_review",
+    visibility = ["//visibility:public"],
+    deps = ["//go/vcsinfo"],
+)

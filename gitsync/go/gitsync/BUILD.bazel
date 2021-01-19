@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "gitsync_lib",
+    srcs = [
+        "config.go",
+        "main.go",
+    ],
+    importpath = "go.skia.org/infra/gitsync/go/gitsync",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//gitsync/go/watcher",
+        "//go/auth",
+        "//go/common",
+        "//go/gitstore/bt_gitstore",
+        "//go/gitstore/pubsub",
+        "//go/httputils",
+        "//go/human",
+        "//go/sklog",
+        "@com_github_flynn_json5//:json5",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_binary(
+    name = "gitsync",
+    embed = [":gitsync_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "chromium_analysis",
+    srcs = ["chromium_analysis.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe/chromium_analysis",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/ctfe/task_common",
+        "//ct/go/ctfe/util",
+        "//ct/go/util",
+        "//go/ds",
+        "//go/email",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_google_api//iterator",
+    ],
+)

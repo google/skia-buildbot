@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "hiddenstore",
+    srcs = ["hiddenstore.go"],
+    importpath = "go.skia.org/infra/hashtag/go/hiddenstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/baseapp",
+        "//go/firestore",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_spf13_viper//:viper",
+        "@com_google_cloud_go_firestore//:firestore",
+    ],
+)
+
+go_test(
+    name = "hiddenstore_test",
+    srcs = ["hiddenstore_test.go"],
+    embed = [":hiddenstore"],
+    deps = [
+        "//go/firestore",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

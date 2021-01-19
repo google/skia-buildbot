@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "power-controller_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/power/go/power-controller",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//am/go/alertclient",
+        "//go/allowed",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/sklog",
+        "//go/swarming",
+        "//power/go/decider",
+        "//power/go/gatherer",
+        "//power/go/recorder",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_binary(
+    name = "power-controller",
+    embed = [":power-controller_lib"],
+    visibility = ["//visibility:public"],
+)

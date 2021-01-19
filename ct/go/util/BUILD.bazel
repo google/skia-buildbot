@@ -1,0 +1,57 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "util",
+    srcs = [
+        "chromium_builds.go",
+        "constants.go",
+        "ct_perf.go",
+        "gs.go",
+        "local.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/ct/go/util",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/cipd",
+        "//go/common",
+        "//go/exec",
+        "//go/fileutil",
+        "//go/gcs",
+        "//go/git",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/isolate",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "//go/util/zip",
+        "//perf/go/ingest/format",
+        "//task_scheduler/go/specs",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_google_api//googleapi",
+        "@org_golang_google_api//storage/v1:storage",
+    ],
+)
+
+go_test(
+    name = "util_test",
+    srcs = [
+        "ct_perf_test.go",
+        "gs_test.go",
+        "util_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":util"],
+    deps = [
+        "//go/git",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

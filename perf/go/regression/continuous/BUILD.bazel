@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "continuous",
+    srcs = ["continuous.go"],
+    importpath = "go.skia.org/infra/perf/go/regression/continuous",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/alerts",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/ingestevents",
+        "//perf/go/notify",
+        "//perf/go/regression",
+        "//perf/go/shortcut",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+        "@com_google_cloud_go_pubsub//:pubsub",
+    ],
+)
+
+go_test(
+    name = "continuous_test",
+    srcs = ["continuous_test.go"],
+    embed = [":continuous"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//perf/go/alerts",
+        "//perf/go/config",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "abandon_gerrit_cls_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/scripts/abandon_gerrit_cls",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/gerrit",
+        "//go/httputils",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "abandon_gerrit_cls",
+    embed = [":abandon_gerrit_cls_lib"],
+    visibility = ["//visibility:public"],
+)

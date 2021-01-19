@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "gcs_usage_lib",
+    srcs = ["gcs_usage.go"],
+    importpath = "go.skia.org/infra/scripts/gcs_usage",
+    visibility = ["//visibility:private"],
+    deps = ["//go/exec"],
+)
+
+go_binary(
+    name = "gcs_usage",
+    embed = [":gcs_usage_lib"],
+    visibility = ["//visibility:public"],
+)

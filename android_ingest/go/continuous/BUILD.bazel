@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "continuous",
+    srcs = ["continuous.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/continuous",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//android_ingest/go/buildapi",
+        "//android_ingest/go/lookup",
+        "//android_ingest/go/poprepo",
+        "//go/git",
+        "//go/metrics2",
+        "//go/sklog",
+    ],
+)
+
+go_test(
+    name = "continuous_test",
+    srcs = ["continuous_test.go"],
+    embed = [":continuous"],
+    deps = [
+        "//android_ingest/go/buildapi",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

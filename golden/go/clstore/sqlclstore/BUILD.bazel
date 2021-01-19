@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sqlclstore",
+    srcs = ["sqlclstore.go"],
+    importpath = "go.skia.org/infra/golden/go/clstore/sqlclstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//golden/go/clstore",
+        "//golden/go/code_review",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "sqlclstore_test",
+    srcs = ["sqlclstore_test.go"],
+    embed = [":sqlclstore"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/clstore",
+        "//golden/go/code_review",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

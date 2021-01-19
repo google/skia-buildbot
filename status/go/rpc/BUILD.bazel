@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "rpc",
+    srcs = [
+        "server_impl.go",
+        "status.pb.go",
+        "status.twirp.go",
+    ],
+    importpath = "go.skia.org/infra/status/go/rpc",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/login",
+        "//go/metrics2",
+        "//status/go/capacity",
+        "//status/go/incremental",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/types",
+        "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_twitchtv_twirp//:twirp",
+        "@com_github_twitchtv_twirp//ctxsetters",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)
+
+go_test(
+    name = "rpc_test",
+    srcs = ["server_impl_test.go"],
+    embed = [":rpc"],
+    deps = [
+        "//go/git",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//status/go/capacity",
+        "//status/go/incremental",
+        "//status/go/mocks",
+        "//task_scheduler/go/mocks",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)

@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "summary",
+    srcs = ["summary.go"],
+    importpath = "go.skia.org/infra/golden/go/summary",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/sklog",
+        "//golden/go/blame",
+        "//golden/go/diff",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/tiling",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "summary_test",
+    srcs = ["summary_test.go"],
+    embed = [":summary"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//golden/go/blame",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/testutils/data_bug_revert",
+        "//golden/go/tiling",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

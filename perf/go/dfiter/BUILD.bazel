@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "dfiter",
+    srcs = ["dfiter.go"],
+    importpath = "go.skia.org/infra/perf/go/dfiter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/query",
+        "//go/skerr",
+        "//perf/go/alerts",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/progress",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "dfiter_test",
+    srcs = ["dfiter_test.go"],
+    embed = [":dfiter"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+        "//go/testutils/unittest",
+        "//perf/go/alerts",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/dfbuilder",
+        "//perf/go/git",
+        "//perf/go/git/gittest",
+        "//perf/go/progress",
+        "//perf/go/sql/sqltest",
+        "//perf/go/tracestore",
+        "//perf/go/tracestore/sqltracestore",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

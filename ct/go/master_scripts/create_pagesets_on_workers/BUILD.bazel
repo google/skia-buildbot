@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "create_pagesets_on_workers_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/master_scripts/create_pagesets_on_workers",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/master_scripts/master_common",
+        "//ct/go/util",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "create_pagesets_on_workers",
+    embed = [":create_pagesets_on_workers_lib"],
+    visibility = ["//visibility:public"],
+)

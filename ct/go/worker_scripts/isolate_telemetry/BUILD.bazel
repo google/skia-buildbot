@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "isolate_telemetry_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/worker_scripts/isolate_telemetry",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/util",
+        "//ct/go/worker_scripts/worker_common",
+        "//go/git",
+        "//go/isolate",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "isolate_telemetry",
+    embed = [":isolate_telemetry_lib"],
+    visibility = ["//visibility:public"],
+)

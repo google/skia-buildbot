@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "migrate_roller_lib",
+    srcs = ["migrate_roller.go"],
+    importpath = "go.skia.org/infra/autoroll/go/migrate_roller",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/modes",
+        "//autoroll/go/recent_rolls",
+        "//autoroll/go/roller",
+        "//autoroll/go/status",
+        "//autoroll/go/strategy",
+        "//go/auth",
+        "//go/common",
+        "//go/deepequal",
+        "//go/ds",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_flynn_json5//:json5",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "migrate_roller",
+    embed = [":migrate_roller_lib"],
+    visibility = ["//visibility:public"],
+)

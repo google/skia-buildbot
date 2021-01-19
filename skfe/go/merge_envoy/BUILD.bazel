@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "merge_envoy_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skfe/go/merge_envoy",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "@com_github_jeffail_gabs_v2//:gabs",
+    ],
+)
+
+go_binary(
+    name = "merge_envoy",
+    embed = [":merge_envoy_lib"],
+    visibility = ["//visibility:public"],
+)

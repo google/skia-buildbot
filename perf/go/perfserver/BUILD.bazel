@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "perfserver_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/perfserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog/glog_and_cloud",
+        "//go/urfavecli",
+        "//perf/go/config",
+        "//perf/go/frontend",
+        "//perf/go/ingest/process",
+        "@com_github_jcgregorio_logger//:logger",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_binary(
+    name = "perfserver",
+    embed = [":perfserver_lib"],
+    visibility = ["//visibility:public"],
+)

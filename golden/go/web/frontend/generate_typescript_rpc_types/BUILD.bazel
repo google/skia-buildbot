@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "generate_typescript_rpc_types_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/golden/go/web/frontend/generate_typescript_rpc_types",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/paramtools",
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/expectations",
+        "//golden/go/search/common",
+        "//golden/go/search/frontend",
+        "//golden/go/status",
+        "//golden/go/tiling",
+        "//golden/go/web/frontend",
+        "@com_github_skia_dev_go2ts//:go2ts",
+    ],
+)
+
+go_binary(
+    name = "generate_typescript_rpc_types",
+    embed = [":generate_typescript_rpc_types_lib"],
+    visibility = ["//visibility:public"],
+)

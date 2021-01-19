@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "capture_archives_on_workers_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/master_scripts/capture_archives_on_workers",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/master_scripts/master_common",
+        "//ct/go/util",
+        "//go/git",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "capture_archives_on_workers",
+    embed = [":capture_archives_on_workers_lib"],
+    visibility = ["//visibility:public"],
+)

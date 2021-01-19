@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sqlingestionstore",
+    srcs = ["sqlingestionstore.go"],
+    importpath = "go.skia.org/infra/golden/go/ingestion/sqlingestionstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/ingestion",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "sqlingestionstore_test",
+    srcs = ["sqlingestionstore_test.go"],
+    embed = [":sqlingestionstore"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

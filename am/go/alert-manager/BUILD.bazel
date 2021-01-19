@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "alert-manager_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/am/go/alert-manager",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//am/go/incident",
+        "//am/go/note",
+        "//am/go/reminder",
+        "//am/go/silence",
+        "//go/alerts",
+        "//go/allowed",
+        "//go/auditlog",
+        "//go/auth",
+        "//go/baseapp",
+        "//go/ds",
+        "//go/email",
+        "//go/httputils",
+        "//go/login",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_unrolled_secure//:secure",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "alert-manager",
+    embed = [":alert-manager_lib"],
+    visibility = ["//visibility:public"],
+)

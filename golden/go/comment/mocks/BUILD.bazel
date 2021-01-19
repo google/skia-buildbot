@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Store.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/comment/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/go/comment/trace",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

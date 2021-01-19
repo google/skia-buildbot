@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "add_gce_scopes_lib",
+    srcs = ["add_gce_scopes.go"],
+    importpath = "go.skia.org/infra/scripts/add_gce_scopes",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/gce",
+        "//go/sklog",
+        "//go/util",
+        "@org_golang_google_api//compute/v0.beta:v0_beta",
+    ],
+)
+
+go_binary(
+    name = "add_gce_scopes",
+    embed = [":add_gce_scopes_lib"],
+    visibility = ["//visibility:public"],
+)

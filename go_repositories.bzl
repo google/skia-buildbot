@@ -367,6 +367,21 @@ def go_repositories():
 
     go_repository(
         name = "com_github_census_instrumentation_opencensus_proto",
+        # This repository includes .proto files under /src[1], and generated code for said protos
+        # under /gen-go[2]. If we don't ignore the /src directory, Gazelle will generate
+        # go_proto_library targets for the .proto files under /src, and go_library targets for the
+        # corresponding .pb.go files under /gen-go. These libraries will have the same importpath[3]
+        # attribute, which causes the build to fail.
+        #
+        # The work around is to tell Bazel to ignore /src, which forces Bazel to use the go_library
+        # targets generated for the .pb.go files under /gen-go.
+        #
+        # See https://github.com/census-instrumentation/opencensus-proto/issues/200 for details.
+        #
+        # [1] https://github.com/census-instrumentation/opencensus-proto/tree/master/src
+        # [2] https://github.com/census-instrumentation/opencensus-proto/tree/master/gen-go
+        # [3] https://github.com/bazelbuild/rules_go/blob/master/go/core.rst#attributes
+        build_extra_args = ["-exclude=src"],
         importpath = "github.com/census-instrumentation/opencensus-proto",
         sum = "h1:t/LhUZLVitR1Ow2YOnduCsavhwFUklBMoGVYUCqmCqk=",
         version = "v0.3.0",
@@ -3202,6 +3217,9 @@ def go_repositories():
 
     go_repository(
         name = "io_k8s_api",
+        # This module is distributed with pre-generated .pb.go files, so we disable generation of
+        # go_proto_library targets.
+        build_file_proto_mode = "disable",
         importpath = "k8s.io/api",
         sum = "h1:GN6ntFnv44Vptj/b+OnMW7FmzkpDoIDLZRvKX3XH9aU=",
         version = "v0.19.3",
@@ -3209,6 +3227,9 @@ def go_repositories():
 
     go_repository(
         name = "io_k8s_apimachinery",
+        # This module is distributed with pre-generated .pb.go files, so we disable generation of
+        # go_proto_library targets.
+        build_file_proto_mode = "disable",
         importpath = "k8s.io/apimachinery",
         sum = "h1:bpIQXlKjB4cB/oNpnNnV+BybGPR7iP5oYpsOTEJ4hgc=",
         version = "v0.19.3",
@@ -3325,14 +3346,8 @@ def go_repositories():
 
     go_repository(
         name = "org_chromium_go_luci",
-        # LUCI is distributed with pre-generated .pb.go files, so we disable generation of
+        # This module is distributed with pre-generated .pb.go files, so we disable generation of
         # go_proto_library targets.
-        #
-        # Should we disable generation of go_proto_library targets for our entire repository and
-        # use pre-generated .pb.go files instead? This will allow us to continue to build our
-        # codebase with "go build", and seems to be the recommended approach for established Go
-        # projects:
-        # https://github.com/bazelbuild/rules_go/blob/master/proto/core.rst#option-2-use-pre-generated-pb-go-files
         build_file_proto_mode = "disable",
         importpath = "go.chromium.org/luci",
         sum = "h1:NU60UEpWAebRM4M5vF/ZzhyPH+v6kZQF0SIeQ0wMjxs=",

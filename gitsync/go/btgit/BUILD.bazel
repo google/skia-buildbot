@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "btgit_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/gitsync/go/btgit",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/git",
+        "//go/gitstore",
+        "//go/gitstore/bt_gitstore",
+        "//go/sklog",
+        "//go/timer",
+    ],
+)
+
+go_binary(
+    name = "btgit",
+    embed = [":btgit_lib"],
+    visibility = ["//visibility:public"],
+)

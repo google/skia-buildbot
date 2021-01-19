@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "make_dummy_staging_tasks_lib",
+    srcs = ["make_dummy_staging_tasks.go"],
+    importpath = "go.skia.org/infra/scripts/make_dummy_staging_tasks",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/specs",
+        "//task_scheduler/go/types",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_binary(
+    name = "make_dummy_staging_tasks",
+    embed = [":make_dummy_staging_tasks_lib"],
+    visibility = ["//visibility:public"],
+)

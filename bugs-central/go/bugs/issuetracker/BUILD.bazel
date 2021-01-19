@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "issuetracker",
+    srcs = ["issuetracker.go"],
+    importpath = "go.skia.org/infra/bugs-central/go/bugs/issuetracker",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bugs-central/go/bugs",
+        "//bugs-central/go/db",
+        "//bugs-central/go/types",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+    ],
+)
+
+go_test(
+    name = "issuetracker_test",
+    srcs = ["issuetracker_test.go"],
+    embed = [":issuetracker"],
+    deps = [
+        "//bugs-central/go/bugs",
+        "//go/httputils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)

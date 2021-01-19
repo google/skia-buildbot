@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Classifier.go",
+        "GarbageCollector.go",
+        "Store.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/expectations/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/go/expectations",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

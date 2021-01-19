@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "datakitchensink",
+    srcs = ["kitchensink.go"],
+    importpath = "go.skia.org/infra/golden/go/sql/datakitchensink",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//golden/go/sql/databuilder",
+        "//golden/go/sql/schema",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "datakitchensink_test",
+    srcs = ["kitchensink_test.go"],
+    embed = [":datakitchensink"],
+    deps = [
+        "//go/testutils/unittest",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

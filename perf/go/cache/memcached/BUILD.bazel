@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "memcached",
+    srcs = ["memcached.go"],
+    importpath = "go.skia.org/infra/perf/go/cache/memcached",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/cache",
+        "//perf/go/cache/local",
+        "@com_github_bradfitz_gomemcache//memcache",
+    ],
+)
+
+go_test(
+    name = "memcached_test",
+    srcs = ["memcached_test.go"],
+    embed = [":memcached"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

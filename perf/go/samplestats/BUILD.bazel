@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "samplestats",
+    srcs = [
+        "analyze.go",
+        "metrics.go",
+        "sort.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/samplestats",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/util",
+        "//perf/go/ingest/parser",
+        "@com_github_aclements_go_moremath//stats",
+    ],
+)
+
+go_test(
+    name = "samplestats_test",
+    srcs = [
+        "analyze_test.go",
+        "metrics_test.go",
+    ],
+    embed = [":samplestats"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//perf/go/ingest/parser",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

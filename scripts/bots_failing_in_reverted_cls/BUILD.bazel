@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bots_failing_in_reverted_cls_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/scripts/bots_failing_in_reverted_cls",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/git",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+    ],
+)
+
+go_binary(
+    name = "bots_failing_in_reverted_cls",
+    embed = [":bots_failing_in_reverted_cls_lib"],
+    visibility = ["//visibility:public"],
+)

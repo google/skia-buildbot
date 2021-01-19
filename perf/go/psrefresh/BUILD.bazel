@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "psrefresh",
+    srcs = ["psrefresh.go"],
+    importpath = "go.skia.org/infra/perf/go/psrefresh",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "psrefresh_test",
+    srcs = ["psrefresh_test.go"],
+    embed = [":psrefresh"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//perf/go/psrefresh/mocks",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

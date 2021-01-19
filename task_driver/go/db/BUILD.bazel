@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "db",
+    srcs = ["db.go"],
+    importpath = "go.skia.org/infra/task_driver/go/db",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/deepequal",
+        "//go/util",
+        "//task_driver/go/td",
+    ],
+)

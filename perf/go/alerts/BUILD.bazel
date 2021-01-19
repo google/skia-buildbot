@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "alerts",
+    srcs = [
+        "config.go",
+        "store.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/alerts",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "alerts_test",
+    srcs = ["config_test.go"],
+    embed = [":alerts"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

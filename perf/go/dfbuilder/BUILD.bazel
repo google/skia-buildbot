@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "dfbuilder",
+    srcs = ["dfbuilder.go"],
+    importpath = "go.skia.org/infra/perf/go/dfbuilder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/timer",
+        "//go/vec32",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/progress",
+        "//perf/go/tracesetbuilder",
+        "//perf/go/tracestore",
+        "//perf/go/types",
+        "@io_opencensus_go//trace",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "dfbuilder_test",
+    srcs = ["dfbuilder_test.go"],
+    embed = [":dfbuilder"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+        "//go/testutils/unittest",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/git/gittest",
+        "//perf/go/progress",
+        "//perf/go/sql/sqltest",
+        "//perf/go/tracestore",
+        "//perf/go/tracestore/sqltracestore",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

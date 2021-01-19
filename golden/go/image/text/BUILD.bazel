@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "text",
+    srcs = ["text.go"],
+    importpath = "go.skia.org/infra/golden/go/image/text",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "text_test",
+    srcs = ["text_test.go"],
+    embed = [":text"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

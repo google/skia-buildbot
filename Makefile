@@ -147,35 +147,23 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
-# Directories with Go code that is built using Gazelle-generated BUILD files.
-#
-# Eventually this should be replaced with just the root directory, i.e. we should automatically
-# generate build targets for all Go code in our repository.
-GAZELLE_DIRS=\
-	./go \
-	./machine \
-	./task_scheduler \
-	./bazel \
+# Directories with Go code for which we generate Bazel build targets with Gazelle.
+GAZELLE_DIRS=./
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle -- $(GAZELLE_DIRS)
+	bazel run //:gazelle -- update $(GAZELLE_DIRS)
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
 	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
 
-# Known good Bazel build targets. Eventually this should be replaced with "bazel build all".
-BAZEL_BUILD_TARGETS=\
-	//bazel/... \
-	//go/... \
-	//infra-sk/... \
-	//machine/modules/... \
-	//machine/pages/... \
-	//puppeteer-tests/... \
-	//task_scheduler/... \
+# Known good Bazel build targets.
+#
+# Targets can be excluded by prefixing them with a dash, e.g. -//perf, -//gold, etc.
+BAZEL_BUILD_TARGETS=//...
 
-# Known good Bazel test targets. Eventually this should be replaced with "bazel test all".
+# Known good Bazel test targets. Eventually this should be replaced with "bazel test //...".
 BAZEL_TEST_TARGETS=\
 	//bazel/... \
 	//infra-sk/... \
@@ -184,24 +172,24 @@ BAZEL_TEST_TARGETS=\
 
 .PHONY: bazel-build
 bazel-build:
-	bazel build $(BAZEL_BUILD_TARGETS)
+	bazel build -- $(BAZEL_BUILD_TARGETS)
 
 .PHONY: bazel-test
 bazel-test:
-	bazel test $(BAZEL_TEST_TARGETS)
+	bazel test -- $(BAZEL_TEST_TARGETS)
 
 .PHONY: bazel-test-nocache
 bazel-test-nocache:
-	bazel test --cache_test_results=no $(BAZEL_TEST_TARGETS)
+	bazel test --cache_test_results=no -- $(BAZEL_TEST_TARGETS)
 
 .PHONY: bazel-build-rbe
 bazel-build-rbe:
-	bazel build --config=remote $(BAZEL_BUILD_TARGETS)
+	bazel build --config=remote -- $(BAZEL_BUILD_TARGETS)
 
 .PHONY: bazel-test-rbe
 bazel-test-rbe:
-	bazel test --config=remote $(BAZEL_TEST_TARGETS)
+	bazel test --config=remote -- $(BAZEL_TEST_TARGETS)
 
 .PHONY: bazel-test-rbe-nocache
 bazel-test-rbe-nocache:
-	bazel test --config=remote --cache_test_results=no $(BAZEL_TEST_TARGETS)
+	bazel test --config=remote --cache_test_results=no -- $(BAZEL_TEST_TARGETS)

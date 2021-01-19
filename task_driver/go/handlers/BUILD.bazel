@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "handlers",
+    srcs = ["handlers.go"],
+    importpath = "go.skia.org/infra/task_driver/go/handlers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils",
+        "//task_driver/go/db",
+        "//task_driver/go/display",
+        "//task_driver/go/logs",
+        "//task_driver/go/td",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)

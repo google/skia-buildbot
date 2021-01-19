@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "types",
+    srcs = ["types.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/types",
+    visibility = ["//visibility:public"],
+    deps = ["//fiddlek/go/linenumbers"],
+)
+
+go_test(
+    name = "types_test",
+    srcs = ["types_test.go"],
+    embed = [":types"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

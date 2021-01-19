@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "dirs",
+    srcs = ["dirs.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/dirs",
+    visibility = ["//visibility:public"],
+)

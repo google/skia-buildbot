@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "mock-commit-msg_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/autoroll/go/commit_msg/cmd/mock-commit-msg",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/commit_msg",
+        "//autoroll/go/config_vars",
+        "//autoroll/go/revision",
+        "//autoroll/go/roller",
+        "//autoroll/go/status",
+        "//go/auth",
+        "//go/chrome_branch",
+        "//go/common",
+        "//go/gcs/gcsclient",
+        "//go/gerrit",
+        "//go/github",
+        "//go/httputils",
+        "//go/repo_root",
+        "//go/util",
+        "@com_github_flynn_json5//:json5",
+        "@com_github_pmezard_go_difflib//difflib",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_binary(
+    name = "mock-commit-msg",
+    embed = [":mock-commit-msg_lib"],
+    visibility = ["//visibility:public"],
+)

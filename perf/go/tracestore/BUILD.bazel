@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tracestore",
+    srcs = ["tracestore.go"],
+    importpath = "go.skia.org/infra/perf/go/tracestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/query",
+        "//perf/go/types",
+    ],
+)

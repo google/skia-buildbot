@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "jsfiddle_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/jsfiddle/go/jsfiddle",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "//jsfiddle/go/store",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_binary(
+    name = "jsfiddle",
+    embed = [":jsfiddle_lib"],
+    visibility = ["//visibility:public"],
+)

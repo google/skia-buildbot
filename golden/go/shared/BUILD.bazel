@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "shared",
+    srcs = [
+        "metrics_helper.go",
+        "shared.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/shared",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/timer",
+        "//go/util",
+    ],
+)

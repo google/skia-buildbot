@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "deleter",
+    srcs = [
+        "deleter.go",
+        "impl.go",
+    ],
+    importpath = "go.skia.org/infra/sk8s/go/podwatcher/deleter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@io_k8s_client_go//kubernetes",
+        "@io_k8s_client_go//rest",
+    ],
+)
+
+go_test(
+    name = "deleter_test",
+    srcs = ["impl_test.go"],
+    embed = [":deleter"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@io_k8s_api//core/v1:core",
+        "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@io_k8s_client_go//kubernetes/fake",
+    ],
+)

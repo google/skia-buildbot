@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "ctrace2",
+    srcs = ["ctrace.go"],
+    importpath = "go.skia.org/infra/perf/go/ctrace2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/vec32",
+        "//perf/go/kmeans",
+    ],
+)
+
+go_test(
+    name = "ctrace2_test",
+    srcs = ["ctrace_test.go"],
+    embed = [":ctrace2"],
+    deps = [
+        "//go/testutils/unittest",
+        "//go/vec32",
+        "//perf/go/config",
+        "//perf/go/kmeans",
+    ],
+)

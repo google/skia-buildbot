@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "checkout",
+    srcs = ["checkout.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/checkout",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/git",
+        "//go/sklog",
+        "//task_driver/go/lib/os_steps",
+        "//task_driver/go/td",
+        "//task_scheduler/go/types",
+    ],
+)
+
+go_test(
+    name = "checkout_test",
+    srcs = ["checkout_test.go"],
+    embed = [":checkout"],
+    deps = [
+        "//go/common",
+        "//go/exec",
+        "//go/git",
+        "//go/git/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_driver/go/td",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,56 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "td",
+    srcs = [
+        "context.go",
+        "message.go",
+        "receiver.go",
+        "run.go",
+        "step.go",
+        "step_properties.go",
+        "testutil.go",
+    ],
+    importpath = "go.skia.org/infra/task_driver/go/td",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/exec",
+        "//go/httputils",
+        "//go/luciauth",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sklog/cloud_logging",
+        "//go/sklog/sklog_impl",
+        "//go/sktest",
+        "//go/util",
+        "@com_github_golang_glog//:glog",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_hashicorp_go_multierror//:go-multierror",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_logging//:logging",
+        "@in_gopkg_fsnotify_v1//:fsnotify_v1",
+        "@org_golang_google_api//compute/v1:compute",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "td_test",
+    srcs = [
+        "context_test.go",
+        "message_test.go",
+        "run_test.go",
+        "step_test.go",
+    ],
+    embed = [":td"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/exec",
+        "//go/testutils/unittest",
+        "//go/util",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

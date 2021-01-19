@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "pending_tasks",
+    srcs = ["pending_tasks.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe/pending_tasks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/ctfe/admin_tasks",
+        "//ct/go/ctfe/chromium_analysis",
+        "//ct/go/ctfe/chromium_perf",
+        "//ct/go/ctfe/metrics_analysis",
+        "//ct/go/ctfe/task_common",
+        "//ct/go/ctfe/task_types",
+        "//ct/go/ctfe/util",
+        "//ct/go/util",
+        "//go/ds",
+        "//go/httputils",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@org_golang_google_api//iterator",
+    ],
+)
+
+go_test(
+    name = "pending_tasks_test",
+    srcs = ["pending_tasks_test.go"],
+    embed = [":pending_tasks"],
+    deps = [
+        "//ct/go/ctfe/admin_tasks",
+        "//ct/go/ctfe/chromium_perf",
+        "//ct/go/ctfe/task_common",
+        "//go/ds",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

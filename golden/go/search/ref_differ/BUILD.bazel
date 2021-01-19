@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "ref_differ",
+    srcs = ["ref_differ.go"],
+    importpath = "go.skia.org/infra/golden/go/search/ref_differ",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/util",
+        "//golden/go/diff",
+        "//golden/go/expectations",
+        "//golden/go/indexer",
+        "//golden/go/search/common",
+        "//golden/go/search/frontend",
+        "//golden/go/search/query",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "ref_differ_test",
+    srcs = ["ref_differ_test.go"],
+    embed = [":ref_differ"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/diff",
+        "//golden/go/diffstore/mocks",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/indexer/mocks",
+        "//golden/go/search/common",
+        "//golden/go/search/frontend",
+        "//golden/go/search/query",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

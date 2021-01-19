@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "commit_msg",
+    srcs = [
+        "android.go",
+        "commit_msg.go",
+        "default.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/commit_msg",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/repo_manager/common/version_file_common",
+        "//autoroll/go/revision",
+        "//go/skerr",
+        "//go/util",
+    ],
+)
+
+go_test(
+    name = "commit_msg_test",
+    srcs = [
+        "android_test.go",
+        "commit_msg_test.go",
+        "default_test.go",
+    ],
+    embed = [":commit_msg"],
+    deps = [
+        "//go/deepequal/assertdeep",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

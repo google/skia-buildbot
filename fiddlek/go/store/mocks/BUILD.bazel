@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Store.go",
+        "mocks.go",
+    ],
+    importpath = "go.skia.org/infra/fiddlek/go/store/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//fiddlek/go/store",
+        "//fiddlek/go/types",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

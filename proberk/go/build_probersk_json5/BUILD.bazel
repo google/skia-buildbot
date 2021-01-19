@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "build_probersk_json5_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/proberk/go/build_probersk_json5",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/sklog",
+        "//go/util",
+        "//proberk/go/types",
+        "@com_github_flynn_json5//:json5",
+    ],
+)
+
+go_binary(
+    name = "build_probersk_json5",
+    embed = [":build_probersk_json5_lib"],
+    visibility = ["//visibility:public"],
+)

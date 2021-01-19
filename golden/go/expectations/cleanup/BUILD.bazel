@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "cleanup",
+    srcs = ["cleanup.go"],
+    importpath = "go.skia.org/infra/golden/go/expectations/cleanup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/indexer",
+        "//golden/go/types",
+    ],
+)
+
+go_test(
+    name = "cleanup_test",
+    srcs = ["cleanup_test.go"],
+    embed = [":cleanup"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/digest_counter",
+        "//golden/go/expectations",
+        "//golden/go/expectations/mocks",
+        "//golden/go/testutils/data_three_devices",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

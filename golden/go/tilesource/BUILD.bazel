@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "tilesource",
+    srcs = [
+        "tilesource.go",
+        "tilestream.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/tilesource",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/paramtools",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "//golden/go/code_review",
+        "//golden/go/ignore",
+        "//golden/go/publicparams",
+        "//golden/go/tiling",
+        "//golden/go/tracestore",
+    ],
+)
+
+go_test(
+    name = "tilesource_test",
+    srcs = ["tilesource_test.go"],
+    embed = [":tilesource"],
+    deps = [
+        "//go/metrics2/testutils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//go/vcsinfo/mocks",
+        "//golden/go/code_review/mocks",
+        "//golden/go/ignore",
+        "//golden/go/ignore/mocks",
+        "//golden/go/mocks",
+        "//golden/go/publicparams",
+        "//golden/go/testutils/data_three_devices",
+        "//golden/go/tiling",
+        "//golden/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

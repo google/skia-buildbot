@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "modes",
+    srcs = ["modes.go"],
+    importpath = "go.skia.org/infra/autoroll/go/modes",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ds",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "modes_test",
+    srcs = ["modes_test.go"],
+    embed = [":modes"],
+    deps = [
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

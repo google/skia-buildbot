@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "gittest",
+    srcs = ["gittest.go"],
+    importpath = "go.skia.org/infra/perf/go/git/gittest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git/testutils",
+        "//perf/go/config",
+        "//perf/go/sql/sqltest",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

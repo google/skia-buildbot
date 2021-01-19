@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "trace_tool_lib",
+    srcs = ["trace_tool.go"],
+    importpath = "go.skia.org/infra/golden/cmd/trace_tool",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/bt",
+        "//go/gitiles",
+        "//go/gitstore/bt_gitstore",
+        "//go/sklog",
+        "//go/vcsinfo/bt_vcs",
+        "//golden/go/tracestore/bt_tracestore",
+        "@com_google_cloud_go_bigtable//:bigtable",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_binary(
+    name = "trace_tool",
+    embed = [":trace_tool_lib"],
+    visibility = ["//visibility:public"],
+)

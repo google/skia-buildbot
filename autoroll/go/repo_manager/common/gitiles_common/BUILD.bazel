@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "gitiles_common",
+    srcs = ["gitiles_common.go"],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/config_vars",
+        "//autoroll/go/repo_manager/common/version_file_common",
+        "//autoroll/go/revision",
+        "//go/gitiles",
+        "//go/skerr",
+        "//go/vcsinfo",
+        "//go/vfs",
+    ],
+)

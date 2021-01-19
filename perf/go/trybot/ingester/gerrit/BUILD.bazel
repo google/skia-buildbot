@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "gerrit",
+    srcs = ["gerrit.go"],
+    importpath = "go.skia.org/infra/perf/go/trybot/ingester/gerrit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/sklog",
+        "//perf/go/file",
+        "//perf/go/ingest/parser",
+        "//perf/go/trybot",
+        "//perf/go/trybot/ingester",
+    ],
+)
+
+go_test(
+    name = "gerrit_test",
+    srcs = ["gerrit_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":gerrit"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//perf/go/config",
+        "//perf/go/file",
+        "//perf/go/ingest/parser",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "file-backup_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skolo/go/file-backup",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/exec",
+        "//go/fileutil",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "file-backup",
+    embed = [":file-backup_lib"],
+    visibility = ["//visibility:public"],
+)

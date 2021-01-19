@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "testdata",
+    srcs = ["data.go"],
+    importpath = "go.skia.org/infra/power/go/testdata",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sktest",
+        "//go/testutils",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)

@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bots_lib",
+    srcs = ["gen_tasks.go"],
+    importpath = "go.skia.org/infra/infra/bots",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/cas/rbe",
+        "//go/sklog",
+        "//task_scheduler/go/specs",
+    ],
+)
+
+go_binary(
+    name = "bots",
+    embed = [":bots_lib"],
+    visibility = ["//visibility:public"],
+)

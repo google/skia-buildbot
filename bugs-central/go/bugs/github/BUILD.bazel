@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "github",
+    srcs = ["github.go"],
+    importpath = "go.skia.org/infra/bugs-central/go/bugs/github",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bugs-central/go/bugs",
+        "//bugs-central/go/db",
+        "//bugs-central/go/types",
+        "//go/github",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)
+
+go_test(
+    name = "github_test",
+    srcs = ["github_test.go"],
+    embed = [":github"],
+    deps = [
+        "//bugs-central/go/bugs",
+        "//go/github",
+        "//go/mockhttpclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_google_go_github_v29//github",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "bug",
+    srcs = ["bug.go"],
+    importpath = "go.skia.org/infra/perf/go/bug",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//perf/go/git",
+        "@in_gopkg_olivere_elastic_v5//uritemplates",
+    ],
+)
+
+go_test(
+    name = "bug_test",
+    srcs = ["bug_test.go"],
+    embed = [":bug"],
+    deps = [
+        "//go/testutils/unittest",
+        "//perf/go/git",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "runner",
+    srcs = ["runner.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/runner",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//fiddlek/go/linenumbers",
+        "//fiddlek/go/types",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+        "//go/util/limitwriter",
+        "@io_k8s_apimachinery//pkg/apis/meta/v1:meta",
+        "@io_k8s_client_go//kubernetes",
+        "@io_k8s_client_go//rest",
+        "@io_opencensus_go//plugin/ochttp",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_test(
+    name = "runner_test",
+    srcs = ["runner_test.go"],
+    embed = [":runner"],
+    deps = [
+        "//fiddlek/go/types",
+        "//go/exec",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

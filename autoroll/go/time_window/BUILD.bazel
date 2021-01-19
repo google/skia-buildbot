@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "time_window",
+    srcs = ["time_window.go"],
+    importpath = "go.skia.org/infra/autoroll/go/time_window",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "time_window_test",
+    srcs = ["time_window_test.go"],
+    embed = [":time_window"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

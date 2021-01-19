@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "dryrun",
+    srcs = ["dryrun.go"],
+    importpath = "go.skia.org/infra/perf/go/dryrun",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auditlog",
+        "//go/httputils",
+        "//go/sklog",
+        "//perf/go/dataframe",
+        "//perf/go/git",
+        "//perf/go/progress",
+        "//perf/go/regression",
+        "//perf/go/shortcut",
+        "//perf/go/types",
+    ],
+)

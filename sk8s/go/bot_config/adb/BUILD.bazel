@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "adb",
+    srcs = ["adb.go"],
+    importpath = "go.skia.org/infra/sk8s/go/bot_config/adb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/executil",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "adb_test",
+    srcs = ["adb_test.go"],
+    embed = [":adb"],
+    deps = [
+        "//go/executil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

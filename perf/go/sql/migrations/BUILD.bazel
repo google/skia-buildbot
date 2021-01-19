@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "migrations",
+    srcs = ["migrations.go"],
+    importpath = "go.skia.org/infra/perf/go/sql/migrations",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_golang_migrate_migrate_v4//:migrate",
+        "@com_github_golang_migrate_migrate_v4//database/cockroachdb",
+        "@com_github_golang_migrate_migrate_v4//source/file",
+        "@com_github_golang_migrate_migrate_v4//source/httpfs",
+    ],
+)
+
+go_test(
+    name = "migrations_test",
+    srcs = ["migrations_test.go"],
+    embed = [":migrations"],
+    deps = [
+        "//go/testutils/unittest",
+        "//perf/go/sql",
+        "//perf/go/sql/migrations/cockroachdb",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

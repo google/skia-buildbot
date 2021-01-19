@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "gold_ingestion_lib",
+    srcs = ["gold_ingestion.go"],
+    importpath = "go.skia.org/infra/golden/cmd/gold_ingestion",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/gitiles",
+        "//go/gitstore/bt_gitstore",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/vcsinfo/bt_vcs",
+        "//golden/go/config",
+        "//golden/go/eventbus",
+        "//golden/go/gevent",
+        "//golden/go/ingestion",
+        "//golden/go/ingestion/sqlingestionstore",
+        "//golden/go/ingestion_processors",
+        "//golden/go/sql",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_binary(
+    name = "gold_ingestion",
+    embed = [":gold_ingestion_lib"],
+    visibility = ["//visibility:public"],
+)

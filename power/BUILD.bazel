@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "power_lib",
+    srcs = ["vm.go"],
+    importpath = "go.skia.org/infra/power",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/gce",
+        "//go/gce/server",
+    ],
+)
+
+go_binary(
+    name = "power",
+    embed = [":power_lib"],
+    visibility = ["//visibility:public"],
+)

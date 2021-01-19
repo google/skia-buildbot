@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "get_service_account_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/get_service_account/go/get_service_account",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/exec",
+        "//go/metadata",
+        "//go/sklog",
+    ],
+)
+
+go_binary(
+    name = "get_service_account",
+    embed = [":get_service_account_lib"],
+    visibility = ["//visibility:public"],
+)

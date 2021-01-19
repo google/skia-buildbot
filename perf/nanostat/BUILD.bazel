@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "nanostat_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/nanostat",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/paramtools",
+        "//perf/go/ingest/format",
+        "//perf/go/ingest/parser",
+        "//perf/go/samplestats",
+    ],
+)
+
+go_binary(
+    name = "nanostat",
+    embed = [":nanostat_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "nanostat_test",
+    srcs = ["main_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":nanostat_lib"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

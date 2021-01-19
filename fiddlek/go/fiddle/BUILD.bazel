@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "fiddle_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/fiddlek/go/fiddle",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//fiddlek/go/named",
+        "//fiddlek/go/runner",
+        "//fiddlek/go/source",
+        "//fiddlek/go/store",
+        "//fiddlek/go/types",
+        "//go/common",
+        "//go/httputils",
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/timer",
+        "//go/util",
+        "//scrap/go/client",
+        "//scrap/go/scrap",
+        "@com_github_gorilla_mux//:mux",
+        "@io_opencensus_go//trace",
+        "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",
+    ],
+)
+
+go_binary(
+    name = "fiddle",
+    embed = [":fiddle_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "fiddle_test",
+    srcs = ["main_test.go"],
+    embed = [":fiddle_lib"],
+    deps = [
+        "//fiddlek/go/store/mocks",
+        "//fiddlek/go/types",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//scrap/go/scrap",
+        "//scrap/go/scrap/mocks",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

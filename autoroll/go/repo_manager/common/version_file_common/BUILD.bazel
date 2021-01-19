@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "version_file_common",
+    srcs = ["version_file_common.go"],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/revision",
+        "//go/depot_tools/deps_parser",
+        "//go/skerr",
+    ],
+)

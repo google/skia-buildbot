@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "buildbucket_cis",
+    srcs = ["buildbucket_cis.go"],
+    importpath = "go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/buildbucket",
+        "//go/skerr",
+        "//golden/go/continuous_integration",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_golang_x_time//rate",
+    ],
+)
+
+go_test(
+    name = "buildbucket_cis_test",
+    srcs = ["buildbucket_cis_test.go"],
+    embed = [":buildbucket_cis"],
+    deps = [
+        "//go/buildbucket/mocks",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//golden/go/continuous_integration",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)

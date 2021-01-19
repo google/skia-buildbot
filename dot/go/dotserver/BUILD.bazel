@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "dotserver_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/dot/go/dotserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/baseapp",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_puerkitobio_goquery//:goquery",
+    ],
+)
+
+go_binary(
+    name = "dotserver",
+    embed = [":dotserver_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "dotserver_test",
+    srcs = ["main_test.go"],
+    embed = [":dotserver_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

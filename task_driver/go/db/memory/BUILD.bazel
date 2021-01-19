@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "memory",
+    srcs = ["memory.go"],
+    importpath = "go.skia.org/infra/task_driver/go/db/memory",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/util",
+        "//task_driver/go/db",
+        "//task_driver/go/td",
+    ],
+)
+
+go_test(
+    name = "memory_test",
+    srcs = ["memory_test.go"],
+    embed = [":memory"],
+    deps = [
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//task_driver/go/db",
+        "//task_driver/go/db/shared_tests",
+        "@com_github_stretchr_testify//require",
+    ],
+)

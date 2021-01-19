@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "shutdown_swarming_bots_lib",
+    srcs = ["shutdown_swarming_bots.go"],
+    importpath = "go.skia.org/infra/scripts/shutdown_swarming_bots",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+    ],
+)
+
+go_binary(
+    name = "shutdown_swarming_bots",
+    embed = [":shutdown_swarming_bots_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "fs_expstore_migrator_lib",
+    srcs = ["fs_expstore_migrator.go"],
+    importpath = "go.skia.org/infra/golden/cmd/fs_expstore_migrator",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/firestore",
+        "//go/skerr",
+        "//go/sklog",
+        "//golden/go/expectations",
+        "//golden/go/fs_utils",
+        "//golden/go/types",
+        "@com_google_cloud_go_firestore//:firestore",
+        "@org_golang_google_api//iterator",
+    ],
+)
+
+go_binary(
+    name = "fs_expstore_migrator",
+    embed = [":fs_expstore_migrator_lib"],
+    visibility = ["//visibility:public"],
+)

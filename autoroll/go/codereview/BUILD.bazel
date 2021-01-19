@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "codereview",
+    srcs = [
+        "codereview.go",
+        "config.go",
+        "roll.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/codereview",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/recent_rolls",
+        "//autoroll/go/revision",
+        "//autoroll/go/state_machine",
+        "//go/autoroll",
+        "//go/gerrit",
+        "//go/github",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/travisci",
+        "//go/util",
+        "@com_github_google_go_github_v29//github",
+    ],
+)
+
+go_test(
+    name = "codereview_test",
+    srcs = ["roll_test.go"],
+    embed = [":codereview"],
+    deps = [
+        "//autoroll/go/recent_rolls",
+        "//autoroll/go/revision",
+        "//go/autoroll",
+        "//go/deepequal/assertdeep",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/gerrit",
+        "//go/gerrit/testutils",
+        "//go/github",
+        "//go/mockhttpclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_google_go_github_v29//github",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)

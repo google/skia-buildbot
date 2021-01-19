@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "run_on_swarming_bots_lib",
+    srcs = ["run_on_swarming_bots.go"],
+    importpath = "go.skia.org/infra/scripts/run_on_swarming_bots",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/cas/rbe",
+        "//go/cipd",
+        "//go/common",
+        "//go/httputils",
+        "//go/sklog",
+        "//go/swarming",
+        "//go/util",
+        "@com_github_google_uuid//:uuid",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_binary(
+    name = "run_on_swarming_bots",
+    embed = [":run_on_swarming_bots_lib"],
+    visibility = ["//visibility:public"],
+)

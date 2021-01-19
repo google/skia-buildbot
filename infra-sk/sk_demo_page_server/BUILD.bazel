@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 exports_files(
     ["demo_page_server.sh"],
@@ -7,6 +7,13 @@ exports_files(
 
 go_binary(
     name = "demo_page_server",
-    srcs = ["demo_page_server.go"],
+    embed = [":sk_demo_page_server_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "sk_demo_page_server_lib",
+    srcs = ["demo_page_server.go"],
+    importpath = "go.skia.org/infra/infra-sk/sk_demo_page_server",
+    visibility = ["//visibility:private"],
 )

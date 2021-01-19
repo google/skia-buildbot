@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "recent_rolls",
+    srcs = ["recent_rolls.go"],
+    importpath = "go.skia.org/infra/autoroll/go/recent_rolls",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/autoroll",
+        "//go/ds",
+        "//go/sklog",
+        "//go/util",
+        "@com_google_cloud_go_datastore//:datastore",
+    ],
+)
+
+go_test(
+    name = "recent_rolls_test",
+    srcs = ["recent_test.go"],
+    embed = [":recent_rolls"],
+    deps = [
+        "//go/autoroll",
+        "//go/deepequal/assertdeep",
+        "//go/ds",
+        "//go/ds/testutil",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

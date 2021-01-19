@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "clustering2",
+    srcs = [
+        "clustering.go",
+        "valuepercent.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/clustering2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/query",
+        "//go/sklog",
+        "//perf/go/config",
+        "//perf/go/ctrace2",
+        "//perf/go/dataframe",
+        "//perf/go/kmeans",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "clustering2_test",
+    srcs = [
+        "clustering_test.go",
+        "valuepercent_test.go",
+    ],
+    embed = [":clustering2"],
+    deps = [
+        "//go/paramtools",
+        "//go/testutils/unittest",
+        "//perf/go/ctrace2",
+        "//perf/go/dataframe",
+        "//perf/go/kmeans",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

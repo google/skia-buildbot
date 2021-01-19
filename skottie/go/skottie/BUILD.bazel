@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "skottie_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skottie/go/skottie",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed",
+        "//go/auth",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_gorilla_mux//:mux",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_binary(
+    name = "skottie",
+    embed = [":skottie_lib"],
+    visibility = ["//visibility:public"],
+)

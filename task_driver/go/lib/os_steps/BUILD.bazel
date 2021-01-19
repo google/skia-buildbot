@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "os_steps",
+    srcs = ["os_steps.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/os_steps",
+    visibility = ["//visibility:public"],
+    deps = ["//task_driver/go/td"],
+)
+
+go_test(
+    name = "os_steps_test",
+    srcs = ["os_steps_test.go"],
+    embed = [":os_steps"],
+    deps = [
+        "//go/testutils/unittest",
+        "//task_driver/go/td",
+        "@com_github_stretchr_testify//require",
+    ],
+)
