@@ -37,9 +37,16 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 
 // See documentation for util.Validator interface.
 func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	c.ChildPath = "N/A"
+	c.ChildRevLinkTmpl = "N/A"
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
+	// Unset the unused variables.
+	c.ChildPath = ""
+	c.ChildRevLinkTmpl = ""
+
 	if c.ChildRepo == "" {
 		return errors.New("ChildRepo is required.")
 	}
