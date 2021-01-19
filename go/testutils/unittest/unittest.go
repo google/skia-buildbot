@@ -117,6 +117,14 @@ func FakeExeTest(t sktest.TestingT) {
 	}
 }
 
+// BazelTest is a function which should be called at the beginning of tests
+// which should only run under Bazel (e.g. via "bazel test ...").
+func BazelTest(t sktest.TestingT) {
+	if !bazel.InBazel() {
+		t.Skip("Not running Bazel tests from outside Bazel.")
+	}
+}
+
 // RequiresBigTableEmulator is a function that documents a unittest requires the
 // BigTable Emulator and checks that the appropriate environment variable is set.
 func RequiresBigTableEmulator(t sktest.TestingT) {
