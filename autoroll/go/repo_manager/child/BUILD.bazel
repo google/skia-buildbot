@@ -44,6 +44,18 @@ go_test(
         "semver_gcs_test.go",
     ],
     embed = [":child"],
+    # cipd_test.go requires the "gcloud" binary.
+    #
+    # Note that tests in cipd_test.go are are marked as unittest.ManualTest(), but that's not true
+    # for gitiles_test.go and sember_gcs_test.go. Maybe we should move cipd_test.go into a different
+    # Go package so Gazelle generates a separate test target for it. This will allow us to label
+    # just that target with "manual".
+    #
+    # See https://docs.bazel.build/versions/master/be/common-definitions.html#typical-attributes.
+    tags = [
+        "manual",
+        "no-sandbox",
+    ],
     deps = [
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/common/gitiles_common",
