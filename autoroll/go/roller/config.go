@@ -383,9 +383,11 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.GithubRepoManager)
 	}
 	if c.GithubCipdDEPSRepoManager != nil {
+		c.GithubCipdDEPSRepoManager.GitHub = c.Github
 		rm = append(rm, c.GithubCipdDEPSRepoManager)
 	}
 	if c.GithubDEPSRepoManager != nil {
+		c.GithubDEPSRepoManager.GitHub = c.Github
 		c.GithubDEPSRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.GithubDEPSRepoManager)
 	}
