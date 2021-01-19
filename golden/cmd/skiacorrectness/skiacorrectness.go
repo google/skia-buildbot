@@ -531,7 +531,7 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client
 		rs = append(rs, clstore.ReviewSystem{
 			ID:          cfg.ID,
 			Client:      crs,
-			Store:       dualclstore.New(fireCS, sqlCS),
+			Store:       dualclstore.New(sqlCS, fireCS),
 			URLTemplate: cfg.URLTemplate,
 		})
 	}
