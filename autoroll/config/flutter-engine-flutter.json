@@ -17,6 +17,7 @@
   "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": ["https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"],
   "sheriffBackup": ["liyuqian@google.com"],
+  "supportsManualRolls": true,
   "github": {
     "repoOwner": "flutter",
     "repoName": "flutter",
