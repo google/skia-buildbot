@@ -25,6 +25,7 @@ go_test(
     srcs = ["machine_test.go"],
     data = glob(["testdata/**"]),
     embed = [":machine"],
+    tags = ["manual"],
     deps = [
         "//go/auth",
         "//go/executil",

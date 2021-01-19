@@ -4,9 +4,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"go.skia.org/infra/go/sklog"
+	go_testutils "go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util/zip"
 )
 
@@ -38,8 +38,11 @@ func newTempRepoFrom(zipfile string) *tempRepo {
 // called testdata under the directory of the unit test that is calling it
 // and contains a single directory 'testrepo'.
 func newTempRepo() *tempRepo {
-	_, filename, _, _ := runtime.Caller(1)
-	ret := newTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
+	testDataDir, err := go_testutils.TestDataDir()
+	if err != nil {
+		sklog.Fatal("Failed to locate test data dir:", err)
+	}
+	ret := newTempRepoFrom(filepath.Join(testDataDir, "testrepo.zip"))
 	ret.Dir = filepath.Join(ret.Dir, "testrepo")
 	return ret
 }
