@@ -516,6 +516,8 @@ type PatchsetRow struct {
 	// if it needed a comment. It is used to avoid searching the database if there have been
 	// no updates to the CL since the last time we looked.
 	LastCheckedIfCommentNecessary time.Time `sql:"last_checked_if_comment_necessary TIMESTAMP WITH TIME ZONE NOT NULL"`
+
+	clOrderIndex struct{} `sql:"INDEX cl_order_idx (changelist_id, ps_order)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
