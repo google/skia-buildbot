@@ -4,13 +4,13 @@ package docker
 import (
 	"context"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -18,10 +18,11 @@ import (
 func TestBuild(t *testing.T) {
 	unittest.MediumTest(t)
 	// Strip our PATH so we find our version of `docker` which is in the
-	// test_bin directory. Then add `/bin` to the PATH since we are running a
+	// testdata directory. Then add `/bin` to the PATH since we are running a
 	// Bash shell.
-	_, filename, _, _ := runtime.Caller(0)
-	dockerCmd = filepath.Join(filepath.Dir(filename), "test_bin", "docker_mock")
+	testDataDir, err := testutils.TestDataDir()
+	require.NoError(t, err)
+	dockerCmd = filepath.Join(testDataDir, "docker_mock")
 
 	type args struct {
 		tag string
