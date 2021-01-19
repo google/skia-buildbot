@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "bazel",
+    srcs = ["bazel.go"],
+    importpath = "go.skia.org/infra/bazel/go/bazel",
+    visibility = ["//visibility:public"],
+    deps = ["//go/sktest"],
+)
+
+go_test(
+    name = "bazel_test",
+    srcs = ["bazel_test.go"],
+    embed = [":bazel"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

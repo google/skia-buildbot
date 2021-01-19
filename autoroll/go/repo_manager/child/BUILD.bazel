@@ -44,6 +44,12 @@ go_test(
         "semver_gcs_test.go",
     ],
     embed = [":child"],
+    # We disable the sandbox and force local execution (even with --config=remote) because this test
+    # uses the host system's "gcloud" command.
+    tags = [
+        "no-remote",
+        "no-sandbox",
+    ],
     deps = [
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/common/gitiles_common",
