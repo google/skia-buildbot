@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "73e929dc_9b0378dc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-19T14:25:09Z",
+      "side": 1,
+      "message": "TBR. I canaried this on the skia-infra instance and saw it successfully ingest a previously seen CL/PS and a newly seen CL/PS. ",
+      "revId": "436809eaeedd256a45a30ec14c1d2e644313c474",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
