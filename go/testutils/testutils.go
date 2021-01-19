@@ -14,14 +14,18 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"testing"
 	"text/template"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -42,6 +46,16 @@ func TestDataDir() (string, error) {
 			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
 		}
 		if file != thisFile {
+			// Under Bazel, the path returned by runtime.Caller() is relative to the workspace's root
+			// directory (e.g. "go/testutils"). We prepend this with the absolute path to the runfiles
+			// directory so that tests can find these files with no further changes.
+			//
+			// Under "go test" this is not necessary because the path returned by runtime.Caller() is
+			// absolute.
+			if bazel.InBazel() {
+				file = filepath.Join(bazel.RunfilesDir(), file)
+			}
+
 			return filepath.Join(filepath.Dir(file), "testdata"), nil
 		}
 	}
@@ -300,4 +314,24 @@ func ExecTemplate(t sktest.TestingT, tmpl string, data interface{}) string {
 	var buf bytes.Buffer
 	require.NoError(t, template.Execute(&buf, data))
 	return buf.String()
+}
+
+// SetUpFakeHomeDir creates a temporary dir and updates the HOME environment variable with its path.
+// The returned cleanup function restores HOME to its original value and deletes the temporary dir.
+//
+// Useful for tests that otherwise fail under Bazel, because Bazel does not set said variable in the
+// test environment. Such tests might include those that call the "go" binary, which simetimes
+// creates a cache directory under ~/.cache/go-build.
+//
+// See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
+func SetUpFakeHomeDir(t *testing.T, tempDirPattern string) func() {
+	fakeHome, err := ioutil.TempDir("", tempDirPattern)
+	require.NoError(t, err)
+	oldHome := os.Getenv("HOME")
+	require.NoError(t, os.Setenv("HOME", fakeHome))
+
+	return func() {
+		os.Setenv("HOME", oldHome)
+		util.RemoveAll(fakeHome)
+	}
 }

@@ -25,6 +25,7 @@ go_test(
     name = "rbe_test",
     srcs = ["rbe_test.go"],
     embed = [":rbe"],
+    tags = ["manual"],
     deps = [
         "//go/auth",
         "//go/deepequal/assertdeep",
