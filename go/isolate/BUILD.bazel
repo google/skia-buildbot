@@ -17,6 +17,8 @@ go_test(
     name = "isolate_test",
     srcs = ["isolate_test.go"],
     embed = [":isolate"],
+    # Requires the isolated binary to work.
+    tags = ["no-sandbox"],
     deps = [
         "//go/deepequal/assertdeep",
         "//go/exec",

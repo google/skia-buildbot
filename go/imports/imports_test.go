@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 )
@@ -84,6 +85,9 @@ func testImportAllowed(importer, importee string) bool {
 // These checks are combined into one test because LoadAllPackageData is slow.
 func TestImports(t *testing.T) {
 	unittest.LargeTest(t)
+
+	// For compatibility with Bazel: the "go" command fails if HOME is not set.
+	testutils.SetUpFakeHomeDir(t, "imports_test")
 
 	// Find all packages, categorize as test and non-test.
 	pkgs, err := LoadAllPackageData(context.Background())
