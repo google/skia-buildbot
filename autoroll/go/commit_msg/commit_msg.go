@@ -52,6 +52,11 @@ type CommitMsgConfig struct {
 
 // See documentation for util.Validator interface.
 func (c *CommitMsgConfig) Validate() error {
+	// If not set, fill in the default for consistency.
+	if c.Template == "" {
+		c.Template = TmplNameDefault
+	}
+
 	// We are not concerned with the presence or absence of any given field,
 	// since some rollers may not need all of the fields. If we are able to
 	// execute the template given a typical set of inputs, we consider the
