@@ -25,6 +25,7 @@ go_library(
 go_test(
     name = "git_test",
     srcs = ["git_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":git"],
     deps = [
         "//go/git/testutils",
