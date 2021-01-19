@@ -2,6 +2,7 @@ package repo_manager
 
 import (
 	"context"
+	"errors"
 
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
@@ -10,6 +11,33 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
+
+// ParentChildRepoManagerConfig provides configuration for a RepoManager which
+// combines a Parent and Child.
+type ParentChildRepoManagerConfig struct {
+	// Exactly one of the following Parent types must be provided.
+	CopyParent                  *parent.CopyConfig
+	DEPSLocalGitHubParent       *parent.DEPSLocalGithubConfig
+	DEPSLocalGerritParent       *parent.DEPSLocalConfig // TODO: Correct type?
+	GitCheckoutGithubFileParent *parent.GitCheckoutGithubFileConfig
+	GitilesParent               *parent.GitilesConfig
+
+	// Exactly one of the following Child types must be provided.
+	CIPDChild              *child.CIPDConfig
+	FuchsiaSDKChild        *child.FuchsiaSDKConfig
+	GitCheckoutChild       *child.GitCheckoutConfig
+	GitCheckoutGitHubChild *child.GitCheckoutGithubConfig
+	GitilesChild           *child.GitilesConfig
+	SemVerGCSChild         *child.SemVerGCSConfig
+
+	// Revision filters.
+	BuildbucketRevisionFilter *revision_filter.BuildbucketRevisionFilterConfig `json:"buildbucketFilter,omitempty"`
+}
+
+// Validate implements util.Validator.
+func (c *ParentChildRepoManagerConfig) Validate() error {
+	return errors.New("NOT IMPLEMENTED") // TODO
+}
 
 // parentChildRepoManager combines a Parent and a Child to implement the
 // RepoManager interface.

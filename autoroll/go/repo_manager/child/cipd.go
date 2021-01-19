@@ -14,6 +14,7 @@ import (
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
@@ -37,7 +38,7 @@ type CIPDConfig struct {
 	Tag  string `json:"tag"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *CIPDConfig) Validate() error {
 	if c.Name == "" {
 		return skerr.Fmt("Name is required.")
@@ -46,6 +47,22 @@ func (c *CIPDConfig) Validate() error {
 		return skerr.Fmt("Tag is required.")
 	}
 	return nil
+}
+
+// CIPDConfigToProto converts a CIPDConfig to a config.CIPDChildConfig.
+func CIPDConfigToProto(cfg *CIPDConfig) *config.CIPDChildConfig {
+	return &config.CIPDChildConfig{
+		Name: cfg.Name,
+		Tag:  cfg.Tag,
+	}
+}
+
+// ProtoToCIPDConfig converts a config.CIPDChildConfig to a CIPDConfig.
+func ProtoToCIPDConfig(cfg *config.CIPDChildConfig) *CIPDConfig {
+	return &CIPDConfig{
+		Name: cfg.Name,
+		Tag:  cfg.Tag,
+	}
 }
 
 // NewCIPD returns an implementation of Child which deals with a CIPD package.

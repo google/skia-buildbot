@@ -5,6 +5,7 @@ package main
 */
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/flynn/json5"
+	"github.com/pmezard/go-difflib/difflib"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -51,26 +53,26 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 		// downward, and we want to ensure that they are now included as part
 		// of the config file.
 		if err := cfg.Validate(); err != nil {
-			//return fmt.Errorf("%s failed validation: %s", f, err)
+			return fmt.Errorf("%s failed validation: %s", f, err)
 		}
 
 		// Write the config back to the file. This is temporary.
-		if err := util.WithWriteFile(f, func(w io.Writer) error {
-			w.Write([]byte(`// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
-// for documentation of the autoroller config.
-`))
-			enc := json.NewEncoder(w)
-			enc.SetIndent("", "  ")
-			return enc.Encode(&cfg)
-		}); err != nil {
-			return skerr.Wrap(err)
-		}
+		/*if err := util.WithWriteFile(f, func(w io.Writer) error {
+					w.Write([]byte(`// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+		// for documentation of the autoroller config.
+		`))
+					enc := json.NewEncoder(w)
+					enc.SetIndent("", "  ")
+					return enc.Encode(&cfg)
+				}); err != nil {
+					return skerr.Wrap(err)
+				}*/
 
 		// Re-encode the config back to JSON. Note that the encoder respects
 		// struct field ordering, whereas it sorts map keys; in order to obtain
 		// a comparable JSON encoding, we'll have to decode it again into a map,
 		// then encode yet again.
-		/*var buf bytes.Buffer
+		var buf bytes.Buffer
 		if err := json.NewEncoder(&buf).Encode(cfg); err != nil {
 			return skerr.Wrap(err)
 		}
@@ -110,7 +112,43 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 				return skerr.Wrap(err)
 			}
 			return skerr.Fmt("Config file %q contains unused keys:\n%s", f, diff)
-		}*/
+		}
+
+		// Convert the config to the proto version and back, ensuring that we
+		// get the same config.
+		proto, err := roller.AutoRollerConfigToProto(&cfg)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		// Use the same JSON trick as above.
+		actualProtoConv := roller.ProtoToConfig(proto)
+		b, err := json.Marshal(actualProtoConv)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		m = nil
+		if err := json.Unmarshal(b, &m); err != nil {
+			return skerr.Wrap(err)
+		}
+		actualBytes, err = json.MarshalIndent(m, "", "  ")
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		actual = string(actualBytes)
+		if actual != expected {
+			diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+				A:        difflib.SplitLines(expected),
+				B:        difflib.SplitLines(actual),
+				FromFile: "Expected",
+				ToFile:   "Actual",
+				Context:  3,
+				Eol:      "\n",
+			})
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			return skerr.Fmt("Config file %q contains unused keys:\n%s", f, diff)
+		}
 
 		rollerName = cfg.RollerName
 		return nil

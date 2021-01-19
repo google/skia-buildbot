@@ -30,6 +30,8 @@ func (c BuildbucketRevisionFilterConfig) Validate() error {
 	return nil
 }
 
+// TODO(borenet): Proto conversions!
+
 // BuildbucketRevisionFilter is a RevisionFilter which uses results from
 // BuildBucket to filter Revisions.
 type BuildbucketRevisionFilter struct {
