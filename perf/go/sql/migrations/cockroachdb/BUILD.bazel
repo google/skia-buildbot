@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/sql/migrations/cockroachdb",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/repo_root",
         "//go/skerr",
         "@com_github_geertjohan_go_rice//:go_rice",
     ],
