@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c912abb2_c0414480",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-19T20:51:50Z",
+      "side": 1,
+      "message": "This propagation was done during validation just before performing the checks.  I temporarily modified the validate_autoroll_configs task driver to run the validation without checking the error and write the resulting config back to the file, to obtain the final version of the config.  Then I removed the propagation and re-enabled validation to ensure that the configs work as expected.  I don\u0027t expect any behavioral change.",
+      "revId": "8f43acc94ee230adc3df56f60efc204c9feee7c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
