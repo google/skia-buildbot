@@ -37,6 +37,7 @@ go_test(
         "intersect_test.go",
         "sqltracestore_test.go",
     ],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqltracestore"],
     deps = [
         "//go/paramtools",
