@@ -1,6 +1,10 @@
 package datakitchensink
 
 import (
+	"path/filepath"
+	"runtime"
+	"time"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -421,9 +425,18 @@ func Build() schema.Tables {
 			types.CorpusField: RoundCorpus, types.PrimaryKeyField: RoundRectTest,
 		}).Triage(DigestE03Unt_CL, schema.LabelNegative, schema.LabelUntriaged)
 
-	b.ComputeDiffMetricsFromImages("img", "2020-12-12T12:12:12Z")
+	b.ComputeDiffMetricsFromImages(getImgDirectory(), "2020-12-12T12:12:12Z")
 
 	return b.Build()
+}
+
+// getImgDirectory returns the absolute path to the img directory in this folder.
+func getImgDirectory() string {
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Could not find test data dir: runtime.Caller() failed.")
+	}
+	return filepath.Join(filepath.Dir(thisFile), "img")
 }
 
 const (
@@ -575,4 +588,10 @@ const (
 	Tryjob04FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/12/08/PS_adds_new_corpus/windows.json"
 	Tryjob05FileWindows   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/windows.json"
 	Tryjob06FileWalleye   = "gcs://skia-gold-test/trybot/dm-json-v1/2020/12/10/09/PS_adds_new_corpus_and_test/walleye.json"
+)
+
+var (
+	Tryjob01LastIngested = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
+	Tryjob02LastIngested = time.Date(2020, time.December, 10, 3, 2, 1, 0, time.UTC)
+	Tryjob03LastIngested = time.Date(2020, time.December, 10, 3, 44, 44, 0, time.UTC)
 )
