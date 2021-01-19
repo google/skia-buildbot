@@ -50,6 +50,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "feb8c2bc_57a742ba",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-19T21:59:06Z",
+      "side": 1,
+      "message": "runtime.Caller() returns an absolute path under \"go test\", but it returns a relative path under \"bazel test\".\n\nUnder Bazel, any test files included in the build target via the \"data\" attribute will be recursively copied into a \"runfiles\" directory under //bazel-bin, preserving the subdirectory structure. Each test target built by Bazel will have its own runfiles directory. This directory is not the same as the working directory of the test, so a test cannot just use the relative path returned by runtime.Caller() as-is.\n\nAssuming we want things to work both under \"go test\" and \"bazel test\" (which we do), the cleanest solution I\u0027ve found so far is to have a function that will return the actual repository root under \"go test\" (that is, the path to the repo checkout), or a path to the runfiles directory for the current test under \"bazel test\", and then simply concatenate a hardcoded path to the test data, which in this case is \"/golden/go/sql/datakitchensink/img\".\n\nFor now, repo_root.Get() is the best candidate, which will work under both \"go test\" and \"bazel test\" after the above CL lands; see https://skia-review.googlesource.com/c/buildbot/+/355498/11/go/repo_root/repo_root.go.\n\nRegarding your concerns about platform independence: repo_root.Get() seems to do the right thing both on the CQ and locally, so my guess is that it is adequate for now. That said, let\u0027s fix any platform independence problems of the non-Bazel branch of repo_root.Get() after the above CL lands.\n\nWDYT?",
+      "parentUuid": "f7ad69e7_f5f62276",
+      "range": {
+        "startLine": 435,
+        "startChar": 0,
+        "endLine": 439,
+        "endChar": 44
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "6ecb149e_c5687415",
         "filename": "golden/go/tjstore/sqltjstore/sqltjstore.go",
         "patchSetId": 5
