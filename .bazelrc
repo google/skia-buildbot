@@ -18,6 +18,13 @@ build --workspace_status_command=bazel/get_workspace_status.sh
 # https://github.com/bazelbuild/bazel/issues/8830.
 build --experimental_allow_tags_propagation
 
+# Pipe through the system's *_EMULATOR_HOST environment variables to Bazel tests.
+build --test_env=DATASTORE_EMULATOR_HOST
+build --test_env=BIGTABLE_EMULATOR_HOST
+build --test_env=PUBSUB_EMULATOR_HOST
+build --test_env=FIRESTORE_EMULATOR_HOST
+build --test_env=COCKROACHDB_EMULATOR_HOST
+
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
 # Setting it too high can result in jobs that timeout, however, while waiting
