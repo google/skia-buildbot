@@ -11,6 +11,7 @@ go_library(
 go_test(
     name = "bazel_test",
     srcs = ["bazel_test.go"],
+    data = glob(["testdata/**"]),
     embed = [":bazel"],
     deps = ["@com_github_stretchr_testify//require"],
 )
