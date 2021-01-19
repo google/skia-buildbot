@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -114,6 +115,14 @@ func FakeExeTest(t sktest.TestingT) {
 	if *uncategorized {
 		t.Skip(`This is to appease the "uncategorized tests" check`)
 	}
+}
+
+// BazelTest is a function which should be called at the beginning of tests
+// which should only run under Bazel (e.g. via "bazel test ...").
+func BazelTest(t sktest.TestingT) {
+	// Defined under the bazel package to avoid a circular dependency: the bazel package itself has
+	// some Bazel-only tests.
+	bazel.BazelTest(t)
 }
 
 // RequiresBigTableEmulator is a function that documents a unittest requires the

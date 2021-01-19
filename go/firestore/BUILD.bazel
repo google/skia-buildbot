@@ -26,6 +26,7 @@ go_test(
     name = "firestore_test",
     srcs = ["firestore_test.go"],
     embed = [":firestore"],
+    tags = ["manual"],
     deps = [
         "//go/testutils/unittest",
         "@com_github_google_uuid//:uuid",
