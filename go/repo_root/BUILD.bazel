@@ -5,4 +5,5 @@ go_library(
     srcs = ["repo_root.go"],
     importpath = "go.skia.org/infra/go/repo_root",
     visibility = ["//visibility:public"],
+    deps = ["//bazel/go/bazel"],
 )
