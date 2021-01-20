@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "80bbec2d_b4bafd44",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T14:04:22Z",
+      "side": 1,
+      "message": "This gerrit block shows up twice. Is this a temporary state that will be fixed later?",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73cf06a8_d1aaf3ba",
+        "filename": "autoroll/config/skia-flutter.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T14:04:22Z",
+      "side": 1,
+      "message": "same question for this github block repeating twice",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1cc27aa0_71af69c7",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T14:04:22Z",
+      "side": 1,
+      "message": "This setting to N/A and unsetting later seems hacky and requires knowledge by the embedder of what\u0027s ok to unset. Maybe those fields should be marked optional in their corresponding repo manager (I thought some of them already were)? And then whenever they really need to be set they could be asserted.\nMaybe other approach is to have a EmbeddedValidate for all repo managers that asserts only what is required if the repo manager is embedded.\nOr another approach I haven\u0027t thought of.",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "da972dca_ddba2445",
+        "filename": "infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T14:04:22Z",
+      "side": 1,
+      "message": "Remove?",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
