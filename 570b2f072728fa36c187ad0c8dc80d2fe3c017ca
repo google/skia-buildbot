@@ -16,6 +16,29 @@
       "message": "Pushed this change to the roller.",
       "revId": "570b2f072728fa36c187ad0c8dc80d2fe3c017ca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d9dd1239_ecd03d77",
+        "filename": "autoroll/config/llvm-project-emscripten-releases.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T16:30:14Z",
+      "side": 1,
+      "message": "The roller is failing because this branch does not exist: https://chromium.googlesource.com/emscripten-releases.git/+show/main",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "570b2f072728fa36c187ad0c8dc80d2fe3c017ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
