@@ -72,6 +72,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b94fd6b_bba9226d",
+        "filename": "golden/go/sql/datakitchensink/kitchensink.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-20T13:00:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "feb8c2bc_57a742ba",
+      "range": {
+        "startLine": 435,
+        "startChar": 0,
+        "endLine": 439,
+        "endChar": 44
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6ecb149e_c5687415",
@@ -109,6 +133,30 @@
       "side": 1,
       "message": "I would like to avoid such an implementation dependency.\n\n\"A little copying is better than a little dependency.\"\nhttps://go-proverbs.github.io/",
       "parentUuid": "6ecb149e_c5687415",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 1
+      },
+      "revId": "8b47b2d3e82eccb809aa8b6ca80919f7398f3675",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "32fc1a42_33629236",
+        "filename": "golden/go/tjstore/sqltjstore/sqltjstore.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-20T13:00:10Z",
+      "side": 1,
+      "message": "I was wrong yesterday - there *is* a dependency here and a natural home to put this - the sql package.",
+      "parentUuid": "870098fd_0469ad9f",
       "range": {
         "startLine": 100,
         "startChar": 0,
