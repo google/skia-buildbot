@@ -135,6 +135,11 @@ type SKSLMetaData struct {
 
 // ParticlesMetaData is metadata for Particle scraps.
 type ParticlesMetaData struct {
+	// Width, in pixels, of the particle canvas.
+	Width int
+
+	// Height, in pixels, of the particle canvas.
+	Height int
 }
 
 // ScrapBody is the body of scrap stored in GCS and transported by the API.
