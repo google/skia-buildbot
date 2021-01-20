@@ -16,6 +16,29 @@
       "message": "Adding Eric for the changes in task scheduler and various files under //go.",
       "revId": "3b00db191cbafa44e168f23f126f1dab21b90b5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "00e2ad29_06638344",
+        "filename": "autoroll/go/repo_manager/child/BUILD.bazel",
+        "patchSetId": 17
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T19:36:33Z",
+      "side": 1,
+      "message": "This seems unfortunate.  What if we break tests in this package, forgetting that the whole package is marked as manual, and rely on the CQ?\n\nI think this comment applies for several of the files in this CL, where there are one or two manual tests which cause us to skip a whole bunch of non-manual tests which we really do want to be running.\n\nI propose moving all manual tests into files called \"manual_test.go\" (or \"some_package_manual_test.go\" where appropriate) and modifying unittest.ManualTest to use runtime.Caller() to enforce that it\u0027s being called from a matching file.  Then let\u0027s create separate test targets so that only those manual tests are marked as manual.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 30
+      },
+      "revId": "3b00db191cbafa44e168f23f126f1dab21b90b5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
