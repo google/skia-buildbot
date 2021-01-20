@@ -20,6 +20,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "09d32b03_bc92d7f6",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T14:12:48Z",
+      "side": 1,
+      "message": "No, unless I can figure out how to deduplicate it in the config language.  It\u0027s needed in two different places and previously we were copying the top-level one into the repo manager config where needed.  That was confusing and unclear, and problematic for automatic verification.  IMO it\u0027s much better to have it duplicated for the time being in the name of code health.  Remember that these configs are eventually going to be edited via UI where we can ensure that a human only needs to write them once.",
+      "parentUuid": "80bbec2d_b4bafd44",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "73cf06a8_d1aaf3ba",
         "filename": "autoroll/config/skia-flutter.json",
         "patchSetId": 7
@@ -31,6 +49,24 @@
       "writtenOn": "2021-01-20T14:04:22Z",
       "side": 1,
       "message": "same question for this github block repeating twice",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "587036fe_7ba8a7b2",
+        "filename": "autoroll/config/skia-flutter.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T14:12:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "73cf06a8_d1aaf3ba",
       "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
@@ -48,6 +84,24 @@
       "writtenOn": "2021-01-20T14:04:22Z",
       "side": 1,
       "message": "This setting to N/A and unsetting later seems hacky and requires knowledge by the embedder of what\u0027s ok to unset. Maybe those fields should be marked optional in their corresponding repo manager (I thought some of them already were)? And then whenever they really need to be set they could be asserted.\nMaybe other approach is to have a EmbeddedValidate for all repo managers that asserts only what is required if the repo manager is embedded.\nOr another approach I haven\u0027t thought of.",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a4b88d23_a81a0f31",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T14:12:48Z",
+      "side": 1,
+      "message": "This is temporary until the configs are switched to proto.  It allows us to clear out the fields we don\u0027t use from CommonRepoManager while still making the tests pass.",
+      "parentUuid": "1cc27aa0_71af69c7",
       "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
