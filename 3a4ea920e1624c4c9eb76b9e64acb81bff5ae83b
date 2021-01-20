@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "32482a72_019ba2b6",
+        "filename": "go/human/human.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-20T18:22:51Z",
+      "side": 1,
+      "message": "Might be clearer to do\n\n   ret :\u003d time.Duration(0)\n\nat the beginning of the func, and use ret everywhere, including in place of the time.Duration(0) in the returns.",
+      "range": {
+        "startLine": 176,
+        "startChar": 1,
+        "endLine": 176,
+        "endChar": 22
+      },
+      "revId": "3a4ea920e1624c4c9eb76b9e64acb81bff5ae83b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
