@@ -246,15 +246,30 @@ func TestParseDuration(t *testing.T) {
 			d:      52 * 7 * 24 * time.Hour,
 			hasErr: false,
 		},
+		{
+			s:      "1m5s",
+			d:      1*time.Minute + 5*time.Second,
+			hasErr: false,
+		},
+		{
+			s:      "2w3d",
+			d:      2*7*24*time.Hour + 3*24*time.Hour,
+			hasErr: false,
+		},
+		{
+			s:      " 2w 3d ",
+			d:      2*7*24*time.Hour + 3*24*time.Hour,
+			hasErr: false,
+		},
 	}
 
-	for _, tc := range testCases {
+	for idx, tc := range testCases {
 		d, err := ParseDuration(tc.s)
 		if got, want := d, tc.d; got != want {
-			t.Errorf("Wrong duration: Got %v Want %v", got, want)
+			t.Errorf("Wrong duration for %d: Got %v Want %v", idx, got, want)
 		}
 		if got, want := err != nil, tc.hasErr; got != want {
-			t.Errorf("Wrong err status: Got %v Want %v", got, want)
+			t.Errorf("Wrong err status for %d: Got %v Want %v", idx, got, want)
 		}
 	}
 }
