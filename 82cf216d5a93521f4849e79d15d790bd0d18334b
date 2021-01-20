@@ -90,6 +90,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "340f4cd7_e3935f5a",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T16:00:41Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s only a handful of UIs to write.  Another possibility is to rewrite all of the remaining repo managers in terms of the CommandRepoManager, which just runs three arbitrary commands to perform all of the required RepoManager duties.",
+      "parentUuid": "f2fcfe7c_fed42981",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "73cf06a8_d1aaf3ba",
