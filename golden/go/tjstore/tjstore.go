@@ -44,7 +44,7 @@ type Store interface {
 	// time of these results (see GetResults).
 	// Of note, a typical Skia TryJob might have 5-10k TryJobResult objects.
 	// An error may mean partial success.
-	PutResults(ctx context.Context, psID CombinedPSID, tjID, cisName string, r []TryJobResult, ts time.Time) error
+	PutResults(ctx context.Context, psID CombinedPSID, tjID, cisName, sourceFile string, r []TryJobResult, ts time.Time) error
 }
 
 var ErrNotFound = errors.New("not found")

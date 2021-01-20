@@ -317,7 +317,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	if err := system.Store.PutPatchset(ctx, ps); err != nil {
 		return skerr.Wrapf(err, "could not store PS %s of %s CL %q to clstore", psID, system.ID, clID)
 	}
-	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, tjr, time.Now())
+	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, rf.Name(), tjr, time.Now())
 	if err != nil {
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
 	}

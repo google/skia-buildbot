@@ -93,7 +93,7 @@ func (s StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID, up
 }
 
 // PutResults implements the tjstore.Store interface.
-func (s StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName string, r []tjstore.TryJobResult, ts time.Time) error {
+func (s StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName, sourceFile string, r []tjstore.TryJobResult, ts time.Time) error {
 	return skerr.Fmt("TODO(kjlubick) implement me")
 }
 
