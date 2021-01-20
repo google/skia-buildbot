@@ -95,12 +95,31 @@ import { diffDate } from 'common-sk/modules/human';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html, render } from 'lit-html';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
+import { stateReflector } from 'common-sk/modules/stateReflector';
 import {
   abbr, displaySilence, expiresIn, getDurationTillNextDay, notes,
 } from '../am';
 import * as paramset from '../paramset';
+import { Incident } from '../json';
 
 const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
+
+// Used by stateReflector.
+class State {
+  commits: number = 30;
+
+  cq: number = 1.5;
+
+  optimistic = 90;
+
+  pessimistic = 60;
+
+  backfill = 100;
+
+  sortColumn: ColumnName = 'optimisticPercent';
+
+  sortDirection: SortDirection = 1;
+}
 
 function table(ele, o) {
   const keys = Object.keys(o);
@@ -135,14 +154,14 @@ function table(ele, o) {
 
 function displayAddBots(botCentricParams, key, ele) {
   if (botCentricParams && key === 'bot') {
-    return html `<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
+    return html`<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
   }
   return '';
 }
 
 function displayParamValue(paramValue) {
   if (paramValue.length > 1) {
-    return `${paramValue.join('|')}`
+    return `${paramValue.join('|')}`;
   }
   return paramValue;
 }
@@ -186,7 +205,14 @@ function actionButtons(ele) {
                 <delete-icon-sk title='Delete silence.' @click=${ele._delete}></delete-icon-sk>`;
 }
 
-const template = (ele) => html`
+export class SilenceSk extends HTMLElement {
+  private incidents: Incident[] = [];
+
+  // constructor() {
+  //   super();
+  // }
+
+  private static template = (ele: SilenceSk) => html`
   <h2 class=${classOfH2(ele._state)} @click=${ele._headerClick}>${displaySilence(ele._state)}</h2>
   <div class=body>
     <section class=actions>
@@ -213,12 +239,6 @@ const template = (ele) => html`
     </section>
   </div>
 `;
-
-define('silence-sk', class extends HTMLElement {
-  constructor() {
-    super();
-    this._incidents = [];
-  }
 
   connectedCallback() {
     upgradeProperty(this, 'state');
@@ -369,4 +389,6 @@ define('silence-sk', class extends HTMLElement {
   _render() {
     render(template(this), this, { eventContext: this });
   }
-});
+}
+
+define('silence-sk', SilenceSk);
