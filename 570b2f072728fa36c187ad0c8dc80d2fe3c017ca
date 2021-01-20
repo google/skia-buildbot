@@ -18,6 +18,23 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed45fb32_1016fe24",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9705
+      },
+      "writtenOn": "2021-01-20T16:45:55Z",
+      "side": 1,
+      "message": "thanks, PTAL https://skia-review.googlesource.com/c/buildbot/+/356272",
+      "revId": "570b2f072728fa36c187ad0c8dc80d2fe3c017ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d9dd1239_ecd03d77",
@@ -31,6 +48,30 @@
       "writtenOn": "2021-01-20T16:30:14Z",
       "side": 1,
       "message": "The roller is failing because this branch does not exist: https://chromium.googlesource.com/emscripten-releases.git/+show/main",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "570b2f072728fa36c187ad0c8dc80d2fe3c017ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd63bd1f_797d7221",
+        "filename": "autoroll/config/llvm-project-emscripten-releases.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9705
+      },
+      "writtenOn": "2021-01-20T16:45:55Z",
+      "side": 1,
+      "message": "ah, I think I just misunderstood what this means. I\u0027ll revert this part (since we have several rollers that will all need to change at once.)",
+      "parentUuid": "d9dd1239_ecd03d77",
       "range": {
         "startLine": 35,
         "startChar": 0,
