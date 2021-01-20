@@ -30,7 +30,7 @@
   },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
-    "parentBranch": "main",
+    "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git",
     "gerrit": {
       "url": "https://chromium-review.googlesource.com",
