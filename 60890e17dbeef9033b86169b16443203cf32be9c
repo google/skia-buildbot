@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "13c57d4b_6a48451a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T20:43:35Z",
+      "side": 1,
+      "message": "This looks like a gigantic change, but the majority of lines of code are just rote conversion functions which can be skimmed; we can feel confident in their correctness because validate_autoroll_configs now converts every config file to the proto version and back and asserts that the resulting config is identical.  There are also a lot of drive-by lint fixes.",
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fa9329ae_9b535b0b",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T20:43:35Z",
+      "side": 1,
+      "message": "Please review this file in detail.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "84dfb4c0_0d4ae4f1",
+        "filename": "autoroll/go/repo_manager/parent_child_repo_manager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T20:43:35Z",
+      "side": 1,
+      "message": "Note that this is currently unused.",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 33
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
