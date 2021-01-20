@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/sklog"
+
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -97,4 +99,21 @@ func GetConnectionURL(userHostPort, dbName string) string {
 	// We choose not to use SSL because all communication should be in the same k8s cluster
 	// and the cumbersomeness of using https is not yet worth it.
 	return fmt.Sprintf("postgresql://%s/%s?sslmode=disable", userHostPort, dbName)
+}
+
+// Qualify prefixes the given CL, PS or TJ id with the given system. In the SQL database, we use
+// these qualified IDs to make the queries easier, that is, we don't have to do a join over id
+// and system, we can just use the combined ID.
+func Qualify(system, id string) string {
+	return system + "_" + id
+}
+
+// Unqualify removes the system prefix that was added with Qualify.
+func Unqualify(id string) string {
+	pieces := strings.SplitAfterN(id, "_", 2)
+	if len(pieces) != 2 {
+		sklog.Warningf("invalid id %s", id)
+		return id
+	}
+	return pieces[1]
 }
