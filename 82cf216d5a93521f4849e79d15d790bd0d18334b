@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4a9b1574_daa00480",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T14:19:13Z",
+      "side": 1,
+      "message": "IIRC, most of the configs will be in a large text field without special massaging where the duplication will still have to happen by us.\nHaving an eventual plan to remove the duplication would be very nice (I don\u0027t really have any suggestions).",
+      "parentUuid": "09d32b03_bc92d7f6",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "73cf06a8_d1aaf3ba",
         "filename": "autoroll/config/skia-flutter.json",
         "patchSetId": 7
@@ -102,6 +120,24 @@
       "side": 1,
       "message": "This is temporary until the configs are switched to proto.  It allows us to clear out the fields we don\u0027t use from CommonRepoManager while still making the tests pass.",
       "parentUuid": "1cc27aa0_71af69c7",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b63cac2c_60c5cb8c",
+        "filename": "autoroll/go/repo_manager/copy_repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T14:19:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a4b88d23_a81a0f31",
       "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
