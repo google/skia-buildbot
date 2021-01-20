@@ -20,6 +20,29 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "31add9c9_8773b8af",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 10
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T20:46:21Z",
+      "side": 1,
+      "message": "This changed because this is what human.Duration outputs for the duration it parses from \"22d\".  Changing it to match ensures that validate_autoroll_configs can test the conversion to and from the proto version and assert that the config is identical.",
+      "range": {
+        "startLine": 49,
+        "startChar": 23,
+        "endLine": 49,
+        "endChar": 29
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "fa9329ae_9b535b0b",
         "filename": "autoroll/go/config/config.proto",
         "patchSetId": 10
