@@ -16,6 +16,24 @@
       "message": "Stephanie, you didn\u0027t note that the v8 and angle rollers (which were requested at the same time as the others) could be removed as well, but they have not been able to roll consistently since they were created, so I included them here as well.  Let me know if that\u0027s not correct.",
       "revId": "1158ce7eceff3c0e2cda3d8a5dca51849d2f8205",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e235972_0d56ef71",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12094
+      },
+      "writtenOn": "2021-01-20T18:04:17Z",
+      "side": 1,
+      "message": "Yes the v8 and angle rollers can be removed as well",
+      "parentUuid": "82198fc9_6a5e5bb0",
+      "revId": "1158ce7eceff3c0e2cda3d8a5dca51849d2f8205",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
