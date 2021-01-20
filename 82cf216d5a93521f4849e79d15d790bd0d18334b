@@ -72,6 +72,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2fcfe7c_fed42981",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-20T15:46:30Z",
+      "side": 1,
+      "message": "\u003e The vast majority of rollers (122) use the parent-child repo manager and will therefore get the \"nice\" UI.  The current exceptions are:\n\u003e - Rollers into Android (4)\n\u003e - Trace processor rollers (3)\n\u003e - FreeType roller (1)\n\u003e \n\nOh, for some reason I thought that only Gerrit based no-checkout rollers would have the nice UI. If only 8 rollers are not going to get the nice UI then instead of special casing them might be easier to also find a way to also make them get a nice UI. Totally upto you though.\n\n\u003e I agree that it\u0027d be nice to remove the duplicates eventually, but I currently have no idea how to do that without having a propagation step in the code, and I don\u0027t want to block this migration on solving this problem.  Maybe once the configs are converted it\u0027ll be more obvious how to do it, or maybe it\u0027ll be cleaner to perform the propagation in an explicit step.\n\nSGTM.",
+      "parentUuid": "28a50b79_d2640666",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "73cf06a8_d1aaf3ba",
