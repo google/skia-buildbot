@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
@@ -26,7 +27,7 @@ type DEPSGitilesRepoManagerConfig struct {
 	ParentPath string                   `json:"parentPath,omitempty"`
 }
 
-// Validate implements the util.Validator interface.
+// Validate implements util.Validator.
 func (c *DEPSGitilesRepoManagerConfig) Validate() error {
 	// Set some unused variables on the embedded RepoManager.
 	c.ChildPath = "N/A"
@@ -80,6 +81,58 @@ func (c DEPSGitilesRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig
 		return parent.DEPSLocalConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// DEPSGitilesRepoManagerConfigToProto converts a DEPSGitilesRepoManagerConfig
+// to a config.ParentChildRepoManagerConfig.
+func DEPSGitilesRepoManagerConfigToProto(cfg *DEPSGitilesRepoManagerConfig) (*config.ParentChildRepoManagerConfig, error) {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGerritParent{
+			DepsLocalGerritParent: &config.DEPSLocalGerritParentConfig{
+				DepsLocal: parent.DEPSLocalConfigToProto(&parentCfg),
+				Gerrit:    codereview.GerritConfigToProto(cfg.Gerrit),
+			},
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: child.GitilesConfigToProto(&childCfg),
+		},
+	}, nil
+}
+
+// ProtoToDEPSGitilesRepoManagerConfig converts a
+// config.ParentChildRepomanagerConfig to a DEPSGitilesRepoManagerConfig.
+func ProtoToDEPSGitilesRepoManagerConfig(cfg *config.ParentChildRepoManagerConfig) (*DEPSGitilesRepoManagerConfig, error) {
+	childCfg := cfg.GetGitilesChild()
+	childBranch, err := config_vars.NewTemplate(childCfg.Gitiles.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentCfg := cfg.GetDepsLocalGerritParent()
+	parentBranch, err := config_vars.NewTemplate(parentCfg.DepsLocal.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &DEPSGitilesRepoManagerConfig{
+		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:    childBranch,
+				ChildPath:      parentCfg.DepsLocal.ChildPath,
+				ChildSubdir:    parentCfg.DepsLocal.ChildSubdir,
+				ParentBranch:   parentBranch,
+				ParentRepo:     parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl,
+				PreUploadSteps: parent.ProtoToPreUploadSteps(parentCfg.DepsLocal.PreUploadSteps),
+			},
+			GClientSpec: parentCfg.DepsLocal.GclientSpec,
+			RunHooks:    parentCfg.DepsLocal.RunHooks,
+		},
+		Gerrit:     codereview.ProtoToGerritConfig(parentCfg.Gerrit),
+		ChildRepo:  childCfg.Gitiles.RepoUrl,
+		ParentPath: parentCfg.DepsLocal.CheckoutPath,
+	}, nil
 }
 
 // NewDEPSGitilesRepoManager returns a RepoManager which uses a local DEPS

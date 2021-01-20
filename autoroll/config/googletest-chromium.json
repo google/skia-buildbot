@@ -54,5 +54,5 @@
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "24h"
+  "maxRollFrequency": "1d"
 }

@@ -9,6 +9,7 @@ import (
 	"text/template"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
@@ -22,10 +23,67 @@ var (
 		TmplNameAndroid: tmplAndroid,
 		TmplNameDefault: tmplCommitMsg,
 	}
+	tmplNameToProto = map[string]config.CommitMsgConfig_BuiltIn{
+		TmplNameAndroid: config.CommitMsgConfig_ANDROID,
+		TmplNameDefault: config.CommitMsgConfig_DEFAULT,
+		"":              config.CommitMsgConfig_DEFAULT,
+	}
+	protoToTmplName = map[config.CommitMsgConfig_BuiltIn]string{
+		config.CommitMsgConfig_ANDROID: TmplNameAndroid,
+		config.CommitMsgConfig_DEFAULT: TmplNameDefault,
+	}
 
 	limitEmptyLinesRegex = regexp.MustCompile(`\n\n\n+`)
 	newlineAtEndRegex    = regexp.MustCompile(`\n*$`)
 )
+
+// CommitMsgConfigToProto converts the CommitMsgConfig to a
+// config.CommitMsgConfig.
+func CommitMsgConfigToProto(cfg *CommitMsgConfig) *config.CommitMsgConfig {
+	rv := &config.CommitMsgConfig{
+		BugProject:           cfg.BugProject,
+		ChildLogUrlTmpl:      cfg.ChildLogURLTmpl,
+		CqExtraTrybots:       cfg.CqExtraTrybots,
+		CqDoNotCancelTrybots: cfg.CqDoNotCancelTrybots,
+		IncludeLog:           cfg.IncludeLog,
+		IncludeRevisionCount: cfg.IncludeRevisionCount,
+		IncludeTbrLine:       cfg.IncludeTbrLine,
+		IncludeTests:         cfg.IncludeTests,
+	}
+	if builtIn, ok := tmplNameToProto[cfg.Template]; ok {
+		rv.Template = &config.CommitMsgConfig_BuiltIn_{
+			BuiltIn: builtIn,
+		}
+	} else {
+		rv.Template = &config.CommitMsgConfig_Custom{
+			Custom: cfg.Template,
+		}
+	}
+	return rv
+}
+
+// ProtoToCommitMsgConfig converts the config.CommitMsgConfig to a
+// CommitMsgConfig.
+func ProtoToCommitMsgConfig(cfg *config.CommitMsgConfig) *CommitMsgConfig {
+	rv := &CommitMsgConfig{
+		BugProject:           cfg.BugProject,
+		ChildLogURLTmpl:      cfg.ChildLogUrlTmpl,
+		CqExtraTrybots:       cfg.CqExtraTrybots,
+		CqDoNotCancelTrybots: cfg.CqDoNotCancelTrybots,
+		IncludeLog:           cfg.IncludeLog,
+		IncludeRevisionCount: cfg.IncludeRevisionCount,
+		IncludeTbrLine:       cfg.IncludeTbrLine,
+		IncludeTests:         cfg.IncludeTests,
+	}
+	if cfg.Template != nil {
+		if tmpl, ok := cfg.Template.(*config.CommitMsgConfig_BuiltIn_); ok {
+			rv.Template = protoToTmplName[tmpl.BuiltIn]
+		} else if tmpl, ok := cfg.Template.(*config.CommitMsgConfig_Custom); ok {
+			rv.Template = tmpl.Custom
+		}
+	}
+	return rv
+}
 
 // transitiveDepUpdate represents an update to one transitive dependency.
 type transitiveDepUpdate struct {
@@ -50,7 +108,7 @@ type CommitMsgConfig struct {
 	Template string `json:"template,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *CommitMsgConfig) Validate() error {
 	// If not set, fill in the default for consistency.
 	if c.Template == "" {

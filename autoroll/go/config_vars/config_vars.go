@@ -119,7 +119,7 @@ func (t *Template) init(rawTmpl string) error {
 	return skerr.Wrap(t.validate())
 }
 
-// Template implements json.Unmarshaler.
+// UnmarshalJSON implements json.Unmarshaler.
 func (t *Template) UnmarshalJSON(b []byte) error {
 	t.mtx.Lock()
 	defer t.mtx.Unlock()
@@ -130,7 +130,7 @@ func (t *Template) UnmarshalJSON(b []byte) error {
 	return skerr.Wrap(t.init(raw))
 }
 
-// Template implements json.Marshaler.
+// MarshalJSON implements json.Marshaler.
 func (t *Template) MarshalJSON() ([]byte, error) {
 	t.mtx.RLock()
 	defer t.mtx.RUnlock()
@@ -198,6 +198,11 @@ func (t *Template) Equal(t2 *Template) bool {
 		return false
 	}
 	return true
+}
+
+// RawTemplate returns the raw string value of the Template.
+func (t *Template) RawTemplate() string {
+	return t.raw
 }
 
 // Registry manages a set of Templates, updating their values when Update is

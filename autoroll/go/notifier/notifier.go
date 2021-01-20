@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/notifier"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -80,6 +82,47 @@ var (
 	bodyTmplSuccessThrottled = template.Must(template.New("bodySuccessThrottled").Parse(bodySuccessThrottled))
 
 	footerTmpl = template.Must(template.New("footer").Parse(footer))
+
+	protoToMsgType = map[config.NotifierConfig_MsgType]string{
+		config.NotifierConfig_ISSUE_UPDATE:         MSG_TYPE_ISSUE_UPDATE,
+		config.NotifierConfig_LAST_N_FAILED:        MSG_TYPE_LAST_N_FAILED,
+		config.NotifierConfig_MODE_CHANGE:          MSG_TYPE_MODE_CHANGE,
+		config.NotifierConfig_NEW_FAILURE:          MSG_TYPE_NEW_FAILURE,
+		config.NotifierConfig_NEW_SUCCESS:          MSG_TYPE_NEW_SUCCESS,
+		config.NotifierConfig_ROLL_CREATION_FAILED: MSG_TYPE_ROLL_CREATION_FAILED,
+		config.NotifierConfig_SAFETY_THROTTLE:      MSG_TYPE_SAFETY_THROTTLE,
+		config.NotifierConfig_STRATEGY_CHANGE:      MSG_TYPE_STRATEGY_CHANGE,
+		config.NotifierConfig_SUCCESS_THROTTLE:     MSG_TYPE_SUCCESS_THROTTLE,
+	}
+	msgTypeToProto = map[string]config.NotifierConfig_MsgType{
+		MSG_TYPE_ISSUE_UPDATE:         config.NotifierConfig_ISSUE_UPDATE,
+		MSG_TYPE_LAST_N_FAILED:        config.NotifierConfig_LAST_N_FAILED,
+		MSG_TYPE_MODE_CHANGE:          config.NotifierConfig_MODE_CHANGE,
+		MSG_TYPE_NEW_FAILURE:          config.NotifierConfig_NEW_FAILURE,
+		MSG_TYPE_NEW_SUCCESS:          config.NotifierConfig_NEW_SUCCESS,
+		MSG_TYPE_ROLL_CREATION_FAILED: config.NotifierConfig_ROLL_CREATION_FAILED,
+		MSG_TYPE_SAFETY_THROTTLE:      config.NotifierConfig_SAFETY_THROTTLE,
+		MSG_TYPE_STRATEGY_CHANGE:      config.NotifierConfig_STRATEGY_CHANGE,
+		MSG_TYPE_SUCCESS_THROTTLE:     config.NotifierConfig_SUCCESS_THROTTLE,
+	}
+
+	// Note that these really belong in the go/notifier package, but it doesn't
+	// really make sense for that package to import the AutoRoller's config
+	// package.  These values must be kept in sync with those from go/notifier.
+	protoToLogLevel = map[config.NotifierConfig_LogLevel]notifier.Filter{
+		config.NotifierConfig_SILENT:  notifier.FILTER_SILENT,
+		config.NotifierConfig_ERROR:   notifier.FILTER_ERROR,
+		config.NotifierConfig_WARNING: notifier.FILTER_WARNING,
+		config.NotifierConfig_INFO:    notifier.FILTER_INFO,
+		config.NotifierConfig_DEBUG:   notifier.FILTER_DEBUG,
+	}
+	logLevelToProto = map[notifier.Filter]config.NotifierConfig_LogLevel{
+		notifier.FILTER_SILENT:  config.NotifierConfig_SILENT,
+		notifier.FILTER_ERROR:   config.NotifierConfig_ERROR,
+		notifier.FILTER_WARNING: config.NotifierConfig_WARNING,
+		notifier.FILTER_INFO:    config.NotifierConfig_INFO,
+		notifier.FILTER_DEBUG:   config.NotifierConfig_DEBUG,
+	}
 )
 
 // tmplVars is a struct which contains information used to fill
@@ -249,4 +292,94 @@ func (a *AutoRollNotifier) SendLastNFailed(ctx context.Context, n int, url strin
 		IssueURL: url,
 		N:        n,
 	}, subjectTmplLastNFailed, bodyTmplLastNFailed, notifier.SEVERITY_ERROR, MSG_TYPE_LAST_N_FAILED)
+}
+
+// ConfigToProto converts a notifier.Config to a config.NotifierConfig.
+func ConfigToProto(cfg *notifier.Config) (*config.NotifierConfig, error) {
+	rv := &config.NotifierConfig{
+		Subject: cfg.Subject,
+	}
+
+	if cfg.Filter != "" {
+		filter, err := notifier.ParseFilter(cfg.Filter)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv.LogLevel = logLevelToProto[filter]
+	} else {
+		for _, msgType := range cfg.IncludeMsgTypes {
+			rv.MsgType = append(rv.MsgType, msgTypeToProto[msgType])
+		}
+	}
+
+	if cfg.Chat != nil {
+		rv.Config = &config.NotifierConfig_Chat{
+			Chat: &config.ChatNotifierConfig{
+				RoomId: cfg.Chat.RoomID,
+			},
+		}
+	} else if cfg.Email != nil {
+		rv.Config = &config.NotifierConfig_Email{
+			Email: &config.EmailNotifierConfig{
+				Emails: cfg.Email.Emails,
+			},
+		}
+	} else if cfg.Monorail != nil {
+		rv.Config = &config.NotifierConfig_Monorail{
+			Monorail: &config.MonorailNotifierConfig{
+				Project:    cfg.Monorail.Project,
+				Owner:      cfg.Monorail.Owner,
+				Cc:         cfg.Monorail.CC,
+				Components: cfg.Monorail.Components,
+				Labels:     cfg.Monorail.Labels,
+			},
+		}
+	} else if cfg.PubSub != nil {
+		rv.Config = &config.NotifierConfig_Pubsub{
+			Pubsub: &config.PubSubNotifierConfig{
+				Topic: cfg.PubSub.Topic,
+			},
+		}
+	}
+
+	return rv, nil
+}
+
+// ProtoToConfig converts a config.NotifierConfig to a notifier.Config.
+func ProtoToConfig(cfg *config.NotifierConfig) *notifier.Config {
+	rv := &notifier.Config{
+		Subject: cfg.Subject,
+	}
+
+	if len(cfg.MsgType) > 0 {
+		for _, msgType := range cfg.MsgType {
+			rv.IncludeMsgTypes = append(rv.IncludeMsgTypes, protoToMsgType[msgType])
+		}
+	} else {
+		rv.Filter = protoToLogLevel[cfg.LogLevel].String()
+	}
+
+	if chat, ok := cfg.Config.(*config.NotifierConfig_Chat); ok {
+		rv.Chat = &notifier.ChatNotifierConfig{
+			RoomID: chat.Chat.RoomId,
+		}
+	} else if email, ok := cfg.Config.(*config.NotifierConfig_Email); ok {
+		rv.Email = &notifier.EmailNotifierConfig{
+			Emails: email.Email.Emails,
+		}
+	} else if monorail, ok := cfg.Config.(*config.NotifierConfig_Monorail); ok {
+		rv.Monorail = &notifier.MonorailNotifierConfig{
+			Project:    monorail.Monorail.Project,
+			Owner:      monorail.Monorail.Owner,
+			CC:         monorail.Monorail.Cc,
+			Components: monorail.Monorail.Components,
+			Labels:     monorail.Monorail.Labels,
+		}
+	} else if pubsub, ok := cfg.Config.(*config.NotifierConfig_Pubsub); ok {
+		rv.PubSub = &notifier.PubSubNotifierConfig{
+			Topic: pubsub.Pubsub.Topic,
+		}
+	}
+
+	return rv
 }
