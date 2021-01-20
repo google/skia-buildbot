@@ -2,21 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "llvm-project",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "dschuff@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "emscripten-releases",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -27,20 +15,36 @@
   "sheriff": [
     "wasm-waterfall@grotations.appspotmail.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "emscripten-releases",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
-    "childPath": "emscripten-releases/llvm-project",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+show/%s",
     "parentBranch": "main",
-    "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
+    "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "emscripten-releases",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "2h"
 }

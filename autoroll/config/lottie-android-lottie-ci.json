@@ -2,21 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Lottie Android",
-  "commitMsg": {
-    "childLogURLTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "borenet@google.com"
   ],
-  "gerrit": {
-    "url": "https://skia-review.googlesource.com",
-    "project": "lottie-ci",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
@@ -27,22 +15,37 @@
   "sheriff": [
     "borenet@google.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "lottie-ci",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "lottie-android",
-    "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+    "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "lottie-ci",
+      "config": "chromium"
+    },
+    "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "0m",
   "safetyThrottle": {
     "attemptCount": 0,
     "timeWindow": "1h"

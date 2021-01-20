@@ -40,9 +40,20 @@ type SemVerGCSRepoManagerConfig struct {
 }
 
 func (c *SemVerGCSRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	childBranch, err := config_vars.NewTemplate("N/A")
+	if err != nil {
+		return err
+	}
+	c.ChildBranch = childBranch
+	c.ChildPath = "N/A"
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
+	// Unset the unused variables.
+	c.ChildBranch = nil
+	c.ChildPath = ""
+
 	if c.VersionRegex == nil {
 		return errors.New("VersionRegex is required.")
 	}

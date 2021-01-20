@@ -41,9 +41,22 @@ func (c *FuchsiaSDKAndroidRepoManagerConfig) NoCheckout() bool {
 
 // See documentation for util.Validator interface.
 func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	br, err := config_vars.NewTemplate("N/A")
+	if err != nil {
+		panic(err)
+	}
+	c.ChildBranch = br
+	c.ChildPath = "N/A"
+	c.ChildRevLinkTmpl = "N/A"
 	if err := c.FuchsiaSDKRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
+	// Unset the unused variables.
+	c.ChildBranch = nil
+	c.ChildPath = ""
+	c.ChildRevLinkTmpl = ""
+
 	if c.GenSdkBpRepo == "" {
 		return errors.New("GenSdkBpRepo is required.")
 	}

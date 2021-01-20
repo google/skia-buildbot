@@ -2,22 +2,11 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "SPIRV-Cross",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-  },
   "contacts": [
     "dsinclair@google.com",
     "jmadill@chromium.org",
     "ynovikov@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "vulkan-deps",
-    "config": "chromium-no-cq"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -26,23 +15,37 @@
   "rollerName": "spirv-cross-vulkan-deps-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "radial-bots+chrome-roll@google.com",
+    "radial-bots+chrome-roll@google.com"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "vulkan-deps",
+    "config": "chromium-no-cq"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "spirv-cross/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/vulkan-deps.git"
+    "parentRepo": "https://chromium.googlesource.com/vulkan-deps.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "vulkan-deps",
+      "config": "chromium-no-cq"
+    },
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Cross"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "0m"
+  "supportsManualRolls": true
 }
