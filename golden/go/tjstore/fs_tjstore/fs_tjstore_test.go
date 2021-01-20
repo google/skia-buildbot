@@ -244,7 +244,7 @@ func TestPutGetResults(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, firstTJID, cis, xtr, time.Now())
+	err := f.PutResults(ctx, psID, firstTJID, cis, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	gp = paramtools.Params{
@@ -273,7 +273,7 @@ func TestPutGetResults(t *testing.T) {
 		Digest: fakeDigest("crust", 4),
 	})
 
-	err = f.PutResults(ctx, psID, secondTJID, cis, xtr, time.Now())
+	err = f.PutResults(ctx, psID, secondTJID, cis, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	otherPSID := tjstore.CombinedPSID{
@@ -282,7 +282,7 @@ func TestPutGetResults(t *testing.T) {
 		PS:  "other",
 	}
 
-	err = f.PutResults(ctx, otherPSID, "should-be-ignored", cis, []tjstore.TryJobResult{{
+	err = f.PutResults(ctx, otherPSID, "should-be-ignored", cis, "", []tjstore.TryJobResult{{
 		GroupParams: paramtools.Params{
 			"model": "invalid",
 		},
@@ -358,7 +358,7 @@ func TestPutResultsGetResults_Timestamps(t *testing.T) {
 		},
 	}
 
-	err := f.PutResults(ctx, psID, tryjobID, cis, firstBatch, firstTime)
+	err := f.PutResults(ctx, psID, tryjobID, cis, "", firstBatch, firstTime)
 	assert.NoError(t, err)
 
 	secondBatch := []tjstore.TryJobResult{
@@ -372,7 +372,7 @@ func TestPutResultsGetResults_Timestamps(t *testing.T) {
 		},
 	}
 
-	err = f.PutResults(ctx, psID, tryjobID, cis, secondBatch, secondTime)
+	err = f.PutResults(ctx, psID, tryjobID, cis, "", secondBatch, secondTime)
 	assert.NoError(t, err)
 
 	// Empty time is all results
@@ -441,7 +441,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 		},
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, cis, xtr, time.Now())
+	err := f.PutResults(ctx, psID, tryJobID, cis, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})
@@ -499,7 +499,7 @@ func TestPutGetResultsBig(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, cis, xtr, time.Now())
+	err := f.PutResults(ctx, psID, tryJobID, cis, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})
