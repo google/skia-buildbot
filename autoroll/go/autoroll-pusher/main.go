@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -27,6 +28,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
@@ -119,7 +121,7 @@ func kubeConfGenBe(ctx context.Context, tmpl, srcConfig, dstConfig, configFileBa
 	}, srcConfig)
 }
 
-type config struct {
+type rollerConfig struct {
 	RollerName string `json:"rollerName"`
 	Base64     string `json:"base64"`
 }
@@ -133,9 +135,9 @@ func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBa
 		rollerNames = append(rollerNames, name)
 	}
 	sort.Strings(rollerNames)
-	cfgs := make([]config, 0, len(rollerNames))
+	cfgs := make([]rollerConfig, 0, len(rollerNames))
 	for _, name := range rollerNames {
-		cfgs = append(cfgs, config{
+		cfgs = append(cfgs, rollerConfig{
 			RollerName: name,
 			Base64:     cfgBase64ByRollerName[name],
 		})
@@ -148,7 +150,7 @@ func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBa
 	cfgsJson := filepath.Join(d, "configs.json")
 	if err := util.WithWriteFile(cfgsJson, func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(&struct {
-			Configs []config `json:"configs"`
+			Configs []rollerConfig `json:"configs"`
 		}{
 			Configs: cfgs,
 		})
@@ -446,9 +448,23 @@ func main() {
 		for _, entry := range dirEntries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
 				cfgPath := filepath.Join(dir.Dir, entry.Name())
-				var cfg roller.AutoRollerConfig
+				var cfg *roller.AutoRollerConfig
 				if err := util.WithReadFile(cfgPath, func(f io.Reader) error {
-					return json5.NewDecoder(f).Decode(&cfg)
+					configBytes, err := ioutil.ReadAll(f)
+					if err != nil {
+						return err
+					}
+					var cfgProto config.Config
+					if err := prototext.Unmarshal(configBytes, &cfgProto); err != nil {
+						return err
+					}
+					// TODO(borenet): Remove the old-style config and just use the proto
+					// version everywhere.
+					cfg, err = roller.ProtoToConfig(&cfgProto)
+					if err != nil {
+						return err
+					}
+					return nil
 				}); err != nil {
 					log.Fatalf("Failed to parse roller config %s: %s", cfgPath, err)
 				}
@@ -456,7 +472,7 @@ func main() {
 					if err := cfg.Validate(); err != nil {
 						log.Fatalf("%s is invalid: %s", cfgPath, err)
 					}
-					cfgsInDir[filepath.Base(entry.Name())] = &cfg
+					cfgsInDir[filepath.Base(entry.Name())] = cfg
 				}
 			}
 		}
