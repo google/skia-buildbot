@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1449e1a0_36d4e071",
+        "filename": "golden/go/tjstore/sqltjstore/sqltjstore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-20T20:57:04Z",
+      "side": 1,
+      "message": "Nit: single-line string?",
+      "range": {
+        "startLine": 240,
+        "startChar": 25,
+        "endLine": 241,
+        "endChar": 64
+      },
+      "revId": "af092305f9b54b8a40ce81f4d0c62c92d1e485ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7edba50a_cc65d3e5",
+        "filename": "golden/go/tjstore/sqltjstore/sqltjstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-20T20:57:04Z",
+      "side": 1,
+      "message": "Can we move this into a resultParams variable and use that here and below? It\u0027ll make it easier for the reader to tell that these are all the same. Same elsewhere.",
+      "range": {
+        "startLine": 197,
+        "startChar": 16,
+        "endLine": 203,
+        "endChar": 4
+      },
+      "revId": "af092305f9b54b8a40ce81f4d0c62c92d1e485ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
