@@ -39,6 +39,30 @@
       },
       "revId": "fb425f6cffb278410f536dd733a0dd7775b576bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e7947669_ee2730b6",
+        "filename": "autoroll/config/binaryen-emscripten-releases.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10803
+      },
+      "writtenOn": "2021-01-20T17:04:24Z",
+      "side": 1,
+      "message": "Thanks! I did not properly understand the meaning of the field... I opened https://skia-review.googlesource.com/c/buildbot/+/356273 now.",
+      "parentUuid": "2540615a_629f8759",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "fb425f6cffb278410f536dd733a0dd7775b576bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
