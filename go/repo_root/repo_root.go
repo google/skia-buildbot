@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Return the path to the repo root. Note that this will return an error if
+// Get returns the path to the repo root. Note that this will return an error if
 // the CWD is not inside a checkout, so this cannot run on production servers.
 func Get() (string, error) {
 	dir, err := os.Getwd()
