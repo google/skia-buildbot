@@ -93,6 +93,30 @@
       },
       "revId": "af092305f9b54b8a40ce81f4d0c62c92d1e485ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f1cd64ed_19af20db",
+        "filename": "golden/go/tjstore/sqltjstore/sqltjstore_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-20T21:07:57Z",
+      "side": 1,
+      "message": "Oops, nevermind then.",
+      "parentUuid": "0e5c17ab_382cd254",
+      "range": {
+        "startLine": 197,
+        "startChar": 16,
+        "endLine": 203,
+        "endChar": 4
+      },
+      "revId": "af092305f9b54b8a40ce81f4d0c62c92d1e485ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
