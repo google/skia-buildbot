@@ -56,6 +56,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "28a50b79_d2640666",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T15:11:05Z",
+      "side": 1,
+      "message": "The vast majority of rollers (122) use the parent-child repo manager and will therefore get the \"nice\" UI.  The current exceptions are:\n- Rollers into Android (4)\n- Trace processor rollers (3)\n- FreeType roller (1)\n\nI agree that it\u0027d be nice to remove the duplicates eventually, but I currently have no idea how to do that without having a propagation step in the code, and I don\u0027t want to block this migration on solving this problem.  Maybe once the configs are converted it\u0027ll be more obvious how to do it, or maybe it\u0027ll be cleaner to perform the propagation in an explicit step.",
+      "parentUuid": "4a9b1574_daa00480",
+      "revId": "82cf216d5a93521f4849e79d15d790bd0d18334b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "73cf06a8_d1aaf3ba",
         "filename": "autoroll/config/skia-flutter.json",
         "patchSetId": 7
