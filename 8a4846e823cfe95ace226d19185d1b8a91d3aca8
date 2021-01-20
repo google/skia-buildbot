@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1887c7ae_ca74080a",
+        "filename": "autoroll/config/androidx-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-20T15:26:20Z",
+      "side": 1,
+      "message": "Note that this ref does not currently exist; one will need to be created before this lands.",
+      "range": {
+        "startLine": 38,
+        "startChar": 21,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "8a4846e823cfe95ace226d19185d1b8a91d3aca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
