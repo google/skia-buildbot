@@ -3,7 +3,6 @@ package sqlclstore
 
 import (
 	"context"
-	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -13,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
@@ -68,7 +68,7 @@ func (s *StoreImpl) GetChangelists(ctx context.Context, opts clstore.SearchOptio
 			return nil, -1, skerr.Wrapf(err, "Scanning data for changelists %s - %#v", s.systemID, opts)
 		}
 		rv = append(rv, code_review.Changelist{
-			SystemID: unqualify(r.ChangelistID),
+			SystemID: sql.Unqualify(r.ChangelistID),
 			Owner:    r.OwnerEmail,
 			Status:   convertToStatusEnum(r.Status),
 			Subject:  r.Subject,
@@ -87,7 +87,7 @@ func (s *StoreImpl) GetChangelists(ctx context.Context, opts clstore.SearchOptio
 
 // GetChangelist implements clstore.Store.
 func (s *StoreImpl) GetChangelist(ctx context.Context, id string) (code_review.Changelist, error) {
-	qID := qualify(s.systemID, id)
+	qID := sql.Qualify(s.systemID, id)
 	row := s.db.QueryRow(ctx, `
 SELECT status, owner_email, subject, last_ingested_data FROM Changelists WHERE changelist_id = $1`, qID)
 	var r schema.ChangelistRow
@@ -109,7 +109,7 @@ SELECT status, owner_email, subject, last_ingested_data FROM Changelists WHERE c
 
 // PutChangelist implements clstore.Store.
 func (s *StoreImpl) PutChangelist(ctx context.Context, cl code_review.Changelist) error {
-	qID := qualify(s.systemID, cl.SystemID)
+	qID := sql.Qualify(s.systemID, cl.SystemID)
 	const statement = `
 UPSERT INTO Changelists (changelist_id, system, status, owner_email, subject, last_ingested_data)
 VALUES ($1, $2, $3, $4, $5, $6)`
@@ -122,7 +122,7 @@ VALUES ($1, $2, $3, $4, $5, $6)`
 
 // GetPatchsets implements clstore.Store.
 func (s *StoreImpl) GetPatchsets(ctx context.Context, clID string) ([]code_review.Patchset, error) {
-	qID := qualify(s.systemID, clID)
+	qID := sql.Qualify(s.systemID, clID)
 	rows, err := s.db.Query(ctx, `
 SELECT patchset_id, ps_order, git_hash, commented_on_cl, last_checked_if_comment_necessary
 FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qID)
@@ -138,7 +138,7 @@ FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qID)
 			return nil, skerr.Wrapf(err, "Scanning data for cl %s", qID)
 		}
 		rv = append(rv, code_review.Patchset{
-			SystemID:                      unqualify(r.PatchsetID),
+			SystemID:                      sql.Unqualify(r.PatchsetID),
 			ChangelistID:                  clID,
 			Order:                         r.Order,
 			GitHash:                       r.GitHash,
@@ -151,7 +151,7 @@ FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qID)
 
 // GetPatchset implements clstore.Store.
 func (s *StoreImpl) GetPatchset(ctx context.Context, _, psID string) (code_review.Patchset, error) {
-	qID := qualify(s.systemID, psID)
+	qID := sql.Qualify(s.systemID, psID)
 	row := s.db.QueryRow(ctx, `
 SELECT changelist_id, ps_order, git_hash, commented_on_cl, last_checked_if_comment_necessary
 FROM Patchsets WHERE patchset_id = $1`, qID)
@@ -165,7 +165,7 @@ FROM Patchsets WHERE patchset_id = $1`, qID)
 	}
 	return code_review.Patchset{
 		SystemID:                      psID,
-		ChangelistID:                  unqualify(r.ChangelistID),
+		ChangelistID:                  sql.Unqualify(r.ChangelistID),
 		Order:                         r.Order,
 		GitHash:                       r.GitHash,
 		CommentedOnCL:                 r.CommentedOnCL,
@@ -175,7 +175,7 @@ FROM Patchsets WHERE patchset_id = $1`, qID)
 
 // GetPatchsetByOrder implements clstore.Store.
 func (s *StoreImpl) GetPatchsetByOrder(ctx context.Context, clID string, psOrder int) (code_review.Patchset, error) {
-	qID := qualify(s.systemID, clID)
+	qID := sql.Qualify(s.systemID, clID)
 	row := s.db.QueryRow(ctx, `
 SELECT patchset_id, git_hash, commented_on_cl, last_checked_if_comment_necessary
 FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2`, qID, psOrder)
@@ -188,7 +188,7 @@ FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2`, qID, psOrder)
 		return code_review.Patchset{}, skerr.Wrapf(err, "querying for order %s-%d", qID, psOrder)
 	}
 	return code_review.Patchset{
-		SystemID:                      unqualify(r.PatchsetID),
+		SystemID:                      sql.Unqualify(r.PatchsetID),
 		ChangelistID:                  clID,
 		Order:                         psOrder,
 		GitHash:                       r.GitHash,
@@ -200,8 +200,8 @@ FROM Patchsets WHERE changelist_id = $1 AND ps_order = $2`, qID, psOrder)
 // PutPatchset implements clstore.Store. Note that due to foreign key constraints, it will fail
 // if the Changelist does not already exist.
 func (s *StoreImpl) PutPatchset(ctx context.Context, ps code_review.Patchset) error {
-	psID := qualify(s.systemID, ps.SystemID)
-	clID := qualify(s.systemID, ps.ChangelistID)
+	psID := sql.Qualify(s.systemID, ps.SystemID)
+	clID := sql.Qualify(s.systemID, ps.ChangelistID)
 	const statement = `
 UPSERT INTO Patchsets (patchset_id, system, changelist_id, ps_order, git_hash,
   commented_on_cl, last_checked_if_comment_necessary)
@@ -212,23 +212,6 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)`
 		return skerr.Wrapf(err, "Inserting PS %#v", ps)
 	}
 	return nil
-}
-
-// qualify prefixes the given CL or PS id with the given system. In the SQL database, we use these
-// qualified IDs to make the queries easier, that is, we don't have to do a join over id and system,
-// we can just use the combined ID.
-func qualify(system, id string) string {
-	return system + "_" + id
-}
-
-// unqualify removes the system prefix that was added with qualify.
-func unqualify(id string) string {
-	pieces := strings.SplitAfterN(id, "_", 2)
-	if len(pieces) != 2 {
-		sklog.Warningf("invalid changelist id %s", id)
-		return id
-	}
-	return pieces[1]
 }
 
 func convertToStatusEnum(status schema.ChangelistStatus) code_review.CLStatus {

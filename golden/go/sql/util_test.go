@@ -126,3 +126,19 @@ func TestValuesPlaceholders_InvalidInputs_Panics(t *testing.T) {
 		ValuesPlaceholders(0, 0)
 	})
 }
+
+func TestQualify_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, "gerrit_12345", Qualify("gerrit", "12345"))
+	assert.Equal(t, "gerrit-internal_6789012", Qualify("gerrit-internal", "6789012"))
+}
+
+func TestUnqualify_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, "12345", Unqualify("gerrit_12345"))
+	assert.Equal(t, "6789012", Unqualify("gerrit-internal_6789012"))
+	assert.Equal(t, "1234_6789012", Unqualify("gerrit_1234_6789012"))
+	assert.Equal(t, "67890", Unqualify("67890"))
+}
