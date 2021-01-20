@@ -20,11 +20,10 @@ import (
 // GithubRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubRepoManagerConfig struct {
 	CommonRepoManagerConfig
-	Github        *codereview.GithubConfig `json:"gerrit,omitempty"`
-	ChildRepoName string                   `json:"childRepoName"`
-	ChildRepoURL  string                   `json:"childRepoURL"`
-	ChildUserName string                   `json:"childUserName"`
-	ForkRepoURL   string                   `json:"forkRepoURL"`
+	ChildRepoName string `json:"childRepoName"`
+	ChildRepoURL  string `json:"childRepoURL"`
+	ChildUserName string `json:"childUserName"`
+	ForkRepoURL   string `json:"forkRepoURL"`
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
 
@@ -38,6 +37,16 @@ type GithubRepoManagerConfig struct {
 
 // See documentation for util.Validator interface.
 func (c *GithubRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	c.ChildPath = "N/A"
+	c.ChildSubdir = "N/A"
+	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
+		return err
+	}
+	// Unset the unused variables.
+	c.ChildPath = ""
+	c.ChildSubdir = ""
+
 	if c.BuildbucketRevisionFilter != nil {
 		if err := c.BuildbucketRevisionFilter.Validate(); err != nil {
 			return skerr.Wrap(err)

@@ -2,18 +2,10 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "ChromeOS Airmont AFDO profile",
-  "commitMsg": {
-    "includeTbrLine": true
-  },
   "contacts": [
     "gbiv@google.com",
     "tcwang@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -24,23 +16,34 @@
   "sheriff": [
     "c-compiler-chrome@google.com"
   ],
+  "commitMsg": {
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "semVerGCSRepoManager": {
-    "childBranch": "master",
-    "childPath": "chromeos/profiles/airmont.afdo.newest.txt",
+    "parentBranch": "refs/branch-heads/4280",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "parentBranch": "refs/branch-heads/4280", // m87
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/airmont.afdo.newest.txt",
+    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionRegex": "^chromeos-chrome-amd64-airmont-87-4280.\\d+-(\\d+)-benchmark-87.(\\d+).4280.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

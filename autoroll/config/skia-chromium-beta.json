@@ -2,31 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Skia",
-  "commitMsg": {
-    "bugProject": "chromium",
-    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqDoNotCancelTrybots": true,
-    "cqExtraTrybots": [
-      "luci.chromium.try:android_optional_gpu_tests_rel",
-      "luci.chromium.try:linux-blink-rel",
-      "luci.chromium.try:linux-chromeos-compile-dbg",
-      "luci.chromium.try:linux_optional_gpu_tests_rel",
-      "luci.chromium.try:mac_optional_gpu_tests_rel",
-      "luci.chromium.try:win_optional_gpu_tests_rel"
-    ],
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "borenet@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -37,23 +15,47 @@
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:linux-blink-rel",
+      "luci.chromium.try:linux-chromeos-compile-dbg",
+      "luci.chromium.try:linux_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:win_optional_gpu_tests_rel"
+    ],
+    "cqDoNotCancelTrybots": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "refs/heads/chrome/m{{.Branches.Chromium.Beta.Milestone}}",
-    "childPath": "src/third_party/skia",
-    "childRepo": "https://skia.googlesource.com/skia.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
     "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Beta.Number}}",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://skia.googlesource.com/skia.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "0m",
   "notifiers": [
     {
       "filter": "warning",
@@ -63,5 +65,6 @@
         ]
       }
     }
-  ]
+  ],
+  "supportsManualRolls": true
 }

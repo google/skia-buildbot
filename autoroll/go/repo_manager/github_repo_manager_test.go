@@ -44,11 +44,6 @@ func githubRmCfg(t *testing.T) *GithubRepoManagerConfig {
 			ParentBranch: defaultBranchTmpl(t),
 			ParentRepo:   "git@github.com:jorel/krypton.git",
 		},
-		Github: &codereview.GithubConfig{
-			RepoOwner:     "me",
-			RepoName:      "my-repo",
-			ChecksWaitFor: []string{"a", "b", "c"},
-		},
 		ChildRepoName: "earth",
 		ChildUserName: "superman",
 		RevisionFile:  "dummy-file.txt",

@@ -36,10 +36,23 @@ func (r *GitilesCIPDDEPSRepoManagerConfig) ValidStrategies() []string {
 
 // See documentation for util.Validator interface.
 func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	br, err := config_vars.NewTemplate("N/A")
+	if err != nil {
+		panic(err)
+	}
+	c.ChildBranch = br
+	c.ChildPath = "N/A"
+	c.ChildRevLinkTmpl = "N/A"
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
-	_, _, err := c.splitParentChild()
+	// Unset the unused variables.
+	c.ChildBranch = nil
+	c.ChildPath = ""
+	c.ChildRevLinkTmpl = ""
+
+	_, _, err = c.splitParentChild()
 	return skerr.Wrap(err)
 }
 
