@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -38,7 +39,7 @@ type CopyRepoManagerConfig struct {
 	VersionFile string `json:"versionFile"`
 }
 
-// Validate the config.
+// Validate implements util.Validator.
 func (c *CopyRepoManagerConfig) Validate() error {
 	// Set some unused variables on the embedded RepoManager.
 	c.ChildPath = "N/A"
@@ -91,6 +92,52 @@ func (c CopyRepoManagerConfig) splitParentChild() (parent.CopyConfig, child.Giti
 		return parent.CopyConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// CopyRepoManagerConfigToProto converts a CopyRepoManagerConfig to a
+// config.ParentChildRepoManagerConfig.
+func CopyRepoManagerConfigToProto(cfg *CopyRepoManagerConfig) (*config.ParentChildRepoManagerConfig, error) {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_CopyParent{
+			CopyParent: parent.CopyConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: child.GitilesConfigToProto(&childCfg),
+		},
+	}, nil
+}
+
+// ProtoToCopyRepoManagerConfig converts a config.ParentChildRepoManagerConfig
+// to a CopyRepoManagerConfig.
+func ProtoToCopyRepoManagerConfig(cfg *config.ParentChildRepoManagerConfig) (*CopyRepoManagerConfig, error) {
+	childCfg := cfg.GetGitilesChild()
+	childBranch, err := config_vars.NewTemplate(childCfg.Gitiles.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentCfg := cfg.GetCopyParent()
+	parentBranch, err := config_vars.NewTemplate(parentCfg.Gitiles.Gitiles.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &CopyRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:  childBranch,
+				ParentBranch: parentBranch,
+				ParentRepo:   parentCfg.Gitiles.Gitiles.RepoUrl,
+			},
+		},
+		Gerrit:      codereview.ProtoToGerritConfig(parentCfg.Gitiles.Gerrit),
+		ChildRepo:   childCfg.Gitiles.RepoUrl,
+		Copies:      parent.ProtoToCopyEntries(parentCfg.Copies),
+		Path:        childCfg.Path,
+		VersionFile: parentCfg.Gitiles.Dep.Primary.Path,
+	}, nil
 }
 
 // NewCopyRepoManager returns a RepoManager instance which rolls a dependency
