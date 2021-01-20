@@ -2,8 +2,10 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Fuchsia Linux Toolchain",
-  "commitMsg": {},
-  "contacts": ["liyuqian@google.com", "rmistry@google.com"],
+  "contacts": [
+    "liyuqian@google.com",
+    "rmistry@google.com"
+  ],
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
@@ -11,33 +13,47 @@
   "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
   "rollerName": "fuchsia-linux-toolchain-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": ["https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"],
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"
+  ],
+  "commitMsg": {
+    "template": "default"
+  },
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
-    "checksWaitFor": ["luci-engine"]
+    "checksWaitFor": [
+      "luci-engine"
+    ]
   },
   "githubCipdDEPSRepoManager": {
-    "childBranch": "master",
-    "childPath": "src/fuchsia/toolchain/linux",
-    "childRepo": "", // Unused
-    "cipdAssetName": "fuchsia/third_party/clang/linux-amd64",
-    "cipdAssetTag": "integration",
-    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
-    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
-    "githubParentPath": "src/flutter",
     "parentBranch": "master",
     "parentRepo": "git@github.com:flutter/engine.git",
-    "preUploadSteps": ["FlutterLicenseScriptsForFuchsia"],
-    "runHooks": true
+    "preUploadSteps": [
+      "FlutterLicenseScriptsForFuchsia"
+    ],
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+    "runHooks": true,
+    "github": {
+      "repoOwner": "flutter",
+      "repoName": "engine",
+      "checksWaitFor": [
+        "luci-engine"
+      ]
+    },
+    "childRepo": "",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
+    "githubParentPath": "src/flutter",
+    "cipdAssetName": "fuchsia/third_party/clang/linux-amd64",
+    "cipdAssetTag": "integration"
   },
   "kubernetes": {
     "cpu": "8",
     "memory": "8Gi",
-    "disk": "50Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
-    "readinessFailureThreshold": "10",
+    "disk": "50Gi",
     "secrets": [
       {
         "name": "flutter-engine-github-token",
@@ -54,7 +70,9 @@
     {
       "filter": "warning",
       "email": {
-        "emails": ["$SHERIFF"]
+        "emails": [
+          "$SHERIFF"
+        ]
       }
     }
   ]

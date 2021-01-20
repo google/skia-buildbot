@@ -2,18 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Tint",
-  "commitMsg": {
-    "bugProject": "dawn",
-    "childLogURLTmpl": "https://dawn.googlesource.com/tint.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
-  "contacts": ["radial-bots+tint-roll@google.com"],
-  "gerrit": {
-    "url": "https://dawn-review.googlesource.com",
-    "project": "dawn",
-    "config": "angle"
-  },
+  "contacts": [
+    "radial-bots+tint-roll@google.com"
+  ],
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -24,21 +15,38 @@
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:webgpu-sheriff"
   ],
-  "sheriffBackup": ["radial-bots+tint-roll@google.com"],
+  "sheriffBackup": [
+    "radial-bots+tint-roll@google.com"
+  ],
+  "commitMsg": {
+    "bugProject": "dawn",
+    "childLogURLTmpl": "https://dawn.googlesource.com/tint.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://dawn-review.googlesource.com",
+    "project": "dawn",
+    "config": "angle"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
-    "childPath": "third_party/tint",
-    "childRepo": "https://dawn.googlesource.com/tint.git",
-    "childRevLinkTmpl": "https://dawn.googlesource.com/tint.git/+show/%s",
     "parentBranch": "main",
-    "parentRepo": "https://dawn.googlesource.com/dawn.git"
+    "parentRepo": "https://dawn.googlesource.com/dawn.git",
+    "gerrit": {
+      "url": "https://dawn-review.googlesource.com",
+      "project": "dawn",
+      "config": "angle"
+    },
+    "childRepo": "https://dawn.googlesource.com/tint.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "24h"
 }

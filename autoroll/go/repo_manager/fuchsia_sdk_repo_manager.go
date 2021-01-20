@@ -29,6 +29,28 @@ type FuchsiaSDKRepoManagerConfig struct {
 	IncludeMacSDK bool                     `json:"includeMacSDK,omitempty"`
 }
 
+// Validate implements util.Validator.
+func (c *FuchsiaSDKRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	br, err := config_vars.NewTemplate("N/A")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	c.ChildBranch = br
+	c.ChildPath = "N/A"
+	c.ChildRevLinkTmpl = "N/A"
+	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
+		return err
+	}
+	// Unset the unused variables.
+	c.ChildBranch = nil
+	c.ChildPath = ""
+	c.ChildRevLinkTmpl = ""
+
+	_, _, err = c.splitParentChild()
+	return skerr.Wrap(err)
+}
+
 // See documentation for RepoManagerConfig interface.
 func (c *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
 	return []string{

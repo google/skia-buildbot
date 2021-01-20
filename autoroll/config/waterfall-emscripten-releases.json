@@ -2,20 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "waterfall",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
   "contacts": [
     "dschuff@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "emscripten-releases",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -26,20 +15,34 @@
   "sheriff": [
     "wasm-waterfall@grotations.appspotmail.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "emscripten-releases",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "emscripten-releases/waterfall",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
+    "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "emscripten-releases",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

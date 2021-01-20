@@ -140,6 +140,11 @@ func TestConfigs(t *testing.T) {
 					ParentRepo:   "fake",
 				},
 			},
+			Gerrit: &codereview.GerritConfig{
+				URL:     "fake-gerrit-url",
+				Project: "fake-gerrit-project",
+				Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+			},
 			ChildRepo: "fake",
 		}
 	}, "kubernetes.disk is not valid for no-checkout repo managers.")

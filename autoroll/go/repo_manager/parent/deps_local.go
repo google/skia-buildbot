@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
@@ -30,12 +31,21 @@ const (
 type DEPSLocalConfig struct {
 	GitCheckoutConfig
 
+	// ChildPath is the path to the child repo within the parent.
+	ChildPath string `json:"childPath"`
+
 	// Optional fields.
 
 	// Relative path to the repo within the checkout root. Required if
 	// GClientSpec is provided and specifies a name other than the default
 	// obtained by "git clone".
 	CheckoutPath string `json:"checkoutPath,omitempty"`
+
+	// ChildSubdir indicates the subdirectory of the workdir in which
+	// the childPath should be rooted. In most cases, this should be empty,
+	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
+	// specifies use_relative_paths), then this is required.
+	ChildSubdir string `json:"childSubdir,omitempty"`
 
 	// Override the default gclient spec with this string.
 	GClientSpec string `json:"gclientSpec,omitempty"`
@@ -64,6 +74,15 @@ func (c DEPSLocalConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// DEPSLocalGithubConfig provides configuration for a Parent which uses a local
+// checkout and DEPS to manage dependencies, and uploads pull requests to
+// GitHub.
+type DEPSLocalGithubConfig struct {
+	DEPSLocalConfig
+	GitHub      *codereview.GithubConfig
+	ForkRepoURL string `json:"forkRepoURL"`
 }
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage

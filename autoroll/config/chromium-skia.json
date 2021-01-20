@@ -2,23 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Chromium",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqExtraTrybots": [
-      "skia/skia.primary:Perf-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Release-All-CommandBuffer",
-      "skia/skia.primary:Test-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
-    ],
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
   "contacts": [
     "borenet@google.com"
   ],
-  "gerrit": {
-    "url": "https://skia-review.googlesource.com",
-    "project": "skia",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -29,20 +15,38 @@
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Perf-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Release-All-CommandBuffer",
+      "skia/skia.primary:Test-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
+    ],
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skia",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "../src",
-    "childRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skia.git"
+    "parentRepo": "https://skia.googlesource.com/skia.git",
+    "gerrit": {
+      "url": "https://skia-review.googlesource.com",
+      "project": "skia",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "12h",
   "timeWindow": "M-F 04:00-08:00"

@@ -2,21 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "luci-py",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "tikuta@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "infra/infra",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -27,20 +15,35 @@
   "sheriff": [
     "tikuta+infra-roll@chromium.org"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "infra/infra",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "infra/luci",
-    "childRepo": "https://chromium.googlesource.com/infra/luci/luci-py.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
+    "parentRepo": "https://chromium.googlesource.com/infra/infra.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "infra/infra",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/infra/luci/luci-py.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

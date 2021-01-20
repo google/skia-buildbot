@@ -2,21 +2,10 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Code Coverage",
-  "commitMsg": {
-    "bugProject": "pdfium",
-    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
   "contacts": [
     "dhoss@chromium.org",
     "thestig@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://pdfium-review.googlesource.com",
-    "project": "pdfium",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -27,20 +16,35 @@
   "sheriff": [
     "pdfium-reviews+autoroller@googlegroups.com"
   ],
+  "commitMsg": {
+    "bugProject": "pdfium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://pdfium-review.googlesource.com",
+    "project": "pdfium",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "tools/code_coverage",
-    "childRepo": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://pdfium.googlesource.com/pdfium.git"
+    "parentRepo": "https://pdfium.googlesource.com/pdfium.git",
+    "gerrit": {
+      "url": "https://pdfium-review.googlesource.com",
+      "project": "pdfium",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "22d",
   "timeWindow": "M 04:00-08:00"

@@ -2,12 +2,10 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Engine",
-  "commitMsg": {
-    "childLogURLTmpl": "https://github.com/flutter/engine/compare/{{.RollingFrom}}...{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true
-  },
-  "contacts": ["liyuqian@google.com", "rmistry@google.com"],
+  "contacts": [
+    "liyuqian@google.com",
+    "rmistry@google.com"
+  ],
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
@@ -15,37 +13,69 @@
   "parentWaterfall": "https://flutter-dashboard.appspot.com/#/build",
   "rollerName": "flutter-engine-flutter-autoroll",
   "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": ["https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"],
-  "sheriffBackup": ["liyuqian@google.com"],
-  "supportsManualRolls": true,
+  "sheriff": [
+    "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"
+  ],
+  "sheriffBackup": [
+    "liyuqian@google.com"
+  ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://github.com/flutter/engine/compare/{{.RollingFrom}}...{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "template": "default"
+  },
   "github": {
     "repoOwner": "flutter",
     "repoName": "flutter",
-    "checksWaitFor": ["flutter-build"]
+    "checksWaitFor": [
+      "flutter-build"
+    ]
   },
   "githubRepoManager": {
+    "childBranch": "master",
+    "parentBranch": "master",
+    "parentRepo": "git@github.com:flutter/flutter.git",
+    "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
+    "childRepoName": "engine",
+    "childRepoURL": "git@github.com:flutter/engine",
+    "childUserName": "flutter",
+    "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter.git",
+    "revisionFile": "bin/internal/engine.version",
     "buildbucketFilter": {
       "project": "flutter",
       "bucket": "prod"
     },
-    "childBranch": "master",
-    "childPath": "engine",
-    "childRepoName": "engine",
-    "childRepoURL": "git@github.com:flutter/engine",
-    "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
-    "childUserName": "flutter",
-    "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter.git",
-    "parentBranch": "master",
-    "parentRepo": "git@github.com:flutter/flutter.git",
-    "revisionFile": "bin/internal/engine.version"
+    "transitiveDeps": [
+      {
+        "child": {
+          "id": "fuchsia/sdk/core/linux-amd64",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "fuchsia/sdk/core/linux-amd64",
+          "path": "bin/internal/fuchsia-linux.version"
+        }
+      },
+      {
+        "child": {
+          "id": "fuchsia/sdk/core/mac-amd64",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "fuchsia/sdk/core/mac-amd64",
+          "path": "bin/internal/fuchsia-mac.version"
+        }
+      }
+    ]
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
-    "disk": "50Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
-    "readinessFailureThreshold": "10",
+    "disk": "50Gi",
     "secrets": [
       {
         "name": "flutter-github-token",
@@ -57,15 +87,17 @@
       }
     ]
   },
-  "maxRollFrequency": "0m",
   "notifiers": [
     {
       "filter": "warning",
       "email": {
-        "emails": ["$SHERIFF"]
+        "emails": [
+          "$SHERIFF"
+        ]
       }
     }
   ],
+  "supportsManualRolls": true,
   "transitiveDeps": [
     {
       "child": {

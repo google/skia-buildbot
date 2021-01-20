@@ -2,18 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Perfetto Trace Processor Mac",
-  "commitMsg": {
-    "childLogURLTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeTbrLine": true
-  },
   "contacts": [
     "chrometto-team@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -24,30 +15,55 @@
   "sheriff": [
     "perfetto-bugs@google.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "commandRepoManager": {
     "branch": "master",
     "repoURL": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": ".*\\/([a-f0-9]{12})[a-f0-9]{28}\\/.*",
     "getTipRev": {
-      "command": ["./roll_trace_processor", "--platform", "mac", "--print-latest"],
+      "command": [
+        "./roll_trace_processor",
+        "--platform",
+        "mac",
+        "--print-latest"
+      ],
       "dir": "tools/perf/core/perfetto_binary_roller"
     },
     "getPinnedRev": {
-      "command": ["./roll_trace_processor", "--platform", "mac", "--print-current"],
+      "command": [
+        "./roll_trace_processor",
+        "--platform",
+        "mac",
+        "--print-current"
+      ],
       "dir": "tools/perf/core/perfetto_binary_roller"
     },
     "setPinnedRev": {
-      "command": ["./roll_trace_processor", "--platform", "mac", "--path", "{{.RollingTo}}"],
+      "command": [
+        "./roll_trace_processor",
+        "--platform",
+        "mac",
+        "--path",
+        "{{.RollingTo}}"
+      ],
       "dir": "tools/perf/core/perfetto_binary_roller"
-    },
+    }
   },
   "kubernetes": {
     "cpu": "8",
-    "disk": "100Gi",
     "memory": "16Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "disk": "100Gi"
+  }
 }

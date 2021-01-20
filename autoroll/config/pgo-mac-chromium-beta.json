@@ -1,24 +1,11 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childDisplayName": "Chrome Mac PGO profile",
-  "commitMsg": {
-    "template": "{{- define \"subject\" -}}Roll Chrome Mac PGO Profile{{- end -}}\
-{{- define \"revisions\" -}}Roll {{ .ChildName }} from {{ .RollingFrom }} to {{ .RollingTo }}{{- end -}}",
-    "cqExtraTrybots": [
-      "luci.chrome.try:mac-chrome-beta",
-    ],
-    "includeTbrLine": true
-  },
   "contacts": [
     "pgo-profile-sheriffs@google.com",
     "chrome-brapp-engprod@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -29,22 +16,36 @@
   "sheriff": [
     "pgo-profile-sheriffs@google.com"
   ],
+  "commitMsg": {
+    "cqExtraTrybots": [
+      "luci.chrome.try:mac-chrome-beta"
+    ],
+    "includeTbrLine": true,
+    "template": "{{- define \"subject\" -}}Roll Chrome Mac PGO Profile{{- end -}}{{- define \"revisions\" -}}Roll {{ .ChildName }} from {{ .RollingFrom }} to {{ .RollingTo }}{{- end -}}"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "semVerGCSRepoManager": {
-    "childBranch": "master",
-    "childPath": "chrome/build/mac.pgo.txt",
-    "gcsBucket": "chromium-optimization-profiles",
-    "gcsPath": "pgo_profiles",
     "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Beta.Number}}",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "gcsBucket": "chromium-optimization-profiles",
+    "gcsPath": "pgo_profiles",
     "versionFile": "chrome/build/mac.pgo.txt",
     "versionRegex": "^chrome-mac-{{.Branches.Chromium.Beta.Number}}-(\\d+)-.+\\.profdata$"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

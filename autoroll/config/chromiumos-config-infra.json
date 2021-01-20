@@ -2,23 +2,11 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "chromiumos/config",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "chromeos-infra-discuss@google.com",
     "pprabhu@google.com",
     "andrewlamb@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "infra/infra",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -30,20 +18,35 @@
     "pprabhu+autoroll@google.com",
     "andrewlamb+autoroll@google.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "infra/infra",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "infra/go/src/go.chromium.org/chromiumos/config",
-    "childRepo": "https://chromium.googlesource.com/chromiumos/config.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
+    "parentRepo": "https://chromium.googlesource.com/infra/infra.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "infra/infra",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/chromiumos/config.git"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

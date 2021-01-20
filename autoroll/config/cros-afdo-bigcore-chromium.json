@@ -2,17 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "ChromeOS Bigcore AFDO profile",
-  "commitMsg": {
-    "includeTbrLine": true
-  },
   "contacts": [
     "tcwang@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -23,23 +15,34 @@
   "sheriff": [
     "c-compiler-chrome@google.com"
   ],
+  "commitMsg": {
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "semVerGCSRepoManager": {
-    "childBranch": "master",
-    "childPath": "chromeos/profiles/bigcore.afdo.newest.txt",
-    "gcsBucket": "chromeos-prebuilt",
-    "gcsPath": "afdo-job/vetted/release",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "gcsBucket": "chromeos-prebuilt",
+    "gcsPath": "afdo-job/vetted/release",
     "versionFile": "chromeos/profiles/bigcore.afdo.newest.txt",
+    "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionRegex": "^chromeos-chrome-amd64-bigcore-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-89.(\\d+).(\\d+).(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

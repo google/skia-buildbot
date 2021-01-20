@@ -2,23 +2,11 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "shaderc",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "dsinclair@chromium.org",
     "rharrison@chromium.org",
     "dneto@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -29,20 +17,35 @@
   "sheriff": [
     "radial-bots+chrome-roll@google.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "main",
-    "childPath": "src/third_party/shaderc/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/google/shaderc",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/external/github.com/google/shaderc"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

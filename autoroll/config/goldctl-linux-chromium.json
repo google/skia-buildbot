@@ -1,20 +1,11 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childDisplayName": "goldctl (linux)",
-  "commitMsg": {
-    "bugProject": "chromium",
-    "includeTbrLine": true
-  },
   "contacts": [
     "bsheedy@chromium.org",
     "kjlubick@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -25,20 +16,33 @@
   "sheriff": [
     "bsheedy@chromium.org"
   ],
+  "commitMsg": {
+    "bugProject": "chromium",
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "gitilesCIPDDEPSRepoManager": {
-    "childBranch": "N/A", // TODO(borenet): Not needed.
-    "childPath": "src/tools/skia_goldctl/linux",
-    "cipdAssetName": "skia/tools/goldctl/linux-amd64",
-    "cipdAssetTag": "latest",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "cipdAssetName": "skia/tools/goldctl/linux-amd64",
+    "cipdAssetTag": "latest"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "readinessPeriodSeconds": "30"
   },
   "maxRollFrequency": "12h"
 }

@@ -2,24 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "material-internationalization-ios",
-  "commitMsg": {
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-internationalization-ios/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "cqExtraTrybots": [
-      "luci.chrome.try:ios-internal-mdc"
-    ],
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": true
-  },
   "contacts": [
     "jbudorick@chromium.org"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -30,20 +15,38 @@
   "sheriff": [
     "bling-p10-rolls@google.com"
   ],
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-internationalization-ios/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chrome.try:ios-internal-mdc"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "noCheckoutDEPSRepoManager": {
     "childBranch": "stable",
-    "childPath": "src/ios/third_party/material_internationalization_ios/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-internationalization-ios",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-internationalization-ios/+show/%s",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "chromium/src",
+      "config": "chromium"
+    },
+    "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-internationalization-ios"
   },
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
-    "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
-  },
-  "maxRollFrequency": "0m"
+    "readinessPeriodSeconds": "30"
+  }
 }

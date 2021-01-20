@@ -33,6 +33,11 @@ func (c *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
 
 // See documentation for util.Validator interface.
 func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
+	// Unset the unused variables.
+	c.ChildBranch = nil
+	c.ChildPath = ""
+	c.ChildRevLinkTmpl = ""
+
 	_, _, err := c.splitParentChild()
 	return skerr.Wrap(err)
 }

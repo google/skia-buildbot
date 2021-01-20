@@ -2,21 +2,9 @@
 // for documentation of the autoroller config.
 {
   "childDisplayName": "VK-GL-CTS",
-  "commitMsg": {
-    "bugProject": "angleproject",
-    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": true
-  },
   "contacts": [
     "angle-team@google.com"
   ],
-  "gerrit": {
-    "url": "https://chromium-review.googlesource.com",
-    "project": "angle/angle",
-    "config": "angle"
-  },
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
@@ -31,29 +19,45 @@
   "sheriffBackup": [
     "ynovikov@chromium.org"
   ],
-  "supportsManualRolls": true,
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "template": "default"
+  },
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "angle/angle",
+    "config": "angle"
+  },
   "depsRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/VK-GL-CTS/src",
-    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+show/%s",
-    "childSubdir": "angle",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+show/%s",
+    "childSubdir": "angle",
     "preUploadSteps": [
       "ANGLECodeGeneration"
     ],
-    "runHooks": true
+    "runHooks": true,
+    "gerrit": {
+      "url": "https://chromium-review.googlesource.com",
+      "project": "angle/angle",
+      "config": "angle"
+    },
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git"
   },
   "kubernetes": {
     "cpu": "2",
     "memory": "4Gi",
-    "disk": "50Gi",
+    "readinessFailureThreshold": "10",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
-    "readinessFailureThreshold": "10"
+    "disk": "50Gi"
   },
-  "maxRollFrequency": "0m",
   "notifiers": [
     {
       "filter": "error",
@@ -64,5 +68,6 @@
         ]
       }
     }
-  ]
+  ],
+  "supportsManualRolls": true
 }

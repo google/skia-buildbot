@@ -74,7 +74,7 @@ type CommandRepoManagerConfig struct {
 }
 
 // See documentation for util.Validate interface.
-func (c CommandRepoManagerConfig) Validate() error {
+func (c *CommandRepoManagerConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}

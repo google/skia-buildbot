@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -49,9 +48,9 @@ type CommonRepoManagerConfig struct {
 	// Required fields.
 
 	// Branch of the child repo we want to roll.
-	ChildBranch *config_vars.Template `json:"childBranch"`
+	ChildBranch *config_vars.Template `json:"childBranch,omitempty"`
 	// Path of the child repo within the parent repo.
-	ChildPath string `json:"childPath"`
+	ChildPath string `json:"childPath,omitempty"`
 	// Branch of the parent repo we want to roll into.
 	ParentBranch *config_vars.Template `json:"parentBranch"`
 	// URL of the parent repo.
@@ -67,8 +66,6 @@ type CommonRepoManagerConfig struct {
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
 	// specifies use_relative_paths), then this is required.
 	ChildSubdir string `json:"childSubdir,omitempty"`
-	// Monorail project name associated with the parent repo.
-	BugProject string `json:"bugProject,omitempty"`
 	// Named steps to run before uploading roll CLs.
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
@@ -92,9 +89,6 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
-	}
-	if proj := issues.REPO_PROJECT_MAPPING[c.ParentRepo]; proj != "" && c.BugProject != "" && proj != c.BugProject {
-		return errors.New("BugProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := parent.GetPreUploadStep(s); err != nil {

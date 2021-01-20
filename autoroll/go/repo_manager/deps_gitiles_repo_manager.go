@@ -27,10 +27,17 @@ type DEPSGitilesRepoManagerConfig struct {
 }
 
 // Validate implements the util.Validator interface.
-func (c DEPSGitilesRepoManagerConfig) Validate() error {
+func (c *DEPSGitilesRepoManagerConfig) Validate() error {
+	// Set some unused variables on the embedded RepoManager.
+	c.ChildPath = "N/A"
+	c.ChildRevLinkTmpl = "N/A"
 	if err := c.DepotToolsRepoManagerConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
+		return err
 	}
+	// Unset the unused variables.
+	c.ChildPath = ""
+	c.ChildRevLinkTmpl = ""
+
 	if _, _, err := c.splitParentChild(); err != nil {
 		return skerr.Wrap(err)
 	}
