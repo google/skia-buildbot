@@ -21,9 +21,11 @@ go_library(
 go_test(
     name = "docker_test",
     srcs = ["docker_test.go"],
+    data = glob(["testdata/**"]),
     embed = [":docker"],
     deps = [
         "//go/exec",
+        "//go/testutils",
         "//go/testutils/unittest",
         "//task_driver/go/td",
         "@com_github_stretchr_testify//require",

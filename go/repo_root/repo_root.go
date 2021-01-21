@@ -4,11 +4,23 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"go.skia.org/infra/bazel/go/bazel"
 )
 
-// Get returns the path to the repo root. Note that this will return an error if
-// the CWD is not inside a checkout, so this cannot run on production servers.
+// Get returns the path to the workspace's root directory.
+//
+// Under Bazel, it returns the path to the runfiles directory. Test targets must include any
+// required files under their "data" attribute for said files to be included in the runfiles
+// directory.
+//
+// Outside of Bazel, it returns the path to the repo checkout's root directory.  Note that this will
+// return an error if the CWD is not inside a checkout, so this cannot run on production servers.
 func Get() (string, error) {
+	if bazel.InBazel() {
+		return bazel.RunfilesDir(), nil
+	}
+
 	dir, err := os.Getwd()
 	if err != nil {
 		return "", err
