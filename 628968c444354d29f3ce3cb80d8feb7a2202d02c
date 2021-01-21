@@ -58,6 +58,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a19457f2_58c4884b",
+        "filename": "autoroll/config/afdo-chromium-stable.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 16174
+      },
+      "writtenOn": "2021-01-21T22:02:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b803f3e_0ef6f919",
+      "range": {
+        "startLine": 11,
+        "startChar": 33,
+        "endLine": 11,
+        "endChar": 37
+      },
+      "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a596aa8b_a3139eca",
@@ -71,6 +95,30 @@
       "writtenOn": "2021-01-21T22:00:31Z",
       "side": 1,
       "message": "beta -\u003e stable",
+      "range": {
+        "startLine": 13,
+        "startChar": 31,
+        "endLine": 13,
+        "endChar": 35
+      },
+      "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eec077f3_014eb953",
+        "filename": "autoroll/config/afdo-chromium-stable.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 16174
+      },
+      "writtenOn": "2021-01-21T22:02:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a596aa8b_a3139eca",
       "range": {
         "startLine": 13,
         "startChar": 31,
