@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
@@ -29,7 +30,7 @@ type GitCheckoutGithubConfig struct {
 	ForkRepoURL string `json:"forkRepoURL"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -42,6 +43,28 @@ func (c GitCheckoutGithubConfig) Validate() error {
 		return skerr.Fmt("ForkRepoURL is not in the expected format: %s", REForkRepoURL)
 	}
 	return nil
+}
+
+// GitCheckoutGithubConfigToProto converts a GitCheckoutGithubConfig to a
+// config.GitCheckoutGithubParentConfig.
+func GitCheckoutGithubConfigToProto(cfg *GitCheckoutGithubConfig) *config.GitCheckoutGitHubParentConfig {
+	return &config.GitCheckoutGitHubParentConfig{
+		GitCheckout: GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		ForkRepoUrl: cfg.ForkRepoURL,
+	}
+}
+
+// ProtoToGitCheckoutGithubConfig converts a
+// config.GitCheckoutGithubParentConfig to a GitCheckoutGithubConfig.
+func ProtoToGitCheckoutGithubConfig(cfg *config.GitCheckoutGitHubParentConfig) (*GitCheckoutGithubConfig, error) {
+	co, err := ProtoToGitCheckoutConfig(cfg.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitCheckoutGithubConfig{
+		GitCheckoutConfig: *co,
+		ForkRepoURL:       cfg.ForkRepoUrl,
+	}, nil
 }
 
 // GitCheckoutUploadGithubRollFunc returns

@@ -30,19 +30,25 @@ import (
 )
 
 const (
-	// Throttling parameters.
+	// DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT is the default attempt count for
+	// safety throttling.
 	DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT = 3
-	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW   = 30 * time.Minute
+	// DEFAULT_SAFETY_THROTTLE_TIME_WINDOW is the default time window for safety
+	// throttling.
+	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW = 30 * time.Minute
 
-	// Maximum roller name length. This is limited by Kubernetes, which has
-	// a 63-character limit for various names. This length is derived from
-	// that limit, accounting for the prefixes and suffixes which are
-	// automatically added by our tooling, eg. the "autoroll-be-" prefix and
-	// "-storage" suffix for disks, controller hashes, etc.
+	// MAX_ROLLER_NAME_LENGTH is the maximum roller name length. This is limited
+	// by Kubernetes, which has a 63-character limit for various names. This
+	// length is derived from that limit, accounting for the prefixes and
+	// suffixes which are automatically added by our tooling, eg. the
+	// "autoroll-be-" prefix and "-storage" suffix for disks, controller hashes,
+	// etc.
 	MAX_ROLLER_NAME_LENGTH = 41
 )
 
 var (
+	// SAFETY_THROTTLE_CONFIG_DEFAULT is the default configuration for safety
+	// throttling.
 	SAFETY_THROTTLE_CONFIG_DEFAULT = &ThrottleConfig{
 		AttemptCount: DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT,
 		TimeWindow:   DEFAULT_SAFETY_THROTTLE_TIME_WINDOW,
@@ -63,7 +69,7 @@ type throttleConfigJSON struct {
 	TimeWindow   string `json:"timeWindow"`
 }
 
-// See documentation for json.Marshaler interface.
+// MarshalJSON implements json.Marshaler.
 func (c *ThrottleConfig) MarshalJSON() ([]byte, error) {
 	tc := throttleConfigJSON{
 		AttemptCount: c.AttemptCount,
@@ -72,7 +78,7 @@ func (c *ThrottleConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&tc)
 }
 
-// See documentation for json.Unmarshaler interface.
+// UnmarshalJSON implements json.Unmarshaler.
 func (c *ThrottleConfig) UnmarshalJSON(b []byte) error {
 	var tc throttleConfigJSON
 	if err := json5.Unmarshal(b, &tc); err != nil {
@@ -87,7 +93,8 @@ func (c *ThrottleConfig) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Dummy repo manager config used to indicate a Google3 roller.
+// Google3FakeRepoManagerConfig is a fake repo manager config used to indicate a
+// Google3 roller.
 type Google3FakeRepoManagerConfig struct {
 	// Branch of the child repo to roll.
 	ChildBranch string `json:"childBranch"`
@@ -95,24 +102,24 @@ type Google3FakeRepoManagerConfig struct {
 	ChildRepo string `json:"childRepo"`
 }
 
-// See documentation for RepoManagerConfig interface.
-func (r *Google3FakeRepoManagerConfig) DefaultStrategy() string {
+// DefaultStrategy implements RepoManagerConfig.
+func (c *Google3FakeRepoManagerConfig) DefaultStrategy() string {
 	return strategy.ROLL_STRATEGY_BATCH
 }
 
-// See documentation for RepoManagerConfig interface.
-func (r *Google3FakeRepoManagerConfig) NoCheckout() bool {
+// NoCheckout implements RepoManagerConfig.
+func (c *Google3FakeRepoManagerConfig) NoCheckout() bool {
 	return false
 }
 
-// See documentation for RepoManagerConfig interface.
-func (r *Google3FakeRepoManagerConfig) ValidStrategies() []string {
+// ValidStrategies implements RepoManagerConfig.
+func (c *Google3FakeRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *Google3FakeRepoManagerConfig) Validate() error {
 	if c.ChildBranch == "" {
 		return errors.New("ChildBranch is required.")
@@ -149,7 +156,7 @@ type KubernetesSecret struct {
 	MountPath string `json:"mountPath"`
 }
 
-// Validate the KubernetesConfig.
+// Validate implements util.Validator.
 func (c *KubernetesConfig) Validate() error {
 	if c.CPU == "" {
 		return errors.New("CPU is required.")
@@ -336,7 +343,7 @@ func (c *AutoRollerConfig) Validate() error {
 	return err
 }
 
-// Return the code review config for the roller.
+// CodeReview returns the code review config for the roller.
 func (c *AutoRollerConfig) CodeReview() codereview.CodeReviewConfig {
 	if c.Github != nil {
 		return c.Github
@@ -401,7 +408,7 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 	return nil, skerr.Fmt("Exactly one repo manager is expected but got %d", len(rm))
 }
 
-// Return the default strategy for the roller.
+// DefaultStrategy returns the default strategy for the roller.
 func (c *AutoRollerConfig) DefaultStrategy() string {
 	rm, err := c.repoManagerConfig()
 	if err != nil {
@@ -410,7 +417,7 @@ func (c *AutoRollerConfig) DefaultStrategy() string {
 	return rm.DefaultStrategy()
 }
 
-// Return the valid strategies for the roller.
+// ValidStrategies returns the valid strategies for the roller.
 func (c *AutoRollerConfig) ValidStrategies() []string {
 	rm, err := c.repoManagerConfig()
 	if err != nil {

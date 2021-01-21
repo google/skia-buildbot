@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
@@ -29,7 +30,7 @@ type SemVerGCSConfig struct {
 	VersionRegex *config_vars.Template
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *SemVerGCSConfig) Validate() error {
 	if err := c.GCSConfig.Validate(); err != nil {
 		return err
@@ -48,6 +49,40 @@ func (c *SemVerGCSConfig) Validate() error {
 	return nil
 }
 
+// SemVerGCSConfigToProto converts a SemVerGCSConfig to a
+// config.SemVerGCSChildConfig.
+func SemVerGCSConfigToProto(cfg *SemVerGCSConfig) *config.SemVerGCSChildConfig {
+	rv := &config.SemVerGCSChildConfig{
+		Gcs:          GCSConfigToProto(&cfg.GCSConfig),
+		VersionRegex: cfg.VersionRegex.RawTemplate(),
+	}
+	if cfg.ShortRevRegex != nil {
+		rv.ShortRevRegex = cfg.ShortRevRegex.RawTemplate()
+	}
+	return rv
+}
+
+// ProtoToSemVerGCSConfig converts a config.SemVerGCSChildConfig to a
+// SemVerGCSConfig.
+func ProtoToSemVerGCSConfig(cfg *config.SemVerGCSChildConfig) (*SemVerGCSConfig, error) {
+	versionRegex, err := config_vars.NewTemplate(cfg.VersionRegex)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	var shortRevRegex *config_vars.Template
+	if cfg.ShortRevRegex != "" {
+		shortRevRegex, err = config_vars.NewTemplate(cfg.ShortRevRegex)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	return &SemVerGCSConfig{
+		GCSConfig:     *ProtoToGCSConfig(cfg.Gcs),
+		ShortRevRegex: shortRevRegex,
+		VersionRegex:  versionRegex,
+	}, nil
+}
+
 // parseSemanticVersion returns the set of integer versions which make up the
 // given semantic version, as specified by the capture groups in the given
 // Regexp.
@@ -63,9 +98,8 @@ func parseSemanticVersion(regex *regexp.Regexp, ver string) ([]int, error) {
 			matchInts[idx] = i
 		}
 		return matchInts, nil
-	} else {
-		return nil, errInvalidGCSVersion
 	}
+	return nil, errInvalidGCSVersion
 }
 
 // compareSemanticVersions returns 1 if A comes before B, -1 if A comes

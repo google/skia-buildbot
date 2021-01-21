@@ -64,8 +64,8 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 
 	// Create child and parent repos.
 	parent := git_testutils.GitInit(t, ctx)
-	parent.Add(ctx, FuchsiaSDKVersionFilePathLinux, fuchsiaSDKRevBase)
-	parent.Add(ctx, FuchsiaSDKVersionFilePathMac, fuchsiaSDKRevBase)
+	parent.Add(ctx, fuchsiaSDKVersionFilePathLinux, fuchsiaSDKRevBase)
+	parent.Add(ctx, fuchsiaSDKVersionFilePathMac, fuchsiaSDKRevBase)
 	parent.Commit(ctx)
 
 	urlmock := mockhttpclient.NewURLMock()
@@ -91,8 +91,8 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentHead)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
@@ -136,8 +136,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentHead)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
@@ -149,8 +149,8 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	// Upload a CL.
 
 	// Mock the request for the currently-pinned versions.
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentHead)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
@@ -177,10 +177,10 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 
 	// Mock the request to modify the version files.
 	reqBody = []byte(tipRev.Id + "\n")
-	reqUrl := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(FuchsiaSDKVersionFilePathLinux))
+	reqUrl := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(fuchsiaSDKVersionFilePathLinux))
 	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 	reqBody = []byte("mac-next\n")
-	reqUrl = fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(FuchsiaSDKVersionFilePathMac))
+	reqUrl = fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(fuchsiaSDKVersionFilePathMac))
 	urlmock.MockOnce(reqUrl, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to publish the change edit.

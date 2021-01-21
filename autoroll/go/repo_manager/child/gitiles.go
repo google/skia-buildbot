@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -22,6 +23,28 @@ type GitilesConfig struct {
 	// commits are ignored. Note that this may produce strange results if the
 	// git history for the path is not linear.
 	Path string `json:"path"`
+}
+
+// GitilesConfigToProto converts a GitilesConfig to a
+// config.GitilesChildConfig.
+func GitilesConfigToProto(cfg *GitilesConfig) *config.GitilesChildConfig {
+	return &config.GitilesChildConfig{
+		Gitiles: gitiles_common.GitilesConfigToProto(&cfg.GitilesConfig),
+		Path:    cfg.Path,
+	}
+}
+
+// ProtoToGitilesConfig converts a config.GitilesChildConfig to a
+// GitilesConfig.
+func ProtoToGitilesConfig(cfg *config.GitilesChildConfig) (*GitilesConfig, error) {
+	gc, err := gitiles_common.ProtoToGitilesConfig(cfg.Gitiles)
+	if err != nil {
+		return nil, err
+	}
+	return &GitilesConfig{
+		GitilesConfig: *gc,
+		Path:          cfg.Path,
+	}, nil
 }
 
 // gitilesChild is an implementation of Child which uses Gitiles rather than a

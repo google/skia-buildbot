@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
@@ -37,21 +38,95 @@ var cipdRoot = path.Join(os.TempDir(), "cipd")
 // of the parent repo.
 type PreUploadStep func(context.Context, []string, *http.Client, string) error
 
-// preUploadSteps is the registry of known PreUploadStep instances.
-var preUploadSteps = map[string]PreUploadStep{
-	"ANGLECodeGeneration":             ANGLECodeGeneration,
-	"ANGLERollChromium":               ANGLERollChromium,
-	"GoGenerateCipd":                  GoGenerateCipd,
-	"TrainInfra":                      TrainInfra,
-	"FlutterLicenseScripts":           FlutterLicenseScripts,
-	"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
-	"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
-	"AngleGnToBp":                     AngleGnToBp,
-	"SkiaGnToBp":                      SkiaGnToBp,
-	"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
+const (
+	// These are the names of the pre-upload steps. They must be kept in sync
+	// with go/config/config.proto.
+	preUploadStepANGLECodeGeneration             = "ANGLECodeGeneration"
+	preUploadStepANGLERollChromium               = "ANGLERollChromium"
+	preUploadStepGoGenerateCIPD                  = "GoGenerateCipd"
+	preUploadStepTrainInfra                      = "TrainInfra"
+	preUploadStepFlutterLicenseScripts           = "FlutterLicenseScripts"
+	preUploadStepFlutterLicenseScriptsForDart    = "FlutterLicenseScriptsForDart"
+	preUploadStepFlutterLicenseScriptsForFuchsia = "FlutterLicenseScriptsForFuchsia"
+	preUploadStepANGLEGnToBp                     = "AngleGnToBp"
+	preUploadStepSkiaGnToBp                      = "SkiaGnToBp"
+	preUploadStepUpdateFlutterDepsForDart        = "UpdateFlutterDepsForDart"
+)
+
+var (
+	// preUploadSteps is the registry of known PreUploadStep instances.
+	preUploadSteps = map[string]PreUploadStep{
+		preUploadStepANGLECodeGeneration:             ANGLECodeGeneration,
+		preUploadStepANGLERollChromium:               ANGLERollChromium,
+		preUploadStepGoGenerateCIPD:                  GoGenerateCipd,
+		preUploadStepTrainInfra:                      TrainInfra,
+		preUploadStepFlutterLicenseScripts:           FlutterLicenseScripts,
+		preUploadStepFlutterLicenseScriptsForDart:    FlutterLicenseScriptsForDart,
+		preUploadStepFlutterLicenseScriptsForFuchsia: FlutterLicenseScriptsForFuchsia,
+		preUploadStepANGLEGnToBp:                     AngleGnToBp,
+		preUploadStepSkiaGnToBp:                      SkiaGnToBp,
+		preUploadStepUpdateFlutterDepsForDart:        UpdateFlutterDepsForDart,
+	}
+
+	preUploadStepToProto = map[string]config.PreUploadStep{
+		preUploadStepANGLECodeGeneration:             config.PreUploadStep_ANGLE_CODE_GENERATION,
+		preUploadStepANGLERollChromium:               config.PreUploadStep_ANGLE_ROLL_CHROMIUM,
+		preUploadStepGoGenerateCIPD:                  config.PreUploadStep_GO_GENERATE_CIPD,
+		preUploadStepTrainInfra:                      config.PreUploadStep_TRAIN_INFRA,
+		preUploadStepFlutterLicenseScripts:           config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS,
+		preUploadStepFlutterLicenseScriptsForDart:    config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART,
+		preUploadStepFlutterLicenseScriptsForFuchsia: config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA,
+		preUploadStepANGLEGnToBp:                     config.PreUploadStep_ANGLE_GN_TO_BP,
+		preUploadStepSkiaGnToBp:                      config.PreUploadStep_SKIA_GN_TO_BP,
+		preUploadStepUpdateFlutterDepsForDart:        config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART,
+	}
+	protoToPreUploadStep = map[config.PreUploadStep]string{
+		config.PreUploadStep_ANGLE_CODE_GENERATION:               preUploadStepANGLECodeGeneration,
+		config.PreUploadStep_ANGLE_ROLL_CHROMIUM:                 preUploadStepANGLERollChromium,
+		config.PreUploadStep_GO_GENERATE_CIPD:                    preUploadStepGoGenerateCIPD,
+		config.PreUploadStep_TRAIN_INFRA:                         preUploadStepTrainInfra,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:             preUploadStepFlutterLicenseScripts,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:    preUploadStepFlutterLicenseScriptsForDart,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA: preUploadStepFlutterLicenseScriptsForFuchsia,
+		config.PreUploadStep_ANGLE_GN_TO_BP:                      preUploadStepANGLEGnToBp,
+		config.PreUploadStep_SKIA_GN_TO_BP:                       preUploadStepSkiaGnToBp,
+		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        preUploadStepUpdateFlutterDepsForDart,
+	}
+)
+
+// PreUploadStepToProto converts a pre-upload step name to a
+// config.PreUploadStep.
+func PreUploadStepToProto(step string) config.PreUploadStep {
+	return preUploadStepToProto[step]
 }
 
-// Return the PreUploadStep with the given name.
+// ProtoToPreUploadStep converts a config.PreUploadStep to a pre-upload step
+// name.
+func ProtoToPreUploadStep(step config.PreUploadStep) string {
+	return protoToPreUploadStep[step]
+}
+
+// PreUploadStepsToProto converts a []string of pre-upload step names to a
+// []config.PreUploadStep.
+func PreUploadStepsToProto(steps []string) []config.PreUploadStep {
+	var rv []config.PreUploadStep
+	for _, step := range steps {
+		rv = append(rv, PreUploadStepToProto(step))
+	}
+	return rv
+}
+
+// ProtoToPreUploadSteps converts a []config.PreUploadStep to a []string of pre-
+// upload step names.
+func ProtoToPreUploadSteps(steps []config.PreUploadStep) []string {
+	var rv []string
+	for _, step := range steps {
+		rv = append(rv, ProtoToPreUploadStep(step))
+	}
+	return rv
+}
+
+// GetPreUploadStep returns the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := preUploadSteps[s]
 	if !ok {
@@ -60,7 +135,7 @@ func GetPreUploadStep(s string) (PreUploadStep, error) {
 	return rv, nil
 }
 
-// Return the PreUploadSteps with the given names.
+// GetPreUploadSteps returns the PreUploadSteps with the given names.
 func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 	rv := make([]PreUploadStep, 0, len(steps))
 	for _, s := range steps {
@@ -82,7 +157,7 @@ func AddPreUploadStepForTesting(s PreUploadStep) string {
 	return id
 }
 
-// Train the infra expectations.
+// TrainInfra trains the infra expectations.
 func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
@@ -123,7 +198,8 @@ func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRe
 	return nil
 }
 
-// Run the create_updated_flutter_deps.py for Dart in Flutter.
+// UpdateFlutterDepsForDart runs the create_updated_flutter_deps.py for Dart in
+// Flutter.
 // See https://bugs.chromium.org/p/skia/issues/detail?id=8437#c18 and
 // https://bugs.chromium.org/p/skia/issues/detail?id=8437#c21 for context.
 func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
@@ -148,19 +224,19 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 	return nil
 }
 
-// Run the flutter license scripts as described in
+// FlutterLicenseScripts runs the flutter license scripts as described in
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_skia")
 }
 
-// Run the flutter license scripts for fuchsia.
+// FlutterLicenseScriptsForFuchsia runs the flutter license scripts for fuchsia.
 func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia")
 }
 
-// Run the flutter license scripts for dart.
+// FlutterLicenseScriptsForDart runs the flutter license scripts for dart.
 func FlutterLicenseScriptsForDart(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_third_party")
 }
@@ -244,7 +320,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 	return nil
 }
 
-// Run "go generate" in go/cipd.
+// GoGenerateCipd runs "go generate" in go/cipd.
 func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
@@ -310,7 +386,7 @@ func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRe
 	return nil
 }
 
-// Run the ANGLE code generation script.
+// ANGLECodeGeneration runs the ANGLE code generation script.
 func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
 	sklog.Info("Running code generation script...")
 	out, err := exec.RunCommand(ctx, &exec.Command{
@@ -323,7 +399,7 @@ func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client,
 	return skerr.Wrap(err)
 }
 
-// Run the ANGLE roll_chromium_deps.py script.
+// ANGLERollChromium runs the ANGLE roll_chromium_deps.py script.
 func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
 	sklog.Info("Running roll_chromium_deps script...")
 	contents, err := ioutil.ReadFile(filepath.Join(parentRepoDir, deps_parser.DepsFileName))

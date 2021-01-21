@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
@@ -42,6 +43,20 @@ var (
 		GERRIT_CONFIG_CHROMIUM_NO_CQ: gerrit.CONFIG_CHROMIUM_NO_CQ,
 		GERRIT_CONFIG_LIBASSISTANT:   gerrit.CONFIG_LIBASSISTANT,
 	}
+	cfgNameToProto = map[string]config.GerritConfig_Config{
+		GERRIT_CONFIG_ANDROID:        config.GerritConfig_ANDROID,
+		GERRIT_CONFIG_ANGLE:          config.GerritConfig_ANGLE,
+		GERRIT_CONFIG_CHROMIUM:       config.GerritConfig_CHROMIUM,
+		GERRIT_CONFIG_CHROMIUM_NO_CQ: config.GerritConfig_CHROMIUM_NO_CQ,
+		GERRIT_CONFIG_LIBASSISTANT:   config.GerritConfig_LIBASSISTANT,
+	}
+	protoToCfgName = map[config.GerritConfig_Config]string{
+		config.GerritConfig_ANDROID:        GERRIT_CONFIG_ANDROID,
+		config.GerritConfig_ANGLE:          GERRIT_CONFIG_ANGLE,
+		config.GerritConfig_CHROMIUM:       GERRIT_CONFIG_CHROMIUM,
+		config.GerritConfig_CHROMIUM_NO_CQ: GERRIT_CONFIG_CHROMIUM_NO_CQ,
+		config.GerritConfig_LIBASSISTANT:   GERRIT_CONFIG_LIBASSISTANT,
+	}
 )
 
 // CodeReviewConfig provides generalized configuration information for a code
@@ -67,7 +82,25 @@ type GerritConfig struct {
 	Config string `json:"config"`
 }
 
-// See documentation for util.Validator interface.
+// GerritConfigToProto converts a GerritConfig to a config.GerritConfig.
+func GerritConfigToProto(cfg *GerritConfig) *config.GerritConfig {
+	return &config.GerritConfig{
+		Url:     cfg.URL,
+		Project: cfg.Project,
+		Config:  cfgNameToProto[cfg.Config],
+	}
+}
+
+// ProtoToGerritConfig converts a config.GerritConfig to a GerritConfig.
+func ProtoToGerritConfig(cfg *config.GerritConfig) *GerritConfig {
+	return &GerritConfig{
+		URL:     cfg.Url,
+		Project: cfg.Project,
+		Config:  protoToCfgName[cfg.Config],
+	}
+}
+
+// Validate implements util.Validator.
 func (c *GerritConfig) Validate() error {
 	if c.URL == "" {
 		return errors.New("URL is required.")
@@ -86,7 +119,7 @@ func (c *GerritConfig) Validate() error {
 	return nil
 }
 
-// See documentation for CodeReviewConfig interface.
+// Init implements CodeReviewConfig.
 func (c *GerritConfig) Init(gerritClient gerrit.GerritInterface, githubClient *github.GitHub) (CodeReview, error) {
 	return newGerritCodeReview(c, gerritClient)
 }
@@ -115,7 +148,25 @@ type GithubConfig struct {
 	ChecksWaitFor []string `json:"checksWaitFor,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// GithubConfigToProto converts a GithubConfig to a config.GitHubConfig.
+func GithubConfigToProto(cfg *GithubConfig) *config.GitHubConfig {
+	return &config.GitHubConfig{
+		RepoOwner:     cfg.RepoOwner,
+		RepoName:      cfg.RepoName,
+		ChecksWaitFor: cfg.ChecksWaitFor,
+	}
+}
+
+// ProtoToGithubConfig converts a config.GitHubConfig to a GithubConfig.
+func ProtoToGithubConfig(cfg *config.GitHubConfig) *GithubConfig {
+	return &GithubConfig{
+		RepoOwner:     cfg.RepoOwner,
+		RepoName:      cfg.RepoName,
+		ChecksWaitFor: cfg.ChecksWaitFor,
+	}
+}
+
+// Validate implements util.Validator.
 func (c *GithubConfig) Validate() error {
 	if c.RepoOwner == "" {
 		return errors.New("RepoOwner is required.")
@@ -126,20 +177,30 @@ func (c *GithubConfig) Validate() error {
 	return nil
 }
 
-// See documentation for CodeReviewConfig interface.
+// Init implements CodeReviewConfig.
 func (c *GithubConfig) Init(gerritClient gerrit.GerritInterface, githubClient *github.GitHub) (CodeReview, error) {
 	return newGithubCodeReview(c, githubClient)
 }
 
-// Google3 config is an empty configuration object for Google3.
+// Google3Config is an empty configuration object for Google3.
 type Google3Config struct{}
 
-// See documentation for util.Validator interface.
+// Google3ConfigToProto converts a Google3Config to a config.Google3Config.
+func Google3ConfigToProto(cfg *Google3Config) *config.Google3Config {
+	return &config.Google3Config{}
+}
+
+// ProtoToGoogle3Config converts a config.Google3Config to a Google3Config.
+func ProtoToGoogle3Config(cfg *config.Google3Config) *Google3Config {
+	return &Google3Config{}
+}
+
+// Validate implements util.Validator.
 func (c *Google3Config) Validate() error {
 	return nil
 }
 
-// See documentation for CodeReviewConfig interface.
+// Init implements CodeReviewConfig.
 func (c *Google3Config) Init(gerrit.GerritInterface, *github.GitHub) (CodeReview, error) {
 	return nil, errors.New("Init not implemented for Google3Config.")
 }

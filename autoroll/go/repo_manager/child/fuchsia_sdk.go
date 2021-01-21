@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
@@ -26,13 +27,30 @@ type FuchsiaSDKConfig struct {
 	IncludeMacSDK bool `json:"includeMacSDK"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c FuchsiaSDKConfig) Validate() error {
 	// Can't validate a lone bool...
 	return nil
 }
 
-// FuchsiaSDKChild is an implementation of Child which deals with the Fuchsia SDK.
+// FuchsiaSDKConfigToProto converts a FuchsiaSDKConfig to a
+// config.FuchsiaSDKChildConfig.
+func FuchsiaSDKConfigToProto(cfg *FuchsiaSDKConfig) *config.FuchsiaSDKChildConfig {
+	return &config.FuchsiaSDKChildConfig{
+		IncludeMacSdk: cfg.IncludeMacSDK,
+	}
+}
+
+// ProtoToFuchsiaSDKConfig converts a config.FuchsiaSDKChildConfig to a
+// FuchsiaSDKConfig.
+func ProtoToFuchsiaSDKConfig(cfg *config.FuchsiaSDKChildConfig) *FuchsiaSDKConfig {
+	return &FuchsiaSDKConfig{
+		IncludeMacSDK: cfg.IncludeMacSdk,
+	}
+}
+
+// FuchsiaSDKChild is an implementation of Child which deals with the Fuchsia
+// SDK.
 type FuchsiaSDKChild struct {
 	gsBucket          string
 	gsLatestPathLinux string
@@ -41,7 +59,8 @@ type FuchsiaSDKChild struct {
 	storageClient     *storage.Client
 }
 
-// NewFuchsiaSDK returns a Child implementation which deals with the Fuchsia SDK.
+// NewFuchsiaSDK returns a Child implementation which deals with the Fuchsia
+// SDK.
 func NewFuchsiaSDK(ctx context.Context, c FuchsiaSDKConfig, client *http.Client) (*FuchsiaSDKChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
@@ -61,12 +80,12 @@ func NewFuchsiaSDK(ctx context.Context, c FuchsiaSDKConfig, client *http.Client)
 	return rv, nil
 }
 
-// See documentation for Child interface.
+// GetRevision implements Child.
 func (c *FuchsiaSDKChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	return fuchsiaSDKVersionToRevision(id), nil
 }
 
-// See documentation for Child interface.
+// Update implements Child.
 func (c *FuchsiaSDKChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	// Get latest SDK version.
 	tipRevBytes, err := gcs.FileContentsFromGCS(c.storageClient, c.gsBucket, c.gsLatestPathLinux)

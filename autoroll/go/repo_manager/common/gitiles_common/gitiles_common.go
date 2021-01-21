@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -27,7 +28,7 @@ type GitilesConfig struct {
 	Dependencies []*version_file_common.VersionFileConfig `json:"dependencies,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *GitilesConfig) Validate() error {
 	if c.Branch == nil {
 		return errors.New("Branch is required.")
@@ -39,6 +40,28 @@ func (c *GitilesConfig) Validate() error {
 		return errors.New("RepoURL is required.")
 	}
 	return nil
+}
+
+// GitilesConfigToProto converts a GitilesConfig to a config.GitilesConfig.
+func GitilesConfigToProto(cfg *GitilesConfig) *config.GitilesConfig {
+	return &config.GitilesConfig{
+		Branch:       cfg.Branch.RawTemplate(),
+		RepoUrl:      cfg.RepoURL,
+		Dependencies: version_file_common.VersionFileConfigsToProto(cfg.Dependencies),
+	}
+}
+
+// ProtoToGitilesConfig converts a config.GitilesConfig to a GitilesConfig.
+func ProtoToGitilesConfig(cfg *config.GitilesConfig) (*GitilesConfig, error) {
+	branch, err := config_vars.NewTemplate(cfg.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitilesConfig{
+		Branch:       branch,
+		RepoURL:      cfg.RepoUrl,
+		Dependencies: version_file_common.ProtoToVersionFileConfigs(cfg.Dependencies),
+	}, nil
 }
 
 // GitilesRepo provides helpers for dealing with repos which use Gitiles.

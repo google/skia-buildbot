@@ -114,6 +114,45 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 			return skerr.Fmt("Config file %q contains unused keys:\n%s", f, diff)
 		}
 
+		// Convert the config to the proto version and back, ensuring that we
+		// get the same config.
+		proto, err := roller.AutoRollerConfigToProto(&cfg)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		// Use the same JSON trick as above.
+		actualProtoConv, err := roller.ProtoToConfig(proto)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		b, err := json.Marshal(actualProtoConv)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		m = nil
+		if err := json.Unmarshal(b, &m); err != nil {
+			return skerr.Wrap(err)
+		}
+		actualBytes, err = json.MarshalIndent(m, "", "  ")
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		actual = string(actualBytes)
+		if actual != expected {
+			diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+				A:        difflib.SplitLines(expected),
+				B:        difflib.SplitLines(actual),
+				FromFile: "Expected",
+				ToFile:   "Actual",
+				Context:  3,
+				Eol:      "\n",
+			})
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			return skerr.Fmt("Config file %q contains unused keys:\n%s", f, diff)
+		}
+
 		rollerName = cfg.RollerName
 		return nil
 	})
@@ -154,7 +193,7 @@ func main() {
 	for _, f := range configFiles {
 		rollerName, err := validateConfig(ctx, f)
 		if err != nil {
-			td.Fatal(ctx, err)
+			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}
 		if otherFile, ok := rollers[rollerName]; ok {
 			td.Fatalf(ctx, "Roller %q is defined in both %s and %s", rollerName, f, otherFile)

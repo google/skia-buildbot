@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -27,14 +28,14 @@ type GitilesCIPDDEPSRepoManagerConfig struct {
 	CipdAssetTag string `json:"cipdAssetTag"`
 }
 
-// See documentation for RepoManagerConfig interface.
-func (r *GitilesCIPDDEPSRepoManagerConfig) ValidStrategies() []string {
+// ValidStrategies implements roller.RepoManagerConfig.
+func (c *GitilesCIPDDEPSRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
 	// Set some unused variables on the embedded RepoManager.
 	br, err := config_vars.NewTemplate("N/A")
@@ -85,6 +86,48 @@ func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConf
 		return parent.GitilesConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// GitilesCIPDDEPSRepoManagerConfigToProto converts a
+// GitilesCIPDDEPSRepoManagerConfig to a config.ParentChildRepoManagerConfig.
+func GitilesCIPDDEPSRepoManagerConfigToProto(cfg *GitilesCIPDDEPSRepoManagerConfig) (*config.ParentChildRepoManagerConfig, error) {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: parent.GitilesConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_CipdChild{
+			CipdChild: child.CIPDConfigToProto(&childCfg),
+		},
+	}, nil
+}
+
+// ProtoToGitilesCIPDDEPSRepoManagerConfig converts a
+// config.ParentChildRepoManagerConfig to a GitilesCIPDDEPSRepoManagerConfig.
+func ProtoToGitilesCIPDDEPSRepoManagerConfig(cfg *config.ParentChildRepoManagerConfig) (*GitilesCIPDDEPSRepoManagerConfig, error) {
+	childCfg := cfg.GetCipdChild()
+	parentCfg := cfg.GetGitilesParent()
+	parentBranch, err := config_vars.NewTemplate(parentCfg.Gitiles.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitilesCIPDDEPSRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:      nil,
+				ChildPath:        "",
+				ParentBranch:     parentBranch,
+				ParentRepo:       parentCfg.Gitiles.RepoUrl,
+				ChildRevLinkTmpl: "", // TODO(borenet)
+			},
+		},
+		Gerrit:        codereview.ProtoToGerritConfig(parentCfg.Gerrit),
+		CipdAssetName: childCfg.Name,
+		CipdAssetTag:  childCfg.Tag,
+	}, nil
 }
 
 // NewGitilesCIPDDEPSRepoManager returns a RepoManager instance which does not use

@@ -27,7 +27,7 @@ type Notifier interface {
 	Send(ctx context.Context, thread string, msg *Message) error
 }
 
-// Configuration for a Notifier.
+// Config provides configuration for a Notifier.
 type Config struct {
 	// Required fields.
 

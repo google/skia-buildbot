@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
@@ -24,6 +25,7 @@ type GithubRepoManagerConfig struct {
 	ChildRepoURL  string `json:"childRepoURL"`
 	ChildUserName string `json:"childUserName"`
 	ForkRepoURL   string `json:"forkRepoURL"`
+
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
 
@@ -35,7 +37,7 @@ type GithubRepoManagerConfig struct {
 	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *GithubRepoManagerConfig) Validate() error {
 	// Set some unused variables on the embedded RepoManager.
 	c.ChildPath = "N/A"
@@ -72,9 +74,8 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 		GitCheckoutGithubConfig: parent.GitCheckoutGithubConfig{
 			GitCheckoutConfig: parent.GitCheckoutConfig{
 				GitCheckoutConfig: git_common.GitCheckoutConfig{
-					Branch:      c.ParentBranch,
-					RepoURL:     c.ParentRepo,
-					RevLinkTmpl: "", // Not needed.
+					Branch:  c.ParentBranch,
+					RepoURL: c.ParentRepo,
 				},
 				DependencyConfig: version_file_common.DependencyConfig{
 					VersionFileConfig: version_file_common.VersionFileConfig{
@@ -107,6 +108,65 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 		return parent.GitCheckoutGithubFileConfig{}, child.GitCheckoutGithubConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
+}
+
+// GithubRepoManagerConfigToProto converts a GithubRepoManagerConfig to a
+// config.ParentChildRepoManager.
+func GithubRepoManagerConfigToProto(cfg *GithubRepoManagerConfig) (*config.ParentChildRepoManagerConfig, error) {
+	parentCfg, childCfg, err := cfg.splitParentChild()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rv := &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent{
+			GitCheckoutGithubFileParent: parent.GitCheckoutGithubFileConfigToProto(&parentCfg),
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
+			GitCheckoutGithubChild: child.GitCheckoutGithubConfigToProto(&childCfg),
+		},
+	}
+	if cfg.BuildbucketRevisionFilter != nil {
+		rv.RevisionFilter = &config.ParentChildRepoManagerConfig_BuildbucketRevisionFilter{
+			BuildbucketRevisionFilter: revision_filter.BuildBucketRevisionFilterConfigToProto(cfg.BuildbucketRevisionFilter),
+		}
+	}
+	return rv, nil
+}
+
+// ProtoToGithubRepoManagerConfig converts a config.ParentChildRepoManager to a
+// GithubRepoManagerConfig.
+func ProtoToGithubRepoManagerConfig(cfg *config.ParentChildRepoManagerConfig) (*GithubRepoManagerConfig, error) {
+	childCfg := cfg.GetGitCheckoutGithubChild()
+	childBranch, err := config_vars.NewTemplate(childCfg.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentCfg := cfg.GetGitCheckoutGithubFileParent()
+	parentBranch, err := config_vars.NewTemplate(parentCfg.GitCheckout.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	rv := &GithubRepoManagerConfig{
+		CommonRepoManagerConfig: CommonRepoManagerConfig{
+			ChildBranch:      childBranch,
+			ParentBranch:     parentBranch,
+			ParentRepo:       parentCfg.GitCheckout.GitCheckout.GitCheckout.RepoUrl,
+			ChildRevLinkTmpl: childCfg.GitCheckout.GitCheckout.RevLinkTmpl,
+			PreUploadSteps:   parent.ProtoToPreUploadSteps(parentCfg.PreUploadSteps),
+		},
+		ChildRepoName:  childCfg.RepoName,
+		ChildRepoURL:   childCfg.GitCheckout.GitCheckout.RepoUrl,
+		ChildUserName:  childCfg.RepoOwner,
+		ForkRepoURL:    parentCfg.GitCheckout.ForkRepoUrl,
+		RevisionFile:   parentCfg.GitCheckout.GitCheckout.Dep.Primary.Path,
+		TransitiveDeps: version_file_common.ProtoToTransitiveDepConfigs(parentCfg.GitCheckout.GitCheckout.Dep.Transitive),
+	}
+	if cfg.RevisionFilter != nil {
+		if f, ok := cfg.RevisionFilter.(*config.ParentChildRepoManagerConfig_BuildbucketRevisionFilter); ok {
+			rv.BuildbucketRevisionFilter = revision_filter.ProtoToBuildbucketRevisionFilterConfig(f.BuildbucketRevisionFilter)
+		}
+	}
+	return rv, nil
 }
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given

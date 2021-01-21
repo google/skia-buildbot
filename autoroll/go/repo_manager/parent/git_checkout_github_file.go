@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -26,7 +27,7 @@ type GitCheckoutGithubFileConfig struct {
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitCheckoutGithubFileConfig) Validate() error {
 	if err := c.GitCheckoutGithubConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -40,6 +41,28 @@ func (c GitCheckoutGithubFileConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// GitCheckoutGithubFileConfigToProto converts a GitCheckoutGithubFileConfig to
+// a config.GitCheckoutGithubFileParentConfig.
+func GitCheckoutGithubFileConfigToProto(cfg *GitCheckoutGithubFileConfig) *config.GitCheckoutGitHubFileParentConfig {
+	return &config.GitCheckoutGitHubFileParentConfig{
+		GitCheckout:    GitCheckoutGithubConfigToProto(&cfg.GitCheckoutGithubConfig),
+		PreUploadSteps: PreUploadStepsToProto(cfg.PreUploadSteps),
+	}
+}
+
+// ProtoToGitCheckoutGithubFileConfig converts a
+// config.GitCheckoutGitHubFileParentConfig to a GitCheckoutGithubFileConfig.
+func ProtoToGitCheckoutGithubFileConfig(cfg *config.GitCheckoutGitHubFileParentConfig) (*GitCheckoutGithubFileConfig, error) {
+	co, err := ProtoToGitCheckoutGithubConfig(cfg.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitCheckoutGithubFileConfig{
+		GitCheckoutGithubConfig: *co,
+		PreUploadSteps:          ProtoToPreUploadSteps(cfg.PreUploadSteps),
+	}, nil
 }
 
 // NewGitCheckoutGithubFile returns a Parent which uses a local checkout and a

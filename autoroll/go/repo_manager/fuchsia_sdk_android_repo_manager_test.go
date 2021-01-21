@@ -64,7 +64,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 		if strings.Contains(cmd.Name, "git") && util.In("push", cmd.Args) {
 			// Don't run "git push".
 			return nil
-		} else if util.In(FuchsiaSDKAndroidGenScript, cmd.Args) {
+		} else if util.In(fuchsiaSDKAndroidGenScript, cmd.Args) {
 			// Write a dummy file to imitate the SDK generation.
 			sdkPath := cmd.Args[len(cmd.Args)-1]
 			testutils.WriteFile(t, filepath.Join(sdkPath, "bogus"), "bogus")
@@ -77,7 +77,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 
 	// Create repos.
 	parent := git_testutils.GitInit(t, ctx)
-	parent.Add(ctx, FuchsiaSDKAndroidVersionFile, fuchsiaSDKRevBase)
+	parent.Add(ctx, fuchsiaSDKAndroidVersionFile, fuchsiaSDKRevBase)
 	parent.Commit(ctx)
 	cfg.ParentRepo = parent.RepoUrl()
 
@@ -107,7 +107,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKAndroidVersionFile, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
 
 	// Create a dummy commit-msg hook.
@@ -154,7 +154,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	parentRepoDir := filepath.Join(wd, filepath.Base(parent.Dir()))
 	parentHead, err := git.GitDir(parentRepoDir).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentHead)
+	mockParent.MockReadFile(ctx, fuchsiaSDKAndroidVersionFile, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
 
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)

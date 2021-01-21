@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -36,7 +37,7 @@ type GitCheckoutConfig struct {
 	Dependencies []*version_file_common.VersionFileConfig `json:"dependencies,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitCheckoutConfig) Validate() error {
 	if c.Branch == nil {
 		return skerr.Fmt("Branch is required")
@@ -48,6 +49,31 @@ func (c GitCheckoutConfig) Validate() error {
 		return skerr.Fmt("RepoURL is required")
 	}
 	return nil
+}
+
+// GitCheckoutConfigToProto converts a GitCheckoutConfig to a
+// config.GitCheckoutConfig.
+func GitCheckoutConfigToProto(cfg *GitCheckoutConfig) *config.GitCheckoutConfig {
+	return &config.GitCheckoutConfig{
+		Branch:       cfg.Branch.RawTemplate(),
+		RepoUrl:      cfg.RepoURL,
+		RevLinkTmpl:  cfg.RevLinkTmpl,
+		Dependencies: version_file_common.VersionFileConfigsToProto(cfg.Dependencies),
+	}
+}
+
+// ProtoToGitCheckoutConfig converts a config.GitCheckoutConfig to a
+// GitCheckoutConfig.
+func ProtoToGitCheckoutConfig(cfg *config.GitCheckoutConfig) (*GitCheckoutConfig, error) {
+	branch, err := config_vars.NewTemplate(cfg.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitCheckoutConfig{
+		Branch:      branch,
+		RepoURL:     cfg.RepoUrl,
+		RevLinkTmpl: cfg.RevLinkTmpl,
+	}, nil
 }
 
 // Checkout provides common functionality for git checkouts.
@@ -93,7 +119,7 @@ func NewCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Regi
 	}, nil
 }
 
-// See documentation for child.Child interface.
+// GetRevision implements Child.
 func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	details, err := c.Details(ctx, id)
 	if err != nil {
@@ -112,7 +138,7 @@ func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revisi
 	return rev, nil
 }
 
-// See documentation for child.Child interface.
+// Download implements Child.
 func (c *Checkout) Download(ctx context.Context, rev *revision.Revision, dest string) error {
 	return Clone(ctx, c.RepoURL, dest, rev)
 }

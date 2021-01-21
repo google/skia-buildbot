@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -29,7 +30,7 @@ type GitilesConfig struct {
 	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitilesConfig) Validate() error {
 	if c.Gerrit == nil {
 		return skerr.Fmt("Gerrit is required")
@@ -47,6 +48,30 @@ func (c GitilesConfig) Validate() error {
 		return skerr.Fmt("Dependencies are inherited from the DependencyConfig and should not be set on the GitilesConfig.")
 	}
 	return nil
+}
+
+// GitilesConfigToProto converts a GitilesConfig to a
+// config.GitilesParentConfig.
+func GitilesConfigToProto(cfg *GitilesConfig) *config.GitilesParentConfig {
+	return &config.GitilesParentConfig{
+		Gitiles: gitiles_common.GitilesConfigToProto(&cfg.GitilesConfig),
+		Dep:     version_file_common.DependencyConfigToProto(&cfg.DependencyConfig),
+		Gerrit:  codereview.GerritConfigToProto(cfg.Gerrit),
+	}
+}
+
+// ProtoToGitilesConfig converts a config.GitilesParentConfig to a
+// GitilesConfig.
+func ProtoToGitilesConfig(cfg *config.GitilesParentConfig) (*GitilesConfig, error) {
+	gc, err := gitiles_common.ProtoToGitilesConfig(cfg.Gitiles)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitilesConfig{
+		GitilesConfig:    *gc,
+		DependencyConfig: *version_file_common.ProtoToDependencyConfig(cfg.Dep),
+		Gerrit:           codereview.ProtoToGerritConfig(cfg.Gerrit),
+	}, nil
 }
 
 // gitilesGetChangesForRollFunc computes the changes to be made in the next

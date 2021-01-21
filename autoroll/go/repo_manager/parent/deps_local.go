@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
@@ -57,7 +58,7 @@ type DEPSLocalConfig struct {
 	RunHooks bool `json:"runHooks,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c DEPSLocalConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -76,6 +77,38 @@ func (c DEPSLocalConfig) Validate() error {
 	return nil
 }
 
+// DEPSLocalConfigToProto converts a DEPSLocalConfig to a
+// config.DEPSLocalParentConfig.
+func DEPSLocalConfigToProto(cfg *DEPSLocalConfig) *config.DEPSLocalParentConfig {
+	return &config.DEPSLocalParentConfig{
+		GitCheckout:    GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		ChildPath:      cfg.ChildPath,
+		CheckoutPath:   cfg.CheckoutPath,
+		ChildSubdir:    cfg.ChildSubdir,
+		GclientSpec:    cfg.GClientSpec,
+		PreUploadSteps: PreUploadStepsToProto(cfg.PreUploadSteps),
+		RunHooks:       cfg.RunHooks,
+	}
+}
+
+// ProtoToDEPSLocalConfig converts a config.DEPSLocalParentConfig to a
+// DEPSLocalConfig.
+func ProtoToDEPSLocalConfig(cfg *config.DEPSLocalParentConfig) (*DEPSLocalConfig, error) {
+	co, err := ProtoToGitCheckoutConfig(cfg.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &DEPSLocalConfig{
+		GitCheckoutConfig: *co,
+		ChildPath:         cfg.ChildPath,
+		CheckoutPath:      cfg.CheckoutPath,
+		ChildSubdir:       cfg.ChildSubdir,
+		GClientSpec:       cfg.GclientSpec,
+		PreUploadSteps:    ProtoToPreUploadSteps(cfg.PreUploadSteps),
+		RunHooks:          cfg.RunHooks,
+	}, nil
+}
+
 // DEPSLocalGithubConfig provides configuration for a Parent which uses a local
 // checkout and DEPS to manage dependencies, and uploads pull requests to
 // GitHub.
@@ -83,6 +116,59 @@ type DEPSLocalGithubConfig struct {
 	DEPSLocalConfig
 	GitHub      *codereview.GithubConfig
 	ForkRepoURL string `json:"forkRepoURL"`
+}
+
+// DEPSLocalGithubConfigToProto converts a DEPSLocalGithubConfig to a
+// config.DEPSLocalGitHubParentConfig.
+func DEPSLocalGithubConfigToProto(cfg *DEPSLocalGithubConfig) *config.DEPSLocalGitHubParentConfig {
+	return &config.DEPSLocalGitHubParentConfig{
+		DepsLocal:   DEPSLocalConfigToProto(&cfg.DEPSLocalConfig),
+		Github:      codereview.GithubConfigToProto(cfg.GitHub),
+		ForkRepoUrl: cfg.ForkRepoURL,
+	}
+}
+
+// ProtoToDEPSLocalGithubConfig converts a config.DEPSLocalGitHubParentConfig to
+// a DEPSLocalGithubConfig.
+func ProtoToDEPSLocalGithubConfig(cfg *config.DEPSLocalGitHubParentConfig) (*DEPSLocalGithubConfig, error) {
+	dl, err := ProtoToDEPSLocalConfig(cfg.DepsLocal)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &DEPSLocalGithubConfig{
+		DEPSLocalConfig: *dl,
+		GitHub:          codereview.ProtoToGithubConfig(cfg.Github),
+		ForkRepoURL:     cfg.ForkRepoUrl,
+	}, nil
+}
+
+// DEPSLocalGerritConfig provides configuration for a Parent which uses a local
+// checkout and DEPS to manage dependencies, and uploads CLs to Gerrit.
+type DEPSLocalGerritConfig struct {
+	DEPSLocalConfig
+	Gerrit *codereview.GerritConfig
+}
+
+// DEPSLocalGerritConfigToProto converts a DEPSLocalGerritConfig to a
+// config.DEPSLocalGerritParentConfig.
+func DEPSLocalGerritConfigToProto(cfg *DEPSLocalGerritConfig) *config.DEPSLocalGerritParentConfig {
+	return &config.DEPSLocalGerritParentConfig{
+		DepsLocal: DEPSLocalConfigToProto(&cfg.DEPSLocalConfig),
+		Gerrit:    codereview.GerritConfigToProto(cfg.Gerrit),
+	}
+}
+
+// ProtoToDEPSLocalGerritConfig converts a config.DEPSLocalGerritParentConfig to
+// a DEPSLocalGerritConfig.
+func ProtoToDEPSLocalGerritConfig(cfg *config.DEPSLocalGerritParentConfig) (*DEPSLocalGerritConfig, error) {
+	dl, err := ProtoToDEPSLocalConfig(cfg.DepsLocal)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &DEPSLocalGerritConfig{
+		DEPSLocalConfig: *dl,
+		Gerrit:          codereview.ProtoToGerritConfig(cfg.Gerrit),
+	}, nil
 }
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage

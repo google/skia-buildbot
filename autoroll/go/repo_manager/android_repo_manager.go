@@ -16,14 +16,17 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -49,12 +52,45 @@ type ProjectMetadataFileConfig struct {
 	LicenseType string `json:"projectLicenseType"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *ProjectMetadataFileConfig) Validate() error {
 	if c.FilePath == "" || c.Name == "" || c.Description == "" || c.HomePage == "" || c.GitURL == "" || c.LicenseType == "" {
 		return errors.New("All parts of ProjectMetadataFileConfig are required")
 	}
 	return nil
+}
+
+// ProjectMetadataFileConfigToProto converts a ProjectMetadataFileConfig to a
+// config.AndroidRepoManagerConfig_ProjectMetadataFileConfig.
+func ProjectMetadataFileConfigToProto(cfg *ProjectMetadataFileConfig) *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig {
+	if cfg == nil {
+		return nil
+	}
+	return &config.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
+		FilePath:    cfg.FilePath,
+		Name:        cfg.Name,
+		Description: cfg.Description,
+		HomePage:    cfg.HomePage,
+		GitUrl:      cfg.GitURL,
+		LicenseType: cfg.LicenseType,
+	}
+}
+
+// ProtoToProjectMetadataFileConfig converts a
+// config.AndroidRepoManagerConfig_ProjectMetadataFileConfig to a
+// ProjectMetadataFileConfig.
+func ProtoToProjectMetadataFileConfig(cfg *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig) *ProjectMetadataFileConfig {
+	if cfg == nil {
+		return nil
+	}
+	return &ProjectMetadataFileConfig{
+		FilePath:    cfg.FilePath,
+		Name:        cfg.Name,
+		Description: cfg.Description,
+		HomePage:    cfg.HomePage,
+		GitURL:      cfg.GitUrl,
+		LicenseType: cfg.LicenseType,
+	}
 }
 
 // AndroidRepoManagerConfig provides configuration for the Android RepoManager.
@@ -64,7 +100,7 @@ type AndroidRepoManagerConfig struct {
 	ChildRepoURL               string `json:"childRepoURL"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *AndroidRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -80,15 +116,58 @@ func (c *AndroidRepoManagerConfig) Validate() error {
 	return nil
 }
 
-// See documentation for RepoManagerConfig interface.
-func (r *AndroidRepoManagerConfig) ValidStrategies() []string {
+// ValidStrategies implements roller.RepoManagerConfig.
+func (c *AndroidRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 		strategy.ROLL_STRATEGY_N_BATCH,
 	}
 }
 
-// androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
+// AndroidRepoManagerConfigToProto converts an AndroidRepoManagerConfig to a
+// config.AndroidRepoManagerConfig.
+func AndroidRepoManagerConfigToProto(cfg *AndroidRepoManagerConfig) *config.AndroidRepoManagerConfig {
+	return &config.AndroidRepoManagerConfig{
+		ChildRepoUrl:     cfg.ChildRepoURL,
+		ChildBranch:      cfg.ChildBranch.RawTemplate(),
+		ChildPath:        cfg.ChildPath,
+		ParentRepoUrl:    cfg.ParentRepo,
+		ParentBranch:     cfg.ParentBranch.RawTemplate(),
+		ChildRevLinkTmpl: cfg.ChildRevLinkTmpl,
+		ChildSubdir:      cfg.ChildSubdir,
+		PreUploadSteps:   parent.PreUploadStepsToProto(cfg.PreUploadSteps),
+		Metadata:         ProjectMetadataFileConfigToProto(cfg.ProjectMetadataFileConfig),
+	}
+}
+
+// ProtoToAndroidRepoManagerConfig converts a config.AndroidRepoManagerConfig to
+// an AndroidRepoManagerConfig.
+func ProtoToAndroidRepoManagerConfig(cfg *config.AndroidRepoManagerConfig) (*AndroidRepoManagerConfig, error) {
+	childBranch, err := config_vars.NewTemplate(cfg.ChildBranch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentBranch, err := config_vars.NewTemplate(cfg.ParentBranch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &AndroidRepoManagerConfig{
+		CommonRepoManagerConfig: CommonRepoManagerConfig{
+			ChildBranch:      childBranch,
+			ChildPath:        cfg.ChildPath,
+			ParentBranch:     parentBranch,
+			ParentRepo:       cfg.ParentRepoUrl,
+			ChildRevLinkTmpl: cfg.ChildRevLinkTmpl,
+			ChildSubdir:      cfg.ChildSubdir,
+			PreUploadSteps:   parent.ProtoToPreUploadSteps(cfg.PreUploadSteps),
+		},
+		ProjectMetadataFileConfig: ProtoToProjectMetadataFileConfig(cfg.Metadata),
+		ChildRepoURL:              cfg.ChildRepoUrl,
+	}, nil
+}
+
+// androidRepoManager is a struct used by Android AutoRoller for managing
+// checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
 	androidRemoteName string
@@ -99,6 +178,7 @@ type androidRepoManager struct {
 	projectMetadataFileConfig *ProjectMetadataFileConfig
 }
 
+// NewAndroidRepoManager returns an androidRepoManager instance.
 func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err

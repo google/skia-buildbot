@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -26,7 +27,7 @@ type GitCheckoutGithubConfig struct {
 	GithubUserName string `json:"githubUserName"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -38,6 +39,30 @@ func (c GitCheckoutGithubConfig) Validate() error {
 		return skerr.Fmt("GithubUserName is required")
 	}
 	return nil
+}
+
+// GitCheckoutGithubConfigToProto converts a GitCheckoutGithubConfig to a
+// config.GitCheckoutGitHubChildConfig.
+func GitCheckoutGithubConfigToProto(cfg *GitCheckoutGithubConfig) *config.GitCheckoutGitHubChildConfig {
+	return &config.GitCheckoutGitHubChildConfig{
+		GitCheckout: GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		RepoOwner:   cfg.GithubUserName,
+		RepoName:    cfg.GithubRepoName,
+	}
+}
+
+// ProtoToGitCheckoutGithubConfig converts a config.GitCheckoutGitHubChildConfig
+// to a GitCheckoutGithubChildConfig.
+func ProtoToGitCheckoutGithubConfig(cfg *config.GitCheckoutGitHubChildConfig) (*GitCheckoutGithubConfig, error) {
+	co, err := ProtoToGitCheckoutConfig(cfg.GitCheckout)
+	if err != nil {
+		return nil, err
+	}
+	return &GitCheckoutGithubConfig{
+		GitCheckoutConfig: *co,
+		GithubRepoName:    cfg.RepoName,
+		GithubUserName:    cfg.RepoOwner,
+	}, nil
 }
 
 // GitCheckoutGithubChild is an implementation of Child which uses a local Git
@@ -74,7 +99,7 @@ func (c *GitCheckoutGithubChild) fixPullRequestLinks(rev *revision.Revision) err
 	return nil
 }
 
-// See documentation for Child interface.
+// GetRevision implements Child.
 func (c *GitCheckoutGithubChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	rev, err := c.GitCheckoutChild.GetRevision(ctx, id)
 	if err != nil {
@@ -86,7 +111,7 @@ func (c *GitCheckoutGithubChild) GetRevision(ctx context.Context, id string) (*r
 	return rev, nil
 }
 
-// See documentation for Child interface.
+// Update implements Child.
 func (c *GitCheckoutGithubChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	tipRev, notRolledRevs, err := c.GitCheckoutChild.Update(ctx, lastRollRev)
 	if err != nil {
