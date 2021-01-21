@@ -212,8 +212,8 @@ groups:
       abbr: '{{ $labels.app }}'
       description: 'Firestore usage from {{ $labels.app }} over the last 30m is high. Verify that this is expected, and adjust the alert threshold if it is. Dashboard: https://grafana2.skia.org/d/H4cyODhZz/firestore-read-write-rate?orgId=1&from=now-30m&to=now'
 
-  - alert: AutoRollGetSheriffFailed
-    expr: autoroll_get_sheriff_success == 0
+  - alert: AutoRollGetReviewersFailed
+    expr: autoroll_get_reviewers_success == 0
     for: 2h
     labels:
       category: infra
