@@ -22,6 +22,30 @@
       },
       "revId": "979564c7013d40cb19899cac0f5b9a4ccfffdb47",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc4a2c45_eff28846",
+        "filename": ".bazelrc",
+        "patchSetId": 9
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-21T21:09:24Z",
+      "side": 1,
+      "message": "Oops, fixed in https://skia-review.googlesource.com/c/buildbot/+/356939.",
+      "parentUuid": "c4ea29fa_5196317f",
+      "range": {
+        "startLine": 31,
+        "startChar": 52,
+        "endLine": 31,
+        "endChar": 55
+      },
+      "revId": "979564c7013d40cb19899cac0f5b9a4ccfffdb47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
