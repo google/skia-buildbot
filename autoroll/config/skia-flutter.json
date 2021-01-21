@@ -74,7 +74,7 @@
       "filter": "warning",
       "email": {
         "emails": [
-          "$SHERIFF"
+          "$REVIEWERS"
         ]
       }
     }

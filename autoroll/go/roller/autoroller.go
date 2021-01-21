@@ -79,8 +79,8 @@ type AutoRoller struct {
 	runningMtx         sync.Mutex
 	safetyThrottle     *state_machine.Throttler
 	serverURL          string
-	sheriff            []string
-	sheriffBackup      []string
+	reviewers          []string
+	reviewersBackup    []string
 	sm                 *state_machine.AutoRollStateMachine
 	status             *status.Cache
 	statusMtx          sync.RWMutex
@@ -187,13 +187,13 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
-	sklog.Info("Getting sheriff")
-	emails, err := GetSheriff(c.RollerName, c.Sheriff, c.SheriffBackup)
+	sklog.Info("Getting reviewers")
+	emails, err := GetReviewers(c.RollerName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get sheriff")
+		return nil, skerr.Wrapf(err, "Failed to get reviewers")
 	}
 	sklog.Info("Creating notifier")
-	configCopies := replaceSheriffPlaceholder(c.Notifiers, emails)
+	configCopies := replaceReviewersPlaceholder(c.Notifiers, emails)
 	n, err := arb_notifier.New(ctx, c.ChildDisplayName, c.ParentDisplayName, serverURL, client, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create notifier")
@@ -238,8 +238,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
 		safetyThrottle:     safetyThrottle,
 		serverURL:          serverURL,
-		sheriff:            c.Sheriff,
-		sheriffBackup:      c.SheriffBackup,
+		reviewers:          c.Sheriff,
+		reviewersBackup:    c.SheriffBackup,
 		status:             statusCache,
 		strategy:           strat,
 		strategyHistory:    sh,
@@ -333,23 +333,23 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 		}
 	}, nil)
 
-	// Update the current sheriff in a loop.
-	lvSheriff := metrics2.NewLiveness("last_successful_sheriff_retrieval", map[string]string{"roller": r.roller})
+	// Update the current reviewers in a loop.
+	lvReviewers := metrics2.NewLiveness("last_successful_reviewers_retrieval", map[string]string{"roller": r.roller})
 	cleanup.Repeat(30*time.Minute, func(ctx context.Context) {
-		emails, err := GetSheriff(r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
+		emails, err := GetReviewers(r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
 		if err != nil {
-			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
+			sklog.Errorf("Failed to retrieve current reviewers: %s", err)
 		} else {
 			r.emailsMtx.Lock()
 			defer r.emailsMtx.Unlock()
 			r.emails = emails
 
-			configCopies := replaceSheriffPlaceholder(r.notifierConfigs, emails)
+			configCopies := replaceReviewersPlaceholder(r.notifierConfigs, emails)
 			if err := r.notifier.ReloadConfigs(ctx, configCopies); err != nil {
 				sklog.Errorf("Failed to reload configs: %s", err)
 				return
 			}
-			lvSheriff.Reset()
+			lvReviewers.Reset()
 		}
 	}, nil)
 
@@ -371,16 +371,16 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 	}
 }
 
-// Utility for replacing the placeholder $SHERIFF with real sheriff emails
+// Utility for replacing the placeholder $REVIEWERS with real reviewer emails
 // in configs. A modified copy of the passed in configs are returned.
-func replaceSheriffPlaceholder(configs []*notifier.Config, emails []string) []*notifier.Config {
+func replaceReviewersPlaceholder(configs []*notifier.Config, emails []string) []*notifier.Config {
 	configCopies := []*notifier.Config{}
 	for _, n := range configs {
 		configCopy := n.Copy()
 		if configCopy.Email != nil {
 			newEmails := []string{}
 			for _, e := range configCopy.Email.Emails {
-				if e == "$SHERIFF" {
+				if e == "$REVIEWERS" {
 					newEmails = append(newEmails, emails...)
 				} else {
 					newEmails = append(newEmails, e)
@@ -393,7 +393,7 @@ func replaceSheriffPlaceholder(configs []*notifier.Config, emails []string) []*n
 	return configCopies
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// GetActiveRoll implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) GetActiveRoll() state_machine.RollCLImpl {
 	return r.currentRoll
 }
@@ -407,7 +407,7 @@ func (r *AutoRoller) GetEmails() []string {
 	return rv
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// GetMode implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) GetMode() string {
 	return r.modeHistory.CurrentMode().Mode
 }
@@ -426,7 +426,7 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 	return nil
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// UploadNewRoll implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revision, dryRun bool) (state_machine.RollCLImpl, error) {
 	issue, err := r.createNewRoll(ctx, from, to, r.GetEmails(), dryRun)
 	if err != nil {
@@ -483,32 +483,32 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 	return issue, nil
 }
 
-// Return a state_machine.Throttler indicating that we have failed to roll too many
-// times within a time period.
+// FailureThrottle returns a state_machine.Throttler indicating that we have
+// failed to roll too many times within a time period.
 func (r *AutoRoller) FailureThrottle() *state_machine.Throttler {
 	return r.failureThrottle
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// GetCurrentRev implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) GetCurrentRev() *revision.Revision {
 	r.statusMtx.RLock()
 	defer r.statusMtx.RUnlock()
 	return r.lastRollRev
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// GetNextRollRev implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) GetNextRollRev() *revision.Revision {
 	r.statusMtx.RLock()
 	defer r.statusMtx.RUnlock()
 	return r.nextRollRev
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// InRollWindow implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) InRollWindow(t time.Time) bool {
 	return r.timeWindow.Test(t)
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// RolledPast implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) RolledPast(ctx context.Context, rev *revision.Revision) (bool, error) {
 	r.statusMtx.RLock()
 	defer r.statusMtx.RUnlock()
@@ -536,19 +536,19 @@ func (r *AutoRoller) RolledPast(ctx context.Context, rev *revision.Revision) (bo
 	return true, nil
 }
 
-// Return a state_machine.Throttler indicating that we have attempted to upload too
-// many CLs within a time period.
+// SafetyThrottle returns a state_machine.Throttler indicating that we have
+// attempted to upload too many CLs within a time period.
 func (r *AutoRoller) SafetyThrottle() *state_machine.Throttler {
 	return r.safetyThrottle
 }
 
-// Return a state_machine.Throttler indicating whether we have successfully rolled too
-// many times within a time period.
+// SuccessThrottle returns a state_machine.Throttler indicating whether we have
+// successfully rolled too many times within a time period.
 func (r *AutoRoller) SuccessThrottle() *state_machine.Throttler {
 	return r.successThrottle
 }
 
-// See documentation for state_machine.AutoRollerImpl interface.
+// UpdateRepos implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	lastRollRev, tipRev, notRolledRevs, err := r.rm.Update(ctx)
 	if err != nil {
@@ -697,12 +697,12 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	}); err != nil {
 		return err
 	}
-	// Log the current sheriff(s).
-	sklog.Infof("Current sheriff: %v", r.GetEmails())
+	// Log the current reviewers(s).
+	sklog.Infof("Current reviewers: %v", r.GetEmails())
 	return r.status.Update(ctx)
 }
 
-// Run one iteration of the roller.
+// Tick runs one iteration of the roller.
 func (r *AutoRoller) Tick(ctx context.Context) error {
 	r.runningMtx.Lock()
 	defer r.runningMtx.Unlock()
@@ -765,7 +765,7 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	return skerr.Wrapf(lastErr, "Failed state transition sequence")
 }
 
-// Add a comment to the given roll CL.
+// AddComment adds a comment to the given roll CL.
 func (r *AutoRoller) AddComment(ctx context.Context, issueNum int64, message, user string, timestamp time.Time) error {
 	roll, err := r.recent.Get(ctx, issueNum)
 	if err != nil {
@@ -776,7 +776,7 @@ func (r *AutoRoller) AddComment(ctx context.Context, issueNum int64, message, us
 	return r.recent.Update(ctx, roll)
 }
 
-// Required for main.AutoRollerI. No specific HTTP handlers.
+// AddHandlers implements main.AutoRollerI.
 func (r *AutoRoller) AddHandlers(*mux.Router) {}
 
 // Callback function which runs when roll CLs are closed.

@@ -259,8 +259,8 @@ message ManualRoll {
   // dry_run indicates whether the ManualRoll should be performed as a dry run,
   // so that the commit queue runs but the CL is not landed.
   bool dry_run = 9;
-  // no_email specifies that the requester and sheriff should not receive email
-  // related to this ManualRoll.
+  // no_email specifies that the requester and reviewers should not receive
+  // email related to this ManualRoll.
   bool no_email = 10;
   // no_resolve_revision specifies that the autoroller should not attempt to
   // find the requested revision ID in the Child but should simply use it as

@@ -1109,8 +1109,8 @@ type ManualRoll struct {
 	// dry_run indicates whether the ManualRoll should be performed as a dry run,
 	// so that the commit queue runs but the CL is not landed.
 	DryRun bool `protobuf:"varint,9,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
-	// no_email specifies that the requester and sheriff should not receive email
-	// related to this ManualRoll.
+	// no_email specifies that the requester and reviewers should not receive
+	// email related to this ManualRoll.
 	NoEmail bool `protobuf:"varint,10,opt,name=no_email,json=noEmail,proto3" json:"no_email,omitempty"`
 	// no_resolve_revision specifies that the autoroller should not attempt to
 	// find the requested revision ID in the Child but should simply use it as
