@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "36b9956d_91e4a6bf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-21T21:04:38Z",
+      "side": 1,
+      "message": "Thanks! With one tiny suggestion.",
+      "revId": "8042bdb2c3e069118256f2c446c6ad4fceed9c21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "618543ea_3fa950eb",
+        "filename": "autoroll/config/cros-afdo-atom-chromium-stable.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-21T21:04:38Z",
+      "side": 1,
+      "message": "Can you manually change this to \"4324\"? For stable branch, we can be more restrict on the regexp. Shouldn\u0027t matter much though but just to keep the tradition here.",
+      "range": {
+        "startLine": 41,
+        "startChar": 52,
+        "endLine": 41,
+        "endChar": 56
+      },
+      "revId": "8042bdb2c3e069118256f2c446c6ad4fceed9c21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1e551dc4_fecf54f0",
+        "filename": "autoroll/config/cros-afdo-bigcore-chromium-stable.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-21T21:04:38Z",
+      "side": 1,
+      "message": "Same comment about changing this to \"4324\"",
+      "range": {
+        "startLine": 41,
+        "startChar": 55,
+        "endLine": 41,
+        "endChar": 59
+      },
+      "revId": "8042bdb2c3e069118256f2c446c6ad4fceed9c21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
