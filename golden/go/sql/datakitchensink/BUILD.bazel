@@ -3,9 +3,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "datakitchensink",
     srcs = ["kitchensink.go"],
+    data = glob(["img/*"]),
     importpath = "go.skia.org/infra/golden/go/sql/datakitchensink",
     visibility = ["//visibility:public"],
-    data = glob(["img/*"]),
     deps = [
         "//go/paramtools",
         "//go/repo_root",
