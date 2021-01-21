@@ -39,6 +39,30 @@
       },
       "revId": "3b00db191cbafa44e168f23f126f1dab21b90b5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2537e86_1844788e",
+        "filename": "autoroll/go/repo_manager/child/BUILD.bazel",
+        "patchSetId": 17
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-21T20:21:33Z",
+      "side": 1,
+      "message": "I\u0027ve removed all \"manual\" tags and implemented your proposed solution in a CL further down this chain: see https://skia-review.googlesource.com/c/buildbot/+/356577 and subsequent CLs.\n\nI found a way to instruct Gazelle to create separate go_test targets automatically for any *_manual_test.go files, and automatically tag those Bazel targets as manual. This is implemented in the above CL.",
+      "parentUuid": "00e2ad29_06638344",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 30
+      },
+      "revId": "3b00db191cbafa44e168f23f126f1dab21b90b5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
