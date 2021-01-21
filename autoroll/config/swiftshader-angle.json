@@ -58,7 +58,7 @@
       "filter": "error",
       "email": {
         "emails": [
-          "$SHERIFF",
+          "$REVIEWERS",
           "angle-bots+autoroll-info@google.com"
         ]
       }

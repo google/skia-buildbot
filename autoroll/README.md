@@ -5,7 +5,7 @@ AutoRoll is a program which creates and manages DEPS rolls of a child project,
 eg. Skia, into a parent project, eg. Chrome.
 
 
-For Sheriffs of Parent Projects
+For Gardeners of Parent Projects
 -------------------------------
 
 If a roll has caused a breakage, feel free to revert first and ask questions

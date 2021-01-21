@@ -107,9 +107,11 @@ type ManualRollRequest struct {
 	Url           string           `json:"url,omitempty"`
 
 	DryRun bool `json:"dry_run"`
-	// Do not email the requester and sheriffs if this is true. Eg: for canaries.
+	// Do not email the requester and reviewers if this is true. Eg: for
+	// canaries.
 	NoEmail bool `json:"no_email"`
-	// Do not call rm.GetRevision(Revision) if this is true. Use Revision{Id: Revision} instead.
+	// Do not call rm.GetRevision(Revision) if this is true. Use
+	// Revision{Id: Revision} instead.
 	NoResolveRevision bool `json:"no_resolve_revision"`
 }
 
