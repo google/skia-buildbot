@@ -6,8 +6,10 @@ go_library(
     importpath = "go.skia.org/infra/go/testutils",
     visibility = ["//visibility:public"],
     deps = [
+        "//bazel/go/bazel",
         "//go/repo_root",
         "//go/sktest",
+        "//go/util",
         "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
