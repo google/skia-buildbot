@@ -24,7 +24,7 @@ go_library(
 
 go_test(
     name = "rbe_test",
-    srcs = ["rbe_test.go"],
+    srcs = ["rbe_manual_test.go"],
     embed = [":rbe"],
     deps = [
         "//go/auth",
