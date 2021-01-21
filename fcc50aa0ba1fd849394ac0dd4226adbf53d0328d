@@ -33,6 +33,23 @@
       "message": "LGTM % formatting",
       "revId": "fcc50aa0ba1fd849394ac0dd4226adbf53d0328d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54444ba8_9def88bd",
+        "filename": "autoroll/config/fuchsia-mac-clang-flutter-engine.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T15:00:02Z",
+      "side": 1,
+      "message": "This corresponds to the entry in the DEPS file: https://github.com/flutter/engine/commit/fafc3b2f77bae4c72950da67ac88a49584a10534#diff-4cc955bcf0b472353786cc8d8b7d346fb432c091bed099de884885e938392814\nso I thought it would be needed, but maybe it\u0027s not",
+      "revId": "fcc50aa0ba1fd849394ac0dd4226adbf53d0328d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
