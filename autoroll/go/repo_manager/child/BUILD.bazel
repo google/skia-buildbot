@@ -15,6 +15,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/repo_manager/child",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/common/git_common",
         "//autoroll/go/repo_manager/common/gitiles_common",

@@ -19,6 +19,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/codereview",
+        "//autoroll/go/config",
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/child",
         "//autoroll/go/repo_manager/common/gerrit_common",

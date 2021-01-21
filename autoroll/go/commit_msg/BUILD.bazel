@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/commit_msg",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/repo_manager/common/version_file_common",
         "//autoroll/go/revision",
         "//go/skerr",

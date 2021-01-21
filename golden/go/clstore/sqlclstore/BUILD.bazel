@@ -11,6 +11,7 @@ go_library(
         "//go/sklog",
         "//golden/go/clstore",
         "//golden/go/code_review",
+        "//golden/go/sql",
         "//golden/go/sql/schema",
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",

@@ -6,9 +6,11 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/notifier",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/config",
         "//go/chatbot",
         "//go/email",
         "//go/notifier",
+        "//go/skerr",
         "//go/sklog",
     ],
 )
