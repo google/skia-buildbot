@@ -16,6 +16,69 @@
       "message": "Thanks, Tiancong.\nI have updated afdo-chromium* files in the same change. PTAL.",
       "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4dda7d9_e9dd9fe0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-21T22:00:31Z",
+      "side": 1,
+      "message": "lgtm after one more comment",
+      "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2b803f3e_0ef6f919",
+        "filename": "autoroll/config/afdo-chromium-stable.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-21T22:00:31Z",
+      "side": 1,
+      "message": "Beta -\u003e Stable",
+      "range": {
+        "startLine": 11,
+        "startChar": 33,
+        "endLine": 11,
+        "endChar": 37
+      },
+      "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a596aa8b_a3139eca",
+        "filename": "autoroll/config/afdo-chromium-stable.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-21T22:00:31Z",
+      "side": 1,
+      "message": "beta -\u003e stable",
+      "range": {
+        "startLine": 13,
+        "startChar": 31,
+        "endLine": 13,
+        "endChar": 35
+      },
+      "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
