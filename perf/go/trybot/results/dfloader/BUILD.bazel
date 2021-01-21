@@ -24,6 +24,7 @@ go_library(
 go_test(
     name = "dfloader_test",
     srcs = ["dfloader_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":dfloader"],
     deps = [
         "//go/paramtools",
