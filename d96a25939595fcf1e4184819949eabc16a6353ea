@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5829c88f_813b0d3f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T17:20:36Z",
+      "side": 1,
+      "message": "Forgot to make the $SHERIFF replacement in the config files themselves.  Done in PS3.",
+      "revId": "d96a25939595fcf1e4184819949eabc16a6353ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
