@@ -99,28 +99,45 @@ import {
   abbr, displaySilence, expiresIn, getDurationTillNextDay, notes,
 } from '../am';
 import * as paramset from '../paramset';
+import { Incident, ParamSet, Note } from '../json';
 
 const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
 
-function table(ele, o) {
-  const keys = Object.keys(o);
+class State {
+  key: string = '';
+
+  param_set: ParamSet | null = null;
+
+  duration: string = '';
+
+  created: number = 0;
+
+  user: string = '';
+
+  notes: Note[] = [];
+
+  active: boolean = false;
+}
+
+function table(ele: SilenceSk, paramSet: ParamSet) {
+  const keys = Object.keys(paramSet);
   keys.sort();
   const botCentricParams = JSON.stringify(keys) === JSON.stringify(BOT_CENTRIC_PARAMS);
   const rules = keys.filter((k) => !k.startsWith('__')).map((k) => html`
     <tr>
       <td>
-        <delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk>
+        <delete-icon-sk title='Delete rule.' @click=${(e: Event) => ele._deleteRule(e, k)}></delete-icon-sk>
       </td>
       <th>${k}</th>
       <td>
-        <input class=param-val @change=${(e) => ele._modifyRule(e, k)} .value=${displayParamValue(o[k])}></input>
+        <input class=param-val @change=${(e: Event) => ele._modifyRule(e, k)} .value=${displayParamValue(paramSet[k])}></input>
         ${displayAddBots(botCentricParams, k, ele)}
       </td>
     </tr>`);
   rules.push(html`
     <tr>
       <td>
-        <add-box-icon-sk title='Add rule.' @click=${(e) => ele._addRule(e)}></add-box-icon-sk>
+        <add-box-icon-sk title='Add rule.' @click=${() => ele._addRule()}></add-box-icon-sk>
       </td>
       <td>
         <input id='add_param_key'></input>
@@ -133,22 +150,22 @@ function table(ele, o) {
   return rules;
 }
 
-function displayAddBots(botCentricParams, key, ele) {
+function displayAddBots(botCentricParams: boolean, key: string, ele: SilenceSk) {
   if (botCentricParams && key === 'bot') {
-    return html `<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
+    return html`<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
   }
   return '';
 }
 
-function displayParamValue(paramValue) {
+function displayParamValue(paramValue: string[]) {
   if (paramValue.length > 1) {
-    return `${paramValue.join('|')}`
+    return `${paramValue.join('|')}`;
   }
   return paramValue;
 }
 
-function addNote(ele) {
-  if (ele._state.key) {
+function addNote(ele: SilenceSk) {
+  if (ele.silenceState.key) {
     return html`
     <textarea rows=2 cols=80 placeholder="Add description for the silence"></textarea>
     <button @click=${ele._addNote}>Submit</button>
@@ -157,16 +174,16 @@ function addNote(ele) {
   return html`<textarea rows=2 cols=80 placeholder="Add description for the silence"></textarea>`;
 }
 
-function gotoIncident(incident) {
+function gotoIncident(incident: Incident) {
   window.location.href = `/?alert_id=${incident.id}&tab=1`;
 }
 
-function matches(ele) {
-  if (!ele._incidents) {
+function matches(ele: SilenceSk) {
+  if (!ele.silenceIncidents) {
     return '';
   }
-  return ele._incidents.filter(
-    (incident) => paramset.match(ele._state.param_set, incident.params) && incident.active,
+  return ele.silenceIncidents.filter(
+    (incident) => paramset.match(ele.silenceState.param_set, incident.params) && incident.active,
   ).map((incident) => html`<h2 @click=${() => gotoIncident(incident)}> ${incident.params.alertname} ${abbr(incident)}</h2>`);
 }
 
@@ -186,20 +203,37 @@ function actionButtons(ele) {
                 <delete-icon-sk title='Delete silence.' @click=${ele._delete}></delete-icon-sk>`;
 }
 
-const template = (ele) => html`
-  <h2 class=${classOfH2(ele._state)} @click=${ele._headerClick}>${displaySilence(ele._state)}</h2>
+export class SilenceSk extends HTMLElement {
+  notes: Note[] = [];
+
+  // TODO(rmistry):
+  // Will need a beter solution here
+  private state: State = {
+    key: '',
+    param_set: null,
+    duration: '',
+    created: 0,
+    user: '',
+    notes: [],
+    active: false,
+  };
+
+  private incidents: Incident[] = [];
+
+  private static template = (ele: SilenceSk) => html`
+  <h2 class=${classOfH2(ele.state)} @click=${ele._headerClick}>${displaySilence(ele.state)}</h2>
   <div class=body>
     <section class=actions>
       ${actionButtons(ele)}
     </section>
     <table class=info>
-      <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button class="param-btns" @click=${ele._tillNextShift}>Till next shift</button></td></th>
-      <tr><th>Created</th><td title=${new Date(ele._state.created * 1000).toLocaleString()}>${diffDate(ele._state.created * 1000)}</td></tr>
-      <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
+      <tr><th>User:</th><td>${ele.state.user}</td></th>
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele.state.duration}></input><button class="param-btns" @click=${ele._tillNextShift}>Till next shift</button></td></th>
+      <tr><th>Created</th><td title=${new Date(ele.state.created * 1000).toLocaleString()}>${diffDate(ele.state.created * 1000)}</td></tr>
+      <tr><th>Expires</th><td>${expiresIn(ele.state)}</td></tr>
     </table>
     <table class=params>
-      ${table(ele, ele._state.param_set)}
+      ${table(ele, ele.state.param_set)}
     </table>
     <section class=notes>
       ${notes(ele)}
@@ -214,34 +248,27 @@ const template = (ele) => html`
   </div>
 `;
 
-define('silence-sk', class extends HTMLElement {
-  constructor() {
-    super();
-    this._incidents = [];
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     upgradeProperty(this, 'state');
     upgradeProperty(this, 'incidents');
   }
 
-  /** @prop state {Object} A Silence. */
-  get state() { return this._state; }
+  get silenceState(): State { return this.state; }
 
-  set state(val) {
-    this._state = val;
+  set silenceState(val: State) {
+    this.state = val;
     this._render();
   }
 
-  /** @prop incidents {string} The current active incidents. */
-  get incidents() { return this._incidents; }
+  /** @prop incidents The current active incidents. */
+  get silenceIncidents(): Incident[] { return this.incidents; }
 
-  set incidents(val) {
-    this._incidents = val;
+  set silenceIncidents(val: Incident[]) {
+    this.incidents = val;
     this._render();
   }
 
-  _headerClick() {
+  _headerClick(): void {
     if (this.hasAttribute('collapsed')) {
       this.removeAttribute('collapsed');
     } else {
@@ -249,22 +276,22 @@ define('silence-sk', class extends HTMLElement {
     }
   }
 
-  _durationChange(e) {
-    this._state.duration = e.target.value;
+  _durationChange(e: Event): void {
+    this.state.duration = (e.target as HTMLInputElement).value;
   }
 
   // Populates duration till next Monday 9am.
-  _tillNextShift() {
-    this._state.duration = getDurationTillNextDay(1, 9);
+  _tillNextShift(): void {
+    this.state.duration = getDurationTillNextDay(1, 9);
     this._render();
   }
 
-  _save() {
+  _save(): void {
     const detail = {
-      silence: this._state,
+      silence: this.state,
     };
-    if (!this._state.key) {
-      const textarea = $$('textarea', this);
+    if (!this.state.key) {
+      const textarea = $$('textarea', this)! as HTMLInputElement;
       if (!textarea.value) {
         errorMessage('Please enter a description for the silence');
         textarea.focus();
@@ -369,4 +396,6 @@ define('silence-sk', class extends HTMLElement {
   _render() {
     render(template(this), this, { eventContext: this });
   }
-});
+}
+
+define('silence-sk', SilenceSk);
