@@ -129,6 +129,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3aacb29f_1ab16657",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T15:04:12Z",
+      "side": 1,
+      "message": "Yes and yes.  I agree, this field will stay, but it shouldn\u0027t be used as the unique ID for the roller.",
+      "parentUuid": "4cf76f9a_e8d6d59e",
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "787926f8_ab4d5256",
@@ -152,6 +170,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1b3796c2_5caabe43",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T15:04:12Z",
+      "side": 1,
+      "message": "Yes.  Let\u0027s do that in a separate change, since it\u0027s limited to that particular functionality.",
+      "parentUuid": "787926f8_ab4d5256",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 28
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "416ae37b_16ea3f5f",
@@ -165,6 +207,24 @@
       "writtenOn": "2021-01-21T14:40:51Z",
       "side": 1,
       "message": "Will we have to remember to add all new preupload steps here? if yes then would be useful to add a comment in pre_upload_steps.go",
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c0e138a_36783b99",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T15:04:12Z",
+      "side": 1,
+      "message": "Yes, added a comment in both places.  I plan to start switching most packages over to using the new config structs directly so that we don\u0027t have to perform any conversion.  That will reduce the duplication in pre_upload_steps.go, but we\u0027ll still need a mapping from the names in the config package to the functions in pre_upload_steps.go.",
+      "parentUuid": "416ae37b_16ea3f5f",
       "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
