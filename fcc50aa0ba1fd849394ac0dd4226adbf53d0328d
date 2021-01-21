@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a58033b7_61f1a88f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:26:23Z",
+      "side": 1,
+      "message": "Still waiting for clarification on license scripts.",
+      "revId": "fcc50aa0ba1fd849394ac0dd4226adbf53d0328d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
