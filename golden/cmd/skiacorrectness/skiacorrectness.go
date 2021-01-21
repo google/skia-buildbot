@@ -17,6 +17,9 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
+	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
+
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
@@ -229,7 +232,7 @@ func main() {
 
 	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient, sqlDB)
 
-	tjs := fs_tjstore.New(fsClient)
+	tjs := mustMakeTryJobStore(fsClient, sqlDB)
 
 	reviewSystems := mustInitializeReviewSystems(fsc, fsClient, client, sqlDB)
 
@@ -489,6 +492,13 @@ func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClien
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 	return ignoreStore
+}
+
+// mustMakeTryJobStore returns a new tjstore.Store
+func mustMakeTryJobStore(client *firestore.Client, db *pgxpool.Pool) tjstore.Store {
+	fireTS := fs_tjstore.New(client)
+	sqlTS := sqltjstore.New(db)
+	return dualtjstore.New(fireTS, sqlTS)
 }
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS

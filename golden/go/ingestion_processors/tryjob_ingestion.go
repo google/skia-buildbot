@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
+	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/oauth2"
 
@@ -126,9 +129,11 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		})
 	}
 
+	fireTS := fs_tjstore.New(fsClient)
+	sqlTS := sqltjstore.New(db)
 	return &goldTryjobProcessor{
 		cisClients:    cisClients,
-		tryJobStore:   fs_tjstore.New(fsClient),
+		tryJobStore:   dualtjstore.New(fireTS, sqlTS),
 		reviewSystems: reviewSystems,
 	}, nil
 }
