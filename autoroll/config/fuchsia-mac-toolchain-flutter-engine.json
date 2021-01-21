@@ -3,7 +3,7 @@
 {
   "childDisplayName": "Fuchsia Mac Toolchain",
   "contacts": [
-    "liyuqian@google.com",
+    "zanderso@google.com",
     "rmistry@google.com"
   ],
   "isInternal": false,
@@ -16,6 +16,7 @@
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"
   ],
+  "sheriffBackup": ["zanderso@google.com"],
   "commitMsg": {
     "template": "default"
   },
