@@ -16,6 +16,23 @@
       "message": "Re-using the crashlooping toolchain rollers to be the new rollers",
       "revId": "b5dcb71ef216a5cb8870bea3a40733342ee049be",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4acca6dc_00f4cf1d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T18:01:19Z",
+      "side": 1,
+      "message": "still LGTM",
+      "revId": "b5dcb71ef216a5cb8870bea3a40733342ee049be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
