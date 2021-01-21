@@ -28,7 +28,7 @@ build --test_env=COCKROACHDB_EMULATOR_HOST
 # Pipe through GOOGLE_APPLICATION_CREDENTIALS for local tests. This breaks test hermeticity, so use
 # judiciously. Most tests that depend on this variable should probably tagged with "no-remote".
 #
-# We clear this variable under build:remote because it set, it will most likely contain a path to a
+# We clear this variable under build:remote because if set, it will most likely contain a path to a
 # file in the host system, which could potentially point to a nonexisting file within the RBE
 # container when Bazel is invoked with --config=remote.
 build --test_env=GOOGLE_APPLICATION_CREDENTIALS
