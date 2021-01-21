@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/test2json"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
@@ -83,6 +84,9 @@ func TestWithEnv(t *testing.T) {
 // test2json package for examples) and ensures that the "go test" command and
 // all of its descendants have the given expected result.
 func executeAndExpectResult(t *testing.T, content test2json.TestContent, expectResult td.StepResult) *td.StepReport {
+	// For compatibility with Bazel: the "go" command fails if HOME is not set.
+	testutils.SetUpFakeHomeDir(t, "golang_test")
+
 	d, cleanup, err := test2json.SetupTest(content)
 	require.NoError(t, err)
 	defer cleanup()

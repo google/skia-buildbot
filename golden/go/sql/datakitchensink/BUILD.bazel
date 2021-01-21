@@ -16,6 +16,7 @@ go_library(
 go_test(
     name = "datakitchensink_test",
     srcs = ["kitchensink_test.go"],
+    data = glob(["img/**"]),
     embed = [":datakitchensink"],
     deps = [
         "//go/testutils/unittest",

@@ -11,6 +11,7 @@ go_library(
 go_test(
     name = "sobel_test",
     srcs = ["sobel_test.go"],
+    data = glob(["test/**"]),
     embed = [":sobel"],
     deps = [
         "//go/testutils/unittest",

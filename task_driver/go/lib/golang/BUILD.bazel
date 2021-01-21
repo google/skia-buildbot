@@ -22,6 +22,7 @@ go_test(
     deps = [
         "//go/exec",
         "//go/test2json",
+        "//go/testutils",
         "//go/testutils/unittest",
         "//go/util",
         "//task_driver/go/lib/dirs",

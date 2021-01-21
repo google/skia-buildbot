@@ -14,14 +14,18 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"testing"
 	"text/template"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -42,6 +46,16 @@ func TestDataDir() (string, error) {
 			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
 		}
 		if file != thisFile {
+			// Under Bazel, the path returned by runtime.Caller() is relative to the workspace's root
+			// directory (e.g. "go/testutils"). We prepend this with the absolute path to the runfiles
+			// directory so that tests can find these files with no further changes.
+			//
+			// Under "go test" this is not necessary because the path returned by runtime.Caller() is
+			// absolute.
+			if bazel.InBazel() {
+				file = filepath.Join(bazel.RunfilesDir(), file)
+			}
+
 			return filepath.Join(filepath.Dir(file), "testdata"), nil
 		}
 	}
@@ -300,4 +314,28 @@ func ExecTemplate(t sktest.TestingT, tmpl string, data interface{}) string {
 	var buf bytes.Buffer
 	require.NoError(t, template.Execute(&buf, data))
 	return buf.String()
+}
+
+// SetUpFakeHomeDir creates a temporary dir and updates the HOME environment variable with its path.
+// After the caller test completes, the HOME environment variable will be restored to its original
+// value, and the temporary dir will be deleted.
+//
+// Under Bazel, this is useful because Bazel does not set the HOME environment variable. Without
+// this, some tests that call the "go" binary fail, because some "go" subcommands create a cache
+// under $HOME/.cache/go-build.
+//
+// Outside of Bazel (i.e. "go test"), this is still useful because it leads to more hermetic tests
+// which do not depend on the specifics of the $HOME directory in the host system.
+//
+// See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
+func SetUpFakeHomeDir(t *testing.T, tempDirPattern string) {
+	fakeHome, err := ioutil.TempDir("", tempDirPattern)
+	require.NoError(t, err)
+	oldHome := os.Getenv("HOME")
+	require.NoError(t, os.Setenv("HOME", fakeHome))
+
+	t.Cleanup(func() {
+		require.NoError(t, os.Setenv("HOME", oldHome))
+		util.RemoveAll(fakeHome)
+	})
 }

@@ -1,0 +1,5 @@
+filegroup(
+    name = "source",
+    srcs = glob(["source/**"]),
+    visibility = ["//fiddlek:__subpackages__"],
+)

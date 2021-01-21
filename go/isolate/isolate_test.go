@@ -49,6 +49,9 @@ func TestCopyIsolatedFile(t *testing.T) {
 func TestIsolateTasks(t *testing.T) {
 	unittest.LargeTest(t)
 
+	// For compatibility with Bazel: the "go" command fails if HOME is not set.
+	testutils.SetUpFakeHomeDir(t, "isolate_test")
+
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -196,6 +199,9 @@ func TestDownloadIsolateHash(t *testing.T) {
 
 func TestReUploadIsolatedFiles(t *testing.T) {
 	unittest.LargeTest(t)
+
+	// For compatibility with Bazel: the "go" command fails if HOME is not set.
+	testutils.SetUpFakeHomeDir(t, "isolate_test")
 
 	// Setup.
 	workdir, err := ioutil.TempDir("", "")

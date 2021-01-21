@@ -15,6 +15,7 @@ go_library(
 go_test(
     name = "source_test",
     srcs = ["source_test.go"],
+    data = ["//fiddlek:source"],
     embed = [":source"],
     deps = [
         "//go/testutils/unittest",
