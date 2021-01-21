@@ -40,7 +40,7 @@ go_library(
 go_test(
     name = "child_test",
     srcs = [
-        "cipd_test.go",
+        "cipd_manual_test.go",
         "gitiles_test.go",
         "semver_gcs_test.go",
     ],
