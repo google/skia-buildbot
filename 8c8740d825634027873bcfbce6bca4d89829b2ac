@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eefb581c_96938c9c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2021-01-21T22:12:22Z",
+      "side": 1,
+      "message": "LGTM once there\u0027s test coverage ensuring two consecutive uploads send the expected data. Not sure if the existing tests cover that or not.",
+      "revId": "8c8740d825634027873bcfbce6bca4d89829b2ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
