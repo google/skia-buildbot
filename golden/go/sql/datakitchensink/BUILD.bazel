@@ -5,8 +5,10 @@ go_library(
     srcs = ["kitchensink.go"],
     importpath = "go.skia.org/infra/golden/go/sql/datakitchensink",
     visibility = ["//visibility:public"],
+    data = glob(["img/*"]),
     deps = [
         "//go/paramtools",
+        "//go/repo_root",
         "//golden/go/sql/databuilder",
         "//golden/go/sql/schema",
         "//golden/go/types",

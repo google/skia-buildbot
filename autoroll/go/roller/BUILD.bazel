@@ -5,13 +5,15 @@ go_library(
     srcs = [
         "autoroller.go",
         "config.go",
-        "sheriff.go",
+        "convert_config.go",
+        "reviewers.go",
     ],
     importpath = "go.skia.org/infra/autoroll/go/roller",
     visibility = ["//visibility:public"],
     deps = [
         "//autoroll/go/codereview",
         "//autoroll/go/commit_msg",
+        "//autoroll/go/config",
         "//autoroll/go/config_vars",
         "//autoroll/go/manual",
         "//autoroll/go/modes",
@@ -44,6 +46,7 @@ go_library(
         "//go/util",
         "@com_github_flynn_json5//:json5",
         "@com_github_gorilla_mux//:mux",
+        "@org_golang_google_protobuf//types/known/durationpb",
     ],
 )
 

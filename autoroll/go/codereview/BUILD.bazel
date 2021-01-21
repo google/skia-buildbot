@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/codereview",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/recent_rolls",
         "//autoroll/go/revision",
         "//autoroll/go/state_machine",
