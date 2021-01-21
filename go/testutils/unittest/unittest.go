@@ -2,8 +2,10 @@ package unittest
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/sktest"
@@ -104,6 +106,25 @@ func LargeTest(t sktest.TestingT) {
 // which shouldn't run on the bots due to excessive running time, external
 // requirements, etc. These only run when the --manual flag is set.
 func ManualTest(t sktest.TestingT) {
+	// Find the caller's file name.
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+	file := thisFile
+	for skip := 0; file == thisFile; skip++ {
+		var ok bool
+		_, file, _, ok = runtime.Caller(skip)
+		if !ok {
+			t.Fatal(fmt.Sprintf("runtime.Caller(%d) failed", skip))
+		}
+	}
+
+	// Force the naming convention expected by our custom go_test Bazel macro.
+	if !strings.HasSuffix(file, "_manual_test.go") {
+		t.Fatal(fmt.Sprintf(`Manual tests must be placed in files ending with "_manual_test.go", was: "%s"`, file))
+	}
+
 	if !ShouldRun(MANUAL_TEST) {
 		t.Skip("Not running manual tests.")
 	}

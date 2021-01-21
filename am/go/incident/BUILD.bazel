@@ -21,7 +21,10 @@ go_library(
 
 go_test(
     name = "incident_test",
-    srcs = ["incident_test.go"],
+    srcs = [
+        "incident_manual_test.go",
+        "incident_test.go",
+    ],
     embed = [":incident"],
     deps = [
         "//am/go/note",
