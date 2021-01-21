@@ -733,6 +733,10 @@ func TestNewReportPassFail(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
 	assert.Equal(t, "https://testing-gold.skia.org/detail?test=TestNotSeenBefore&digest=9d0568469d206c1aedf1b71f12f474bc&changelist_id=867&crs=gerrit\n", string(b))
+
+	// This is pass-fail (streaming) mode, so we don't want to persist the previous keys/results
+	// otherwise they will be uploaded next time.
+	assert.Nil(t, goldClient.resultState.SharedConfig)
 }
 
 // TestReportPassFailPassWithCorpus test that when we set the corpus via the initial config
@@ -1043,11 +1047,14 @@ func TestNegativePassFail(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
-
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(func(_ string) *http.Response {
+		// We need a fresh response for each call.
+		return httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	}, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(func(_ string) *http.Response {
+		// We need a fresh response for each call.
+		return httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	}, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
@@ -1055,9 +1062,9 @@ func TestNegativePassFail(t *testing.T) {
 	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
@@ -1065,13 +1072,15 @@ func TestNegativePassFail(t *testing.T) {
 	})
 
 	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
 
 	// Run it again to make sure the failure log isn't truncated
+	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	require.NoError(t, err)
 	pass, err = goldClient.Test(testName, testImgPath, "", nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
 

@@ -305,11 +305,16 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 
 // Test implements the GoldClient interface.
 func (c *CloudClient) Test(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
-	if res, err := c.addTest(name, imgFileName, imgDigest, additionalKeys, optionalKeys); err != nil {
-		return false, err
-	} else {
-		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
+	res, err := c.addTest(name, imgFileName, imgDigest, additionalKeys, optionalKeys)
+	if err != nil {
+		return false, skerr.Wrap(err)
 	}
+	// In pass-fail (aka streaming mode), we want to make sure we don't upload these same results
+	// in the next upload state. As such, we delete them and don't persist them to disk.
+	if c.resultState.PerTestPassFail {
+		c.resultState.SharedConfig = nil
+	}
+	return res, saveJSONFile(c.getResultStatePath(), c.resultState)
 }
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
