@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "rbe",
@@ -23,7 +24,7 @@ go_library(
 
 go_test(
     name = "rbe_test",
-    srcs = ["rbe_test.go"],
+    srcs = ["rbe_manual_test.go"],
     embed = [":rbe"],
     deps = [
         "//go/auth",

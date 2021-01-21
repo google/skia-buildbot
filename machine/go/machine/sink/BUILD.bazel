@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "sink",
@@ -21,7 +22,7 @@ go_library(
 
 go_test(
     name = "sink_test",
-    srcs = ["impl_test.go"],
+    srcs = ["impl_manual_test.go"],
     embed = [":sink"],
     deps = [
         "//go/auth",

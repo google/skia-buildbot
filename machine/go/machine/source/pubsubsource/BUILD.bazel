@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "pubsubsource",
@@ -19,7 +20,7 @@ go_library(
 
 go_test(
     name = "pubsubsource_test",
-    srcs = ["pubsubsource_test.go"],
+    srcs = ["pubsubsource_manual_test.go"],
     embed = [":pubsubsource"],
     deps = [
         "//go/auth",

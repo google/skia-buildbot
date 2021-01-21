@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "firestore",
@@ -24,7 +25,10 @@ go_library(
 
 go_test(
     name = "firestore_test",
-    srcs = ["firestore_test.go"],
+    srcs = [
+        "firestore_manual_test.go",
+        "firestore_test.go",
+    ],
     embed = [":firestore"],
     deps = [
         "//go/testutils/unittest",

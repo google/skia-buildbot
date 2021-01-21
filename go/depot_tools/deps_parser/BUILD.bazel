@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "deps_parser",
@@ -18,7 +19,10 @@ go_library(
 
 go_test(
     name = "deps_parser_test",
-    srcs = ["deps_parser_test.go"],
+    srcs = [
+        "deps_parser_manual_test.go",
+        "deps_parser_test.go",
+    ],
     embed = [":deps_parser"],
     deps = [
         "//go/deepequal/assertdeep",

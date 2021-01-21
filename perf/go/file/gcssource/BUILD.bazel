@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "gcssource",
@@ -22,7 +23,7 @@ go_library(
 
 go_test(
     name = "gcssource_test",
-    srcs = ["gcssource_test.go"],
+    srcs = ["gcssource_manual_test.go"],
     embed = [":gcssource"],
     deps = [
         "//go/auth",
