@@ -25,7 +25,7 @@
     "config": "chromium"
   },
   "semVerGCSRepoManager": {
-    "parentBranch": "refs/branch-heads/4324",
+    "parentBranch": "refs/branch-heads/4389",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "gerrit": {
       "url": "https://chromium-review.googlesource.com",
@@ -36,7 +36,7 @@
     "gcsPath": "afdo-job/llvm",
     "versionFile": "chrome/android/profiles/newest.txt",
     "shortRevRegex": "\\d+\\.\\d+\\.\\d+\\.\\d+_rc-r\\d+-merged",
-    "versionRegex": "^chromeos-chrome-amd64-88\\.(\\d+)\\.4324\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
+    "versionRegex": "^chromeos-chrome-amd64-89\\.(\\d+)\\.4389\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
   },
   "kubernetes": {
     "cpu": "1",

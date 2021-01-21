@@ -3,7 +3,8 @@
 {
   "childDisplayName": "ChromeOS Bigcore AFDO profile",
   "contacts": [
-    "tcwang@google.com"
+    "tcwang@google.com",
+    "denik@google.com"
   ],
   "isInternal": false,
   "ownerPrimary": "borenet",
@@ -36,7 +37,7 @@
     "gcsPath": "afdo-job/vetted/release",
     "versionFile": "chromeos/profiles/bigcore.afdo.newest.txt",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
-    "versionRegex": "^chromeos-chrome-amd64-bigcore-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-89.(\\d+).(\\d+).(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-bigcore-(\\d+)-\\d+.\\d+-(\\d+)-benchmark-90.(\\d+).(\\d+).(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
