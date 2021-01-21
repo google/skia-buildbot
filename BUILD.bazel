@@ -29,6 +29,23 @@ load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 #
 # gazelle:proto disable
 
+# This directive tells Gazelle to use a custom macro instead of rules_go's go_test rule for any
+# Gazelle-generated Go test targets.
+#
+# The custom macro generates separate go_test targets for manual Go tests, which will be tagged as
+# manual. The macro relies on the assumption that any manual test cases will be placed on Go source
+# files ending in "_manual_test.go". This convention is enforced by unittest.ManualTest(). If the
+# test target does not contain any manual test, the custom macro behaves exactly like rules_go's
+# go_test rule.
+#
+# TODO(lovisolo): Enforce "_manual_test.go" naming convention in unittest.ManualTest().
+#
+# See the macro's docstring for details.
+#
+# Documentation for this directive: https://github.com/bazelbuild/bazel-gazelle#directives.
+#
+# gazelle:map_kind go_test go_test //bazel/go:go_test.bzl
+
 # gazelle:prefix go.skia.org/infra
 gazelle(name = "gazelle")
 
