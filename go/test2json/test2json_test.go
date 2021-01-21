@@ -336,6 +336,9 @@ var (
 )
 
 func runTest(t sktest.TestingT, w io.Writer, content TestContent) {
+	// For compatibility with Bazel: the "go" command fails if HOME is not set.
+	testutils.SetUpFakeHomeDir(t.(*testing.T), "test2json_test")
+
 	// Setup.
 	testDir, cleanup, err := SetupTest(content)
 	require.NoError(t, err)

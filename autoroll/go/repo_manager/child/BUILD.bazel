@@ -44,6 +44,8 @@ go_test(
         "semver_gcs_test.go",
     ],
     embed = [":child"],
+    # cipd_test.go requires the "gcloud" binary.
+    tags = ["no-sandbox"],
     deps = [
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/common/gitiles_common",
