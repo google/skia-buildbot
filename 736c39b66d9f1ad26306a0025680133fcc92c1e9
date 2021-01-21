@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6736842e_e30dfa0a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-21T19:30:50Z",
+      "side": 1,
+      "message": "Is this an acceptable pattern for testing AS OF SYSTEM TIME? Have the parameter be tunable via tests an sleep for that duration?",
+      "revId": "736c39b66d9f1ad26306a0025680133fcc92c1e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
