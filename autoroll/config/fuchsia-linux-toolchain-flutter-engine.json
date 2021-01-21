@@ -3,7 +3,7 @@
 {
   "childDisplayName": "Fuchsia Linux Toolchain",
   "contacts": [
-    "liyuqian@google.com",
+    "zanderso@google.com",
     "rmistry@google.com"
   ],
   "isInternal": false,
@@ -16,6 +16,7 @@
   "sheriff": [
     "https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"
   ],
+  "sheriffBackup": ["zanderso@google.com"],
   "commitMsg": {
     "template": "default"
   },
@@ -29,9 +30,6 @@
   "githubCipdDEPSRepoManager": {
     "parentBranch": "master",
     "parentRepo": "git@github.com:flutter/engine.git",
-    "preUploadSteps": [
-      "FlutterLicenseScriptsForFuchsia"
-    ],
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "runHooks": true,
     "github": {
