@@ -22,7 +22,7 @@ go_library(
 
 go_test(
     name = "sink_test",
-    srcs = ["impl_test.go"],
+    srcs = ["impl_manual_test.go"],
     embed = [":sink"],
     deps = [
         "//go/auth",
