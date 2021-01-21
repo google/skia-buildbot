@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9414abe8_19819dc6",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 10
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:40:51Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "31add9c9_8773b8af",
+      "range": {
+        "startLine": 49,
+        "startChar": 23,
+        "endLine": 49,
+        "endChar": 29
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fa9329ae_9b535b0b",
@@ -64,6 +88,87 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "881b5c39_f69548d0",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:40:51Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fa9329ae_9b535b0b",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4cf76f9a_e8d6d59e",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:40:51Z",
+      "side": 1,
+      "message": "This is what is used when pushing?\neg: ROLLER\u003dflutter-engine-flutter-autoroll make push-roller\nand isn\u0027t the pod name also generated from this? if yes then having some human readable (like now) would be nice",
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "787926f8_ab4d5256",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:40:51Z",
+      "side": 1,
+      "message": "Note: go/roller/autoroller.go and some configs use $SHERIFF. Might want to change that to $REVIEWER now?",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 28
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "416ae37b_16ea3f5f",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:40:51Z",
+      "side": 1,
+      "message": "Will we have to remember to add all new preupload steps here? if yes then would be useful to add a comment in pre_upload_steps.go",
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "84dfb4c0_0d4ae4f1",
@@ -77,6 +182,30 @@
       "writtenOn": "2021-01-20T20:43:35Z",
       "side": 1,
       "message": "Note that this is currently unused.",
+      "range": {
+        "startLine": 18,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 33
+      },
+      "revId": "60890e17dbeef9033b86169b16443203cf32be9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ddc99a83_0fc5d170",
+        "filename": "autoroll/go/repo_manager/parent_child_repo_manager.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-21T14:40:51Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "84dfb4c0_0d4ae4f1",
       "range": {
         "startLine": 18,
         "startChar": 5,
