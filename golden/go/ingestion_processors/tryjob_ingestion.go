@@ -33,7 +33,9 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
+	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
+	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 )
 
 const (
@@ -126,9 +128,11 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		})
 	}
 
+	fireTS := fs_tjstore.New(fsClient)
+	sqlTS := sqltjstore.New(db)
 	return &goldTryjobProcessor{
 		cisClients:    cisClients,
-		tryJobStore:   fs_tjstore.New(fsClient),
+		tryJobStore:   dualtjstore.New(fireTS, sqlTS),
 		reviewSystems: reviewSystems,
 	}, nil
 }
@@ -276,8 +280,10 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	// or we check now with the CIS) and 2) update the Changelist's timestamp and store it to
 	// clstore. This "refreshes" the Changelist, making it appear higher up on search results, etc.
 	_, err = g.tryJobStore.GetTryJob(ctx, tjID, cisName)
+	var tj continuous_integration.TryJob
+	writeTryJob := false
 	if err == tjstore.ErrNotFound {
-		tj, err := cisClient.GetTryJob(ctx, tjID)
+		tj, err = cisClient.GetTryJob(ctx, tjID)
 		if err == tjstore.ErrNotFound {
 			sklog.Warningf("Unknown %s Tryjob with id %q", cisName, tjID)
 			// Try again later - maybe there's some lag with the Integration System?
@@ -285,10 +291,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		} else if err != nil {
 			return skerr.Wrapf(err, "fetching tryjob from %s with id %q", cisName, tjID)
 		}
-		err = g.tryJobStore.PutTryJob(ctx, combinedID, tj)
-		if err != nil {
-			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
-		}
+		writeTryJob = true
 		// If we are seeing that a CL was marked as Abandoned, it probably means the CL was
 		// re-opened. If this is incorrect (e.g. TryJob was triggered, CL was abandoned, commenter
 		// noticed CL was abandoned, and then the TryJob results started being processed), this
@@ -316,6 +319,11 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	tjr := toTryJobResults(gr)
 	if err := system.Store.PutPatchset(ctx, ps); err != nil {
 		return skerr.Wrapf(err, "could not store PS %s of %s CL %q to clstore", psID, system.ID, clID)
+	}
+	if writeTryJob {
+		if err := g.tryJobStore.PutTryJob(ctx, combinedID, tj); err != nil {
+			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
+		}
 	}
 	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, rf.Name(), tjr, time.Now())
 	if err != nil {

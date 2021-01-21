@@ -65,7 +65,9 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore"
+	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
+	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
@@ -229,7 +231,7 @@ func main() {
 
 	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient, sqlDB)
 
-	tjs := fs_tjstore.New(fsClient)
+	tjs := mustMakeTryJobStore(fsClient, sqlDB)
 
 	reviewSystems := mustInitializeReviewSystems(fsc, fsClient, client, sqlDB)
 
@@ -489,6 +491,13 @@ func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClien
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 	return ignoreStore
+}
+
+// mustMakeTryJobStore returns a new tjstore.Store
+func mustMakeTryJobStore(client *firestore.Client, db *pgxpool.Pool) tjstore.Store {
+	fireTS := fs_tjstore.New(client)
+	sqlTS := sqltjstore.New(db)
+	return dualtjstore.New(fireTS, sqlTS)
 }
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
