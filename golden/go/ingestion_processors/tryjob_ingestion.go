@@ -33,7 +33,9 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
+	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
+	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 )
 
 const (
@@ -126,9 +128,11 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		})
 	}
 
+	fireTS := fs_tjstore.New(fsClient)
+	sqlTS := sqltjstore.New(db)
 	return &goldTryjobProcessor{
 		cisClients:    cisClients,
-		tryJobStore:   fs_tjstore.New(fsClient),
+		tryJobStore:   dualtjstore.New(fireTS, sqlTS),
 		reviewSystems: reviewSystems,
 	}, nil
 }
