@@ -33,7 +33,9 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
+	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
+	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 )
 
 const (
@@ -126,9 +128,11 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		})
 	}
 
+	fireTS := fs_tjstore.New(fsClient)
+	sqlTS := sqltjstore.New(db)
 	return &goldTryjobProcessor{
 		cisClients:    cisClients,
-		tryJobStore:   fs_tjstore.New(fsClient),
+		tryJobStore:   dualtjstore.New(fireTS, sqlTS),
 		reviewSystems: reviewSystems,
 	}, nil
 }
@@ -272,6 +276,14 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	combinedID := tjstore.CombinedPSID{CL: clID, PS: ps.SystemID, CRS: crs}
 
+	// In the SQL implementation, we need to create the CL first because of foreign key constraints.
+	if cl.Updated.IsZero() {
+		sklog.Debugf("First time seeing CL %s_%s", system.ID, cl.SystemID)
+		if err = system.Store.PutChangelist(ctx, cl); err != nil {
+			return skerr.Wrapf(err, "initially storing %s CL with id %q to clstore", system.ID, clID)
+		}
+	}
+
 	// We now need to 1) verify the TryJob is valid (either we've seen it before and know it's valid
 	// or we check now with the CIS) and 2) update the Changelist's timestamp and store it to
 	// clstore. This "refreshes" the Changelist, making it appear higher up on search results, etc.
@@ -302,13 +314,6 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		}
 	} else if err != nil {
 		return skerr.Wrapf(err, "fetching TryJob with id %s", tjID)
-	}
-	// In the SQL implementation, we need to create the CL first because of foreign key constraints.
-	if cl.Updated.IsZero() {
-		sklog.Debugf("First time seeing CL %s_%s", system.ID, cl.SystemID)
-		if err = system.Store.PutChangelist(ctx, cl); err != nil {
-			return skerr.Wrapf(err, "initially storing %s CL with id %q to clstore", system.ID, clID)
-		}
 	}
 
 	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
