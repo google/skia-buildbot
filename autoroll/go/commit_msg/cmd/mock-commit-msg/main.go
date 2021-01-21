@@ -211,9 +211,9 @@ func main() {
 	} else {
 		from, to, revs, _ = commit_msg.FakeCommitMsgInputs()
 		var err error
-		reviewers, err = roller.GetSheriff(cfg.RollerName, cfg.Sheriff, cfg.SheriffBackup)
+		reviewers, err = roller.GetReviewers(cfg.RollerName, cfg.Sheriff, cfg.SheriffBackup)
 		if err != nil {
-			log.Fatalf("Failed to retrieve sheriff: %s", err)
+			log.Fatalf("Failed to retrieve reviewers: %s", err)
 		}
 	}
 

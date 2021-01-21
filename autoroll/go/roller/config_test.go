@@ -32,7 +32,7 @@ func validBaseConfig() *AutoRollerConfig {
 		ParentWaterfall:   "parentWaterfall",
 		RollerName:        "test-roller",
 		ServiceAccount:    "test-account@google.com",
-		Sheriff:           []string{"sheriff@gmail.com"},
+		Sheriff:           []string{"reviewer@gmail.com"},
 		Gerrit: &codereview.GerritConfig{
 			URL:     "https://gerrit",
 			Project: "my/project",

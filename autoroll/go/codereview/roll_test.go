@@ -32,7 +32,7 @@ func makeFakeRoll(t *testing.T, cfg *GerritConfig, issueNum int64, from, to stri
 	description := fmt.Sprintf(`Roll src/third_party/skia/ %s..%s (42 commits).
 
 blah blah
-Tbr: some-sheriff
+Tbr: some-reviewer
 `, from[:12], to[:12])
 	rev := &gerrit.Revision{
 		ID:            "1",
