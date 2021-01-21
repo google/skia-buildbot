@@ -19,7 +19,10 @@ go_library(
 
 go_test(
     name = "deps_parser_test",
-    srcs = ["deps_parser_test.go"],
+    srcs = [
+        "deps_parser_manual_test.go",
+        "deps_parser_test.go",
+    ],
     embed = [":deps_parser"],
     deps = [
         "//go/deepequal/assertdeep",
