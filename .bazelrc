@@ -18,6 +18,14 @@ build --workspace_status_command=bazel/get_workspace_status.sh
 # https://github.com/bazelbuild/bazel/issues/8830.
 build --experimental_allow_tags_propagation
 
+# Prevent the following rules_docker error due to incompatibilities with Bazel 4.0.0:
+#
+#     ~/.cache/bazel/[...]/io_bazel_rules_docker/container/push.bzl:34:28:
+#     invalid escape sequence: \{.
+#
+# We should remove this flag once a new release of rules_docker is available.
+build --incompatible_restrict_string_escapes=false
+
 # Pipe through the system's *_EMULATOR_HOST environment variables to Bazel tests.
 build --test_env=DATASTORE_EMULATOR_HOST
 build --test_env=BIGTABLE_EMULATOR_HOST
