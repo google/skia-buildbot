@@ -20,7 +20,10 @@ go_library(
 
 go_test(
     name = "ds_test",
-    srcs = ["ds_test.go"],
+    srcs = [
+        "ds_manual_test.go",
+        "ds_test.go",
+    ],
     embed = [":ds"],
     deps = [
         "//go/testutils/unittest",
