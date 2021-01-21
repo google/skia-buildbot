@@ -99,8 +99,23 @@ import {
   abbr, displaySilence, expiresIn, getDurationTillNextDay, notes,
 } from '../am';
 import * as paramset from '../paramset';
+import { Incident, ParamSet, Note } from '../json';
 
 const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
+
+class State {
+  key: string = '';
+
+  param_set: ParamSet | null = null;
+
+  duration: string = '';
+
+  created: number = 0;
+
+  user: string = '';
+
+  notes: Note[] = [];
+}
 
 function table(ele, o) {
   const keys = Object.keys(o);
@@ -135,14 +150,14 @@ function table(ele, o) {
 
 function displayAddBots(botCentricParams, key, ele) {
   if (botCentricParams && key === 'bot') {
-    return html `<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
+    return html`<button class="param-btns" @click=${() => ele._botsChooser()}>Add bot</button>`;
   }
   return '';
 }
 
 function displayParamValue(paramValue) {
   if (paramValue.length > 1) {
-    return `${paramValue.join('|')}`
+    return `${paramValue.join('|')}`;
   }
   return paramValue;
 }
@@ -186,20 +201,25 @@ function actionButtons(ele) {
                 <delete-icon-sk title='Delete silence.' @click=${ele._delete}></delete-icon-sk>`;
 }
 
-const template = (ele) => html`
-  <h2 class=${classOfH2(ele._state)} @click=${ele._headerClick}>${displaySilence(ele._state)}</h2>
+export class SilenceSk extends HTMLElement {
+  private state: State|null = null;
+
+  private incidents: Incident[] = [];
+
+  private static template = (ele: SilenceSk) => html`
+  <h2 class=${classOfH2(ele.state)} @click=${ele._headerClick}>${displaySilence(ele.state)}</h2>
   <div class=body>
     <section class=actions>
       ${actionButtons(ele)}
     </section>
     <table class=info>
-      <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button class="param-btns" @click=${ele._tillNextShift}>Till next shift</button></td></th>
-      <tr><th>Created</th><td title=${new Date(ele._state.created * 1000).toLocaleString()}>${diffDate(ele._state.created * 1000)}</td></tr>
-      <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
+      <tr><th>User:</th><td>${ele.state.user}</td></th>
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele.state.duration}></input><button class="param-btns" @click=${ele._tillNextShift}>Till next shift</button></td></th>
+      <tr><th>Created</th><td title=${new Date(ele.state.created * 1000).toLocaleString()}>${diffDate(ele.state.created * 1000)}</td></tr>
+      <tr><th>Expires</th><td>${expiresIn(ele.state)}</td></tr>
     </table>
     <table class=params>
-      ${table(ele, ele._state.param_set)}
+      ${table(ele, ele.state.param_set)}
     </table>
     <section class=notes>
       ${notes(ele)}
@@ -214,34 +234,27 @@ const template = (ele) => html`
   </div>
 `;
 
-define('silence-sk', class extends HTMLElement {
-  constructor() {
-    super();
-    this._incidents = [];
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     upgradeProperty(this, 'state');
     upgradeProperty(this, 'incidents');
   }
 
-  /** @prop state {Object} A Silence. */
-  get state() { return this._state; }
+  get silenceState(): State|null { return this.state; }
 
-  set state(val) {
-    this._state = val;
+  set silenceState(val: State|null) {
+    this.state = val;
     this._render();
   }
 
-  /** @prop incidents {string} The current active incidents. */
-  get incidents() { return this._incidents; }
+  /** @prop incidents The current active incidents. */
+  get silenceIncidents(): Incident[] { return this.incidents; }
 
-  set incidents(val) {
-    this._incidents = val;
+  set silenceIncidents(val: Incident[]) {
+    this.incidents = val;
     this._render();
   }
 
-  _headerClick() {
+  _headerClick(): void {
     if (this.hasAttribute('collapsed')) {
       this.removeAttribute('collapsed');
     } else {
@@ -249,22 +262,22 @@ define('silence-sk', class extends HTMLElement {
     }
   }
 
-  _durationChange(e) {
-    this._state.duration = e.target.value;
+  _durationChange(e: Event): void {
+    this.state.duration = (e.target as HTMLInputElement).value;
   }
 
   // Populates duration till next Monday 9am.
-  _tillNextShift() {
-    this._state.duration = getDurationTillNextDay(1, 9);
+  _tillNextShift(): void {
+    this.state.duration = getDurationTillNextDay(1, 9);
     this._render();
   }
 
-  _save() {
+  _save(): void {
     const detail = {
-      silence: this._state,
+      silence: this.state,
     };
-    if (!this._state.key) {
-      const textarea = $$('textarea', this);
+    if (!this.state.key) {
+      const textarea = $$('textarea', this)! as HTMLInputElement;
       if (!textarea.value) {
         errorMessage('Please enter a description for the silence');
         textarea.focus();
@@ -369,4 +382,6 @@ define('silence-sk', class extends HTMLElement {
   _render() {
     render(template(this), this, { eventContext: this });
   }
-});
+}
+
+define('silence-sk', SilenceSk);
