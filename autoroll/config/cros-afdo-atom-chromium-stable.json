@@ -1,17 +1,18 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childDisplayName": "ChromeOS Airmont AFDO profile",
+  "childDisplayName": "ChromeOS Atom AFDO profile",
   "contacts": [
     "gbiv@google.com",
-    "tcwang@google.com"
+    "tcwang@google.com",
+    "denik@google.com"
   ],
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
   "parentDisplayName": "Chromium Stable Branch",
   "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "cros-afdo-airmont-chromium-stable",
+  "rollerName": "cros-afdo-atom-chromium-stable",
   "serviceAccount": "chromium-release-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "c-compiler-chrome@google.com"
@@ -26,7 +27,7 @@
     "config": "chromium"
   },
   "semVerGCSRepoManager": {
-    "parentBranch": "refs/branch-heads/4280",
+    "parentBranch": "refs/branch-heads/4324",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "gerrit": {
       "url": "https://chromium-review.googlesource.com",
@@ -35,9 +36,9 @@
     },
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "versionFile": "chromeos/profiles/airmont.afdo.newest.txt",
+    "versionFile": "chromeos/profiles/atom.afdo.newest.txt",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
-    "versionRegex": "^chromeos-chrome-amd64-airmont-87-4280.\\d+-(\\d+)-benchmark-87.(\\d+).4280.(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-atom-88-4324.\\d+-(\\d+)-benchmark-88.(\\d+).4324.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",

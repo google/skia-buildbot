@@ -36,7 +36,7 @@
     "gcsPath": "afdo-job/llvm",
     "versionFile": "chrome/android/profiles/newest.txt",
     "shortRevRegex": "\\d+\\.\\d+\\.\\d+\\.\\d+_rc-r\\d+-merged",
-    "versionRegex": "^chromeos-chrome-amd64-89\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
+    "versionRegex": "^chromeos-chrome-amd64-90\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
   },
   "kubernetes": {
     "cpu": "1",
