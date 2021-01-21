@@ -115,58 +115,9 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
-	if lastRollRev.Id == tipRev.Id {
-		return tipRev, []*revision.Revision{}, nil
-	}
-	iter, err := c.client.ListInstances(ctx, c.name)
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
 	notRolledRevs := []*revision.Revision{}
-	foundTipRev := false
-	for {
-		instances, err := iter.Next(ctx, 100)
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		if len(instances) == 0 {
-			break
-		}
-		for _, instance := range instances {
-			id := instance.Pin.InstanceID
-			if id == head.InstanceID {
-				foundTipRev = true
-			}
-			if id == lastRollRev.Id {
-				// Once we've reached lastRollRev, stop iterating.
-				if !foundTipRev {
-					// If we haven't found the tip rev, then the last-rolled rev
-					// is actually ahead of the tip rev, which is possible when
-					// tracking a ref other than "latest".  In this case, return
-					// the tip rev as the single not-rolled rev.  This may cause
-					// us to roll backward, so we log a warning.
-					sklog.Warningf("Tip rev %q is behind last-rolled rev %q; "+
-						"this may occur as a result of a manual roll when "+
-						"tracking something other than \"latest\". This will "+
-						"likely result in a backward roll!", tipRev.Id, lastRollRev.Id)
-					return tipRev, []*revision.Revision{tipRev}, nil
-				}
-				return tipRev, notRolledRevs, nil
-			}
-			if foundTipRev {
-				var rev *revision.Revision
-				// Avoid sending another request for tipRev.
-				if instance.Pin.InstanceID == head.InstanceID {
-					rev = tipRev
-				} else {
-					rev, err = c.GetRevision(ctx, instance.Pin.InstanceID)
-					if err != nil {
-						return nil, nil, skerr.Wrap(err)
-					}
-				}
-				notRolledRevs = append(notRolledRevs, rev)
-			}
-		}
+	if lastRollRev.Id != tipRev.Id {
+		notRolledRevs = append(notRolledRevs, tipRev)
 	}
 	return tipRev, notRolledRevs, nil
 }
