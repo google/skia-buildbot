@@ -1,0 +1,61 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Fuchsia Mac Clang",
+  "commitMsg": {},
+  "contacts": ["zanderso@google.com", "rmistry@google.com"],
+  "isInternal": false,
+  "ownerPrimary": "rmistry",
+  "ownerSecondary": "borenet",
+  "parentDisplayName": "Flutter",
+  "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
+  "rollerName": "fuchsia-mac-clang-flutter-engine",
+  "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": ["https://chrome-ops-rotation-proxy.appspot.com/current/grotation:flutter-engine"],
+  "sheriffBackup": ["zanderso@google.com"],
+  "github": {
+    "repoOwner": "flutter",
+    "repoName": "engine",
+    "checksWaitFor": ["luci-engine"]
+  },
+  "githubCipdDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/buildtools/mac-x64/clang",
+    "childRepo": "", // Unused
+    "cipdAssetName": "fuchsia/third_party/clang/mac-amd64",
+    "cipdAssetTag": "integration",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"custom_vars\":{\"host_os\":\"mac\"},\"safesync_url\":\"\"}]",
+    "githubParentPath": "src/flutter",
+    "parentBranch": "master",
+    "parentRepo": "git@github.com:flutter/engine.git",
+    "runHooks": true
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10",
+    "secrets": [
+      {
+        "name": "flutter-engine-github-token",
+        "mountPath": "/var/secrets/github-token"
+      },
+      {
+        "name": "flutter-engine-ssh-key",
+        "mountPath": "/var/secrets/ssh-key"
+      }
+    ]
+  },
+  "maxRollFrequency": "12h",
+  "notifiers": [
+    {
+      "filter": "warning",
+      "email": {
+        "emails": ["$SHERIFF"]
+      }
+    }
+  ]
+}
