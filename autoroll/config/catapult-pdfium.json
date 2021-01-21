@@ -46,6 +46,6 @@
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30"
   },
-  "maxRollFrequency": "22d",
+  "maxRollFrequency": "3w  1d",
   "timeWindow": "M 04:00-08:00"
 }

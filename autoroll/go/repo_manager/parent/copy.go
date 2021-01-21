@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
@@ -23,7 +24,7 @@ type CopyEntry struct {
 	DstRelPath string `json:"dstRelPath"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (e CopyEntry) Validate() error {
 	if e.SrcRelPath == "" {
 		return skerr.Fmt("SrcRelPath is required")
@@ -34,8 +35,44 @@ func (e CopyEntry) Validate() error {
 	return nil
 }
 
+// CopyEntryToProto converts a CopyEntry to a config.CopyParentConfig_CopyEntry.
+func CopyEntryToProto(cfg CopyEntry) *config.CopyParentConfig_CopyEntry {
+	return &config.CopyParentConfig_CopyEntry{
+		SrcRelPath: cfg.SrcRelPath,
+		DstRelPath: cfg.DstRelPath,
+	}
+}
+
+// ProtoToCopyEntry converts a config.CopyParentConfig_CopyEntry to a CopyEntry.
+func ProtoToCopyEntry(cfg *config.CopyParentConfig_CopyEntry) CopyEntry {
+	return CopyEntry{
+		SrcRelPath: cfg.SrcRelPath,
+		DstRelPath: cfg.DstRelPath,
+	}
+}
+
+// CopyEntriesToProto converts a []CopyEntry to a
+// []*config.CopyParentConfig_CopyEntry.
+func CopyEntriesToProto(cfgs []CopyEntry) []*config.CopyParentConfig_CopyEntry {
+	var rv []*config.CopyParentConfig_CopyEntry
+	for _, cfg := range cfgs {
+		rv = append(rv, CopyEntryToProto(cfg))
+	}
+	return rv
+}
+
+// ProtoToCopyEntries converts a []*config.CopyParentConfig_CopyEntry to a
+// []CopyEntry.
+func ProtoToCopyEntries(cfgs []*config.CopyParentConfig_CopyEntry) []CopyEntry {
+	var rv []CopyEntry
+	for _, cfg := range cfgs {
+		rv = append(rv, ProtoToCopyEntry(cfg))
+	}
+	return rv
+}
+
 // CopyConfig provides configuration for a Parent which copies the Child
-// into itself. It uses a local git checkout and uploads changes to Gerrit.
+// into itself. It uses Gitiles and Gerrit instead of a local checkout.
 type CopyConfig struct {
 	GitilesConfig
 
@@ -44,7 +81,7 @@ type CopyConfig struct {
 	Copies []CopyEntry `json:"copies,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c CopyConfig) Validate() error {
 	if err := c.GitilesConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -58,6 +95,26 @@ func (c CopyConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// CopyConfigToProto converts a CopyConfig to a config.CopyParentConfig.
+func CopyConfigToProto(cfg *CopyConfig) *config.CopyParentConfig {
+	return &config.CopyParentConfig{
+		Gitiles: GitilesConfigToProto(&cfg.GitilesConfig),
+		Copies:  CopyEntriesToProto(cfg.Copies),
+	}
+}
+
+// ProtoToCopyConfig converts a config.CopyParentConfig to a CopyConfig.
+func ProtoToCopyConfig(cfg *config.CopyParentConfig) (*CopyConfig, error) {
+	gc, err := ProtoToGitilesConfig(cfg.Gitiles)
+	if err != nil {
+		return nil, err
+	}
+	return &CopyConfig{
+		GitilesConfig: *gc,
+		Copies:        ProtoToCopyEntries(cfg.Copies),
+	}, nil
 }
 
 // NewCopy returns a Parent implementation which copies the Child into itself.

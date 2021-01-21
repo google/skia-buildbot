@@ -3,6 +3,7 @@ package child
 import (
 	"context"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -15,6 +16,26 @@ import (
 // Git checkout.
 type GitCheckoutConfig struct {
 	git_common.GitCheckoutConfig
+}
+
+// GitCheckoutConfigToProto converts a GitCheckoutConfig to a
+// config.GitCheckoutChildConfig.
+func GitCheckoutConfigToProto(cfg *GitCheckoutConfig) *config.GitCheckoutChildConfig {
+	return &config.GitCheckoutChildConfig{
+		GitCheckout: git_common.GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+	}
+}
+
+// ProtoToGitCheckoutConfig converts a config.GitCheckoutChildConfig to a
+// GitCheckoutConfig.
+func ProtoToGitCheckoutConfig(cfg *config.GitCheckoutChildConfig) (*GitCheckoutConfig, error) {
+	co, err := git_common.ProtoToGitCheckoutConfig(cfg.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitCheckoutConfig{
+		GitCheckoutConfig: *co,
+	}, nil
 }
 
 // GitCheckoutChild is an implementation of Child which uses a local Git
@@ -33,7 +54,7 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 	return &GitCheckoutChild{Checkout: checkout}, nil
 }
 
-// See documentation for Child interface.
+// Update implements Child.
 func (c *GitCheckoutChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	tipRev, _, err := c.Checkout.Update(ctx)
 	if err != nil {

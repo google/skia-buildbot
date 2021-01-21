@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/skerr"
@@ -20,7 +21,7 @@ type VersionFileConfig struct {
 	Path string `json:"path"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c VersionFileConfig) Validate() error {
 	if c.ID == "" {
 		return skerr.Fmt("ID is required")
@@ -31,6 +32,44 @@ func (c VersionFileConfig) Validate() error {
 	return nil
 }
 
+// VersionFileConfigToProto converts a VersionFileConfig to a
+// config.VersionFileConfig.
+func VersionFileConfigToProto(cfg *VersionFileConfig) *config.VersionFileConfig {
+	return &config.VersionFileConfig{
+		Id:   cfg.ID,
+		Path: cfg.Path,
+	}
+}
+
+// ProtoToVersionFileConfig converts a config.VersionFileConfig to a
+// VersionFileConfig.
+func ProtoToVersionFileConfig(cfg *config.VersionFileConfig) *VersionFileConfig {
+	return &VersionFileConfig{
+		ID:   cfg.Id,
+		Path: cfg.Path,
+	}
+}
+
+// VersionFileConfigsToProto converts a []*VersionFileConfig to a
+// []*config.VersionFileConfig.
+func VersionFileConfigsToProto(cfgs []*VersionFileConfig) []*config.VersionFileConfig {
+	var rv []*config.VersionFileConfig
+	for _, cfg := range cfgs {
+		rv = append(rv, VersionFileConfigToProto(cfg))
+	}
+	return rv
+}
+
+// ProtoToVersionFileConfigs converts a []*config.VersionFileConfig to a
+// []*VersionFileConfig.
+func ProtoToVersionFileConfigs(cfgs []*config.VersionFileConfig) []*VersionFileConfig {
+	var rv []*VersionFileConfig
+	for _, cfg := range cfgs {
+		rv = append(rv, ProtoToVersionFileConfig(cfg))
+	}
+	return rv
+}
+
 // TransitiveDepConfig provides configuration for a single transitive
 // dependency.
 type TransitiveDepConfig struct {
@@ -38,7 +77,7 @@ type TransitiveDepConfig struct {
 	Parent *VersionFileConfig `json:"parent"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c *TransitiveDepConfig) Validate() error {
 	if c.Child == nil {
 		return skerr.Fmt("Child is required")
@@ -55,6 +94,44 @@ func (c *TransitiveDepConfig) Validate() error {
 	return nil
 }
 
+// TransitiveDepConfigToProto converts a TransitiveDepConfig to a
+// config.TransitiveDepConfig.
+func TransitiveDepConfigToProto(cfg *TransitiveDepConfig) *config.TransitiveDepConfig {
+	return &config.TransitiveDepConfig{
+		Child:  VersionFileConfigToProto(cfg.Child),
+		Parent: VersionFileConfigToProto(cfg.Parent),
+	}
+}
+
+// ProtoToTransitiveDepConfig converts a config.TransitiveDepConfig to a
+// TransitiveDepConfig.
+func ProtoToTransitiveDepConfig(cfg *config.TransitiveDepConfig) *TransitiveDepConfig {
+	return &TransitiveDepConfig{
+		Child:  ProtoToVersionFileConfig(cfg.Child),
+		Parent: ProtoToVersionFileConfig(cfg.Parent),
+	}
+}
+
+// TransitiveDepConfigsToProto converts a []*TransitiveDepConfig to a
+// []*config.TransitiveDepConfig.
+func TransitiveDepConfigsToProto(cfgs []*TransitiveDepConfig) []*config.TransitiveDepConfig {
+	var rv []*config.TransitiveDepConfig
+	for _, cfg := range cfgs {
+		rv = append(rv, TransitiveDepConfigToProto(cfg))
+	}
+	return rv
+}
+
+// ProtoToTransitiveDepConfigs converts a []*config.TransitiveDepConfig to a
+// []*TransitiveDepConfig.
+func ProtoToTransitiveDepConfigs(cfgs []*config.TransitiveDepConfig) []*TransitiveDepConfig {
+	var rv []*TransitiveDepConfig
+	for _, cfg := range cfgs {
+		rv = append(rv, ProtoToTransitiveDepConfig(cfg))
+	}
+	return rv
+}
+
 // DependencyConfig provides configuration for a dependency whose version is
 // pinned in a file and which may have transitive dependencies.
 type DependencyConfig struct {
@@ -64,7 +141,7 @@ type DependencyConfig struct {
 	TransitiveDeps TransitiveDepConfigs
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c DependencyConfig) Validate() error {
 	if err := c.VersionFileConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -75,11 +152,29 @@ func (c DependencyConfig) Validate() error {
 	return nil
 }
 
+// DependencyConfigToProto converts a DependencyConfig to a
+// config.DependencyConfig.
+func DependencyConfigToProto(cfg *DependencyConfig) *config.DependencyConfig {
+	return &config.DependencyConfig{
+		Primary:    VersionFileConfigToProto(&cfg.VersionFileConfig),
+		Transitive: TransitiveDepConfigsToProto(cfg.TransitiveDeps),
+	}
+}
+
+// ProtoToDependencyConfig converts a config.DependencyConfig to a
+// DependencyConfig.
+func ProtoToDependencyConfig(cfg *config.DependencyConfig) *DependencyConfig {
+	return &DependencyConfig{
+		VersionFileConfig: *ProtoToVersionFileConfig(cfg.Primary),
+		TransitiveDeps:    ProtoToTransitiveDepConfigs(cfg.Transitive),
+	}
+}
+
 // TransitiveDepConfigs provide configuration for multiple transitive
 // dependencies.
 type TransitiveDepConfigs []*TransitiveDepConfig
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c TransitiveDepConfigs) Validate() error {
 	for _, elem := range c {
 		if err := elem.Validate(); err != nil {

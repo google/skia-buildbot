@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
@@ -26,7 +27,7 @@ type GitCheckoutConfig struct {
 	version_file_common.DependencyConfig
 }
 
-// See documentation for util.Validator interface.
+// Validate implements util.Validator.
 func (c GitCheckoutConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -38,6 +39,28 @@ func (c GitCheckoutConfig) Validate() error {
 		return skerr.Fmt("Dependencies are inherited from the DependencyConfig and should not be set on the GitCheckoutConfig.")
 	}
 	return nil
+}
+
+// GitCheckoutConfigToProto converts a GitCheckoutConfig to a
+// config.GitCheckoutParentConfig.
+func GitCheckoutConfigToProto(cfg *GitCheckoutConfig) *config.GitCheckoutParentConfig {
+	return &config.GitCheckoutParentConfig{
+		GitCheckout: git_common.GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
+		Dep:         version_file_common.DependencyConfigToProto(&cfg.DependencyConfig),
+	}
+}
+
+// ProtoToGitCheckoutConfig converts a config.GitCheckoutParentConfig to a
+// GitCheckoutConfig.
+func ProtoToGitCheckoutConfig(cfg *config.GitCheckoutParentConfig) (*GitCheckoutConfig, error) {
+	co, err := git_common.ProtoToGitCheckoutConfig(cfg.GitCheckout)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &GitCheckoutConfig{
+		GitCheckoutConfig: *co,
+		DependencyConfig:  *version_file_common.ProtoToDependencyConfig(cfg.Dep),
+	}, nil
 }
 
 // GitCheckoutParent is a base for implementations of Parent which use a local
