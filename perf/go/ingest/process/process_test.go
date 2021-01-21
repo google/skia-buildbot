@@ -17,9 +17,11 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestevents"
+	"go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"google.golang.org/api/option"
 )
@@ -73,12 +75,12 @@ func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 		DataStoreConfig: config.DataStoreConfig{
 			DataStoreType:    config.CockroachDBDataStoreType,
 			TileSize:         256,
-			ConnectionString: fmt.Sprintf("postgresql://root@localhost:26257/%s?sslmode=disable", CockroachDatabaseName),
+			ConnectionString: fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", sql.GetCockroachDBEmulatorHost(), CockroachDatabaseName),
 		},
 		IngestionConfig: config.IngestionConfig{
 			SourceConfig: config.SourceConfig{
 				SourceType: config.DirSourceType,
-				Sources:    []string{"../../../integration/data"},
+				Sources:    []string{filepath.Join(testutils.GetRepoRoot(t), "perf/integration/data")},
 			},
 		},
 		GitRepoConfig: config.GitRepoConfig{
@@ -112,7 +114,7 @@ func TestSendPubSubEvent_Success(t *testing.T) {
 			"config": "565",
 		},
 	}
-	ps := paramtools.NewParamSet(params...)
+	ps := paramtools.NewReadOnlyParamSet(params...)
 
 	// Create the subscription before the pubsub message is sent, otherwise the
 	// emulator won't deliver it.
@@ -141,7 +143,7 @@ func TestSendPubSubEvent_Success(t *testing.T) {
 	}()
 
 	// Now we can finally send the message.
-	err = sendPubSubEvent(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps.Freeze(), "somefile.json")
+	err = sendPubSubEvent(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, "somefile.json")
 	require.NoError(t, err)
 
 	// Wait for one message to be delivered.

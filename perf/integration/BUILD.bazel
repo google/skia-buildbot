@@ -1,5 +1,11 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
+filegroup(
+    name = "data",
+    srcs = glob(["data/**"]),
+    visibility = ["//perf:__subpackages__"],
+)
+
 go_library(
     name = "integration_lib",
     srcs = ["generate_data.go"],

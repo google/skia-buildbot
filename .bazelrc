@@ -25,6 +25,15 @@ build --test_env=PUBSUB_EMULATOR_HOST
 build --test_env=FIRESTORE_EMULATOR_HOST
 build --test_env=COCKROACHDB_EMULATOR_HOST
 
+# Pipe through GOOGLE_APPLICATION_CREDENTIALS for local tests. This breaks test hermeticity, so use
+# judiciously. Most tests that depend on this variable should probably tagged with "no-remote".
+#
+# We clear this variable under build:remote because it set, it will most likely contain a path to a
+# file in the host system, which could potentially point to a nonexisting file within the RBE
+# container when Bazel is invoked with --config=remote.
+build --test_env=GOOGLE_APPLICATION_CREDENTIALS
+build:remote --test_env=GOOGLE_APPLICATION_CREDENTIALS=
+
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
 # Setting it too high can result in jobs that timeout, however, while waiting
