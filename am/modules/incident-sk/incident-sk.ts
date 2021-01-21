@@ -65,6 +65,7 @@ import { until } from 'lit-html/directives/until';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { abbr, linkify, notes } from '../am';
 import * as paramset from '../paramset';
+import { Silence, Params } from '../json';
 
 const MAX_MATCHING_SILENCES_TO_DISPLAY = 50;
 
@@ -151,17 +152,50 @@ function history(ele) {
   }).catch(errorMessage);
 }
 
-const template = (ele) => html`
-  <h2 class=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)} ${ele._displayRecentlyExpired(ele._recently_expired_silence)} ${ele._displayFlakiness(ele._flaky)}</h2>
+class State {
+  key: string = '';
+
+  id: string = '';
+
+  params: Params = {};
+
+  start: number = 0;
+
+  last_seen: number = 0;
+
+  active: boolean = false;
+}
+
+
+export class IncidentSk extends HTMLElement {
+  private silences: Silence[] = [];
+
+  private displaySilencesWithComments: boolean = false;
+
+  private flaky: boolean = false;
+
+  private recently_expired_silence: boolean = false;
+
+  private state: State = {
+    key: '',
+    id: '',
+    params: {},
+    start: 0,
+    last_seen: 0,
+    active: false,
+  };
+
+  private static template = (ele: IncidentSk) => html`
+  <h2 class=${classOfH2(ele)}>${ele.state.params.alertname} ${abbr(ele.state)} ${ele._displayRecentlyExpired(ele.recently_expired_silence)} ${ele._displayFlakiness(ele._flaky)}</h2>
   <section class=detail>
     ${actionButtons(ele)}
     <table class=timing>
-      <tr><th>Started</th><td title=${new Date(ele._state.start * 1000).toLocaleString()}>${diffDate(ele._state.start * 1000)}</td></tr>
+      <tr><th>Started</th><td title=${new Date(ele.state.start * 1000).toLocaleString()}>${diffDate(ele.state.start * 1000)}</td></tr>
       ${lastSeen(ele)}
       ${duration(ele)}
     </table>
     <table class=params>
-      ${table(ele._state.params)}
+      ${table(ele.state.params)}
     </table>
     ${notes(ele)}
     <section class=addNote>
@@ -183,19 +217,10 @@ const template = (ele) => html`
   </section>
 `;
 
-define('incident-sk', class extends HTMLElement {
-  constructor() {
-    super();
-    this._silences = [];
-    this._displaySilencesWithComments = false;
-    this._flaky = false;
-    this._recently_expired_silence = false;
-  }
-
   /** @prop state {Object} An Incident. */
   get state() { return this._state; }
 
-  set state(val) {
+  state(val) {
     this._state = val;
     this._render();
   }
@@ -296,4 +321,7 @@ define('incident-sk', class extends HTMLElement {
     }
     render(template(this), this, { eventContext: this });
   }
-});
+}
+
+
+define('incident-sk', IncidentSk);
