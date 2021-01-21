@@ -3,6 +3,7 @@ package sqlclstore
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -17,18 +18,25 @@ import (
 )
 
 type StoreImpl struct {
-	db       *pgxpool.Pool
-	systemID string
+	db        *pgxpool.Pool
+	systemID  string
+	asOfDelay int
 }
 
 // New returns a SQL-backed clstore.Store for the given system.
 func New(db *pgxpool.Pool, systemID string) *StoreImpl {
-	return &StoreImpl{db: db, systemID: systemID}
+	return &StoreImpl{
+		db:       db,
+		systemID: systemID,
+		// 5 seconds is the minimum time in production to have reads be follow reads.
+		// https://www.cockroachlabs.com/docs/stable/as-of-system-time.html
+		asOfDelay: 5,
+	}
 }
 
 const statementAll = `
 SELECT changelist_id, status, owner_email, subject, last_ingested_data
-FROM Changelists
+FROM Changelists AS OF SYSTEM TIME '-%ds'
 WHERE system = $1 and last_ingested_data > $2
 ORDER BY last_ingested_data DESC
 LIMIT $3 OFFSET $4
@@ -36,7 +44,7 @@ LIMIT $3 OFFSET $4
 
 const statementOpenOnly = `
 SELECT changelist_id, status, owner_email, subject, last_ingested_data
-FROM Changelists
+FROM Changelists AS OF SYSTEM TIME '-%ds'
 WHERE system = $1 and last_ingested_data > $2 and status = 'open'
 ORDER BY last_ingested_data DESC
 LIMIT $3 OFFSET $4
@@ -55,6 +63,7 @@ func (s *StoreImpl) GetChangelists(ctx context.Context, opts clstore.SearchOptio
 	if opts.OpenCLsOnly {
 		statement = statementOpenOnly
 	}
+	statement = fmt.Sprintf(statement, s.asOfDelay)
 	rows, err := s.db.Query(ctx, statement, s.systemID, opts.After, opts.Limit, opts.StartIdx)
 	if err != nil {
 		return nil, -1, skerr.Wrapf(err, "querying for options %s - %#v", s.systemID, opts)
