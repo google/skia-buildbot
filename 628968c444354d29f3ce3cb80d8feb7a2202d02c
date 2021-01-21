@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e28892a8_37d9c0d9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16174
+      },
+      "writtenOn": "2021-01-21T21:58:39Z",
+      "side": 1,
+      "message": "Thanks, Tiancong.\nI have updated afdo-chromium* files in the same change. PTAL.",
+      "revId": "628968c444354d29f3ce3cb80d8feb7a2202d02c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
