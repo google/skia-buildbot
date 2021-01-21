@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "feb7e068_34565ccb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T17:27:10Z",
+      "side": 1,
+      "message": "There are a lot of autoroll CLs flying around right now; let\u0027s coordinate on when to land this.  The new config files can be regenerated using convert_configs.",
+      "revId": "177e49636d3f68b5157be653399c9ca38dd8bf5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
