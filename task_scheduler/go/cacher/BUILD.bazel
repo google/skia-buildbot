@@ -22,6 +22,7 @@ go_library(
 go_test(
     name = "cacher_test",
     srcs = ["cacher_test.go"],
+    data = ["//infra/config:recipes.cfg"],
     embed = [":cacher"],
     deps = [
         "//go/cas/mocks",
