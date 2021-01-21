@@ -27,6 +27,7 @@ go_library(
 go_test(
     name = "dfbuilder_test",
     srcs = ["dfbuilder_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":dfbuilder"],
     deps = [
         "//go/paramtools",

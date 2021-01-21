@@ -17,6 +17,7 @@ go_library(
 go_test(
     name = "migrations_test",
     srcs = ["migrations_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":migrations"],
     deps = [
         "//go/testutils/unittest",

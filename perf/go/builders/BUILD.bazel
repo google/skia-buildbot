@@ -30,6 +30,7 @@ go_library(
 go_test(
     name = "builders_test",
     srcs = ["builders_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":builders"],
     deps = [
         "//go/paramtools",

@@ -15,6 +15,7 @@ go_library(
 go_test(
     name = "sqlalertstore_test",
     srcs = ["sqlalertstore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlalertstore"],
     deps = [
         "//go/testutils/unittest",

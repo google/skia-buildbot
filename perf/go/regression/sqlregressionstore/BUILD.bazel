@@ -20,6 +20,7 @@ go_library(
 go_test(
     name = "sqlregressionstore_test",
     srcs = ["sqlregressionstore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlregressionstore"],
     deps = [
         "//go/testutils/unittest",

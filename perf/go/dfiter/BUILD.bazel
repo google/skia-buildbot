@@ -20,6 +20,7 @@ go_library(
 go_test(
     name = "dfiter_test",
     srcs = ["dfiter_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":dfiter"],
     deps = [
         "//go/paramtools",

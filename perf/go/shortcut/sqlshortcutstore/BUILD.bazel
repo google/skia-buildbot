@@ -17,6 +17,7 @@ go_library(
 go_test(
     name = "sqlshortcutstore_test",
     srcs = ["sqlshortcutstore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlshortcutstore"],
     deps = [
         "//go/testutils/unittest",
