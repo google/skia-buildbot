@@ -11,11 +11,14 @@
   "dependencies": {
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
+    "@types/sinon": "^9.0.4",
     "@webcomponents/custom-elements": "~1.4.1",
+    "chai": "~4.2.0",
     "common-sk": "~3.4.0",
     "dialog-polyfill": "^0.5.1",
     "elements-sk": "^4.0.0",
     "html-webpack-inject-attributes-plugin": "^1.0.3",
+    "sinon": "~7.4.2",
     "lit-html": "~1.2.1"
   },
   "devDependencies": {
@@ -23,7 +26,6 @@
     "@types/karma": "^5.0.0",
     "@types/webpack": "^4.41.13",
     "autoprefixer": "^9.6.1",
-    "chai": "~4.2.0",
     "copy-webpack-plugin": "~6.3.2",
     "css-loader": "^3.5.3",
     "html-loader": "^0.5.5",
@@ -41,7 +43,6 @@
     "node-sass": "^4.14.1",
     "postcss-loader": "^2.1.6",
     "sass-loader": "^7.3.1",
-    "sinon": "~7.4.2",
     "ts-loader": "^7.0.5",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.3",
