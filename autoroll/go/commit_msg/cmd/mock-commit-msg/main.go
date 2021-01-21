@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os/user"
@@ -13,9 +12,9 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
-	"github.com/flynn/json5"
 	"github.com/pmezard/go-difflib/difflib"
 	"go.skia.org/infra/autoroll/go/commit_msg"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -28,8 +27,8 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/repo_root"
-	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 var (
@@ -48,11 +47,17 @@ func main() {
 	}
 
 	// Read the roller config file.
-	var cfg roller.AutoRollerConfig
-	if err := util.WithReadFile(*configFile, func(r io.Reader) error {
-		return json5.NewDecoder(r).Decode(&cfg)
-	}); err != nil {
+	cfgBytes, err := ioutil.ReadFile(*configFile)
+	if err != nil {
 		log.Fatalf("Failed to read %s: %s", *configFile, err)
+	}
+	var protoCfg config.Config
+	if err := prototext.Unmarshal(cfgBytes, &protoCfg); err != nil {
+		log.Fatalf("Failed to decode config: %s", err)
+	}
+	cfg, err := roller.ProtoToConfig(&protoCfg)
+	if err != nil {
+		log.Fatalf("Failed to convert roller config: %s", err)
 	}
 
 	// Fake the serverURL based on the roller name.
