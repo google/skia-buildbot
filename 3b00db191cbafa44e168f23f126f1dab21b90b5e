@@ -63,6 +63,30 @@
       },
       "revId": "3b00db191cbafa44e168f23f126f1dab21b90b5e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c02b9e6f_f529a0dd",
+        "filename": "autoroll/go/repo_manager/child/BUILD.bazel",
+        "patchSetId": 17
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-21T20:22:31Z",
+      "side": 1,
+      "message": "Awesome, thanks!",
+      "parentUuid": "f2537e86_1844788e",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 30
+      },
+      "revId": "3b00db191cbafa44e168f23f126f1dab21b90b5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
