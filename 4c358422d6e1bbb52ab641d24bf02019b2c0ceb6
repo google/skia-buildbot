@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "45401819_be82c116",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T14:47:27Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "4c358422d6e1bbb52ab641d24bf02019b2c0ceb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d4dcf5d_148b84b2",
+        "filename": "am/go/incident/incident_manual_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T14:47:27Z",
+      "side": 1,
+      "message": "Note: I\u0027m assuming that these new files are copy/pasted without modification from the old files.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "4c358422d6e1bbb52ab641d24bf02019b2c0ceb6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
