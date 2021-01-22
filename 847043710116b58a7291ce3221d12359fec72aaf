@@ -140,6 +140,24 @@
       "parentUuid": "d41acbf8_cb54e079",
       "revId": "847043710116b58a7291ce3221d12359fec72aaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6106664_ed6659ee",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T18:04:45Z",
+      "side": 1,
+      "message": "Will do!  I can use the contacts lists for the rollers, but it would also be helpful to subscribe to skia-autoroll-announce@google.com",
+      "parentUuid": "1dc2943e_0c714e27",
+      "revId": "847043710116b58a7291ce3221d12359fec72aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
