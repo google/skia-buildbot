@@ -34,6 +34,23 @@
       "parentUuid": "eefb581c_96938c9c",
       "revId": "8c8740d825634027873bcfbce6bca4d89829b2ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9fe727f7_edeadab2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-22T21:42:20Z",
+      "side": 1,
+      "message": "Update: I\u0027m refactoring goldctl a bit (a lot) so I can have a test that sufficiently proves that this fix works. I\u0027ve made some good progress today, but I\u0027ll have to keep at it on Monday.",
+      "revId": "8c8740d825634027873bcfbce6bca4d89829b2ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
