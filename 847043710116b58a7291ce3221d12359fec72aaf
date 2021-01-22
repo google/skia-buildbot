@@ -158,6 +158,24 @@
       "parentUuid": "1dc2943e_0c714e27",
       "revId": "847043710116b58a7291ce3221d12359fec72aaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "543d0d4f_8ad359c1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16174
+      },
+      "writtenOn": "2021-01-22T18:59:38Z",
+      "side": 1,
+      "message": "Thanks! I have joined the group.",
+      "parentUuid": "c6106664_ed6659ee",
+      "revId": "847043710116b58a7291ce3221d12359fec72aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
