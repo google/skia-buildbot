@@ -43,16 +43,10 @@ has been run.
 // from disk and dumps out the information.
 func (d *dumpEnv) runDumpCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(d.flagWorkDir)
-	ifErrLogExit(ctx, err)
-
-	if auth == nil {
-		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(ctx, 1)
-	}
+	ctx = loadAuthenticatedClients(ctx, d.flagWorkDir)
 
 	// the user is presumed to have called init first, so we can just load it
-	goldClient, err := goldclient.LoadCloudClient(auth, d.flagWorkDir)
+	goldClient, err := goldclient.LoadCloudClient(d.flagWorkDir)
 	ifErrLogExit(ctx, err)
 
 	if d.flagDumpBaseline {
