@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7998d646_e093faba",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16209
+      },
+      "writtenOn": "2021-01-22T13:10:29Z",
+      "side": 1,
+      "message": "Surely V8 isn\u0027t branching as expected here, but this might not hold for all removed repositories. E.g. I think devtools-frontend is following chromium\u0027s branches, Chromium\u0027s branch-heads/XXXX should match heads/chromium/XXXX in devtools-frontend. But in V8 (and maybe some others) the team chooses a different branch based on canary stability.",
+      "revId": "d13f973240ae7be689ae93764293ad9fce33ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
