@@ -1,6 +1,7 @@
 package goldclient
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,13 +14,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
-
-// HTTPClient makes it easier to mock out goldclient's dependencies on
-// http.Client by representing a smaller interface.
-type HTTPClient interface {
-	Get(url string) (resp *http.Response, err error)
-	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
-}
 
 const maxAttempts = 5
 
@@ -40,12 +34,14 @@ func GetGoldInstanceURL(instanceID string) string {
 //
 // Note: http.Client retries certain kinds of request upon encountering network errors. See
 // https://golang.org/pkg/net/http/#Transport for more. This function covers other errors.
-//
-// TODO(kjlubick): Add context.Context.
-func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
+func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 	var lastErr error
+	httpClient := extractHTTPClient(ctx)
 
 	for attempts := 0; attempts < maxAttempts; attempts++ {
+		if err := ctx.Err(); err != nil {
+			return nil, skerr.Wrapf(err, "context error")
+		}
 		if lastErr != nil {
 			fmt.Printf("Retry attempt #%d after error: %s\n", attempts, lastErr)
 			// reset the error
@@ -87,8 +83,8 @@ func getWithRetries(httpClient HTTPClient, url string) ([]byte, error) {
 }
 
 // post makes a POST request to the specified URL with the given body.
-// TODO(kjlubick): Add context.Context.
-func post(httpClient HTTPClient, url, contentType string, body io.Reader) ([]byte, error) {
+func post(ctx context.Context, url, contentType string, body io.Reader) ([]byte, error) {
+	httpClient := extractHTTPClient(ctx)
 	resp, err := httpClient.Post(url, contentType, body)
 	if err != nil {
 		return nil, skerr.Fmt("error on POST %s: %s", url, err)
