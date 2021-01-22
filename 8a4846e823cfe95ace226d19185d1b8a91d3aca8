@@ -3,6 +3,23 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "d9015a26_a298a06a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T13:51:17Z",
+      "side": 1,
+      "message": "It\u0027s a little early, but I\u0027m landing so that I can rebase my config format migration CL.  Will spin up the roller when we\u0027re actually ready for it.",
+      "revId": "8a4846e823cfe95ace226d19185d1b8a91d3aca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "1887c7ae_ca74080a",
         "filename": "autoroll/config/androidx-chromium.json",
         "patchSetId": 1
@@ -14,6 +31,30 @@
       "writtenOn": "2021-01-20T15:26:20Z",
       "side": 1,
       "message": "Note that this ref does not currently exist; one will need to be created before this lands.",
+      "range": {
+        "startLine": 38,
+        "startChar": 21,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "8a4846e823cfe95ace226d19185d1b8a91d3aca8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e895864_f32c206a",
+        "filename": "autoroll/config/androidx-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T13:51:17Z",
+      "side": 1,
+      "message": "It\u0027s created in https://chromium-review.googlesource.com/c/chromium/tools/build/+/2643495",
+      "parentUuid": "1887c7ae_ca74080a",
       "range": {
         "startLine": 38,
         "startChar": 21,
