@@ -50,6 +50,24 @@
       "message": "Out of curiosity, are you using a script to perform these updates?",
       "revId": "847043710116b58a7291ce3221d12359fec72aaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6561f32c_20bb867c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-22T17:25:07Z",
+      "side": 1,
+      "message": "Yes, I wrote a script for these and started to use it since several milestones ago. But we have to manually edit some configs this time because of the silvermont/airmont/broadwell -\u003e atom/bigcore migration. Future updates will be just running the scripts.",
+      "parentUuid": "1186fe7d_2b92bea1",
+      "revId": "847043710116b58a7291ce3221d12359fec72aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
