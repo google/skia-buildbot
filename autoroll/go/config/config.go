@@ -6,4 +6,4 @@ package config
 //go:generate rm -rf ./go.skia.org
 //go:generate goimports -w config.pb.go
 //--go:generate goimports -w config.twirp.go
-//go:generate protoc --twirp_typescript_out=../../modules/config ./config.proto
+//--go:generate protoc --twirp_typescript_out=../../modules/config ./config.proto
