@@ -20,7 +20,7 @@ go_library(
 
 go_test(
     name = "pubsubsource_test",
-    srcs = ["pubsubsource_test.go"],
+    srcs = ["pubsubsource_manual_test.go"],
     embed = [":pubsubsource"],
     deps = [
         "//go/auth",

@@ -38,8 +38,6 @@ load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
 # test target does not contain any manual test, the custom macro behaves exactly like rules_go's
 # go_test rule.
 #
-# TODO(lovisolo): Enforce "_manual_test.go" naming convention in unittest.ManualTest().
-#
 # See the macro's docstring for details.
 #
 # Documentation for this directive: https://github.com/bazelbuild/bazel-gazelle#directives.

@@ -20,7 +20,10 @@ go_library(
 
 go_test(
     name = "syncer_test",
-    srcs = ["syncer_test.go"],
+    srcs = [
+        "syncer_manual_test.go",
+        "syncer_test.go",
+    ],
     data = ["//infra/config:recipes.cfg"],
     embed = [":syncer"],
     deps = [

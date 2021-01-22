@@ -23,7 +23,7 @@ go_library(
 
 go_test(
     name = "machine_test",
-    srcs = ["machine_test.go"],
+    srcs = ["machine_manual_test.go"],
     data = glob(["testdata/**"]),
     embed = [":machine"],
     deps = [

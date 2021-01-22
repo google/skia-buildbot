@@ -17,7 +17,7 @@ go_library(
 
 go_test(
     name = "memcached_test",
-    srcs = ["memcached_test.go"],
+    srcs = ["memcached_manual_test.go"],
     embed = [":memcached"],
     deps = [
         "//go/testutils/unittest",

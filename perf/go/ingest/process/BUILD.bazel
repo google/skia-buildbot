@@ -28,7 +28,7 @@ go_library(
 
 go_test(
     name = "process_test",
-    srcs = ["process_test.go"],
+    srcs = ["process_manual_test.go"],
     data = [
         "//perf/integration:data",
         "//perf/migrations:cockroachdb",
