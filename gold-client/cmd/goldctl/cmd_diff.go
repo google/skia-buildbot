@@ -40,24 +40,25 @@ Outputs the closest of these images and the diff to the given folder.
 	cmd.Flags().StringVar(&env.outDir, "out-dir", "", "Work directory that will contain the output")
 	cmd.Flags().StringVar(&env.workDir, fstrWorkDir, "", "Work directory for intermediate results")
 	// Everything is required for this command.
-	Must(cmd.MarkFlagRequired(fstrWorkDir))
-	Must(cmd.MarkFlagRequired("input"))
-	Must(cmd.MarkFlagRequired("test"))
-	Must(cmd.MarkFlagRequired("corpus"))
-	Must(cmd.MarkFlagRequired("out-dir"))
-	Must(cmd.MarkFlagRequired("instance"))
+	must(cmd.MarkFlagRequired(fstrWorkDir))
+	must(cmd.MarkFlagRequired("input"))
+	must(cmd.MarkFlagRequired("test"))
+	must(cmd.MarkFlagRequired("corpus"))
+	must(cmd.MarkFlagRequired("out-dir"))
+	must(cmd.MarkFlagRequired("instance"))
 
 	return cmd
 }
 
 // runDiffCmd executes the diff logic for comparing a given image against all that Gold knows.
 func (d *diffEnv) runDiffCmd(cmd *cobra.Command, args []string) {
+	ctx := cmd.Context()
 	auth, err := goldclient.LoadAuthOpt(d.workDir)
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 
 	if auth == nil {
-		logErrf(cmd, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(cmd, 1)
+		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
+		exitProcess(ctx, 1)
 	}
 
 	config := goldclient.GoldClientConfig{
@@ -67,8 +68,8 @@ func (d *diffEnv) runDiffCmd(cmd *cobra.Command, args []string) {
 
 	// overwrite any existing configs in this workdir.
 	goldClient, err := goldclient.NewCloudClient(auth, config)
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 
 	err = goldClient.Diff(context.Background(), types.TestName(d.test), d.corpus, d.inputFile, d.outDir)
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 }
