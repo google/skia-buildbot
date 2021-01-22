@@ -104,6 +104,24 @@
       "parentUuid": "66dd0f57_b5e90757",
       "revId": "847043710116b58a7291ce3221d12359fec72aaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d41acbf8_cb54e079",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T18:00:59Z",
+      "side": 1,
+      "message": "For the record, the eventual goal is to make a UI for creating new autorollers.  I was hoping to remove the checked-in config files altogether, but we could consider having the UI just update the checked-in config files.",
+      "parentUuid": "68cff90b_c2c67709",
+      "revId": "847043710116b58a7291ce3221d12359fec72aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
