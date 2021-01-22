@@ -23,7 +23,7 @@ go_library(
 
 go_test(
     name = "gcssource_test",
-    srcs = ["gcssource_test.go"],
+    srcs = ["gcssource_manual_test.go"],
     embed = [":gcssource"],
     deps = [
         "//go/auth",
