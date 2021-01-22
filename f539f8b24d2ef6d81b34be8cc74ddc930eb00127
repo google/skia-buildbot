@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c51d270b_ff70e8a3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T18:08:45Z",
+      "side": 1,
+      "message": "A number of fixes were needed in autoroll-pusher and kube-conf-gen and some other places.  PTAL.",
+      "revId": "f539f8b24d2ef6d81b34be8cc74ddc930eb00127",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
