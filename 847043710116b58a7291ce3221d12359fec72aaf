@@ -122,6 +122,24 @@
       "parentUuid": "68cff90b_c2c67709",
       "revId": "847043710116b58a7291ce3221d12359fec72aaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1dc2943e_0c714e27",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9995
+      },
+      "writtenOn": "2021-01-22T18:02:06Z",
+      "side": 1,
+      "message": "Awesome! Can you keep denik@ updated on such updates in the future? Thanks!",
+      "parentUuid": "d41acbf8_cb54e079",
+      "revId": "847043710116b58a7291ce3221d12359fec72aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
