@@ -39,6 +39,30 @@
       },
       "revId": "6dd861cf583d5da9c53ba632890899c9510c113d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "097a6a05_e9194d36",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-22T19:12:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bb9e83b5_a8756515",
+      "range": {
+        "startLine": 14,
+        "startChar": 3,
+        "endLine": 14,
+        "endChar": 13
+      },
+      "revId": "6dd861cf583d5da9c53ba632890899c9510c113d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
