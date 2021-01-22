@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c1d99e67_b38f058b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-22T18:22:17Z",
+      "side": 1,
+      "message": "Thanks for the cleanup and additional tests!",
+      "revId": "6dd861cf583d5da9c53ba632890899c9510c113d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb9e83b5_a8756515",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-22T18:22:17Z",
+      "side": 1,
+      "message": "Ubernit: update?",
+      "range": {
+        "startLine": 14,
+        "startChar": 3,
+        "endLine": 14,
+        "endChar": 13
+      },
+      "revId": "6dd861cf583d5da9c53ba632890899c9510c113d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
