@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	auth2 "go.skia.org/infra/gold-client/go/auth"
 
 	"github.com/spf13/cobra"
 
@@ -53,7 +53,7 @@ Outputs the closest of these images and the diff to the given folder.
 // runDiffCmd executes the diff logic for comparing a given image against all that Gold knows.
 func (d *diffEnv) runDiffCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(d.workDir)
+	auth, err := auth2.LoadAuthOpt(d.workDir)
 	ifErrLogExit(ctx, err)
 
 	if auth == nil {
@@ -67,9 +67,9 @@ func (d *diffEnv) runDiffCmd(cmd *cobra.Command, args []string) {
 	}
 
 	// overwrite any existing configs in this workdir.
-	goldClient, err := goldclient.NewCloudClient(auth, config)
+	goldClient, err := goldclient.NewCloudClient(config)
 	ifErrLogExit(ctx, err)
 
-	err = goldClient.Diff(context.Background(), types.TestName(d.test), d.corpus, d.inputFile, d.outDir)
+	err = goldClient.Diff(ctx, types.TestName(d.test), d.corpus, d.inputFile, d.outDir)
 	ifErrLogExit(ctx, err)
 }
