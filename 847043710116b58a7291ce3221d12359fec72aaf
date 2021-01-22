@@ -68,6 +68,24 @@
       "parentUuid": "1186fe7d_2b92bea1",
       "revId": "847043710116b58a7291ce3221d12359fec72aaf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "66dd0f57_b5e90757",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-22T17:41:36Z",
+      "side": 1,
+      "message": "Ok, I\u0027m in the process of converting the config files to text proto format so that we can add some features.  We may need to update your script accordingly.  The CL is here: https://skia-review.googlesource.com/c/buildbot/+/356364",
+      "parentUuid": "6561f32c_20bb867c",
+      "revId": "847043710116b58a7291ce3221d12359fec72aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
