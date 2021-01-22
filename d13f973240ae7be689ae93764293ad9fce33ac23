@@ -34,6 +34,24 @@
       "parentUuid": "7998d646_e093faba",
       "revId": "d13f973240ae7be689ae93764293ad9fce33ac23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "54c6f5bb_21b3a39d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12094
+      },
+      "writtenOn": "2021-01-22T17:52:23Z",
+      "side": 1,
+      "message": "Yes we\u0027re not moving forward with any beta and stable autorollers since we would need a lot of them and each roll taking 1-2 hours to go through the CQ would be a significant blocker to releases.",
+      "parentUuid": "c0a2aed0_717b16d2",
+      "revId": "d13f973240ae7be689ae93764293ad9fce33ac23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
