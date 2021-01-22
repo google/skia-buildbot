@@ -35,16 +35,17 @@ ingestion.`,
 
 // runValidateCmd implements validation of JSON files.
 func (v *validateEnv) runValidateCmd(cmd *cobra.Command, args []string) {
+	ctx := cmd.Context()
 	f, closeFn, err := getFileOrStdin(v.flagFile)
 	if err != nil {
-		logErrfAndExit(cmd, "Error opeing input: %s", err)
+		logErrfAndExit(ctx, "Error opeing input: %s", err)
 	}
 
 	goldResult, err := jsonio.ParseGoldResults(f)
 	if err != nil {
-		logErrfAndExit(cmd, "Invalid JSON for gold: %s", err)
+		logErrfAndExit(ctx, "Invalid JSON for gold: %s", err)
 	}
-	ifErrLogExit(cmd, closeFn())
-	logVerbose(cmd, fmt.Sprintf("Result:\n%s\n", spew.Sdump(goldResult)))
-	logVerbose(cmd, "JSON validation succeeded.\n")
+	ifErrLogExit(ctx, closeFn())
+	logVerbose(ctx, fmt.Sprintf("Result:\n%s\n", spew.Sdump(goldResult)))
+	logVerbose(ctx, "JSON validation succeeded.\n")
 }

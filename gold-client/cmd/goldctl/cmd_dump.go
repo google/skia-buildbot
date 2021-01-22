@@ -36,7 +36,7 @@ has been run.
 
 	// add the workdir flag and make it required
 	cmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
-	Must(cmd.MarkFlagRequired(fstrWorkDir))
+	must(cmd.MarkFlagRequired(fstrWorkDir))
 
 	return cmd
 }
@@ -44,27 +44,28 @@ has been run.
 // runDumpCmd executes the dump logic - it loads the previous setup
 // from disk and dumps out the information.
 func (d *dumpEnv) runDumpCmd(cmd *cobra.Command, args []string) {
+	ctx := cmd.Context()
 	auth, err := goldclient.LoadAuthOpt(d.flagWorkDir)
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 
 	if auth == nil {
-		logErrf(cmd, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(cmd, 1)
+		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
+		exitProcess(ctx, 1)
 	}
 
 	// the user is presumed to have called init first, so we can just load it
 	goldClient, err := goldclient.LoadCloudClient(auth, d.flagWorkDir)
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 
 	if d.flagDumpBaseline {
 		b, err := goldClient.DumpBaseline()
-		ifErrLogExit(cmd, err)
+		ifErrLogExit(ctx, err)
 		fmt.Printf("Baseline: \n%s\n", b)
 	}
 
 	if d.flagDumpHashes {
 		h, err := goldClient.DumpKnownHashes()
-		ifErrLogExit(cmd, err)
+		ifErrLogExit(ctx, err)
 		fmt.Printf("Known Hashes: \n%s\n", h)
 	}
 }
