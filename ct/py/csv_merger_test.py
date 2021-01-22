@@ -33,10 +33,15 @@ class TestCsvMerger(unittest.TestCase):
 
     # Compare actual with expected.
     expected_output = os.path.join(self._test_csv_dir, 'expected_output')
-    with open(expected_output, 'rb') as f:
+    with open(expected_output, 'r') as f:
       expected_output_lines = f.readlines()
-    with open(self._actual_output, 'rb') as f:
+    with open(self._actual_output, 'r') as f:
       actual_output_lines = f.readlines()
+    print('expected')
+    print(set(expected_output_lines))
+    print('actual');
+    print(set(actual_output_lines))
+
     self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
 
   def test_E2EMergerWithStrings(self):
@@ -48,9 +53,9 @@ class TestCsvMerger(unittest.TestCase):
     # Compare actual with expected.
     expected_output = os.path.join(self._test_csv_dir,
                                    'expected_output_with_strings')
-    with open(expected_output, 'rb') as f:
+    with open(expected_output, 'r') as f:
       expected_output_lines = f.readlines()
-    with open(self._actual_output, 'rb') as f:
+    with open(self._actual_output, 'r') as f:
       actual_output_lines = f.readlines()
     self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
 

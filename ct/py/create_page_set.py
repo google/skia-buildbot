@@ -22,8 +22,6 @@ import os
 import urllib
 import zipfile
 
-from StringIO import StringIO
-
 
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
@@ -100,5 +98,5 @@ if '__main__' == __name__:
         # Output the pageset to a file.
         parent_dir = os.path.join(options.pagesets_output_dir, str(i+1))
         os.mkdir(parent_dir)
-        with open(os.path.join(parent_dir, '%s.py' % (i+1)), 'wb') as outfile:
+        with open(os.path.join(parent_dir, '%s.py' % (i+1)), 'w') as outfile:
           json.dump(page_set_content, outfile)
