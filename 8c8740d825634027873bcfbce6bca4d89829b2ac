@@ -16,6 +16,24 @@
       "message": "LGTM once there\u0027s test coverage ensuring two consecutive uploads send the expected data. Not sure if the existing tests cover that or not.",
       "revId": "8c8740d825634027873bcfbce6bca4d89829b2ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "78ef73fa_361050d5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-22T12:49:59Z",
+      "side": 1,
+      "message": "I\u0027ve been thinking about this a lot - the existing tests I think were one layer too low and missed codifying this behavior. I\u0027m going to try writing a test that more accurately mimics calls to goldctl itself, not just the individual functions, since the issue I\u0027m trying to fix doesn\u0027t accurately rear its head here.",
+      "parentUuid": "eefb581c_96938c9c",
+      "revId": "8c8740d825634027873bcfbce6bca4d89829b2ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
