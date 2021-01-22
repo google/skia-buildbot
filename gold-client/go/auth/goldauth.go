@@ -1,20 +1,24 @@
-package goldclient
+package auth
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
+	"encoding/json"
+	"io"
 	"net/http"
 	"path/filepath"
 
 	gstorage "cloud.google.com/go/storage"
+	"golang.org/x/oauth2"
+
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/types"
-	"golang.org/x/oauth2"
+	"go.skia.org/infra/gold-client/go/gcsuploader"
+	"go.skia.org/infra/gold-client/go/httpclient"
+	"go.skia.org/infra/gold-client/go/imagedownloader"
 )
 
 const (
@@ -30,23 +34,17 @@ type AuthOpt interface {
 	Validate() error
 	// GetHTTPClient returns an authenticated goldclient.HTTPClient (which for non-mocked
 	// implementations will be an http.Client)
-	GetHTTPClient() (HTTPClient, error)
+	GetHTTPClient() (httpclient.HTTPClient, error)
 	// SetDryRun will toggle actually uploading to GCS or not. This should be set before
 	// any calls to GetGCSUploader
 	SetDryRun(isDryRun bool)
 	// GetGCSUploader returns an authenticated goldclient.GCSUploader, the interface for
 	// uploading to GCS.
-	GetGCSUploader() (GCSUploader, error)
+	GetGCSUploader(context.Context) (gcsuploader.GCSUploader, error)
 
 	// GetImageDownloader returns an authenticated goldclient.ImageDownloader, the interface for
 	// downloading from GCS.
-	GetImageDownloader() (ImageDownloader, error)
-}
-
-// ImageDownloader implementations provide functions to download images from Gold.
-type ImageDownloader interface {
-	// DownloadImage returns the bytes belonging to a digest from a given instance.
-	DownloadImage(ctx context.Context, goldURL string, digest types.Digest) ([]byte, error)
+	GetImageDownloader() (imagedownloader.ImageDownloader, error)
 }
 
 // authOpt implements the AuthOpt interface
@@ -67,7 +65,7 @@ func (a *authOpt) Validate() error {
 }
 
 // GetHTTPClient implements the AuthOpt interface.
-func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
+func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if a.GSUtil {
 		return httputils.DefaultClientConfig().Client(), nil
 	}
@@ -95,31 +93,29 @@ func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
 }
 
 // GetGCSUploader implements the AuthOpt interface.
-func (a *authOpt) GetGCSUploader() (GCSUploader, error) {
+func (a *authOpt) GetGCSUploader(ctx context.Context) (gcsuploader.GCSUploader, error) {
 	if a.dryRun {
-		return &dryRunImpl{}, nil
+		return &gcsuploader.DryRunImpl{}, nil
 	}
 	if a.Luci || a.ServiceAccount != "" {
-		return a.httpGCSImpl()
+		return a.httpGCSImpl(ctx)
 	}
-	return &gsutilImpl{}, nil
+	return &gcsuploader.GsutilImpl{}, nil
 }
 
 // GetImageDownloader implements the AuthOpt interface.
-func (a *authOpt) GetImageDownloader() (ImageDownloader, error) {
+func (a *authOpt) GetImageDownloader() (imagedownloader.ImageDownloader, error) {
 	if a.dryRun {
-		return &dryRunImpl{}, nil
+		return &imagedownloader.DryRunImpl{}, nil
 	}
 	hc, err := a.GetHTTPClient()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return &httpImageDownloader{
-		httpClient: hc,
-	}, nil
+	return imagedownloader.New(hc), nil
 }
 
-func (a *authOpt) httpGCSImpl() (*clientImpl, error) {
+func (a *authOpt) httpGCSImpl(ctx context.Context) (gcsuploader.GCSUploader, error) {
 	if httpClient, err := a.GetHTTPClient(); err != nil {
 		return nil, err
 	} else {
@@ -128,8 +124,7 @@ func (a *authOpt) httpGCSImpl() (*clientImpl, error) {
 			// Should never happen, but is easier to debug than a panic
 			return nil, skerr.Fmt("HTTPClient was wrong type: %#v", httpClient)
 		}
-		// TODO(kjlubick) Maybe take in context as a parameter here?
-		return newGCSClient(context.TODO(), hc)
+		return gcsuploader.New(ctx, hc)
 	}
 }
 
@@ -138,46 +133,42 @@ func (a *authOpt) SetDryRun(isDryRun bool) {
 	a.dryRun = isDryRun
 }
 
-// httpImageDownloader implements the ImageDownloaderAPI by downloading images over HTTP.
-type httpImageDownloader struct {
-	httpClient HTTPClient
-}
-
-// DownloadImage implements the ImageDownloader API. It downloads the image from the instance
-// (not from GCS itself), which removes the need for the service account to have read access.
-func (h *httpImageDownloader) DownloadImage(_ context.Context, goldURL string, digest types.Digest) ([]byte, error) {
-	u := fmt.Sprintf("%s/img/images/%s.png", goldURL, digest)
-	resp, err := h.httpClient.Get(u)
+func (a *authOpt) writeToDisk(workDir string) error {
+	outFile := filepath.Join(workDir, authFile)
+	err := util.WithWriteFile(outFile, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(a)
+	})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "getting digest from url %s", u)
+		return skerr.Wrapf(err, "writing/serializing to JSON file %s", outFile)
 	}
-	defer util.Close(resp.Body)
-	return ioutil.ReadAll(resp.Body)
+	return nil
 }
 
 // LoadAuthOpt will load a serialized *authOpt from disk and return it.
 // If there is not one, it will return nil.
 func LoadAuthOpt(workDir string) (*authOpt, error) {
-	inFile := filepath.Join(workDir, authFile)
-	ret := &authOpt{}
-	found, err := loadJSONFile(inFile, &ret)
-	if err != nil {
-		return nil, skerr.Fmt("Unexpected error loading existing auth: %s", err)
+	aFile := filepath.Join(workDir, authFile)
+	if !fileutil.FileExists(aFile) {
+		return nil, skerr.Fmt("File %s does not exist", aFile)
 	}
 
-	if found {
-		return ret, nil
+	ret := &authOpt{}
+	err := util.WithReadFile(aFile, func(r io.Reader) error {
+		return json.NewDecoder(r).Decode(&ret)
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "reading/parsing JSON file: %s", aFile)
 	}
-	return nil, nil
+
+	return ret, nil
 }
 
 // InitServiceAccountAuth instantiates a workDir to be authenticated with the given
 // serviceAccountFile.
 func InitServiceAccountAuth(svcAccountFile, workDir string) error {
 	a := authOpt{ServiceAccount: svcAccountFile}
-	outFile := filepath.Join(workDir, authFile)
-	if err := saveJSONFile(outFile, a); err != nil {
-		return skerr.Fmt("Could not write JSON file: %s", err)
+	if err := a.writeToDisk(workDir); err != nil {
+		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
 	}
 	return nil
 }
@@ -186,9 +177,8 @@ func InitServiceAccountAuth(svcAccountFile, workDir string) error {
 // credentials on this machine.
 func InitLUCIAuth(workDir string) error {
 	a := authOpt{Luci: true}
-	outFile := filepath.Join(workDir, authFile)
-	if err := saveJSONFile(outFile, a); err != nil {
-		return skerr.Wrapf(err, "writing to JSON file %s", outFile)
+	if err := a.writeToDisk(workDir); err != nil {
+		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
 	}
 	return nil
 }
@@ -198,9 +188,8 @@ func InitLUCIAuth(workDir string) error {
 // upon for production usage.
 func InitGSUtil(workDir string) error {
 	a := authOpt{GSUtil: true}
-	outFile := filepath.Join(workDir, authFile)
-	if err := saveJSONFile(outFile, a); err != nil {
-		return skerr.Fmt("Could not write JSON file: %s", err)
+	if err := a.writeToDisk(workDir); err != nil {
+		return skerr.Wrapf(err, "writing to work dir: %s", workDir)
 	}
 	return nil
 }

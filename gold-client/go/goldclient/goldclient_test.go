@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
@@ -43,19 +44,19 @@ func TestLoadKnownHashes(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(mockHashesTxt), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(mockHashesTxt, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	exp := httpResponse("{}", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 	// Check that the baseline was loaded correctly
 	baseline := goldClient.resultState.Expectations
@@ -76,19 +77,19 @@ func TestLoadBaseline(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	hashesResp := httpResponse("none", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	// Check that the baseline was loaded correctly
@@ -112,19 +113,19 @@ func TestLoadBaselineMaster(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	hashesResp := httpResponse("none", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations").Return(exp, nil)
 
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(jsonio.GoldResults{
+	err = goldClient.SetSharedConfig(ctx, jsonio.GoldResults{
 		GitHash: "abcd1234",
 		Key: map[string]string{
 			"os":  "WinTest",
@@ -157,21 +158,21 @@ func TestInit(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(mockHashesTxt), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(mockHashesTxt, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// no uploader calls
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	outFile := filepath.Join(wd, stateFile)
@@ -200,13 +201,13 @@ func TestInitInvalidKeys(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, _ := makeMocks()
+	ctx, _, _, _ := makeMocks()
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	conf := makeTestSharedConfig()
 	conf.Key["blank"] = ""
-	err = goldClient.SetSharedConfig(conf, false)
+	err = goldClient.SetSharedConfig(ctx, conf, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), `invalid configuration`)
 }
@@ -220,7 +221,7 @@ func TestInitUploadOnly(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -233,9 +234,9 @@ func TestInitUploadOnly(t *testing.T) {
 		UploadOnly:   true,
 	}
 
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	outFile := filepath.Join(wd, stateFile)
@@ -326,14 +327,14 @@ func TestNewReportNormal(t *testing.T) {
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	hashesResp := httpResponse("none", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	exp := httpResponse("{}", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
@@ -341,9 +342,9 @@ func TestNewReportNormal(t *testing.T) {
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -351,7 +352,7 @@ func TestNewReportNormal(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath, "", nil, nil)
+	pass, err := goldClient.Test(ctx, "first-test", testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -369,14 +370,14 @@ func TestNewReportDigestAndImageSupplied(t *testing.T) {
 	// This is the digest the client has calculated
 	const precalculatedDigest = types.Digest("00000000000000111111111111111222")
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	hashesResp := httpResponse("none", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	exp := httpResponse("{}", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + precalculatedDigest + ".png")
@@ -384,9 +385,9 @@ func TestNewReportDigestAndImageSupplied(t *testing.T) {
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	// This returns the "wrong" hash, i.e. the one we don't want to use.
@@ -395,7 +396,7 @@ func TestNewReportDigestAndImageSupplied(t *testing.T) {
 		return imgData, "ffffffffffffffffffffffffffffffff", nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath, precalculatedDigest, nil, nil)
+	pass, err := goldClient.Test(ctx, "first-test", testImgPath, precalculatedDigest, nil, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -410,23 +411,23 @@ func TestNewReportDigestSupplied(t *testing.T) {
 	defer cleanup()
 
 	// This is the digest the client has calculated
-	precalculatedDigest := types.Digest("00000000000000111111111111111222")
+	const precalculatedDigest = "00000000000000111111111111111222"
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(precalculatedDigest), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(precalculatedDigest, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	exp := httpResponse("{}", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -434,7 +435,7 @@ func TestNewReportDigestSupplied(t *testing.T) {
 		return nil, "", errors.New("not expected")
 	})
 
-	pass, err := goldClient.Test("first-test", "", precalculatedDigest, nil, nil)
+	pass, err := goldClient.Test(ctx, "first-test", "", precalculatedDigest, nil, nil)
 	assert.NoError(t, err)
 	// true is always returned if we are not on passFail mode.
 	assert.True(t, pass)
@@ -451,20 +452,20 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	hashesResp := httpResponse("none", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	exp := httpResponse("{}", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -472,7 +473,7 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	_, err = goldClient.Test("first-test", testImgPath, "", map[string]string{"empty": ""}, nil)
+	_, err = goldClient.Test(ctx, "first-test", testImgPath, "", map[string]string{"empty": ""}, nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid test config")
 }
@@ -486,7 +487,7 @@ func TestFinalizeNormal(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -542,13 +543,13 @@ func TestFinalizeNormal(t *testing.T) {
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
 
-	goldClient, err := loadGoldClient(auth, wd)
+	goldClient, err := loadGoldClient(wd)
 	assert.NoError(t, err)
 
 	// We don't need to call SetSharedConfig because the state should be
 	// loaded from disk
 
-	err = goldClient.Finalize()
+	err = goldClient.Finalize(ctx)
 	assert.NoError(t, err)
 }
 
@@ -572,7 +573,7 @@ func TestInitAddFinalize(t *testing.T) {
 	const firstHash = types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 	const secondHash = types.Digest("29d0568469d206c1aedf1b71f12f474b")
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
@@ -583,9 +584,9 @@ func TestInitAddFinalize(t *testing.T) {
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
-	goldClient, err := makeGoldClient(auth, false /*=passFail*/, true /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(false /*=passFail*/, true /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -593,7 +594,7 @@ func TestInitAddFinalize(t *testing.T) {
 		return imgData, firstHash, nil
 	})
 
-	pass, err := goldClient.Test("first-test", testImgPath, "", map[string]string{
+	pass, err := goldClient.Test(ctx, "first-test", testImgPath, "", map[string]string{
 		"config": "canvas",
 	}, map[string]string{
 		"alpha_type": "Premul",
@@ -613,7 +614,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.Equal(t, firstHash, r.Digest)
 
 	// Now read the state from disk to make sure results are still there
-	goldClient, err = loadGoldClient(auth, wd)
+	goldClient, err = loadGoldClient(wd)
 	assert.NoError(t, err)
 
 	results = goldClient.resultState.SharedConfig.Results
@@ -627,7 +628,7 @@ func TestInitAddFinalize(t *testing.T) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, secondHash, nil
 	})
-	pass, err = goldClient.Test("second-test", testImgPath, "", map[string]string{
+	pass, err = goldClient.Test(ctx, "second-test", testImgPath, "", map[string]string{
 		"config": "svg",
 	}, nil)
 	assert.NoError(t, err)
@@ -635,7 +636,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.True(t, pass)
 
 	// Now read the state again from disk to make sure results are still there
-	goldClient, err = loadGoldClient(auth, wd)
+	goldClient, err = loadGoldClient(wd)
 	assert.NoError(t, err)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
@@ -656,7 +657,7 @@ func TestInitAddFinalize(t *testing.T) {
 	})
 	uploader.On("UploadJSON", testutils.AnyContext, grm, filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	err = goldClient.Finalize()
+	err = goldClient.Finalize(ctx)
 	assert.NoError(t, err)
 }
 
@@ -671,14 +672,14 @@ func TestNewReportPassFail(t *testing.T) {
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
 	testName := types.TestName("TestNotSeenBefore")
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	hashesResp := httpResponse("none", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	exp := httpResponse("{}", "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
@@ -714,9 +715,9 @@ func TestNewReportPassFail(t *testing.T) {
 
 	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -724,7 +725,7 @@ func TestNewReportPassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
+	pass, err := goldClient.Test(ctx, testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test name has never been seen before
 	// (and the digest is brand new)
@@ -745,19 +746,19 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "beef00d3a1527db19619ec12a4e0df68"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	overRiddenCorpus := "gtest-pixeltests"
+	const overRiddenCorpus = "gtest-pixeltests"
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
@@ -789,11 +790,11 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 
 	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	config := makeTestSharedConfig()
 	config.Key[types.CorpusField] = overRiddenCorpus
-	err = goldClient.SetSharedConfig(config, false)
+	err = goldClient.SetSharedConfig(ctx, config, false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -805,7 +806,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 		"another_notch": "emeril",
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, "", extraKeys, nil)
+	pass, err := goldClient.Test(ctx, testName, testImgPath, "", extraKeys, nil)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -821,20 +822,20 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "beef00d3a1527db19619ec12a4e0df68"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	overRiddenCorpus := "gtest-pixeltests"
+	const overRiddenCorpus = "gtest-pixeltests"
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
@@ -866,9 +867,9 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 
 	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -881,7 +882,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 		"another_notch": "emeril",
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, "", extraKeys, nil)
+	pass, err := goldClient.Test(ctx, testName, testImgPath, "", extraKeys, nil)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -912,7 +913,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	2 2
 	0xFFFFFFFF 0x00000000
 	0x00000000 0x00000000`))
-	const newImageHash = types.Digest("11111111111111111111111111111111")
+	const newImageHash = "11111111111111111111111111111111"
 
 	// Fuzzy matching with big thresholds to ensure the images above are always deemed equivalent.
 	const imageMatchingAlgorithm = imgmatching.FuzzyMatching
@@ -921,23 +922,23 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 
 	overRiddenCorpus := "gtest-pixeltests"
 
-	auth, httpClient, uploader, downloader := makeMocks()
+	ctx, httpClient, uploader, downloader := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 	defer downloader.AssertExpectations(t)
 
 	// Mock out getting the list of known hashes.
-	hashesResp := httpResponse([]byte(newImageHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(newImageHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	// Mock out getting the test baselines.
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Mock out retrieving the latest positive image hash for ThisIsTheOnlyTest.
 	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
-	const latestPositiveDigestResponse = `{"digest":"` + latestPositiveImageHash + `"}`
-	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+	const latestPositiveDigestResponse = `{"digest":"` + string(latestPositiveImageHash) + `"}`
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
 
 	// Mock out downloading the latest positive digest returned by the previous mocked RPC.
 	downloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveImageHash).Return(latestPositiveImageBytes, nil)
@@ -965,7 +966,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 		}, tr)
 		return true
 	})
-	httpClient.On("Post", "https://testing-gold.skia.org/json/v1/triage", "application/json", bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	httpClient.On("Post", "https://testing-gold.skia.org/json/v1/triage", "application/json", bodyMatcher).Return(httpResponse("", "200 OK", http.StatusOK), nil)
 
 	// Mock out uploading the JSON file with the test results to Gold.
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
@@ -999,11 +1000,11 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	}
 	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
 	config := makeTestSharedConfig()
 	config.Key[types.CorpusField] = overRiddenCorpus
-	err = goldClient.SetSharedConfig(config, false)
+	err = goldClient.SetSharedConfig(ctx, config, false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1021,7 +1022,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 		string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
 	}
 
-	pass, err := goldClient.Test(testName, testImgPath, "", extraKeys, optionalKeys)
+	pass, err := goldClient.Test(ctx, testName, testImgPath, "", extraKeys, optionalKeys)
 	assert.NoError(t, err)
 	// Returns true because the test has been seen before and marked positive.
 	assert.True(t, pass)
@@ -1036,17 +1037,17 @@ func TestNegativePassFail(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("badbadbad1325855590527db196112e0")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "badbadbad1325855590527db196112e0"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
@@ -1054,9 +1055,9 @@ func TestNegativePassFail(t *testing.T) {
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1064,13 +1065,13 @@ func TestNegativePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
+	pass, err := goldClient.Test(ctx, testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
 
 	// Run it again to make sure the failure log isn't truncated
-	pass, err = goldClient.Test(testName, testImgPath, "", nil, nil)
+	pass, err = goldClient.Test(ctx, testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns false because the test is negative
 	assert.False(t, pass)
@@ -1091,17 +1092,17 @@ func TestPositivePassFail(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "beef00d3a1527db19619ec12a4e0df68"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, uploader, _ := makeMocks()
+	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer uploader.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
@@ -1109,9 +1110,9 @@ func TestPositivePassFail(t *testing.T) {
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
 	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
-	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
-	err = goldClient.SetSharedConfig(makeTestSharedConfig(), false)
+	err = goldClient.SetSharedConfig(ctx, makeTestSharedConfig(), false)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1119,7 +1120,7 @@ func TestPositivePassFail(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Test(testName, testImgPath, "", nil, nil)
+	pass, err := goldClient.Test(ctx, testName, testImgPath, "", nil, nil)
 	assert.NoError(t, err)
 	// Returns true because this test has been seen before and the digest was
 	// previously triaged positive.
@@ -1129,80 +1130,6 @@ func TestPositivePassFail(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
 	assert.NoError(t, err)
 	assert.Equal(t, "", string(b))
-}
-
-// Tests service account authentication is properly setup in the working directory.
-// This (and the rest of TestInit*) are effectively tests of "goldctl auth".
-func TestInitServiceAccountAuth(t *testing.T) {
-	// writes to disk (but not a lot)
-	unittest.MediumTest(t)
-
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-	serviceLoc := "/non/existing/file.json"
-	err := InitServiceAccountAuth(serviceLoc, wd)
-	assert.NoError(t, err)
-	auth, err := LoadAuthOpt(wd)
-	assert.NoError(t, err)
-
-	assert.Equal(t, serviceLoc, auth.ServiceAccount)
-	assert.NoError(t, auth.Validate())
-	// ensure the file exists
-	assert.True(t, fileutil.FileExists(filepath.Join(wd, authFile)))
-
-	auth, err = LoadAuthOpt(wd)
-	// should still be ServiceAccount
-	assert.NoError(t, err)
-	assert.Equal(t, serviceLoc, auth.ServiceAccount)
-	assert.NoError(t, auth.Validate())
-}
-
-// Tests gsutil authentication is properly setup in the working directory.
-func TestInitGSUtil(t *testing.T) {
-	// writes to disk (but not a lot)
-	unittest.MediumTest(t)
-
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-	err := InitGSUtil(wd)
-	assert.NoError(t, err)
-	auth, err := LoadAuthOpt(wd)
-	assert.NoError(t, err)
-
-	assert.True(t, auth.GSUtil)
-	assert.NoError(t, auth.Validate())
-	// ensure the file exists
-	assert.True(t, fileutil.FileExists(filepath.Join(wd, authFile)))
-
-	auth, err = LoadAuthOpt(wd)
-	// should still be GSUtil
-	assert.NoError(t, err)
-	assert.True(t, auth.GSUtil)
-	assert.NoError(t, auth.Validate())
-}
-
-// Tests LUCI authentication is properly setup in the working directory.
-func TestInitLUCIAuth(t *testing.T) {
-	// writes to disk (but not a lot)
-	unittest.MediumTest(t)
-
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-	err := InitLUCIAuth(wd)
-	assert.NoError(t, err)
-	auth, err := LoadAuthOpt(wd)
-	assert.NoError(t, err)
-
-	assert.True(t, auth.Luci)
-	assert.NoError(t, auth.Validate())
-	// ensure the file exists
-	assert.True(t, fileutil.FileExists(filepath.Join(wd, authFile)))
-
-	auth, err = LoadAuthOpt(wd)
-	// should still be Luci
-	assert.NoError(t, err)
-	assert.True(t, auth.Luci)
-	assert.NoError(t, auth.Validate())
 }
 
 // TestCheckSunnyDay emulates running goldctl auth; goldctl imgtest check ... where the
@@ -1215,23 +1142,23 @@ func TestCheckSunnyDay(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "beef00d3a1527db19619ec12a4e0df68"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1239,7 +1166,7 @@ func TestCheckSunnyDay(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Check(ctx, testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
@@ -1260,25 +1187,25 @@ func TestCheckIssue(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	const imgHash = types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	const imgHash = "beef00d3a1527db19619ec12a4e0df68"
 	const testName = types.TestName("ThisIsTheOnlyTest")
 	const githubCRS = "github"
 	const changelistID = "abc"
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=abc&crs=github").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	gr := jsonio.GoldResults{
@@ -1286,7 +1213,7 @@ func TestCheckIssue(t *testing.T) {
 		ChangelistID:     changelistID,
 		GitHash:          "HEAD",
 	}
-	err = goldClient.SetSharedConfig(gr, true)
+	err = goldClient.SetSharedConfig(ctx, gr, true)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1294,7 +1221,7 @@ func TestCheckIssue(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Check(ctx, testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
@@ -1315,23 +1242,23 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// imgHash is not seen in expectations
-	imgHash := types.Digest("4043142d1ec36177e8c6c4d31af0c6de")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "4043142d1ec36177e8c6c4d31af0c6de"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1339,7 +1266,7 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Check(ctx, testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.False(t, pass)
 }
@@ -1355,23 +1282,23 @@ func TestCheckLoad(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
-	testName := types.TestName("ThisIsTheOnlyTest")
+	const imgHash = "beef00d3a1527db19619ec12a4e0df68"
+	const testName = types.TestName("ThisIsTheOnlyTest")
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	hashesResp := httpResponse(imgHash, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil).Once()
 
-	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	exp := httpResponse(mockBaselineJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations").Return(exp, nil).Once()
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
@@ -1379,18 +1306,18 @@ func TestCheckLoad(t *testing.T) {
 		return imgData, imgHash, nil
 	})
 
-	pass, err := goldClient.Check(testName, testImgPath, nil, nil)
+	pass, err := goldClient.Check(ctx, testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 
 	// Reload saved state from disk
-	goldClient, err = LoadCloudClient(auth, wd)
+	goldClient, err = LoadCloudClient(wd)
 	assert.NoError(t, err)
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
 		assert.Equal(t, testImgPath, path)
 		return imgData, imgHash, nil
 	})
-	pass, err = goldClient.Check(testName, testImgPath, nil, nil)
+	pass, err = goldClient.Check(ctx, testName, testImgPath, nil, nil)
 	assert.NoError(t, err)
 	assert.True(t, pass)
 }
@@ -1403,10 +1330,8 @@ func TestCheckLoadFails(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, _ := makeMocks()
-
 	// This should not work
-	_, err := LoadCloudClient(auth, wd)
+	_, err := LoadCloudClient(wd)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "from disk")
 }
@@ -1439,11 +1364,11 @@ func TestDiffSunnyDay(t *testing.T) {
 	require.NoError(t, png.Encode(input, image1))
 	require.NoError(t, input.Close())
 
-	auth, httpClient, _, dlr := makeMocks()
+	ctx, httpClient, _, dlr := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer dlr.AssertExpectations(t)
 
-	digests := httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
+	digests := httpResponse(mockDigestsJSON, "200 OK", http.StatusOK)
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
 
 	img2 := imageToPngBytes(t, image2)
@@ -1455,10 +1380,10 @@ func TestDiffSunnyDay(t *testing.T) {
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	require.NoError(t, err)
 
-	err = goldClient.Diff(context.Background(), testName, corpus, inputPath, outDir)
+	err = goldClient.Diff(ctx, testName, corpus, inputPath, outDir)
 	require.NoError(t, err)
 
 	leftImg, err := openNRGBAFromFile(filepath.Join(outDir, "input-"+leftHash+".png"))
@@ -1494,13 +1419,13 @@ func TestDiffCaching(t *testing.T) {
 	require.NoError(t, png.Encode(input, image1))
 	require.NoError(t, input.Close())
 
-	auth, httpClient, _, dlr := makeMocks()
+	ctx, httpClient, _, dlr := makeMocks()
 	defer httpClient.AssertExpectations(t)
 	defer dlr.AssertExpectations(t)
 
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(func(_ string) *http.Response {
 		// return a fresh response each time Diff is called
-		return httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
+		return httpResponse(mockDigestsJSON, "200 OK", http.StatusOK)
 	}, nil).Twice()
 
 	img2 := imageToPngBytes(t, image2)
@@ -1512,14 +1437,14 @@ func TestDiffCaching(t *testing.T) {
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	require.NoError(t, err)
 
-	err = goldClient.Diff(context.Background(), testName, corpus, inputPath, outDir)
+	err = goldClient.Diff(ctx, testName, corpus, inputPath, outDir)
 	require.NoError(t, err)
 
 	// Call it twice to make sure we only hit GCS once per file
-	err = goldClient.Diff(context.Background(), testName, corpus, inputPath, outDir)
+	err = goldClient.Diff(ctx, testName, corpus, inputPath, outDir)
 	require.NoError(t, err)
 }
 
@@ -1633,8 +1558,7 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
 			if label != unlabeled {
 				goldClient.resultState.Expectations = expectations.Baseline{
@@ -1645,7 +1569,7 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 			}
 
 			// Parameters traceId and imageBytes are not used in exact matching.
-			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, nil /* =optionalKeys */)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, nil /* =optionalKeys */)
 
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
@@ -1668,8 +1592,7 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
 			if label != unlabeled {
 				goldClient.resultState.Expectations = expectations.Baseline{
@@ -1684,7 +1607,7 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 			}
 
 			// Parameters traceId and imageBytes are not used in exact matching.
-			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, optionalKeys)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, optionalKeys)
 
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
@@ -1703,8 +1626,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
 			const testName = types.TestName("my_test")
 			const digest = types.Digest("11111111111111111111111111111111")
@@ -1721,7 +1643,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 				},
 			}
 
-			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 			assert.Equal(t, want, got)
@@ -1784,12 +1706,11 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			goldClient, cleanup, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer httpClient.AssertExpectations(t)
 			defer dlr.AssertExpectations(t)
 
-			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
 			dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveDigest).Return(latestPositiveImageBytes, nil)
 
 			optionalKeys := map[string]string{
@@ -1798,7 +1719,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 				string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
 			}
 
-			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, traceId, tc.imageBytes, digest, optionalKeys)
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, tc.imageBytes, digest, optionalKeys)
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 			assert.Equal(t, tc.expected, actual)
@@ -1842,10 +1763,9 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
-			_, _, err := goldClient.matchImageAgainstBaseline("my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
+			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tc.error)
 		})
@@ -1865,11 +1785,10 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,name=my_test,"
 	const latestPositiveDigestResponse = `{"digest":""}`
 
-	goldClient, cleanup, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-	defer cleanup()
+	goldClient, ctx, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 	defer httpClient.AssertExpectations(t)
 
-	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
 
 	optionalKeys := map[string]string{
 		imgmatching.AlgorithmNameOptKey:         string(imgmatching.FuzzyMatching),
@@ -1877,7 +1796,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 		string(imgmatching.PixelDeltaThreshold): "0",
 	}
 
-	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
+	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, imageBytes, digest, optionalKeys)
 	assert.NoError(t, err)
 	assert.False(t, matched)
 	assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
@@ -1888,8 +1807,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 
 	test := func(name string, label expectations.Label, want bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
 			const testName = types.TestName("my_test")
 			const digest = types.Digest("11111111111111111111111111111111")
@@ -1907,7 +1825,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 				},
 			}
 
-			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 			assert.Equal(t, want, got)
@@ -1951,12 +1869,11 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 
 	test := func(name, edgeThreshold string, expected bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer httpClient.AssertExpectations(t)
 			defer dlr.AssertExpectations(t)
 
-			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse(latestPositiveDigestResponse, "200 OK", http.StatusOK), nil)
 			dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveDigest).Return(latestPositiveImageBytes, nil)
 
 			optionalKeys := map[string]string{
@@ -1966,7 +1883,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 				string(imgmatching.EdgeThreshold):       edgeThreshold,
 			}
 
-			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, traceId, testImageBytes, digest, optionalKeys)
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(ctx, testName, traceId, testImageBytes, digest, optionalKeys)
 			assert.NoError(t, err)
 			assert.Equal(t, imgmatching.SobelFuzzyMatching, algorithmName)
 			assert.Equal(t, expected, actual)
@@ -2024,10 +1941,9 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+			goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
-			_, _, err := goldClient.matchImageAgainstBaseline("my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
+			_, _, err := goldClient.matchImageAgainstBaseline(ctx, "my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tc.error)
 		})
@@ -2037,14 +1953,13 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-	defer cleanup()
+	goldClient, ctx, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 
 	optionalKeys := map[string]string{
 		imgmatching.AlgorithmNameOptKey: "unknown algorithm",
 	}
 
-	_, _, err := goldClient.matchImageAgainstBaseline("" /* =testName */, "" /* =traceId */, nil /* =imageBytes */, "" /* =digest */, optionalKeys)
+	_, _, err := goldClient.matchImageAgainstBaseline(ctx, "" /* =testName */, "" /* =traceId */, nil /* =imageBytes */, "" /* =digest */, optionalKeys)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unrecognized image matching algorithm")
 }
@@ -2055,10 +1970,10 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Su
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, gcsDownloader := makeMocks()
+	ctx, _, _, gcsDownloader := makeMocks()
 	gcsDownloader.AssertExpectations(t)
 
-	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+	goldClient, err := NewCloudClient(GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	})
@@ -2070,7 +1985,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Su
 
 	gcsDownloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", digest).Return(digestBytes, nil)
 
-	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(ctx, digest)
 	assert.NoError(t, err)
 	assert.Equal(t, digestImage, actualImage)
 	assert.Equal(t, digestBytes, actualBytes)
@@ -2082,10 +1997,10 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageF
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, gcsDownloader := makeMocks()
+	ctx, _, _, gcsDownloader := makeMocks()
 	gcsDownloader.AssertExpectations(t)
 
-	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+	goldClient, err := NewCloudClient(GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	})
@@ -2096,7 +2011,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageF
 
 	gcsDownloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", digest).Return(digestBytes, nil)
 
-	_, _, err = goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	_, _, err = goldClient.getDigestFromCacheOrGCS(ctx, digest)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "decoding PNG file at "+filepath.Join(wd, digestsDirectory, string(digest))+".png")
 }
@@ -2107,9 +2022,9 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, _ := makeMocks()
+	ctx, _, _, _ := makeMocks()
 
-	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+	goldClient, err := NewCloudClient(GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	})
@@ -2127,7 +2042,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(
 	err = ioutil.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
 	assert.NoError(t, err)
 
-	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(ctx, digest)
 	assert.NoError(t, err)
 	assert.Equal(t, digestImage, actualImage)
 	assert.Equal(t, digestBytes, actualBytes)
@@ -2139,9 +2054,9 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, _ := makeMocks()
+	ctx, _, _, _ := makeMocks()
 
-	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+	goldClient, err := NewCloudClient(GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	})
@@ -2158,7 +2073,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk
 	err = ioutil.WriteFile(filepath.Join(wd, digestsDirectory, string(digest)+".png"), digestBytes, os.ModePerm)
 	assert.NoError(t, err)
 
-	_, _, err = goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
+	_, _, err = goldClient.getDigestFromCacheOrGCS(ctx, digest)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "decoding PNG file at "+filepath.Join(wd, digestsDirectory, string(digest))+".png")
 }
@@ -2170,21 +2085,21 @@ func TestCloudClient_Whoami_Success(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/whoami"
 	response := `{"whoami": "test@example.com"}`
-	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+	httpClient.On("Get", url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
 
-	email, err := goldClient.Whoami()
+	email, err := goldClient.Whoami(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "test@example.com", email)
 }
@@ -2196,20 +2111,20 @@ func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/whoami"
-	httpClient.On("Get", url).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
+	httpClient.On("Get", url).Return(httpResponse("", "500 Internal Server Error", http.StatusInternalServerError), nil)
 
-	_, err = goldClient.Whoami()
+	_, err = goldClient.Whoami(ctx)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
 }
@@ -2229,10 +2144,10 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	goldClient, err := loadGoldClient(auth, wd)
+	goldClient, err := loadGoldClient(wd)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/triage"
@@ -2257,9 +2172,9 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 		}, tr)
 		return true
 	})
-	httpClient.On("Post", url, contentType, bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	httpClient.On("Post", url, contentType, bodyMatcher).Return(httpResponse("", "200 OK", http.StatusOK), nil)
 
-	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
+	err = goldClient.TriageAsPositive(ctx, "MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.NoError(t, err)
 }
 
@@ -2281,10 +2196,10 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	goldClient, err := loadGoldClient(auth, wd)
+	goldClient, err := loadGoldClient(wd)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/triage"
@@ -2311,9 +2226,9 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 		}, tr)
 		return true
 	})
-	httpClient.On("Post", url, contentType, bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	httpClient.On("Post", url, contentType, bodyMatcher).Return(httpResponse("", "200 OK", http.StatusOK), nil)
 
-	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
+	err = goldClient.TriageAsPositive(ctx, "MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.NoError(t, err)
 }
 
@@ -2332,17 +2247,17 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	goldClient, err := loadGoldClient(auth, wd)
+	goldClient, err := loadGoldClient(wd)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/triage"
 	contentType := "application/json"
-	httpClient.On("Post", url, contentType, mock.Anything).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
+	httpClient.On("Post", url, contentType, mock.Anything).Return(httpResponse("", "500 Internal Server Error", http.StatusInternalServerError), nil)
 
-	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
+	err = goldClient.TriageAsPositive(ctx, "MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
 }
@@ -2354,14 +2269,14 @@ func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	const traceId = tiling.TraceID(",foo=bar,")
@@ -2369,9 +2284,9 @@ func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 	const response = `{"digest":"deadbeefcafefe771d61bf0ed3d84bc2"}`
 	const expectedDigest = types.Digest("deadbeefcafefe771d61bf0ed3d84bc2")
 
-	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+	httpClient.On("Get", url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
 
-	actualDigest, err := goldClient.MostRecentPositiveDigest(traceId)
+	actualDigest, err := goldClient.MostRecentPositiveDigest(ctx, traceId)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedDigest, actualDigest)
 }
@@ -2383,23 +2298,23 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	const traceId = tiling.TraceID(",foo=bar,")
 	const url = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,foo=bar,"
 	const response = "Not JSON"
 
-	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
+	httpClient.On("Get", url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
 
-	_, err = goldClient.MostRecentPositiveDigest(traceId)
+	_, err = goldClient.MostRecentPositiveDigest(ctx, traceId)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unmarshalling JSON response")
 }
@@ -2411,71 +2326,39 @@ func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *tes
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, httpClient, _, _ := makeMocks()
+	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	}
-	goldClient, err := NewCloudClient(auth, config)
+	goldClient, err := NewCloudClient(config)
 	assert.NoError(t, err)
 
 	const traceId = tiling.TraceID(",foo=bar,")
 	const url = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,foo=bar,"
 
-	httpClient.On("Get", url).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
+	httpClient.On("Get", url).Return(httpResponse("", "500 Internal Server Error", http.StatusInternalServerError), nil)
 
-	_, err = goldClient.MostRecentPositiveDigest(traceId)
+	_, err = goldClient.MostRecentPositiveDigest(ctx, traceId)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
 }
 
-func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.ImageDownloader) {
-	mh := mocks.HTTPClient{}
-	mg := mocks.GCSUploader{}
-	md := mocks.ImageDownloader{}
-	ma := fakeAuthOpt{
-		httpClient:    &mh,
-		gcsUploader:   &mg,
-		imgDownloader: &md,
-	}
-	return &ma, &mh, &mg, &md
-}
-
-// fakeAuthOpt is a "fake" implementation of AuthOpt. It is frowned upon to have mocks that return
-// mocks, as it leads to potentially gnarly dependency cycles (before this fake, the goldclient
-// package had a mock defined in it, which put a dependency from production code to testify/mock).
-type fakeAuthOpt struct {
-	httpClient    *mocks.HTTPClient
-	gcsUploader   *mocks.GCSUploader
-	imgDownloader *mocks.ImageDownloader
-}
-
-func (a *fakeAuthOpt) Validate() error {
-	return nil
-}
-
-func (a *fakeAuthOpt) SetDryRun(isDryRun bool) {
-}
-
-func (a *fakeAuthOpt) GetHTTPClient() (HTTPClient, error) {
-	return a.httpClient, nil
-}
-
-func (a *fakeAuthOpt) GetGCSUploader() (GCSUploader, error) {
-	return a.gcsUploader, nil
-}
-
-func (a *fakeAuthOpt) GetImageDownloader() (ImageDownloader, error) {
-	return a.imgDownloader, nil
+func makeMocks() (context.Context, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.ImageDownloader) {
+	mh := &mocks.HTTPClient{}
+	mg := &mocks.GCSUploader{}
+	md := &mocks.ImageDownloader{}
+	ctx := WithContext(context.Background(), mg, mh, md)
+	return ctx, mh, mg, md
 }
 
 // loadGoldClient will load the cloudClient off the disk and returns it
 // after stubbing out the time. Tests calling this should likely be
 // medium sized due to disk reading.
-func loadGoldClient(auth AuthOpt, workDir string) (*CloudClient, error) {
-	c, err := LoadCloudClient(auth, workDir)
+func loadGoldClient(workDir string) (*CloudClient, error) {
+	c, err := LoadCloudClient(workDir)
 	if err != nil {
 		return nil, err
 	}
@@ -2487,7 +2370,7 @@ func loadGoldClient(auth AuthOpt, workDir string) (*CloudClient, error) {
 
 // makeGoldClient will create new cloud client from scratch (using a
 // set configuration), stub out time handling and return it.
-func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string) (*CloudClient, error) {
+func makeGoldClient(passFail bool, uploadOnly bool, workDir string) (*CloudClient, error) {
 	config := GoldClientConfig{
 		InstanceID:   testInstanceID,
 		WorkDir:      workDir,
@@ -2496,7 +2379,7 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 		UploadOnly:   uploadOnly,
 	}
 
-	c, err := NewCloudClient(auth, config)
+	c, err := NewCloudClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -2508,27 +2391,19 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 
 // makeGoldClientForMatchImageAgainstBaselineTests returns a new CloudClient to be used in
 // CloudClient#matchImageAgainstBaseline() tests.
-func makeGoldClientForMatchImageAgainstBaselineTests(t *testing.T) (*CloudClient, func(), *mocks.HTTPClient, *mocks.ImageDownloader) {
-	wd, cleanup := testutils.TempDir(t)
-	auth, httpClient, _, gcsDownloader := makeMocks()
-	goldClient, err := NewCloudClient(auth, GoldClientConfig{
+func makeGoldClientForMatchImageAgainstBaselineTests(t *testing.T) (*CloudClient, context.Context, *mocks.HTTPClient, *mocks.ImageDownloader) {
+	wd := t.TempDir()
+	ctx, httpClient, _, gcsDownloader := makeMocks()
+	goldClient, err := NewCloudClient(GoldClientConfig{
 		WorkDir:    wd,
 		InstanceID: "testing",
 	})
 	require.NoError(t, err)
-	return goldClient, cleanup, httpClient, gcsDownloader
+	return goldClient, ctx, httpClient, gcsDownloader
 }
 
 func overrideLoadAndHashImage(c *CloudClient, testFn func(path string) ([]byte, types.Digest, error)) {
 	c.loadAndHashImage = testFn
-}
-
-func httpResponse(body []byte, status string, statusCode int) *http.Response {
-	return &http.Response{
-		Body:       ioutil.NopCloser(bytes.NewReader(body)),
-		Status:     status,
-		StatusCode: statusCode,
-	}
 }
 
 const (

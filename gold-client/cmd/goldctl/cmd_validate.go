@@ -38,7 +38,7 @@ func (v *validateEnv) runValidateCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
 	f, closeFn, err := getFileOrStdin(v.flagFile)
 	if err != nil {
-		logErrfAndExit(ctx, "Error opeing input: %s", err)
+		logErrfAndExit(ctx, "Error opening input: %s", err)
 	}
 
 	goldResult, err := jsonio.ParseGoldResults(f)
