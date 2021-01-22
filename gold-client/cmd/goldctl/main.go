@@ -9,10 +9,13 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"go.skia.org/infra/gold-client/go/auth"
+	"go.skia.org/infra/gold-client/go/goldclient"
 )
 
+// Flag names used by various commands.
 const (
-	// All commands that use a work-dir have it defined as this string.
 	fstrWorkDir = "work-dir"
 
 	errWriterKey = contextKey("errWriter")
@@ -131,4 +134,22 @@ func must(err error) {
 		fmt.Printf("Fatal startup error: %s\n", err)
 		panic(err)
 	}
+}
+
+func loadAuthenticatedClients(ctx context.Context, workDir string) context.Context {
+	a, err := auth.LoadAuthOpt(workDir)
+	ifErrLogExit(ctx, err)
+
+	if a == nil {
+		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
+		exitProcess(ctx, 1)
+	}
+	a.SetDryRun(flagDryRun)
+	gu, err := a.GetGCSUploader(ctx)
+	ifErrLogExit(ctx, err)
+	hc, err := a.GetHTTPClient()
+	ifErrLogExit(ctx, err)
+	id, err := a.GetImageDownloader()
+	ifErrLogExit(ctx, err)
+	return goldclient.WithContext(ctx, gu, hc, id)
 }

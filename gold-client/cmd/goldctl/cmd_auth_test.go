@@ -29,13 +29,26 @@ func TestAuth_WithGSUtil_Success(t *testing.T) {
 	runUntilExit(t, func() {
 		env.Auth(ctx)
 	})
-	exit.AssertWasCalledWithCode(t, 0)
+	exit.AssertWasCalledWithCode(t, 0, output.String())
 	logs := output.String()
 	assert.Contains(t, logs, `Falling back to gsutil implementation
 This should not be used in production.`)
 	b, err := ioutil.ReadFile(filepath.Join(workDir, "auth_opt.json"))
 	require.NoError(t, err)
 	assert.Equal(t, `{"Luci":false,"ServiceAccount":"","GSUtil":true}`, strings.TrimSpace(string(b)))
+}
+
+func setupAuthWithGSUtil(t *testing.T, workDir string) {
+	env := authEnv{
+		flagWorkDir: workDir,
+	}
+	devnull := bytes.Buffer{}
+	exit := &exitCodeRecorder{}
+	ctx := executionContext(context.Background(), &devnull, &devnull, exit.ExitWithCode)
+	runUntilExit(t, func() {
+		env.Auth(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, devnull.String())
 }
 
 func runUntilExit(t *testing.T, f func()) {
@@ -56,7 +69,7 @@ func (e *exitCodeRecorder) ExitWithCode(code int) {
 }
 
 // AssertWasCalledWithCode make sure ExitWithCode was called previously.
-func (e *exitCodeRecorder) AssertWasCalledWithCode(t *testing.T, code int) {
-	assert.True(t, e.wasCalled, "Was not called!")
-	assert.Equal(t, code, e.code)
+func (e *exitCodeRecorder) AssertWasCalledWithCode(t *testing.T, code int, logs string) {
+	require.True(t, e.wasCalled, "Was not called!")
+	require.Equal(t, code, e.code, logs)
 }
