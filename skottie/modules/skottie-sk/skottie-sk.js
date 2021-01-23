@@ -21,6 +21,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 import '../skottie-text-editor'
+import '../skottie-library-sk'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -105,7 +106,20 @@ const jsonTextEditor = (ele) => {
   >
   </skottie-text-editor>
 </section>`;
-}
+};
+
+const library = (ele) => {
+  if (!ele._showLibrary) {
+    return '';
+  }
+  return html`
+<section class=library>
+  <skottie-library-sk
+    @select=${ele._updateAnimation}
+  >
+  </skottie-library-sk>
+</section>`;
+};
 
 const displayLoaded = (ele) => html`
 <button class=edit-config @click=${ ele._startEdit}>
@@ -133,6 +147,10 @@ const displayLoaded = (ele) => html`
                ?checked=${ele._showTextEditor}
                @click=${ele._toggleTextEditor}>
   </checkbox-sk>
+  <checkbox-sk label="Show library"
+               ?checked=${ele._showLibrary}
+               @click=${ele._toggleLibrary}>
+  </checkbox-sk>
   <button @click=${ele._toggleEmbed}>Embed</button>
   <div class=scrub>
     <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
@@ -157,6 +175,7 @@ const displayLoaded = (ele) => html`
     ${skottiePlayer(ele)}
   </figure>
   ${lottiePlayer(ele)}
+  ${library(ele)}
   ${livePreview(ele)}
 </section>
 
@@ -235,6 +254,7 @@ define('skottie-sk', class extends HTMLElement {
     this._showLottie = false;
     this._showEditor = false;
     this._showTextEditor = false;
+    this._showLibrary = false;
     this._scrubbing = false;
     this._playingOnStartOfScrub = false;
 
@@ -249,6 +269,7 @@ define('skottie-sk', class extends HTMLElement {
           'l' : this._showLottie,
           'e' : this._showEditor,
           't' : this._showTextEditor,
+          'i' : this._showLibrary,
           'w' : this._width,
           'h' : this._height,
           'f' : this._fps,
@@ -257,6 +278,7 @@ define('skottie-sk', class extends HTMLElement {
       this._showLottie = newState.l;
       this._showEditor = newState.e;
       this._showTextEditor = newState.t;
+      this._showLibrary = newState.i;
       this._width = newState.w;
       this._height = newState.h;
       this._fps = newState.f;
@@ -321,6 +343,12 @@ define('skottie-sk', class extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     this.render();
+  }
+
+  _updateAnimation(event) {
+    const animation = event.detail;
+    this._state.lottie = animation;
+    this._upload();
   }
 
   _applyTextEdits(event) {
@@ -735,6 +763,13 @@ define('skottie-sk', class extends HTMLElement {
     e.preventDefault();
     this._showEditor = false;
     this._showTextEditor = !this._showTextEditor;
+    this._stateChanged();
+    this.render();
+  }
+
+  _toggleLibrary(e) {
+    e.preventDefault();
+    this._showLibrary = !this._showLibrary;
     this._stateChanged();
     this.render();
   }
