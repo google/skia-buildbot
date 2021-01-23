@@ -133,6 +133,13 @@ cp -r /src/scrap/webpack.config.ts           /tests/scrap
 cp -r /src/scrap/tsconfig.json               /tests/scrap
 cp -r /src/scrap/modules                     /tests/scrap
 
+mkdir /tests/particles
+cp -r /src/particles/package*                    /tests/particles
+cp -r /src/particles/webpack.config.ts           /tests/particles
+cp -r /src/particles/tsconfig.json               /tests/particles
+cp -r /src/particles/modules                     /tests/particles
+
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -174,6 +181,10 @@ cd /tests/debugger-app
 npm ci
 
 cd /tests/scrap
+npm ci
+
+cd /tests/particles
+make wasm_libs_fixed
 npm ci
 
 ################################################################################
@@ -223,4 +234,7 @@ cd /tests/debugger-app
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/scrap
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/particles
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
