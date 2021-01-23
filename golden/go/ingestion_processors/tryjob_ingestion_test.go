@@ -37,6 +37,7 @@ const (
 
 func TestGerritBuildbucketFactory(t *testing.T) {
 	unittest.LargeTest(t) // should use the emulator
+	unittest.RequiresFirestoreEmulator(t)
 
 	config := ingestion.Config{
 		ExtraParams: map[string]string{
@@ -64,6 +65,7 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 
 func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 	unittest.LargeTest(t) // should use the emulator
+	unittest.RequiresFirestoreEmulator(t)
 
 	config := ingestion.Config{
 		ExtraParams: map[string]string{

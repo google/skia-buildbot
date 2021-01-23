@@ -28,6 +28,7 @@ const (
 
 func TestPubSub(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresPubSubEmulator(t)
 
 	// This is just a thin wrapper around Cloud PubSub, so all we really
 	// need to test is that we can create a publisher and subscriber with
