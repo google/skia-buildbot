@@ -35,6 +35,7 @@ type testType struct {
 
 func TestEventBus(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresPubSubEmulator(t)
 
 	testCodec := util.NewJSONCodec(&testType{})
 	RegisterCodec("channel1", testCodec)
@@ -90,6 +91,7 @@ func TestEventBus(t *testing.T) {
 
 func TestSynStorageEvents(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresPubSubEmulator(t)
 
 	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_STORAGE_EVT)
 	require.NoError(t, err)
