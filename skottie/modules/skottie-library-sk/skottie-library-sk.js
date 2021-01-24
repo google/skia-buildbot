@@ -17,8 +17,15 @@ import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 import JSZip from 'jszip';
+import { replaceTexts } from '../skottie-text-editor/text-replace';
+import { bmAnim } from './bm';
+import { rondaAnim } from './ronda';
 
-const THUMBNAIL_SIZE = 100;
+const THUMBNAIL_SIZE = 200;
+const defaultAnimations = [
+  bmAnim,
+  rondaAnim,
+];
 
 const animationTemplate = (ele, item, index) => html`
   <li
@@ -27,8 +34,8 @@ const animationTemplate = (ele, item, index) => html`
     <skottie-player-sk
       id=skottie_preview_${index}
       paused
-      width=${THUMBNAIL_SIZE}
-      height=${THUMBNAIL_SIZE}
+      width=${ele._thumbnail_size}
+      height=${ele._thumbnail_size}
       @click=${() => ele._onThumbSelected(item)}
     >
     </skottie-player-sk>
@@ -40,7 +47,13 @@ const template = (ele) => html`
     <header class="header">
       <div class="header-title">Skottie Library</div>
       <div class="header-separator"></div>
-      <label class=header-save-button>Upload zip
+    </header>
+    <section>
+      <ul class=thumbnails>
+         ${ele._state.animations.map((item, index) => animationTemplate(ele, item, index))}
+      </ul>
+      <div class=options>
+      <label class=header-save-button>Load zip
         <input
           type=file
           name=file
@@ -48,11 +61,21 @@ const template = (ele) => html`
           @change=${ele._onFileChange}
         />
       </label>
-    </header>
-    <section>
-      <ul class="thumbnails">
-         ${ele._state.animations.map((item, index) => animationTemplate(ele, item, index))}
-      </ul>
+      <checkbox-sk 
+        label="Sync thumbnails"
+        ?checked=${ele._syncAnimations}
+        @click=${ele._toggleSync}>
+      </checkbox-sk>
+      <label class=size>
+        <input
+          type=number
+          id=thumbnail_size
+          .value=${ele._thumbnail_size}
+          @change=${ele._onThumbnailSizeChange}
+          required
+        /> Thumbnail Size (px)
+      </label>
+      </div>
     <section>
   </div>
 `;
@@ -61,16 +84,24 @@ class SkottieLibrarySk extends HTMLElement {
   constructor() {
     super();
     this._state = {
-      animations: [],
+      animations: defaultAnimations,
       initialized: false,
     };
+    this._syncAnimations = true;
+    this._thumbnail_size = THUMBNAIL_SIZE;
   }
 
   _onThumbSelected(item) {
-    console.log('item', item);
     this.dispatchEvent(new CustomEvent('select', {
       detail: item,
     }));
+    this._render();
+  }
+
+  _toggleSync(e) {
+    // avoid double toggles
+    e.preventDefault();
+    this._syncAnimations = !this._syncAnimations;
     this._render();
   }
 
@@ -95,11 +126,33 @@ class SkottieLibrarySk extends HTMLElement {
     this._render();
   }
 
+  _onThumbnailSizeChange(ev) {
+    ev.preventDefault();
+    this._thumbnail_size = ev.target.value;
+    this._state.initialized = false;
+    this._render();
+  }
+
   connectedCallback() {
     this._render();
   }
 
   disconnectedCallback() {
+  }
+
+  replaceTexts(texts) {
+    this._state.initialized = false;
+    this._state.animations = this._state.animations.map((animation) => replaceTexts(texts, animation));
+    this._render();
+  }
+
+  seek(frame) {
+    if (this._syncAnimations) {
+      this._state.animations.forEach((animation, index) => {
+        const skottiePlayer = $$(`#skottie_preview_${index}`, this);
+        skottiePlayer.seek(frame);
+      });
+    }
   }
 
   _initializePlayers() {
@@ -108,8 +161,8 @@ class SkottieLibrarySk extends HTMLElement {
       this._state.animations.forEach((animation, index) => {
         const skottiePlayer = $$(`#skottie_preview_${index}`, this);
         skottiePlayer.initialize({
-          width: THUMBNAIL_SIZE,
-          height: THUMBNAIL_SIZE,
+          width: this._thumbnail_size,
+          height: this._thumbnail_size,
           lottie: animation,
           assets: [],
           fps: animation.fr,

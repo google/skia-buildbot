@@ -21,6 +21,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 import '../skottie-text-editor'
+import { replaceTexts } from '../skottie-text-editor/text-replace'
 import '../skottie-library-sk'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
@@ -320,7 +321,9 @@ define('skottie-sk', class extends HTMLElement {
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
-        this._skottiePlayer && this._skottiePlayer.seek(progress / this._duration);
+        const normalizedProgress = progress / this._duration;
+        this._skottiePlayer && this._skottiePlayer.seek(normalizedProgress);
+        this._skottieLibrary && this._skottieLibrary.seek(normalizedProgress);
 
         // lottie player takes the milliseconds from the beginning of the animation.
         this._lottie && this._lottie.goToAndStop(progress);
@@ -353,27 +356,10 @@ define('skottie-sk', class extends HTMLElement {
 
   _applyTextEdits(event) {
     const texts = event.detail.texts;
-    const currentAnimation = JSON.parse(JSON.stringify(this._state.lottie));
-    texts.forEach((textData) => {
-      textData.items.forEach((item) => {
-        let layers;
-        // Searches for composition that contains this layer
-        if (!item.parentId) {
-          layers = currentAnimation.layers;
-        } else {
-          const asset = currentAnimation.assets.find((assetItem) => assetItem.id === item.parentId);
-          layers = asset ? asset.layers : [];
-        }
+    this._state.lottie = replaceTexts(texts, this._state.lottie);
 
-        // Replaces current animation layer with new layer value
-        layers.forEach((layer, index) => {
-          if (layer.ind === item.layer.ind) {
-            layers[index] = item.layer;
-          }
-        });
-      });
-    });
-    this._state.lottie = currentAnimation;
+    this._skottieLibrary && this._skottieLibrary.replaceTexts(texts);
+
     this._upload();
   }
 
@@ -629,6 +615,7 @@ define('skottie-sk', class extends HTMLElement {
     render(template(this), this, {eventContext: this});
 
     this._skottiePlayer = $$('skottie-player-sk', this);
+    this._skottieLibrary = $$('skottie-library-sk', this);
 
     if (this._ui === LOADED_MODE) {
       try {
@@ -740,7 +727,8 @@ define('skottie-sk', class extends HTMLElement {
     this._live && this._live.goToAndStop(seek);
     this._lottie && this._lottie.goToAndStop(seek * this._duration);
     this._skottiePlayer && this._skottiePlayer.seek(seek);
-  }
+    this._skottieLibrary && this._skottieLibrary.seek(seek);
+  }  
 
   // This fires when the user releases the scrub slider.
   _onScrubEnd(e) {
@@ -755,6 +743,7 @@ define('skottie-sk', class extends HTMLElement {
     this._wasmTimePassed = 0;
     if (!this._playing) {
       this._skottiePlayer.seek(0);
+      this._skottieLibrary && this._skottieLibrary.seek(0);
       this._firstFrameTime = null;
       this._live && this._live.goToAndStop(0);
       this._lottie && this._lottie.goToAndStop(0);
