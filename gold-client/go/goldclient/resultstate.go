@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"time"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/baseline"
@@ -131,11 +130,11 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 	exp := &baseline.Baseline{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
-		fmt.Printf("Fetched from %s\n", u)
+		infof(ctx, "Fetched from %s\n", u)
 		if len(jsonBytes) > 200 {
-			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
+			infof(ctx, `Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
 		} else {
-			fmt.Printf(`Invalid JSON: "%s"`, string(jsonBytes))
+			infof(ctx, `Invalid JSON: "%s"`, string(jsonBytes))
 		}
 		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
 	}
@@ -150,7 +149,8 @@ func (r *resultState) loadExpectations(ctx context.Context) error {
 //    https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
-func (r *resultState) getResultFilePath(now time.Time) string {
+func (r *resultState) getResultFilePath(ctx context.Context) string {
+	now := extractNowSource(ctx).Now()
 	year, month, day := now.Date()
 	hour := now.Hour()
 

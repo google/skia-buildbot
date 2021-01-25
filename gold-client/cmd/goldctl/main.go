@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -18,9 +19,7 @@ const (
 	// All commands that use a work-dir have it defined as this string.
 	fstrWorkDir = "work-dir"
 
-	errWriterKey = contextKey("errWriter")
-	logWriterKey = contextKey("logWriter")
-	exitorKey    = contextKey("exitor")
+	exitorKey = contextKey("exitor")
 )
 
 // Flags used throughout all commands.
@@ -60,8 +59,8 @@ It can be used directly or in a scripted environment. `,
 }
 
 func executionContext(ctx context.Context, log, err io.Writer, exit exitWithCode) context.Context {
-	ctx = context.WithValue(ctx, logWriterKey, log)
-	ctx = context.WithValue(ctx, errWriterKey, err)
+	ctx = context.WithValue(ctx, goldclient.LogWriterKey, log)
+	ctx = context.WithValue(ctx, goldclient.ErrorWriterKey, err)
 	return context.WithValue(ctx, exitorKey, exit)
 }
 
@@ -80,7 +79,7 @@ func getFileOrStdin(inputFile string) (*os.File, func() error, error) {
 
 // logErrf logs a formatted error based on the output settings of the command.
 func logErrf(ctx context.Context, format string, args ...interface{}) {
-	w := ctx.Value(errWriterKey).(io.Writer)
+	w := ctx.Value(goldclient.ErrorWriterKey).(io.Writer)
 	_, _ = fmt.Fprintf(w, format, args...)
 }
 
@@ -101,13 +100,13 @@ func ifErrLogExit(ctx context.Context, err error) {
 
 // logInfo logs the given arguments based on the output settings of the command.
 func logInfo(ctx context.Context, args ...interface{}) {
-	w := ctx.Value(logWriterKey).(io.Writer)
+	w := ctx.Value(goldclient.LogWriterKey).(io.Writer)
 	_, _ = fmt.Fprint(w, args...)
 }
 
 // logInfo logs the given arguments based on the output settings of the command.
 func logInfof(ctx context.Context, format string, args ...interface{}) {
-	w := ctx.Value(logWriterKey).(io.Writer)
+	w := ctx.Value(goldclient.LogWriterKey).(io.Writer)
 	_, _ = fmt.Fprintf(w, format, args...)
 }
 
@@ -151,5 +150,11 @@ func loadAuthenticatedClients(ctx context.Context, workDir string) context.Conte
 	ifErrLogExit(ctx, err)
 	id, err := a.GetImageDownloader()
 	ifErrLogExit(ctx, err)
-	return goldclient.WithContext(ctx, gu, hc, id)
+	return goldclient.WithContext(ctx, gu, hc, id, realTime{})
+}
+
+type realTime struct{}
+
+func (r realTime) Now() time.Time {
+	return time.Now()
 }
