@@ -543,7 +543,7 @@ func TestFinalizeNormal(t *testing.T) {
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
 
-	goldClient, err := loadGoldClient(wd)
+	goldClient, err := LoadCloudClient(wd)
 	assert.NoError(t, err)
 
 	// We don't need to call SetSharedConfig because the state should be
@@ -614,7 +614,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.Equal(t, firstHash, r.Digest)
 
 	// Now read the state from disk to make sure results are still there
-	goldClient, err = loadGoldClient(wd)
+	goldClient, err = LoadCloudClient(wd)
 	assert.NoError(t, err)
 
 	results = goldClient.resultState.SharedConfig.Results
@@ -636,7 +636,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.True(t, pass)
 
 	// Now read the state again from disk to make sure results are still there
-	goldClient, err = loadGoldClient(wd)
+	goldClient, err = LoadCloudClient(wd)
 	assert.NoError(t, err)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
@@ -2147,7 +2147,7 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	goldClient, err := loadGoldClient(wd)
+	goldClient, err := LoadCloudClient(wd)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/triage"
@@ -2199,7 +2199,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	goldClient, err := loadGoldClient(wd)
+	goldClient, err := LoadCloudClient(wd)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/triage"
@@ -2250,7 +2250,7 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
 
-	goldClient, err := loadGoldClient(wd)
+	goldClient, err := LoadCloudClient(wd)
 	assert.NoError(t, err)
 
 	url := "https://testing-gold.skia.org/json/v1/triage"
@@ -2350,26 +2350,15 @@ func makeMocks() (context.Context, *mocks.HTTPClient, *mocks.GCSUploader, *mocks
 	mh := &mocks.HTTPClient{}
 	mg := &mocks.GCSUploader{}
 	md := &mocks.ImageDownloader{}
+	mn := &mocks.NowSource{}
+	mn.On("Now").Return(time.Date(2019, time.April, 2, 19, 54, 3, 0, time.UTC))
 	ctx := WithContext(context.Background(), mg, mh, md)
+	ctx = context.WithValue(ctx, NowSourceKey, mn)
 	return ctx, mh, mg, md
 }
 
-// loadGoldClient will load the cloudClient off the disk and returns it
-// after stubbing out the time. Tests calling this should likely be
-// medium sized due to disk reading.
-func loadGoldClient(workDir string) (*CloudClient, error) {
-	c, err := LoadCloudClient(workDir)
-	if err != nil {
-		return nil, err
-	}
-	c.now = func() time.Time {
-		return time.Date(2019, time.April, 2, 19, 54, 3, 0, time.UTC)
-	}
-	return c, nil
-}
-
 // makeGoldClient will create new cloud client from scratch (using a
-// set configuration), stub out time handling and return it.
+// set configuration), and return it.
 func makeGoldClient(passFail bool, uploadOnly bool, workDir string) (*CloudClient, error) {
 	config := GoldClientConfig{
 		InstanceID:   testInstanceID,
@@ -2379,14 +2368,7 @@ func makeGoldClient(passFail bool, uploadOnly bool, workDir string) (*CloudClien
 		UploadOnly:   uploadOnly,
 	}
 
-	c, err := NewCloudClient(config)
-	if err != nil {
-		return nil, err
-	}
-	c.now = func() time.Time {
-		return time.Date(2019, time.April, 2, 19, 54, 3, 0, time.UTC)
-	}
-	return c, nil
+	return NewCloudClient(config)
 }
 
 // makeGoldClientForMatchImageAgainstBaselineTests returns a new CloudClient to be used in

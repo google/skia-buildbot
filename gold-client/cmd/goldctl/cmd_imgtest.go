@@ -10,7 +10,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"go.skia.org/infra/gold-client/go/auth"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
@@ -182,13 +181,7 @@ func (i *imgTest) validate(cmd *cobra.Command, args []string) error {
 
 func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	a, err := auth.LoadAuthOpt(i.workDir)
-	ifErrLogExit(ctx, err)
-
-	if a == nil {
-		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(ctx, 1)
-	}
+	ctx = loadAuthenticatedClients(ctx, i.workDir)
 
 	goldClient, err := goldclient.LoadCloudClient(i.workDir)
 	if err != nil {
@@ -230,15 +223,11 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 
 func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	a, err := auth.LoadAuthOpt(i.workDir)
-	ifErrLogExit(ctx, err)
+	i.Init(ctx)
+}
 
-	if a == nil {
-		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(ctx, 1)
-	}
-
-	a.SetDryRun(flagDryRun)
+func (i *imgTest) Init(ctx context.Context) {
+	ctx = loadAuthenticatedClients(ctx, i.workDir)
 
 	if i.keysFile == "" && len(i.testKeysStrings) == 0 {
 		logErrf(ctx, "You must supply --keys-file or at least one --key")
@@ -278,20 +267,17 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(ctx, err)
 
 	logInfof(ctx, "Directory %s successfully loaded with configuration\n", i.workDir)
+	exitProcess(ctx, 0)
 }
 
-// runImgTestCommand processes and uploads test results to Gold.
-func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
+func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
-	a, err := auth.LoadAuthOpt(i.workDir)
-	ifErrLogExit(ctx, err)
+	i.Add(ctx)
+}
 
-	if a == nil {
-		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(ctx, 1)
-	}
-
-	a.SetDryRun(flagDryRun)
+// Add processes and uploads test results to Gold.
+func (i *imgTest) Add(ctx context.Context) {
+	ctx = loadAuthenticatedClients(ctx, i.workDir)
 
 	if i.pngDigest == "" && i.pngFile == "" {
 		logErrf(ctx, "Must supply png-file or png-digest (or both)")
@@ -299,6 +285,7 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	}
 
 	var goldClient goldclient.GoldClient
+	var err error
 
 	if i.keysFile != "" {
 		// user has specified a full set of keys. This happens if they
@@ -334,7 +321,9 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	} else {
 		// the user is presumed to have called init first, so we can just load it
 		goldClient, err = goldclient.LoadCloudClient(i.workDir)
-		ifErrLogExit(ctx, err)
+		if err != nil {
+			logErrfAndExit(ctx, "Could not initialize client - did you call `goldctl imgtest init` first?", err)
+		}
 	}
 
 	// Read test-specific keys. These will be merged with the shared keys provided via the "init"

@@ -26,7 +26,6 @@ import (
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -130,6 +129,10 @@ type GoldClientDebug interface {
 	DumpKnownHashes() (string, error)
 }
 
+type NowSource interface {
+	Now() time.Time
+}
+
 // CloudClient implements the GoldClient interface for the remote Gold service.
 type CloudClient struct {
 	// workDir is a temporary directory that has to exist between related calls
@@ -140,7 +143,6 @@ type CloudClient struct {
 
 	// these functions are overwritable by tests
 	loadAndHashImage func(path string) ([]byte, types.Digest, error)
-	now              func() time.Time
 }
 
 // GoldClientConfig is a config structure to configure GoldClient instances
@@ -187,9 +189,7 @@ func NewCloudClient(config GoldClientConfig) (*CloudClient, error) {
 	ret := CloudClient{
 		workDir:          workDir,
 		loadAndHashImage: loadAndHashImage,
-		now:              defaultNow,
-
-		resultState: newResultState(nil, &config),
+		resultState:      newResultState(nil, &config),
 	}
 
 	if config.FailureFile != "" {
@@ -220,7 +220,6 @@ func LoadCloudClient(workDir string) (*CloudClient, error) {
 	ret := CloudClient{
 		workDir:          workDir,
 		loadAndHashImage: loadAndHashImage,
-		now:              defaultNow,
 	}
 	var err error
 	ret.resultState, err = loadStateFromJSON(ret.getResultStatePath())
@@ -248,11 +247,6 @@ func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
 	s := md5.Sum(nrgbaImg.Pix)
 	md5Hash := hex.EncodeToString(s[:])
 	return imgBytes, types.Digest(md5Hash), nil
-}
-
-// defaultNow returns what time it is now in UTC
-func defaultNow() time.Time {
-	return time.Now().UTC()
 }
 
 // SetSharedConfig implements the GoldClient interface.
@@ -326,9 +320,9 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 		return false, skerr.Wrapf(err, "invalid test config")
 	}
 
-	fmt.Printf("Given image with hash %s for test %s\n", imgDigest, name)
+	infof(ctx, "Given image with hash %s for test %s\n", imgDigest, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
-		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
+		infof(ctx, "Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	var egroup errgroup.Group
@@ -360,7 +354,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 			// If the image is untriaged, but matches the latest positive digest in its baseline via the
 			// specified non-exact image matching algorithm, then triage the image as positive.
 			if match && algorithmName != imgmatching.ExactMatching {
-				sklog.Infof("Triaging digest %q for test %q as positive (algorithm name: %q)", imgDigest, name, algorithmName)
+				infof(ctx, "Triaging digest %q for test %q as positive (algorithm name: %q)", imgDigest, name, algorithmName)
 				err = c.TriageAsPositive(ctx, name, imgDigest, string(algorithmName))
 				if err != nil {
 					return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgDigest, name, algorithmName)
@@ -374,7 +368,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
 				}
 				link += "\n"
-				fmt.Printf("Untriaged or negative image: %s", link)
+				infof(ctx, "Untriaged or negative image: %s", link)
 				ff := c.resultState.FailureFile
 				if ff != "" {
 					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -416,9 +410,9 @@ func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileNam
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
-	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
+	infof(ctx, "Given image with hash %s for test %s\n", imgHash, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
-		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
+		infof(ctx, "Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	_, traceID := c.makeResultKeyAndTraceId(name, keys)
@@ -477,13 +471,13 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	}
 
 	// Fetch the most recent positive digest.
-	sklog.Infof("Fetching most recent positive digest for trace with ID %q.", traceId)
+	infof(ctx, "Fetching most recent positive digest for trace with ID %q.", traceId)
 	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(ctx, traceId)
 	if err != nil {
 		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 	if mostRecentPositiveDigest == tiling.MissingDigest {
-		sklog.Infof("No recent positive digests for trace with ID %q. This probably means that the test was newly added.", traceId)
+		infof(ctx, "No recent positive digests for trace with ID %q. This probably means that the test was newly added.", traceId)
 		return false, algorithmName, nil
 	}
 
@@ -494,7 +488,7 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	}
 
 	// Return algorithm's output.
-	sklog.Infof("Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
+	infof(ctx, "Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
 	return matcher.Match(mostRecentPositiveImage, img), algorithmName, nil
 }
 
@@ -507,7 +501,7 @@ func (c *CloudClient) Finalize(ctx context.Context) error {
 // SharedConfig.Results), to GCS.
 func (c *CloudClient) uploadResultJSON(ctx context.Context) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
-	resultFilePath := c.resultState.getResultFilePath(c.now())
+	resultFilePath := c.resultState.getResultFilePath(ctx)
 	uploader := extractGCSUploader(ctx)
 	if err := uploader.UploadJSON(ctx, c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
 		return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
@@ -579,13 +573,13 @@ func (c *CloudClient) downloadHashesAndBaselineFromGold(ctx context.Context) err
 		return err
 	}
 
-	fmt.Printf("Loaded %d known hashes\n", len(c.resultState.KnownHashes))
+	infof(ctx, "Loaded %d known hashes\n", len(c.resultState.KnownHashes))
 
 	// Fetch the baseline (may be empty but should not fail).
 	if err := c.resultState.loadExpectations(ctx); err != nil {
 		return err
 	}
-	fmt.Printf("Loaded %d tests from the baseline\n", len(c.resultState.Expectations))
+	infof(ctx, "Loaded %d tests from the baseline\n", len(c.resultState.Expectations))
 
 	return nil
 }
@@ -624,11 +618,11 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 		return skerr.Wrapf(err, "invalid JSON from digests served from %s: %s", u, string(jb))
 	}
 	if len(dlr.Digests) == 0 {
-		sklog.Warningf("Gold doesn't know of any digests that match %s and corpus %s", name, corpus)
+		errorf(ctx, "Gold doesn't know of any digests that match %s and corpus %s", name, corpus)
 		return nil
 	}
 
-	sklog.Infof("Going to compare %s.png against %d other images", inputDigest, len(dlr.Digests))
+	infof(ctx, "Going to compare %s.png against %d other images", inputDigest, len(dlr.Digests))
 
 	// 3a) Download those from bucket (or use from working directory cache). We download them with
 	//    the same credentials that let us upload them.
@@ -656,7 +650,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 			closestRightDigest = d
 		}
 	}
-	sklog.Infof("Digest %s was closest (combined metric of %f)", closestRightDigest, smallestCombined)
+	infof(ctx, "Digest %s was closest (combined metric of %f)", closestRightDigest, smallestCombined)
 
 	// 4) Write closest image and the diff to that image to the output directory.
 	o := filepath.Join(outDir, fmt.Sprintf("closest-%s.png", closestRightDigest))
@@ -828,6 +822,16 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
 	_, _ = s.WriteString("\n")
 	return s.String(), nil
+}
+
+func infof(ctx context.Context, fmtStr string, args ...interface{}) {
+	w := extractLogWriter(ctx)
+	_, _ = fmt.Fprintf(w, fmtStr, args...)
+}
+
+func errorf(ctx context.Context, fmtStr string, args ...interface{}) {
+	w := extractErrorWriter(ctx)
+	_, _ = fmt.Fprintf(w, fmtStr, args...)
 }
 
 // Make sure CloudClient fulfills the GoldClient interface
