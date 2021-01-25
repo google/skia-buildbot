@@ -1,58 +1,23 @@
 @import '~elements-sk/colors';
 
 particles-config-sk {
-  display: block;
-
-  // TODO(jcgregorio) Add a .button-like class to elements-sk to avoid the copy-paste.
-  label.file {
-    min-width: 5.14em;
-    background-color: var(--white);
-    color: var(--blue);
-    fill: var(--blue);
-    text-align: center;
-    outline: none;
-    border-radius: 4px;
-    padding: 0.6em 1.2em;
-    border: solid var(--light-gray) 1px;
-    margin: 0.6em;
-    height: 3em;
-    transition: box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 2px 8px 0 rgba(0, 0, 0, 0.6);
-  }
-
-  input[type=file] {
-    visibility: hidden;
-    width: 0;
-  }
-
-  .filename {
-    border: solid var(--light-gray) 1px;
-    padding: 0.4em;
-    margin: 0.6em;
-    display: inline-block;
-    font-style: inherit;
-    font-weight: bold;
-  }
-
-  .empty {
-    font-style: italic;
-    font-weight: inherit;
-  }
-
-  input[type=number] {
-    margin-right: 0.6em;
-    padding: 0.3em;
-    border: solid var(--light-gray) 1px;
-  }
-
-  label.number {
+  label {
     display: block;
-    margin: 0.6em;
+    padding-bottom: 8px;
   }
 
   #dialog-buttons {
-    width: 21em;
-    margin-top: 1em;
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  input[type='number'] {
+    width: 64px;
+  }
+
+  dialog {
+    background: var(--background);
+    border: solid 1px var(--on-background);
+    color: var(--on-background);
   }
 }

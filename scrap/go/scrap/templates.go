@@ -56,9 +56,9 @@ var funcMap = template.FuncMap{
 
 func loadTemplates() (templateMap, error) {
 	ret := templateMap{}
-	for _, lang := range allLangs {
+	for _, lang := range AllLangs {
 		ret[lang] = map[Type]*template.Template{}
-		for _, t := range allTypes {
+		for _, t := range AllTypes {
 			tmpl, err := template.New("").Funcs(funcMap).Parse(templates[templateName(t, lang)])
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Failed to parse template %v %v", lang, t)
