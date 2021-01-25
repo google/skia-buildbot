@@ -54,13 +54,18 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 			td.Fatalf(ctx, "%s failed validation: %s", f, err)
 		}
 
+		// Validate the config.
+		if err := cfg.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
+
 		// Convert to the old-style config.
 		oldCfg, err := roller.ProtoToConfig(&cfg)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
 
-		// Validate the config.
+		// Validate the old-style config.
 		if err := oldCfg.Validate(); err != nil {
 			return fmt.Errorf("%s failed validation: %s", f, err)
 		}
