@@ -366,8 +366,7 @@ message GitCheckoutGitHubParentConfig {
 // uses a local Git checkout and uploads pull requests to GitHub.
 message GitCheckoutGitHubFileParentConfig {
     GitCheckoutGitHubParentConfig git_checkout = 1;
-    GitHubConfig github = 2;
-    repeated PreUploadStep pre_upload_steps = 3;
+    repeated PreUploadStep pre_upload_steps = 2;
 }
 
 // GitilesParentConfig provides configuration for a Parent which uses Gitiles.

@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -27,6 +28,8 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
@@ -119,7 +122,7 @@ func kubeConfGenBe(ctx context.Context, tmpl, srcConfig, dstConfig, configFileBa
 	}, srcConfig)
 }
 
-type config struct {
+type rollerConfig struct {
 	RollerName string `json:"rollerName"`
 	Base64     string `json:"base64"`
 }
@@ -133,9 +136,9 @@ func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBa
 		rollerNames = append(rollerNames, name)
 	}
 	sort.Strings(rollerNames)
-	cfgs := make([]config, 0, len(rollerNames))
+	cfgs := make([]rollerConfig, 0, len(rollerNames))
 	for _, name := range rollerNames {
-		cfgs = append(cfgs, config{
+		cfgs = append(cfgs, rollerConfig{
 			RollerName: name,
 			Base64:     cfgBase64ByRollerName[name],
 		})
@@ -148,7 +151,7 @@ func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBa
 	cfgsJson := filepath.Join(d, "configs.json")
 	if err := util.WithWriteFile(cfgsJson, func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(&struct {
-			Configs []config `json:"configs"`
+			Configs []rollerConfig `json:"configs"`
 		}{
 			Configs: cfgs,
 		})
@@ -231,7 +234,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 // updateConfigs updates the Kubernetes config files in k8sConfigDir to reflect
 // the current contents of configDir, inserting the roller configs into the
 // given ConfigMap.
-func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*roller.AutoRollerConfig) ([]string, error) {
+func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*config.Config) ([]string, error) {
 	// This is the subdir for the current cluster.
 	clusterCfgDir := filepath.Join(co.Dir(), cfgDir.ClusterName)
 
@@ -265,14 +268,32 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				if err != nil {
 					return nil, skerr.Fmt("Failed to decode existing roller config as base64: %s", err)
 				}
-				// Don't try to decode the whole AutoRollerConfig struct, since
-				// that could fail if its structure has changed since the k8s
-				// config file was last modified.
-				var cfg struct {
-					RollerName string `json:"rollerName"`
+				opts := prototext.UnmarshalOptions{
+					AllowPartial:   true,
+					DiscardUnknown: true,
 				}
-				if err := json.Unmarshal(dec, &cfg); err != nil {
-					return nil, skerr.Fmt("Failed to decode existing roller config as JSON: %s", err)
+				cfg := new(config.Config)
+				if err := opts.Unmarshal(dec, cfg); err != nil {
+					// Temporary band-aid for the transition from JSON to proto.
+					var jsonCfg roller.AutoRollerConfig
+					if err := json5.NewDecoder(bytes.NewReader(dec)).Decode(&jsonCfg); err != nil {
+						return nil, skerr.Wrapf(err, "failed to decode existing roller config")
+					}
+					if jsonCfg.RollerName == "google3-autoroll" {
+						jsonCfg.Kubernetes.ReadinessFailureThreshold = "0"
+						jsonCfg.Kubernetes.ReadinessInitialDelaySeconds = "0"
+						jsonCfg.Kubernetes.ReadinessPeriodSeconds = "0"
+					}
+					protoCfg, err := roller.AutoRollerConfigToProto(&jsonCfg)
+					if err != nil {
+						return nil, skerr.Wrapf(err, "failed to convert old-style to new-style config for %s", jsonCfg.RollerName)
+					}
+					text, err := prototext.Marshal(protoCfg)
+					if err != nil {
+						return nil, skerr.Wrapf(err, "failed to marshal proto config")
+					}
+					cfgBase64 = base64.StdEncoding.EncodeToString(text)
+					cfg = protoCfg
 				}
 				cfgBase64ByRollerName[cfg.RollerName] = cfgBase64
 			}
@@ -289,9 +310,12 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 			// the parsed config, which will strip things like
 			// comments and whitespace that would otherwise produce
 			// a "different" config.
-			b, err := json.Marshal(config)
+			b, err := prototext.MarshalOptions{
+				AllowPartial: true,
+				EmitUnknown:  true,
+			}.Marshal(config)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "Failed to encode roller config as JSON")
+				return nil, skerr.Wrapf(err, "Failed to encode roller config as text proto")
 			}
 			cfgBase64ByRollerName[config.RollerName] = base64.StdEncoding.EncodeToString(b)
 		}
@@ -347,9 +371,31 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				}
 			}
 
+			// kube-conf-gen wants a JSON version of the config. Write it to a
+			// temporary directory.
+			tmp, err := ioutil.TempDir("", "")
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			defer func() {
+				if err := os.RemoveAll(tmp); err != nil {
+					fmt.Fprintf(os.Stderr, "Failed to remove temp dir: %s", err)
+				}
+			}()
+			configBytes, err := protojson.MarshalOptions{
+				AllowPartial:    true,
+				EmitUnpopulated: true,
+			}.Marshal(config)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			cfgFilePath := filepath.Join(tmp, "cfg.json")
+			if err := ioutil.WriteFile(cfgFilePath, configBytes, os.ModePerm); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
 			// Regenerate the k8s config file.
 			cfgFileBase64 := cfgBase64ByRollerName[config.RollerName]
-			cfgFilePath := filepath.Join(cfgDir.Dir, cfgFile)
 			modifiedBe, err := kubeConfGenBe(ctx, tmplBe, cfgFilePath, dst, cfgFileBase64, image)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Failed to generate k8s config file for backend: %s", dst)
@@ -436,26 +482,34 @@ func main() {
 
 	// Load all configs. This a nested map whose keys are config dir paths,
 	// sub-map keys are config file names, and values are roller configs.
-	configs := map[*configDir]map[string]*roller.AutoRollerConfig{}
+	configs := map[*configDir]map[string]*config.Config{}
 	for _, dir := range cfgDirs {
 		dirEntries, err := ioutil.ReadDir(dir.Dir)
 		if err != nil {
 			log.Fatalf("Failed to read roller configs in %s: %s", dir, err)
 		}
-		cfgsInDir := make(map[string]*roller.AutoRollerConfig, len(dirEntries))
+		cfgsInDir := make(map[string]*config.Config, len(dirEntries))
 		for _, entry := range dirEntries {
-			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".cfg") {
 				cfgPath := filepath.Join(dir.Dir, entry.Name())
-				var cfg roller.AutoRollerConfig
+				var cfg config.Config
 				if err := util.WithReadFile(cfgPath, func(f io.Reader) error {
-					return json5.NewDecoder(f).Decode(&cfg)
+					configBytes, err := ioutil.ReadAll(f)
+					if err != nil {
+						return err
+					}
+					if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
+						return err
+					}
+					return nil
 				}); err != nil {
 					log.Fatalf("Failed to parse roller config %s: %s", cfgPath, err)
 				}
 				if rollerRegex == nil || rollerRegex.MatchString(cfg.RollerName) {
-					if err := cfg.Validate(); err != nil {
-						log.Fatalf("%s is invalid: %s", cfgPath, err)
-					}
+					// TODO(borenet): Re-enable after adding validation.
+					//if err := cfg.Validate(); err != nil {
+					//	log.Fatalf("%s is invalid: %s", cfgPath, err)
+					//}
 					cfgsInDir[filepath.Base(entry.Name())] = &cfg
 				}
 			}
@@ -538,7 +592,7 @@ func main() {
 			InheritEnv:  true,
 			InheritPath: true,
 		}); err != nil {
-			log.Fatalf("Failed to apply k8s config file(s): %s", err)
+			log.Fatalf("Failed to apply k8s config file(s) in %s: %s", co.Dir(), err)
 		}
 	}
 
