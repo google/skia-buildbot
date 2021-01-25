@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "858f5771_45c8c7b8",
+        "filename": "particles/modules/particles-player-sk/particles-player-sk_puppeteer_test.ts",
+        "patchSetId": 53
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T18:07:33Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 13
+      },
+      "revId": "6b49a5586535fb472a6377d8025979c70631004b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
