@@ -25,7 +25,7 @@ var (
 	port          = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort      = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir  = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	scrapExchange = flag.String("scrapexchange", "scrapexchange:9000", "Scrap exchange service HTTP address.")
+	scrapExchange = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
 )
 
 // server is the state of the server.
