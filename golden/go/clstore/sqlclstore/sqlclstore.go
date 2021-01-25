@@ -23,12 +23,21 @@ type StoreImpl struct {
 
 // New returns a SQL-backed clstore.Store for the given system.
 func New(db *pgxpool.Pool, systemID string) *StoreImpl {
-	return &StoreImpl{db: db, systemID: systemID}
+	return &StoreImpl{
+		db:       db,
+		systemID: systemID,
+	}
 }
 
+// We don't have an enterprise license and don't benefit from follower reads.
+// https://www.cockroachlabs.com/docs/stable/follower-reads.html
+// If we did, we would want the AS OF SYSTEM TIME to be 4.8 seconds (or 5 for ease).
+// Setting a non-zero delay reduces some contention because the query doesn't have to
+// be retried if data is written while the query is being executed (which is common for
+// instances that stream in results).
 const statementAll = `
 SELECT changelist_id, status, owner_email, subject, last_ingested_data
-FROM Changelists
+FROM Changelists AS OF SYSTEM TIME '-0.1s'
 WHERE system = $1 and last_ingested_data > $2
 ORDER BY last_ingested_data DESC
 LIMIT $3 OFFSET $4
@@ -36,7 +45,7 @@ LIMIT $3 OFFSET $4
 
 const statementOpenOnly = `
 SELECT changelist_id, status, owner_email, subject, last_ingested_data
-FROM Changelists
+FROM Changelists AS OF SYSTEM TIME '-0.1s'
 WHERE system = $1 and last_ingested_data > $2 and status = 'open'
 ORDER BY last_ingested_data DESC
 LIMIT $3 OFFSET $4

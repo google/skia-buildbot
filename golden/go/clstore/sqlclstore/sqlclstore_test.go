@@ -302,6 +302,7 @@ func TestGetChangelists_StartAndLimitProvided_RespectsStartAndLimit(t *testing.T
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, makeTestCLs()))
 
 	store := New(db, "gerrit")
+	waitForSystemTime() // GetChangelists has "AS OF SYSTEM TIME"
 
 	// Get all of them
 	cls, total, err := store.GetChangelists(ctx, clstore.SearchOptions{
@@ -370,6 +371,12 @@ func TestGetChangelists_StartAndLimitProvided_RespectsStartAndLimit(t *testing.T
 	assert.Equal(t, 30, total)
 }
 
+// waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
+// clauses in queries. This way, the queries will be accurate.
+func waitForSystemTime() {
+	time.Sleep(150 * time.Millisecond)
+}
+
 func TestGetChangelists_InvalidStartsAndLimits_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -400,6 +407,7 @@ func TestGetChangelists_OptionsRespected_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, makeTestCLs()))
 
 	store := New(db, "gerrit")
+	waitForSystemTime() // GetChangelists has "AS OF SYSTEM TIME"
 
 	// Get the ones after the 27th minute
 	cls, total, err := store.GetChangelists(ctx, clstore.SearchOptions{
