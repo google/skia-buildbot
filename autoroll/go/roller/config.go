@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
@@ -43,7 +43,7 @@ const (
 	// suffixes which are automatically added by our tooling, eg. the
 	// "autoroll-be-" prefix and "-storage" suffix for disks, controller hashes,
 	// etc.
-	MAX_ROLLER_NAME_LENGTH = 41
+	MAX_ROLLER_NAME_LENGTH = config.MaxRollerNameLength
 )
 
 var (
@@ -54,7 +54,7 @@ var (
 		TimeWindow:   DEFAULT_SAFETY_THROTTLE_TIME_WINDOW,
 	}
 
-	validK8sLabel = regexp.MustCompile(`^[a-zA-Z\._-]{1,63}$`)
+	validK8sLabel = config.ValidK8sLabel
 )
 
 // ThrottleConfig determines the throttling behavior for the roller.
@@ -427,18 +427,7 @@ func (c *AutoRollerConfig) ValidStrategies() []string {
 }
 
 // RepoManagerConfig provides configuration information for RepoManagers.
-type RepoManagerConfig interface {
-	util.Validator
-
-	// Return the default NextRollStrategy name.
-	DefaultStrategy() string
-
-	// Return true if the RepoManager does not use a local checkout.
-	NoCheckout() bool
-
-	// Return the list of valid NextRollStrategy names for this RepoManager.
-	ValidStrategies() []string
-}
+type RepoManagerConfig config.RepoManagerConfig
 
 // CreateRepoManager creates a RepoManager instance from the config.
 // TODO(borenet): If we can't remove this after refactoring RepoManager configs,
