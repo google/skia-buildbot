@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c225e59e_352030d9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-25T16:09:48Z",
+      "side": 1,
+      "message": "LGTM",
+      "revId": "a36a58c88ce3ffadb6ea00d393fbebf6fca50f1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1f56e796_5b210100",
+        "filename": "autoroll/go/autoroll-pusher/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-25T16:09:48Z",
+      "side": 1,
+      "message": "Uncomment?",
+      "revId": "a36a58c88ce3ffadb6ea00d393fbebf6fca50f1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
