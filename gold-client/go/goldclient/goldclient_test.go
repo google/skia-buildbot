@@ -188,7 +188,7 @@ func TestInit(t *testing.T) {
 	assert.Len(t, state.KnownHashes, 4) // these should be saved to disk
 	assert.Len(t, state.Expectations, 1)
 	assert.Len(t, state.Expectations["ThisIsTheOnlyTest"], 2)
-	assert.Equal(t, makeTestSharedConfig(), *state.SharedConfig)
+	assert.Equal(t, makeTestSharedConfig(), state.SharedConfig)
 
 	_, err = loadStateFromJSON("/tmp/some-file-guaranteed-not-to-exist")
 	assert.Error(t, err)
@@ -257,7 +257,7 @@ func TestAddResult_Success(t *testing.T) {
 	goldClient := CloudClient{
 		resultState: &resultState{
 			InstanceID: "my_instance", // Should be ignored.
-			SharedConfig: &jsonio.GoldResults{
+			SharedConfig: jsonio.GoldResults{
 				Key: map[string]string{
 					"alpha":           "beta",
 					types.CorpusField: "my_corpus",
@@ -289,7 +289,7 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 	goldClient := CloudClient{
 		resultState: &resultState{
 			InstanceID: "my_instance",
-			SharedConfig: &jsonio.GoldResults{
+			SharedConfig: jsonio.GoldResults{
 				Key: map[string]string{
 					"alpha": "beta",
 					// No corpus specified, therefore the instance name is used as the default.
@@ -497,7 +497,7 @@ func TestFinalizeNormal(t *testing.T) {
 		InstanceID:      "testing",
 		GoldURL:         "https://testing-gold.skia.org",
 		Bucket:          "skia-gold-testing",
-		SharedConfig: &jsonio.GoldResults{
+		SharedConfig: jsonio.GoldResults{
 			GitHash: "cadbed23562",
 			Builder: "Test-Z80-Debug",
 			Key: map[string]string{
@@ -534,7 +534,7 @@ func TestFinalizeNormal(t *testing.T) {
 	// loaded from disk.
 
 	expectedJSONPath := "skia-gold-testing/dm-json-v1/2019/04/02/19/cadbed23562/Test-Z80-Debug/dm-1554234843000000000.json"
-	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
+	grm := mock.MatchedBy(func(gr jsonio.GoldResults) bool {
 		assertdeep.Equal(t, j.SharedConfig, gr)
 		return true
 	})
@@ -640,7 +640,7 @@ func TestInitAddFinalize(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	grm := mock.MatchedBy(func(gr *jsonio.GoldResults) bool {
+	grm := mock.MatchedBy(func(gr jsonio.GoldResults) bool {
 		assert.Len(t, gr.Results, 2)
 		r := gr.Results[0]
 		assert.Equal(t, "first-test", r.Key["name"])
@@ -686,7 +686,7 @@ func TestNewReportPassFail(t *testing.T) {
 	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	checkResults := func(g *jsonio.GoldResults) bool {
+	checkResults := func(g jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
 		assert.Equal(t, testBuildBucketID, g.TryJobID)
@@ -762,7 +762,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	checkResults := func(g *jsonio.GoldResults) bool {
+	checkResults := func(g jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
 		assert.Equal(t, testBuildBucketID, g.TryJobID)
@@ -839,7 +839,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v2/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	checkResults := func(g *jsonio.GoldResults) bool {
+	checkResults := func(g jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
 		assert.Equal(t, testBuildBucketID, g.TryJobID)
@@ -970,7 +970,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 
 	// Mock out uploading the JSON file with the test results to Gold.
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	checkResults := func(g *jsonio.GoldResults) bool {
+	checkResults := func(g jsonio.GoldResults) bool {
 		// spot check some of the properties
 		assert.Equal(t, "abcd1234", g.GitHash)
 		assert.Equal(t, testBuildBucketID, g.TryJobID)
@@ -1053,7 +1053,7 @@ func TestNegativePassFail(t *testing.T) {
 	// No upload expected because the bytes were already seen in json/hashes.
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -1108,7 +1108,7 @@ func TestPositivePassFail(t *testing.T) {
 	// No upload expected because the bytes were already seen in json/hashes.
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/867__5309/117/dm-1554234843000000000.json"
-	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+	uploader.On("UploadJSON", testutils.AnyContext, mock.AnythingOfType("jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
 
 	goldClient, err := makeGoldClient(true /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -1456,7 +1456,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 
 	tests := []struct {
 		name              string
-		sharedConfig      *jsonio.GoldResults
+		sharedConfig      jsonio.GoldResults
 		additionalKeys    map[string]string
 		expectedResultKey map[string]string
 		expectedTraceId   tiling.TraceID
@@ -1471,7 +1471,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 		},
 		{
 			name:         "no additional keys, empty shared config, corpus set to instance ID",
-			sharedConfig: &jsonio.GoldResults{},
+			sharedConfig: jsonio.GoldResults{},
 			expectedResultKey: map[string]string{
 				types.PrimaryKeyField: "my_test",
 				types.CorpusField:     instanceId,
@@ -1480,7 +1480,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 		},
 		{
 			name: "no additional keys, shared config with corpus, uses corpus from shared config",
-			sharedConfig: &jsonio.GoldResults{
+			sharedConfig: jsonio.GoldResults{
 				Key: map[string]string{types.CorpusField: "my_corpus"},
 			},
 			expectedResultKey: map[string]string{
@@ -1490,7 +1490,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 		},
 		{
 			name:           "additional keys with corpus, empty shared config, uses corpus from additional keys",
-			sharedConfig:   &jsonio.GoldResults{},
+			sharedConfig:   jsonio.GoldResults{},
 			additionalKeys: map[string]string{types.CorpusField: "my_corpus"},
 			expectedResultKey: map[string]string{
 				types.PrimaryKeyField: "my_test",
@@ -1500,7 +1500,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 		},
 		{
 			name: "additional keys with corpus, shared config with corpus, uses corpus from additional keys",
-			sharedConfig: &jsonio.GoldResults{
+			sharedConfig: jsonio.GoldResults{
 				Key: map[string]string{types.CorpusField: "corpus_from_shared_config"},
 			},
 			additionalKeys: map[string]string{types.CorpusField: "my_corpus"},
@@ -1512,7 +1512,7 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 		},
 		{
 			name: "overlapping shared and additional keys, additional keys take precedence",
-			sharedConfig: &jsonio.GoldResults{
+			sharedConfig: jsonio.GoldResults{
 				Key: map[string]string{
 					types.CorpusField: "corpus_from_shared_config",
 					"overlapping_key": "alpha",
@@ -2139,7 +2139,7 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
 		GoldURL:      "https://testing-gold.skia.org",
-		SharedConfig: &jsonio.GoldResults{},
+		SharedConfig: jsonio.GoldResults{},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
@@ -2188,7 +2188,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
 		GoldURL: "https://testing-gold.skia.org",
-		SharedConfig: &jsonio.GoldResults{
+		SharedConfig: jsonio.GoldResults{
 			CodeReviewSystem: "gerrit",
 			ChangelistID:     "123456",
 		},
@@ -2242,7 +2242,7 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
 		GoldURL:      "https://testing-gold.skia.org",
-		SharedConfig: &jsonio.GoldResults{},
+		SharedConfig: jsonio.GoldResults{},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)

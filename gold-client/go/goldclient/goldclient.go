@@ -189,7 +189,7 @@ func NewCloudClient(config GoldClientConfig) (*CloudClient, error) {
 	ret := CloudClient{
 		workDir:          workDir,
 		loadAndHashImage: loadAndHashImage,
-		resultState:      newResultState(nil, &config),
+		resultState:      newResultState(jsonio.GoldResults{}, &config),
 	}
 
 	if config.FailureFile != "" {
@@ -267,7 +267,7 @@ func (c *CloudClient) SetSharedConfig(ctx context.Context, sharedConfig jsonio.G
 		existingConfig.OverrideGoldURL = c.resultState.GoldURL
 		existingConfig.UploadOnly = c.resultState.UploadOnly
 	}
-	c.resultState = newResultState(&sharedConfig, &existingConfig)
+	c.resultState = newResultState(sharedConfig, &existingConfig)
 
 	if !c.resultState.UploadOnly {
 		// The GitHash may have changed (or been set for the first time),
@@ -284,11 +284,16 @@ func (c *CloudClient) SetSharedConfig(ctx context.Context, sharedConfig jsonio.G
 
 // Test implements the GoldClient interface.
 func (c *CloudClient) Test(ctx context.Context, name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
-	if res, err := c.addTest(ctx, name, imgFileName, imgDigest, additionalKeys, optionalKeys); err != nil {
-		return false, err
-	} else {
-		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
+	passes, err := c.addTest(ctx, name, imgFileName, imgDigest, additionalKeys, optionalKeys)
+	if err != nil {
+		return false, skerr.Wrap(err)
 	}
+	// In pass-fail (aka streaming mode), we want to make sure we don't upload these same results
+	// in the next upload state. As such, we delete them and don't persist them to disk.
+	if c.resultState.PerTestPassFail {
+		c.resultState.SharedConfig.Results = nil
+	}
+	return passes, saveJSONFile(c.getResultStatePath(), c.resultState)
 }
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
@@ -541,7 +546,7 @@ func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKey
 	// If said command was not previously invoked (e.g. when calling "imgtest check") the shared
 	// config will be nil, in which case we initialize the shared keys as an empty map.
 	sharedKeys := map[string]string{}
-	if c.resultState.SharedConfig != nil {
+	if len(c.resultState.SharedConfig.Key) != 0 {
 		sharedKeys = c.resultState.SharedConfig.Key
 	}
 
