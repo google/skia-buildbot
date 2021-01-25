@@ -63,12 +63,6 @@ func (c DEPSLocalConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := c.DependencyConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.ID == "" {
-		return skerr.Fmt("Dep is required")
-	}
 	for _, step := range c.PreUploadSteps {
 		if _, err := GetPreUploadStep(step); err != nil {
 			return skerr.Wrap(err)
