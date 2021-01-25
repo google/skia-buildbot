@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b268f5f0_8eb3deed",
+        "filename": "particles/go/particles/main.go",
+        "patchSetId": 48
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "ubernit: I would have this be a 4xx code (e.g. StatusBadRequest) because it\u0027s the clients fault for giving us bad JSON",
+      "range": {
+        "startLine": 114,
+        "startChar": 61,
+        "endLine": 114,
+        "endChar": 86
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "347ad8ae_888ff814",
+        "filename": "particles/go/particles/main.go",
+        "patchSetId": 48
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "Same 4xx error as above",
+      "range": {
+        "startLine": 118,
+        "startChar": 106,
+        "endLine": 118,
+        "endChar": 131
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96f53673_0363649a",
+        "filename": "particles/modules/particles-config-sk/particles-config-sk.ts",
+        "patchSetId": 48
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "ubernit: I usually prefer null instead of undefined for \"things we are intentionally returning empty\". I like undefined to just be \"stuff we didn\u0027t set ourselves\"\n\nIf that\u0027s not normally the pattern of dialog promises, then ignore this.",
+      "range": {
+        "startLine": 57,
+        "startChar": 59,
+        "endLine": 57,
+        "endChar": 68
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4edb9508_2ae70131",
+        "filename": "particles/modules/particles-player-sk/particles-player-sk-demo.ts",
+        "patchSetId": 48
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "I believe this code (and EffectCode) could be a single multi-line string literal, which will make future edits easier.\n\nOr, we could do something with a .split() on the multi-line string literal.",
+      "range": {
+        "startLine": 14,
+        "startChar": 12,
+        "endLine": 14,
+        "endChar": 17
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fa5f9330_d76943ef",
+        "filename": "particles/modules/particles-player-sk/particles-player-sk.ts",
+        "patchSetId": 48
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "Is this as per the particles spec?",
+      "range": {
+        "startLine": 267,
+        "startChar": 16,
+        "endLine": 267,
+        "endChar": 42
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "57f0dfce_79c5213e",
+        "filename": "particles/modules/particles-sk/particles-sk.ts",
+        "patchSetId": 48
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "same comment as in the demo page about multi-line string literal.",
+      "range": {
+        "startLine": 37,
+        "startChar": 5,
+        "endLine": 37,
+        "endChar": 9
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3974d1b2_1b5b6698",
+        "filename": "particles/modules/particles-sk/particles-sk.ts",
+        "patchSetId": 48
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "Is this a load bearing space? Can we remove it?",
+      "range": {
+        "startLine": 153,
+        "startChar": 81,
+        "endLine": 153,
+        "endChar": 83
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b6dbdd43_28be93d4",
+        "filename": "particles/package.json",
+        "patchSetId": 48
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T14:54:48Z",
+      "side": 1,
+      "message": "since the npm package does not currently support/expose particles, we should remove this.",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 19
+      },
+      "revId": "557497f253d05d05d31da5eff296506a453adc34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
