@@ -5,7 +5,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -13,15 +12,15 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -39,11 +38,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 var (
 	// flags.
-	configs           = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
+	configsContents   = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
 	configFiles       = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	host              = flag.String("host", "localhost", "HTTP service host")
@@ -191,31 +191,39 @@ func main() {
 	throttleDB := unthrottle.NewDatastore(ctx)
 
 	// Read the configs for the rollers.
-	if len(*configs) > 0 && len(*configFiles) > 0 {
+	if len(*configsContents) > 0 && len(*configFiles) > 0 {
 		sklog.Fatal("--config and --config_file are mutually exclusive.")
-	} else if len(*configs) == 0 && len(*configFiles) == 0 {
+	} else if len(*configsContents) == 0 && len(*configFiles) == 0 {
 		sklog.Fatal("At least one instance of --config or --config_file is required.")
 	}
-	cfgs := make([]*roller.AutoRollerConfig, 0, len(*configs)+len(*configFiles))
-	for _, cfgStr := range *configs {
+	cfgBytes := make([][]byte, 0, len(*configsContents)+len(*configFiles))
+	for _, cfgStr := range *configsContents {
 		b, err := base64.StdEncoding.DecodeString(cfgStr)
+		if err != nil {
+			sklog.Fatalf("Failed to base64-decode config: %s\n\nbase64:\n%s", err, cfgStr)
+		}
+		cfgBytes = append(cfgBytes, b)
+	}
+	for _, path := range *configFiles {
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			sklog.Fatalf("Failed to read config file %s: %s", path, err)
+		}
+		cfgBytes = append(cfgBytes, b)
+	}
+	cfgs := make([]*roller.AutoRollerConfig, 0, len(cfgBytes))
+	for _, b := range cfgBytes {
+		var cfgProto config.Config
+		if err := prototext.Unmarshal(b, &cfgProto); err != nil {
+			sklog.Fatalf("Failed to decode proto string: %s\n\nstring:\n%s", err, string(b))
+		}
+		// TODO(borenet): Remove the old-style config and just use the proto
+		// version everywhere.
+		cfg, err := roller.ProtoToConfig(&cfgProto)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		var cfg roller.AutoRollerConfig
-		if err := json5.NewDecoder(bytes.NewReader(b)).Decode(&cfg); err != nil {
-			sklog.Fatal(err)
-		}
-		cfgs = append(cfgs, &cfg)
-	}
-	for _, path := range *configFiles {
-		var cfg roller.AutoRollerConfig
-		if err := util.WithReadFile(path, func(f io.Reader) error {
-			return json5.NewDecoder(f).Decode(&cfg)
-		}); err != nil {
-			sklog.Fatal(err)
-		}
-		cfgs = append(cfgs, &cfg)
+		cfgs = append(cfgs, cfg)
 	}
 
 	// Validate the configs.
