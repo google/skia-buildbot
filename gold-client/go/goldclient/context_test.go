@@ -17,12 +17,14 @@ func TestExtractProperties_ValuesSet_ReturnSetValues(t *testing.T) {
 	mg := &mocks.GCSUploader{}
 	mh := &mocks.HTTPClient{}
 	mi := &mocks.ImageDownloader{}
+	mn := &mocks.NowSource{}
 
-	ctx := WithContext(context.Background(), mg, mh, mi)
+	ctx := WithContext(context.Background(), mg, mh, mi, mn)
 
 	assert.Same(t, mg, extractGCSUploader(ctx))
 	assert.Same(t, mh, extractHTTPClient(ctx))
 	assert.Same(t, mi, extractImageDownloader(ctx))
+	assert.Same(t, mn, extractNowSource(ctx))
 }
 
 // In tests, we sometimes mock out the implementations before something later calls WithContext.
@@ -32,17 +34,19 @@ func TestExtractProperties_ValuesSetTwice_ReturnFirstValues(t *testing.T) {
 
 	original := &gcsuploader.DryRunImpl{}
 
-	ctx := WithContext(context.Background(), original, nil, nil)
+	ctx := WithContext(context.Background(), original, nil, nil, nil)
 
 	mg := &mocks.GCSUploader{}
 	mh := &mocks.HTTPClient{}
 	mi := &mocks.ImageDownloader{}
+	mn := &mocks.NowSource{}
 
-	ctx = WithContext(ctx, mg, mh, mi)
+	ctx = WithContext(ctx, mg, mh, mi, mn)
 
 	assert.Same(t, original, extractGCSUploader(ctx))
 	assert.Same(t, mh, extractHTTPClient(ctx))
 	assert.Same(t, mi, extractImageDownloader(ctx))
+	assert.Same(t, mn, extractNowSource(ctx))
 }
 
 func TestExtractGCSUploader_ValueNotSet_Panics(t *testing.T) {
@@ -67,4 +71,26 @@ func TestExtractImageDownloader_ValueNotSet_Panics(t *testing.T) {
 	assert.Panics(t, func() {
 		extractImageDownloader(context.Background())
 	})
+}
+
+func TestExtractNowSource_ValueNotSet_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Panics(t, func() {
+		extractNowSource(context.Background())
+	})
+}
+
+func TestExtractLogWriter_ValueNotSet_ReturnsNonNilValue(t *testing.T) {
+	unittest.SmallTest(t)
+
+	w := extractLogWriter(context.Background())
+	assert.NotNil(t, w)
+}
+
+func TestExtractErrorWriter_ValueNotSet_ReturnsNonNilValue(t *testing.T) {
+	unittest.SmallTest(t)
+
+	w := extractErrorWriter(context.Background())
+	assert.NotNil(t, w)
 }

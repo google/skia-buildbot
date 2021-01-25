@@ -2,6 +2,8 @@ package goldclient
 
 import (
 	"context"
+	"io"
+	"os"
 
 	"go.skia.org/infra/gold-client/go/gcsuploader"
 	"go.skia.org/infra/gold-client/go/httpclient"
@@ -9,9 +11,15 @@ import (
 )
 
 const (
+	// ErrorWriterKey is the context key used for the error Writer (Typically StdErr).
+	ErrorWriterKey = contextKey("errWriter")
+	// LogWriterKey is the context key used for the log Writer (Typically StdOut).
+	LogWriterKey = contextKey("logWriter")
+
 	gcsUploaderKey     = contextKey("gcsUploader")
 	httpClientKey      = contextKey("httpClient")
 	imageDownloaderKey = contextKey("imageDownloader")
+	nowSourceKey       = contextKey("nowSource")
 )
 
 type contextKey string
@@ -21,7 +29,7 @@ type contextKey string
 // and not require several extra arguments on each function call. Failure to have these set
 // will result in panics when the function is called. If values have already been set on this
 // context, the new value will be ignored.
-func WithContext(ctx context.Context, g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader) context.Context {
+func WithContext(ctx context.Context, g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader, n NowSource) context.Context {
 	if v := ctx.Value(gcsUploaderKey); v == nil {
 		ctx = context.WithValue(ctx, gcsUploaderKey, g)
 	}
@@ -30,6 +38,9 @@ func WithContext(ctx context.Context, g gcsuploader.GCSUploader, h httpclient.HT
 	}
 	if v := ctx.Value(imageDownloaderKey); v == nil {
 		ctx = context.WithValue(ctx, imageDownloaderKey, i)
+	}
+	if v := ctx.Value(nowSourceKey); v == nil {
+		ctx = context.WithValue(ctx, nowSourceKey, n)
 	}
 	return ctx
 }
@@ -56,4 +67,28 @@ func extractImageDownloader(ctx context.Context) imagedownloader.ImageDownloader
 		panic("ImageDownloader was not set on context. Did you call WithContext?")
 	}
 	return i
+}
+
+func extractNowSource(ctx context.Context) NowSource {
+	n, ok := ctx.Value(nowSourceKey).(NowSource)
+	if !ok || n == nil {
+		panic("NowSource was not set on context. Did you call WithContext?")
+	}
+	return n
+}
+
+func extractLogWriter(ctx context.Context) io.Writer {
+	w, ok := ctx.Value(LogWriterKey).(io.Writer)
+	if !ok || w == nil {
+		return os.Stdout
+	}
+	return w
+}
+
+func extractErrorWriter(ctx context.Context) io.Writer {
+	w, ok := ctx.Value(ErrorWriterKey).(io.Writer)
+	if !ok || w == nil {
+		return os.Stderr
+	}
+	return w
 }

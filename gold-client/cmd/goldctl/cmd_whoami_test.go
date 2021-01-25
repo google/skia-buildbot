@@ -34,7 +34,7 @@ func TestWhoami_AuthedWithGSUtil_Success(t *testing.T) {
 	response := `{"whoami": "test@example.com"}`
 	mh.On("Get", url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
 
-	ctx = goldclient.WithContext(ctx, nil, mh, nil)
+	ctx = goldclient.WithContext(ctx, nil, mh, nil, nil)
 
 	runUntilExit(t, func() {
 		who.WhoAmI(ctx)
