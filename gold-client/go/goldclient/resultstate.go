@@ -49,7 +49,7 @@ var md5Regexp = regexp.MustCompile(`^[a-f0-9]{32}$`)
 type resultState struct {
 	// SharedConfig is all the data that is common test to test, for example, the
 	// keys about this machine (e.g. GPU, OS).
-	SharedConfig    *jsonio.GoldResults
+	SharedConfig    jsonio.GoldResults
 	PerTestPassFail bool
 	FailureFile     string
 	UploadOnly      bool
@@ -61,7 +61,7 @@ type resultState struct {
 }
 
 // newResultState creates a new instance of resultState
-func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) *resultState {
+func newResultState(sharedConfig jsonio.GoldResults, config *GoldClientConfig) *resultState {
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
 		goldURL = GetGoldInstanceURL(config.InstanceID)
@@ -117,7 +117,7 @@ func (r *resultState) loadKnownHashes(ctx context.Context) error {
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(ctx context.Context) error {
 	urlPath := shared.ExpectationsRouteV2
-	if r.SharedConfig != nil && r.SharedConfig.ChangelistID != "" {
+	if r.SharedConfig.ChangelistID != "" {
 		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangelistID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
 
