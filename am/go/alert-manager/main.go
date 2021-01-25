@@ -161,54 +161,54 @@ func New() (baseapp.App, error) {
 		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
 	}
 
-	// Process all incoming PubSub requests.
-	go func() {
-		for {
-			err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-				msg.Ack()
-				var m map[string]string
-				if err := json.Unmarshal(msg.Data, &m); err != nil {
-					sklog.Error(err)
-					return
-				}
-				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
-					sklog.Infof("healthz received: %q", m[alerts.LOCATION])
-					if l, ok := livenesses[m[alerts.LOCATION]]; ok {
-						l.Reset()
-					} else {
-						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
-					}
-				} else {
-					if _, err := srv.incidentStore.AlertArrival(m); err != nil {
-						sklog.Errorf("Error processing alert: %s", err)
-					}
-				}
-			})
-			if err != nil {
-				sklog.Errorf("Failed receiving pubsub message: %s", err)
-			}
-		}
-	}()
+	// // Process all incoming PubSub requests.
+	// go func() {
+	// 	for {
+	// 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+	// 			msg.Ack()
+	// 			var m map[string]string
+	// 			if err := json.Unmarshal(msg.Data, &m); err != nil {
+	// 				sklog.Error(err)
+	// 				return
+	// 			}
+	// 			if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
+	// 				sklog.Infof("healthz received: %q", m[alerts.LOCATION])
+	// 				if l, ok := livenesses[m[alerts.LOCATION]]; ok {
+	// 					l.Reset()
+	// 				} else {
+	// 					sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
+	// 				}
+	// 			} else {
+	// 				if _, err := srv.incidentStore.AlertArrival(m); err != nil {
+	// 					sklog.Errorf("Error processing alert: %s", err)
+	// 				}
+	// 			}
+	// 		})
+	// 		if err != nil {
+	// 			sklog.Errorf("Failed receiving pubsub message: %s", err)
+	// 		}
+	// 	}
+	// }()
 
-	// This is really just a backstop in case we miss a resolved event for the incident.
-	go func() {
-		for range time.Tick(1 * time.Minute) {
-			ins, err := srv.incidentStore.GetAll()
-			if err != nil {
-				sklog.Errorf("Failed to load incidents: %s", err)
-				continue
-			}
-			now := time.Now()
-			for _, in := range ins {
-				// If it was last updated too long ago then it should be archived.
-				if time.Unix(in.LastSeen, 0).Add(expireDuration).Before(now) {
-					if _, err := srv.incidentStore.Archive(in.Key); err != nil {
-						sklog.Errorf("Failed to archive incident: %s", err)
-					}
-				}
-			}
-		}
-	}()
+	// // This is really just a backstop in case we miss a resolved event for the incident.
+	// go func() {
+	// 	for range time.Tick(1 * time.Minute) {
+	// 		ins, err := srv.incidentStore.GetAll()
+	// 		if err != nil {
+	// 			sklog.Errorf("Failed to load incidents: %s", err)
+	// 			continue
+	// 		}
+	// 		now := time.Now()
+	// 		for _, in := range ins {
+	// 			// If it was last updated too long ago then it should be archived.
+	// 			if time.Unix(in.LastSeen, 0).Add(expireDuration).Before(now) {
+	// 				if _, err := srv.incidentStore.Archive(in.Key); err != nil {
+	// 					sklog.Errorf("Failed to archive incident: %s", err)
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }()
 
 	srv.startInternalServer()
 
@@ -580,11 +580,7 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 		recentlyExpired = ins[0].IsSilenced(archivedSilences, false)
 	}
 
-	resp := struct {
-		Incidents              []incident.Incident `json:"incidents"`
-		Flaky                  bool                `json:"flaky"`
-		RecentlyExpiredSilence bool                `json:"recently_expired_silence"`
-	}{
+	resp := RecentIncidentsResponse{
 		Incidents:              ins,
 		Flaky:                  incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
 		RecentlyExpiredSilence: recentlyExpired,
