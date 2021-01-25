@@ -33,6 +33,24 @@
       "message": "Uncomment?",
       "revId": "a36a58c88ce3ffadb6ea00d393fbebf6fca50f1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1b46d26_c85d046c",
+        "filename": "autoroll/go/autoroll-pusher/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-25T16:26:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f56e796_5b210100",
+      "revId": "a36a58c88ce3ffadb6ea00d393fbebf6fca50f1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
