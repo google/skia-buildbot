@@ -1,0 +1,15 @@
+load(":cipd_package.bzl", "cipd_package", "cipd_package_executable")
+load("manifests/clang_linux_manifest.bzl", "clang_linux_manifest")
+load("manifests/android_sdk_manifest.bzl", "android_sdk_manifest")
+
+package(default_visibility = ["//bazel/infra/toolchain:__pkg__", "//bazel/infra:__pkg__"])
+
+cipd_package_executable(name = "clang_linux", asset_name="skia/bots/clang_linux", asset_version="0", outputs=clang_linux_manifest)
+filegroup(
+    name = "clang_linux_files",
+    srcs = clang_linux_manifest,
+)
+
+
+
+cipd_package(name = "android_sdk", asset_name="skia/bots/android_sdk", asset_version="0", outputs=android_sdk_manifest)
