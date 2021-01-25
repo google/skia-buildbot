@@ -64,6 +64,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 
 	// Run chromium sync command using the specified chromium hash.
 	// Construct path to the sync_skia_in_chrome python script.
+	// HERE HERE
 	syncArgs := []string{
 		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
 		"--destination=" + chromiumBuildDir,
@@ -159,6 +160,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 
 	// Run chromium sync command using the above commit hashes.
 	// Construct path to the sync_skia_in_chrome python script.
+	// HERE HERE
 	syncArgs := []string{
 		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
 		"--destination=" + chromiumBuildDir,
