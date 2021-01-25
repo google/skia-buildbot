@@ -45,6 +45,7 @@ wasm_libs_tot: get_latest_skia
 	# using cloudbuild.yaml in the Skia repo.
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp -r /tmp/canvaskit /OUT/
 	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/
+	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
 
 wasm_libs_fixed: package-lock.json
 	rm -rf build
