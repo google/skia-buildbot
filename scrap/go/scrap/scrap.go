@@ -50,12 +50,13 @@ const (
 	UnknownType Type = ""
 )
 
-var allTypes = []Type{SVG, SKSL, Particle}
+// AllTypes is a slice of supported Types.
+var AllTypes = []Type{SVG, SKSL, Particle}
 
 // ToType converts a string to a Type, returning UnknownType if it is not a
 // valid Type.
 func ToType(s string) Type {
-	for _, t := range allTypes {
+	for _, t := range AllTypes {
 		if string(t) == s {
 			return t
 		}
@@ -85,12 +86,13 @@ const (
 	UnknownLang Lang = ""
 )
 
-var allLangs = []Lang{CPP, JS}
+// AllLangs is the list of all supported Langs.
+var AllLangs = []Lang{CPP, JS}
 
 // ToLang converts a string to a Lang, returning UnknownLang if it not a valid
 // Lang.
 func ToLang(s string) Lang {
-	for _, l := range allLangs {
+	for _, l := range AllLangs {
 		if string(l) == s {
 			return l
 		}
