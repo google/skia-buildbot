@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "95045f0c_65941510",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-25T21:14:44Z",
+      "side": 1,
+      "message": "PTAL: Due to the other refactoring and additional tests, I am more confident in the fact that this actually fixes the bug. Notice the test that gets unskipped in cmd_imgtest_test (it had been failing as a result of this bug).",
+      "revId": "73c2a629b66a8d1cc38945bdc4ea5fb300ffbdd9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
