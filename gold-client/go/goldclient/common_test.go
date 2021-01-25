@@ -22,7 +22,7 @@ func TestGetWithRetries_OneAttempt_Success(t *testing.T) {
 	url := "example.com"
 	mh.On("Get", url).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil).Once()
 
-	ctx := WithContext(context.Background(), nil, mh, nil)
+	ctx := WithContext(context.Background(), nil, mh, nil, nil)
 	b, err := getWithRetries(ctx, url)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("Hello, world!"), b)
@@ -39,7 +39,7 @@ func TestGetWithRetries_MultipleAttempts_Success(t *testing.T) {
 	mh.On("Get", url).Return(httpResponse("Should be ignored.", "500 Internal Server Error", http.StatusInternalServerError), nil).Once()
 	mh.On("Get", url).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil).Once()
 
-	ctx := WithContext(context.Background(), nil, mh, nil)
+	ctx := WithContext(context.Background(), nil, mh, nil, nil)
 	b, err := getWithRetries(ctx, url)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("Hello, world!"), b)
@@ -54,7 +54,7 @@ func TestGetWithRetries_MultipleAttempts_Error(t *testing.T) {
 	url := "example.com"
 	mh.On("Get", url).Return(httpResponse("Should be ignored.", "404 Not found", http.StatusNotFound), nil).Times(5)
 
-	ctx := WithContext(context.Background(), nil, mh, nil)
+	ctx := WithContext(context.Background(), nil, mh, nil, nil)
 	_, err := getWithRetries(ctx, url)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "404")
@@ -72,7 +72,7 @@ func TestPost_Success(t *testing.T) {
 
 	mh.On("Post", url, contentType, body).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil)
 
-	ctx := WithContext(context.Background(), nil, mh, nil)
+	ctx := WithContext(context.Background(), nil, mh, nil, nil)
 	b, err := post(ctx, url, contentType, body)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("Hello, world!"), b)
@@ -90,7 +90,7 @@ func TestPost_HttpClientError_ReturnsError(t *testing.T) {
 
 	mh.On("Post", url, contentType, body).Return(nil, errors.New("http.Client error"))
 
-	ctx := WithContext(context.Background(), nil, mh, nil)
+	ctx := WithContext(context.Background(), nil, mh, nil, nil)
 	_, err := post(ctx, url, contentType, body)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "http.Client error")
@@ -108,7 +108,7 @@ func TestPost_InternalServerError_ReturnsError(t *testing.T) {
 
 	mh.On("Post", url, contentType, body).Return(httpResponse("Should be ignored.", "500 Internal Server Error", http.StatusInternalServerError), nil)
 
-	ctx := WithContext(context.Background(), nil, mh, nil)
+	ctx := WithContext(context.Background(), nil, mh, nil, nil)
 	_, err := post(ctx, url, contentType, body)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
