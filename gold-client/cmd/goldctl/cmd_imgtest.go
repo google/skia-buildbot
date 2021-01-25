@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"go.skia.org/infra/gold-client/go/auth"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
@@ -180,15 +182,15 @@ func (i *imgTest) validate(cmd *cobra.Command, args []string) error {
 
 func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(i.workDir)
+	a, err := auth.LoadAuthOpt(i.workDir)
 	ifErrLogExit(ctx, err)
 
-	if auth == nil {
+	if a == nil {
 		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
 		exitProcess(ctx, 1)
 	}
 
-	goldClient, err := goldclient.LoadCloudClient(auth, i.workDir)
+	goldClient, err := goldclient.LoadCloudClient(i.workDir)
 	if err != nil {
 		logErrf(ctx, "Could not load existing run, trying to initialize %s\n%s\n", i.workDir, err)
 		config := goldclient.GoldClientConfig{
@@ -196,7 +198,7 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 			InstanceID:      i.instanceID,
 			OverrideGoldURL: i.urlOverride,
 		}
-		goldClient, err = goldclient.NewCloudClient(auth, config)
+		goldClient, err = goldclient.NewCloudClient(config)
 		ifErrLogExit(ctx, err)
 
 		if i.changelistID != "" {
@@ -204,7 +206,7 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 				ChangelistID: i.changelistID,
 				GitHash:      "HEAD",
 			}
-			err = goldClient.SetSharedConfig(gr, true) // this will load the baseline
+			err = goldClient.SetSharedConfig(ctx, gr, true) // this will load the baseline
 			ifErrLogExit(ctx, err)
 		}
 	}
@@ -215,7 +217,7 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 	// Read optional keys. Only used to specify a non-exact image matching algorithm and parameters.
 	optionalKeys := readKeyValuePairsFromFileOrStringSlice(ctx, i.testOptionalKeysFile, i.testOptionalKeysStrings)
 
-	pass, err := goldClient.Check(types.TestName(i.testName), i.pngFile, keys, optionalKeys)
+	pass, err := goldClient.Check(ctx, types.TestName(i.testName), i.pngFile, keys, optionalKeys)
 	ifErrLogExit(ctx, err)
 
 	if !pass {
@@ -228,15 +230,15 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 
 func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(i.workDir)
+	a, err := auth.LoadAuthOpt(i.workDir)
 	ifErrLogExit(ctx, err)
 
-	if auth == nil {
+	if a == nil {
 		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
 		exitProcess(ctx, 1)
 	}
 
-	auth.SetDryRun(flagDryRun)
+	a.SetDryRun(flagDryRun)
 
 	if i.keysFile == "" && len(i.testKeysStrings) == 0 {
 		logErrf(ctx, "You must supply --keys-file or at least one --key")
@@ -256,7 +258,7 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 		UploadOnly:      i.uploadOnly,
 		WorkDir:         i.workDir,
 	}
-	goldClient, err := goldclient.NewCloudClient(auth, config)
+	goldClient, err := goldclient.NewCloudClient(config)
 	ifErrLogExit(ctx, err)
 
 	// Define the meta data of the result that is shared by all tests.
@@ -272,7 +274,7 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 	}
 
 	logVerbose(ctx, "Loading hashes and baseline from Gold\n")
-	err = goldClient.SetSharedConfig(gr, false)
+	err = goldClient.SetSharedConfig(ctx, gr, false)
 	ifErrLogExit(ctx, err)
 
 	logInfof(ctx, "Directory %s successfully loaded with configuration\n", i.workDir)
@@ -281,15 +283,15 @@ func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
 // runImgTestCommand processes and uploads test results to Gold.
 func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(i.workDir)
+	a, err := auth.LoadAuthOpt(i.workDir)
 	ifErrLogExit(ctx, err)
 
-	if auth == nil {
+	if a == nil {
 		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
 		exitProcess(ctx, 1)
 	}
 
-	auth.SetDryRun(flagDryRun)
+	a.SetDryRun(flagDryRun)
 
 	if i.pngDigest == "" && i.pngFile == "" {
 		logErrf(ctx, "Must supply png-file or png-digest (or both)")
@@ -324,14 +326,14 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 			UploadOnly:      i.uploadOnly,
 			WorkDir:         i.workDir,
 		}
-		goldClient, err = goldclient.NewCloudClient(auth, config)
+		goldClient, err = goldclient.NewCloudClient(config)
 		ifErrLogExit(ctx, err)
 
-		err = goldClient.SetSharedConfig(gr, false)
+		err = goldClient.SetSharedConfig(ctx, gr, false)
 		ifErrLogExit(ctx, err)
 	} else {
 		// the user is presumed to have called init first, so we can just load it
-		goldClient, err = goldclient.LoadCloudClient(auth, i.workDir)
+		goldClient, err = goldclient.LoadCloudClient(i.workDir)
 		ifErrLogExit(ctx, err)
 	}
 
@@ -346,7 +348,7 @@ func (i *imgTest) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	// command.
 	optionalKeys := readKeyValuePairsFromFileOrStringSlice(ctx, i.testOptionalKeysFile, i.testOptionalKeysStrings)
 
-	pass, err := goldClient.Test(types.TestName(i.testName), i.pngFile, types.Digest(i.pngDigest), additionalKeys, optionalKeys)
+	pass, err := goldClient.Test(ctx, types.TestName(i.testName), i.pngFile, types.Digest(i.pngDigest), additionalKeys, optionalKeys)
 	ifErrLogExit(ctx, err)
 
 	if !pass {
@@ -388,23 +390,15 @@ func readKeyValuePairsFromFileOrStringSlice(ctx context.Context, filename string
 
 func (i *imgTest) runImgTestFinalizeCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(i.workDir)
-	ifErrLogExit(ctx, err)
-
-	if auth == nil {
-		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(ctx, 1)
-	}
-
-	auth.SetDryRun(flagDryRun)
+	ctx = loadAuthenticatedClients(ctx, i.workDir)
 
 	// the user is presumed to have called init and tests first, so we just
 	// have to load it from disk.
-	goldClient, err := goldclient.LoadCloudClient(auth, i.workDir)
+	goldClient, err := goldclient.LoadCloudClient(i.workDir)
 	ifErrLogExit(ctx, err)
 
 	logVerbose(ctx, "Uploading the final JSON to Gold\n")
-	err = goldClient.Finalize()
+	err = goldClient.Finalize(ctx)
 	ifErrLogExit(ctx, err)
 	exitProcess(ctx, 0)
 }

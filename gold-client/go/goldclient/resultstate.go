@@ -3,6 +3,7 @@ package goldclient
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -90,12 +91,12 @@ func getBucket(instanceID string) string {
 }
 
 // loadKnownHashes loads the list of known hashes from the Gold instance.
-func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
+func (r *resultState) loadKnownHashes(ctx context.Context) error {
 	r.KnownHashes = types.DigestSet{}
 
 	// Fetch the known hashes via http
 	hashesURL := r.GoldURL + shared.KnownHashesRouteV1
-	body, err := getWithRetries(httpClient, hashesURL)
+	body, err := getWithRetries(ctx, hashesURL)
 	if err != nil {
 		return skerr.Wrapf(err, "getting known hashes from %s (with retries)", hashesURL)
 	}
@@ -115,14 +116,14 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 }
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
-func (r *resultState) loadExpectations(httpClient HTTPClient) error {
+func (r *resultState) loadExpectations(ctx context.Context) error {
 	urlPath := shared.ExpectationsRouteV2
 	if r.SharedConfig != nil && r.SharedConfig.ChangelistID != "" {
 		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangelistID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
 
 	u := r.GoldURL + urlPath
-	jsonBytes, err := getWithRetries(httpClient, u)
+	jsonBytes, err := getWithRetries(ctx, u)
 	if err != nil {
 		return skerr.Wrapf(err, "getting expectations from %s (with retries)", u)
 	}
@@ -190,7 +191,7 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 
 // getGCSImagePath returns the path in GCS where the image with the given hash should be stored.
 func (r *resultState) getGCSImagePath(imgHash types.Digest) string {
-	return fmt.Sprintf("%s%s/%s/%s.png", gcsPrefix, r.Bucket, imagePrefix, imgHash)
+	return fmt.Sprintf("gs://%s/%s/%s.png", r.Bucket, imagePrefix, imgHash)
 }
 
 // loadStateFromJSON loads a serialization of a resultState instance that was previously written

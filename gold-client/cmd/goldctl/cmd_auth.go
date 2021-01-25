@@ -5,8 +5,9 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/gold-client/go/goldclient"
+	"go.skia.org/infra/gold-client/go/auth"
 )
 
 const (
@@ -61,13 +62,13 @@ func (a *authEnv) Auth(ctx context.Context) {
 	}
 
 	if a.flagUseLUCIContext {
-		err = goldclient.InitLUCIAuth(a.flagWorkDir)
+		err = auth.InitLUCIAuth(a.flagWorkDir)
 	} else if a.flagServiceAccount != "" {
-		err = goldclient.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
+		err = auth.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
 	} else {
 		logInfo(ctx, "Falling back to gsutil implementation\n")
 		logInfo(ctx, "This should not be used in production.\n")
-		err = goldclient.InitGSUtil(a.flagWorkDir)
+		err = auth.InitGSUtil(a.flagWorkDir)
 	}
 	ifErrLogExit(ctx, err)
 	abs, err := filepath.Abs(a.flagWorkDir)
@@ -77,7 +78,7 @@ func (a *authEnv) Auth(ctx context.Context) {
 
 	// Open up the auth we configured and see if we can get an authenticated HTTPClient.
 	// This helps catch auth errors early.
-	authDir, err := goldclient.LoadAuthOpt(a.flagWorkDir)
+	authDir, err := auth.LoadAuthOpt(a.flagWorkDir)
 	ifErrLogExit(ctx, err)
 
 	err = authDir.Validate()
