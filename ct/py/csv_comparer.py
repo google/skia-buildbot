@@ -114,7 +114,7 @@ class CsvComparer(object):
     fd, sorted_csv_file = tempfile.mkstemp()
     # Close the fd.
     os.close(fd)
-    with open(sorted_csv_file, 'wb') as f:
+    with open(sorted_csv_file, 'w') as f:
       writer = csv.DictWriter(f, unsorted_csv_reader.fieldnames)
       writer.writeheader()
       writer.writerows(result)
@@ -128,17 +128,17 @@ class CsvComparer(object):
     # Whether the same page exists in the 1st CSV (the pages are ordered the
     # same way in both files but some could be missing from each file).
     csv1_page_names = {}
-    with open(self._csv_file1, 'rb') as f1:
+    with open(self._csv_file1, 'r') as f1:
       csv1_reader = csv.DictReader(f1)
       for row in csv1_reader:
         csv1_page_names[row['page_name']] = 1
 
     # Sort both CSVs.
-    with open(self._csv_file1, 'rb') as f1, open(self._csv_file2, 'rb') as f2:
+    with open(self._csv_file1, 'r') as f1, open(self._csv_file2, 'r') as f2:
       sorted_csv1_filepath = self._GetSortedCSV(csv.DictReader(f1))
       sorted_csv2_filepath = self._GetSortedCSV(csv.DictReader(f2))
-      with open(sorted_csv1_filepath, 'rb') as sorted_csv1, \
-           open(sorted_csv2_filepath, 'rb') as sorted_csv2:
+      with open(sorted_csv1_filepath, 'r') as sorted_csv1, \
+           open(sorted_csv2_filepath, 'r') as sorted_csv2:
         csv1_reader = csv.DictReader(sorted_csv1)
         csv2_reader = csv.DictReader(sorted_csv2)
 
@@ -156,20 +156,20 @@ class CsvComparer(object):
           # Make sure the CSV2 page_name existings in CSV1 else skip it (move
           # CSV2 pointer down).
           page_name2 = csv2_row['page_name']
-          if not csv1_page_names.has_key(page_name2):
+          if page_name2 not in csv1_page_names:
             continue
           # Reach the right page_name in CSV1 (move CSV1 pointer down).
           try:
-            csv1_row = csv1_reader.next()
+            csv1_row = next(csv1_reader);
             while csv1_row['page_name'] != page_name2:
-              csv1_row = csv1_reader.next()
+              csv1_row = next(csv1_reader)
           except StopIteration:
             # Reached the end of CSV1, break out of the row loop.
             break
 
           # Store values for all fieldnames (except page_name).
           for fieldname in csv2_reader.fieldnames:
-            if fieldname != 'page_name' and csv1_row.has_key(fieldname):
+            if fieldname != 'page_name' and fieldname in csv1_row:
               if csv1_row[fieldname] == '' or csv2_row[fieldname] == '':
                 # TODO(rmistry): Check with tonyg about what the algorithm
                 # should be doing when one CSV has an empty value and the other
@@ -225,8 +225,9 @@ class CsvComparer(object):
     # Calculate and add the percentage differences for each fieldname.
     # The fieldnames_to_totals dict is modified in the below loop to remove
     # entries which are below the threshold .
-    for fieldname, fieldname_values in fieldnames_to_totals.items():
-      if not fieldnames_to_page_values.has_key(fieldname):
+    for fieldname in list(fieldnames_to_totals):
+      fieldname_values = fieldnames_to_totals[fieldname]
+      if fieldname not in fieldnames_to_page_values:
         del fieldnames_to_totals[fieldname]
         continue
 
@@ -255,8 +256,8 @@ class CsvComparer(object):
         if (len(fieldnames_to_page_values[fieldname]) <
             self._min_pages_in_each_field):
           # This field does not have enough webpages, delete it from both maps.
-          print 'Removing because not enough webpages: %s' % fieldname
-          print len(fieldnames_to_page_values[fieldname])
+          print('Removing because not enough webpages: %s' % fieldname)
+          print(len(fieldnames_to_page_values[fieldname]))
           del fieldnames_to_page_values[fieldname]
           del fieldnames_to_totals[fieldname]
           continue
@@ -265,14 +266,14 @@ class CsvComparer(object):
             fieldname_values.value1, fieldname_values.value2)
       else:
         # Only store fieldnames that are below the variance threshold.
-        print 'Removing because below the variance threshold: %s' % fieldname
+        print('Removing because below the variance threshold: %s' % fieldname)
         del fieldnames_to_totals[fieldname]
 
     # Delete keys in fieldnames_to_page_values that are not in
     # fieldnames_to_totals because those are the only ones we want to
     # display.
     fieldnames_to_page_values = dict(
-        (k,v) for k,v in fieldnames_to_page_values.iteritems()
+        (k,v) for k,v in fieldnames_to_page_values.items()
         if k in fieldnames_to_totals)
 
     # Both maps should end up with the same number of keys.
@@ -280,7 +281,7 @@ class CsvComparer(object):
         fieldnames_to_totals.keys())
 
     # Set the number of reporting webpages in fieldnames_to_totals.
-    for fieldname, values in fieldnames_to_page_values.iteritems():
+    for fieldname, values in fieldnames_to_page_values.items():
       fieldnames_to_totals[fieldname].total_webpages_reported = len(values)
 
     # Done processing. Output the HTML.
@@ -325,7 +326,7 @@ class CsvComparer(object):
          'description': self._description,
         })
     index_html_path = os.path.join(self._output_html_dir, 'index.html')
-    with open(index_html_path, 'wb') as index_html:
+    with open(index_html_path, 'w') as index_html:
       index_html.write(rendered)
 
     # Output the different per-fieldname HTML pages.
@@ -344,7 +345,7 @@ class CsvComparer(object):
            'absolute_url': self._absolute_url})
       with open(
           os.path.join(self._output_html_dir,
-          'fieldname%s.html' % fieldname_count), 'wb') as fieldname_html:
+          'fieldname%s.html' % fieldname_count), 'w') as fieldname_html:
         fieldname_html.write(rendered)
 
 
