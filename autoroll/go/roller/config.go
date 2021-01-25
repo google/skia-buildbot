@@ -30,13 +30,6 @@ import (
 )
 
 const (
-	// DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT is the default attempt count for
-	// safety throttling.
-	DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT = 3
-	// DEFAULT_SAFETY_THROTTLE_TIME_WINDOW is the default time window for safety
-	// throttling.
-	DEFAULT_SAFETY_THROTTLE_TIME_WINDOW = 30 * time.Minute
-
 	// MAX_ROLLER_NAME_LENGTH is the maximum roller name length. This is limited
 	// by Kubernetes, which has a 63-character limit for various names. This
 	// length is derived from that limit, accounting for the prefixes and
@@ -47,13 +40,6 @@ const (
 )
 
 var (
-	// SAFETY_THROTTLE_CONFIG_DEFAULT is the default configuration for safety
-	// throttling.
-	SAFETY_THROTTLE_CONFIG_DEFAULT = &ThrottleConfig{
-		AttemptCount: DEFAULT_SAFETY_THROTTLE_ATTEMPT_COUNT,
-		TimeWindow:   DEFAULT_SAFETY_THROTTLE_TIME_WINDOW,
-	}
-
 	validK8sLabel = config.ValidK8sLabel
 )
 

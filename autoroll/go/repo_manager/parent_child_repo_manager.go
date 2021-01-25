@@ -221,7 +221,8 @@ type parentChildRepoManager struct {
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
-func newParentChildRepoManager(ctx context.Context, p parent.Parent, c child.Child, revFilter revision_filter.RevisionFilter) (*parentChildRepoManager, error) {
+func newParentChildRepoManager(ctx context.Context, cfg *config.ParentChildRepoManagerConfig) (*parentChildRepoManager, error) {
+	// TODO(borenet): Fill this out.
 	return &parentChildRepoManager{
 		Child:     c,
 		Parent:    p,

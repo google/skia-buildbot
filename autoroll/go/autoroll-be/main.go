@@ -195,9 +195,9 @@ func main() {
 		}
 	}
 
-	serverURL := roller.AUTOROLL_URL_PUBLIC + "/r/" + cfg.RollerName
+	serverURL := roller.AutorollURLPublic + "/r/" + cfg.RollerName
 	if cfg.IsInternal {
-		serverURL = roller.AUTOROLL_URL_PRIVATE + "/r/" + cfg.RollerName
+		serverURL = roller.AutorollURLPrivate + "/r/" + cfg.RollerName
 	}
 
 	// TODO(borenet/rmistry): Create a code review sub-config as described in
