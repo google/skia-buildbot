@@ -65,8 +65,8 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	exit.AssertWasCalledWithCode(t, 0, output.String())
 
 	mg := &mocks.GCSUploader{}
-	resultsMatcher := mock.MatchedBy(func(results *jsonio.GoldResults) bool {
-		assert.Equal(t, &jsonio.GoldResults{
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
 			GitHash: "1234567890123456789012345678901234567890",
 			Key: map[string]string{
 				"os":          "Android",
@@ -142,8 +142,8 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 	exit.AssertWasCalledWithCode(t, 0, output.String())
 
 	mg := &mocks.GCSUploader{}
-	resultsMatcher := mock.MatchedBy(func(results *jsonio.GoldResults) bool {
-		assert.Equal(t, &jsonio.GoldResults{
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
 			GitHash: "1234567890123456789012345678901234567890",
 			Key: map[string]string{
 				"os":          "Android",
@@ -184,7 +184,6 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t *testing.T) {
-	t.Skip("Failing currently")
 	unittest.MediumTest(t)
 
 	workDir := t.TempDir()
@@ -211,8 +210,8 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 	exit.AssertWasCalledWithCode(t, 0, output.String())
 
 	mg := &mocks.GCSUploader{}
-	resultsMatcher := mock.MatchedBy(func(results *jsonio.GoldResults) bool {
-		assert.Equal(t, &jsonio.GoldResults{
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
 			GitHash: "1234567890123456789012345678901234567890",
 			Key: map[string]string{
 				"os":          "Android",
@@ -248,8 +247,8 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 	mg.AssertExpectations(t)
 
 	mg = &mocks.GCSUploader{}
-	resultsMatcher = mock.MatchedBy(func(results *jsonio.GoldResults) bool {
-		assert.Equal(t, &jsonio.GoldResults{
+	resultsMatcher = mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
 			GitHash: "1234567890123456789012345678901234567890",
 			Key: map[string]string{
 				"os":          "Android",
@@ -299,8 +298,8 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).Build()
 
 	mg := &mocks.GCSUploader{}
-	resultsMatcher := mock.MatchedBy(func(results *jsonio.GoldResults) bool {
-		assert.Equal(t, &jsonio.GoldResults{
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
 			GitHash: "1234567890123456789012345678901234567890",
 			Key: map[string]string{
 				"os": "Android",
