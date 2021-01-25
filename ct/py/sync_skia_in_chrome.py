@@ -123,7 +123,7 @@ def Sync(skia_revision=SKIA_REV_DEPS, chrome_revision=CHROME_REV_LKGR,
       raise e
     file_to_delete = match.groups()[0]
     try:
-      print 'Attempting to remove %s' % file_to_delete
+      print('Attempting to remove %s' % file_to_delete)
       os.remove(file_to_delete)
     except OSError:
       # If the file no longer exists, just try again.
@@ -193,8 +193,8 @@ def Main():
         skia_revision=options.skia_revision or SKIA_REV_DEPS,
         chrome_revision=options.chrome_revision or CHROME_REV_MASTER,
         fetch_target=options.fetch_target)
-    print 'Chrome synced to %s' % actual_chrome_rev
-    print 'Skia synced to %s' % actual_skia_rev
+    print('Chrome synced to %s' % actual_chrome_rev)
+    print('Skia synced to %s' % actual_skia_rev)
 
 
 if __name__ == '__main__':

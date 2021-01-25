@@ -53,7 +53,7 @@ def run_async(cmd, echo=None, shell=False):
   if echo is None:
     echo = VERBOSE
   if echo:
-    print ' '.join(cmd) if isinstance(cmd, list) else cmd
+    print(' '.join(cmd) if isinstance(cmd, list) else cmd)
   if 'nt' in os.name:
     # Windows has a bad habit of opening a dialog when a console program
     # crashes, rather than just letting it crash.  Therefore, when a program
@@ -183,7 +183,7 @@ def log_process_after_completion(proc, echo=None, timeout=None,
     code = proc.poll()
   output = proc.communicate()[0]
   if echo:
-    print output
+    print(output)
   if log_file:
     log_file.write(output)
     log_file.flush()
@@ -243,6 +243,6 @@ def run_retry(cmd, echo=None, shell=False, attempts=1,
     except CommandFailedException:
       if attempt >= attempts:
         raise
-    print 'Command failed. Retrying in %d seconds...' % secs_between_attempts
+    print('Command failed. Retrying in %d seconds...' % secs_between_attempts)
     time.sleep(secs_between_attempts)
     attempt += 1
