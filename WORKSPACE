@@ -210,7 +210,7 @@ rbe_autoconfig(
     #
     # Must be updated manually after a new container image is uploaded to the container registry
     # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:94b610705da22f96e51e94ee729402f455a64d857b11edecf8f9f68d22617df1",
+    digest = "sha256:9333ddd9a7922e86282f860dcc42256a29ef17badfa41e830cca795af4e223da",
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
 )
