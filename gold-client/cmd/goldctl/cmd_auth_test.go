@@ -51,8 +51,10 @@ func setupAuthWithGSUtil(t *testing.T, workDir string) {
 	exit.AssertWasCalledWithCode(t, 0, devnull.String())
 }
 
+const exitSentinel = "exited"
+
 func runUntilExit(t *testing.T, f func()) {
-	assert.Panics(t, f, "panicking signifies an exit, so we expected to see one.")
+	require.PanicsWithValue(t, exitSentinel, f, "panicking signifies an exit, so we expected to see one.")
 }
 
 type exitCodeRecorder struct {
@@ -65,11 +67,11 @@ type exitCodeRecorder struct {
 func (e *exitCodeRecorder) ExitWithCode(code int) {
 	e.code = code
 	e.wasCalled = true
-	panic("exited")
+	panic(exitSentinel)
 }
 
 // AssertWasCalledWithCode make sure ExitWithCode was called previously.
 func (e *exitCodeRecorder) AssertWasCalledWithCode(t *testing.T, code int, logs string) {
-	require.True(t, e.wasCalled, "Was not called!")
+	require.True(t, e.wasCalled, "exit was not called!: %s", logs)
 	require.Equal(t, code, e.code, logs)
 }

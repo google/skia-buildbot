@@ -2,6 +2,9 @@ package goldclient
 
 import (
 	"context"
+	"io"
+	"os"
+	"time"
 
 	"go.skia.org/infra/gold-client/go/gcsuploader"
 	"go.skia.org/infra/gold-client/go/httpclient"
@@ -9,6 +12,16 @@ import (
 )
 
 const (
+	// ErrorWriterKey is the context key used for the error Writer. If not provided, StdErr will
+	// be used.
+	ErrorWriterKey = contextKey("errWriter")
+	// LogWriterKey is the context key used for the log Writer.  If not provided, StdOut will
+	// be used.
+	LogWriterKey = contextKey("logWriter")
+	// NowSourceKey is the context key used for the time source. If not provided, time.Now() will
+	// be used.
+	NowSourceKey = contextKey("nowSource")
+
 	gcsUploaderKey     = contextKey("gcsUploader")
 	httpClientKey      = contextKey("httpClient")
 	imageDownloaderKey = contextKey("imageDownloader")
@@ -56,4 +69,34 @@ func extractImageDownloader(ctx context.Context) imagedownloader.ImageDownloader
 		panic("ImageDownloader was not set on context. Did you call WithContext?")
 	}
 	return i
+}
+
+func extractNowSource(ctx context.Context) NowSource {
+	n, ok := ctx.Value(NowSourceKey).(NowSource)
+	if !ok || n == nil {
+		return realTime{}
+	}
+	return n
+}
+
+type realTime struct{}
+
+func (r realTime) Now() time.Time {
+	return time.Now()
+}
+
+func extractLogWriter(ctx context.Context) io.Writer {
+	w, ok := ctx.Value(LogWriterKey).(io.Writer)
+	if !ok || w == nil {
+		return os.Stdout
+	}
+	return w
+}
+
+func extractErrorWriter(ctx context.Context) io.Writer {
+	w, ok := ctx.Value(ErrorWriterKey).(io.Writer)
+	if !ok || w == nil {
+		return os.Stderr
+	}
+	return w
 }
