@@ -68,3 +68,24 @@ func TestExtractImageDownloader_ValueNotSet_Panics(t *testing.T) {
 		extractImageDownloader(context.Background())
 	})
 }
+
+func TestExtractNowSource_ValueNotSet_ReturnsDefaultValue(t *testing.T) {
+	unittest.SmallTest(t)
+
+	n := extractNowSource(context.Background())
+	assert.NotNil(t, n)
+}
+
+func TestExtractLogWriter_ValueNotSet_ReturnsDefaultValue(t *testing.T) {
+	unittest.SmallTest(t)
+
+	w := extractLogWriter(context.Background())
+	assert.NotNil(t, w)
+}
+
+func TestExtractErrorWriter_ValueNotSet_ReturnsDefaultValue(t *testing.T) {
+	unittest.SmallTest(t)
+
+	w := extractErrorWriter(context.Background())
+	assert.NotNil(t, w)
+}
