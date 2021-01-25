@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/gold-client/go/goldclient"
@@ -33,16 +33,15 @@ For debugging purposes only.`,
 	return cmd
 }
 
-// runWhoamiCmd executes the whoami command.
 func (w *whoamiEnv) runWhoamiCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
-	auth, err := goldclient.LoadAuthOpt(w.workDir)
-	ifErrLogExit(ctx, err)
+	w.WhoAmI(ctx)
+}
 
-	if auth == nil {
-		logErrf(ctx, "Auth is empty - did you call goldctl auth first?")
-		exitProcess(ctx, 1)
-	}
+// WhoAmI loads the authentication data from disk and queries the server for who this data
+// belongs to.
+func (w *whoamiEnv) WhoAmI(ctx context.Context) {
+	ctx = loadAuthenticatedClients(ctx, w.workDir)
 
 	config := goldclient.GoldClientConfig{
 		InstanceID: w.instanceID,
@@ -50,12 +49,11 @@ func (w *whoamiEnv) runWhoamiCmd(cmd *cobra.Command, args []string) {
 	}
 
 	// Overwrite any existing config in the work directory.
-	goldClient, err := goldclient.NewCloudClient(auth, config)
+	goldClient, err := goldclient.NewCloudClient(config)
 	ifErrLogExit(ctx, err)
 
-	url := goldclient.GetGoldInstanceURL(w.instanceID)
-	logVerbose(ctx, fmt.Sprintf("Making request to %s/json/whoami\n", url))
-	email, err := goldClient.Whoami()
+	email, err := goldClient.Whoami(ctx)
 	ifErrLogExit(ctx, err)
-	logInfof(ctx, "%s/json/whoami returned \"%s\".\n", url, email)
+	logInfof(ctx, "Logged in as \"%s\".\n", email)
+	exitProcess(ctx, 0)
 }
