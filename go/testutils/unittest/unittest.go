@@ -2,12 +2,12 @@ package unittest
 
 import (
 	"flag"
-	"fmt"
-	"os"
 	"runtime"
 	"strings"
 
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/bazel/go/bazel"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -116,13 +116,13 @@ func ManualTest(t sktest.TestingT) {
 		var ok bool
 		_, file, _, ok = runtime.Caller(skip)
 		if !ok {
-			t.Fatal(fmt.Sprintf("runtime.Caller(%d) failed", skip))
+			t.Fatalf("runtime.Caller(%d) failed", skip)
 		}
 	}
 
 	// Force the naming convention expected by our custom go_test Bazel macro.
 	if !strings.HasSuffix(file, "_manual_test.go") {
-		t.Fatal(fmt.Sprintf(`Manual tests must be placed in files ending with "_manual_test.go", was: "%s"`, file))
+		t.Fatalf(`Manual tests must be placed in files ending with "_manual_test.go", was: "%s"`, file)
 	}
 
 	if !ShouldRun(MANUAL_TEST) {
@@ -157,16 +157,14 @@ func LinuxOnlyTest(t sktest.TestingT) {
 // RequiresBigTableEmulator is a function that documents a unittest requires the
 // BigTable Emulator and checks that the appropriate environment variable is set.
 func RequiresBigTableEmulator(t sktest.TestingT) {
-	s := os.Getenv("BIGTABLE_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the Bigtable emulator, which you can start with
+	host := emulators.GetEmulatorHost(emulators.BigTable)
+	require.NotEmptyf(t, host, `This test requires the Bigtable emulator, which you can start with
 ./scripts/run_emulators/run_emulators start
 and then set the environment variables it prints out.
 If you need to set up the Bigtable emulator, follow the instructions at:
 	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
-and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
-`)
-	}
+and make sure the environment variable %s is set.
+`, emulators.GetEmulatorHostEnvVar(emulators.BigTable))
 }
 
 // RequiresCockroachDB is a function that documents a unittest requires a local running version
@@ -174,36 +172,31 @@ and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
 // For historical reasons, the environment variable uses "EMULATOR" in the name, despite it being
 // an actual instance.
 func RequiresCockroachDB(t sktest.TestingT) {
-	s := os.Getenv("COCKROACHDB_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires a local CockroachDB executable, which you can start with
+	host := emulators.GetEmulatorHost(emulators.CockroachDB)
+	require.NotEmptyf(t, host, `This test requires a local CockroachDB executable, which you can start with
 ./scripts/run_emulators/run_emulators start
 and then set the environment variables it prints out.
 If you need to install CockroachDB, follow the instructions at:
 	https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html
-and make sure the environment variable COCKROACHDB_EMULATOR_HOST is set.
-`)
-	}
+and make sure the environment variable %s is set.
+`, emulators.GetEmulatorHostEnvVar(emulators.CockroachDB))
 }
 
 // RequiresDatastoreEmulator is a function that documents a unittest requires the
 // Datastore emulator and checks that the appropriate environment variable is set.
 func RequiresDatastoreEmulator(t sktest.TestingT) {
-	s := os.Getenv("DATASTORE_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the Datastore emulator, which you can start with
+	host := emulators.GetEmulatorHost(emulators.Datastore)
+	require.NotEmptyf(t, host, `This test requires the Datastore emulator, which you can start with
 ./scripts/run_emulators/run_emulators start
 and then set the environment variables it prints out.
 `)
-	}
 }
 
 // RequiresFirestoreEmulator is a function that documents a unittest requires the
 // Firestore emulator and checks that the appropriate environment variable is set.
 func RequiresFirestoreEmulator(t sktest.TestingT) {
-	s := os.Getenv("FIRESTORE_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the Firestore emulator, which you can start with
+	host := emulators.GetEmulatorHost(emulators.Firestore)
+	require.NotEmptyf(t, host, `This test requires the Firestore emulator, which you can start with
 ./scripts/run_emulators/run_emulators start
 and then set the environment variables it prints out.
 
@@ -221,24 +214,21 @@ chmod +x /path/to/cloud-firestore-emulator.jar
 
 # Once the emulator is running, we need to run the following in the terminal
 # that we are running the tests in:
-export FIRESTORE_EMULATOR_HOST=localhost:8894
-`)
-	}
+export %s=localhost:8894
+`, emulators.GetEmulatorHostEnvVar(emulators.Firestore))
 }
 
 // RequiresPubSubEmulator is a function that documents a unittest requires the
 // PubSub Emulator and checks that the appropriate environment variable is set.
 func RequiresPubSubEmulator(t sktest.TestingT) {
-	s := os.Getenv("PUBSUB_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the PubSub emulator, which you can start with
+	host := emulators.GetEmulatorHost(emulators.PubSub)
+	require.NotEmptyf(t, host, `This test requires the PubSub emulator, which you can start with
 
     docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		--project test-project --host-port 0.0.0.0:8010
 
 and then set the environment:
 
-    export PUBSUB_EMULATOR_HOST=localhost:8010
-`)
-	}
+    export %s=localhost:8010
+`, emulators.GetEmulatorHostEnvVar(emulators.PubSub))
 }
