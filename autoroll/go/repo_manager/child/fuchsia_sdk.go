@@ -16,38 +16,24 @@ import (
 )
 
 const (
-	FuchsiaSDKGSBucket           = "fuchsia"
-	FuchsiaSDKGSLatestPathLinux  = "development/LATEST_LINUX"
-	FuchsiaSDKGSLatestPathMac    = "development/LATEST_MAC"
+	// TODO(borenet): These should probably all move to the config file.
+
+	// FuchsiaSDKGSBucket is the Google Cloud Storage bucket in which the
+	// Fuchsia SDK tarballs are stored.
+	FuchsiaSDKGSBucket = "fuchsia"
+
+	// FuchsiaSDKGSLatestPathLinux is the path in GCS of the file containing the
+	// ID of the latest Linux Fuchsia SDK.
+	FuchsiaSDKGSLatestPathLinux = "development/LATEST_LINUX"
+
+	// FuchsiaSDKGSLatestPathMac is the path in GCS of the file containing the
+	// ID of the latest Mac Fuchsia SDK.
+	FuchsiaSDKGSLatestPathMac = "development/LATEST_MAC"
+
+	// FuchsiaSDKGSTarballPathLinux is a template for the path in GCS of the
+	// Linux Fuchsia SDK tarball itself, keyed by version ID.
 	FuchsiaSDKGSTarballPathLinux = "development/%s/sdk/linux-amd64/gn.tar.gz"
 )
-
-// FuchsiaSDKConfig provides configuration for FuchsiaSDKChild.
-type FuchsiaSDKConfig struct {
-	IncludeMacSDK bool `json:"includeMacSDK"`
-}
-
-// Validate implements util.Validator.
-func (c FuchsiaSDKConfig) Validate() error {
-	// Can't validate a lone bool...
-	return nil
-}
-
-// FuchsiaSDKConfigToProto converts a FuchsiaSDKConfig to a
-// config.FuchsiaSDKChildConfig.
-func FuchsiaSDKConfigToProto(cfg *FuchsiaSDKConfig) *config.FuchsiaSDKChildConfig {
-	return &config.FuchsiaSDKChildConfig{
-		IncludeMacSdk: cfg.IncludeMacSDK,
-	}
-}
-
-// ProtoToFuchsiaSDKConfig converts a config.FuchsiaSDKChildConfig to a
-// FuchsiaSDKConfig.
-func ProtoToFuchsiaSDKConfig(cfg *config.FuchsiaSDKChildConfig) *FuchsiaSDKConfig {
-	return &FuchsiaSDKConfig{
-		IncludeMacSDK: cfg.IncludeMacSdk,
-	}
-}
 
 // FuchsiaSDKChild is an implementation of Child which deals with the Fuchsia
 // SDK.
@@ -61,7 +47,7 @@ type FuchsiaSDKChild struct {
 
 // NewFuchsiaSDK returns a Child implementation which deals with the Fuchsia
 // SDK.
-func NewFuchsiaSDK(ctx context.Context, c FuchsiaSDKConfig, client *http.Client) (*FuchsiaSDKChild, error) {
+func NewFuchsiaSDK(ctx context.Context, c *config.FuchsiaSDKChildConfig, client *http.Client) (*FuchsiaSDKChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
 	}
@@ -74,7 +60,7 @@ func NewFuchsiaSDK(ctx context.Context, c FuchsiaSDKConfig, client *http.Client)
 		gsBucket:          FuchsiaSDKGSBucket,
 		gsLatestPathLinux: FuchsiaSDKGSLatestPathLinux,
 		gsLatestPathMac:   FuchsiaSDKGSLatestPathMac,
-		includeMacSDK:     c.IncludeMacSDK,
+		includeMacSDK:     c.IncludeMacSdk,
 		storageClient:     storageClient,
 	}
 	return rv, nil

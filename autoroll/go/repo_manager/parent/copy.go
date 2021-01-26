@@ -17,109 +17,9 @@ import (
 	"go.skia.org/infra/go/vfs"
 )
 
-// CopyEntry describes a single file or directory which is copied from a Child
-// into a Parent. Directories are specified using a trailing "/".
-type CopyEntry struct {
-	SrcRelPath string `json:"srcRelPath"`
-	DstRelPath string `json:"dstRelPath"`
-}
-
-// Validate implements util.Validator.
-func (e CopyEntry) Validate() error {
-	if e.SrcRelPath == "" {
-		return skerr.Fmt("SrcRelPath is required")
-	}
-	if e.DstRelPath == "" {
-		return skerr.Fmt("DstRelPath is required")
-	}
-	return nil
-}
-
-// CopyEntryToProto converts a CopyEntry to a config.CopyParentConfig_CopyEntry.
-func CopyEntryToProto(cfg CopyEntry) *config.CopyParentConfig_CopyEntry {
-	return &config.CopyParentConfig_CopyEntry{
-		SrcRelPath: cfg.SrcRelPath,
-		DstRelPath: cfg.DstRelPath,
-	}
-}
-
-// ProtoToCopyEntry converts a config.CopyParentConfig_CopyEntry to a CopyEntry.
-func ProtoToCopyEntry(cfg *config.CopyParentConfig_CopyEntry) CopyEntry {
-	return CopyEntry{
-		SrcRelPath: cfg.SrcRelPath,
-		DstRelPath: cfg.DstRelPath,
-	}
-}
-
-// CopyEntriesToProto converts a []CopyEntry to a
-// []*config.CopyParentConfig_CopyEntry.
-func CopyEntriesToProto(cfgs []CopyEntry) []*config.CopyParentConfig_CopyEntry {
-	var rv []*config.CopyParentConfig_CopyEntry
-	for _, cfg := range cfgs {
-		rv = append(rv, CopyEntryToProto(cfg))
-	}
-	return rv
-}
-
-// ProtoToCopyEntries converts a []*config.CopyParentConfig_CopyEntry to a
-// []CopyEntry.
-func ProtoToCopyEntries(cfgs []*config.CopyParentConfig_CopyEntry) []CopyEntry {
-	var rv []CopyEntry
-	for _, cfg := range cfgs {
-		rv = append(rv, ProtoToCopyEntry(cfg))
-	}
-	return rv
-}
-
-// CopyConfig provides configuration for a Parent which copies the Child
-// into itself. It uses Gitiles and Gerrit instead of a local checkout.
-type CopyConfig struct {
-	GitilesConfig
-
-	// Copies indicates which files and directories to copy from the
-	// Child into the Parent.
-	Copies []CopyEntry `json:"copies,omitempty"`
-}
-
-// Validate implements util.Validator.
-func (c CopyConfig) Validate() error {
-	if err := c.GitilesConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if len(c.Copies) == 0 {
-		return skerr.Fmt("Copies are required")
-	}
-	for _, copy := range c.Copies {
-		if err := copy.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
-	return nil
-}
-
-// CopyConfigToProto converts a CopyConfig to a config.CopyParentConfig.
-func CopyConfigToProto(cfg *CopyConfig) *config.CopyParentConfig {
-	return &config.CopyParentConfig{
-		Gitiles: GitilesConfigToProto(&cfg.GitilesConfig),
-		Copies:  CopyEntriesToProto(cfg.Copies),
-	}
-}
-
-// ProtoToCopyConfig converts a config.CopyParentConfig to a CopyConfig.
-func ProtoToCopyConfig(cfg *config.CopyParentConfig) (*CopyConfig, error) {
-	gc, err := ProtoToGitilesConfig(cfg.Gitiles)
-	if err != nil {
-		return nil, err
-	}
-	return &CopyConfig{
-		GitilesConfig: *gc,
-		Copies:        ProtoToCopyEntries(cfg.Copies),
-	}, nil
-}
-
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
-func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child) (*gitilesParent, error) {
+func NewCopy(ctx context.Context, cfg *config.CopyParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child) (*gitilesParent, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -153,7 +53,7 @@ func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, cli
 		}
 		return rv, nil
 	}
-	getChangesHelper := gitilesFileGetChangesForRollFunc(cfg.DependencyConfig)
+	getChangesHelper := gitilesFileGetChangesForRollFunc(cfg.Gitiles.Dep)
 	getChangesForRoll := func(ctx context.Context, repo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, error) {
 		changes, err := getChangesHelper(ctx, repo, baseCommit, from, to, rolling)
 		if err != nil {
@@ -181,5 +81,5 @@ func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, cli
 		}
 		return changes, nil
 	}
-	return newGitiles(ctx, cfg.GitilesConfig, reg, client, serverURL, getChangesForRoll)
+	return newGitiles(ctx, cfg.Gitiles, reg, client, serverURL, getChangesForRoll)
 }

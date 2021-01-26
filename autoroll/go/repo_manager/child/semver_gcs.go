@@ -15,74 +15,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// SemVerGCSConfig provides configuration for SemVerGCSChild.
-type SemVerGCSConfig struct {
-	GCSConfig
-
-	// ShortRevRegex is a regular expression string which indicates
-	// what part of the revision ID string should be used as the shortened
-	// ID for display. If not specified, the full ID string is used.
-	ShortRevRegex *config_vars.Template
-
-	// VersionRegex is a regular expression string containing one or more
-	// integer capture groups. The integers matched by the capture groups
-	// are compared, in order, when comparing two revisions.
-	VersionRegex *config_vars.Template
-}
-
-// Validate implements util.Validator.
-func (c *SemVerGCSConfig) Validate() error {
-	if err := c.GCSConfig.Validate(); err != nil {
-		return err
-	}
-	if c.VersionRegex == nil {
-		return errors.New("VersionRegex is required.")
-	}
-	if err := c.VersionRegex.Validate(); err != nil {
-		return err
-	}
-	if c.ShortRevRegex != nil {
-		if err := c.ShortRevRegex.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// SemVerGCSConfigToProto converts a SemVerGCSConfig to a
-// config.SemVerGCSChildConfig.
-func SemVerGCSConfigToProto(cfg *SemVerGCSConfig) *config.SemVerGCSChildConfig {
-	rv := &config.SemVerGCSChildConfig{
-		Gcs:          GCSConfigToProto(&cfg.GCSConfig),
-		VersionRegex: cfg.VersionRegex.RawTemplate(),
-	}
-	if cfg.ShortRevRegex != nil {
-		rv.ShortRevRegex = cfg.ShortRevRegex.RawTemplate()
-	}
-	return rv
-}
-
-// ProtoToSemVerGCSConfig converts a config.SemVerGCSChildConfig to a
-// SemVerGCSConfig.
-func ProtoToSemVerGCSConfig(cfg *config.SemVerGCSChildConfig) (*SemVerGCSConfig, error) {
-	versionRegex, err := config_vars.NewTemplate(cfg.VersionRegex)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	var shortRevRegex *config_vars.Template
-	if cfg.ShortRevRegex != "" {
-		shortRevRegex, err = config_vars.NewTemplate(cfg.ShortRevRegex)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-	}
-	return &SemVerGCSConfig{
-		GCSConfig:     *ProtoToGCSConfig(cfg.Gcs),
-		ShortRevRegex: shortRevRegex,
-		VersionRegex:  versionRegex,
-	}, nil
-}
-
 // parseSemanticVersion returns the set of integer versions which make up the
 // given semantic version, as specified by the capture groups in the given
 // Regexp.
@@ -99,7 +31,7 @@ func parseSemanticVersion(regex *regexp.Regexp, ver string) ([]int, error) {
 		}
 		return matchInts, nil
 	}
-	return nil, errInvalidGCSVersion
+	return nil, skerr.Wrap(errInvalidGCSVersion)
 }
 
 // compareSemanticVersions returns 1 if A comes before B, -1 if A comes
@@ -143,7 +75,7 @@ func (v *semVersion) Id() string {
 func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVersion, error) {
 	ver, err := parseSemanticVersion(regex, rev.Id)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return &semVersion{
 		id:      rev.Id,
@@ -199,30 +131,39 @@ func semVerShortRev(reTmpl string, id string) string {
 
 // NewSemVerGCS returns a Child which uses semantic versioning to compare object
 // versions in GCS.
-func NewSemVerGCS(ctx context.Context, c SemVerGCSConfig, reg *config_vars.Registry, client *http.Client) (*gcsChild, error) {
+func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, reg *config_vars.Registry, client *http.Client) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	if err := reg.Register(c.VersionRegex); err != nil {
-		return nil, err
+	versionRegex, err := config_vars.NewTemplate(c.VersionRegex)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	if c.ShortRevRegex != nil {
-		if err := reg.Register(c.ShortRevRegex); err != nil {
-			return nil, err
+	if err := reg.Register(versionRegex); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	var shortRevRegex *config_vars.Template
+	if c.ShortRevRegex != "" {
+		shortRevRegex, err = config_vars.NewTemplate(c.ShortRevRegex)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := reg.Register(shortRevRegex); err != nil {
+			return nil, skerr.Wrap(err)
 		}
 	}
 	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
-		versionRegex, err := regexp.Compile(c.VersionRegex.String())
+		versionRegex, err := regexp.Compile(versionRegex.String())
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		return getSemanticGCSVersion(versionRegex, rev)
 	}
 	shortRevFn := func(id string) string {
-		if c.ShortRevRegex != nil {
-			return semVerShortRev(c.ShortRevRegex.String(), id)
+		if shortRevRegex != nil {
+			return semVerShortRev(shortRevRegex.String(), id)
 		}
 		return id
 	}
-	return newGCS(ctx, c.GCSConfig, client, getGCSVersion, shortRevFn)
+	return newGCS(ctx, c.Gcs, client, getGCSVersion, shortRevFn)
 }

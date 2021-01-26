@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func copyCfg(t *testing.T) *CopyRepoManagerConfig {
+func copyCfg(t *testing.T) *config.CopyRepoManagerConfig {
 	return &CopyRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
@@ -52,7 +52,7 @@ func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 	}
 }
 
-func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupCopy(t *testing.T) (context.Context, *config.CopyRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -265,7 +265,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	gerritCfg := codereview.GerritConfigs[cfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	} else {

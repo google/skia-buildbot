@@ -4,31 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
-
-// GitCheckoutGerritConfig provides configuration for Parents which use a local
-// git checkout and upload changes to Gerrit.
-type GitCheckoutGerritConfig struct {
-	GitCheckoutConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
-}
-
-// See documentation for util.Validator interface.
-func (c GitCheckoutGerritConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := c.Gerrit.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
-}
 
 // GitCheckoutUploadGerritRollFunc returns a GitCheckoutUploadRollFunc which
 // uploads a CL to Gerrit.

@@ -155,7 +155,7 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlMock.MockOnce(cfg.URL+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(codereview.GERRIT_CONFIGS[cfg.Config], cfg.URL, urlMock.Client())
+	g, err := gerrit.NewGerritWithConfig(codereview.GerritConfigs[cfg.Config], cfg.URL, urlMock.Client())
 	require.NoError(t, err)
 
 	return g
@@ -202,7 +202,7 @@ func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	gerritCfg := codereview.GerritConfigs[cfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	} else {

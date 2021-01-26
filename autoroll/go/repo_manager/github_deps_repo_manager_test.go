@@ -179,7 +179,7 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 
 func mockGithubRefRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoURL string) {
 	// Mock /refs endpoints.
-	forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+	forkRepoMatches := parent.REGitHubForkRepoURL.FindStringSubmatch(forkRepoURL)
 	forkRepoOwner := forkRepoMatches[2]
 	forkRepoName := forkRepoMatches[3]
 	testSHA := "xyz"

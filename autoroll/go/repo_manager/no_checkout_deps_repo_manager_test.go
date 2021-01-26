@@ -65,7 +65,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(codereview.GERRIT_CONFIGS[cfg.Gerrit.Config], gUrl, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(codereview.GerritConfigs[cfg.Gerrit.Config], gUrl, urlmock.Client())
 	require.NoError(t, err)
 
 	cfg.ChildRepo = child.RepoUrl()
@@ -221,7 +221,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEP
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	gerritCfg := codereview.GerritConfigs[cfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	} else {
