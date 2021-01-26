@@ -23,15 +23,21 @@ import '../bot-chooser-sk';
 import '../email-chooser-sk';
 import '../silence-sk';
 
+import { HintableObject } from 'common-sk/modules/hintable';
 import { $$ } from 'common-sk/modules/dom';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { html, render } from 'lit-html';
+import { html, render, TemplateResult } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { Login } from '../../../infra-sk/modules/login';
 
 import * as paramset from '../paramset';
 import { displaySilence, expiresIn } from '../am';
+
+import {
+  Silence, Incident, Params, RecentIncidentsResponse, Note,
+} from '../json';
 
 // Legal states.
 const START = 'start';
@@ -43,298 +49,67 @@ const MAX_SILENCES_TO_DISPLAY_IN_TAB = 50;
 
 const BOT_CENTRIC_PARAMS = ['alertname', 'bot'];
 
-function classOfH2(ele, incident) {
-  const ret = [];
-  if (!incident.active) {
-    ret.push('inactive');
-  } else if (incident.params.__silence_state === 'silenced') {
-    ret.push('silenced');
-  } else if (incident.params.assigned_to) {
-    ret.push('assigned');
-  }
-  if (ele._selected && ele._selected.key === incident.key) {
-    ret.push('selected');
-  }
-  return ret.join(' ');
+class State {
+  tab: number = 0; // The selected tab.
+
+  alert_id: string = ''; // The selected alert (if any).
 }
 
-function classOfSilenceH2(ele, silence) {
-  const ret = [];
-  if (!silence.active) {
-    ret.push('inactive');
-  }
-  if (ele._selected && ele._selected.key === silence.key) {
-    ret.push('selected');
-  }
-  return ret.join(' ');
-}
+export class AlertManagerSk extends HTMLElement {
+  // TODO(rmistry): REMOVE UNDERSCORES!
 
-function editIncident(ele) {
-  if (ele._selected) {
-    return html`<incident-sk .silences=${ele._silences} .state=${ele._selected}
-      ></incident-sk>`;
-  }
-  return '';
-}
+  private _incidents = []; // All active incidents.
 
-function editSilence(ele) {
-  return html`<silence-sk .state=${ele._current_silence} .incidents=${ele._incidents}
-    ></silence-sk>`;
-}
+  private _silences = []; // All active silences.
 
-function viewStats(ele) {
-  return ele._incident_stats.map((i, index) => html`<incident-sk .state=${i} ?minimized params=${index === 0}></incident-sk>`);
-}
+  private _stats = []; // Last requested stats.
 
-function rightHandSide(ele) {
-  switch (ele._rhs_state) {
-    case START:
-      return '';
-    case INCIDENT:
-      return editIncident(ele);
-    case EDIT_SILENCE:
-      return editSilence(ele);
-    case VIEW_STATS:
-      return viewStats(ele);
-    default:
-      return '';
-  }
-}
+  private _stats_range = '1w';
 
-function hasNotes(o) {
-  return (o.notes && o.notes.length > 0) ? '' : 'invisible';
-}
+  private _incident_stats = []; // The incidents for a given stat.
 
-function hasRecentlyExpiredSilence(incident, idsToExpiredRecently) {
-  return (idsToExpiredRecently[incident.id]) ? '' : 'invisible';
-}
+  private _rhs_state = START; // One of START, INCIDENT, or EDIT_SILENCE.
 
-function displayIncident(incident) {
-  const ret = [incident.params.alertname];
-  const abbr = incident.params.abbr;
-  if (abbr) {
-    ret.push(` - ${abbr}`);
-  }
-  let s = ret.join(' ');
-  if (s.length > 33) {
-    s = `${s.slice(0, 30)}...`;
-  }
-  return s;
-}
+  private _selected: Incident|null = null; // The selected incident, i.e. you clicked on the name.
 
-function infraGardener(ele) {
-  if (ele._infra_gardener === ele._user) {
-    return html`<notifications-icon-sk title='You are the Infra Gardener, awesome!'></notifications-icon-sk>`;
-  }
-  return '';
-}
+  private _checked = new Set(); // Checked incidents, i.e. you clicked the checkbox.
 
-function assignedTo(incident, ele) {
-  if (incident.params.assigned_to === ele._user) {
-    return html`<person-icon-sk title='This item is assigned to you.'></person-icon-sk>`;
-  } if (incident.params.assigned_to) {
-    return html`<span class='assigned-circle' title='This item is assigned to ${incident.params.assigned_to}.'>${incident.params.assigned_to[0].toUpperCase()}</span>`;
-  }
-  return '';
-}
+  private _bots_to_incidents: Record<string, Incident[]> = {}; // Bot names to their incidents. Used in bot-centric view.
 
-function populateBotsToIncidents(ele, incidents) {
-  // Reset bots_to_incidents and populate it from scratch.
-  ele._bots_to_incidents = {};
-  for (let i = 0; i < incidents.length; i++) {
-    const incident = incidents[i];
-    if (incident.params && incident.params['bot']) {
-      // Only consider active bot incidents that are not assigned or silenced.
-      if (!incident.active || incident.params.__silence_state === 'silenced'
-          || incident.params.assigned_to) {
-        continue;
-      }
-      const botName = incident.params['bot'];
-      if(ele._bots_to_incidents[botName]) {
-        ele._bots_to_incidents[botName].push(incident);
-      } else {
-        ele._bots_to_incidents[botName] = [incident];
-      }
-    }
-  }
-}
+  private _isBotCentricView = false; // Determines if bot-centric view is displayed on incidents tab.
 
-function botCentricView(ele, incidents) {
-  populateBotsToIncidents(ele, incidents);
-  const botsHTML = [];
-  for (const botName in ele._bots_to_incidents) {
-    botsHTML.push(html`
-      <h2 class="bot-centric">
-        <span class=noselect>
-          <checkbox-sk class=bot-alert-checkbox ?checked=${isBotChecked(ele, ele._bots_to_incidents[botName])} @change=${ele._check_selected} @click=${ele._clickHandler} id=${botName}></checkbox-sk>
-          <span class=bot-alert>
-            ${botName}
-            <span class=bot-incident-list>
-              ${incidentListForBot(ele, ele._bots_to_incidents[botName])}
-            </span>
-          </span>
-        </span>
-      </h2>
-    `)
-  }
-  return botsHTML;
-}
+  private _current_silence = null; // A silence under construction.
 
-// Checks to see if all the incidents for the bot are checked.
-function isBotChecked(ele, incidents) {
-  for (let i = 0; i < incidents.length; i++) {
-    if (!ele._checked.has(incidents[i].key)) {
-      return false;
-    }
-  }
-  return true;
-}
+  // Params to ignore when constructing silences.
+  private _ignored = ['__silence_state', 'description', 'id', 'swarming', 'assigned_to',
+    'kubernetes_pod_name', 'instance', 'pod_template_hash', 'abbr_owner_regex',
+    'controller_revision_hash'];
 
-function incidentListForBot(ele, incidents) {
-  const incidentsHTML = incidents.map((i) => html`<li @click=${() => ele._select(i)}>${i.params.alertname}</li>`);
-  return html`<ul class=bot-incident-elem>${incidentsHTML}</ul>`;
-}
+  private _shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
 
-function incidentList(ele, incidents, isBotCentricView) {
-  if (isBotCentricView) {
-    return botCentricView(ele, ele._incidents);
-  } else {
-    return incidents.map((i) => html`
-      <h2 class=${classOfH2(ele, i)} @click=${() => ele._select(i)}>
-      <span class=noselect>
-        <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._clickHandler} id=${i.key}></checkbox-sk>
-        ${assignedTo(i, ele)}
-        ${displayIncident(i)}
-      </span>
-      <span>
-        <alarm-off-icon-sk title='This incident has a recently expired silence' class=${hasRecentlyExpiredSilence(i, ele._incidentsToRecentlyExpired)}></alarm-off-icon-sk>
-        <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
-      </span>
-      </h2>
-    `);
-  }
-}
+  private _last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
 
-function statsList(ele) {
-  return ele._stats.map((stat) => html`<h2 @click=${() => ele._statsClick(stat.incident)}>${displayIncident(stat.incident)} <span>${stat.num}</span></h2>`);
-}
+  private _incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
 
-function numMatchSilence(ele, s) {
-  if (!ele._incidents) {
-    return '';
-  }
-  return ele._incidents.filter(
-    (incident) => paramset.match(s.param_set, incident.params) && incident.active,
-  ).length;
-}
+  private _incidentsToRecentlyExpired: Record<string, boolean> = {}; // Map of incident IDs to whether their silences recently expired.
 
-function clearSelections(ele) {
-  return html`<button class=selection ?disabled=${ele._checked.size === 0} @click=${ele._clearSelections}>Clear selections</button>`;
-}
+  private _user = 'barney@example.org';
 
-function assignMultiple(ele) {
-  return html`<button class=selection ?disabled=${ele._checked.size === 0} @click=${ele._assignMultiple}>Assign ${ele._checked.size} alerts</button>`;
-}
+  private _infra_gardener = '';
 
-function botCentricBtn(ele) {
-  let buttonText;
-  if (ele._isBotCentricView) {
-    buttonText = 'Switch to Normal view'
-  } else {
-    buttonText = 'Switch to Bot-centric view'
-  }
-  return html`<button @click=${ele._flipBotCentricView}>${buttonText}</button>`;
-}
+  // State is reflected to the URL via stateReflector.
+  private _state: State = {
+    tab: 0,
+    alert_id: '',
+  };
 
-const template = (ele) => html`
-<header>${infraGardener(ele)}</header>
-<section class=nav>
-  <tabs-sk @tab-selected-sk=${ele._tabSwitch} selected=${ele._state.tab}>
-    <button>Mine</button>
-    <button>Alerts</button>
-    <button>Silences</button>
-    <button>Stats</button>
-  </tabs-sk>
-  <tabs-panel-sk>
-    <section class=mine>
-      <span class=selection-buttons>
-        ${assignMultiple(ele)}
-        ${clearSelections(ele)}
-      </span>
-      ${incidentList(ele, ele._incidents.filter((i) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._infra_gardener || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))), false)}
-    </section>
-    <section class=incidents>
-      ${botCentricBtn(ele)}
-      <span class=selection-buttons>
-        ${assignMultiple(ele)}
-        ${clearSelections(ele)}
-      </span>
-      ${incidentList(ele, ele._incidents, ele._isBotCentricView)}
-    </section>
-    <section class=silences>
-      ${ele._silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i) => html`
-        <h2 class=${classOfSilenceH2(ele, i)} @click=${() => ele._silenceClick(i)}>
-          <span>
-            ${displaySilence(i)}
-          </span>
-          <span>
-            <span title='Expires in'>${expiresIn(i)}</span>
-            <comment-icon-sk title='This silence has notes.' class=${hasNotes(i)}></comment-icon-sk>
-            <span title='The number of active alerts that match this silence.'>${numMatchSilence(ele, i)}</span>
-          </span>
-        </h2>`)}
-    </section>
-    <section class=stats>
-      ${statsList(ele)}
-    </section>
-  </tabs-panel-sk>
-</section>
-<section class=edit>
-  ${rightHandSide(ele)}
-</section>
-<footer>
-  <spinner-sk id=busy></spinner-sk>
-  <bot-chooser-sk id=bot-chooser></bot-chooser-sk>
-  <email-chooser-sk id=email-chooser></email-chooser-sk>
-  <error-toast-sk></error-toast-sk>
-<footer>
-`;
+  private _favicon: HTMLAnchorElement | null = null;
 
-function findParent(ele, tagName) {
-  while (ele && (ele.tagName !== tagName)) {
-    ele = ele.parentElement;
-  }
-  return ele;
-}
+  private spinner: SpinnerSk | null = null;
 
-define('alert-manager-sk', class extends HTMLElement {
   constructor() {
     super();
-    this._incidents = []; // All active incidents.
-    this._silences = []; // All active silences.
-    this._stats = []; // Last requested stats.
-    this._stats_range = '1w';
-    this._incident_stats = []; // The incidents for a given stat.
-    this._rhs_state = START; // One of START, INCIDENT, or EDIT_SILENCE.
-    this._selected = null; // The selected incident, i.e. you clicked on the name.
-    this._checked = new Set(); // Checked incidents, i.e. you clicked the checkbox.
-    this._bots_to_incidents = {}; // Bot names to their incidents. Used in bot-centric view.
-    this._isBotCentricView = false;  // Determines if bot-centric view is displayed on incidents tab.
-    this._current_silence = null; // A silence under construction.
-    // Params to ignore when constructing silences.
-    this._ignored = ['__silence_state', 'description', 'id', 'swarming', 'assigned_to',
-      'kubernetes_pod_name', 'instance', 'pod_template_hash', 'abbr_owner_regex',
-      'controller_revision_hash'];
-    this._shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
-    this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
-    this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
-    this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences recently expired.
-    this._user = 'barney@example.org';
-    this._infra_gardener = '';
-    this._state = {
-      tab: 0, // The selected tab.
-      alert_id: '', // The selected alert (if any).
-    };
+
     fetch('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', { mode: 'cors' }).then(jsonOrThrow).then((json) => {
       this._infra_gardener = json.emails[0];
       this._render();
@@ -345,18 +120,73 @@ define('alert-manager-sk', class extends HTMLElement {
     });
   }
 
-  connectedCallback() {
+  private static template = (ele: AlertManagerSk) => html`
+<header>${ele.infraGardener()}</header>
+<section class=nav>
+  <tabs-sk @tab-selected-sk=${ele._tabSwitch} selected=${ele._state.tab}>
+    <button>Mine</button>
+    <button>Alerts</button>
+    <button>Silences</button>
+    <button>Stats</button>
+  </tabs-sk>
+  <tabs-panel-sk>
+    <section class=mine>
+      <span class=selection-buttons>
+        ${ele.assignMultiple()}
+        ${ele.clearSelections()}
+      </span>
+      ${ele.incidentList(ele._incidents.filter((i: Incident) => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._infra_gardener || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))), false)}
+    </section>
+    <section class=incidents>
+      ${ele.botCentricBtn()}
+      <span class=selection-buttons>
+        ${ele.assignMultiple()}
+        ${ele.clearSelections()}
+      </span>
+      ${ele.incidentList(ele._incidents, ele._isBotCentricView)}
+    </section>
+    <section class=silences>
+      ${ele._silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map((i) => html`
+        <h2 class=${ele.classOfSilenceH2(i)} @click=${() => ele._silenceClick(i)}>
+          <span>
+            ${displaySilence(i)}
+          </span>
+          <span>
+            <span title='Expires in'>${expiresIn(i)}</span>
+            <comment-icon-sk title='This silence has notes.' class=${ele.hasNotes(i)}></comment-icon-sk>
+            <span title='The number of active alerts that match this silence.'>${ele.numMatchSilence(i)}</span>
+          </span>
+        </h2>`)}
+    </section>
+    <section class=stats>
+      ${ele.statsList()}
+    </section>
+  </tabs-panel-sk>
+</section>
+<section class=edit>
+  ${ele.rightHandSide()}
+</section>
+<footer>
+  <spinner-sk id=busy></spinner-sk>
+  <bot-chooser-sk id=bot-chooser></bot-chooser-sk>
+  <email-chooser-sk id=email-chooser></email-chooser-sk>
+  <error-toast-sk></error-toast-sk>
+<footer>
+`;
+
+
+  connectedCallback(): void {
     this._requestDesktopNotificationPermission();
 
-    this.addEventListener('save-silence', (e) => this._saveSilence(e.detail.silence));
-    this.addEventListener('archive-silence', (e) => this._archiveSilence(e.detail.silence));
-    this.addEventListener('reactivate-silence', (e) => this._reactivateSilence(e.detail.silence));
-    this.addEventListener('delete-silence', (e) => this._deleteSilence(e.detail.silence));
+    this.addEventListener('save-silence', (e) => this._saveSilence((e as CustomEvent).detail.silence));
+    this.addEventListener('archive-silence', (e) => this._archiveSilence((e as CustomEvent).detail.silence));
+    this.addEventListener('reactivate-silence', (e) => this._reactivateSilence((e as CustomEvent).detail.silence));
+    this.addEventListener('delete-silence', (e) => this._deleteSilence((e as CustomEvent).detail.silence));
     this.addEventListener('add-silence-note', (e) => this._addSilenceNote(e));
     this.addEventListener('del-silence-note', (e) => this._delSilenceNote(e));
-    this.addEventListener('add-silence-param', (e) => this._addSilenceParam(e.detail.silence));
-    this.addEventListener('delete-silence-param', (e) => this._deleteSilenceParam(e.detail.silence));
-    this.addEventListener('modify-silence-param', (e) => this._modifySilenceParam(e.detail.silence));
+    this.addEventListener('add-silence-param', (e) => this._addSilenceParam((e as CustomEvent).detail.silence));
+    this.addEventListener('delete-silence-param', (e) => this._deleteSilenceParam((e as CustomEvent).detail.silence));
+    this.addEventListener('modify-silence-param', (e) => this._modifySilenceParam((e as CustomEvent).detail.silence));
     this.addEventListener('add-note', (e) => this._addNote(e));
     this.addEventListener('del-note', (e) => this._delNote(e));
     this.addEventListener('take', (e) => this._take(e));
@@ -364,20 +194,230 @@ define('alert-manager-sk', class extends HTMLElement {
     this.addEventListener('assign', (e) => this._assign(e));
     this.addEventListener('assign-to-owner', (e) => this._assignToOwner(e));
 
-    this._stateHasChanged = stateReflector(
-      () => this._state,
-      (state) => {
-        this._state = state;
+    // LOOK AT BUGS CENTRAL FOR THIS!
+    this.stateHasChanged = stateReflector(
+      /* getState */ () => (this._state as unknown) as HintableObject,
+      /* setState */ (newState) => {
+        this._state = (newState as unknown) as State;
         this._render();
       },
     );
 
     this._render();
-    this._busy = $$('#busy', this);
+    this.spinner = $$('#busy', this) as SpinnerSk;
     this._favicon = $$('#favicon');
 
-    this._busy.active = true;
+    this.spinner.active = true;
     this._poll(true);
+  }
+
+  classOfH2(incident: Incident): string {
+    const ret = [];
+    if (!incident.active) {
+      ret.push('inactive');
+    } else if (incident.params.__silence_state === 'silenced') {
+      ret.push('silenced');
+    } else if (incident.params.assigned_to) {
+      ret.push('assigned');
+    }
+    if (this._selected && this._selected.key === incident.key) {
+      ret.push('selected');
+    }
+    return ret.join(' ');
+  }
+
+  classOfSilenceH2(silence: Silence): string {
+    const ret = [];
+    if (!silence.active) {
+      ret.push('inactive');
+    }
+    if (this._selected && this._selected.key === silence.key) {
+      ret.push('selected');
+    }
+    return ret.join(' ');
+  }
+
+  editIncident(): TemplateResult {
+    if (this._selected) {
+      return html`<incident-sk .silences=${this._silences} .state=${this._selected}
+        ></incident-sk>`;
+    }
+    return html``;
+  }
+
+  editSilence(): TemplateResult {
+    return html`<silence-sk .state=${this._current_silence} .incidents=${this._incidents}
+      ></silence-sk>`;
+  }
+
+  viewStats(): TemplateResult[] {
+    return this._incident_stats.map((i, index) => html`<incident-sk .state=${i} ?minimized params=${index === 0}></incident-sk>`);
+  }
+
+  rightHandSide(): TemplateResult|TemplateResult[] {
+    switch (this._rhs_state) {
+      case START:
+        return [];
+      case INCIDENT:
+        return this.editIncident();
+      case EDIT_SILENCE:
+        return this.editSilence();
+      case VIEW_STATS:
+        return this.viewStats();
+      default:
+        return [];
+    }
+  }
+
+  hasNotes(o: Incident): string {
+    return (o.notes && o.notes.length > 0) ? '' : 'invisible';
+  }
+
+  hasRecentlyExpiredSilence(incident: Incident): string {
+    return (this._incidentsToRecentlyExpired[incident.id]) ? '' : 'invisible';
+  }
+
+  displayIncident(incident: Incident): string {
+    const ret = [incident.params.alertname];
+    const abbr = incident.params.abbr;
+    if (abbr) {
+      ret.push(` - ${abbr}`);
+    }
+    let s = ret.join(' ');
+    if (s.length > 33) {
+      s = `${s.slice(0, 30)}...`;
+    }
+    return s;
+  }
+
+  infraGardener(): TemplateResult {
+    if (this._infra_gardener === this._user) {
+      return html`<notifications-icon-sk title='You are the Infra Gardener, awesome!'></notifications-icon-sk>`;
+    }
+    return html``;
+  }
+
+  assignedTo(incident: Incident): TemplateResult {
+    if (incident.params.assigned_to === this._user) {
+      return html`<person-icon-sk title='This item is assigned to you.'></person-icon-sk>`;
+    } if (incident.params.assigned_to) {
+      return html`<span class='assigned-circle' title='This item is assigned to ${incident.params.assigned_to}.'>${incident.params.assigned_to[0].toUpperCase()}</span>`;
+    }
+    return html``;
+  }
+
+  populateBotsToIncidents(incidents: Incident[]): void {
+    // Reset bots_to_incidents and populate it from scratch.
+    this._bots_to_incidents = {};
+    for (let i = 0; i < incidents.length; i++) {
+      const incident = incidents[i];
+      if (incident.params && incident.params.bot) {
+        // Only consider active bot incidents that are not assigned or silenced.
+        if (!incident.active || incident.params.__silence_state === 'silenced'
+            || incident.params.assigned_to) {
+          continue;
+        }
+        const botName = incident.params.bot;
+        if (this._bots_to_incidents[botName]) {
+          this._bots_to_incidents[botName].push(incident);
+        } else {
+          this._bots_to_incidents[botName] = [incident];
+        }
+      }
+    }
+  }
+
+  botCentricView(incidents) {
+    populateBotsToIncidents(ele, incidents);
+    const botsHTML = [];
+    for (const botName in ele._bots_to_incidents) {
+      botsHTML.push(html`
+        <h2 class="bot-centric">
+          <span class=noselect>
+            <checkbox-sk class=bot-alert-checkbox ?checked=${isBotChecked(ele, ele._bots_to_incidents[botName])} @change=${ele._check_selected} @click=${ele._clickHandler} id=${botName}></checkbox-sk>
+            <span class=bot-alert>
+              ${botName}
+              <span class=bot-incident-list>
+                ${incidentListForBot(ele, ele._bots_to_incidents[botName])}
+              </span>
+            </span>
+          </span>
+        </h2>
+      `);
+    }
+    return botsHTML;
+  }
+
+  // Checks to see if all the incidents for the bot are checked.
+  isBotChecked(incidents) {
+    for (let i = 0; i < incidents.length; i++) {
+      if (!ele._checked.has(incidents[i].key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  incidentListForBot(incidents) {
+    const incidentsHTML = incidents.map((i) => html`<li @click=${() => ele._select(i)}>${i.params.alertname}</li>`);
+    return html`<ul class=bot-incident-elem>${incidentsHTML}</ul>`;
+  }
+
+  incidentList(incidents, isBotCentricView) {
+    if (isBotCentricView) {
+      return botCentricView(ele, ele._incidents);
+    }
+    return incidents.map((i) => html`
+        <h2 class=${classOfH2(ele, i)} @click=${() => ele._select(i)}>
+        <span class=noselect>
+          <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._clickHandler} id=${i.key}></checkbox-sk>
+          ${assignedTo(i, ele)}
+          ${displayIncident(i)}
+        </span>
+        <span>
+          <alarm-off-icon-sk title='This incident has a recently expired silence' class=${hasRecentlyExpiredSilence(i)}></alarm-off-icon-sk>
+          <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
+        </span>
+        </h2>
+      `);
+  }
+
+  statsList() {
+    return ele._stats.map((stat) => html`<h2 @click=${() => ele._statsClick(stat.incident)}>${displayIncident(stat.incident)} <span>${stat.num}</span></h2>`);
+  }
+
+  numMatchSilence(s) {
+    if (!ele._incidents) {
+      return '';
+    }
+    return ele._incidents.filter(
+      (incident) => paramset.match(s.param_set, incident.params) && incident.active,
+    ).length;
+  }
+
+  clearSelections() {
+    return html`<button class=selection ?disabled=${ele._checked.size === 0} @click=${ele._clearSelections}>Clear selections</button>`;
+  }
+
+  assignMultiple() {
+    return html`<button class=selection ?disabled=${ele._checked.size === 0} @click=${ele._assignMultiple}>Assign ${ele._checked.size} alerts</button>`;
+  }
+
+  botCentricBtn() {
+    let buttonText;
+    if (ele._isBotCentricView) {
+      buttonText = 'Switch to Normal view';
+    } else {
+      buttonText = 'Switch to Bot-centric view';
+    }
+    return html`<button @click=${ele._flipBotCentricView}>${buttonText}</button>`;
+  }
+
+  findParent(tagName) {
+    while (ele && (ele.tagName !== tagName)) {
+      ele = ele.parentElement;
+    }
+    return ele;
   }
 
   _poll(stopSpinner) {
@@ -387,8 +427,8 @@ define('alert-manager-sk', class extends HTMLElement {
       this._incidents = json.incidents;
       // If alert_id is specified and it is in supported rhs_states then display
       // an incident.
-      if ((this._rhs_state == START || this._rhs_state == INCIDENT) &&
-          this._state.alert_id) {
+      if ((this._rhs_state == START || this._rhs_state == INCIDENT)
+          && this._state.alert_id) {
         for (let i = 0; i < this._incidents.length; i++) {
           if (this._incidents[i].id === this._state.alert_id) {
             this._select(this._incidents[i]);
@@ -420,7 +460,7 @@ define('alert-manager-sk', class extends HTMLElement {
       }
     }).finally(() => {
       if (stopSpinner) {
-        this._busy.active = false;
+        this.spinner!.active = false;
       }
       window.setTimeout(() => this._poll(), 10000);
     });
@@ -513,13 +553,13 @@ define('alert-manager-sk', class extends HTMLElement {
   _check_selected(e) {
     const checkbox = findParent(e.target, 'CHECKBOX-SK');
     const incidents_to_check = [];
-    if (this._isBotCentricView && this._bots_to_incidents &&
-        this._bots_to_incidents[checkbox.id]) {
+    if (this._isBotCentricView && this._bots_to_incidents
+        && this._bots_to_incidents[checkbox.id]) {
       this._bots_to_incidents[checkbox.id].forEach((i) => {
         incidents_to_check.push(i.key);
       });
     } else {
-        incidents_to_check.push(checkbox.id);
+      incidents_to_check.push(checkbox.id);
     }
     const checkSelectedImplFunc = () => {
       incidents_to_check.forEach((id) => {
@@ -545,12 +585,12 @@ define('alert-manager-sk', class extends HTMLElement {
       // The incidents we go through for shift click selections will be
       // different for bot-centric vs normal view.
       const incidents = this._isBotCentricView
-          ? [].concat(...Object.values(this._bots_to_incidents))
-          : this._incidents;
+        ? [].concat(...Object.values(this._bots_to_incidents))
+        : this._incidents;
 
       incidents.some((i) => {
-        if (i.key === this._last_checked_incident ||
-                incidents_to_check.includes(i.key)) {
+        if (i.key === this._last_checked_incident
+                || incidents_to_check.includes(i.key)) {
           if (!foundStart) {
             // This is the 1st time we have entered this block. This means we
             // found the first incident.
@@ -667,18 +707,18 @@ define('alert-manager-sk', class extends HTMLElement {
   }
 
   _botChooser(e) {
-    populateBotsToIncidents(this, this._incidents)
-    $$('#bot-chooser', this).open(this._bots_to_incidents, this._current_silence.param_set['bot']).then((bot) => {
+    populateBotsToIncidents(this, this._incidents);
+    $$('#bot-chooser', this).open(this._bots_to_incidents, this._current_silence.param_set.bot).then((bot) => {
       if (!bot) {
         return;
       }
       const bot_incidents = this._bots_to_incidents[bot];
       bot_incidents.forEach((i) => {
-        const bot_centric_params = {}
+        const bot_centric_params = {};
         BOT_CENTRIC_PARAMS.forEach((p) => {
           bot_centric_params[p] = i.params[p];
         });
-        paramset.add(this._current_silence.param_set, bot_centric_params, this._ignored)
+        paramset.add(this._current_silence.param_set, bot_centric_params, this._ignored);
       });
       this._modifySilenceParam(this._current_silence);
     });
@@ -793,7 +833,7 @@ define('alert-manager-sk', class extends HTMLElement {
 
   // Common work done for all fetch requests.
   _doImpl(url, detail, action = (json) => this._incidentAction(json)) {
-    this._busy.active = true;
+    this.spinner!.active = true;
     fetch(url, {
       body: JSON.stringify(detail),
       headers: {
@@ -804,9 +844,9 @@ define('alert-manager-sk', class extends HTMLElement {
     }).then(jsonOrThrow).then((json) => {
       action(json);
       this._render();
-      this._busy.active = false;
+      this.spinner!.active = false;
     }).catch((msg) => {
-      this._busy.active = false;
+      this.spinner!.active = false;
       msg.resp.text().then(errorMessage);
     });
   }
@@ -933,4 +973,13 @@ define('alert-manager-sk', class extends HTMLElement {
       this._favicon.href = '/static/icon.png';
     }
   }
-});
+
+  // Call this anytime something in private state is changed. Will be replaced
+  // with the real function once stateReflector has been setup.
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private stateHasChanged = () => {};
+
+  // private _stateHasChanged: ()=> void = () => {};
+}
+
+define('alert-manager-sk', AlertManagerSk);
