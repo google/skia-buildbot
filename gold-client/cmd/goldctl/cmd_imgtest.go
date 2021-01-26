@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"go.skia.org/infra/go/skerr"
 
 	"github.com/spf13/cobra"
 
@@ -169,18 +170,22 @@ func (i *imgTest) addKeysFlags(cmd *cobra.Command, flagsPrefix string) {
 	cmd.Flags().StringSliceVar(&i.testOptionalKeysStrings, flagsPrefix+"optional-key", []string{}, "Any number of test-specific optional keys represented as key:value pairs.")
 }
 
-func (i *imgTest) validate(cmd *cobra.Command, args []string) error {
+func (i *imgTest) validate(_ *cobra.Command, _ []string) error {
 	if i.uploadOnly && i.passFailStep {
-		return errors.New("Cannot have --upload-only and --passfail both be true.")
+		return skerr.Fmt("Cannot have --upload-only and --passfail both be true.")
 	}
 	if i.testKeysFile != "" && len(i.testKeysStrings) > 0 {
-		return errors.New("Cannot have both --add-test-key and --add-test-keys-file.")
+		return skerr.Fmt("Cannot have both --add-test-key and --add-test-keys-file.")
 	}
 	return nil
 }
 
-func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
+func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
+	i.Check(ctx)
+}
+
+func (i *imgTest) Check(ctx context.Context) {
 	ctx = loadAuthenticatedClients(ctx, i.workDir)
 
 	goldClient, err := goldclient.LoadCloudClient(i.workDir)
@@ -196,8 +201,9 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 
 		if i.changelistID != "" {
 			gr := jsonio.GoldResults{
-				ChangelistID: i.changelistID,
-				GitHash:      "HEAD",
+				GitHash:          "HEAD",
+				ChangelistID:     i.changelistID,
+				CodeReviewSystem: i.codeReviewSystem,
 			}
 			err = goldClient.SetSharedConfig(ctx, gr, true) // this will load the baseline
 			ifErrLogExit(ctx, err)
@@ -221,7 +227,7 @@ func (i *imgTest) runImgTestCheckCmd(cmd *cobra.Command, args []string) {
 	exitProcess(ctx, 0)
 }
 
-func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, args []string) {
+func (i *imgTest) runImgTestInitCmd(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
 	i.Init(ctx)
 }
@@ -377,8 +383,13 @@ func readKeyValuePairsFromFileOrStringSlice(ctx context.Context, filename string
 	return retval
 }
 
-func (i *imgTest) runImgTestFinalizeCmd(cmd *cobra.Command, args []string) {
+func (i *imgTest) runImgTestFinalizeCmd(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
+	i.Finalize(ctx)
+}
+
+// Finalize uploads the data that has been queued in batch mode (aka FYI or post-submit mode).
+func (i *imgTest) Finalize(ctx context.Context) {
 	ctx = loadAuthenticatedClients(ctx, i.workDir)
 
 	// the user is presumed to have called init and tests first, so we just
@@ -396,10 +407,10 @@ func (i *imgTest) runImgTestFinalizeCmd(cmd *cobra.Command, args []string) {
 func readKeysFile(keysFile string) (map[string]string, error) {
 	reader, err := os.Open(keysFile)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	ret := map[string]string{}
 	err = json.NewDecoder(reader).Decode(&ret)
-	return ret, err
+	return ret, skerr.Wrap(err)
 }
