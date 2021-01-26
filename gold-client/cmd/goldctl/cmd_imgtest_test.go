@@ -481,6 +481,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 	})
 	logs = output.String()
 	exit.AssertWasCalledWithCode(t, 0, logs)
+	mg.AssertExpectations(t)
 }
 
 func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndImageUploaded(t *testing.T) {
@@ -584,6 +585,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 	logs = output.String()
 	// In Batch mode, even though the images were untriaged, we return 0 (not failing).
 	exit.AssertWasCalledWithCode(t, 0, logs)
+	mg.AssertExpectations(t)
 }
 
 // This test compares image a01 and a05. These images have 2 pixels different, with a maximum
