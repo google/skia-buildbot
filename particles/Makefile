@@ -50,11 +50,9 @@ wasm_libs_tot: get_latest_skia
 wasm_libs_fixed: package-lock.json
 	rm -rf build
 	mkdir -p build/canvaskit
-	# TODO(jcgregorio) Change /static/ to /dist/ once the new particles.skia.org lands.
-	curl https://particles.skia.org/static/canvaskit.js --output build/canvaskit/canvaskit.js
-	curl https://particles.skia.org/static/canvaskit.wasm --output build/canvaskit/canvaskit.wasm
-	# TODO(jcgregorio) Remove once particles.skia.org migration to TS lands.
-	cp tmp/canvaskit.d.ts build/canvaskit/canvaskit.d.ts
+	curl https://particles.skia.org/dist/canvaskit.js --output build/canvaskit/canvaskit.js
+	curl https://particles.skia.org/dist/canvaskit.d.ts --output build/canvaskit/canvaskit.d.ts
+	curl https://particles.skia.org/dist/canvaskit.wasm --output build/canvaskit/canvaskit.wasm
 	echo "Latest" >> build/VERSION
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.ts
 
