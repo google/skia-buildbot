@@ -329,7 +329,7 @@ define('skottie-sk', class extends HTMLElement {
     texts.forEach((textData) => {
       textData.items.forEach((item) => {
         let layers;
-        // Searches for composition that contains this layer
+        // Searches for a composition that contains this layer
         if (!item.parentId) {
           layers = currentAnimation.layers;
         } else {
@@ -339,7 +339,9 @@ define('skottie-sk', class extends HTMLElement {
 
         // Replaces current animation layer with new layer value
         layers.forEach((layer, index) => {
-          if (layer.ind === item.layer.ind) {
+          if (layer.ind === item.layer.ind
+            && layer.nm === item.layer.nm
+          ) {
             layers[index] = item.layer;
           }
         });
