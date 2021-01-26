@@ -16,6 +16,24 @@
       "message": "Friendly reminder that renaming these rollers will effectively erase their history.",
       "revId": "5224c65fe449d21e3eceec214a1b4d79813ead85",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "09f3650e_29580876",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-26T15:02:28Z",
+      "side": 1,
+      "message": "Yes, that\u0027s ok.",
+      "parentUuid": "ae314c4b_3ed262df",
+      "revId": "5224c65fe449d21e3eceec214a1b4d79813ead85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
