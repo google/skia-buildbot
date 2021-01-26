@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -15,27 +16,72 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/gcsuploader"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/gold-client/go/httpclient"
 	"go.skia.org/infra/gold-client/go/imagedownloader"
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
-	blankDigest = "00000000000000000000000000000000"
+	// These images are copied from the datakitchensink set
+	blankDigest = "00000000000000000000000000000000" // all pixels blank
+	a01Digest   = "a01a01a01a01a01a01a01a01a01a01a0" // has a square drawn
+	a05Digest   = "a05a05a05a05a05a05a05a05a05a05a0" // small difference from a01
+	a09Digest   = "a09a09a09a09a09a09a09a09a09a09a0" // large difference from a01
 )
 
 var (
 	timeOne = time.Date(2021, time.January, 23, 22, 21, 20, 19, time.UTC)
 	timeTwo = time.Date(2021, time.January, 23, 22, 22, 0, 0, time.UTC)
 )
+
+func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+
+	keysFile := filepath.Join(workDir, "keys.json")
+	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+
+	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).
+		Negative("other-test", blankDigest).
+		Known("11111111111111111111111111111111").Build()
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes (both empty).
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		commitHash:   "1234567890123456789012345678901234567890",
+		corpus:       "my_corpus",
+		instanceID:   "my-instance",
+		keysFile:     keysFile,
+		passFailStep: true,
+		workDir:      workDir,
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	b, err := ioutil.ReadFile(filepath.Join(workDir, "result-state.json"))
+	require.NoError(t, err)
+	resultState := string(b)
+	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
+	assert.Contains(t, resultState, `"KnownHashes":{"00000000000000000000000000000000":true,"11111111111111111111111111111111":true}`)
+	assert.Contains(t, resultState, `"Expectations":{"other-test":{"00000000000000000000000000000000":"negative"},"pixel-tests":{"00000000000000000000000000000000":"positive"}}`)
+}
 
 func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitCode(t *testing.T) {
 	unittest.MediumTest(t)
@@ -344,6 +390,286 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 	assert.Empty(t, fb)
 }
 
+func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+	td, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).Build()
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes.
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		commitHash:      "1234567890123456789012345678901234567890",
+		corpus:          "my_corpus",
+		instanceID:      "my-instance",
+		workDir:         workDir,
+		testKeysStrings: []string{"os:Android"},
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	// Now call imgtest add with the following flags. This is simulating adding a result for
+	// a test called pixel-tests. The digest has been triaged positive for this test.
+	ctx, output, exit = testContext(nil, nil, nil, nil)
+	env = imgTest{
+		workDir:                 workDir,
+		testName:                "pixel-tests",
+		pngFile:                 filepath.Join(td, "00000000000000000000000000000000.png"),
+		pngDigest:               blankDigest,
+		testKeysStrings:         []string{"device:angler"},
+		testOptionalKeysStrings: []string{"some_option:is optional"},
+	}
+	runUntilExit(t, func() {
+		env.Add(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+
+	// Call imgtest add for a second device running the same test as above.
+	ctx, output, exit = testContext(nil, nil, nil, nil)
+	env = imgTest{
+		workDir:                 workDir,
+		testName:                "pixel-tests",
+		pngFile:                 filepath.Join(td, "00000000000000000000000000000000.png"),
+		pngDigest:               blankDigest,
+		testKeysStrings:         []string{"device:bullhead"},
+		testOptionalKeysStrings: []string{"some_option:is VERY DIFFERENT"},
+	}
+	runUntilExit(t, func() {
+		env.Add(ctx)
+	})
+	logs = output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+
+	mg := &mocks.GCSUploader{}
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
+			GitHash: "1234567890123456789012345678901234567890",
+			Key: map[string]string{
+				"os":          "Android",
+				"source_type": "my_corpus",
+			},
+			Results: []*jsonio.Result{{
+				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
+				Options: map[string]string{"some_option": "is optional", "ext": "png"},
+				Digest:  blankDigest,
+			}, {
+				Key:     map[string]string{"name": "pixel-tests", "device": "bullhead"},
+				Options: map[string]string{"some_option": "is VERY DIFFERENT", "ext": "png"},
+				Digest:  blankDigest,
+			}},
+		}, results)
+		return true
+	})
+	mg.On("UploadJSON", testutils.AnyContext, resultsMatcher, mock.Anything,
+		`skia-gold-my-instance/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440480000000019.json`).Return(nil)
+
+	// Call imgtest finalize, expecting to see all data before uploaded.
+	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	env = imgTest{
+		workDir: workDir,
+	}
+	runUntilExit(t, func() {
+		env.Finalize(ctx)
+	})
+	logs = output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+}
+
+func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndImageUploaded(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+	td, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	mh := mockRPCResponses().Build()
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes.
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		commitHash:      "1234567890123456789012345678901234567890",
+		corpus:          "my_corpus",
+		instanceID:      "my-instance",
+		workDir:         workDir,
+		testKeysStrings: []string{"os:Android"},
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	mg := &mocks.GCSUploader{}
+	bytesMatcher := mock.MatchedBy(func(b []byte) bool {
+		assert.Len(t, b, 78) // spot check length
+		return true
+	})
+	mg.On("UploadBytes", testutils.AnyContext, bytesMatcher, mock.Anything,
+		`gs://skia-gold-my-instance/dm-images-v1/00000000000000000000000000000000.png`).Return(nil)
+
+	// Now call imgtest add with the following flags. This is simulating adding a result for
+	// a test called pixel-tests. The digest has not been seen before.
+	ctx, output, exit = testContext(mg, nil, nil, nil)
+	env = imgTest{
+		workDir:                 workDir,
+		testName:                "pixel-tests",
+		pngFile:                 filepath.Join(td, "00000000000000000000000000000000.png"),
+		pngDigest:               blankDigest,
+		testKeysStrings:         []string{"device:angler"},
+		testOptionalKeysStrings: []string{"some_option:is optional"},
+	}
+	runUntilExit(t, func() {
+		env.Add(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+
+	// Call imgtest add for a second device running the same test as above.
+	// TODO(kjlubick) Append to the known digests to prevent a duplicate upload.
+	ctx, output, exit = testContext(mg, nil, nil, nil)
+	env = imgTest{
+		workDir:                 workDir,
+		testName:                "pixel-tests",
+		pngFile:                 filepath.Join(td, "00000000000000000000000000000000.png"),
+		pngDigest:               blankDigest,
+		testKeysStrings:         []string{"device:bullhead"},
+		testOptionalKeysStrings: []string{"some_option:is VERY DIFFERENT"},
+	}
+	runUntilExit(t, func() {
+		env.Add(ctx)
+	})
+	logs = output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+
+	mg = &mocks.GCSUploader{}
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
+			GitHash: "1234567890123456789012345678901234567890",
+			Key: map[string]string{
+				"os":          "Android",
+				"source_type": "my_corpus",
+			},
+			Results: []*jsonio.Result{{
+				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
+				Options: map[string]string{"some_option": "is optional", "ext": "png"},
+				Digest:  blankDigest,
+			}, {
+				Key:     map[string]string{"name": "pixel-tests", "device": "bullhead"},
+				Options: map[string]string{"some_option": "is VERY DIFFERENT", "ext": "png"},
+				Digest:  blankDigest,
+			}},
+		}, results)
+		return true
+	})
+	mg.On("UploadJSON", testutils.AnyContext, resultsMatcher, mock.Anything,
+		`skia-gold-my-instance/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440480000000019.json`).Return(nil)
+
+	// Call imgtest finalize, expecting to see all data before uploaded.
+	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	env = imgTest{
+		workDir: workDir,
+	}
+	runUntilExit(t, func() {
+		env.Finalize(ctx)
+	})
+	logs = output.String()
+	// In Batch mode, even though the images were untriaged, we return 0 (not failing).
+	exit.AssertWasCalledWithCode(t, 0, logs)
+}
+
+// This test compares image a01 and a05. These images have 2 pixels different, with a maximum
+// delta of 7, so the settings are close enough to let those match.
+func TestImgTest_Check_CloseEnoughForFuzzyMatch_ExitCodeZero(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+	td, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	mh := mockRPCResponses().Positive("pixel-tests", a01Digest).
+		LatestPositive(a01Digest, paramtools.Params{
+			"device": "bullhead", "name": "pixel-tests", "source_type": "my-instance",
+		}).Build()
+
+	a01Bytes, err := ioutil.ReadFile(filepath.Join(td, a01Digest+".png"))
+	require.NoError(t, err)
+	mi := &mocks.ImageDownloader{}
+	mi.On("DownloadImage", testutils.AnyContext, "https://my-instance-gold.skia.org", types.Digest(a01Digest)).Return(a01Bytes, nil)
+
+	ctx, output, exit := testContext(nil, mh, mi, nil)
+	env := imgTest{
+		workDir:         workDir,
+		instanceID:      "my-instance",
+		pngFile:         filepath.Join(td, a05Digest+".png"),
+		testName:        "pixel-tests",
+		testKeysStrings: []string{"device:bullhead"},
+		testOptionalKeysStrings: []string{
+			string(imgmatching.AlgorithmNameOptKey + ":" + imgmatching.FuzzyMatching),
+			string(imgmatching.MaxDifferentPixels + ":2"),
+			string(imgmatching.PixelDeltaThreshold + ":10"),
+		},
+	}
+	runUntilExit(t, func() {
+		env.Check(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 0, logs)
+	assert.Contains(t, logs, `Non-exact image comparison using algorithm "fuzzy" against most recent positive digest "a01a01a01a01a01a01a01a01a01a01a0".`)
+	assert.Contains(t, logs, `Test: pixel-tests PASS`)
+}
+
+func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+	td, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	mh := mockRPCResponses().Positive("pixel-tests", a01Digest).
+		LatestPositive(a01Digest, paramtools.Params{
+			"device": "bullhead", "name": "pixel-tests", "source_type": "my-instance",
+		}).BuildForCL("gerritHub", "cl_1234")
+
+	a01Bytes, err := ioutil.ReadFile(filepath.Join(td, a01Digest+".png"))
+	require.NoError(t, err)
+	mi := &mocks.ImageDownloader{}
+	mi.On("DownloadImage", testutils.AnyContext, "https://my-instance-gold.skia.org", types.Digest(a01Digest)).Return(a01Bytes, nil)
+
+	ctx, output, exit := testContext(nil, mh, mi, nil)
+	env := imgTest{
+		workDir:          workDir,
+		changelistID:     "cl_1234",
+		codeReviewSystem: "gerritHub",
+		instanceID:       "my-instance",
+		pngFile:          filepath.Join(td, a09Digest+".png"),
+		testName:         "pixel-tests",
+		testKeysStrings:  []string{"device:bullhead"},
+		testOptionalKeysStrings: []string{
+			string(imgmatching.AlgorithmNameOptKey + ":" + imgmatching.FuzzyMatching),
+			string(imgmatching.MaxDifferentPixels + ":2"),
+			string(imgmatching.PixelDeltaThreshold + ":10"),
+		},
+	}
+	runUntilExit(t, func() {
+		env.Check(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 1, logs)
+	assert.Contains(t, logs, `Non-exact image comparison using algorithm "fuzzy" against most recent positive digest "a01a01a01a01a01a01a01a01a01a01a0".`)
+	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
+}
+
 func testContext(g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader, n goldclient.NowSource) (context.Context, *bytes.Buffer, *exitCodeRecorder) {
 	output := &bytes.Buffer{}
 	exit := &exitCodeRecorder{}
@@ -360,8 +686,9 @@ func mockTime(ts time.Time) goldclient.NowSource {
 }
 
 type rpcResponsesBuilder struct {
-	knownDigests []string
-	exp          *expectations.Expectations
+	knownDigests    []string
+	exp             *expectations.Expectations
+	latestPositives map[tiling.TraceID]types.Digest
 }
 
 func mockRPCResponses() *rpcResponsesBuilder {
@@ -387,7 +714,44 @@ func (r *rpcResponsesBuilder) Known(digest types.Digest) *rpcResponsesBuilder {
 	return r
 }
 
+func (r *rpcResponsesBuilder) LatestPositive(digest types.Digest, traceKeys paramtools.Params) *rpcResponsesBuilder {
+	if len(r.latestPositives) == 0 {
+		r.latestPositives = map[tiling.TraceID]types.Digest{}
+	}
+	traceID := tiling.TraceIDFromParams(traceKeys)
+	r.latestPositives[traceID] = digest
+	return r
+}
+
 func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
+	mh := &mocks.HTTPClient{}
+	knownResp := strings.Join(r.knownDigests, "\n")
+	mh.On("Get", "https://my-instance-gold.skia.org/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
+
+	exp, err := json.Marshal(baseline.Baseline{
+		MD5:          "somemd5",
+		Expectations: r.exp.AsBaseline(),
+	})
+	if err != nil {
+		panic(err)
+	}
+	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/expectations").Return(
+		httpResponse(string(exp), "200 OK", http.StatusOK), nil)
+
+	for traceID, digest := range r.latestPositives {
+		j, err := json.Marshal(frontend.MostRecentPositiveDigestResponse{Digest: digest})
+		if err != nil {
+			panic(err)
+		}
+		url := string("https://my-instance-gold.skia.org/json/v1/latestpositivedigest/" + traceID)
+		mh.On("Get", url).Return(
+			httpResponse(string(j), "200 OK", http.StatusOK), nil)
+	}
+
+	return mh
+}
+
+func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 	mh := &mocks.HTTPClient{}
 	knownResp := strings.Join(r.knownDigests, "\n")
 	mh.On("Get", "https://my-instance-gold.skia.org/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
@@ -395,14 +759,25 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 	exp, err := json.Marshal(baseline.Baseline{
 		MD5:              "somemd5",
 		Expectations:     r.exp.AsBaseline(),
-		ChangelistID:     "", // TODO(kjlubick)
-		CodeReviewSystem: "", // TODO(kjlubick)
+		ChangelistID:     clID,
+		CodeReviewSystem: crs,
 	})
 	if err != nil {
 		panic(err)
 	}
-	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/expectations").Return(
+	url := fmt.Sprintf("https://my-instance-gold.skia.org/json/v2/expectations?issue=%s&crs=%s", clID, crs)
+	mh.On("Get", url).Return(
 		httpResponse(string(exp), "200 OK", http.StatusOK), nil)
+
+	for traceID, digest := range r.latestPositives {
+		j, err := json.Marshal(frontend.MostRecentPositiveDigestResponse{Digest: digest})
+		if err != nil {
+			panic(err)
+		}
+		url := string("https://my-instance-gold.skia.org/json/v1/latestpositivedigest/" + traceID)
+		mh.On("Get", url).Return(
+			httpResponse(string(j), "200 OK", http.StatusOK), nil)
+	}
 
 	return mh
 }
@@ -432,6 +807,7 @@ func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
 		Positive("alpha test", "second_digest").
 		Positive("beta test", "third_digest").
 		Negative("alpha test", "fourth_digest").
+		LatestPositive("third_digest", paramtools.Params{"alpha": "beta", "gamma": "delta epsilon"}).
 		Known("fifth_digest").
 		Build()
 	resp, err := mh.Get("https://my-instance-gold.skia.org/json/v1/hashes")
@@ -449,4 +825,10 @@ fifth_digest`, string(b))
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `{"md5":"somemd5","primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
+
+	resp, err = mh.Get("https://my-instance-gold.skia.org/json/v1/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
+	require.NoError(t, err)
+	b, err = ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, `{"digest":"third_digest"}`, string(b))
 }
