@@ -50,13 +50,17 @@ algorithms and parameters.
 	return cmd
 }
 
-// runMatchCmd instantiates the specified image matching algorithm and runs it against two images.
 func (m *matchEnv) runMatchCmd(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
+	m.Match(ctx, args[0], args[1])
+}
+
+// Match instantiates the specified image matching algorithm and runs it against two images.
+func (m *matchEnv) Match(ctx context.Context, leftFile, rightFile string) {
 	// Load input images.
-	leftImage, err := loadPng(args[0])
+	leftImage, err := loadPng(leftFile)
 	ifErrLogExit(ctx, err)
-	rightImage, err := loadPng(args[1])
+	rightImage, err := loadPng(rightFile)
 	ifErrLogExit(ctx, err)
 
 	// Instantiate the specified algorithm.
