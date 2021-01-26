@@ -20,7 +20,6 @@ import (
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -274,26 +273,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				}
 				cfg := new(config.Config)
 				if err := opts.Unmarshal(dec, cfg); err != nil {
-					// Temporary band-aid for the transition from JSON to proto.
-					var jsonCfg roller.AutoRollerConfig
-					if err := json5.NewDecoder(bytes.NewReader(dec)).Decode(&jsonCfg); err != nil {
-						return nil, skerr.Wrapf(err, "failed to decode existing roller config")
-					}
-					if jsonCfg.RollerName == "google3-autoroll" {
-						jsonCfg.Kubernetes.ReadinessFailureThreshold = "0"
-						jsonCfg.Kubernetes.ReadinessInitialDelaySeconds = "0"
-						jsonCfg.Kubernetes.ReadinessPeriodSeconds = "0"
-					}
-					protoCfg, err := roller.AutoRollerConfigToProto(&jsonCfg)
-					if err != nil {
-						return nil, skerr.Wrapf(err, "failed to convert old-style to new-style config for %s", jsonCfg.RollerName)
-					}
-					text, err := prototext.Marshal(protoCfg)
-					if err != nil {
-						return nil, skerr.Wrapf(err, "failed to marshal proto config")
-					}
-					cfgBase64 = base64.StdEncoding.EncodeToString(text)
-					cfg = protoCfg
+					return nil, skerr.Wrapf(err, "failed to decode existing roller config")
 				}
 				cfgBase64ByRollerName[cfg.RollerName] = cfgBase64
 			}

@@ -178,7 +178,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoU
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345/comments", md)
 
 	// Mock /refs endpoints.
-	forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+	forkRepoMatches := parent.REGitHubForkRepoURL.FindStringSubmatch(forkRepoURL)
 	forkRepoOwner := forkRepoMatches[2]
 	forkRepoName := forkRepoMatches[3]
 	testSHA := "xyz"

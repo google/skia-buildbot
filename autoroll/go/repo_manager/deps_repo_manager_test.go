@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
@@ -45,24 +46,43 @@ var (
 	emails = []string{"reviewer@chromium.org"}
 )
 
-func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
-	return &DEPSRepoManagerConfig{
-		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  defaultBranchTmpl(t),
-				ChildPath:    childPath,
-				ParentBranch: defaultBranchTmpl(t),
+func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGerritParent{
+			DepsLocalGerritParent: &config.DEPSLocalGerritParentConfig{
+				DepsLocal: &config.DEPSLocalParentConfig{
+					GitCheckout: &config.GitCheckoutParentConfig{
+						GitCheckout: &config.GitCheckoutConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "TODO",
+						},
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
+								Id: "TODO",
+							},
+						},
+					},
+					ChildPath: childPath,
+				},
+				Gerrit: &config.GerritConfig{
+					Url:     "https://fake-skia-review.googlesource.com",
+					Project: "fake-gerrit-project",
+					Config:  config.GerritConfig_CHROMIUM,
+				},
 			},
 		},
-		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
-			Project: "fake-gerrit-project",
-			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
+			GitCheckoutChild: &config.GitCheckoutChildConfig{
+				GitCheckout: &config.GitCheckoutConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: "TODO",
+				},
+			},
 		},
 	}
 }
 
-func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
+func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -106,20 +126,24 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 	})
 
 	urlmock := mockhttpclient.NewURLMock()
-	g := setupFakeGerrit(t, cfg.Gerrit, urlmock)
+	g := setupFakeGerrit(t, cfg.GetDepsLocalGerritParent().GetGerrit(), urlmock)
 
 	// We have a chicken-and-egg problem where the config needs to be passed in,
 	// but the caller needs the repo URLs as part of the config. Set the child
 	// and parent repo URLs directly on the config, and if the ParentPath and
 	// GClientSpec entries are set, treat them as text templates.
-	cfg.ChildRepo = child.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGerritParent)
+	parentCfg.DepsLocalGerritParent.DepsLocal.GitCheckout.Dep.Primary.Id = child.RepoUrl()
+	parentCfg.DepsLocalGerritParent.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutChild)
+	childCfg.GitCheckoutChild.GitCheckout.RepoUrl = child.RepoUrl()
+
 	vars := struct {
 		ParentRepo string
 		ParentBase string
 	}{
-		ParentRepo: cfg.ParentRepo,
-		ParentBase: path.Base(cfg.ParentRepo),
+		ParentRepo: parentCfg.DepsLocalGerritParent.DepsLocal.GitCheckout.GitCheckout.RepoUrl,
+		ParentBase: path.Base(parentCfg.DepsLocalGerritParent.DepsLocal.GitCheckout.GitCheckout.RepoUrl),
 	}
 	cfg.ParentPath = testutils.ExecTemplate(t, cfg.ParentPath, vars)
 	cfg.GClientSpec = testutils.ExecTemplate(t, cfg.GClientSpec, vars)
@@ -138,7 +162,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 	return ctx, rm, wd, child, childCommits, parent, mockRun, lastUpload, urlmock, patchRefInSyncCmd, cleanup
 }
 
-func setupFakeGerrit(t *testing.T, cfg *codereview.GerritConfig, urlMock *mockhttpclient.URLMock) *gerrit.Gerrit {
+func setupFakeGerrit(t *testing.T, cfg *config.GerritConfig, urlMock *mockhttpclient.URLMock) *gerrit.Gerrit {
 	// Create a dummy commit-msg hook.
 	changeId := "123"
 	respBody := []byte(fmt.Sprintf(`#!/bin/sh
@@ -155,7 +179,7 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlMock.MockOnce(cfg.URL+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(codereview.GERRIT_CONFIGS[cfg.Config], cfg.URL, urlMock.Client())
+	g, err := gerrit.NewGerritWithConfig(codereview.GerritConfigs[cfg.Config], cfg.URL, urlMock.Client())
 	require.NoError(t, err)
 
 	return g
@@ -202,7 +226,7 @@ func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	gerritCfg := codereview.GerritConfigs[cfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	} else {

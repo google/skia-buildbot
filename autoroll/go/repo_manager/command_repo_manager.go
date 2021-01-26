@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -34,164 +33,32 @@ type CommandTmplVars struct {
 	RollingTo string
 }
 
-// CommandConfig provides configuration for a command used by
-// CommandRepoManager.
-type CommandConfig struct {
-	// Command is the command to run. Required. If this is the Command used to
-	// update the revision of the Child, this should be a text template which
-	// uses SetPinnedRevVars to get the from-and-to-revisions.
-	Command []string `json:"command"`
-
-	// Dir is the directory in which to run the command, relative to the
-	// checkout path. Optional.
-	Dir string `json:"dir,omitempty"`
-
-	// Env are the environment variables to supply to the command. Optional.
-	Env map[string]string `json:"env,omitempty"`
-}
-
-// Validate implements util.Validator.
-func (c CommandConfig) Validate() error {
-	if len(c.Command) == 0 {
-		return skerr.Fmt("Command is required")
-	}
-	return nil
-}
-
-// CommandConfigToProto converts a CommandConfig to a
-// config.CommandRepoManagerConfig_CommandConfig.
-func CommandConfigToProto(cfg *CommandConfig) *config.CommandRepoManagerConfig_CommandConfig {
-	return &config.CommandRepoManagerConfig_CommandConfig{
-		Command: cfg.Command,
-		Dir:     cfg.Dir,
-		Env:     cfg.Env,
-	}
-}
-
-// ProtoToCommandConfig converts a config.CommandRepoManagerConfig_CommandConfig
-// to a CommandConfig.
-func ProtoToCommandConfig(cfg *config.CommandRepoManagerConfig_CommandConfig) *CommandConfig {
-	return &CommandConfig{
-		Command: cfg.Command,
-		Dir:     cfg.Dir,
-		Env:     cfg.Env,
-	}
-}
-
-// CommandRepoManagerConfig provides configuration for CommandRepoManager.
-type CommandRepoManagerConfig struct {
-	git_common.GitCheckoutConfig
-	// ShortRevRegex is a regular expression used to shorten revision IDs for
-	// display.
-	ShortRevRegex *config_vars.Template `json:"shortRevRegex"`
-	// GetTipRev is the command used to obtain the latest revision of the Child.
-	GetTipRev *CommandConfig `json:"getTipRev"`
-	// GetPinnedRev is the command used to obtain the currently-pinned revision
-	// of the Child.
-	GetPinnedRev *CommandConfig `json:"getPinnedRev"`
-	// SetPinnedRev is the command used to update the currently-pinned revision
-	// of the Child.
-	SetPinnedRev *CommandConfig `json:"setPinnedRev"`
-}
-
-// Validate implements util.Validator.
-func (c *CommandRepoManagerConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.ShortRevRegex != nil {
-		if err := c.ShortRevRegex.Validate(); err != nil {
-			return err
-		}
-	}
-	if c.GetTipRev == nil {
-		return skerr.Fmt("GetTipRev is required")
-	}
-	if err := c.GetTipRev.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.GetPinnedRev == nil {
-		return skerr.Fmt("GetPinnedRev is required")
-	}
-	if err := c.GetPinnedRev.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.SetPinnedRev == nil {
-		return skerr.Fmt("SetPinnedRev is required")
-	}
-	if err := c.SetPinnedRev.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
-}
-
-// ValidStrategies implements roller.RepoManagerConfig.
-func (c CommandRepoManagerConfig) ValidStrategies() []string {
-	return []string{strategy.ROLL_STRATEGY_BATCH}
-}
-
-// DefaultStrategy implements roller.RepoManagerConfig.
-func (c CommandRepoManagerConfig) DefaultStrategy() string {
-	return strategy.ROLL_STRATEGY_BATCH
-}
-
-// NoCheckout implements roller.RepoManagerConfig.
-func (c CommandRepoManagerConfig) NoCheckout() bool {
-	return false
-}
-
-// CommandRepoManagerConfigToProto converts a CommandRepoManagerConfig to a
-// config.CommandRepoManagerConfig.
-func CommandRepoManagerConfigToProto(cfg *CommandRepoManagerConfig) *config.CommandRepoManagerConfig {
-	return &config.CommandRepoManagerConfig{
-		GitCheckout:   git_common.GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
-		ShortRevRegex: cfg.ShortRevRegex.RawTemplate(),
-		GetTipRev:     CommandConfigToProto(cfg.GetTipRev),
-		GetPinnedRev:  CommandConfigToProto(cfg.GetPinnedRev),
-		SetPinnedRev:  CommandConfigToProto(cfg.SetPinnedRev),
-	}
-}
-
-// ProtoToCommandRepoManagerConfig converts a config.CommandRepoManagerConfig to
-// a CommandRepoManagerConfig.
-func ProtoToCommandRepoManagerConfig(cfg *config.CommandRepoManagerConfig) (*CommandRepoManagerConfig, error) {
-	co, err := git_common.ProtoToGitCheckoutConfig(cfg.GitCheckout)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	shortRevRegex, err := config_vars.NewTemplate(cfg.ShortRevRegex)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &CommandRepoManagerConfig{
-		GitCheckoutConfig: *co,
-		ShortRevRegex:     shortRevRegex,
-		GetTipRev:         ProtoToCommandConfig(cfg.GetTipRev),
-		GetPinnedRev:      ProtoToCommandConfig(cfg.GetPinnedRev),
-		SetPinnedRev:      ProtoToCommandConfig(cfg.SetPinnedRev),
-	}, nil
-}
-
 // CommandRepoManager implements RepoManager by shelling out to various
 // configured commands to perform all of the work.
 type CommandRepoManager struct {
 	co            *git_common.Checkout
 	shortRevRegex *config_vars.Template
-	getTipRev     *CommandConfig
-	getPinnedRev  *CommandConfig
-	setPinnedRev  *CommandConfig
+	getTipRev     *config.CommandRepoManagerConfig_CommandConfig
+	getPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
+	setPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
 	createRoll    git_common.CreateRollFunc
 	uploadRoll    git_common.UploadRollFunc
 }
 
 // NewCommandRepoManager returns a RepoManager implementation which rolls
 // trace_processor_shell into Chrome.
-func NewCommandRepoManager(ctx context.Context, c CommandRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, cr codereview.CodeReview) (*CommandRepoManager, error) {
+func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, cr codereview.CodeReview) (*CommandRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if c.ShortRevRegex != nil {
-		if err := reg.Register(c.ShortRevRegex); err != nil {
+	var shortRevRegex *config_vars.Template
+	if c.ShortRevRegex != "" {
+		var err error
+		shortRevRegex, err = config_vars.NewTemplate(c.ShortRevRegex)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := reg.Register(shortRevRegex); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	}
@@ -213,8 +80,12 @@ func NewCommandRepoManager(ctx context.Context, c CommandRepoManagerConfig, reg 
 		}
 		return strings.TrimSpace(out), nil
 	}
+	g, ok := cr.Client().(gerrit.GerritInterface)
+	if !ok {
+		return nil, skerr.Fmt("CommandRepoManager must use Gerrit for code review.")
+	}
 	uploadRoll := parent.GitCheckoutUploadGerritRollFunc(g)
-	co, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, cr.UserName(), cr.UserEmail(), nil)
+	co, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -223,7 +94,7 @@ func NewCommandRepoManager(ctx context.Context, c CommandRepoManagerConfig, reg 
 	}
 	rm = &CommandRepoManager{
 		co:            co,
-		shortRevRegex: c.ShortRevRegex,
+		shortRevRegex: shortRevRegex,
 		getTipRev:     c.GetTipRev,
 		getPinnedRev:  c.GetPinnedRev,
 		setPinnedRev:  c.SetPinnedRev,
@@ -233,7 +104,7 @@ func NewCommandRepoManager(ctx context.Context, c CommandRepoManagerConfig, reg 
 	return rm, nil
 }
 
-func makeCommand(cfg *CommandConfig, baseDir string, vars *CommandTmplVars) (*exec.Command, error) {
+func makeCommand(cfg *config.CommandRepoManagerConfig_CommandConfig, baseDir string, vars *CommandTmplVars) (*exec.Command, error) {
 	args := make([]string, 0, len(cfg.Command))
 	for _, arg := range cfg.Command {
 		tmpl, err := template.New(arg).Parse(arg)
@@ -262,7 +133,7 @@ func makeCommand(cfg *CommandConfig, baseDir string, vars *CommandTmplVars) (*ex
 }
 
 // Run the given command and return the output.
-func (rm *CommandRepoManager) run(ctx context.Context, cmd *CommandConfig, vars *CommandTmplVars) (string, error) {
+func (rm *CommandRepoManager) run(ctx context.Context, cmd *config.CommandRepoManagerConfig_CommandConfig, vars *CommandTmplVars) (string, error) {
 	c, err := makeCommand(cmd, rm.co.Dir(), vars)
 	if err != nil {
 		return "", skerr.Wrap(err)

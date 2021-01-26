@@ -32,43 +32,10 @@ var (
 	cipdDetailsRegex = regexp.MustCompile(`details(\d+)`)
 )
 
-// CIPDConfig provides configuration for CIPDChild.
-type CIPDConfig struct {
-	Name string `json:"name"`
-	Tag  string `json:"tag"`
-}
-
-// Validate implements util.Validator.
-func (c *CIPDConfig) Validate() error {
-	if c.Name == "" {
-		return skerr.Fmt("Name is required.")
-	}
-	if c.Tag == "" {
-		return skerr.Fmt("Tag is required.")
-	}
-	return nil
-}
-
-// CIPDConfigToProto converts a CIPDConfig to a config.CIPDChildConfig.
-func CIPDConfigToProto(cfg *CIPDConfig) *config.CIPDChildConfig {
-	return &config.CIPDChildConfig{
-		Name: cfg.Name,
-		Tag:  cfg.Tag,
-	}
-}
-
-// ProtoToCIPDConfig converts a config.CIPDChildConfig to a CIPDConfig.
-func ProtoToCIPDConfig(cfg *config.CIPDChildConfig) *CIPDConfig {
-	return &CIPDConfig{
-		Name: cfg.Name,
-		Tag:  cfg.Tag,
-	}
-}
-
 // NewCIPD returns an implementation of Child which deals with a CIPD package.
 // If the caller calls CIPDChild.Download, the destination must be a descendant of
 // the provided workdir.
-func NewCIPD(ctx context.Context, c CIPDConfig, client *http.Client, workdir string) (*CIPDChild, error) {
+func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client, workdir string) (*CIPDChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -92,7 +59,7 @@ type CIPDChild struct {
 	tag    string
 }
 
-// See documentation for Child interface.
+// GetRevision implements Child.
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	instance, err := c.client.Describe(ctx, c.name, id)
 	if err != nil {
@@ -101,11 +68,8 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 	return CIPDInstanceToRevision(c.name, instance), nil
 }
 
-// See documentation for Child interface.
-// Note: that this just finds all versions of the package between the last
-// rolled version and the version currently pointed to by the configured tag; we
-// can't know whether the tag we're tracking was ever actually applied to any of
-// the package instances in between.
+// Update implements Child.
+// Note: that this just finds the newest version of the CIPD package.
 func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	head, err := c.client.ResolveVersion(ctx, c.name, c.tag)
 	if err != nil {
