@@ -35,7 +35,7 @@ class CsvMerger(object):
   def _GetFieldNames(self):
     field_names = set()
     for csv_file in self._input_csv_files:
-      with open(csv_file, 'rb') as f:
+      with open(csv_file, 'r') as f:
         field_names.update(csv.DictReader(f).fieldnames)
     return field_names
 
@@ -76,17 +76,13 @@ class CsvMerger(object):
       except (ValueError, TypeError):
         smallest_row[fieldname] = ','.join(values)
 
-    # print
-    # print 'For rows: %s' % rows
-    # print 'Smallest row is %s' % smallest_row
-    # print
     return smallest_row
 
   def Merge(self):
     """Method that does the CSV merging."""
     field_names = self._GetFieldNames()
-    print 'Merging %d csv files into %d columns' % (len(self._input_csv_files),
-                                                    len(field_names))
+    print('Merging %d csv files into %d columns' % (len(self._input_csv_files),
+                                                    len(field_names)))
 
     # List that will contain all rows read from the CSV files. It will also
     # combine all rows found with the same TELEMETRY_PAGE_NAME_KEY into one
@@ -99,7 +95,7 @@ class CsvMerger(object):
     page_names_to_rows = {}
 
     for csv_file in self._input_csv_files:
-      with open(csv_file, 'rb') as f:
+      with open(csv_file, 'r') as f:
         dict_reader = csv.DictReader(f)
         for row in dict_reader:
           if TELEMETRY_PAGE_NAME_KEY in row:
@@ -123,7 +119,7 @@ class CsvMerger(object):
         csv_rows.append(smallest_row)
 
     # Write all rows in csv_rows to the specified output CSV.
-    with open(self._output_csv_name, 'wb') as f:
+    with open(self._output_csv_name, 'w') as f:
       dict_writer = csv.DictWriter(f, field_names)
       dict_writer.writeheader()
       total_rows = 0
@@ -131,7 +127,7 @@ class CsvMerger(object):
         dict_writer.writerow(row)
         total_rows += 1
 
-    print 'Successfully merged %d rows' % total_rows
+    print('Successfully merged %d rows' % total_rows)
 
 
 if '__main__' == __name__:
