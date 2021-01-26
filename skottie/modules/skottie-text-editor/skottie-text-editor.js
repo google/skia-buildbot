@@ -157,7 +157,9 @@ class SkottieTextEditorSk extends HTMLElement {
 
   _save() {
     this.dispatchEvent(new CustomEvent('apply', {
-      detail: this._animation,
+      detail: {
+        texts: this._state.texts,
+      },
     }));
   }
 

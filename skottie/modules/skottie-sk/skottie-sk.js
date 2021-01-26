@@ -324,8 +324,30 @@ define('skottie-sk', class extends HTMLElement {
   }
 
   _applyTextEdits(event) {
-    const animation = event.detail;
-    this._state.lottie = animation;
+    const texts = event.detail.texts;
+    const currentAnimation = JSON.parse(JSON.stringify(this._state.lottie));
+    texts.forEach((textData) => {
+      textData.items.forEach((item) => {
+        let layers;
+        // Searches for a composition that contains this layer
+        if (!item.parentId) {
+          layers = currentAnimation.layers;
+        } else {
+          const asset = currentAnimation.assets.find((assetItem) => assetItem.id === item.parentId);
+          layers = asset ? asset.layers : [];
+        }
+
+        // Replaces current animation layer with new layer value
+        layers.forEach((layer, index) => {
+          if (layer.ind === item.layer.ind
+            && layer.nm === item.layer.nm
+          ) {
+            layers[index] = item.layer;
+          }
+        });
+      });
+    });
+    this._state.lottie = currentAnimation;
     this._upload();
   }
 
