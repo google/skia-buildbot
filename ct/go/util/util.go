@@ -366,9 +366,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	cipdPkgs := []string{}
 	if targetPlatform == PLATFORM_WINDOWS {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
+		cipdPkgs = append(cipdPkgs, PYTHON3_CIPD_PACKAGE_WIN)
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython[cipd.PlatformWindowsAmd64])...)
 	} else {
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
+		cipdPkgs = append(cipdPkgs, PYTHON3_CIPD_PACKAGE_LINUX)
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsPython[cipd.PlatformLinuxAmd64])...)
 	}
 	if targetPlatform == PLATFORM_ANDROID {
@@ -514,7 +516,7 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	if handleStrings {
 		args = append(args, "--handle_strings")
 	}
-	err := ExecuteCmd(ctx, "python", args, []string{}, CSV_MERGER_TIMEOUT, nil, nil)
+	err := ExecuteCmd(ctx, BINARY_PYTHON, args, []string{}, CSV_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
 		return outputFilePath, noOutputWorkers, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
@@ -648,7 +650,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// Set the DISPLAY.
 		env = append(env, "DISPLAY=:0")
 	}
-	pythonExec := "vpython"
+	pythonExec := BINARY_VPYTHON
 	// Set VPYTHON_VIRTUALENV_ROOT for vpython
 	env = append(env, fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir()))
 	// Append the original environment as well.
@@ -659,7 +661,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// Could not figure out how to make vpython work on windows so use python instead.
 		// The downside of this is that we might have to keep installing packages on win GCE
 		// instances.
-		pythonExec = "python"
+		pythonExec = BINARY_PYTHON
 	} else if targetPlatform == PLATFORM_ANDROID {
 		env = append(env, "BOTO_CONFIG=/home/chrome-bot/.boto.puppet-bak")
 		// Reset android logcat prior to the run so that we can examine the logs later.
@@ -777,7 +779,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	if handleStrings {
 		args = append(args, "--handle_strings")
 	}
-	err = ExecuteCmd(ctx, "python", args, []string{}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil, nil)
+	err = ExecuteCmd(ctx, BINARY_PYTHON, args, []string{}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running csv_pivot_table_merger.py: %s", err)
 	}
@@ -894,9 +896,11 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		osType = "win"
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
+		cipdPkgs = append(cipdPkgs, PYTHON3_CIPD_PACKAGE_WIN)
 	} else {
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
+		cipdPkgs = append(cipdPkgs, PYTHON3_CIPD_PACKAGE_LINUX)
 	}
 
 	// Isolate the task.
@@ -1031,7 +1035,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	osType := "linux"
 	cipdPkgs := []string{}
 	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
-	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
+	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX, PYTHON3_CIPD_PACKAGE_LINUX)
 	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(specs.CIPD_PKGS_ISOLATE)...)
 	if targetPlatform == PLATFORM_WINDOWS {
 		osType = "win"
@@ -1087,9 +1091,11 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		osType = "win"
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
+		cipdPkgs = append(cipdPkgs, PYTHON3_CIPD_PACKAGE_WIN)
 	} else {
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
+		cipdPkgs = append(cipdPkgs, PYTHON3_CIPD_PACKAGE_LINUX)
 	}
 
 	// Isolate the task.
