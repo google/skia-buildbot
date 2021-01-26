@@ -138,7 +138,6 @@ cp -r /src/particles/package*                /tests/particles
 cp -r /src/particles/webpack.config.ts       /tests/particles
 cp -r /src/particles/tsconfig.json           /tests/particles
 cp -r /src/particles/modules                 /tests/particles
-cp -r /src/particles/tmp                     /tests/particles
 cp    /src/particles/Makefile                /tests/particles
 
 
