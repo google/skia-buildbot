@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"go.skia.org/infra/gold-client/go/goldclient"
@@ -48,9 +50,13 @@ Outputs the closest of these images and the diff to the given folder.
 	return cmd
 }
 
-// runDiffCmd executes the diff logic for comparing a given image against all that Gold knows.
-func (d *diffEnv) runDiffCmd(cmd *cobra.Command, args []string) {
+func (d *diffEnv) runDiffCmd(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
+	d.Diff(ctx)
+}
+
+// Diff executes the diff logic for comparing a given image against all that Gold knows.
+func (d *diffEnv) Diff(ctx context.Context) {
 	ctx = loadAuthenticatedClients(ctx, d.workDir)
 
 	config := goldclient.GoldClientConfig{
@@ -64,4 +70,5 @@ func (d *diffEnv) runDiffCmd(cmd *cobra.Command, args []string) {
 
 	err = goldClient.Diff(ctx, types.TestName(d.test), d.corpus, d.inputFile, d.outDir)
 	ifErrLogExit(ctx, err)
+	exitProcess(ctx, 0)
 }
