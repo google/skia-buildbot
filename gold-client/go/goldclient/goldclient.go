@@ -359,7 +359,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 			// If the image is untriaged, but matches the latest positive digest in its baseline via the
 			// specified non-exact image matching algorithm, then triage the image as positive.
 			if match && algorithmName != imgmatching.ExactMatching {
-				infof(ctx, "Triaging digest %q for test %q as positive (algorithm name: %q)", imgDigest, name, algorithmName)
+				infof(ctx, "Triaging digest %q for test %q as positive (algorithm name: %q)\n", imgDigest, name, algorithmName)
 				err = c.TriageAsPositive(ctx, name, imgDigest, string(algorithmName))
 				if err != nil {
 					return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgDigest, name, algorithmName)
@@ -373,7 +373,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
 				}
 				link += "\n"
-				infof(ctx, "Untriaged or negative image: %s", link)
+				infof(ctx, "Untriaged or negative image: %s\n", link)
 				ff := c.resultState.FailureFile
 				if ff != "" {
 					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -476,13 +476,13 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	}
 
 	// Fetch the most recent positive digest.
-	infof(ctx, "Fetching most recent positive digest for trace with ID %q.", traceId)
+	infof(ctx, "Fetching most recent positive digest for trace with ID %q.\n", traceId)
 	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(ctx, traceId)
 	if err != nil {
 		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 	if mostRecentPositiveDigest == tiling.MissingDigest {
-		infof(ctx, "No recent positive digests for trace with ID %q. This probably means that the test was newly added.", traceId)
+		infof(ctx, "No recent positive digests for trace with ID %q. This probably means that the test was newly added.\n", traceId)
 		return false, algorithmName, nil
 	}
 
@@ -493,7 +493,7 @@ func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName ty
 	}
 
 	// Return algorithm's output.
-	infof(ctx, "Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
+	infof(ctx, "Non-exact image comparison using algorithm %q against most recent positive digest %q.\n", algorithmName, mostRecentPositiveDigest)
 	return matcher.Match(mostRecentPositiveImage, img), algorithmName, nil
 }
 
@@ -623,11 +623,11 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 		return skerr.Wrapf(err, "invalid JSON from digests served from %s: %s", u, string(jb))
 	}
 	if len(dlr.Digests) == 0 {
-		errorf(ctx, "Gold doesn't know of any digests that match %s and corpus %s", name, corpus)
+		errorf(ctx, "Gold doesn't know of any digests that match %s and corpus %s\n", name, corpus)
 		return nil
 	}
 
-	infof(ctx, "Going to compare %s.png against %d other images", inputDigest, len(dlr.Digests))
+	infof(ctx, "Going to compare %s.png against %d other images\n", inputDigest, len(dlr.Digests))
 
 	// 3a) Download those from bucket (or use from working directory cache). We download them with
 	//    the same credentials that let us upload them.
@@ -655,7 +655,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 			closestRightDigest = d
 		}
 	}
-	infof(ctx, "Digest %s was closest (combined metric of %f)", closestRightDigest, smallestCombined)
+	infof(ctx, "Digest %s was closest (combined metric of %f)\n", closestRightDigest, smallestCombined)
 
 	// 4) Write closest image and the diff to that image to the output directory.
 	o := filepath.Join(outDir, fmt.Sprintf("closest-%s.png", closestRightDigest))
