@@ -7,7 +7,7 @@
 
 import datetime
 import os
-import Queue
+import queue
 import select
 import subprocess
 import sys
@@ -53,7 +53,7 @@ def run_async(cmd, echo=None, shell=False):
   if echo is None:
     echo = VERBOSE
   if echo:
-    print ' '.join(cmd) if isinstance(cmd, list) else cmd
+    print(' '.join(cmd) if isinstance(cmd, list) else cmd)
   if 'nt' in os.name:
     # Windows has a bad habit of opening a dialog when a console program
     # crashes, rather than just letting it crash.  Therefore, when a program
@@ -66,16 +66,15 @@ def run_async(cmd, echo=None, shell=False):
   else:
     flags = 0
   return subprocess.Popen(cmd, shell=shell, stderr=subprocess.STDOUT,
-                          stdout=subprocess.PIPE, creationflags=flags,
-                          bufsize=1)
+                          stdout=subprocess.PIPE, creationflags=flags)
 
 
 class EnqueueThread(threading.Thread):
   """ Reads and enqueues lines from a file. """
-  def __init__(self, file_obj, queue):
+  def __init__(self, file_obj, q):
     threading.Thread.__init__(self)
     self._file = file_obj
-    self._queue = queue
+    self._queue = q
     self._stopped = False
 
   def run(self):
@@ -119,7 +118,7 @@ def log_process_in_real_time(proc, echo=None, timeout=None, log_file=None,
   """
   if echo is None:
     echo = VERBOSE
-  stdout_queue = Queue.Queue()
+  stdout_queue = queue.Queue()
   log_thread = EnqueueThread(proc.stdout, stdout_queue)
   log_thread.start()
   try:
@@ -128,7 +127,7 @@ def log_process_in_real_time(proc, echo=None, timeout=None, log_file=None,
     while True:
       code = proc.poll()
       try:
-        output = stdout_queue.get_nowait()
+        output = stdout_queue.get_nowait().decode('utf-8')
         all_output.append(output)
         if output and print_timestamps:
           timestamp = datetime.datetime.now().strftime('%H:%M:%S.%f')
@@ -143,7 +142,7 @@ def log_process_in_real_time(proc, echo=None, timeout=None, log_file=None,
         if halt_on_output and halt_on_output in output:
           proc.terminate()
           break
-      except Queue.Empty:
+      except queue.Empty:
         if code != None: # proc has finished running
           break
         time.sleep(0.5)
@@ -183,7 +182,7 @@ def log_process_after_completion(proc, echo=None, timeout=None,
     code = proc.poll()
   output = proc.communicate()[0]
   if echo:
-    print output
+    print(output)
   if log_file:
     log_file.write(output)
     log_file.flush()
@@ -243,6 +242,6 @@ def run_retry(cmd, echo=None, shell=False, attempts=1,
     except CommandFailedException:
       if attempt >= attempts:
         raise
-    print 'Command failed. Retrying in %d seconds...' % secs_between_attempts
+    print('Command failed. Retrying in %d seconds...' % secs_between_attempts)
     time.sleep(secs_between_attempts)
     attempt += 1
