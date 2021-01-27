@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -17,11 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -47,31 +48,47 @@ var (
 	githubCIPDTs = cipd.UnixTime(time.Unix(1592417178, 0))
 )
 
-func githubCipdDEPSRmCfg(t *testing.T) *GithubCipdDEPSRepoManagerConfig {
-	return &GithubCipdDEPSRepoManagerConfig{
-		GithubDEPSRepoManagerConfig: GithubDEPSRepoManagerConfig{
-			DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
-				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  defaultBranchTmpl(t),
-					ChildPath:    githubCIPDDEPSChildPath,
-					ParentBranch: defaultBranchTmpl(t),
+func githubCipdDEPSRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{
+			DepsLocalGithubParent: &config.DEPSLocalGitHubParentConfig{
+				DepsLocal: &config.DEPSLocalParentConfig{
+					GitCheckout: &config.GitCheckoutParentConfig{
+						GitCheckout: &config.GitCheckoutConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "todo.git",
+						},
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
+								Id:   githubCIPDAssetName,
+								Path: deps_parser.DepsFileName,
+							},
+						},
+					},
+					ChildPath: githubCIPDDEPSChildPath,
 				},
+				Github: &config.GitHubConfig{
+					RepoOwner: githubCIPDUser,
+					RepoName:  "todo.git",
+				},
+				ForkRepoUrl: "todo.git",
 			},
 		},
-		CipdAssetName: githubCIPDAssetName,
-		CipdAssetTag:  "latest",
+		Child: &config.ParentChildRepoManagerConfig_CipdChild{
+			CipdChild: &config.CIPDChildConfig{
+				Name: githubCIPDAssetName,
+				Tag:  githubCIPDAssetTag,
+			},
+		},
 	}
 }
 
-func setupGithubCipdDEPS(t *testing.T, cfg *GithubCipdDEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
+func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
 
-	// Create child and parent repos.
-	childPath := filepath.Join(wd, "github_repos", "earth")
-	require.NoError(t, os.MkdirAll(childPath, 0755))
-
+	// Create parent repo.
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, "DEPS", fmt.Sprintf(`
 deps = {
@@ -109,11 +126,12 @@ deps = {
 
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g, urlMock := setupFakeGithub(t, ctx, nil)
+	g, urlMock := setupFakeGithub(ctx, t, nil)
 
-	cfg.ParentRepo = parent.RepoUrl()
-	cfg.ForkRepoURL = fork.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
+	parentCfg.ForkRepoUrl = fork.RepoUrl()
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", recipesCfg, "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
 	rm.Child.(*child.CIPDChild).SetClientForTesting(mockCipd)
@@ -220,7 +238,7 @@ func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll.
-	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRequests(t, urlMock, cfg.GetDepsLocalGithubParent().ForkRepoUrl)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -237,7 +255,8 @@ func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 		return nil
 	})
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
 	defer cleanup()
@@ -246,7 +265,7 @@ func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRequests(t, urlMock, parentCfg.ForkRepoUrl)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
@@ -263,7 +282,8 @@ func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 		return expectedErr
 	})
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
 	defer cleanup()
@@ -272,7 +292,7 @@ func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRequests(t, urlMock, parentCfg.ForkRepoUrl)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)

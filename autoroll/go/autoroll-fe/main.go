@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/rpc"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -66,7 +65,7 @@ var (
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
 
-	rollerConfigs map[string]*roller.AutoRollerConfig
+	rollerConfigs map[string]*config.Config
 )
 
 func reloadTemplates() {
@@ -91,7 +90,7 @@ func reloadTemplates() {
 	))
 }
 
-func getRoller(w http.ResponseWriter, r *http.Request) *roller.AutoRollerConfig {
+func getRoller(w http.ResponseWriter, r *http.Request) *config.Config {
 	name, ok := mux.Vars(r)["roller"]
 	if !ok {
 		http.Error(w, "Unable to find roller name in request path.", http.StatusBadRequest)
@@ -211,23 +210,17 @@ func main() {
 		}
 		cfgBytes = append(cfgBytes, b)
 	}
-	cfgs := make([]*roller.AutoRollerConfig, 0, len(cfgBytes))
+	cfgs := make([]*config.Config, 0, len(cfgBytes))
 	for _, b := range cfgBytes {
-		var cfgProto config.Config
-		if err := prototext.Unmarshal(b, &cfgProto); err != nil {
+		var cfg config.Config
+		if err := prototext.Unmarshal(b, &cfg); err != nil {
 			sklog.Fatalf("Failed to decode proto string: %s\n\nstring:\n%s", err, string(b))
 		}
-		// TODO(borenet): Remove the old-style config and just use the proto
-		// version everywhere.
-		cfg, err := roller.ProtoToConfig(&cfgProto)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		cfgs = append(cfgs, cfg)
+		cfgs = append(cfgs, &cfg)
 	}
 
 	// Validate the configs.
-	rollerConfigs = make(map[string]*roller.AutoRollerConfig, len(cfgs))
+	rollerConfigs = make(map[string]*config.Config, len(cfgs))
 	rollers := make(map[string]*rpc.AutoRoller, len(cfgs))
 	for _, cfg := range cfgs {
 		if err := cfg.Validate(); err != nil {

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -31,6 +31,9 @@ const (
 	fuchsiaSDKTimeNext = "2009-11-10T23:00:03Z"
 
 	fuchsiaSDKArchiveUrlTmpl = "https://storage.googleapis.com/fuchsia/development/%s"
+
+	fuchsiaSDKVersionFilePathLinux = "build/fuchsia/linux.sdk.sha1"
+	fuchsiaSDKVersionFilePathMac   = "build/fuchsia/mac.sdk.sha1"
 )
 
 var (
@@ -38,21 +41,44 @@ var (
 	fuchsiaSDKLatestArchiveUrlMac   = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "LATEST_MAC")
 )
 
-func fuchsiaCfg(t *testing.T) *FuchsiaSDKRepoManagerConfig {
-	return &FuchsiaSDKRepoManagerConfig{
-		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  defaultBranchTmpl(t),
-				ChildPath:    "unused/by/fuchsiaSDK/repomanager",
-				ParentBranch: defaultBranchTmpl(t),
+func fuchsiaCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: "todo.git",
+				},
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
+						Id:   "FuchsiaSDK",
+						Path: fuchsiaSDKVersionFilePathLinux,
+					},
+					Transitive: []*config.TransitiveDepConfig{
+						{
+							Child: &config.VersionFileConfig{
+								Id:   "development/LATEST_MAC",
+								Path: fuchsiaSDKVersionFilePathMac,
+							},
+							Parent: &config.VersionFileConfig{
+								Id:   "development/LATEST_MAC",
+								Path: fuchsiaSDKVersionFilePathMac,
+							},
+						},
+					},
+				},
+				Gerrit: &config.GerritConfig{
+					Url:     "https://fake-skia-review.googlesource.com",
+					Project: "fake-gerrit-project",
+					Config:  config.GerritConfig_CHROMIUM,
+				},
 			},
 		},
-		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
-			Project: "fake-gerrit-project",
-			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		Child: &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
+			FuchsiaSdkChild: &config.FuchsiaSDKChildConfig{
+				IncludeMacSdk: true,
+			},
 		},
-		IncludeMacSDK: true,
 	}
 }
 
@@ -62,11 +88,15 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 
 	ctx := context.Background()
 
+	cfg := fuchsiaCfg(t)
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+
 	// Create child and parent repos.
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, fuchsiaSDKVersionFilePathLinux, fuchsiaSDKRevBase)
 	parent.Add(ctx, fuchsiaSDKVersionFilePathMac, fuchsiaSDKRevBase)
 	parent.Commit(ctx)
+	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
 
 	urlmock := mockhttpclient.NewURLMock()
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
@@ -84,9 +114,6 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg := fuchsiaCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
-
 	// Initial update, everything up-to-date.
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
@@ -95,7 +122,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
 
-	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -200,17 +227,4 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, ci.Issue, issue)
-}
-
-func TestFuchsiaSDKConfigValidation(t *testing.T) {
-	unittest.SmallTest(t)
-
-	cfg := fuchsiaCfg(t)
-	cfg.ParentRepo = "dummy" // Not supplied above.
-	require.NoError(t, cfg.Validate())
-
-	// The only fields come from the nested Configs, so exclude them and
-	// verify that we fail validation.
-	cfg = &FuchsiaSDKRepoManagerConfig{}
-	require.Error(t, cfg.Validate())
 }
