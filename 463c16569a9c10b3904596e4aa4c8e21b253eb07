@@ -63,6 +63,30 @@
       },
       "revId": "463c16569a9c10b3904596e4aa4c8e21b253eb07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "60ccdfe1_67aaed5c",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-27T16:12:39Z",
+      "side": 1,
+      "message": "The top level (\"message Config\").  This seems like something we *might* want elsewhere too.",
+      "parentUuid": "e99cc759_a43d121d",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 43
+      },
+      "revId": "463c16569a9c10b3904596e4aa4c8e21b253eb07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
