@@ -53,7 +53,7 @@ type authOpt struct {
 	ServiceAccount string
 	GSUtil         bool
 
-	dryRun bool //unexported, i.e. not saved to JSON
+	dryRun bool // unexported, i.e. not saved to JSON
 }
 
 // Validate implements the AuthOpt interface.
