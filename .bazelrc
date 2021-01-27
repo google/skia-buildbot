@@ -61,3 +61,25 @@ build:remote --google_default_credentials=true
 
 # Use this project's RBE instance.
 build:remote --remote_instance_name projects/skia-public/instances/default_instance
+
+# ==============================================================================
+# Use our custom-configured c++ toolchain.
+
+###build:clang_config --crosstool_top=//bazel/infra/toolchain:clang_suite
+
+# Use --cpu as a differentiator.
+
+##build:clang_config --cpu=k8
+
+# Use the default Bazel C++ toolchain to build the tools used during the
+# build.
+
+###build:clang_config --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+
+
+## EXAMPLES IN REPO https://github.com/hlopko/bazel_platforms_examples ##
+
+
+# Use toolchain resolution for c++ builds.
+build --incompatible_enable_cc_toolchain_resolution
