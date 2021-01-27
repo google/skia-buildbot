@@ -44,7 +44,7 @@ const (
 	// 16 shards = 5s
 	// 64 shards = 2.3s
 	// 256 shards = 2.3s
-	resultShards = 64
+	resultShards = 32
 
 	emptyParamsHash = ""
 )
