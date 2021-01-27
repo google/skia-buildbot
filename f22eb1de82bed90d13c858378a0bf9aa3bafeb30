@@ -63,6 +63,30 @@
       },
       "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8ae719d5_5be02a3f",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-27T18:07:09Z",
+      "side": 1,
+      "message": "Oh, maybe that\u0027s more complicated than I thought.  I guess let\u0027s leave it here for now.",
+      "parentUuid": "fc99d6ff_c7362e1d",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
