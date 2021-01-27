@@ -39,6 +39,30 @@
       },
       "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fc99d6ff_c7362e1d",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-27T18:04:17Z",
+      "side": 1,
+      "message": "Oh I missed removing this.\nShould I be passing in IncludeAuthorsAsReviewers to NewAndroidRepoManager from CreateRepoManager? what is the best way to pass that config from the top-level Config around?",
+      "parentUuid": "11995e91_44ff314c",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
