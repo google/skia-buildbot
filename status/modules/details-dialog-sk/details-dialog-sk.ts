@@ -151,8 +151,9 @@ export class DetailsDialogSk extends ElementSk {
       td,
       html`
         <h3>
-          <a target="_blank" rel="noopener noreferrer" href="${logsUrl(task.swarmingTaskId)}">
-            <span>${task.name}</span><launch-icon-sk></launch-icon-sk>
+          <span>${task.name}</span
+          ><a target="_blank" rel="noopener noreferrer" href="${logsUrl(task.swarmingTaskId)}"
+            ><launch-icon-sk></launch-icon-sk>
           </a>
         </h3>
         <div>
