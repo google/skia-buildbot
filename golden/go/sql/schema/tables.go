@@ -579,8 +579,8 @@ type SecondaryBranchValueRow struct {
 	// SourceFileID is the MD5 hash of the source file that produced this data point. This is a
 	// foreign key into the SourceFiles table.
 	SourceFileID SourceFileID `sql:"source_file_id BYTES NOT NULL"`
-	// TryjobID corresponds to the tryjob (if any) that produced this data. When/if we support
-	// branches, this may be null, e.g. data coming from chrome_m86.
+	// TryjobID corresponds to the latest tryjob (if any) that produced this data. When/if we
+	// support branches, this may be null, e.g. data coming from chrome_m86.
 	TryjobID string `sql:"tryjob_id string"`
 	// By creating the primary key using the shard and the commit_id, we give some data locality
 	// to data from the same trace, but in different commits w/o overloading a single range (if
