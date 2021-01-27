@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/gold-client/go/goldclient"
 )
@@ -39,10 +41,13 @@ has been run.
 	return cmd
 }
 
-// runDumpCmd executes the dump logic - it loads the previous setup
-// from disk and dumps out the information.
-func (d *dumpEnv) runDumpCmd(cmd *cobra.Command, args []string) {
+func (d *dumpEnv) runDumpCmd(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
+	d.Dump(ctx)
+}
+
+// Dump executes the dump logic - it loads the work dir from disk and dumps out the information.
+func (d *dumpEnv) Dump(ctx context.Context) {
 	ctx = loadAuthenticatedClients(ctx, d.flagWorkDir)
 
 	// the user is presumed to have called init first, so we can just load it
@@ -52,12 +57,13 @@ func (d *dumpEnv) runDumpCmd(cmd *cobra.Command, args []string) {
 	if d.flagDumpBaseline {
 		b, err := goldClient.DumpBaseline()
 		ifErrLogExit(ctx, err)
-		logInfof(ctx, "Baseline: \n%s\n", b)
+		logInfof(ctx, "Baseline:\n%s\n", b)
 	}
 
 	if d.flagDumpHashes {
 		h, err := goldClient.DumpKnownHashes()
 		ifErrLogExit(ctx, err)
-		logInfof(ctx, "Known Hashes: \n%s\n", h)
+		logInfof(ctx, "Known Hashes:\n%s\n", h)
 	}
+	exitProcess(ctx, 0)
 }
