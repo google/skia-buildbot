@@ -1,0 +1,212 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b55648fc_6ef639a3",
+        "filename": "bazel/infra/cipd/assets/cipd_package.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 3,
+        "startChar": 68,
+        "endLine": 3,
+        "endChar": 69
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "a0a5e20d_ca1a23f6",
+        "filename": "bazel/infra/cipd/assets/cipd_package.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Please remove the trailing whitespace.",
+      "range": {
+        "startLine": 28,
+        "startChar": 68,
+        "endLine": 28,
+        "endChar": 69
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ed6e15e8_d2f8372e",
+        "filename": "bazel/infra/cipd/assets/manifests/android_sdk_manifest.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 22422,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 22422,
+        "startChar": 91,
+        "endLine": 22422,
+        "endChar": 96
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2434093a_b7e23d12",
+        "filename": "bazel/infra/cipd/assets/manifests/android_sdk_manifest.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 22631,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 22631,
+        "startChar": 82,
+        "endLine": 22631,
+        "endChar": 87
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "896a7cac_ce47726c",
+        "filename": "bazel/infra/cipd/assets/manifests/clang_linux_manifest.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 193,
+        "startChar": 35,
+        "endLine": 193,
+        "endChar": 44
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "70a517ce_cae7e97f",
+        "filename": "bazel/infra/cipd/assets/manifests/clang_linux_manifest.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 194,
+        "startChar": 34,
+        "endLine": 194,
+        "endChar": 43
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "df904f15_76ad2cae",
+        "filename": "bazel/infra/cipd/assets/manifests/clang_linux_manifest.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 326,
+        "startChar": 35,
+        "endLine": 326,
+        "endChar": 44
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000007658811",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/343406?revision\u003d7",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "d248692a_7fe82e10",
+        "filename": "bazel/infra/cipd/assets/manifests/clang_linux_manifest.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2021-01-27T14:47:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027they\u0027, \u0027them\u0027, or \u0027person\u0027; see https://developers.google.com/style/word-list#gender for more details. In the case of a false positive add BYPASS_INCLUSIVE_LANGUAGE_REASON\u003dmy_reason_here to your commit message to disable this check.",
+      "range": {
+        "startLine": 344,
+        "startChar": 20,
+        "endLine": 344,
+        "endChar": 23
+      },
+      "revId": "b730a224fd688df01a98669e62baf4d3b0048989",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
