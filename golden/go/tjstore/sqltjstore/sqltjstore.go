@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -57,7 +59,8 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, cID tjstore.CombinedPSID) ([
 	psID := sql.Qualify(cID.CRS, cID.PS)
 	rows, err := s.db.Query(ctx, `
 SELECT tryjob_id, system, display_name, last_ingested_data FROM Tryjobs
-WHERE changelist_id = $1 AND patchset_id = $2`, clID, psID)
+WHERE changelist_id = $1 AND patchset_id = $2
+ORDER by display_name`, clID, psID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching tryjobs for %#v", cID)
 	}
@@ -118,7 +121,7 @@ VALUES ($1, $2, $3, $4, $5, $6)`
 // A possible optimization for RAM usage / network would be to request the option ids only
 // and then run a followup request to fetch those and re-use the maps. This is the simplest
 // possible query that might work.
-const resultNoTime = `SELECT Traces.keys, digest, Options.keys FROM
+const resultNoTime = `SELECT Traces.keys, digest, Options.keys, SecondaryBranchValues.tryjob_id FROM
 SecondaryBranchValues JOIN Traces
 ON SecondaryBranchValues.secondary_branch_trace_id = Traces.trace_id
 JOIN Options
@@ -126,7 +129,7 @@ ON SecondaryBranchValues.options_id = Options.options_id
 WHERE branch_name = $1 AND version_name = $2`
 
 const resultWithTime = `
-SELECT Traces.keys, digest, Options.keys FROM
+SELECT Traces.keys, digest, Options.keys, SecondaryBranchValues.tryjob_id FROM
 SecondaryBranchValues JOIN Traces
 ON SecondaryBranchValues.secondary_branch_trace_id = Traces.trace_id
 JOIN Options
@@ -156,11 +159,19 @@ func (s *StoreImpl) GetResults(ctx context.Context, cID tjstore.CombinedPSID, up
 	for rows.Next() {
 		var digestBytes schema.DigestBytes
 		var result tjstore.TryJobResult
-		err := rows.Scan(&result.ResultParams, &digestBytes, &result.Options)
+		var qualifiedTryjobID pgtype.Text
+		err := rows.Scan(&result.ResultParams, &digestBytes, &result.Options, &qualifiedTryjobID)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "scanning values for tryjobs %#v", cID)
 		}
 		result.Digest = types.Digest(hex.EncodeToString(digestBytes))
+
+		if qualifiedTryjobID.Status == pgtype.Present {
+			parts := strings.SplitN(qualifiedTryjobID.String, "_", 2)
+			result.System = parts[0]
+			result.TryjobID = parts[1]
+		}
+
 		rv = append(rv, result)
 	}
 	return rv, nil
@@ -169,10 +180,9 @@ func (s *StoreImpl) GetResults(ctx context.Context, cID tjstore.CombinedPSID, up
 // PutResults implements the tjstore.Store interface. In exploratory design, ingesting a file
 // with many results in a transaction yielded in very very slow ingestion due to a lot of contention
 // on tables like Traces. As a result, we do not make all these changes in a transaction.
-func (s *StoreImpl) PutResults(ctx context.Context, cID tjstore.CombinedPSID, tjID, cisName, sourceFile string, results []tjstore.TryJobResult, ts time.Time) error {
+func (s *StoreImpl) PutResults(ctx context.Context, cID tjstore.CombinedPSID, sourceFile string, results []tjstore.TryJobResult, ts time.Time) error {
 	clID := sql.Qualify(cID.CRS, cID.CL)
 	psID := sql.Qualify(cID.CRS, cID.PS)
-	tjID = sql.Qualify(cisName, tjID)
 	sf := md5.Sum([]byte(sourceFile))
 	sourceID := sf[:]
 	// Put sourcefile
@@ -187,7 +197,10 @@ VALUES ($1, $2, $3)`, sourceID, sourceFile, ts)
 	groupingsToAdd := map[schema.MD5Hash]paramtools.Params{}
 	optionsToAdd := map[schema.MD5Hash]paramtools.Params{}
 	rows := make([]schema.SecondaryBranchValueRow, 0, len(results))
+	uniqueTryjobs := map[string]bool{}
 	for _, result := range results {
+		tjID := sql.Qualify(result.System, result.TryjobID)
+		uniqueTryjobs[tjID] = true
 		digestBytes, err := sql.DigestToBytes(result.Digest)
 		if err != nil {
 			return skerr.Wrap(err)
@@ -236,12 +249,15 @@ VALUES ($1, $2, $3)`, sourceID, sourceFile, ts)
 		return skerr.Wrap(err)
 	}
 
-	// Update Tryjob's timestamp now that everything else has succeeded.
-	_, err = s.db.Exec(ctx, `
+	// Update all the Tryjobs with the correct timestamp now that everything else has succeeded.
+	for tjID := range uniqueTryjobs {
+		_, err = s.db.Exec(ctx, `
 UPDATE Tryjobs SET last_ingested_data = $1 WHERE tryjob_id = $2`, ts, tjID)
-	if err != nil {
-		return skerr.Wrapf(err, "updating tryjob %s", tjID)
+		if err != nil {
+			return skerr.Wrapf(err, "updating tryjob %s", tjID)
+		}
 	}
+
 	return nil
 }
 

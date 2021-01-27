@@ -215,9 +215,9 @@ func TestPutGetResults(t *testing.T) {
 	f := New(c)
 	ctx := context.Background()
 	const cis = "cirrus"
+	const firstTJID = "987654"
+	const secondTJID = "zyxwvut"
 
-	firstTJID := "987654"
-	secondTJID := "zyxwvut"
 	psID := tjstore.CombinedPSID{
 		CL:  "1234",
 		CRS: "github",
@@ -235,6 +235,8 @@ func TestPutGetResults(t *testing.T) {
 	var xtr []tjstore.TryJobResult
 	for i := 0; i < 5; i++ {
 		xtr = append(xtr, tjstore.TryJobResult{
+			System:      cis,
+			TryjobID:    firstTJID,
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
@@ -244,7 +246,7 @@ func TestPutGetResults(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, firstTJID, cis, "", xtr, time.Now())
+	err := f.PutResults(ctx, psID, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	gp = paramtools.Params{
@@ -255,6 +257,8 @@ func TestPutGetResults(t *testing.T) {
 	xtr = nil
 	for i := 0; i < 4; i++ {
 		xtr = append(xtr, tjstore.TryJobResult{
+			System:      cis,
+			TryjobID:    secondTJID,
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
@@ -265,6 +269,8 @@ func TestPutGetResults(t *testing.T) {
 	}
 	// pretend the two tryjobs had the same output for test-4
 	xtr = append(xtr, tjstore.TryJobResult{
+		System:      cis,
+		TryjobID:    secondTJID,
 		GroupParams: gp,
 		Options:     op,
 		ResultParams: paramtools.Params{
@@ -273,7 +279,7 @@ func TestPutGetResults(t *testing.T) {
 		Digest: fakeDigest("crust", 4),
 	})
 
-	err = f.PutResults(ctx, psID, secondTJID, cis, "", xtr, time.Now())
+	err = f.PutResults(ctx, psID, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	otherPSID := tjstore.CombinedPSID{
@@ -282,7 +288,9 @@ func TestPutGetResults(t *testing.T) {
 		PS:  "other",
 	}
 
-	err = f.PutResults(ctx, otherPSID, "should-be-ignored", cis, "", []tjstore.TryJobResult{{
+	err = f.PutResults(ctx, otherPSID, "", []tjstore.TryJobResult{{
+		System:   cis,
+		TryjobID: "should-be-ignored",
 		GroupParams: paramtools.Params{
 			"model": "invalid",
 		},
@@ -349,6 +357,8 @@ func TestPutResultsGetResults_Timestamps(t *testing.T) {
 
 	firstBatch := []tjstore.TryJobResult{
 		{
+			System:      cis,
+			TryjobID:    tryjobID,
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
@@ -358,11 +368,13 @@ func TestPutResultsGetResults_Timestamps(t *testing.T) {
 		},
 	}
 
-	err := f.PutResults(ctx, psID, tryjobID, cis, "", firstBatch, firstTime)
+	err := f.PutResults(ctx, psID, "", firstBatch, firstTime)
 	assert.NoError(t, err)
 
 	secondBatch := []tjstore.TryJobResult{
 		{
+			System:      cis,
+			TryjobID:    tryjobID,
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
@@ -372,7 +384,7 @@ func TestPutResultsGetResults_Timestamps(t *testing.T) {
 		},
 	}
 
-	err = f.PutResults(ctx, psID, tryjobID, cis, "", secondBatch, secondTime)
+	err = f.PutResults(ctx, psID, "", secondBatch, secondTime)
 	assert.NoError(t, err)
 
 	// Empty time is all results
@@ -417,8 +429,8 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 	f := New(c)
 	ctx := context.Background()
 	const cis = "cirrus"
+	const tryJobID = "987654"
 
-	tryJobID := "987654"
 	psID := tjstore.CombinedPSID{
 		CL:  "1234",
 		CRS: "github",
@@ -432,6 +444,8 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 
 	xtr := []tjstore.TryJobResult{
 		{
+			System:      cis,
+			TryjobID:    tryJobID,
 			GroupParams: gp,
 			Options:     nil,
 			ResultParams: paramtools.Params{
@@ -441,13 +455,15 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 		},
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, cis, "", xtr, time.Now())
+	err := f.PutResults(ctx, psID, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})
 	assert.NoError(t, err)
 	assert.Len(t, xtr, 1)
 	assert.Equal(t, tjstore.TryJobResult{
+		System:      cis,
+		TryjobID:    tryJobID,
 		GroupParams: gp,
 		Options:     paramtools.Params{},
 		ResultParams: paramtools.Params{
@@ -467,8 +483,8 @@ func TestPutGetResultsBig(t *testing.T) {
 	ctx := context.Background()
 	const N = ifirestore.MAX_TRANSACTION_DOCS + ifirestore.MAX_TRANSACTION_DOCS/2
 	const cis = "cirrus"
+	const tryJobID = "987654"
 
-	tryJobID := "987654"
 	psID := tjstore.CombinedPSID{
 		CL:  "1234",
 		CRS: "github",
@@ -490,6 +506,8 @@ func TestPutGetResultsBig(t *testing.T) {
 		}
 
 		xtr = append(xtr, tjstore.TryJobResult{
+			System:      cis,
+			TryjobID:    tryJobID,
 			GroupParams: gp,
 			Options:     op,
 			ResultParams: paramtools.Params{
@@ -499,7 +517,7 @@ func TestPutGetResultsBig(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, cis, "", xtr, time.Now())
+	err := f.PutResults(ctx, psID, "", xtr, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})

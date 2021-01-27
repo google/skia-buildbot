@@ -316,7 +316,6 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
 	// Store the results from the file.
-	tjr := toTryJobResults(gr)
 	if err := system.Store.PutPatchset(ctx, ps); err != nil {
 		return skerr.Wrapf(err, "could not store PS %s of %s CL %q to clstore", psID, system.ID, clID)
 	}
@@ -325,7 +324,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
 		}
 	}
-	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, rf.Name(), tjr, time.Now())
+	tjr := toTryJobResults(gr, tjID, cisName)
+	err = g.tryJobStore.PutResults(ctx, combinedID, rf.Name(), tjr, time.Now())
 	if err != nil {
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
 	}
@@ -379,10 +379,12 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 }
 
 // toTryJobResults converts the JSON file to a slice of TryJobResult.
-func toTryJobResults(j *jsonio.GoldResults) []tjstore.TryJobResult {
+func toTryJobResults(j *jsonio.GoldResults, tjID, cisName string) []tjstore.TryJobResult {
 	var tjr []tjstore.TryJobResult
 	for _, r := range j.Results {
 		tjr = append(tjr, tjstore.TryJobResult{
+			System:       cisName,
+			TryjobID:     tjID,
 			GroupParams:  j.Key,
 			ResultParams: r.Key,
 			Options:      r.Options,
