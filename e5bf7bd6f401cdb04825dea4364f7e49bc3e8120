@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e1217a4_4f435698",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-27T18:13:25Z",
+      "side": 1,
+      "message": "Sorry for the massive change.  This plumbs the new config structs throughout, removes the old ones and removes all of the conversions.  Additionally, it collapses most of the RepoManager constructors into newParentChildRepoManager and exposes a single repo_manager.New() constructor.",
+      "revId": "e5bf7bd6f401cdb04825dea4364f7e49bc3e8120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
