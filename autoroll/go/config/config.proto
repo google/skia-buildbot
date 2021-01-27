@@ -79,6 +79,9 @@ message Config {
     // TODO(borenet): Where is this used? Why isn't it nested within the repo
     // manager config?
     repeated TransitiveDepConfig transitive_deps = 28;
+    // include_authors_as_reviewers determines whether the authors of rolled
+    // changes should be included as change reviewers.
+    bool include_authors_as_reviewers = 29;
 }
 
 // CommitMsgConfig provides configuration for commit messages.

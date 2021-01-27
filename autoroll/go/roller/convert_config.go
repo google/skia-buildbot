@@ -221,19 +221,20 @@ func AutoRollerConfigToProto(cfg *AutoRollerConfig) (*config.Config, error) {
 // ProtoToConfig converts a config.Config to an AutoRollerConfig.
 func ProtoToConfig(cfg *config.Config) (*AutoRollerConfig, error) {
 	rv := &AutoRollerConfig{
-		RollerName:          cfg.RollerName,
-		ChildDisplayName:    cfg.ChildDisplayName,
-		ParentDisplayName:   cfg.ParentDisplayName,
-		ParentWaterfall:     cfg.ParentWaterfall,
-		OwnerPrimary:        cfg.OwnerPrimary,
-		OwnerSecondary:      cfg.OwnerSecondary,
-		Contacts:            cfg.Contacts,
-		ServiceAccount:      cfg.ServiceAccount,
-		IsInternal:          cfg.IsInternal,
-		Sheriff:             cfg.Reviewer,
-		SheriffBackup:       cfg.ReviewerBackup,
-		TimeWindow:          cfg.TimeWindow,
-		SupportsManualRolls: cfg.SupportsManualRolls,
+		RollerName:                cfg.RollerName,
+		ChildDisplayName:          cfg.ChildDisplayName,
+		ParentDisplayName:         cfg.ParentDisplayName,
+		ParentWaterfall:           cfg.ParentWaterfall,
+		OwnerPrimary:              cfg.OwnerPrimary,
+		OwnerSecondary:            cfg.OwnerSecondary,
+		Contacts:                  cfg.Contacts,
+		ServiceAccount:            cfg.ServiceAccount,
+		IsInternal:                cfg.IsInternal,
+		Sheriff:                   cfg.Reviewer,
+		SheriffBackup:             cfg.ReviewerBackup,
+		TimeWindow:                cfg.TimeWindow,
+		SupportsManualRolls:       cfg.SupportsManualRolls,
+		IncludeAuthorsAsReviewers: cfg.IncludeAuthorsAsReviewers,
 	}
 	if cfg.RollCooldown.AsDuration() > 0 {
 		rv.MaxRollFrequency = strings.TrimSpace(human.Duration(cfg.RollCooldown.AsDuration()))

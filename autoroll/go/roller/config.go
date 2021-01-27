@@ -197,6 +197,8 @@ type AutoRollerConfig struct {
 	// addresses from the URL fails.  Only required if a URL is specified
 	// for Sheriff.
 	SheriffBackup []string `json:"sheriffBackup,omitempty"`
+	// Whether the authors of rolled changes should be included as reviewers
+	IncludeAuthorsAsReviewers bool `json:"include_authors_as_reviewers"`
 
 	// Commit message configuration.
 	CommitMsgConfig *commit_msg.CommitMsgConfig `json:"commitMsg"`
