@@ -87,6 +87,30 @@
       },
       "revId": "463c16569a9c10b3904596e4aa4c8e21b253eb07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c02f4bbe_b38275eb",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-27T17:46:12Z",
+      "side": 1,
+      "message": "Ah k. Done.",
+      "parentUuid": "60ccdfe1_67aaed5c",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 43
+      },
+      "revId": "463c16569a9c10b3904596e4aa4c8e21b253eb07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
