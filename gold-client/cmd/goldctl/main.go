@@ -41,7 +41,6 @@ It can be used directly or in a scripted environment. `,
 	rootCmd.PersistentFlags().BoolVarP(&flagDryRun, "dryrun", "", false, "Dryrun causes goldctl to do everything except upload data.")
 
 	// Wire up the other commands as children of the root command.
-	rootCmd.AddCommand(getValidateCmd())
 	rootCmd.AddCommand(getAuthCmd())
 	rootCmd.AddCommand(getImgTestCmd())
 	rootCmd.AddCommand(getDumpCmd())
@@ -61,19 +60,6 @@ func executionContext(ctx context.Context, log, err io.Writer, exit exitWithCode
 	ctx = context.WithValue(ctx, goldclient.LogWriterKey, log)
 	ctx = context.WithValue(ctx, goldclient.ErrorWriterKey, err)
 	return context.WithValue(ctx, exitorKey, exit)
-}
-
-// getFileOrStdin returns an file to read from based on the whether file flag was set.
-func getFileOrStdin(inputFile string) (*os.File, func() error, error) {
-	if inputFile == "" {
-		return os.Stdin, func() error { return nil }, nil
-	}
-
-	f, err := os.Open(inputFile)
-	if err != nil {
-		return nil, nil, err
-	}
-	return f, f.Close, nil
 }
 
 // logErrf logs a formatted error based on the output settings of the command.
