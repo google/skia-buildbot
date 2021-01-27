@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e62f4ada_41897dc7",
+        "filename": "golden/cmd/fsmigrator/fsmigrator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-27T20:43:40Z",
+      "side": 1,
+      "message": "A comment with the rationale behind this choice of date could be useful.",
+      "range": {
+        "startLine": 65,
+        "startChar": 28,
+        "endLine": 65,
+        "endChar": 39
+      },
+      "revId": "6f090bd8aff687ddd9e96dc725e7e733a430a2dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
