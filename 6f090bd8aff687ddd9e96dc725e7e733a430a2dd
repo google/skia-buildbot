@@ -22,6 +22,30 @@
       },
       "revId": "6f090bd8aff687ddd9e96dc725e7e733a430a2dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "338eb99b_dac258eb",
+        "filename": "golden/cmd/fsmigrator/fsmigrator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-27T21:19:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e62f4ada_41897dc7",
+      "range": {
+        "startLine": 65,
+        "startChar": 28,
+        "endLine": 65,
+        "endChar": 39
+      },
+      "revId": "6f090bd8aff687ddd9e96dc725e7e733a430a2dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
