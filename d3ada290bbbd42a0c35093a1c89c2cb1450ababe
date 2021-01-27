@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "40297956_2bcc44b0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-01-27T17:57:14Z",
+      "side": 1,
+      "message": "I considered a separate icon, but the existing lanuch icon for logs, and making the text a non-link to be triple clicked to ctrl-c seems the most natural.",
+      "revId": "d3ada290bbbd42a0c35093a1c89c2cb1450ababe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
