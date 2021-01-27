@@ -135,6 +135,30 @@
       },
       "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a1b7336c_c0f73930",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-27T18:37:29Z",
+      "side": 1,
+      "message": "Ack. Reverted this patchset.",
+      "parentUuid": "d8845fc8_c129aa5e",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
