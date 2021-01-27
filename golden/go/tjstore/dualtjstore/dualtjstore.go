@@ -56,13 +56,13 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 }
 
 // PutResults implements tjstore.Store by writing data to the primary and secondary in parallel.
-func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName, sourceFile string, r []tjstore.TryJobResult, ts time.Time) error {
+func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, sourceFile string, r []tjstore.TryJobResult, ts time.Time) error {
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
-		return skerr.Wrapf(s.primary.PutResults(ctx, psID, tjID, cisName, sourceFile, r, ts), "primary PutResults failed")
+		return skerr.Wrapf(s.primary.PutResults(ctx, psID, sourceFile, r, ts), "primary PutResults failed")
 	})
 	eg.Go(func() error {
-		return skerr.Wrapf(s.secondary.PutResults(ctx, psID, tjID, cisName, sourceFile, r, ts), "secondary PutResults failed")
+		return skerr.Wrapf(s.secondary.PutResults(ctx, psID, sourceFile, r, ts), "secondary PutResults failed")
 	})
 	return skerr.Wrap(eg.Wait())
 }

@@ -277,6 +277,8 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID, u
 				continue
 			}
 			tr := tjstore.TryJobResult{
+				TryjobID:     re.TryJobID,
+				System:       re.CISystem,
 				Digest:       re.Digest,
 				ResultParams: re.ResultParams,
 				Options:      o,
@@ -314,7 +316,7 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 // This would make a rollback difficult, so we opt to retry any failures multiple times.
 // We store maps first, so if we do fail, we can bail out w/o having written the
 // (incomplete) TryJobResults.  We take a similar approach in fs_expstore, which has been fine.
-func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName, _ string, r []tjstore.TryJobResult, ts time.Time) error {
+func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, _ string, r []tjstore.TryJobResult, ts time.Time) error {
 	if len(r) == 0 {
 		return nil
 	}
@@ -324,8 +326,8 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 	var xtr []resultEntry
 	for _, tr := range r {
 		tre := resultEntry{
-			CISystem: cisName,
-			TryJobID: tjID,
+			CISystem: tr.System,
+			TryJobID: tr.TryjobID,
 
 			CRSystem:     psID.CRS,
 			ChangelistID: psID.CL,
