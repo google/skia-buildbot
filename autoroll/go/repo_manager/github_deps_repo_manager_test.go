@@ -13,8 +13,9 @@ import (
 
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -37,34 +38,48 @@ var (
 	testPullNumber      = 12345
 )
 
-func githubDEPSCfg(t *testing.T) *GithubDEPSRepoManagerConfig {
-	return &GithubDEPSRepoManagerConfig{
-		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  defaultBranchTmpl(t),
-				ChildPath:    childPath,
-				ParentBranch: defaultBranchTmpl(t),
+func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{
+			DepsLocalGithubParent: &config.DEPSLocalGitHubParentConfig{
+				DepsLocal: &config.DEPSLocalParentConfig{
+					GitCheckout: &config.GitCheckoutParentConfig{
+						GitCheckout: &config.GitCheckoutConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "todo.git",
+						},
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
+								Id:   "todo.git",
+								Path: deps_parser.DepsFileName,
+							},
+						},
+					},
+					ChildPath: githubCIPDDEPSChildPath,
+				},
+				Github: &config.GitHubConfig{
+					RepoOwner: githubCIPDUser,
+					RepoName:  "todo.git",
+				},
+				ForkRepoUrl: "todo.git",
+			},
+		},
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
+			GitCheckoutGithubChild: &config.GitCheckoutGitHubChildConfig{
+				GitCheckout: &config.GitCheckoutChildConfig{
+					GitCheckout: &config.GitCheckoutConfig{
+						Branch:  git.DefaultBranch,
+						RepoUrl: "todo.git",
+					},
+				},
+				RepoOwner: mockGithubUser,
+				RepoName:  "todo.git",
 			},
 		},
 	}
 }
 
-func TestGithubDEPSRepoManagerConfigValidation(t *testing.T) {
-	unittest.SmallTest(t)
-
-	cfg := githubDEPSCfg(t)
-	cfg.ChildRepo = "git@github.com:fake/child.git"
-	cfg.ParentRepo = "git@github.com:fake/parent.git" // Excluded from githubCfg.
-	cfg.ForkRepoURL = "git@github.com:fake/fork.git"
-	require.NoError(t, cfg.Validate())
-
-	// The only fields come from the nested Configs, so exclude them and
-	// verify that we fail validation.
-	cfg = &GithubDEPSRepoManagerConfig{}
-	require.Error(t, cfg.Validate())
-}
-
-func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
+func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -100,9 +115,14 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	fork.Git(ctx, "checkout", git.DefaultBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
-	c.ChildRepo = child.RepoUrl()
-	c.ParentRepo = parent.RepoUrl()
-	c.ForkRepoURL = fork.RepoUrl()
+	parentCfg := c.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
+	parentCfg.DepsLocal.GitCheckout.Dep.Primary.Id = child.RepoUrl()
+	parentCfg.Github.RepoName = parent.RepoUrl()
+	parentCfg.ForkRepoUrl = fork.RepoUrl()
+	childCfg := c.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
+	childCfg.GitCheckout.GitCheckout.RepoUrl = child.RepoUrl()
+	childCfg.RepoName = child.RepoUrl()
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -117,8 +137,8 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g, urlmock := setupFakeGithubDEPS(t, ctx)
-	rm, err := NewGithubDEPSRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	g, urlmock := setupFakeGithubDEPS(ctx, t)
+	rm, err := newParentChildRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", recipesCfg, "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -130,7 +150,7 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	return ctx, rm, wd, child, childCommits, parent, mockRun, urlmock, cleanup
 }
 
-func setupFakeGithubDEPS(t *testing.T, ctx context.Context) (*github.GitHub, *mockhttpclient.URLMock) {
+func setupFakeGithubDEPS(ctx context.Context, t *testing.T) (*github.GitHub, *mockhttpclient.URLMock) {
 	urlMock := mockhttpclient.NewURLMock()
 
 	// Mock /user endpoint.
@@ -179,7 +199,7 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 
 func mockGithubRefRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoURL string) {
 	// Mock /refs endpoints.
-	forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+	forkRepoMatches := parent.REGitHubForkRepoURL.FindStringSubmatch(forkRepoURL)
 	forkRepoOwner := forkRepoMatches[2]
 	forkRepoName := forkRepoMatches[3]
 	testSHA := "xyz"
@@ -228,7 +248,7 @@ func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
-	mockGithubRefRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRefRequests(t, urlMock, cfg.GetDepsLocalGithubParent().ForkRepoUrl)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -238,16 +258,24 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
-	cfg.TransitiveDeps = []*version_file_common.TransitiveDepConfig{
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.GitCheckout.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
-			Child: &version_file_common.VersionFileConfig{
-				ID:   "https://grandchild-in-child",
+			Child: &config.VersionFileConfig{
+				Id:   "https://grandchild-in-child",
 				Path: "DEPS",
 			},
-			Parent: &version_file_common.VersionFileConfig{
-				ID:   "https://grandchild-in-parent",
+			Parent: &config.VersionFileConfig{
+				Id:   "https://grandchild-in-parent",
 				Path: "DEPS",
 			},
+		},
+	}
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
+	childCfg.GitCheckout.GitCheckout.Dependencies = []*config.VersionFileConfig{
+		{
+			Id:   "https://grandchild-in-child",
+			Path: "DEPS",
 		},
 	}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
@@ -258,7 +286,7 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
-	mockGithubRefRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRefRequests(t, urlMock, cfg.GetDepsLocalGithubParent().ForkRepoUrl)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -275,7 +303,8 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 		return nil
 	})
 	cfg := githubDEPSCfg(t)
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
 	defer cleanup()
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -283,7 +312,7 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
-	mockGithubRefRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRefRequests(t, urlMock, parentCfg.ForkRepoUrl)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
@@ -301,7 +330,8 @@ func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 		return expectedErr
 	})
 	cfg := githubDEPSCfg(t)
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
 	defer cleanup()
 

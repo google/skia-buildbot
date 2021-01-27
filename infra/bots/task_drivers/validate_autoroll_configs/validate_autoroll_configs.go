@@ -12,9 +12,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/pmezard/go-difflib/difflib"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -57,49 +55,6 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 		// Validate the config.
 		if err := cfg.Validate(); err != nil {
 			return skerr.Wrap(err)
-		}
-
-		// Convert to the old-style config.
-		oldCfg, err := roller.ProtoToConfig(&cfg)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-
-		// Validate the old-style config.
-		if err := oldCfg.Validate(); err != nil {
-			return fmt.Errorf("%s failed validation: %s", f, err)
-		}
-
-		// Convert the config back to the proto version and back, ensuring that
-		// we get the same config.
-		newCfg, err := roller.AutoRollerConfigToProto(oldCfg)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		opts := prototext.MarshalOptions{
-			Indent: "  ",
-		}
-		origBytes, err := opts.Marshal(&cfg)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		newBytes, err := opts.Marshal(newCfg)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		if string(origBytes) != string(newBytes) {
-			diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-				A:        difflib.SplitLines(string(origBytes)),
-				B:        difflib.SplitLines(string(newBytes)),
-				FromFile: "Original",
-				ToFile:   "Converted",
-				Context:  3,
-				Eol:      "\n",
-			})
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			return skerr.Fmt("Converted config file %s differs:\n%s", f, diff)
 		}
 
 		rollerName = cfg.RollerName

@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -37,13 +37,15 @@ import (
 )
 
 const (
-	ISSUE_URL_BASE = "https://goto.google.com/skia-autoroll-cl/"
+	// issueUrlBase is the base URL for issues created by the Google3
+	// autoroller.
+	issueUrlBase = "https://goto.google.com/skia-autoroll-cl/"
 )
 
 // AutoRoller provides a handler for adding/updating Rolls, translating them into AutoRollIssue for
 // storage in RecentRolls. It also manages an AutoRollStatusCache for status handlers.
 type AutoRoller struct {
-	cfg         *roller.AutoRollerConfig
+	cfg         *config.Config
 	recent      *recent_rolls.RecentRolls
 	status      *status.Cache
 	childBranch string
@@ -52,7 +54,8 @@ type AutoRoller struct {
 	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *http.Client, ts oauth2.TokenSource) (*AutoRoller, error) {
+// NewAutoRoller returns a Google3 AutoRoller.
+func NewAutoRoller(ctx context.Context, cfg *config.Config, client *http.Client, ts oauth2.TokenSource) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -66,8 +69,8 @@ func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *ht
 		cfg:         cfg,
 		recent:      recent,
 		status:      cache,
-		childBranch: cfg.Google3RepoManager.ChildBranch,
-		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, client),
+		childBranch: cfg.GetGoogle3RepoManager().ChildBranch,
+		childRepo:   gitiles.NewRepo(cfg.GetGoogle3RepoManager().ChildRepo, client),
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
@@ -84,6 +87,7 @@ func (a *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 	}, nil)
 }
 
+// AddHandlers adds the AutoRoller's HTTP handlers to the mux.Router.
 func (a *AutoRoller) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/json/roll", a.rollHandler).Methods(http.MethodPost, http.MethodPut)
 }
@@ -157,7 +161,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		CurrentRoll:     a.recent.CurrentRoll(),
 		Error:           errorMsg,
 		FullHistoryUrl:  "https://goto.google.com/skia-autoroll-history",
-		IssueUrlBase:    ISSUE_URL_BASE,
+		IssueUrlBase:    issueUrlBase,
 		LastRoll:        lastRoll,
 		ParentName:      a.cfg.ParentDisplayName,
 		Recent:          recent,
@@ -326,7 +330,7 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 		}
 	}
 	for _, r := range roll.CheckResults {
-		url, _ := url.Parse(fmt.Sprintf("%s%d", ISSUE_URL_BASE, roll.ChangeListNumber))
+		url, _ := url.Parse(fmt.Sprintf("%s%d", issueUrlBase, roll.ChangeListNumber))
 		if r.Url != "" {
 			var err error
 			url, err = url.Parse(r.Url)

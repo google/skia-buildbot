@@ -4,16 +4,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // fakeCommitMsgConfig returns a valid CommitMsgConfig instance.
-func fakeCommitMsgConfig(t *testing.T) *CommitMsgConfig {
-	c := &CommitMsgConfig{
-		BugProject:           fakeBugProject,
-		Template:             TmplNameDefault,
-		ChildLogURLTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
+func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
+	c := &config.CommitMsgConfig{
+		BugProject: fakeBugProject,
+		Template: &config.CommitMsgConfig_BuiltIn_{
+			BuiltIn: config.CommitMsgConfig_DEFAULT,
+		},
+		ChildLogUrlTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
 		CqExtraTrybots:       []string{"some-trybot"},
 		CqDoNotCancelTrybots: true,
 		IncludeLog:           true,
@@ -57,7 +60,7 @@ func TestMakeVars(t *testing.T) {
 		require.Len(t, vars.Bugs, expectBugs)
 
 		// Log URL.
-		if c.ChildLogURLTmpl == "" {
+		if c.ChildLogUrlTmpl == "" {
 			require.Equal(t, vars.ChildLogURL, "")
 		} else {
 			require.Equal(t, vars.ChildLogURL, "https://fake-child-log/aaaaaaaaaaaa..cccccccccccc")
@@ -104,7 +107,7 @@ func TestMakeVars(t *testing.T) {
 	})
 	// No log URL template.
 	check(func(b *Builder) {
-		b.cfg.ChildLogURLTmpl = ""
+		b.cfg.ChildLogUrlTmpl = ""
 	})
 	// No revisions.
 	check(func(b *Builder) {
@@ -124,8 +127,10 @@ func TestNamedTemplatesValid(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := fakeCommitMsgConfig(t)
-	for name := range namedCommitMsgTemplates {
-		cfg.Template = name
+	for tmpl := range namedCommitMsgTemplates {
+		cfg.Template = &config.CommitMsgConfig_BuiltIn_{
+			BuiltIn: tmpl,
+		}
 		require.NoError(t, cfg.Validate())
 	}
 }
