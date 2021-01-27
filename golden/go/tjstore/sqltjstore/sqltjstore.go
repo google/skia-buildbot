@@ -371,7 +371,7 @@ func (s *StoreImpl) batchInsertResultValues(ctx context.Context, rows []schema.S
 	}
 	// Start at this chunk size for now. This table will likely receive a fair amount of data
 	// and smaller batch sizes can reduce the contention/retries.
-	const chunkSize = 100
+	const chunkSize = 300
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
