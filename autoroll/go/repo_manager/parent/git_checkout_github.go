@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -20,52 +21,10 @@ import (
 )
 
 var (
-	REForkRepoURL = regexp.MustCompile(`^(git@github.com:|file:///)(.*)/(.*?)(\.git)?$`)
+	// REGitHubForkRepoURL is a regular expression which matches a GitHub fork
+	// repo URL.
+	REGitHubForkRepoURL = regexp.MustCompile(`^(git@github.com:|file:///)(.*)/(.*?)(\.git)?$`)
 )
-
-// GitCheckoutGithubConfig provides configuration for Parents which use a local
-// git checkout and upload changes to GitHub.
-type GitCheckoutGithubConfig struct {
-	GitCheckoutConfig
-	ForkRepoURL string `json:"forkRepoURL"`
-}
-
-// Validate implements util.Validator.
-func (c GitCheckoutGithubConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.ForkRepoURL == "" {
-		return skerr.Fmt("ForkRepoURL is required")
-	}
-	matches := REForkRepoURL.FindStringSubmatch(c.ForkRepoURL)
-	if len(matches) != 5 {
-		return skerr.Fmt("ForkRepoURL is not in the expected format: %s", REForkRepoURL)
-	}
-	return nil
-}
-
-// GitCheckoutGithubConfigToProto converts a GitCheckoutGithubConfig to a
-// config.GitCheckoutGithubParentConfig.
-func GitCheckoutGithubConfigToProto(cfg *GitCheckoutGithubConfig) *config.GitCheckoutGitHubParentConfig {
-	return &config.GitCheckoutGitHubParentConfig{
-		GitCheckout: GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
-		ForkRepoUrl: cfg.ForkRepoURL,
-	}
-}
-
-// ProtoToGitCheckoutGithubConfig converts a
-// config.GitCheckoutGithubParentConfig to a GitCheckoutGithubConfig.
-func ProtoToGitCheckoutGithubConfig(cfg *config.GitCheckoutGitHubParentConfig) (*GitCheckoutGithubConfig, error) {
-	co, err := ProtoToGitCheckoutConfig(cfg.GitCheckout)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &GitCheckoutGithubConfig{
-		GitCheckoutConfig: *co,
-		ForkRepoURL:       cfg.ForkRepoUrl,
-	}, nil
-}
 
 // GitCheckoutUploadGithubRollFunc returns
 func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, rollerName, forkRepoURL string) git_common.UploadRollFunc {
@@ -74,7 +33,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 		// Generate a fork branch name with unique id and creation timestamp.
 		forkBranchName := fmt.Sprintf("%s-%s-%d", rollerName, uuid.New().String(), time.Now().Unix())
 		// Find forkRepo owner and name.
-		forkRepoMatches := REForkRepoURL.FindStringSubmatch(forkRepoURL)
+		forkRepoMatches := REGitHubForkRepoURL.FindStringSubmatch(forkRepoURL)
 		forkRepoOwner := forkRepoMatches[2]
 		forkRepoName := forkRepoMatches[3]
 		// Find SHA of main branch to use when creating the fork branch. It does not really
@@ -135,20 +94,25 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 
 // NewGitCheckoutGithub returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail, rollerName string, co *git.Checkout, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckoutGithub(ctx context.Context, c *config.GitCheckoutGitHubParentConfig, reg *config_vars.Registry, serverURL, workdir, rollerName string, cr codereview.CodeReview, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
+	githubClient, ok := cr.Client().(*github.GitHub)
+	if !ok {
+		return nil, skerr.Fmt("GitCheckoutGithub must use GitHub for code review.")
+	}
+
 	// See documentation for GitCheckoutUploadRollFunc.
-	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, rollerName, c.ForkRepoURL)
+	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName, c.ForkRepoUrl)
 
 	// Create the GitCheckout Parent.
-	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
+	p, err := NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, nil, createRoll, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := github_common.SetupGithub(ctx, p.Checkout.Checkout, c.ForkRepoURL); err != nil {
+	if err := github_common.SetupGithub(ctx, p.Checkout.Checkout, c.ForkRepoUrl); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return p, nil

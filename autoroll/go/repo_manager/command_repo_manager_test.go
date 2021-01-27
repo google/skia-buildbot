@@ -10,16 +10,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -28,27 +26,21 @@ import (
 
 func commandsEqual(a, b *exec.Command) bool {
 	if a.Name != b.Name {
-		sklog.Errorf("Name")
 		return false
 	}
 	if !util.SSliceEqual(a.Args, b.Args) {
-		sklog.Errorf("Args: %v %v", a.Args, b.Args)
 		return false
 	}
 	if a.Dir != b.Dir {
-		sklog.Errorf("Dir")
 		return false
 	}
 	if a.InheritEnv != b.InheritEnv {
-		sklog.Errorf("InheritEnv")
 		return false
 	}
 	if a.InheritPath != b.InheritPath {
-		sklog.Errorf("InheritPath")
 		return false
 	}
 	if !util.SSliceEqual(a.Env, b.Env) {
-		sklog.Errorf("Env")
 		return false
 	}
 	return (a.Name == b.Name &&
@@ -71,7 +63,7 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	urlmock := mockhttpclient.NewURLMock()
-	g := setupFakeGerrit(t, depsCfg(t).Gerrit, urlmock)
+	g := setupFakeGerrit(t, depsCfg(t).GetDepsLocalGerritParent().Gerrit, urlmock)
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, "version", "pinnedRev0")
 	parent.Commit(ctx)
@@ -82,7 +74,7 @@ func TestCommandRepoManager(t *testing.T) {
 		RollingFrom: pinnedRev0,
 		RollingTo:   tipRev0,
 	}
-	getTipRev := &CommandConfig{
+	getTipRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"echo", tipRev0},
 		Dir:     ".",
 		Env: map[string]string{
@@ -93,7 +85,7 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	getTipRevCount := 0
 
-	getPinnedRev := &CommandConfig{
+	getPinnedRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"cat", "version"},
 		Dir:     ".",
 		Env: map[string]string{
@@ -104,7 +96,7 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	getPinnedRevCount := 0
 
-	setPinnedRev := &CommandConfig{
+	setPinnedRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"bash", "-c", "echo \"{{.RollingTo}}\" > version"},
 		Dir:     ".",
 		Env: map[string]string{
@@ -115,10 +107,10 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	setPinnedRevCount := 0
 
-	cfg := CommandRepoManagerConfig{
-		GitCheckoutConfig: git_common.GitCheckoutConfig{
-			Branch:  defaultBranchTmpl(t),
-			RepoURL: parent.RepoUrl(),
+	cfg := &config.CommandRepoManagerConfig{
+		GitCheckout: &config.GitCheckoutConfig{
+			Branch:  git.DefaultBranch,
+			RepoUrl: parent.RepoUrl(),
 		},
 		GetTipRev:    getTipRev,
 		GetPinnedRev: getPinnedRev,
@@ -130,21 +122,15 @@ func TestCommandRepoManager(t *testing.T) {
 	lastUpload := new(vcsinfo.LongCommit)
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		sklog.Errorf("MockRun: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
 		if commandsEqual(cmd, getTipRevCmd) {
 			getTipRevCount++
 		}
-		sklog.Errorf("1: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
 		if commandsEqual(cmd, getPinnedRevCmd) {
 			getPinnedRevCount++
 		}
-		sklog.Errorf("2: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
 		if commandsEqual(cmd, setPinnedRevCmd) {
 			setPinnedRevCount++
 		}
-		sklog.Errorf("3: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
-		sklog.Errorf(spew.Sdump(setPinnedRevCmd))
-		sklog.Errorf(spew.Sdump(cmd))
 
 		// Don't perform "git push".
 		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "push" {
@@ -161,7 +147,7 @@ func TestCommandRepoManager(t *testing.T) {
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
 	// Create the repo manager.
-	rm, err := NewCommandRepoManager(ctx, cfg, setupRegistry(t), tmp, g, "fake.server.com", gerritCR(t, g))
+	rm, err := NewCommandRepoManager(ctx, cfg, setupRegistry(t), tmp, "fake.server.com", gerritCR(t, g))
 	require.NoError(t, err)
 	require.Equal(t, 0, getTipRevCount)
 	require.Equal(t, 0, getPinnedRevCount)

@@ -2,7 +2,6 @@ package repo_manager
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,9 +9,9 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -21,207 +20,150 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
-	UPSTREAM_REMOTE_NAME = "remote"
-	REPO_BRANCH_NAME     = "merge"
+	// androidUpstreamRemoteName is the name of the remote used for Android
+	// rollers.
+	androidUpstreamRemoteName = "remote"
+	// androidRepoBranchName is the name of the branch used for Android rollers.
+	androidRepoBranchName = "merge"
 )
 
 var (
-	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
-
-	DELETE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
+	androidDeleteMergeConflictFiles = []string{android_skia_checkout.SkUserConfigRelPath}
 )
-
-// ProjectMetadataFileConfig provides configuration for METADATA files in the Android repo.
-type ProjectMetadataFileConfig struct {
-	FilePath    string `json:"filePath"`
-	Name        string `json:"projectName"`
-	Description string `json:"projectDescription"`
-	HomePage    string `json:"projectHomePage"`
-	GitURL      string `json:"projectGitURL"`
-	LicenseType string `json:"projectLicenseType"`
-}
-
-// Validate implements util.Validator.
-func (c *ProjectMetadataFileConfig) Validate() error {
-	if c.FilePath == "" || c.Name == "" || c.Description == "" || c.HomePage == "" || c.GitURL == "" || c.LicenseType == "" {
-		return errors.New("All parts of ProjectMetadataFileConfig are required")
-	}
-	return nil
-}
-
-// ProjectMetadataFileConfigToProto converts a ProjectMetadataFileConfig to a
-// config.AndroidRepoManagerConfig_ProjectMetadataFileConfig.
-func ProjectMetadataFileConfigToProto(cfg *ProjectMetadataFileConfig) *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig {
-	if cfg == nil {
-		return nil
-	}
-	return &config.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
-		FilePath:    cfg.FilePath,
-		Name:        cfg.Name,
-		Description: cfg.Description,
-		HomePage:    cfg.HomePage,
-		GitUrl:      cfg.GitURL,
-		LicenseType: cfg.LicenseType,
-	}
-}
-
-// ProtoToProjectMetadataFileConfig converts a
-// config.AndroidRepoManagerConfig_ProjectMetadataFileConfig to a
-// ProjectMetadataFileConfig.
-func ProtoToProjectMetadataFileConfig(cfg *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig) *ProjectMetadataFileConfig {
-	if cfg == nil {
-		return nil
-	}
-	return &ProjectMetadataFileConfig{
-		FilePath:    cfg.FilePath,
-		Name:        cfg.Name,
-		Description: cfg.Description,
-		HomePage:    cfg.HomePage,
-		GitURL:      cfg.GitUrl,
-		LicenseType: cfg.LicenseType,
-	}
-}
-
-// AndroidRepoManagerConfig provides configuration for the Android RepoManager.
-type AndroidRepoManagerConfig struct {
-	CommonRepoManagerConfig
-	*ProjectMetadataFileConfig `json:"projectMetadataFileConfig,omitempty"`
-	ChildRepoURL               string `json:"childRepoURL"`
-}
-
-// Validate implements util.Validator.
-func (c *AndroidRepoManagerConfig) Validate() error {
-	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
-		return err
-	}
-	if c.ProjectMetadataFileConfig != nil {
-		if err := c.ProjectMetadataFileConfig.Validate(); err != nil {
-			return err
-		}
-	}
-	if c.ChildRepoURL == "" {
-		return errors.New("childRepoURL must be specified")
-	}
-	return nil
-}
-
-// ValidStrategies implements roller.RepoManagerConfig.
-func (c *AndroidRepoManagerConfig) ValidStrategies() []string {
-	return []string{
-		strategy.ROLL_STRATEGY_BATCH,
-		strategy.ROLL_STRATEGY_N_BATCH,
-	}
-}
-
-// AndroidRepoManagerConfigToProto converts an AndroidRepoManagerConfig to a
-// config.AndroidRepoManagerConfig.
-func AndroidRepoManagerConfigToProto(cfg *AndroidRepoManagerConfig) *config.AndroidRepoManagerConfig {
-	return &config.AndroidRepoManagerConfig{
-		ChildRepoUrl:     cfg.ChildRepoURL,
-		ChildBranch:      cfg.ChildBranch.RawTemplate(),
-		ChildPath:        cfg.ChildPath,
-		ParentRepoUrl:    cfg.ParentRepo,
-		ParentBranch:     cfg.ParentBranch.RawTemplate(),
-		ChildRevLinkTmpl: cfg.ChildRevLinkTmpl,
-		ChildSubdir:      cfg.ChildSubdir,
-		PreUploadSteps:   parent.PreUploadStepsToProto(cfg.PreUploadSteps),
-		Metadata:         ProjectMetadataFileConfigToProto(cfg.ProjectMetadataFileConfig),
-	}
-}
-
-// ProtoToAndroidRepoManagerConfig converts a config.AndroidRepoManagerConfig to
-// an AndroidRepoManagerConfig.
-func ProtoToAndroidRepoManagerConfig(cfg *config.AndroidRepoManagerConfig) (*AndroidRepoManagerConfig, error) {
-	childBranch, err := config_vars.NewTemplate(cfg.ChildBranch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentBranch, err := config_vars.NewTemplate(cfg.ParentBranch)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &AndroidRepoManagerConfig{
-		CommonRepoManagerConfig: CommonRepoManagerConfig{
-			ChildBranch:      childBranch,
-			ChildPath:        cfg.ChildPath,
-			ParentBranch:     parentBranch,
-			ParentRepo:       cfg.ParentRepoUrl,
-			ChildRevLinkTmpl: cfg.ChildRevLinkTmpl,
-			ChildSubdir:      cfg.ChildSubdir,
-			PreUploadSteps:   parent.ProtoToPreUploadSteps(cfg.PreUploadSteps),
-		},
-		ProjectMetadataFileConfig: ProtoToProjectMetadataFileConfig(cfg.Metadata),
-		ChildRepoURL:              cfg.ChildRepoUrl,
-	}, nil
-}
 
 // androidRepoManager is a struct used by Android AutoRoller for managing
 // checkouts.
 type androidRepoManager struct {
-	*commonRepoManager
 	androidRemoteName string
 	childRepoURL      string
 	parentRepoURL     string
 	repoToolPath      string
 
-	projectMetadataFileConfig *ProjectMetadataFileConfig
+	projectMetadataFileConfig *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig
+
+	childBranch      *config_vars.Template
+	childDir         string
+	childPath        string
+	childRepo        *git.Checkout
+	childRevLinkTmpl string
+	g                gerrit.GerritInterface
+	httpClient       *http.Client
+	parentBranch     *config_vars.Template
+	preUploadSteps   []parent.PreUploadStep
+	repoMtx          sync.RWMutex
+	workdir          string
 }
 
 // NewAndroidRepoManager returns an androidRepoManager instance.
-func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
+func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	user, err := user.Current()
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	repoToolDir := path.Join(user.HomeDir, "bin")
 	repoToolPath := path.Join(repoToolDir, "repo")
 	if _, err := os.Stat(repoToolDir); err != nil {
 		if err := os.MkdirAll(repoToolDir, 0755); err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 	}
 	if _, err := os.Stat(repoToolPath); err != nil {
 		// Download the repo tool.
 		if _, err := exec.RunCwd(ctx, repoToolDir, "wget", "https://storage.googleapis.com/git-repo-downloads/repo", "-O", repoToolPath); err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		// Make the repo tool executable.
 		if _, err := exec.RunCwd(ctx, repoToolDir, "chmod", "a+x", repoToolPath); err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 	}
 
 	wd := path.Join(workdir, "android_repo")
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, wd, serverURL, g, client, cr, local)
-	if err != nil {
-		return nil, err
+	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
+		return nil, skerr.Wrap(err)
 	}
+	childDir := path.Join(wd, c.ChildPath)
+	if c.ChildSubdir != "" {
+		childDir = path.Join(wd, c.ChildSubdir, c.ChildPath)
+	}
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+
+	if _, err := os.Stat(wd); err == nil {
+		if err := git.DeleteLockFiles(ctx, wd); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	childBranch, err := config_vars.NewTemplate(c.ChildBranch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := reg.Register(childBranch); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentBranch, err := config_vars.NewTemplate(c.ParentBranch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := reg.Register(parentBranch); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	androidRemoteName := "aosp"
 	if isInternal {
 		androidRemoteName = "goog"
 	}
+	g, ok := cr.Client().(gerrit.GerritInterface)
+	if !ok {
+		return nil, skerr.Fmt("AndroidRepoManager must use Gerrit for code review.")
+	}
 	r := &androidRepoManager{
-		commonRepoManager:         crm,
 		androidRemoteName:         androidRemoteName,
 		parentRepoURL:             g.GetRepoUrl(),
 		repoToolPath:              repoToolPath,
-		projectMetadataFileConfig: c.ProjectMetadataFileConfig,
-		childRepoURL:              c.ChildRepoURL,
+		projectMetadataFileConfig: c.Metadata,
+		childRepoURL:              c.ChildRepoUrl,
+
+		childBranch:      childBranch,
+		childDir:         childDir,
+		childPath:        c.ChildPath,
+		childRepo:        childRepo,
+		childRevLinkTmpl: c.ChildRevLinkTmpl,
+		g:                g,
+		httpClient:       client,
+		parentBranch:     parentBranch,
+		preUploadSteps:   preUploadSteps,
+		workdir:          workdir,
 	}
 	return r, nil
+}
+
+// GetRevision implements RepoManager.
+func (r *androidRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
+	details, err := r.childRepo.Details(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
 
 // Helper function for updating the Android checkout.
@@ -257,20 +199,20 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(remoteOutput, UPSTREAM_REMOTE_NAME) {
-		if _, err := r.childRepo.Git(ctx, "remote", "add", UPSTREAM_REMOTE_NAME, r.childRepoURL); err != nil {
+	if !strings.Contains(remoteOutput, androidUpstreamRemoteName) {
+		if _, err := r.childRepo.Git(ctx, "remote", "add", androidUpstreamRemoteName, r.childRepoURL); err != nil {
 			return err
 		}
 	}
 
 	// Update the remote to make sure that all new branches are available.
-	if _, err := r.childRepo.Git(ctx, "remote", "update", UPSTREAM_REMOTE_NAME, "--prune"); err != nil {
+	if _, err := r.childRepo.Git(ctx, "remote", "update", androidUpstreamRemoteName, "--prune"); err != nil {
 		return err
 	}
 	return nil
 }
 
-// See documentation for RepoManager interface.
+// Update implements RepoManager.
 func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
 	// Sync the projects.
 	r.repoMtx.Lock()
@@ -300,15 +242,35 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
+// getCommitsNotRolled returns the list of not-yet-rolled commits.
+func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev, tipRev *revision.Revision) ([]*revision.Revision, error) {
+	if tipRev.Id == lastRollRev.Id {
+		return []*revision.Revision{}, nil
+	}
+	commits, err := r.childRepo.RevList(ctx, "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
+	if err != nil {
+		return nil, err
+	}
+	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		detail, err := r.childRepo.Details(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+		notRolled = append(notRolled, detail)
+	}
+	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
+}
+
 // getLastRollRev returns the last-completed DEPS roll Revision.
 func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
 	output, err := r.childRepo.Git(ctx, "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/%s/%s", r.androidRemoteName, r.parentBranch))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	details, err := r.childRepo.Details(ctx, strings.TrimRight(output, "\n"))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
@@ -321,7 +283,7 @@ func (r *androidRepoManager) abortMerge(ctx context.Context) error {
 
 // abandonRepoBranch abandons the repo branch.
 func (r *androidRepoManager) abandonRepoBranch(ctx context.Context) error {
-	_, err := exec.RunCwd(ctx, r.childRepo.Dir(), r.repoToolPath, "abandon", REPO_BRANCH_NAME)
+	_, err := exec.RunCwd(ctx, r.childRepo.Dir(), r.repoToolPath, "abandon", androidRepoBranchName)
 	return err
 }
 
@@ -329,7 +291,7 @@ func (r *androidRepoManager) abandonRepoBranch(ctx context.Context) error {
 func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, error) {
 	issues, err := r.g.Search(context.TODO(), 1, false, gerrit.SearchCommit(hash))
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return r.g.GetIssueProperties(context.TODO(), issues[0].Issue)
 }
@@ -349,7 +311,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	parentBranch := r.parentBranch.String()
 
 	// Update the upstream remote.
-	if _, err := r.childRepo.Git(ctx, "fetch", UPSTREAM_REMOTE_NAME); err != nil {
+	if _, err := r.childRepo.Git(ctx, "fetch", androidUpstreamRemoteName); err != nil {
 		return 0, err
 	}
 
@@ -375,7 +337,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 				continue
 			}
 			ignoreConflict := false
-			for _, del := range DELETE_MERGE_CONFLICT_FILES {
+			for _, del := range androidDeleteMergeConflictFiles {
 				if conflict == del {
 					_, resetErr := r.childRepo.Git(ctx, "reset", "--", del)
 					util.LogErr(resetErr)
@@ -415,7 +377,7 @@ third_party {
     day: %d
   }
 }
-`, r.projectMetadataFileConfig.Name, r.projectMetadataFileConfig.Description, r.projectMetadataFileConfig.HomePage, r.projectMetadataFileConfig.GitURL, to.Id, r.projectMetadataFileConfig.LicenseType, d.Year(), d.Month(), d.Day())
+`, r.projectMetadataFileConfig.Name, r.projectMetadataFileConfig.Description, r.projectMetadataFileConfig.HomePage, r.projectMetadataFileConfig.GitUrl, to.Id, r.projectMetadataFileConfig.LicenseType, d.Year(), d.Month(), d.Day())
 
 		metadataFilePath := filepath.Join(r.workdir, r.projectMetadataFileConfig.FilePath)
 		if err := ioutil.WriteFile(metadataFilePath, []byte(metadataContents), os.ModePerm); err != nil {
@@ -435,7 +397,7 @@ third_party {
 	}
 
 	// Create a new repo branch.
-	if _, repoBranchErr := exec.RunCwd(ctx, r.childDir, r.repoToolPath, "start", REPO_BRANCH_NAME, "."); repoBranchErr != nil {
+	if _, repoBranchErr := exec.RunCwd(ctx, r.childDir, r.repoToolPath, "start", androidRepoBranchName, "."); repoBranchErr != nil {
 		util.LogErr(r.abortMerge(ctx))
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
@@ -541,14 +503,14 @@ func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision,
 	// "ls-remote" can get stuck indefinitely if GoB is having problems. Call it with a timeout.
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel() // Releases resources if "ls-remote" completes before timeout.
-	output, err := r.childRepo.Git(ctxWithTimeout, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
+	output, err := r.childRepo.Git(ctxWithTimeout, "ls-remote", androidUpstreamRemoteName, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	hash := strings.Split(output, "\t")[0]
 	details, err := r.childRepo.Details(ctx, hash)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }

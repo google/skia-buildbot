@@ -281,7 +281,7 @@ message FreeTypeRepoManagerConfig {
 // FuchsiaSDKAndroidRepoManagerConfig provides configuration for the Fuchsia SDK
 // into Android roller.
 message FuchsiaSDKAndroidRepoManagerConfig {
-    GitilesParentConfig parent = 1;
+    GitCheckoutParentConfig parent = 1;
     FuchsiaSDKChildConfig child = 2;
     // gen_sdk_bp_repo is the repo URL for the generation script.
     string gen_sdk_bp_repo = 3;

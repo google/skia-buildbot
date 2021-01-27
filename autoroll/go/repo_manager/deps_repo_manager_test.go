@@ -13,8 +13,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -45,24 +47,44 @@ var (
 	emails = []string{"reviewer@chromium.org"}
 )
 
-func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
-	return &DEPSRepoManagerConfig{
-		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  defaultBranchTmpl(t),
-				ChildPath:    childPath,
-				ParentBranch: defaultBranchTmpl(t),
+func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGerritParent{
+			DepsLocalGerritParent: &config.DEPSLocalGerritParentConfig{
+				DepsLocal: &config.DEPSLocalParentConfig{
+					GitCheckout: &config.GitCheckoutParentConfig{
+						GitCheckout: &config.GitCheckoutConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "TODO",
+						},
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
+								Id:   "TODO",
+								Path: deps_parser.DepsFileName,
+							},
+						},
+					},
+					ChildPath: childPath,
+				},
+				Gerrit: &config.GerritConfig{
+					Url:     "https://fake-skia-review.googlesource.com",
+					Project: "fake-gerrit-project",
+					Config:  config.GerritConfig_CHROMIUM,
+				},
 			},
 		},
-		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
-			Project: "fake-gerrit-project",
-			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
+			GitCheckoutChild: &config.GitCheckoutChildConfig{
+				GitCheckout: &config.GitCheckoutConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: "TODO",
+				},
+			},
 		},
 	}
 }
 
-func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
+func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -106,27 +128,31 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 	})
 
 	urlmock := mockhttpclient.NewURLMock()
-	g := setupFakeGerrit(t, cfg.Gerrit, urlmock)
+	g := setupFakeGerrit(t, cfg.GetDepsLocalGerritParent().GetGerrit(), urlmock)
 
 	// We have a chicken-and-egg problem where the config needs to be passed in,
 	// but the caller needs the repo URLs as part of the config. Set the child
 	// and parent repo URLs directly on the config, and if the ParentPath and
 	// GClientSpec entries are set, treat them as text templates.
-	cfg.ChildRepo = child.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGerritParent).DepsLocalGerritParent.DepsLocal
+	parentCfg.GitCheckout.Dep.Primary.Id = child.RepoUrl()
+	parentCfg.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutChild)
+	childCfg.GitCheckoutChild.GitCheckout.RepoUrl = child.RepoUrl()
+
 	vars := struct {
 		ParentRepo string
 		ParentBase string
 	}{
-		ParentRepo: cfg.ParentRepo,
-		ParentBase: path.Base(cfg.ParentRepo),
+		ParentRepo: parentCfg.GitCheckout.GitCheckout.RepoUrl,
+		ParentBase: path.Base(parentCfg.GitCheckout.GitCheckout.RepoUrl),
 	}
-	cfg.ParentPath = testutils.ExecTemplate(t, cfg.ParentPath, vars)
-	cfg.GClientSpec = testutils.ExecTemplate(t, cfg.GClientSpec, vars)
+	parentCfg.CheckoutPath = testutils.ExecTemplate(t, parentCfg.CheckoutPath, vars)
+	parentCfg.GclientSpec = testutils.ExecTemplate(t, parentCfg.GclientSpec, vars)
 
 	// Create the RepoManager.
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-	rm, err := NewDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -138,7 +164,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 	return ctx, rm, wd, child, childCommits, parent, mockRun, lastUpload, urlmock, patchRefInSyncCmd, cleanup
 }
 
-func setupFakeGerrit(t *testing.T, cfg *codereview.GerritConfig, urlMock *mockhttpclient.URLMock) *gerrit.Gerrit {
+func setupFakeGerrit(t *testing.T, cfg *config.GerritConfig, urlMock *mockhttpclient.URLMock) *gerrit.Gerrit {
 	// Create a dummy commit-msg hook.
 	changeId := "123"
 	respBody := []byte(fmt.Sprintf(`#!/bin/sh
@@ -154,8 +180,8 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 	})
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
-	urlMock.MockOnce(cfg.URL+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(codereview.GERRIT_CONFIGS[cfg.Config], cfg.URL, urlMock.Client())
+	urlMock.MockOnce(cfg.Url+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
+	g, err := gerrit.NewGerritWithConfig(codereview.GerritConfigs[cfg.Config], cfg.Url, urlMock.Client())
 	require.NoError(t, err)
 
 	return g
@@ -177,7 +203,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 }
 
-func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock, cfg *DEPSRepoManagerConfig) {
+func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock, cfg *config.ParentChildRepoManagerConfig) {
 	// Mock the request to load the change.
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
@@ -202,7 +228,8 @@ func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGerritParent).DepsLocalGerritParent
+	gerritCfg := codereview.GerritConfigs[parentCfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	} else {
@@ -269,7 +296,8 @@ func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	})
 
 	cfg := depsCfg(t)
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGerritParent).DepsLocalGerritParent.DepsLocal
+	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, _, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
 	defer cleanup()
@@ -307,8 +335,9 @@ cache_dir=None
 	// Remove newlines.
 	gclientSpec = strings.Replace(gclientSpec, "\n", "", -1)
 	cfg := depsCfg(t)
-	cfg.GClientSpec = gclientSpec
-	cfg.ParentPath = filepath.Join("alternate", "location", "{{.ParentBase}}")
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGerritParent).DepsLocalGerritParent.DepsLocal
+	parentCfg.GclientSpec = gclientSpec
+	parentCfg.CheckoutPath = filepath.Join("alternate", "location", "{{.ParentBase}}")
 
 	ctx, rm, _, _, _, _, mockRun, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
 	defer cleanup()
@@ -335,19 +364,4 @@ cache_dir=None
 		}
 	}
 	require.True(t, found)
-}
-
-func TestDEPSRepoManagerConfigValidation(t *testing.T) {
-	unittest.SmallTest(t)
-
-	cfg := depsCfg(t)
-	// These are not supplied above.
-	cfg.ChildRepo = "dummy"
-	cfg.ParentRepo = "dummy"
-	require.NoError(t, cfg.Validate())
-
-	// The only fields come from the nested Configs, so exclude them and
-	// verify that we fail validation.
-	cfg = &DEPSRepoManagerConfig{}
-	require.Error(t, cfg.Validate())
 }

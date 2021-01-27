@@ -16,37 +16,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// GitilesConfig provides configuration for gitilesChild.
-type GitilesConfig struct {
-	gitiles_common.GitilesConfig
-	// Path indicates one path of the repo to watch for changes; all other
-	// commits are ignored. Note that this may produce strange results if the
-	// git history for the path is not linear.
-	Path string `json:"path"`
-}
-
-// GitilesConfigToProto converts a GitilesConfig to a
-// config.GitilesChildConfig.
-func GitilesConfigToProto(cfg *GitilesConfig) *config.GitilesChildConfig {
-	return &config.GitilesChildConfig{
-		Gitiles: gitiles_common.GitilesConfigToProto(&cfg.GitilesConfig),
-		Path:    cfg.Path,
-	}
-}
-
-// ProtoToGitilesConfig converts a config.GitilesChildConfig to a
-// GitilesConfig.
-func ProtoToGitilesConfig(cfg *config.GitilesChildConfig) (*GitilesConfig, error) {
-	gc, err := gitiles_common.ProtoToGitilesConfig(cfg.Gitiles)
-	if err != nil {
-		return nil, err
-	}
-	return &GitilesConfig{
-		GitilesConfig: *gc,
-		Path:          cfg.Path,
-	}, nil
-}
-
 // gitilesChild is an implementation of Child which uses Gitiles rather than a
 // local checkout.
 type gitilesChild struct {
@@ -56,8 +25,8 @@ type gitilesChild struct {
 
 // NewGitiles returns an implementation of Child which uses Gitiles rather
 // than a local checkout.
-func NewGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client) (Child, error) {
-	g, err := gitiles_common.NewGitilesRepo(ctx, c.GitilesConfig, reg, client)
+func NewGitiles(ctx context.Context, c *config.GitilesChildConfig, reg *config_vars.Registry, client *http.Client) (Child, error) {
+	g, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, reg, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

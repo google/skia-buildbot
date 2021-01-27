@@ -11,11 +11,13 @@ package config
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -26,9 +28,22 @@ const (
 	// "autoroll-be-" prefix and "-storage" suffix for disks, controller hashes,
 	// etc.
 	MaxRollerNameLength = 41
+
+	// DefaultSafetyThrottleAttemptCount is the default attempt count for
+	// safety throttling.
+	DefaultSafetyThrottleAttemptCount = 3
+	// DefaultSafetyThrottleTimeWindow is the default time window for safety
+	// throttling.
+	DefaultSafetyThrottleTimeWindow = 30 * time.Minute
 )
 
 var (
+	// DefaultSafetyThrottleConfig is the default safety throttling config.
+	DefaultSafetyThrottleConfig = &ThrottleConfig{
+		AttemptCount: DefaultSafetyThrottleAttemptCount,
+		TimeWindow:   durationpb.New(DefaultSafetyThrottleTimeWindow),
+	}
+
 	// ValidK8sLabel matches valid labels for Kubernetes.
 	ValidK8sLabel = regexp.MustCompile(`^[a-zA-Z\._-]{1,63}$`)
 )
@@ -209,6 +224,39 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+// GetRepoManagerConfig returns the RepoManager config for the roller.
+func (c *Config) GetRepoManagerConfig() RepoManagerConfig {
+	if c.GetParentChildRepoManager() != nil {
+		return c.GetParentChildRepoManager()
+	}
+	if c.GetAndroidRepoManager() != nil {
+		return c.GetAndroidRepoManager()
+	}
+	if c.GetCommandRepoManager() != nil {
+		return c.GetCommandRepoManager()
+	}
+	if c.GetFreetypeRepoManager() != nil {
+		return c.GetFreetypeRepoManager()
+	}
+	if c.GetFuchsiaSdkAndroidRepoManager() != nil {
+		return c.GetFuchsiaSdkAndroidRepoManager()
+	}
+	if c.GetGoogle3RepoManager() != nil {
+		return c.GetGoogle3RepoManager()
+	}
+	return nil
+}
+
+// ValidStrategies returns the valid strategies for this roller.
+func (c *Config) ValidStrategies() []string {
+	return c.GetRepoManagerConfig().ValidStrategies()
+}
+
+// DefaultStrategy returns the default strategy for this roller.
+func (c *Config) DefaultStrategy() string {
+	return c.GetRepoManagerConfig().DefaultStrategy()
+}
+
 // Validate implements util.Validator.
 func (c *CommitMsgConfig) Validate() error {
 	if c.Template == nil {
@@ -232,6 +280,11 @@ func (c *GerritConfig) Validate() error {
 		return skerr.Fmt("Unknown config: %v", c.Config)
 	}
 	return nil
+}
+
+// CanQueryTrybots implements CodeReviewConfig.
+func (c *GerritConfig) CanQueryTrybots() bool {
+	return c.Config != GerritConfig_ANDROID
 }
 
 // Validate implements util.Validator.

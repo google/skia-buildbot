@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -23,21 +23,22 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-func fuchsiaAndroidCfg(t *testing.T) *FuchsiaSDKAndroidRepoManagerConfig {
-	return &FuchsiaSDKAndroidRepoManagerConfig{
-		FuchsiaSDKRepoManagerConfig: FuchsiaSDKRepoManagerConfig{
-			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  defaultBranchTmpl(t),
-					ChildPath:    "external/fuchsia_sdk",
-					ParentBranch: defaultBranchTmpl(t),
+func fuchsiaAndroidCfg(t *testing.T) *config.FuchsiaSDKAndroidRepoManagerConfig {
+	return &config.FuchsiaSDKAndroidRepoManagerConfig{
+		Parent: &config.GitCheckoutParentConfig{
+			GitCheckout: &config.GitCheckoutConfig{
+				Branch:  git.DefaultBranch,
+				RepoUrl: "todo.git",
+			},
+			Dep: &config.DependencyConfig{
+				Primary: &config.VersionFileConfig{
+					Id:   "FuchsiaSDK",
+					Path: "sdk_id",
 				},
 			},
-			Gerrit: &codereview.GerritConfig{
-				URL:     "https://fake-skia-review.googlesource.com",
-				Project: "fake-gerrit-project",
-				Config:  codereview.GERRIT_CONFIG_ANDROID,
-			},
+		},
+		Child: &config.FuchsiaSDKChildConfig{
+			IncludeMacSdk: false,
 		},
 		GenSdkBpRepo:   "TODO",
 		GenSdkBpBranch: git.DefaultBranch,
@@ -48,7 +49,6 @@ func TestFuchsiaSDKAndroidConfig(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := fuchsiaAndroidCfg(t)
-	cfg.ParentRepo = "todo.git"
 	require.NoError(t, cfg.Validate())
 }
 
@@ -79,7 +79,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, fuchsiaSDKAndroidVersionFile, fuchsiaSDKRevBase)
 	parent.Commit(ctx)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.Parent.GitCheckout.RepoUrl = parent.RepoUrl()
 
 	// The call into gen_sdk_bp is mocked, but we have to check out
 	// something.
@@ -117,7 +117,7 @@ git interpret-trailers --trailer "Change-Id: %s" >> $1
 `, changeId))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
 
-	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
+	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, setupRegistry(t), wd, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -191,21 +191,4 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, ci.Issue, issue)
-}
-
-func TestFuchsiaSDKAndroidConfigValidation(t *testing.T) {
-	unittest.SmallTest(t)
-
-	cfg := fuchsiaAndroidCfg(t)
-	cfg.ParentRepo = "dummy" // Not supplied above.
-	require.NoError(t, cfg.Validate())
-
-	cfg.GenSdkBpRepo = ""
-	require.EqualError(t, cfg.Validate(), "GenSdkBpRepo is required.")
-
-	// The remaining fields come from the nested Configs, so exclude them
-	// and verify that we fail validation.
-	cfg = fuchsiaAndroidCfg(t)
-	cfg.FuchsiaSDKRepoManagerConfig = FuchsiaSDKRepoManagerConfig{}
-	require.Error(t, cfg.Validate())
 }

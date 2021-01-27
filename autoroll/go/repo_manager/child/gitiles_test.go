@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/git"
@@ -73,17 +73,17 @@ func TestGitilesChildPathFilter(t *testing.T) {
 	commits = append(commits, repo.Commit(ctx))
 
 	// Create the GitilesChild.
-	cfg := GitilesConfig{
-		GitilesConfig: gitiles_common.GitilesConfig{
-			Branch:  defaultBranchTmpl(t),
-			RepoURL: repo.RepoUrl(),
+	cfg := config.GitilesChildConfig{
+		Gitiles: &config.GitilesConfig{
+			Branch:  git.DefaultBranch,
+			RepoUrl: repo.RepoUrl(),
 		},
 		Path: "", // Test without Path first.
 	}
 	reg := setupRegistry(t)
 	urlMock := mockhttpclient.NewURLMock()
 	mockGitiles := gitiles_testutils.NewMockRepo(t, repo.RepoUrl(), git.GitDir(repo.Dir()), urlMock)
-	c, err := NewGitiles(ctx, cfg, reg, urlMock.Client())
+	c, err := NewGitiles(ctx, &cfg, reg, urlMock.Client())
 	require.NoError(t, err)
 
 	// Update.
@@ -101,7 +101,7 @@ func TestGitilesChildPathFilter(t *testing.T) {
 
 	// Now, set Path.
 	cfg.Path = "watched-dir"
-	c, err = NewGitiles(ctx, cfg, reg, urlMock.Client())
+	c, err = NewGitiles(ctx, &cfg, reg, urlMock.Client())
 	mockGitiles.MockGetCommit(ctx, git.DefaultBranch)
 	mockGitiles.MockLog(ctx, git.LogFromTo(commits[0], commits[len(commits)-1]), gitiles.LogPath(cfg.Path))
 	mockGitiles.MockGetCommit(ctx, commits[2])

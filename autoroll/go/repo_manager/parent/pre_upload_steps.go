@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/uuid"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cipd"
@@ -38,96 +37,24 @@ var cipdRoot = path.Join(os.TempDir(), "cipd")
 // of the parent repo.
 type PreUploadStep func(context.Context, []string, *http.Client, string) error
 
-const (
-	// These are the names of the pre-upload steps. They must be kept in sync
-	// with go/config/config.proto.
-	preUploadStepANGLECodeGeneration             = "ANGLECodeGeneration"
-	preUploadStepANGLERollChromium               = "ANGLERollChromium"
-	preUploadStepGoGenerateCIPD                  = "GoGenerateCipd"
-	preUploadStepTrainInfra                      = "TrainInfra"
-	preUploadStepFlutterLicenseScripts           = "FlutterLicenseScripts"
-	preUploadStepFlutterLicenseScriptsForDart    = "FlutterLicenseScriptsForDart"
-	preUploadStepFlutterLicenseScriptsForFuchsia = "FlutterLicenseScriptsForFuchsia"
-	preUploadStepANGLEGnToBp                     = "AngleGnToBp"
-	preUploadStepSkiaGnToBp                      = "SkiaGnToBp"
-	preUploadStepUpdateFlutterDepsForDart        = "UpdateFlutterDepsForDart"
-)
-
 var (
 	// preUploadSteps is the registry of known PreUploadStep instances.
-	preUploadSteps = map[string]PreUploadStep{
-		preUploadStepANGLECodeGeneration:             ANGLECodeGeneration,
-		preUploadStepANGLERollChromium:               ANGLERollChromium,
-		preUploadStepGoGenerateCIPD:                  GoGenerateCipd,
-		preUploadStepTrainInfra:                      TrainInfra,
-		preUploadStepFlutterLicenseScripts:           FlutterLicenseScripts,
-		preUploadStepFlutterLicenseScriptsForDart:    FlutterLicenseScriptsForDart,
-		preUploadStepFlutterLicenseScriptsForFuchsia: FlutterLicenseScriptsForFuchsia,
-		preUploadStepANGLEGnToBp:                     AngleGnToBp,
-		preUploadStepSkiaGnToBp:                      SkiaGnToBp,
-		preUploadStepUpdateFlutterDepsForDart:        UpdateFlutterDepsForDart,
-	}
-
-	preUploadStepToProto = map[string]config.PreUploadStep{
-		preUploadStepANGLECodeGeneration:             config.PreUploadStep_ANGLE_CODE_GENERATION,
-		preUploadStepANGLERollChromium:               config.PreUploadStep_ANGLE_ROLL_CHROMIUM,
-		preUploadStepGoGenerateCIPD:                  config.PreUploadStep_GO_GENERATE_CIPD,
-		preUploadStepTrainInfra:                      config.PreUploadStep_TRAIN_INFRA,
-		preUploadStepFlutterLicenseScripts:           config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS,
-		preUploadStepFlutterLicenseScriptsForDart:    config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART,
-		preUploadStepFlutterLicenseScriptsForFuchsia: config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA,
-		preUploadStepANGLEGnToBp:                     config.PreUploadStep_ANGLE_GN_TO_BP,
-		preUploadStepSkiaGnToBp:                      config.PreUploadStep_SKIA_GN_TO_BP,
-		preUploadStepUpdateFlutterDepsForDart:        config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART,
-	}
-	protoToPreUploadStep = map[config.PreUploadStep]string{
-		config.PreUploadStep_ANGLE_CODE_GENERATION:               preUploadStepANGLECodeGeneration,
-		config.PreUploadStep_ANGLE_ROLL_CHROMIUM:                 preUploadStepANGLERollChromium,
-		config.PreUploadStep_GO_GENERATE_CIPD:                    preUploadStepGoGenerateCIPD,
-		config.PreUploadStep_TRAIN_INFRA:                         preUploadStepTrainInfra,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:             preUploadStepFlutterLicenseScripts,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:    preUploadStepFlutterLicenseScriptsForDart,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA: preUploadStepFlutterLicenseScriptsForFuchsia,
-		config.PreUploadStep_ANGLE_GN_TO_BP:                      preUploadStepANGLEGnToBp,
-		config.PreUploadStep_SKIA_GN_TO_BP:                       preUploadStepSkiaGnToBp,
-		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        preUploadStepUpdateFlutterDepsForDart,
+	preUploadSteps = map[config.PreUploadStep]PreUploadStep{
+		config.PreUploadStep_ANGLE_CODE_GENERATION:               ANGLECodeGeneration,
+		config.PreUploadStep_ANGLE_ROLL_CHROMIUM:                 ANGLERollChromium,
+		config.PreUploadStep_GO_GENERATE_CIPD:                    GoGenerateCipd,
+		config.PreUploadStep_TRAIN_INFRA:                         TrainInfra,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:             FlutterLicenseScripts,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:    FlutterLicenseScriptsForDart,
+		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA: FlutterLicenseScriptsForFuchsia,
+		config.PreUploadStep_ANGLE_GN_TO_BP:                      AngleGnToBp,
+		config.PreUploadStep_SKIA_GN_TO_BP:                       SkiaGnToBp,
+		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
 	}
 )
 
-// PreUploadStepToProto converts a pre-upload step name to a
-// config.PreUploadStep.
-func PreUploadStepToProto(step string) config.PreUploadStep {
-	return preUploadStepToProto[step]
-}
-
-// ProtoToPreUploadStep converts a config.PreUploadStep to a pre-upload step
-// name.
-func ProtoToPreUploadStep(step config.PreUploadStep) string {
-	return protoToPreUploadStep[step]
-}
-
-// PreUploadStepsToProto converts a []string of pre-upload step names to a
-// []config.PreUploadStep.
-func PreUploadStepsToProto(steps []string) []config.PreUploadStep {
-	var rv []config.PreUploadStep
-	for _, step := range steps {
-		rv = append(rv, PreUploadStepToProto(step))
-	}
-	return rv
-}
-
-// ProtoToPreUploadSteps converts a []config.PreUploadStep to a []string of pre-
-// upload step names.
-func ProtoToPreUploadSteps(steps []config.PreUploadStep) []string {
-	var rv []string
-	for _, step := range steps {
-		rv = append(rv, ProtoToPreUploadStep(step))
-	}
-	return rv
-}
-
 // GetPreUploadStep returns the PreUploadStep with the given name.
-func GetPreUploadStep(s string) (PreUploadStep, error) {
+func GetPreUploadStep(s config.PreUploadStep) (PreUploadStep, error) {
 	rv, ok := preUploadSteps[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -136,7 +63,7 @@ func GetPreUploadStep(s string) (PreUploadStep, error) {
 }
 
 // GetPreUploadSteps returns the PreUploadSteps with the given names.
-func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
+func GetPreUploadSteps(steps []config.PreUploadStep) ([]PreUploadStep, error) {
 	rv := make([]PreUploadStep, 0, len(steps))
 	for _, s := range steps {
 		step, err := GetPreUploadStep(s)
@@ -151,9 +78,13 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 // AddPreUploadStepForTesting adds the given PreUploadStep to the global
 // registry to be used for testing. Returns a unique name for the step. Not safe
 // to be used concurrently with GetPreUploadStep(s).
-func AddPreUploadStepForTesting(s PreUploadStep) string {
-	id := uuid.New().String()
+func AddPreUploadStepForTesting(s PreUploadStep) config.PreUploadStep {
+	id := config.PreUploadStep(len(preUploadSteps))
 	preUploadSteps[id] = s
+	// Add to the config package maps.
+	stepName := fmt.Sprintf("Test-Step-%d", id)
+	config.PreUploadStep_name[int32(id)] = stepName
+	config.PreUploadStep_value[stepName] = int32(id)
 	return id
 }
 

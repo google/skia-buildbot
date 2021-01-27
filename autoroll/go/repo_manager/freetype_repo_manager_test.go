@@ -7,19 +7,18 @@ import (
 	"io/ioutil"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -88,27 +87,35 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg := &FreeTypeRepoManagerConfig{
-		NoCheckoutDEPSRepoManagerConfig: NoCheckoutDEPSRepoManagerConfig{
-			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  defaultBranchTmpl(t),
-					ChildPath:    ftChildPath,
-					ParentBranch: defaultBranchTmpl(t),
-					ParentRepo:   parentRepo.RepoUrl(),
+	cfg := &config.FreeTypeRepoManagerConfig{
+		Parent: &config.FreeTypeParentConfig{
+			Gitiles: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: parentRepo.RepoUrl(),
+				},
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
+						Id:   child.RepoUrl(),
+						Path: deps_parser.DepsFileName,
+					},
+				},
+				Gerrit: &config.GerritConfig{
+					Url:     "https://fake-skia-review.googlesource.com",
+					Project: "fake-gerrit-project",
+					Config:  config.GerritConfig_CHROMIUM,
 				},
 			},
-			ChildRepo: child.RepoUrl(),
-			Gerrit: &codereview.GerritConfig{
-				URL:     "https://fake-skia-review.googlesource.com",
-				Project: "fake-gerrit-project",
-				Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		},
+		Child: &config.GitilesChildConfig{
+			Gitiles: &config.GitilesConfig{
+				Branch:  git.DefaultBranch,
+				RepoUrl: child.RepoUrl(),
 			},
 		},
 	}
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Mock requests for Update().

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/twitchtv/twirp"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
@@ -275,7 +275,7 @@ func (s *autoRollServerImpl) Unthrottle(ctx context.Context, req *UnthrottleRequ
 
 // AutoRoller provides interactions with a single roller.
 type AutoRoller struct {
-	Cfg *roller.AutoRollerConfig
+	Cfg *config.Config
 
 	// Interactions with the roller through the DB.
 	Mode     modes.ModeHistory
@@ -480,7 +480,7 @@ func convertRevisions(inp []*revision.Revision) []*Revision {
 	return rv
 }
 
-func convertConfig(inp *roller.AutoRollerConfig) *AutoRollConfig {
+func convertConfig(inp *config.Config) *AutoRollConfig {
 	return &AutoRollConfig{
 		ParentWaterfall:     inp.ParentWaterfall,
 		RollerId:            inp.RollerName,
@@ -551,7 +551,7 @@ func convertManualRollRequest(inp *manual.ManualRollRequest) (*ManualRoll, error
 	}, nil
 }
 
-func convertStatus(st *status.AutoRollStatus, cfg *roller.AutoRollerConfig, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
+func convertStatus(st *status.AutoRollStatus, cfg *config.Config, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
 	mode := modes.ModeRunning
 	if modeChange != nil {
 		mode = modeChange.Mode

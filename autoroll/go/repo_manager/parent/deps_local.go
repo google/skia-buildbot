@@ -11,14 +11,16 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
@@ -27,149 +29,19 @@ const (
 	GClient = "gclient.py"
 )
 
-// DEPSLocalConfig provides configuration for a Parent which uses a local
-// checkout and DEPS to manage dependencies.
-type DEPSLocalConfig struct {
-	GitCheckoutConfig
-
-	// ChildPath is the path to the child repo within the parent.
-	ChildPath string `json:"childPath"`
-
-	// Optional fields.
-
-	// Relative path to the repo within the checkout root. Required if
-	// GClientSpec is provided and specifies a name other than the default
-	// obtained by "git clone".
-	CheckoutPath string `json:"checkoutPath,omitempty"`
-
-	// ChildSubdir indicates the subdirectory of the workdir in which
-	// the childPath should be rooted. In most cases, this should be empty,
-	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
-	// specifies use_relative_paths), then this is required.
-	ChildSubdir string `json:"childSubdir,omitempty"`
-
-	// Override the default gclient spec with this string.
-	GClientSpec string `json:"gclientSpec,omitempty"`
-
-	// Named steps to run before uploading roll CLs.
-	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
-
-	// Run "gclient runhooks" if true.
-	RunHooks bool `json:"runHooks,omitempty"`
-}
-
-// Validate implements util.Validator.
-func (c DEPSLocalConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	for _, step := range c.PreUploadSteps {
-		if _, err := GetPreUploadStep(step); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
-	return nil
-}
-
-// DEPSLocalConfigToProto converts a DEPSLocalConfig to a
-// config.DEPSLocalParentConfig.
-func DEPSLocalConfigToProto(cfg *DEPSLocalConfig) *config.DEPSLocalParentConfig {
-	return &config.DEPSLocalParentConfig{
-		GitCheckout:    GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
-		ChildPath:      cfg.ChildPath,
-		CheckoutPath:   cfg.CheckoutPath,
-		ChildSubdir:    cfg.ChildSubdir,
-		GclientSpec:    cfg.GClientSpec,
-		PreUploadSteps: PreUploadStepsToProto(cfg.PreUploadSteps),
-		RunHooks:       cfg.RunHooks,
-	}
-}
-
-// ProtoToDEPSLocalConfig converts a config.DEPSLocalParentConfig to a
-// DEPSLocalConfig.
-func ProtoToDEPSLocalConfig(cfg *config.DEPSLocalParentConfig) (*DEPSLocalConfig, error) {
-	co, err := ProtoToGitCheckoutConfig(cfg.GitCheckout)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &DEPSLocalConfig{
-		GitCheckoutConfig: *co,
-		ChildPath:         cfg.ChildPath,
-		CheckoutPath:      cfg.CheckoutPath,
-		ChildSubdir:       cfg.ChildSubdir,
-		GClientSpec:       cfg.GclientSpec,
-		PreUploadSteps:    ProtoToPreUploadSteps(cfg.PreUploadSteps),
-		RunHooks:          cfg.RunHooks,
-	}, nil
-}
-
-// DEPSLocalGithubConfig provides configuration for a Parent which uses a local
-// checkout and DEPS to manage dependencies, and uploads pull requests to
-// GitHub.
-type DEPSLocalGithubConfig struct {
-	DEPSLocalConfig
-	GitHub      *codereview.GithubConfig
-	ForkRepoURL string `json:"forkRepoURL"`
-}
-
-// DEPSLocalGithubConfigToProto converts a DEPSLocalGithubConfig to a
-// config.DEPSLocalGitHubParentConfig.
-func DEPSLocalGithubConfigToProto(cfg *DEPSLocalGithubConfig) *config.DEPSLocalGitHubParentConfig {
-	return &config.DEPSLocalGitHubParentConfig{
-		DepsLocal:   DEPSLocalConfigToProto(&cfg.DEPSLocalConfig),
-		Github:      codereview.GithubConfigToProto(cfg.GitHub),
-		ForkRepoUrl: cfg.ForkRepoURL,
-	}
-}
-
-// ProtoToDEPSLocalGithubConfig converts a config.DEPSLocalGitHubParentConfig to
-// a DEPSLocalGithubConfig.
-func ProtoToDEPSLocalGithubConfig(cfg *config.DEPSLocalGitHubParentConfig) (*DEPSLocalGithubConfig, error) {
-	dl, err := ProtoToDEPSLocalConfig(cfg.DepsLocal)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &DEPSLocalGithubConfig{
-		DEPSLocalConfig: *dl,
-		GitHub:          codereview.ProtoToGithubConfig(cfg.Github),
-		ForkRepoURL:     cfg.ForkRepoUrl,
-	}, nil
-}
-
-// DEPSLocalGerritConfig provides configuration for a Parent which uses a local
-// checkout and DEPS to manage dependencies, and uploads CLs to Gerrit.
-type DEPSLocalGerritConfig struct {
-	DEPSLocalConfig
-	Gerrit *codereview.GerritConfig
-}
-
-// DEPSLocalGerritConfigToProto converts a DEPSLocalGerritConfig to a
-// config.DEPSLocalGerritParentConfig.
-func DEPSLocalGerritConfigToProto(cfg *DEPSLocalGerritConfig) *config.DEPSLocalGerritParentConfig {
-	return &config.DEPSLocalGerritParentConfig{
-		DepsLocal: DEPSLocalConfigToProto(&cfg.DEPSLocalConfig),
-		Gerrit:    codereview.GerritConfigToProto(cfg.Gerrit),
-	}
-}
-
-// ProtoToDEPSLocalGerritConfig converts a config.DEPSLocalGerritParentConfig to
-// a DEPSLocalGerritConfig.
-func ProtoToDEPSLocalGerritConfig(cfg *config.DEPSLocalGerritParentConfig) (*DEPSLocalGerritConfig, error) {
-	dl, err := ProtoToDEPSLocalConfig(cfg.DepsLocal)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &DEPSLocalGerritConfig{
-		DEPSLocalConfig: *dl,
-		Gerrit:          codereview.ProtoToGerritConfig(cfg.Gerrit),
-	}, nil
-}
-
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail, recipeCfgFile string, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string, cr codereview.CodeReview, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	branch, err := config_vars.NewTemplate(c.GitCheckout.GitCheckout.Branch)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := reg.Register(branch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -213,10 +85,10 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 	// located, ie. not necessarily in the root of the workdir, so we can't
 	// rely on GitCheckoutParent to do the right thing.
 	args := []string{"config"}
-	if c.GClientSpec != "" {
-		args = append(args, fmt.Sprintf("--spec=%s", c.GClientSpec))
+	if c.GclientSpec != "" {
+		args = append(args, fmt.Sprintf("--spec=%s", c.GclientSpec))
 	} else {
-		args = append(args, c.RepoURL, "--unmanaged")
+		args = append(args, c.GitCheckout.GitCheckout.RepoUrl, "--unmanaged")
 	}
 	if err := gclient(ctx, args...); err != nil {
 		return nil, skerr.Wrap(err)
@@ -226,12 +98,12 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 	}
 
 	// See documentation for GitCheckoutCreateRollFunc.
-	createRollHelper := gitCheckoutFileCreateRollFunc(version_file_common.DependencyConfig{
-		VersionFileConfig: version_file_common.VersionFileConfig{
-			ID:   c.ID,
+	createRollHelper := gitCheckoutFileCreateRollFunc(&config.DependencyConfig{
+		Primary: &config.VersionFileConfig{
+			Id:   c.GitCheckout.Dep.Primary.Id,
 			Path: deps_parser.DepsFileName,
 		},
-		TransitiveDeps: c.TransitiveDeps,
+		Transitive: c.GitCheckout.Dep.Transitive,
 	})
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Run the helper to set the new dependency version(s).
@@ -244,7 +116,7 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 			// If the rev is a patch ref then add patch-ref args to gclient sync. Syncing
 			// the child repo will not work without these args.
 			syncExtraArgs = append(syncExtraArgs,
-				"--patch-ref", fmt.Sprintf("%s@%s:%s", c.DependencyConfig.ID, c.Branch, to.Id),
+				"--patch-ref", fmt.Sprintf("%s@%s:%s", c.GitCheckout.Dep.Primary.Id, branch, to.Id),
 				"--no-rebase-patch-ref",
 				"--no-reset-patch-ref",
 			)
@@ -278,15 +150,15 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 	co := &git.Checkout{GitDir: git.GitDir(checkoutPath)}
-	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
+	return NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, co, createRoll, uploadRoll)
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
 // using the given DEPSLocalConfig.
-func GetDEPSCheckoutPath(c DEPSLocalConfig, workdir string) (string, error) {
+func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, workdir string) (string, error) {
 	var repoRelPath string
 	if c.CheckoutPath == "" {
-		normUrl, err := git.NormalizeURL(c.RepoURL)
+		normUrl, err := git.NormalizeURL(c.GitCheckout.GitCheckout.RepoUrl)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
@@ -295,4 +167,39 @@ func GetDEPSCheckoutPath(c DEPSLocalConfig, workdir string) (string, error) {
 		repoRelPath = c.CheckoutPath
 	}
 	return filepath.Join(workdir, repoRelPath), nil
+}
+
+// NewDEPSLocalGitHub returns a DEPSLocal parent which creates GitHub pull
+// requests.
+func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+	githubClient, ok := cr.Client().(*github.GitHub)
+	if !ok {
+		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
+	}
+	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName, c.ForkRepoUrl)
+	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, recipeCfgFile, cr, uploadRoll)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := github_common.SetupGithub(ctx, parentRM.Checkout.Checkout, c.ForkRepoUrl); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return parentRM, nil
+}
+
+// NewDEPSLocalGerrit returns a DEPSLocal parent which creates CLs in Gerrit.
+func NewDEPSLocalGerrit(ctx context.Context, c *config.DEPSLocalGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+	gerritClient, ok := cr.Client().(gerrit.GerritInterface)
+	if !ok {
+		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
+	}
+	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
+	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, recipeCfgFile, cr, uploadRoll)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := gerrit_common.SetupGerrit(ctx, parentRM.Checkout.Checkout, gerritClient); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return parentRM, nil
 }

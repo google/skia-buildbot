@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -19,71 +18,14 @@ import (
 var (
 	// namedCommitMsgTemplates contains pre-defined commit message templates
 	// which may be referenced by name in config files.
-	namedCommitMsgTemplates = map[string]*template.Template{
-		TmplNameAndroid: tmplAndroid,
-		TmplNameDefault: tmplCommitMsg,
-	}
-	tmplNameToProto = map[string]config.CommitMsgConfig_BuiltIn{
-		TmplNameAndroid: config.CommitMsgConfig_ANDROID,
-		TmplNameDefault: config.CommitMsgConfig_DEFAULT,
-		"":              config.CommitMsgConfig_DEFAULT,
-	}
-	protoToTmplName = map[config.CommitMsgConfig_BuiltIn]string{
-		config.CommitMsgConfig_ANDROID: TmplNameAndroid,
-		config.CommitMsgConfig_DEFAULT: TmplNameDefault,
+	namedCommitMsgTemplates = map[config.CommitMsgConfig_BuiltIn]*template.Template{
+		config.CommitMsgConfig_ANDROID: tmplAndroid,
+		config.CommitMsgConfig_DEFAULT: tmplCommitMsg,
 	}
 
 	limitEmptyLinesRegex = regexp.MustCompile(`\n\n\n+`)
 	newlineAtEndRegex    = regexp.MustCompile(`\n*$`)
 )
-
-// CommitMsgConfigToProto converts the CommitMsgConfig to a
-// config.CommitMsgConfig.
-func CommitMsgConfigToProto(cfg *CommitMsgConfig) *config.CommitMsgConfig {
-	rv := &config.CommitMsgConfig{
-		BugProject:           cfg.BugProject,
-		ChildLogUrlTmpl:      cfg.ChildLogURLTmpl,
-		CqExtraTrybots:       cfg.CqExtraTrybots,
-		CqDoNotCancelTrybots: cfg.CqDoNotCancelTrybots,
-		IncludeLog:           cfg.IncludeLog,
-		IncludeRevisionCount: cfg.IncludeRevisionCount,
-		IncludeTbrLine:       cfg.IncludeTbrLine,
-		IncludeTests:         cfg.IncludeTests,
-	}
-	if builtIn, ok := tmplNameToProto[cfg.Template]; ok {
-		rv.Template = &config.CommitMsgConfig_BuiltIn_{
-			BuiltIn: builtIn,
-		}
-	} else {
-		rv.Template = &config.CommitMsgConfig_Custom{
-			Custom: cfg.Template,
-		}
-	}
-	return rv
-}
-
-// ProtoToCommitMsgConfig converts the config.CommitMsgConfig to a
-// CommitMsgConfig.
-func ProtoToCommitMsgConfig(cfg *config.CommitMsgConfig) *CommitMsgConfig {
-	rv := &CommitMsgConfig{
-		BugProject:           cfg.BugProject,
-		ChildLogURLTmpl:      cfg.ChildLogUrlTmpl,
-		CqExtraTrybots:       cfg.CqExtraTrybots,
-		CqDoNotCancelTrybots: cfg.CqDoNotCancelTrybots,
-		IncludeLog:           cfg.IncludeLog,
-		IncludeRevisionCount: cfg.IncludeRevisionCount,
-		IncludeTbrLine:       cfg.IncludeTbrLine,
-		IncludeTests:         cfg.IncludeTests,
-	}
-	if cfg.Template != nil {
-		if tmpl, ok := cfg.Template.(*config.CommitMsgConfig_BuiltIn_); ok {
-			rv.Template = protoToTmplName[tmpl.BuiltIn]
-		} else if tmpl, ok := cfg.Template.(*config.CommitMsgConfig_Custom); ok {
-			rv.Template = tmpl.Custom
-		}
-	}
-	return rv
-}
 
 // transitiveDepUpdate represents an update to one transitive dependency.
 type transitiveDepUpdate struct {
@@ -92,48 +34,16 @@ type transitiveDepUpdate struct {
 	RollingTo   string
 }
 
-// CommitMsgConfig provides configuration for commit messages.
-type CommitMsgConfig struct {
-	BugProject           string   `json:"bugProject,omitempty"`
-	ChildLogURLTmpl      string   `json:"childLogURLTmpl,omitempty"`
-	CqExtraTrybots       []string `json:"cqExtraTrybots,omitempty"`
-	CqDoNotCancelTrybots bool     `json:"cqDoNotCancelTrybots,omitempty"`
-	IncludeLog           bool     `json:"includeLog,omitempty"`
-	IncludeRevisionCount bool     `json:"includeRevisionCount,omitempty"`
-	IncludeTbrLine       bool     `json:"includeTbrLine,omitempty"`
-	IncludeTests         bool     `json:"includeTests,omitempty"`
-	// Template is either a full commit message template string or the name of
-	// an entry in NamedCommitMsgTemplates. If not specified, the default
-	// template is used.
-	Template string `json:"template,omitempty"`
-}
-
-// Validate implements util.Validator.
-func (c *CommitMsgConfig) Validate() error {
-	// If not set, fill in the default for consistency.
-	if c.Template == "" {
-		c.Template = TmplNameDefault
-	}
-
-	// We are not concerned with the presence or absence of any given field,
-	// since some rollers may not need all of the fields. If we are able to
-	// execute the template given a typical set of inputs, we consider the
-	// CommitMsgConfig to be valid.
-	from, to, revs, reviewers := FakeCommitMsgInputs()
-	_, err := buildCommitMsg(c, fakeChildName, fakeServerURL, fakeTransitiveDeps, from, to, revs, reviewers)
-	return skerr.Wrap(err)
-}
-
 // Builder is a helper used to build commit messages.
 type Builder struct {
-	cfg            *CommitMsgConfig
+	cfg            *config.CommitMsgConfig
 	childName      string
 	serverURL      string
-	transitiveDeps version_file_common.TransitiveDepConfigs
+	transitiveDeps []*config.TransitiveDepConfig
 }
 
 // NewBuilder returns a Builder instance.
-func NewBuilder(c *CommitMsgConfig, childName, serverURL string, transitiveDeps version_file_common.TransitiveDepConfigs) (*Builder, error) {
+func NewBuilder(c *config.CommitMsgConfig, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig) (*Builder, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -143,8 +53,10 @@ func NewBuilder(c *CommitMsgConfig, childName, serverURL string, transitiveDeps 
 	if serverURL == "" {
 		return nil, skerr.Fmt("serverURL is required")
 	}
-	if err := transitiveDeps.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
+	for _, td := range transitiveDeps {
+		if err := td.Validate(); err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 	return &Builder{
 		cfg:            c,
@@ -160,21 +72,23 @@ func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revisio
 }
 
 // buildCommitMsg builds a commit message for the given roll.
-func buildCommitMsg(c *CommitMsgConfig, childName, serverURL string, transitiveDeps []*version_file_common.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
+func buildCommitMsg(c *config.CommitMsgConfig, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
 	vars, err := makeVars(c, childName, serverURL, transitiveDeps, from, to, rolling, reviewers)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
 	// Create the commit message.
 	commitMsgTmpl := tmplCommitMsg
-	if vars.Template != "" {
-		if builtin, ok := namedCommitMsgTemplates[vars.Template]; ok {
-			commitMsgTmpl = builtin
-		} else {
-			commitMsgTmpl, err = parseCommitMsgTemplate(tmplCommitMsg, "customCommitMsg", vars.Template)
-			if err != nil {
-				return "", skerr.Wrap(err)
-			}
+	if c.GetCustom() != "" {
+		commitMsgTmpl, err = parseCommitMsgTemplate(tmplCommitMsg, "customCommitMsg", c.GetCustom())
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+	} else {
+		var ok bool
+		commitMsgTmpl, ok = namedCommitMsgTemplates[c.GetBuiltIn()]
+		if !ok {
+			return "", skerr.Fmt("Unknown built-in config %q", c.GetBuiltIn())
 		}
 	}
 	var buf bytes.Buffer
@@ -198,7 +112,7 @@ func fixupRevision(rev *revision.Revision) *revision.Revision {
 }
 
 // makeVars derives commitMsgVars from the CommitMsgConfig for the given roll.
-func makeVars(c *CommitMsgConfig, childName, serverURL string, transitiveDeps []*version_file_common.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers []string) (*commitMsgVars, error) {
+func makeVars(c *config.CommitMsgConfig, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers []string) (*commitMsgVars, error) {
 	// Create the commitMsgVars object to be used as input to the template.
 	revsCopy := make([]*revision.Revision, 0, len(revisions))
 	for _, rev := range revisions {
@@ -239,8 +153,8 @@ func makeVars(c *CommitMsgConfig, childName, serverURL string, transitiveDeps []
 
 	// Log URL.
 	vars.ChildLogURL = ""
-	if c.ChildLogURLTmpl != "" {
-		childLogURLTmpl, err := parseCommitMsgTemplate(nil, "childLogURL", c.ChildLogURLTmpl)
+	if c.ChildLogUrlTmpl != "" {
+		childLogURLTmpl, err := parseCommitMsgTemplate(nil, "childLogURL", c.ChildLogUrlTmpl)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -274,17 +188,17 @@ func makeVars(c *CommitMsgConfig, childName, serverURL string, transitiveDeps []
 	var transitiveUpdates []*transitiveDepUpdate
 	for _, td := range transitiveDeps {
 		// Find the versions of the transitive dep in the old and new revisions.
-		oldRev, ok := from.Dependencies[td.Child.ID]
+		oldRev, ok := from.Dependencies[td.Child.Id]
 		if !ok {
-			return nil, skerr.Fmt("Transitive dependency %q is missing from revision %s", td.Child.ID, from.Id)
+			return nil, skerr.Fmt("Transitive dependency %q is missing from revision %s", td.Child.Id, from.Id)
 		}
-		newRev, ok := to.Dependencies[td.Child.ID]
+		newRev, ok := to.Dependencies[td.Child.Id]
 		if !ok {
-			return nil, skerr.Fmt("Transitive dependency %q is missing from revision %s", td.Child.ID, to.Id)
+			return nil, skerr.Fmt("Transitive dependency %q is missing from revision %s", td.Child.Id, to.Id)
 		}
 		if oldRev != newRev {
 			transitiveUpdates = append(transitiveUpdates, &transitiveDepUpdate{
-				Dep:         td.Parent.ID,
+				Dep:         td.Parent.Id,
 				RollingFrom: oldRev,
 				RollingTo:   newRev,
 			})
@@ -296,7 +210,7 @@ func makeVars(c *CommitMsgConfig, childName, serverURL string, transitiveDeps []
 
 // commitMsgVars contains variables used to fill in a commit message template.
 type commitMsgVars struct {
-	*CommitMsgConfig
+	*config.CommitMsgConfig
 	Bugs           []string
 	ChildLogURL    string
 	ChildName      string
@@ -344,34 +258,34 @@ const fakeChildDep1 = "child/dep1"
 const fakeChildDep2 = "child/dep2"
 const fakeChildDep3 = "child/dep3"
 
-var fakeTransitiveDeps = []*version_file_common.TransitiveDepConfig{
+var fakeTransitiveDeps = []*config.TransitiveDepConfig{
 	{
-		Child: &version_file_common.VersionFileConfig{
-			ID:   fakeChildDep1,
+		Child: &config.VersionFileConfig{
+			Id:   fakeChildDep1,
 			Path: "DEPS",
 		},
-		Parent: &version_file_common.VersionFileConfig{
-			ID:   "parent/dep1",
+		Parent: &config.VersionFileConfig{
+			Id:   "parent/dep1",
 			Path: "DEPS",
 		},
 	},
 	{
-		Child: &version_file_common.VersionFileConfig{
-			ID:   fakeChildDep2,
+		Child: &config.VersionFileConfig{
+			Id:   fakeChildDep2,
 			Path: "DEPS",
 		},
-		Parent: &version_file_common.VersionFileConfig{
-			ID:   "parent/dep2",
+		Parent: &config.VersionFileConfig{
+			Id:   "parent/dep2",
 			Path: "DEPS",
 		},
 	},
 	{
-		Child: &version_file_common.VersionFileConfig{
-			ID:   fakeChildDep3,
+		Child: &config.VersionFileConfig{
+			Id:   fakeChildDep3,
 			Path: "DEPS",
 		},
-		Parent: &version_file_common.VersionFileConfig{
-			ID:   "parent/dep3",
+		Parent: &config.VersionFileConfig{
+			Id:   "parent/dep3",
 			Path: "DEPS",
 		},
 	},

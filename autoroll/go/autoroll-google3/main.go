@@ -11,7 +11,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/config"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -44,20 +43,13 @@ func main() {
 		sklog.Fatal("--webhook_request_salt is required.")
 	}
 
-	var cfg *roller.AutoRollerConfig
+	var cfg config.Config
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
 		configBytes, err := ioutil.ReadAll(f)
 		if err != nil {
 			return err
 		}
-		var cfgProto config.Config
-		if err := prototext.Unmarshal(configBytes, &cfgProto); err != nil {
-			return err
-		}
-		// TODO(borenet): Remove the old-style config and just use the proto
-		// version everywhere.
-		cfg, err = roller.ProtoToConfig(&cfgProto)
-		if err != nil {
+		if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
 			return err
 		}
 		return nil
@@ -79,7 +71,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
-	arb, err := NewAutoRoller(ctx, cfg, client, ts)
+	arb, err := NewAutoRoller(ctx, &cfg, client, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

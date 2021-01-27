@@ -8,15 +8,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	manual_mocks "go.skia.org/infra/autoroll/go/manual/mocks"
 	"go.skia.org/infra/autoroll/go/modes"
 	modes_mocks "go.skia.org/infra/autoroll/go/modes/mocks"
-	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
 	status_mocks "go.skia.org/infra/autoroll/go/status/mocks"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -54,7 +52,7 @@ func defaultBranchTmpl(t *testing.T) *config_vars.Template {
 	return tmpl
 }
 
-func makeFakeModeChange(cfg *roller.AutoRollerConfig) *modes.ModeChange {
+func makeFakeModeChange(cfg *config.Config) *modes.ModeChange {
 	return &modes.ModeChange{
 		Message: "dry run!",
 		// We can't use the first enum value, or assertdeep.Copy will fail.
@@ -65,7 +63,7 @@ func makeFakeModeChange(cfg *roller.AutoRollerConfig) *modes.ModeChange {
 	}
 }
 
-func makeFakeStrategyChange(cfg *roller.AutoRollerConfig) *strategy.StrategyChange {
+func makeFakeStrategyChange(cfg *config.Config) *strategy.StrategyChange {
 	return &strategy.StrategyChange{
 		Message: "set strategy",
 		// We can't use the first enum value, or assertdeep.Copy will fail.
@@ -76,7 +74,7 @@ func makeFakeStrategyChange(cfg *roller.AutoRollerConfig) *strategy.StrategyChan
 	}
 }
 
-func makeFakeManualRollRequest(cfg *roller.AutoRollerConfig) *manual.ManualRollRequest {
+func makeFakeManualRollRequest(cfg *config.Config) *manual.ManualRollRequest {
 	return &manual.ManualRollRequest{
 		Id:                "manual123",
 		DbModified:        timeNowFunc(),
@@ -128,7 +126,7 @@ func makeFakeRoll() *autoroll.AutoRollIssue {
 	}
 }
 
-func makeFakeStatus(cfg *roller.AutoRollerConfig) *status.AutoRollStatus {
+func makeFakeStatus(cfg *config.Config) *status.AutoRollStatus {
 	current := makeFakeRoll()
 	last := makeFakeRoll()
 	return &status.AutoRollStatus{
@@ -172,23 +170,36 @@ func makeFakeStatus(cfg *roller.AutoRollerConfig) *status.AutoRollStatus {
 }
 
 func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mocks.DB) *AutoRoller {
-	cfg := &roller.AutoRollerConfig{
+	cfg := &config.Config{
 		ChildDisplayName:  name + "_child",
 		ParentDisplayName: name + "_parent",
 		ParentWaterfall:   "https://parent",
 		RollerName:        name,
-		NoCheckoutDEPSRepoManager: &repo_manager.NoCheckoutDEPSRepoManagerConfig{
-			NoCheckoutRepoManagerConfig: repo_manager.NoCheckoutRepoManagerConfig{
-				CommonRepoManagerConfig: repo_manager.CommonRepoManagerConfig{
-					ChildBranch:  defaultBranchTmpl(t),
-					ChildPath:    "path/to/child",
-					ParentBranch: defaultBranchTmpl(t),
-					ParentRepo:   "https://fake.parent",
+		RepoManager: &config.Config_ParentChildRepoManager{
+			ParentChildRepoManager: &config.ParentChildRepoManagerConfig{
+				Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+					GitilesChild: &config.GitilesChildConfig{
+						Gitiles: &config.GitilesConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "https://fake.child",
+						},
+					},
+				},
+				Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+					GitilesParent: &config.GitilesParentConfig{
+						Gitiles: &config.GitilesConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "https://fake.parent",
+						},
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
+								Id: "https://fake.child",
+							},
+						},
+						Gerrit: &config.GerritConfig{},
+					},
 				},
 			},
-			Gerrit: &codereview.GerritConfig{},
-			// URL of the child repo.
-			ChildRepo: "https://fake.child",
 		},
 		SupportsManualRolls: true,
 		TimeWindow:          "24h",

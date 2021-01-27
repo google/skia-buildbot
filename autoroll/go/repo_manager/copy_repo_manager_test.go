@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -24,35 +24,52 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func copyCfg(t *testing.T) *CopyRepoManagerConfig {
-	return &CopyRepoManagerConfig{
-		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  defaultBranchTmpl(t),
-				ParentBranch: defaultBranchTmpl(t),
+func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_CopyParent{
+			CopyParent: &config.CopyParentConfig{
+				Gitiles: &config.GitilesParentConfig{
+					Gitiles: &config.GitilesConfig{
+						Branch:  git.DefaultBranch,
+						RepoUrl: "http://fake.parent",
+					},
+					Dep: &config.DependencyConfig{
+						Primary: &config.VersionFileConfig{
+							Id:   "http://fake.child",
+							Path: filepath.Join(childPath, "version.sha1"),
+						},
+					},
+					Gerrit: &config.GerritConfig{
+						Url:     "https://fake-skia-review.googlesource.com",
+						Project: "fake-gerrit-project",
+						Config:  config.GerritConfig_CHROMIUM,
+					},
+				},
+				Copies: []*config.CopyParentConfig_CopyEntry{
+					// TODO(borenet): Test a directory.
+					{
+						SrcRelPath: path.Join("child-dir", "child-file.txt"),
+						DstRelPath: path.Join(childPath, "parent-file.txt"),
+					},
+					{
+						SrcRelPath: path.Join("child-dir", "child-subdir"),
+						DstRelPath: path.Join(childPath, "parent-dir"),
+					},
+				},
 			},
 		},
-		VersionFile: filepath.Join(childPath, "version.sha1"),
-		Copies: []parent.CopyEntry{
-			// TODO(borenet): Test a directory.
-			{
-				SrcRelPath: path.Join("child-dir", "child-file.txt"),
-				DstRelPath: path.Join(childPath, "parent-file.txt"),
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: &config.GitilesChildConfig{
+				Gitiles: &config.GitilesConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: "todo.git",
+				},
 			},
-			{
-				SrcRelPath: path.Join("child-dir", "child-subdir"),
-				DstRelPath: path.Join(childPath, "parent-dir"),
-			},
-		},
-		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
-			Project: "fake-gerrit-project",
-			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 		},
 	}
 }
 
-func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -62,18 +79,18 @@ func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *
 	child := git_testutils.GitInit(t, ctx)
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits-1; i++ {
-		child.AddGen(ctx, cfg.Copies[0].SrcRelPath)
-		child.AddGen(ctx, path.Join(cfg.Copies[1].SrcRelPath, "a"))
-		child.AddGen(ctx, path.Join(cfg.Copies[1].SrcRelPath, "b"))
-		child.AddGen(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"))
+		child.AddGen(ctx, cfg.GetCopyParent().Copies[0].SrcRelPath)
+		child.AddGen(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "a"))
+		child.AddGen(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "b"))
+		child.AddGen(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"))
 		childCommits = append(childCommits, child.Commit(ctx))
 	}
 
 	parent := git_testutils.GitInit(t, ctx)
-	parent.AddGen(ctx, cfg.Copies[0].DstRelPath)
-	parent.AddGen(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"))
-	parent.AddGen(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"))
-	parent.AddGen(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"))
+	parent.AddGen(ctx, cfg.GetCopyParent().Copies[0].DstRelPath)
+	parent.AddGen(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "a"))
+	parent.AddGen(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "b"))
+	parent.AddGen(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "c"))
 	parent.Add(ctx, filepath.Join(childPath, "version.sha1"), childCommits[0])
 	parentHead := parent.Commit(ctx)
 
@@ -86,11 +103,13 @@ func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	cfg.ChildRepo = child.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
-	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_CopyParent)
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild)
+	childCfg.GitilesChild.Gitiles.RepoUrl = child.RepoUrl()
+	parentCfg.CopyParent.Gitiles.Gitiles.RepoUrl = parent.RepoUrl()
+	parentCfg.CopyParent.Gitiles.Dep.Primary.Id = child.RepoUrl()
 	urlmock := mockhttpclient.NewURLMock()
-	g := setupFakeGerrit(t, cfg.Gerrit, urlmock)
+	g := setupFakeGerrit(t, cfg.GetCopyParent().Gitiles.Gerrit, urlmock)
 
 	// Mock requests for Update.
 	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
@@ -101,10 +120,10 @@ func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *
 	}
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Create the RepoManager.
-	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", "recipes.cfg", urlmock.Client(), gerritCR(t, g))
 	require.NoError(t, err)
 
 	// Update.
@@ -142,7 +161,7 @@ func TestCopyRepoManager(t *testing.T) {
 	}
 	parentHead := strings.TrimSpace(parent.Git(ctx, "rev-parse", git.DefaultBranch))
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -167,7 +186,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	}
 	parentHead := strings.TrimSpace(parentRepo.Git(ctx, "rev-parse", git.DefaultBranch))
 	mockParent.MockGetCommit(ctx, git.DefaultBranch)
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -176,36 +195,36 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Mock requests for CreateNewRoll.
 	mockChild.MockGetCommit(ctx, childCommits[0])
-	mockChild.MockReadFile(ctx, cfg.Copies[0].SrcRelPath, lastRollRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[0].SrcRelPath, lastRollRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[1].SrcRelPath, lastRollRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[1].SrcRelPath, lastRollRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "a"), lastRollRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "a"), lastRollRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "b"), lastRollRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "b"), lastRollRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), lastRollRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), lastRollRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[0].SrcRelPath, tipRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[0].SrcRelPath, tipRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[1].SrcRelPath, tipRev.Id)
-	mockChild.MockReadFile(ctx, cfg.Copies[1].SrcRelPath, tipRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "a"), tipRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "a"), tipRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "b"), tipRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "b"), tipRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), tipRev.Id)
-	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), tipRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[0].SrcRelPath, lastRollRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[0].SrcRelPath, lastRollRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[1].SrcRelPath, lastRollRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[1].SrcRelPath, lastRollRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "a"), lastRollRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "a"), lastRollRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "b"), lastRollRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "b"), lastRollRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), lastRollRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), lastRollRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[0].SrcRelPath, tipRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[0].SrcRelPath, tipRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[1].SrcRelPath, tipRev.Id)
+	mockChild.MockReadFile(ctx, cfg.GetCopyParent().Copies[1].SrcRelPath, tipRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "a"), tipRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "a"), tipRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "b"), tipRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "b"), tipRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), tipRev.Id)
+	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), tipRev.Id)
 
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
-	mockParent.MockReadFile(ctx, cfg.Copies[0].DstRelPath, parentHead)
-	mockParent.MockReadFile(ctx, cfg.Copies[1].DstRelPath, parentHead)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentHead)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentHead)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"), parentHead)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"), parentHead)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"), parentHead)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"), parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Copies[0].DstRelPath, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Copies[1].DstRelPath, parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "a"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "a"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "b"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "b"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "c"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "c"), parentHead)
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
@@ -239,14 +258,14 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 		url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(dst))
 		urlMock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 	}
-	mockUpdateFile(cfg.Copies[0].SrcRelPath, cfg.Copies[0].DstRelPath)
-	mockUpdateFile(path.Join(cfg.Copies[1].SrcRelPath, "a"), path.Join(cfg.Copies[1].DstRelPath, "a"))
-	mockUpdateFile(path.Join(cfg.Copies[1].SrcRelPath, "b"), path.Join(cfg.Copies[1].DstRelPath, "b"))
-	mockUpdateFile(path.Join(cfg.Copies[1].SrcRelPath, "c"), path.Join(cfg.Copies[1].DstRelPath, "c"))
+	mockUpdateFile(cfg.GetCopyParent().Copies[0].SrcRelPath, cfg.GetCopyParent().Copies[0].DstRelPath)
+	mockUpdateFile(path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "a"), path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "a"))
+	mockUpdateFile(path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "b"), path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "b"))
+	mockUpdateFile(path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "c"))
 
 	// Mock the request to update the version file.
 	reqBody = []byte(tipRev.Id + "\n")
-	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(cfg.VersionFile))
+	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(cfg.GetCopyParent().Gitiles.Dep.Primary.Path))
 	urlMock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to publish the change edit.
@@ -265,7 +284,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	gerritCfg := codereview.GerritConfigs[cfg.GetCopyParent().Gitiles.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	} else {

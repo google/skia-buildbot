@@ -15,6 +15,7 @@ import (
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -26,52 +27,63 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+const (
+	githubVersionFile = "version-file.txt"
+)
+
 func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
-	rv, err := (&codereview.GithubConfig{
+	rv, err := codereview.NewGitHub(&config.GitHubConfig{
 		RepoOwner:     "me",
 		RepoName:      "my-repo",
 		ChecksWaitFor: []string{"a", "b", "c"},
-	}).Init(nil, g)
+	}, g)
 	require.NoError(t, err)
 	return rv
 }
 
-func githubRmCfg(t *testing.T) *GithubRepoManagerConfig {
-	return &GithubRepoManagerConfig{
-		CommonRepoManagerConfig: CommonRepoManagerConfig{
-			ChildBranch:  defaultBranchTmpl(t),
-			ChildPath:    "earth",
-			ParentBranch: defaultBranchTmpl(t),
-			ParentRepo:   "git@github.com:jorel/krypton.git",
+func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent{
+			GitCheckoutGithubFileParent: &config.GitCheckoutGitHubFileParentConfig{
+				GitCheckout: &config.GitCheckoutGitHubParentConfig{
+					GitCheckout: &config.GitCheckoutParentConfig{
+						GitCheckout: &config.GitCheckoutConfig{
+							Branch:  git.DefaultBranch,
+							RepoUrl: "todo.git",
+						},
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
+								Id:   "todo.git",
+								Path: githubVersionFile,
+							},
+						},
+					},
+					ForkRepoUrl: "todo.git",
+				},
+			},
 		},
-		ChildRepoName: "earth",
-		ChildUserName: "superman",
-		RevisionFile:  "dummy-file.txt",
+		Child: &config.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
+			GitCheckoutGithubChild: &config.GitCheckoutGitHubChildConfig{
+				GitCheckout: &config.GitCheckoutChildConfig{
+					GitCheckout: &config.GitCheckoutConfig{
+						Branch:  git.DefaultBranch,
+						RepoUrl: "todo.git",
+					},
+				},
+				RepoOwner: mockGithubUser,
+				RepoName:  "todo.git",
+			},
+		},
 	}
 }
 
-func TestGithubRepoManagerConfigValidation(t *testing.T) {
-	unittest.SmallTest(t)
-
-	cfg := githubRmCfg(t)
-	cfg.ChildRepoURL = "git@github.com:fake/child"
-	cfg.ForkRepoURL = "git@github.com:fake/fork"
-	cfg.ParentRepo = "git@github.com:fake/parent"
-	require.NoError(t, cfg.Validate())
-
-	// The only fields come from the nested Configs, so exclude them and
-	// verify that we fail validation.
-	cfg = &GithubRepoManagerConfig{}
-	require.Error(t, cfg.Validate())
-}
-
-func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
+func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
 
 	// Create child and parent repos.
-	childPath := filepath.Join(wd, "github_repos", "earth")
+	childPath := filepath.Join(wd, "earth")
 	require.NoError(t, os.MkdirAll(childPath, 0755))
 	child := git_testutils.GitInitWithDir(t, ctx, childPath)
 	f := "somefile.txt"
@@ -80,10 +92,10 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 		childCommits = append(childCommits, child.CommitGen(ctx, f))
 	}
 
-	parentPath := filepath.Join(wd, "github_repos", "krypton")
+	parentPath := filepath.Join(wd, "krypton")
 	require.NoError(t, os.MkdirAll(parentPath, 0755))
 	parent := git_testutils.GitInitWithDir(t, ctx, parentPath)
-	parent.Add(ctx, "dummy-file.txt", fmt.Sprintf(`%s`, childCommits[0]))
+	parent.Add(ctx, githubVersionFile, fmt.Sprintf(`%s`, childCommits[0]))
 	parent.Commit(ctx)
 
 	fork := git_testutils.GitInit(t, ctx)
@@ -92,9 +104,13 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 	fork.Git(ctx, "checkout", git.DefaultBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
-	cfg.ChildRepoURL = child.RepoUrl()
-	cfg.ForkRepoURL = fork.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
+	parentCfg.GitCheckout.ForkRepoUrl = fork.RepoUrl()
+	parentCfg.GitCheckout.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
+	parentCfg.GitCheckout.GitCheckout.Dep.Primary.Id = child.RepoUrl()
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
+	childCfg.GitCheckout.GitCheckout.RepoUrl = child.RepoUrl()
+	childCfg.RepoName = child.RepoUrl()
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -113,8 +129,8 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g, urlMock := setupFakeGithub(t, ctx, childCommits)
-	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, "rollerName", g, recipesCfg, "fake.server.com", urlMock.Client(), githubCR(t, g), false)
+	g, urlMock := setupFakeGithub(ctx, t, childCommits)
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "rollerName", recipesCfg, "fake.server.com", urlMock.Client(), githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -126,7 +142,7 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 	return ctx, rm, wd, child, childCommits, parent, mockRun, urlMock, cleanup
 }
 
-func setupFakeGithub(t *testing.T, ctx context.Context, childCommits []string) (*github.GitHub, *mockhttpclient.URLMock) {
+func setupFakeGithub(ctx context.Context, t *testing.T, childCommits []string) (*github.GitHub, *mockhttpclient.URLMock) {
 	urlMock := mockhttpclient.NewURLMock()
 
 	// Mock /user endpoint.
@@ -178,7 +194,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoU
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345/comments", md)
 
 	// Mock /refs endpoints.
-	forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+	forkRepoMatches := parent.REGitHubForkRepoURL.FindStringSubmatch(forkRepoURL)
 	forkRepoOwner := forkRepoMatches[2]
 	forkRepoName := forkRepoMatches[3]
 	testSHA := "xyz"
@@ -220,7 +236,7 @@ func TestGithubRepoManagerCreateNewRoll(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll.
-	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRequests(t, urlMock, cfg.GetGitCheckoutGithubFileParent().GitCheckout.ForkRepoUrl)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -237,7 +253,8 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 		ran = true
 		return nil
 	})
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
+	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
 	defer cleanup()
 
@@ -245,7 +262,7 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRequests(t, urlMock, parentCfg.GitCheckout.ForkRepoUrl)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
@@ -263,7 +280,8 @@ func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
 		ran = true
 		return expectedErr
 	})
-	cfg.PreUploadSteps = []string{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
+	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
 	defer cleanup()
@@ -272,7 +290,7 @@ func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
+	mockGithubRequests(t, urlMock, parentCfg.GitCheckout.ForkRepoUrl)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)
