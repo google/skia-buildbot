@@ -11,18 +11,18 @@ import (
 	"strings"
 
 	"cloud.google.com/go/datastore"
-	"cloud.google.com/go/storage"
 	"github.com/pmezard/go-difflib/difflib"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
@@ -51,13 +51,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to read %s: %s", *configFile, err)
 	}
-	var protoCfg config.Config
-	if err := prototext.Unmarshal(cfgBytes, &protoCfg); err != nil {
+	var cfg config.Config
+	if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
 		log.Fatalf("Failed to decode config: %s", err)
-	}
-	cfg, err := roller.ProtoToConfig(&protoCfg)
-	if err != nil {
-		log.Fatalf("Failed to convert roller config: %s", err)
 	}
 
 	// Fake the serverURL based on the roller name.
@@ -90,24 +86,24 @@ func main() {
 		}
 		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
-		s, err := storage.NewClient(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		gcsClient := gcsclient.New(s, "skia-autoroll")
-
 		var gerritClient *gerrit.Gerrit
 		var githubClient *github.GitHub
-		if cfg.Gerrit != nil {
-			gc, err := cfg.Gerrit.GetConfig()
-			if err != nil {
-				log.Fatalf("Failed to get Gerrit config: %s", err)
+		var cr codereview.CodeReview
+		if cfg.GetGerrit() != nil {
+			gc := cfg.GetGerrit()
+			if gc == nil {
+				log.Fatal("Gerrit config doesn't exist.")
 			}
-			gerritClient, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, client)
+			gerritConfig := codereview.GerritConfigs[gc.Config]
+			gerritClient, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, client)
 			if err != nil {
 				log.Fatalf("Failed to create Gerrit client: %s", err)
 			}
-		} else if cfg.Github != nil {
+			cr, err = codereview.NewGerrit(gc, gerritClient)
+			if err != nil {
+				log.Fatalf("Failed to create Gerrit code review: %s", err)
+			}
+		} else if cfg.GetGithub() != nil {
 			user, err := user.Current()
 			if err != nil {
 				log.Fatal(err)
@@ -120,16 +116,20 @@ func main() {
 			}
 			gToken := strings.TrimSpace(string(gBody))
 			githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
-			githubClient, err = github.NewGitHub(ctx, cfg.Github.RepoOwner, cfg.Github.RepoName, githubHttpClient)
+			gc := cfg.GetGithub()
+			if gc == nil {
+				log.Fatal("Github config doesn't exist.")
+			}
+			githubClient, err = github.NewGitHub(ctx, gc.RepoOwner, gc.RepoName, githubHttpClient)
 			if err != nil {
 				log.Fatalf("Could not create Github client: %s", err)
 			}
+			cr, err = codereview.NewGitHub(gc, githubClient)
+			if err != nil {
+				log.Fatalf("Failed to create Gthub code review: %s", err)
+			}
 		}
 
-		cr, err := cfg.CodeReview().Init(gerritClient, githubClient)
-		if err != nil {
-			log.Fatalf("Failed to initialize code review: %s", err)
-		}
 		reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
 		if err != nil {
 			log.Fatalf("Failed to create config var registry: %s", err)
@@ -141,7 +141,7 @@ func main() {
 		}
 		recipesCfgFile := filepath.Join(repoRoot, "infra", "config", "recipes.cfg")
 
-		rm, err := cfg.CreateRepoManager(ctx, cr, reg, gerritClient, githubClient, *workdir, recipesCfgFile, *serverURL, cfg.RollerName, gcsClient, client, true)
+		rm, err := repo_manager.New(ctx, cfg.GetRepoManagerConfig(), reg, *workdir, cfg.RollerName, recipesCfgFile, *serverURL, cfg.ServiceAccount, client, cr, cfg.IsInternal, true)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -168,7 +168,7 @@ func main() {
 		// TODO(borenet): We don't have a RepoManager.Log(from, to) method to
 		// return a slice of revisions, so we can't form an actual list here.
 		revs = []*revision.Revision{to}
-		if cfg.Gerrit != nil {
+		if cfg.GetGerrit() != nil {
 			ci, err := gerritClient.GetIssueProperties(ctx, lastRoll.Issue)
 			if err != nil {
 				log.Fatalf("Failed to get change: %s", err)
@@ -200,7 +200,7 @@ func main() {
 				reviewers = append(reviewers, reviewer.Email)
 			}
 			realRollURL = gerritClient.Url(ci.Issue)
-		} else if cfg.Github != nil {
+		} else if cfg.GetGithub() != nil {
 			pr, err := githubClient.GetPullRequest(int(lastRoll.Issue))
 			if err != nil {
 				log.Fatalf("Failed to get pull request: %s", err)
@@ -216,14 +216,14 @@ func main() {
 	} else {
 		from, to, revs, _ = commit_msg.FakeCommitMsgInputs()
 		var err error
-		reviewers, err = roller.GetReviewers(cfg.RollerName, cfg.Sheriff, cfg.SheriffBackup)
+		reviewers, err = roller.GetReviewers(cfg.RollerName, cfg.Reviewer, cfg.ReviewerBackup)
 		if err != nil {
 			log.Fatalf("Failed to retrieve reviewers: %s", err)
 		}
 	}
 
 	// Create the commit message builder.
-	b, err := commit_msg.NewBuilder(cfg.CommitMsgConfig, cfg.ChildDisplayName, *serverURL, cfg.TransitiveDeps)
+	b, err := commit_msg.NewBuilder(cfg.CommitMsg, cfg.ChildDisplayName, *serverURL, cfg.TransitiveDeps)
 	if err != nil {
 		log.Fatalf("Failed to create commit message builder: %s", err)
 	}

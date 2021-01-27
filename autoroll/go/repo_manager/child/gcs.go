@@ -24,41 +24,6 @@ var (
 	errInvalidGCSVersion = errors.New("Invalid GCS version.")
 )
 
-// GCSConfig provides configuration for a Child which reads from GCS.
-type GCSConfig struct {
-	// GCS bucket used for finding child revisions.
-	GCSBucket string
-	// Path within the GCS bucket which contains child revisions.
-	GCSPath string
-}
-
-// Validate implements util.Validator.
-func (c *GCSConfig) Validate() error {
-	if c.GCSBucket == "" {
-		return errors.New("GCSBucket is required.")
-	}
-	if c.GCSPath == "" {
-		return errors.New("GCSPath is required.")
-	}
-	return nil
-}
-
-// GCSConfigToProto converts a GCSConfig to a config.GCSChildConfig.
-func GCSConfigToProto(cfg *GCSConfig) *config.GCSChildConfig {
-	return &config.GCSChildConfig{
-		GcsBucket: cfg.GCSBucket,
-		GcsPath:   cfg.GCSPath,
-	}
-}
-
-// ProtoToGCSConfig converts a config.GCSChildConfig to a GCSConfig.
-func ProtoToGCSConfig(cfg *config.GCSChildConfig) *GCSConfig {
-	return &GCSConfig{
-		GCSBucket: cfg.GcsBucket,
-		GCSPath:   cfg.GcsPath,
-	}
-}
-
 // gcsVersion represents a version of a file in GCS. It can be compared to other
 // gcsVersion instances of the same type.
 type gcsVersion interface {
@@ -105,7 +70,7 @@ type gcsChild struct {
 }
 
 // newGCS returns a Child implementation which loads revision from GCS.
-func newGCS(ctx context.Context, c GCSConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc) (*gcsChild, error) {
+func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -113,11 +78,11 @@ func newGCS(ctx context.Context, c GCSConfig, client *http.Client, getVersion gc
 	if err != nil {
 		return nil, err
 	}
-	gcsClient := gcsclient.New(storageClient, c.GCSBucket)
+	gcsClient := gcsclient.New(storageClient, c.GcsBucket)
 	return &gcsChild{
 		gcs:           gcsClient,
-		gcsBucket:     c.GCSBucket,
-		gcsPath:       c.GCSPath,
+		gcsBucket:     c.GcsBucket,
+		gcsPath:       c.GcsPath,
 		getGCSVersion: getVersion,
 		shortRev:      shortRev,
 	}, nil

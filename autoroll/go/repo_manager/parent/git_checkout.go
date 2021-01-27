@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -19,49 +20,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
-
-// GitCheckoutConfig provides configuration for a Parent which uses a local
-// checkout to create changes.
-type GitCheckoutConfig struct {
-	git_common.GitCheckoutConfig
-	version_file_common.DependencyConfig
-}
-
-// Validate implements util.Validator.
-func (c GitCheckoutConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := c.DependencyConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if len(c.GitCheckoutConfig.Dependencies) != 0 {
-		return skerr.Fmt("Dependencies are inherited from the DependencyConfig and should not be set on the GitCheckoutConfig.")
-	}
-	return nil
-}
-
-// GitCheckoutConfigToProto converts a GitCheckoutConfig to a
-// config.GitCheckoutParentConfig.
-func GitCheckoutConfigToProto(cfg *GitCheckoutConfig) *config.GitCheckoutParentConfig {
-	return &config.GitCheckoutParentConfig{
-		GitCheckout: git_common.GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
-		Dep:         version_file_common.DependencyConfigToProto(&cfg.DependencyConfig),
-	}
-}
-
-// ProtoToGitCheckoutConfig converts a config.GitCheckoutParentConfig to a
-// GitCheckoutConfig.
-func ProtoToGitCheckoutConfig(cfg *config.GitCheckoutParentConfig) (*GitCheckoutConfig, error) {
-	co, err := git_common.ProtoToGitCheckoutConfig(cfg.GitCheckout)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &GitCheckoutConfig{
-		GitCheckoutConfig: *co,
-		DependencyConfig:  *version_file_common.ProtoToDependencyConfig(cfg.Dep),
-	}, nil
-}
 
 // GitCheckoutParent is a base for implementations of Parent which use a local
 // Git checkout.
@@ -74,30 +32,31 @@ type GitCheckoutParent struct {
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
-	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
-	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
-	for _, td := range c.TransitiveDeps {
+	// TODO(borenet): Don't modify the passed-in config!
+	deps := make([]*config.VersionFileConfig, 0, len(c.Dep.Transitive)+1)
+	deps = append(deps, c.Dep.Primary)
+	for _, td := range c.Dep.Transitive {
 		deps = append(deps, td.Parent)
 	}
-	c.GitCheckoutConfig.Dependencies = deps
-	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
+	c.GitCheckout.Dependencies = deps
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &GitCheckoutParent{
 		Checkout:   checkout,
-		childID:    c.DependencyConfig.ID,
+		childID:    c.Dep.Primary.Id,
 		createRoll: createRoll,
 		uploadRoll: uploadRoll,
 	}, nil
 }
 
-// See documentation for Parent interface.
+// Update implements Parent.
 func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
 	rev, _, err := p.Checkout.Update(ctx)
 	if err != nil {
@@ -110,7 +69,7 @@ func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
 	return lastRollRev, nil
 }
 
-// See documentation for Parent interface.
+// CreateNewRoll implements Parent.
 func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	return p.Checkout.CreateNewRoll(ctx, from, to, rolling, emails, dryRun, commitMsg, p.createRoll, p.uploadRoll)
 }
@@ -118,7 +77,7 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 // gitCheckoutFileCreateRollFunc returns a GitCheckoutCreateRollFunc which uses
 // a local Git checkout and pins dependencies using a file checked into the
 // repo.
-func gitCheckoutFileCreateRollFunc(dep version_file_common.DependencyConfig) git_common.CreateRollFunc {
+func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.CreateRollFunc {
 	return func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Determine what changes need to be made.
 		getFile := func(ctx context.Context, path string) (string, error) {
