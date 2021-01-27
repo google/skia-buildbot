@@ -97,6 +97,7 @@ type AndroidRepoManagerConfig struct {
 	CommonRepoManagerConfig
 	*ProjectMetadataFileConfig `json:"projectMetadataFileConfig,omitempty"`
 	ChildRepoURL               string `json:"childRepoURL"`
+	IncludeAuthorsAsReviewers  bool   `json:"include_authors_as_reviewers"`
 }
 
 // Validate implements util.Validator.
@@ -127,15 +128,16 @@ func (c *AndroidRepoManagerConfig) ValidStrategies() []string {
 // config.AndroidRepoManagerConfig.
 func AndroidRepoManagerConfigToProto(cfg *AndroidRepoManagerConfig) *config.AndroidRepoManagerConfig {
 	return &config.AndroidRepoManagerConfig{
-		ChildRepoUrl:     cfg.ChildRepoURL,
-		ChildBranch:      cfg.ChildBranch.RawTemplate(),
-		ChildPath:        cfg.ChildPath,
-		ParentRepoUrl:    cfg.ParentRepo,
-		ParentBranch:     cfg.ParentBranch.RawTemplate(),
-		ChildRevLinkTmpl: cfg.ChildRevLinkTmpl,
-		ChildSubdir:      cfg.ChildSubdir,
-		PreUploadSteps:   parent.PreUploadStepsToProto(cfg.PreUploadSteps),
-		Metadata:         ProjectMetadataFileConfigToProto(cfg.ProjectMetadataFileConfig),
+		ChildRepoUrl:              cfg.ChildRepoURL,
+		ChildBranch:               cfg.ChildBranch.RawTemplate(),
+		ChildPath:                 cfg.ChildPath,
+		ParentRepoUrl:             cfg.ParentRepo,
+		ParentBranch:              cfg.ParentBranch.RawTemplate(),
+		ChildRevLinkTmpl:          cfg.ChildRevLinkTmpl,
+		ChildSubdir:               cfg.ChildSubdir,
+		PreUploadSteps:            parent.PreUploadStepsToProto(cfg.PreUploadSteps),
+		Metadata:                  ProjectMetadataFileConfigToProto(cfg.ProjectMetadataFileConfig),
+		IncludeAuthorsAsReviewers: cfg.IncludeAuthorsAsReviewers,
 	}
 }
 
@@ -169,10 +171,11 @@ func ProtoToAndroidRepoManagerConfig(cfg *config.AndroidRepoManagerConfig) (*And
 // checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
-	androidRemoteName string
-	childRepoURL      string
-	parentRepoURL     string
-	repoToolPath      string
+	androidRemoteName         string
+	childRepoURL              string
+	parentRepoURL             string
+	repoToolPath              string
+	includeAuthorsAsReviewers bool
 
 	projectMetadataFileConfig *ProjectMetadataFileConfig
 }
@@ -220,6 +223,7 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.ProjectMetadataFileConfig,
 		childRepoURL:              c.ChildRepoURL,
+		includeAuthorsAsReviewers: c.IncludeAuthorsAsReviewers,
 	}
 	return r, nil
 }
@@ -440,14 +444,13 @@ third_party {
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
-	// If the parent branch is not the main branch then:
-	// Add all authors of merged changes to the email list. We do not do this
-	// for the main branch because developers would get spammed due to multiple
-	// rolls a day. Release branch rolls run rarely and developers should be
-	// aware that their changes are being rolled there.
 	rollEmails := []string{}
 	rollEmails = append(rollEmails, emails...)
-	if parentBranch != "sc-dev" {
+	if r.includeAuthorsAsReviewers {
+		// Add all authors of merged changes to the email list. We do this only
+		// for some rollers because developers would get spammed due to multiple
+		// rolls a day. Release branch rolls run rarely and developers should be
+		// aware that their changes are being rolled there.
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
