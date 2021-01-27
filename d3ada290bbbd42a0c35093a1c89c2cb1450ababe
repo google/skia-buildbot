@@ -39,6 +39,30 @@
       },
       "revId": "d3ada290bbbd42a0c35093a1c89c2cb1450ababe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "99ad68ac_025076b7",
+        "filename": "status/modules/details-dialog-sk/details-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-01-27T18:07:43Z",
+      "side": 1,
+      "message": "Going to see if the users are happy with just the icon for now, to me hyperlink semantics seems appropriate.",
+      "parentUuid": "7ce1e686_b35c85d4",
+      "range": {
+        "startLine": 156,
+        "startChar": 12,
+        "endLine": 156,
+        "endChar": 45
+      },
+      "revId": "d3ada290bbbd42a0c35093a1c89c2cb1450ababe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
