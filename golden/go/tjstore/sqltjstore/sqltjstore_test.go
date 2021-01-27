@@ -143,16 +143,17 @@ func TestGetTryJobs_ValidID_Success(t *testing.T) {
 		PS:  datakitchensink.PatchSetIDFixesIPadButNotIPhone,
 	})
 	require.NoError(t, err)
+	// As per the Tryjob Store API, we sort them by display name
 	assert.Equal(t, []ci.TryJob{{
-		SystemID:    datakitchensink.Tryjob01IPhoneRGB,
-		System:      datakitchensink.BuildBucketCIS,
-		DisplayName: "Test-iPhone-RGB",
-		Updated:     datakitchensink.Tryjob01LastIngested,
-	}, {
 		SystemID:    datakitchensink.Tryjob02IPad,
 		System:      datakitchensink.BuildBucketCIS,
 		DisplayName: "Test-iPad-ALL",
 		Updated:     datakitchensink.Tryjob02LastIngested,
+	}, {
+		SystemID:    datakitchensink.Tryjob01IPhoneRGB,
+		System:      datakitchensink.BuildBucketCIS,
+		DisplayName: "Test-iPhone-RGB",
+		Updated:     datakitchensink.Tryjob01LastIngested,
 	}, {
 		SystemID:    datakitchensink.Tryjob03TaimenRGB,
 		System:      datakitchensink.BuildBucketCIS,
@@ -194,6 +195,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.ElementsMatch(t, []tjstore.TryJobResult{{
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob02IPad,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPadDevice,
@@ -204,6 +207,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestA02Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob02IPad,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPadDevice,
@@ -214,6 +219,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestB02Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob02IPad,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPadDevice,
@@ -224,6 +231,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestC02Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob02IPad,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPadDevice,
@@ -234,6 +243,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestA01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob02IPad,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPadDevice,
@@ -244,6 +255,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestB01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob02IPad,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPadDevice,
@@ -254,6 +267,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestC06Pos_CL,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob01IPhoneRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPhoneDevice,
@@ -264,6 +279,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestA01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob01IPhoneRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPhoneDevice,
@@ -274,6 +291,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestB01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob01IPhoneRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPhoneDevice,
@@ -284,6 +303,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestC07Unt_CL,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob03TaimenRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.AndroidOS,
 			datakitchensink.DeviceKey:    datakitchensink.TaimenDevice,
@@ -294,6 +315,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestA09Neg,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob03TaimenRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.AndroidOS,
 			datakitchensink.DeviceKey:    datakitchensink.TaimenDevice,
@@ -304,6 +327,8 @@ func TestGetResults_ValidID_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestB01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob03TaimenRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.AndroidOS,
 			datakitchensink.DeviceKey:    datakitchensink.TaimenDevice,
@@ -336,6 +361,8 @@ func TestGetResults_TimeIncludesOneTryjob_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.ElementsMatch(t, []tjstore.TryJobResult{{
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob01IPhoneRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPhoneDevice,
@@ -346,6 +373,8 @@ func TestGetResults_TimeIncludesOneTryjob_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestA01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob01IPhoneRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPhoneDevice,
@@ -356,6 +385,8 @@ func TestGetResults_TimeIncludesOneTryjob_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestB01Pos,
 	}, {
+		System:   datakitchensink.BuildBucketCIS,
+		TryjobID: datakitchensink.Tryjob01IPhoneRGB,
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.IOS,
 			datakitchensink.DeviceKey:    datakitchensink.IPhoneDevice,
@@ -407,8 +438,10 @@ func TestPutResults_NewTest_CreatesRowsInForeignTables(t *testing.T) {
 	require.NoError(t, err)
 
 	// This should be a never-before-seen trace as well as a never-before-seen options set.
-	err = store.PutResults(ctx, cID, datakitchensink.Tryjob04Windows, datakitchensink.BuildBucketInternalCIS,
+	err = store.PutResults(ctx, cID,
 		dataFileSource, []tjstore.TryJobResult{{
+			System:   datakitchensink.BuildBucketInternalCIS,
+			TryjobID: datakitchensink.Tryjob04Windows,
 			GroupParams: paramtools.Params{
 				datakitchensink.OSKey:     datakitchensink.Windows10dot3OS,
 				datakitchensink.DeviceKey: datakitchensink.QuadroDevice,
@@ -474,14 +507,21 @@ func TestPutResults_DataAlreadyExists_Success(t *testing.T) {
 		PS:  datakitchensink.PatchsetIDAddsNewCorpus,
 	}
 	ts := time.Date(2021, time.January, 20, 19, 18, 17, 0, time.UTC)
-	// We create a new tryjob to have the new data to make it easy to verify which data was added
+	// We create 2 new tryjobs to have the new data to make it easy to verify which data was added
 	// (because the timestamp will be applied to the tryjob, letting us pull just that tryjob's
 	// data with GetResults).
 	err := store.PutTryJob(ctx, cID, ci.TryJob{
-		SystemID:    "my_new_tryjob",
+		SystemID:    "my_new_tryjob_1",
 		System:      datakitchensink.BuildBucketInternalCIS,
 		DisplayName: "A brand new tryjob",
 		Updated:     ts.Add(-time.Minute),
+	})
+	require.NoError(t, err)
+	err = store.PutTryJob(ctx, cID, ci.TryJob{
+		SystemID:    "my_new_tryjob_2",
+		System:      datakitchensink.BuildBucketInternalCIS,
+		DisplayName: "A second new tryjob",
+		Updated:     ts.Add(-2 * time.Minute),
 	})
 	require.NoError(t, err)
 
@@ -492,8 +532,10 @@ func TestPutResults_DataAlreadyExists_Success(t *testing.T) {
 	require.NoError(t, row.Scan(&count))
 	assert.Equal(t, expectedResultsCount, count)
 
-	err = store.PutResults(ctx, cID, "my_new_tryjob", datakitchensink.BuildBucketInternalCIS,
+	err = store.PutResults(ctx, cID,
 		"gs://somefile.json", []tjstore.TryJobResult{{
+			System:   datakitchensink.BuildBucketInternalCIS,
+			TryjobID: "my_new_tryjob_1",
 			GroupParams: paramtools.Params{
 				datakitchensink.OSKey:        datakitchensink.Windows10dot3OS,
 				datakitchensink.DeviceKey:    datakitchensink.QuadroDevice,
@@ -506,6 +548,8 @@ func TestPutResults_DataAlreadyExists_Success(t *testing.T) {
 			Options: paramtools.Params{"ext": "png"},
 			Digest:  datakitchensink.DigestBlank,
 		}, {
+			System:   datakitchensink.BuildBucketInternalCIS,
+			TryjobID: "my_new_tryjob_2",
 			GroupParams: paramtools.Params{
 				datakitchensink.OSKey:        datakitchensink.Windows10dot3OS,
 				datakitchensink.DeviceKey:    datakitchensink.QuadroDevice,
@@ -524,6 +568,8 @@ func TestPutResults_DataAlreadyExists_Success(t *testing.T) {
 	results, err := store.GetResults(ctx, cID, ts.Add(-time.Second))
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []tjstore.TryJobResult{{
+		System:   datakitchensink.BuildBucketInternalCIS,
+		TryjobID: "my_new_tryjob_1",
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.Windows10dot3OS,
 			datakitchensink.DeviceKey:    datakitchensink.QuadroDevice,
@@ -534,6 +580,8 @@ func TestPutResults_DataAlreadyExists_Success(t *testing.T) {
 		Options: paramtools.Params{"ext": "png"},
 		Digest:  datakitchensink.DigestBlank,
 	}, {
+		System:   datakitchensink.BuildBucketInternalCIS,
+		TryjobID: "my_new_tryjob_2",
 		ResultParams: paramtools.Params{
 			datakitchensink.OSKey:        datakitchensink.Windows10dot3OS,
 			datakitchensink.DeviceKey:    datakitchensink.QuadroDevice,
@@ -551,6 +599,26 @@ func TestPutResults_DataAlreadyExists_Success(t *testing.T) {
 	row = db.QueryRow(ctx, `SELECT count(*) FROM SecondaryBranchValues`)
 	require.NoError(t, row.Scan(&count))
 	assert.Equal(t, expectedResultsCount, count)
+
+	// Make sure the new tryjobs have been marked as updated recently, but not other ones.
+	xtj, err := store.GetTryJobs(ctx, cID)
+	require.NoError(t, err)
+	assert.Equal(t, []ci.TryJob{{
+		SystemID:    "my_new_tryjob_1",
+		System:      datakitchensink.BuildBucketInternalCIS,
+		DisplayName: "A brand new tryjob",
+		Updated:     ts,
+	}, {
+		SystemID:    "my_new_tryjob_2",
+		System:      datakitchensink.BuildBucketInternalCIS,
+		DisplayName: "A second new tryjob",
+		Updated:     ts,
+	}, {
+		SystemID:    datakitchensink.Tryjob04Windows,
+		System:      datakitchensink.BuildBucketInternalCIS,
+		DisplayName: "Test-Windows10.3-ALL",
+		Updated:     datakitchensink.Tryjob04LastIngested,
+	}}, xtj)
 }
 
 func assertGroupingExists(t *testing.T, db *pgxpool.Pool, params paramtools.Params) schema.GroupingID {

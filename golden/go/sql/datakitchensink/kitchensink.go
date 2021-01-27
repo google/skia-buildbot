@@ -595,4 +595,5 @@ var (
 	Tryjob01LastIngested = time.Date(2020, time.December, 10, 4, 5, 6, 0, time.UTC)
 	Tryjob02LastIngested = time.Date(2020, time.December, 10, 3, 2, 1, 0, time.UTC)
 	Tryjob03LastIngested = time.Date(2020, time.December, 10, 3, 44, 44, 0, time.UTC)
+	Tryjob04LastIngested = time.Date(2020, time.December, 12, 8, 9, 10, 0, time.UTC)
 )
