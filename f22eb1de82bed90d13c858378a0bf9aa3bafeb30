@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "04778414_1c56fef8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-27T17:50:54Z",
+      "side": 1,
+      "message": "FTR, config conversions are going away in my next CL",
+      "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "11995e91_44ff314c",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-27T17:50:54Z",
+      "side": 1,
+      "message": "This still need to move, right?",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "f22eb1de82bed90d13c858378a0bf9aa3bafeb30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
