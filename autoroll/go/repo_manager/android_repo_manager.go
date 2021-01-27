@@ -25,7 +25,6 @@ import (
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -448,7 +447,7 @@ third_party {
 	// aware that their changes are being rolled there.
 	rollEmails := []string{}
 	rollEmails = append(rollEmails, emails...)
-	if parentBranch != git.DefaultBranch {
+	if parentBranch != "sc-dev" {
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
@@ -522,9 +521,9 @@ third_party {
 		// Only throw exception here if parentBranch is the main branch. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
-		if parentBranch != git.DefaultBranch {
+		if parentBranch != "sc-dev" {
 			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
-			sklog.Warningf("Not throwing error because branch %q is not %q", parentBranch, git.DefaultBranch)
+			sklog.Warningf("Not throwing error because branch %q is not %q", parentBranch, "sc-dev")
 		} else {
 			return 0, err
 		}
