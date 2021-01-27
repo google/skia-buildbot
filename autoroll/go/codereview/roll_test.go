@@ -12,6 +12,7 @@ import (
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
@@ -26,7 +27,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func makeFakeRoll(t *testing.T, cfg *GerritConfig, issueNum int64, from, to string, dryRun bool) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue) {
+func makeFakeRoll(t *testing.T, cfg *config.GerritConfig, issueNum int64, from, to string, dryRun bool) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue) {
 	// Gerrit API only has millisecond precision.
 	now := time.Now().UTC().Round(time.Millisecond)
 	description := fmt.Sprintf(`Roll src/third_party/skia/ %s..%s (42 commits).
@@ -58,8 +59,8 @@ Tbr: some-reviewer
 		Updated:       now,
 		UpdatedString: now.Format(gerrit.TIME_FORMAT),
 	}
-	gc, err := cfg.GetConfig()
-	require.NoError(t, err)
+	gc, ok := GerritConfigs[cfg.Config]
+	require.True(t, ok)
 	cqLabels := gc.SetCqLabels
 	if dryRun {
 		cqLabels = gc.SetDryRunLabels
@@ -82,7 +83,7 @@ Tbr: some-reviewer
 	}
 }
 
-func testGerritRoll(t *testing.T, cfg *GerritConfig) {
+func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
@@ -91,8 +92,8 @@ func testGerritRoll(t *testing.T, cfg *GerritConfig) {
 
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
 
-	gc, err := cfg.GetConfig()
-	require.NoError(t, err)
+	gc, ok := GerritConfigs[cfg.Config]
+	require.True(t, ok)
 	g := gerrit_testutils.NewGerritWithConfig(t, gc, tmp)
 	ctx := context.Background()
 	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
@@ -360,18 +361,18 @@ func testGerritRoll(t *testing.T, cfg *GerritConfig) {
 }
 
 func TestGerritRoll(t *testing.T) {
-	testGerritRoll(t, &GerritConfig{
-		URL:     "???",
+	testGerritRoll(t, &config.GerritConfig{
+		Url:     "???",
 		Project: "???",
-		Config:  GERRIT_CONFIG_CHROMIUM,
+		Config:  config.GerritConfig_CHROMIUM,
 	})
 }
 
 func TestGerritAndroidRoll(t *testing.T) {
-	testGerritRoll(t, &GerritConfig{
-		URL:     "???",
+	testGerritRoll(t, &config.GerritConfig{
+		Url:     "???",
 		Project: "???",
-		Config:  GERRIT_CONFIG_ANDROID,
+		Config:  config.GerritConfig_ANDROID,
 	})
 }
 
