@@ -176,7 +176,7 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 	obj := s.storageClient.Bucket(event.Bucket).Object(event.Name)
 	attrs, err := obj.Attrs(ctx)
 	if err != nil {
-		sklog.Errorf("Failed to retrieve bucket %q object %q: %s", event.Bucket, event.Name, err)
+		sklog.Infof("Failed to retrieve bucket %q object %q: %s", event.Bucket, event.Name, err)
 		return false
 	}
 	reader, err := obj.NewReader(ctx)
