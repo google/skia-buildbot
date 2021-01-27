@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "52071ea4_2dfe8555",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-27T16:25:58Z",
+      "side": 1,
+      "message": "Wasn\u0027t going to initially submit this but I think it should be submitted because:\nThere might be more pushes to all rollers due to config and it might end up replacing this push.\n\nWill be eventually replacing by https://skia-review.googlesource.com/c/buildbot/+/360456",
+      "revId": "4b62b0b599bee1378e853e41aedccdeb2d36138e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
