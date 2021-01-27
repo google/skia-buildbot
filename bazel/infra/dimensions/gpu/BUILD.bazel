@@ -1,0 +1,17 @@
+package(default_visibility = ["//bazel/infra/platform:__pkg__"])
+
+# gpu.  Available GPU, or 'none'.
+constraint_setting(name = "gpu")
+constraint_value(
+    name = "none",
+    constraint_setting = ":gpu",
+)
+constraint_value(
+    name = "8086:22b1", # Intel Braswell HD Graphics
+    constraint_setting = ":gpu",
+)
+constraint_value(
+    name = "10de:11c0-26.21.14.4120", # NVIDIA GeForce GTX 660
+    constraint_setting = ":gpu",
+)
+# ......
