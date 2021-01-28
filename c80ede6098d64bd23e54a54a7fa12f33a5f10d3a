@@ -70,6 +70,30 @@
       },
       "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ee40780_1b8aaba6",
+        "filename": "perf/go/sql/sql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-28T19:59:03Z",
+      "side": 0,
+      "message": "Thanks!",
+      "parentUuid": "492ef8f4_0007dce2",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 11
+      },
+      "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
