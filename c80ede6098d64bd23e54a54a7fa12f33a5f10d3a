@@ -46,6 +46,30 @@
       },
       "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "492ef8f4_0007dce2",
+        "filename": "perf/go/sql/sql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-28T19:41:46Z",
+      "side": 0,
+      "message": "Sure. \n\nI will adapt to setting the env variable since it makes it similar to the rest of the emulators.",
+      "parentUuid": "99edcc0b_36dcc3fd",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 11
+      },
+      "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
