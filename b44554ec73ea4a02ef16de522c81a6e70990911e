@@ -70,6 +70,30 @@
       },
       "revId": "b44554ec73ea4a02ef16de522c81a6e70990911e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "17ffad69_819a3cf7",
+        "filename": "go/testutils/unittest/unittest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-28T20:11:31Z",
+      "side": 1,
+      "message": "AFAIK we don\u0027t run tests cases in parallel (no calls to https://golang.org/pkg/testing/#T.Parallel in our repo), so setting/unsetting environment variables shouldn\u0027t interfere with other tests within the same test runner process.\n\nBazel however will run multiple go_test targets in parallel on separate processes, but since these env var changes affect only the current process, it should be safe.\n\nLet\u0027s continue the conversation about readiness checks in the comments on the downstream CL here: https://skia-review.googlesource.com/c/buildbot/+/360800/10/go/emulators/emulators.go#177, since that CL gives us a more complete picture of how all these pieces fit together.",
+      "parentUuid": "69a70428_934458a1",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 42
+      },
+      "revId": "b44554ec73ea4a02ef16de522c81a6e70990911e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
