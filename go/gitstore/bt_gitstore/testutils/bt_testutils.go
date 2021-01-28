@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -22,6 +23,7 @@ const (
 
 // SetupAndLoadBTGitStore loads the Git repo at repoUrl into the Gitstore.
 func SetupAndLoadBTGitStore(t sktest.TestingT, ctx context.Context, workdir, repoURL string, load bool) ([]*vcsinfo.IndexCommit, []*vcsinfo.LongCommit, *bt_gitstore.BigTableGitStore) {
+	unittest.RequiresBigTableEmulator(t)
 	conf := bt_gitstore.BTTestConfig()
 	if load {
 		// Delete the tables.
