@@ -9,7 +9,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -19,6 +18,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/cenkalti/backoff"
 	"github.com/google/uuid"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -700,11 +700,8 @@ func (c *Client) RecursiveDelete(ctx context.Context, ref *firestore.DocumentRef
 // "Failed to initialize Cloud Datastore: dialing: options.WithoutAuthentication
 // is incompatible with any option that provides credentials"
 func EnsureNotEmulator() {
-	s := os.Getenv("FIRESTORE_EMULATOR_HOST")
-	if s != "" {
-		panic(`Firestore Emulator detected. Be sure to unset the following environment variables:
-FIRESTORE_EMULATOR_HOST
-`)
+	if emulators.GetEmulatorHostEnvVar(emulators.Firestore) != "" {
+		panic("Firestore Emulator detected. Be sure to unset the following environment variable: " + emulators.GetEmulatorHostEnvVarName(emulators.Firestore))
 	}
 }
 
