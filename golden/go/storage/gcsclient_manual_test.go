@@ -24,6 +24,7 @@ const (
 // cleaning it up.
 func TestWritingReadingHashes(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.ManualTest(t) // This test hits a production service and requires a service account.
 	gsClient, opt := initGSClient(t)
 
 	knownDigests := types.DigestSlice{
