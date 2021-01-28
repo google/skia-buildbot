@@ -9,7 +9,7 @@ workspace(
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# We load bazel-toolchains here, instead of closer where it's first used (RBE container toolchain),
+# We load bazel-toolchains here, rather than closer where it's first used (RBE container toolchain),
 # because the grpc_deps() macro (invoked below) will pull an old version of bazel-toolchains if it's
 # not already defined.
 http_archive(
@@ -206,8 +206,8 @@ container_pull(
 
 load("@bazel_toolchains//rules/exec_properties:exec_properties.bzl", "rbe_exec_properties")
 
-# rbe_exec_properties defines a local repository named "exec_properties"
-# which defines constants such as "NETWORK_ON"
+# Defines a local repository named "exec_properties" which defines constants such as NETWORK_ON.
+# See https://github.com/bazelbuild/bazel-toolchains/tree/master/rules/exec_properties.
 rbe_exec_properties(
     name = "exec_properties",
 )
@@ -222,12 +222,14 @@ rbe_autoconfig(
     #
     # Must be updated manually after a new container image is uploaded to the container registry
     # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:94b610705da22f96e51e94ee729402f455a64d857b11edecf8f9f68d22617df1",
+    digest = "sha256:9333ddd9a7922e86282f860dcc42256a29ef17badfa41e830cca795af4e223da",
     # Enable networking. Without this, tests that require network access will fail. Examples include
     # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
     # tests that hit GCS, etc.
     #
-    # Note that this breaks test hermeticity.
+    # See https://github.com/bazelbuild/bazel-toolchains/tree/master/rules/exec_properties.
+    #
+    # Note that depending on network resources breaks test hermeticity.
     exec_properties = NETWORK_ON,
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
