@@ -1,7 +1,10 @@
 // Functions used by more than one element.
 import { diffDate } from 'common-sk/modules/human';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { html } from 'lit-html';
+import { TemplateResult, html, Part } from 'lit-html';
+import { SilenceSk, State } from './silence-sk/silence-sk';
+import { IncidentSk } from './incident-sk/incident-sk';
+import { Note, Silence } from './json';
 
 const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
 
@@ -10,14 +13,14 @@ const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
  *
  * silence - The silence being displayed.
  */
-export function displaySilence(silence) {
-  const ret = [];
-  for (const key in silence.param_set) {
+export function displaySilence(silence: Silence | State): string {
+  const ret: string[] = [];
+  Object.keys(silence.param_set!).forEach((key) => {
     if (key.startsWith('__')) {
-      continue;
+      return;
     }
-    ret.push(`${silence.param_set[key].join(', ')}`);
-  }
+    ret.push(`${silence.param_set![key]!.join(', ')}`);
+  });
   let s = ret.join(' ');
   if (s.length > 33) {
     s = `${s.slice(0, 30)}...`;
@@ -31,10 +34,9 @@ export function displaySilence(silence) {
 /**
  * Returns the params.abbr to be appended to a string, if present.
  */
-export function abbr(ele) {
-  const s = ele.params.abbr;
-  if (s) {
-    return ` - ${s}`;
+export function abbr(paramsAbbr: string): string {
+  if (paramsAbbr) {
+    return ` - ${paramsAbbr}`;
   }
   return '';
 }
@@ -42,23 +44,23 @@ export function abbr(ele) {
 /**
  * Convert all URLs in a string into links in a lit-html TemplateResult.
  */
-export function linkify(s) {
+export function linkify(s: string): (part: Part)=> void {
   return unsafeHTML(s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>'));
 }
 
 /**
  * Templates notes to be displayed.
  */
-export function notes(ele) {
-  if (!ele._state.notes) {
+export function displayNotes(notes: Note[], ele: SilenceSk|IncidentSk): TemplateResult[] {
+  if (!notes) {
     return [];
   }
-  return ele._state.notes.map((note, index) => html`<section class=note>
+  return notes.map((note: Note, index: number) => html`<section class=note>
   <p class="note-text">${linkify(note.text)}</p>
   <div class=meta>
     <span class=author>${note.author}</span>
     <span class=date>${diffDate(note.ts * 1000)}</span>
-    <delete-icon-sk title='Delete comment.' @click=${(e) => ele._deleteNote(e, index)}></delete-icon-sk>
+    <delete-icon-sk title='Delete comment.' @click=${(e: Event) => ele.deleteNote(e, index)}></delete-icon-sk>
   </div>
 </section>`);
 }
@@ -79,7 +81,7 @@ const TIME_DELTAS = [
  *
  * TODO(jcgregorio) Move into common-sk/modules/human.js with tests.
  */
-export function parseDuration(d) {
+export function parseDuration(d: string): number {
   const units = d.slice(-1);
   const scalar = +d.slice(0, -1);
   for (let i = 0; i < TIME_DELTAS.length; i++) {
@@ -91,7 +93,7 @@ export function parseDuration(d) {
   return 0;
 }
 
-export function expiresIn(silence) {
+export function expiresIn(silence: Silence| State): string {
   if (silence.active) {
     return diffDate((silence.created + parseDuration(silence.duration)) * 1000);
   }
@@ -105,18 +107,18 @@ export function expiresIn(silence) {
  * @param {number} day - Possible values range from 0 to 6 for Sun to Sat.
  * @param {number} hour - Possible values range from 0 to 23 for the hour.
  */
-export function getDurationTillNextDay(day, hour) {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth();
-    let d = now.getDate();
+export function getDurationTillNextDay(day: number, hour: number): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  let d = now.getDate();
 
-    // Increment d till we reach the target day.
-    let tmp = new Date();
-    do {
-      tmp = new Date(y, m, ++d);
-    } while (tmp.getDay() != day)
-    const target = new Date(y, m, d, hour, 0, 0);
+  // Increment d till we reach the target day.
+  let tmp = new Date();
+  do {
+    tmp = new Date(y, m, ++d);
+  } while (tmp.getDay() !== day);
+  const target = new Date(y, m, d, hour, 0, 0);
 
-    return diffDate(target);
-  }
+  return diffDate(target.toString());
+}
