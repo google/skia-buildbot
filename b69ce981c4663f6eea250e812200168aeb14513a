@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "091661da_0cbde32a",
+        "filename": "am/modules/email-chooser-sk/email-chooser-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-28T21:08:53Z",
+      "side": 1,
+      "message": "Just as an FYI, what I did in Particles is resolve to \u0027undefined\u0027 when the dialog was cancelled, which means you only need to keep track of one thing, this.resolve, and not two, i.e. this.reject also.\n\nhttps://skia.googlesource.com/buildbot/+/refs/heads/master/particles/modules/particles-config-sk/particles-config-sk.ts",
+      "revId": "b69ce981c4663f6eea250e812200168aeb14513a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
