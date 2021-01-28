@@ -209,7 +209,7 @@ load("@bazel_toolchains//rules/exec_properties:exec_properties.bzl", "rbe_exec_p
 # rbe_exec_properties defines a local repository named "exec_properties"
 # which defines constants such as "NETWORK_ON"
 rbe_exec_properties(
-  name = "exec_properties",
+    name = "exec_properties",
 )
 
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
@@ -223,13 +223,13 @@ rbe_autoconfig(
     # Must be updated manually after a new container image is uploaded to the container registry
     # via "bazel run //:push_rbe_container_skia_infra".
     digest = "sha256:94b610705da22f96e51e94ee729402f455a64d857b11edecf8f9f68d22617df1",
-    registry = "gcr.io",
-    repository = "skia-public/rbe-container-skia-infra",
-    use_legacy_platform_definition = False, # The exec_properties argument requires this.
     # Enable networking. Without this, tests that require network access will fail. Examples include
     # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
     # tests that hit GCS, etc.
     #
     # Note that this breaks test hermeticity.
     exec_properties = NETWORK_ON,
+    registry = "gcr.io",
+    repository = "skia-public/rbe-container-skia-infra",
+    use_legacy_platform_definition = False,  # The exec_properties argument requires this.
 )
