@@ -22,6 +22,7 @@ func getEmulatorHost() string {
 
 func TestUpDown_CockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresCockroachDB(t)
 
 	cockroachMigrations, err := cockroachdb.New()
 	require.NoError(t, err)

@@ -7,10 +7,12 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -37,24 +39,7 @@ func cleanup(t require.TestingT, kinds ...ds.Kind) {
 // datastore to connect to the emulator and also clears out all instances of
 // the given 'kinds' from the datastore.
 func InitDatastore(t require.TestingT, kinds ...ds.Kind) util.CleanupFunc {
-	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
-	if emulatorHost == "" {
-		require.Fail(t, `Running tests that require a running Cloud Datastore emulator.
-
-Run
-
-	"gcloud beta emulators datastore start --no-store-on-disk --host-port=localhost:8888"
-
-and then run
-
-  $(gcloud beta emulators datastore env-init)
-
-to set the environment variables. When done running tests you can unset the env variables:
-
-  $(gcloud beta emulators datastore env-unset)
-
-`)
-	}
+	unittest.RequiresDatastoreEmulator(t.(*testing.T))
 
 	// Copied from net/http to create a fresh http client. In some tests the
 	// httpmock replaces the default http client and the healthcheck below fails.
@@ -73,6 +58,7 @@ to set the environment variables. When done running tests you can unset the env 
 	httpClient := &http.Client{Transport: transport}
 
 	// Do a quick healthcheck against the host, which will fail immediately if it's down.
+	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
 	_, err := httpClient.Get("http://" + emulatorHost + "/")
 	require.NoError(t, err, fmt.Sprintf("Cloud emulator host %s appears to be down or not accessible.", emulatorHost))
 
