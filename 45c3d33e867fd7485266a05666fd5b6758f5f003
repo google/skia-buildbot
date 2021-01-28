@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6cc80f88_bebcf2f8",
+        "filename": "go/emulators/emulators.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-28T19:22:20Z",
+      "side": 1,
+      "message": "I\u0027d feel more comfortable if this actually looked for the emulator process.  Keeping track of the running emulators seems error prone; what happens if an emulator dies in the background?",
+      "range": {
+        "startLine": 177,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 40
+      },
+      "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3010733c_49b83eb9",
+        "filename": "go/emulators/emulators.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-28T19:22:20Z",
+      "side": 1,
+      "message": "Could we add a StartEmulator(s)IfNotRunning function?  It\u0027d be nice if the caller didn\u0027t have to check.",
+      "range": {
+        "startLine": 183,
+        "startChar": 0,
+        "endLine": 185,
+        "endChar": 2
+      },
+      "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
