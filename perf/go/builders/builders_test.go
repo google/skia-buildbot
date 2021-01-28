@@ -69,6 +69,8 @@ func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
 type cleanupFunc func()
 
 func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig, sqltest.Cleanup) {
+	unittest.RequiresCockroachDB(t)
+
 	ctx := context.Background()
 
 	const databaseName = "builders"
