@@ -10,12 +10,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -34,32 +36,30 @@ var (
 )
 
 func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
-	rv, err := (&codereview.GerritConfig{
-		URL:     "https://googleplex-android-review.googlesource.com",
+	rv, err := codereview.NewGerrit(&config.GerritConfig{
+		Url:     "https://googleplex-android-review.googlesource.com",
 		Project: "platform/external/skia",
-		Config:  codereview.GERRIT_CONFIG_ANDROID,
-	}).Init(g, nil)
+		Config:  config.GerritConfig_ANDROID,
+	}, g)
 	require.NoError(t, err)
 	return rv
 }
 
-func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
-	return &AndroidRepoManagerConfig{
-		CommonRepoManagerConfig: CommonRepoManagerConfig{
-			ChildBranch:  defaultBranchTmpl(t),
-			ChildPath:    childPath,
-			ParentBranch: defaultBranchTmpl(t),
-			ParentRepo:   "https://my-repo.com",
-		},
-		ProjectMetadataFileConfig: &ProjectMetadataFileConfig{
+func androidCfg(t *testing.T) *config.AndroidRepoManagerConfig {
+	return &config.AndroidRepoManagerConfig{
+		ChildBranch:   git.DefaultBranch,
+		ChildPath:     childPath,
+		ChildRepoUrl:  common.REPO_SKIA,
+		ParentBranch:  git.DefaultBranch,
+		ParentRepoUrl: "https://my-repo.com",
+		Metadata: &config.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
 			FilePath:    "METADATA",
 			Name:        "skia",
 			Description: "Skia Graphics Library",
 			HomePage:    "https://www.skia.org/",
-			GitURL:      "https://skia.googlesource.com/skia",
+			GitUrl:      "https://skia.googlesource.com/skia",
 			LicenseType: "RECIPROCAL",
 		},
-		ChildRepoURL: common.REPO_SKIA,
 	}
 }
 
@@ -133,7 +133,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	defer cleanup()
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -151,7 +151,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -169,7 +169,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 
 	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
 	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, g, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -196,6 +196,6 @@ func TestAndroidConfigValidation(t *testing.T) {
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
-	cfg = &AndroidRepoManagerConfig{}
+	cfg = &config.AndroidRepoManagerConfig{}
 	require.Error(t, cfg.Validate())
 }

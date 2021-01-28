@@ -105,8 +105,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil).Once()
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS,
-		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil).Once()
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil).Once()
 
 	gtp := goldTryjobProcessor{
 		cisClients: makeBuildbucketCIS(),
@@ -152,8 +151,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 
 	combinedID := tjstore.CombinedPSID{CL: githubCLID, PS: githubPSID, CRS: "github"}
 	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, makeGitHubCirrusTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubTJID, cirrusCIS,
-		githubGoldCtlFile, makeGitHubTryJobResults(), anyTime).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubGoldCtlFile, makeGitHubTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		cisClients: makeCirrusCIS(),
@@ -273,7 +271,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS,
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
 		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
@@ -316,7 +314,7 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS,
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
 		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
@@ -356,7 +354,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS,
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
 		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
@@ -414,7 +412,9 @@ var (
 func makeTryJobResults() []tjstore.TryJobResult {
 	return []tjstore.TryJobResult{
 		{
-			Digest: "690f72c0b56ae014c8ac66e7f25c0779",
+			TryjobID: gerritTJID,
+			System:   buildbucketCIS,
+			Digest:   "690f72c0b56ae014c8ac66e7f25c0779",
 			GroupParams: paramtools.Params{
 				"device_id":     "0x1cb3",
 				"device_string": "None",
@@ -535,7 +535,9 @@ func makeGitHubCirrusTryJob() ci.TryJob {
 func makeGitHubTryJobResults() []tjstore.TryJobResult {
 	return []tjstore.TryJobResult{
 		{
-			Digest: "87599f3dec5b56dc110f1b63dc747182",
+			TryjobID: githubTJID,
+			System:   cirrusCIS,
+			Digest:   "87599f3dec5b56dc110f1b63dc747182",
 			GroupParams: paramtools.Params{
 				"Platform": "windows",
 			},
@@ -548,7 +550,9 @@ func makeGitHubTryJobResults() []tjstore.TryJobResult {
 			},
 		},
 		{
-			Digest: "7d04fc1ef547a8e092495dab4294b4cd",
+			TryjobID: githubTJID,
+			System:   cirrusCIS,
+			Digest:   "7d04fc1ef547a8e092495dab4294b4cd",
 			GroupParams: paramtools.Params{
 				"Platform": "windows",
 			},

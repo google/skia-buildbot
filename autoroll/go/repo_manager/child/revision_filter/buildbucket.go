@@ -6,48 +6,11 @@ import (
 	"net/http"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
-
-// BuildbucketRevisionFilterConfig provides configuration for
-// BuildbucketRevisionFilter.
-type BuildbucketRevisionFilterConfig struct {
-	Project string `json:"project"`
-	Bucket  string `json:"bucket"`
-}
-
-// Validate implements util.Validator.
-func (c BuildbucketRevisionFilterConfig) Validate() error {
-	if c.Project == "" {
-		return skerr.Fmt("Project is required")
-	}
-	if c.Bucket == "" {
-		return skerr.Fmt("Bucket is required")
-	}
-	return nil
-}
-
-// BuildBucketRevisionFilterConfigToProto converts a
-// BuildBucketRevisionFilterConfig to a config.BuildBucketRevisionFilterConfig.
-func BuildBucketRevisionFilterConfigToProto(cfg *BuildbucketRevisionFilterConfig) *config.BuildbucketRevisionFilterConfig {
-	return &config.BuildbucketRevisionFilterConfig{
-		Project: cfg.Project,
-		Bucket:  cfg.Bucket,
-	}
-}
-
-// ProtoToBuildbucketRevisionFilterConfig converts a
-// config.BuildBucketRevisionFilterConfig to a BuildBucketRevisionFilterConfig.
-func ProtoToBuildbucketRevisionFilterConfig(cfg *config.BuildbucketRevisionFilterConfig) *BuildbucketRevisionFilterConfig {
-	return &BuildbucketRevisionFilterConfig{
-		Project: cfg.Project,
-		Bucket:  cfg.Bucket,
-	}
-}
 
 // BuildbucketRevisionFilter is a RevisionFilter which uses results from
 // BuildBucket to filter Revisions.

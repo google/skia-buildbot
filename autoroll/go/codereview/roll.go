@@ -7,6 +7,7 @@ import (
 	"time"
 
 	github_api "github.com/google/go-github/v29/github"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/state_machine"
@@ -18,10 +19,12 @@ import (
 )
 
 const (
-	// The duration after a PR is created that checks should be looked at.
-	GITHUB_PR_DURATION_FOR_CHECKS = time.Minute * 15
+	// GitHubPRDurationForChecks is the duration after a PR is created that
+	// checks should be looked at.
+	GitHubPRDurationForChecks = time.Minute * 15
 )
 
+// RollImpl describes the behavior of an autoroll CL.
 type RollImpl interface {
 	state_machine.RollCLImpl
 
@@ -31,7 +34,7 @@ type RollImpl interface {
 
 // updateIssueFromGerrit loads details about the issue from the Gerrit API and
 // updates the AutoRollIssue accordingly.
-func updateIssueFromGerrit(ctx context.Context, cfg *GerritConfig, a *autoroll.AutoRollIssue, g gerrit.GerritInterface) (*gerrit.ChangeInfo, error) {
+func updateIssueFromGerrit(ctx context.Context, cfg *config.GerritConfig, a *autoroll.AutoRollIssue, g gerrit.GerritInterface) (*gerrit.ChangeInfo, error) {
 	info, err := g.GetIssueProperties(ctx, a.Issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
@@ -110,7 +113,7 @@ type gerritRoll struct {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, cfg *GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, err := updateIssueFromGerrit(ctx, cfg, issue, g)
 	if err != nil {
 		return nil, err
@@ -341,7 +344,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 		// Sometimes the github API does not return the correct number of checks, try to workaround
 		// this by only looking at a PR if it is > GITHUB_PR_DURATION_FOR_CHECKS old (Flutter's merge
 		// bot waits for 1 hour).
-		if time.Since(pullRequest.GetCreatedAt()) > GITHUB_PR_DURATION_FOR_CHECKS {
+		if time.Since(pullRequest.GetCreatedAt()) > GitHubPRDurationForChecks {
 			i.DryRunFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || (len(i.TryResults) > 0 && i.AllTrybotsFinished())
 			i.DryRunSuccess = pullRequest.GetMerged() || (i.DryRunFinished && i.AllTrybotsSucceeded())
 		} else {
@@ -375,7 +378,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *GithubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *config.GitHubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksWaitFor)
 	if err != nil {
 		return nil, err

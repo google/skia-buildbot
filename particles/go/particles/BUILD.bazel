@@ -6,17 +6,13 @@ go_library(
     importpath = "go.skia.org/infra/particles/go/particles",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/allowed",
-        "//go/auth",
         "//go/common",
         "//go/httputils",
-        "//go/login",
-        "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//scrap/go/client",
+        "//scrap/go/scrap",
         "@com_github_gorilla_mux//:mux",
-        "@com_google_cloud_go_storage//:storage",
-        "@org_golang_google_api//option",
     ],
 )
 

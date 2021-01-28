@@ -9,6 +9,10 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/config",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/strategy",
+        "//autoroll/go/time_window",
+        "//go/skerr",
+        "//go/util",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:duration_go_proto",
         "@org_golang_google_protobuf//reflect/protoreflect",

@@ -4,13 +4,13 @@ import (
 	"context"
 	"flag"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 // flags
@@ -42,9 +43,16 @@ func main() {
 		sklog.Fatal("--webhook_request_salt is required.")
 	}
 
-	var cfg roller.AutoRollerConfig
+	var cfg config.Config
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
-		return json5.NewDecoder(f).Decode(&cfg)
+		configBytes, err := ioutil.ReadAll(f)
+		if err != nil {
+			return err
+		}
+		if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		sklog.Fatal(err)
 	}

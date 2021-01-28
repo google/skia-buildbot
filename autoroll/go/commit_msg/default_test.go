@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -164,7 +165,7 @@ func TestNamedTemplateDefault_Minimal(t *testing.T) {
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
-	b.cfg.ChildLogURLTmpl = ""
+	b.cfg.ChildLogUrlTmpl = ""
 	b.cfg.CqExtraTrybots = nil
 	b.cfg.CqDoNotCancelTrybots = false
 	b.cfg.IncludeLog = false
@@ -193,10 +194,12 @@ func TestTotalOverride(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
-	b.cfg.Template = `{{ define "commitMsg" }}Completely custom commit message.
+	b.cfg.Template = &config.CommitMsgConfig_Custom{
+		Custom: `{{ define "commitMsg" }}Completely custom commit message.
 
 Seriously, this can be anything at all.
-{{end}}`
+{{end}}`,
+	}
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Completely custom commit message.

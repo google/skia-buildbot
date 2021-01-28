@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/gold-client/go/goldclient"
+	"go.skia.org/infra/gold-client/go/auth"
 )
 
 const (
@@ -42,46 +43,50 @@ Authenticate against GCP and the Gold instance.
 
 	// add the workdir flag and make it required
 	cmd.Flags().StringVar(&env.flagWorkDir, fstrWorkDir, "", "Work directory for intermediate results")
-	Must(cmd.MarkFlagRequired(fstrWorkDir))
+	must(cmd.MarkFlagRequired(fstrWorkDir))
 
 	return cmd
 }
 
-// runAuthCommand executes the logic for the auth command. It
+func (a *authEnv) runAuthCmd(cmd *cobra.Command, _ []string) {
+	ctx := cmd.Context()
+	a.Auth(ctx)
+}
+
+// Auth executes the logic for the auth command. It
 // sets up the work directory to support future calls (e.g. imgtest)
-func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
+func (a *authEnv) Auth(ctx context.Context) {
 	_, err := fileutil.EnsureDirExists(a.flagWorkDir)
 	if err != nil {
-		logErrfAndExit(cmd, "Could not make work dir: %s", err)
+		logErrfAndExit(ctx, "Could not make work dir: %s", err)
 	}
 
 	if a.flagUseLUCIContext {
-		err = goldclient.InitLUCIAuth(a.flagWorkDir)
+		err = auth.InitLUCIAuth(a.flagWorkDir)
 	} else if a.flagServiceAccount != "" {
-		err = goldclient.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
+		err = auth.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
 	} else {
-		fmt.Println("Falling back to gsutil implementation")
-		fmt.Println("This should not be used in production.")
-		err = goldclient.InitGSUtil(a.flagWorkDir)
+		logInfo(ctx, "Falling back to gsutil implementation\n")
+		logInfo(ctx, "This should not be used in production.\n")
+		err = auth.InitGSUtil(a.flagWorkDir)
 	}
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 	abs, err := filepath.Abs(a.flagWorkDir)
-	if err == nil {
-		fmt.Printf("Authentication set up in directory %s\n", abs)
-	} else {
-		fmt.Printf("Authentication set up in directory %s\n", filepath.Clean(a.flagWorkDir))
-	}
+	ifErrLogExit(ctx, err)
+
+	logInfof(ctx, "Authentication set up in directory %s\n", abs)
 
 	// Open up the auth we configured and see if we can get an authenticated HTTPClient.
 	// This helps catch auth errors early.
-	authDir, err := goldclient.LoadAuthOpt(a.flagWorkDir)
-	ifErrLogExit(cmd, err)
+	authDir, err := auth.LoadAuthOpt(a.flagWorkDir)
+	ifErrLogExit(ctx, err)
 
 	err = authDir.Validate()
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 
 	_, err = authDir.GetHTTPClient()
-	ifErrLogExit(cmd, err)
+	ifErrLogExit(ctx, err)
 
-	fmt.Println("self test passed")
+	logInfo(ctx, "self test passed\n")
+	exitProcess(ctx, 0)
 }

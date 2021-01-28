@@ -100,6 +100,10 @@ func parseConfigHelper(confMap map[string]interface{}, ret map[string]interface{
 			} else {
 				val = "false"
 			}
+		case int, int32, int64:
+			val = fmt.Sprintf("%d", v)
+		case float32, float64:
+			val = fmt.Sprintf("%f", v)
 		case []interface{}:
 			ret[k] = t
 		case map[string]interface{}:
@@ -111,8 +115,12 @@ func parseConfigHelper(confMap map[string]interface{}, ret map[string]interface{
 		default:
 			if strict {
 				return fmt.Errorf("Key %q has unsupported type %q", k, t)
+			}
+			reflectVal := reflect.ValueOf(v)
+			if !reflectVal.IsValid() {
+				sklog.Warningf("Key %q has unsupported type %q", k, t)
 			} else {
-				sklog.Warningf("Key %q has unsupported type %q", k, reflect.ValueOf(v).Type().String())
+				sklog.Warningf("Key %q has unsupported type %q", k, reflectVal.Type().String())
 			}
 		}
 		if val != "" {

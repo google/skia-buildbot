@@ -26,7 +26,6 @@ import (
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -53,7 +52,7 @@ type GoldClient interface {
 	// with all tests. This is safe to be called more than once, although
 	// new settings will overwrite the old ones. This will cause the
 	// baseline and known hashes to be (re-)downloaded from Gold.
-	SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error
+	SetSharedConfig(ctx context.Context, sharedConfig jsonio.GoldResults, skipValidation bool) error
 
 	// Test adds a test result to the current test run.
 	//
@@ -79,7 +78,7 @@ type GoldClient interface {
 	// will return true.
 	//
 	// An error is only returned if there was a technical problem in processing the test.
-	Test(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error)
+	Test(ctx context.Context, name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error)
 
 	// Check operates similarly to Test, except it does not persist anything about the call. That is,
 	// the image will not be uploaded to Gold, only compared against the baseline.
@@ -93,7 +92,7 @@ type GoldClient interface {
 	//
 	// If both keys and optionalKeys are empty, an exact comparison will be carried out against the
 	// baseline.
-	Check(name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error)
+	Check(ctx context.Context, name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error)
 
 	// Diff computes a diff of the closest image to the given image file and puts it into outDir,
 	// along with the closest image file itself.
@@ -102,20 +101,20 @@ type GoldClient interface {
 	// Finalize uploads the JSON file for all Test() calls previously seen.
 	// A no-op if configured for pass/fail mode, since the JSON would have been uploaded
 	// on the calls to Test().
-	Finalize() error
+	Finalize(ctx context.Context) error
 
 	// Whoami makes a request to Gold's /json/v1/whoami endpoint and returns the email address in the
 	// response. For debugging purposes only.
-	Whoami() (string, error)
+	Whoami(ctx context.Context) (string, error)
 
 	// TriageAsPositive triages the given digest for the given test as positive by making a request
 	// to Gold's /json/v1/triage endpoint. The image matching algorithm name will be used as the author
 	// of the triage operation.
-	TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName string) error
+	TriageAsPositive(ctx context.Context, testName types.TestName, digest types.Digest, algorithmName string) error
 
 	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
 	// Gold's /json/v1/latestpositivedigest/{traceId} endpoint.
-	MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error)
+	MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceID) (types.Digest, error)
 }
 
 // GoldClientDebug contains some "optional" methods that can assist
@@ -130,6 +129,10 @@ type GoldClientDebug interface {
 	DumpKnownHashes() (string, error)
 }
 
+type NowSource interface {
+	Now() time.Time
+}
+
 // CloudClient implements the GoldClient interface for the remote Gold service.
 type CloudClient struct {
 	// workDir is a temporary directory that has to exist between related calls
@@ -138,16 +141,8 @@ type CloudClient struct {
 	// resultState keeps track of the all the information to generate and upload a valid result.
 	resultState *resultState
 
-	// ready caches the result of the isReady call so we avoid duplicate work.
-	ready bool
-
 	// these functions are overwritable by tests
 	loadAndHashImage func(path string) ([]byte, types.Digest, error)
-	now              func() time.Time
-
-	// auth stores the authentication method to use.
-	auth       AuthOpt
-	httpClient HTTPClient
 }
 
 // GoldClientConfig is a config structure to configure GoldClient instances
@@ -176,7 +171,7 @@ type GoldClientConfig struct {
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
 // If a new instance is created for each call to Test, the arguments of the first call are
 // preserved. They are cached in a JSON file in the work directory.
-func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, error) {
+func NewCloudClient(config GoldClientConfig) (*CloudClient, error) {
 	// Make sure the workdir was given and exists.
 	if config.WorkDir == "" {
 		return nil, skerr.Fmt("no 'workDir' provided to NewCloudClient")
@@ -193,14 +188,8 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 
 	ret := CloudClient{
 		workDir:          workDir,
-		auth:             authOpt,
 		loadAndHashImage: loadAndHashImage,
-		now:              defaultNow,
-
-		resultState: newResultState(nil, &config),
-	}
-	if err := ret.setHttpClient(); err != nil {
-		return nil, skerr.Wrapf(err, "setting http client")
+		resultState:      newResultState(jsonio.GoldResults{}, &config),
 	}
 
 	if config.FailureFile != "" {
@@ -223,24 +212,19 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 
 // LoadCloudClient returns a GoldClient that has previously been stored to disk
 // in the path given by workDir.
-func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
+func LoadCloudClient(workDir string) (*CloudClient, error) {
 	// Make sure the workdir was given and exists.
 	if workDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to LoadCloudClient")
 	}
 	ret := CloudClient{
 		workDir:          workDir,
-		auth:             authOpt,
 		loadAndHashImage: loadAndHashImage,
-		now:              defaultNow,
 	}
 	var err error
 	ret.resultState, err = loadStateFromJSON(ret.getResultStatePath())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading state from disk")
-	}
-	if err = ret.setHttpClient(); err != nil {
-		return nil, skerr.Wrapf(err, "setting http client")
 	}
 
 	return &ret, nil
@@ -265,13 +249,8 @@ func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
 	return imgBytes, types.Digest(md5Hash), nil
 }
 
-// defaultNow returns what time it is now in UTC
-func defaultNow() time.Time {
-	return time.Now().UTC()
-}
-
 // SetSharedConfig implements the GoldClient interface.
-func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValidation bool) error {
+func (c *CloudClient) SetSharedConfig(ctx context.Context, sharedConfig jsonio.GoldResults, skipValidation bool) error {
 	if !skipValidation {
 		if err := sharedConfig.Validate(true); err != nil {
 			return skerr.Wrapf(err, "invalid configuration")
@@ -288,14 +267,14 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 		existingConfig.OverrideGoldURL = c.resultState.GoldURL
 		existingConfig.UploadOnly = c.resultState.UploadOnly
 	}
-	c.resultState = newResultState(&sharedConfig, &existingConfig)
+	c.resultState = newResultState(sharedConfig, &existingConfig)
 
 	if !c.resultState.UploadOnly {
 		// The GitHash may have changed (or been set for the first time),
 		// So we can now load the baseline. We can also download the hashes
 		// at this time, although we could have done it at any time before since
 		// that does not depend on the GitHash we have.
-		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
+		if err := c.downloadHashesAndBaselineFromGold(ctx); err != nil {
 			return skerr.Wrapf(err, "downloading from Gold")
 		}
 	}
@@ -304,26 +283,24 @@ func (c *CloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults, skipValid
 }
 
 // Test implements the GoldClient interface.
-func (c *CloudClient) Test(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
-	if res, err := c.addTest(name, imgFileName, imgDigest, additionalKeys, optionalKeys); err != nil {
-		return false, err
-	} else {
-		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
+func (c *CloudClient) Test(ctx context.Context, name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
+	passes, err := c.addTest(ctx, name, imgFileName, imgDigest, additionalKeys, optionalKeys)
+	if err != nil {
+		return false, skerr.Wrap(err)
 	}
+	// In pass-fail (aka streaming mode), we want to make sure we don't upload these same results
+	// in the next upload state. As such, we delete them and don't persist them to disk.
+	if c.resultState.PerTestPassFail {
+		c.resultState.SharedConfig.Results = nil
+	}
+	return passes, saveJSONFile(c.getResultStatePath(), c.resultState)
 }
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
 // Returns true if the test was added (and maybe uploaded) successfully.
-func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
-	if err := c.isReady(); err != nil {
-		return false, skerr.Wrapf(err, "gold client not ready")
-	}
-
+func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileName string, imgDigest types.Digest, additionalKeys, optionalKeys map[string]string) (bool, error) {
 	// Get an uploader. This is either based on an authenticated client or on gsutils.
-	uploader, err := c.auth.GetGCSUploader()
-	if err != nil {
-		return false, skerr.Wrapf(err, "retrieving uploader")
-	}
+	uploader := extractGCSUploader(ctx)
 
 	var imgBytes []byte
 	if imgFileName != "" {
@@ -348,9 +325,9 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 		return false, skerr.Wrapf(err, "invalid test config")
 	}
 
-	fmt.Printf("Given image with hash %s for test %s\n", imgDigest, name)
+	infof(ctx, "Given image with hash %s for test %s\n", imgDigest, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
-		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
+		infof(ctx, "Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	var egroup errgroup.Group
@@ -358,7 +335,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 	if !c.resultState.KnownHashes[imgDigest] && imgBytes != nil {
 		egroup.Go(func() error {
 			gcsImagePath := c.resultState.getGCSImagePath(imgDigest)
-			if err := uploader.UploadBytes(context.TODO(), imgBytes, imgFileName, gcsImagePath); err != nil {
+			if err := uploader.UploadBytes(ctx, imgBytes, imgFileName, gcsImagePath); err != nil {
 				return skerr.Fmt("Error uploading image %s to %s. Got: %s", imgFileName, gcsImagePath, err)
 			}
 			return nil
@@ -369,11 +346,11 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 	ret := true
 	if c.resultState.PerTestPassFail {
 		egroup.Go(func() error {
-			return c.uploadResultJSON(uploader)
+			return c.uploadResultJSON(ctx)
 		})
 
 		egroup.Go(func() error {
-			match, algorithmName, err := c.matchImageAgainstBaseline(name, traceId, imgBytes, imgDigest, optionalKeys)
+			match, algorithmName, err := c.matchImageAgainstBaseline(ctx, name, traceId, imgBytes, imgDigest, optionalKeys)
 			if err != nil {
 				return skerr.Wrapf(err, "matching image against baseline")
 			}
@@ -382,8 +359,8 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 			// If the image is untriaged, but matches the latest positive digest in its baseline via the
 			// specified non-exact image matching algorithm, then triage the image as positive.
 			if match && algorithmName != imgmatching.ExactMatching {
-				sklog.Infof("Triaging digest %q for test %q as positive (algorithm name: %q)", imgDigest, name, algorithmName)
-				err = c.TriageAsPositive(name, imgDigest, string(algorithmName))
+				infof(ctx, "Triaging digest %q for test %q as positive (algorithm name: %q)\n", imgDigest, name, algorithmName)
+				err = c.TriageAsPositive(ctx, name, imgDigest, string(algorithmName))
 				if err != nil {
 					return skerr.Wrapf(err, "triaging image as positive, image hash %q, test name %q, algorithm name %q", imgDigest, name, algorithmName)
 				}
@@ -396,7 +373,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 					link += "&crs=" + c.resultState.SharedConfig.CodeReviewSystem
 				}
 				link += "\n"
-				fmt.Printf("Untriaged or negative image: %s", link)
+				infof(ctx, "Untriaged or negative image: %s\n", link)
 				ff := c.resultState.FailureFile
 				if ff != "" {
 					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -423,9 +400,9 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, imgDigest
 }
 
 // Check implements the GoldClient interface.
-func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) Check(ctx context.Context, name types.TestName, imgFileName string, keys, optionalKeys map[string]string) (bool, error) {
 	if len(c.resultState.Expectations) == 0 {
-		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
+		if err := c.downloadHashesAndBaselineFromGold(ctx); err != nil {
 			return false, skerr.Wrapf(err, "fetching baseline")
 		}
 		if err := saveJSONFile(c.getResultStatePath(), c.resultState); err != nil {
@@ -438,13 +415,13 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 	if err != nil {
 		return false, skerr.Wrap(err)
 	}
-	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
+	infof(ctx, "Given image with hash %s for test %s\n", imgHash, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
-		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
+		infof(ctx, "Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	_, traceID := c.makeResultKeyAndTraceId(name, keys)
-	match, _, err := c.matchImageAgainstBaseline(name, traceID, imgBytes, imgHash, optionalKeys)
+	match, _, err := c.matchImageAgainstBaseline(ctx, name, traceID, imgBytes, imgHash, optionalKeys)
 	return match, skerr.Wrap(err)
 }
 
@@ -463,7 +440,7 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 //
 // A non-nil error is returned if there are any problems parsing or instantiating the specified
 // image matching algorithm, for example if there are any missing parameters.
-func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
+func (c *CloudClient) matchImageAgainstBaseline(ctx context.Context, testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
 	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
@@ -493,101 +470,47 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	}
 
 	// Decode test output PNG image.
-	image, err := png.Decode(bytes.NewReader(imageBytes))
+	img, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
 		return false, "", skerr.Wrapf(err, "decoding PNG image")
 	}
 
 	// Fetch the most recent positive digest.
-	sklog.Infof("Fetching most recent positive digest for trace with ID %q.", traceId)
-	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(traceId)
+	infof(ctx, "Fetching most recent positive digest for trace with ID %q.\n", traceId)
+	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(ctx, traceId)
 	if err != nil {
 		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 	if mostRecentPositiveDigest == tiling.MissingDigest {
-		sklog.Infof("No recent positive digests for trace with ID %q. This probably means that the test was newly added.", traceId)
+		infof(ctx, "No recent positive digests for trace with ID %q. This probably means that the test was newly added.\n", traceId)
 		return false, algorithmName, nil
 	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
-	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(context.TODO(), mostRecentPositiveDigest)
+	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(ctx, mostRecentPositiveDigest)
 	if err != nil {
 		return false, "", skerr.Wrapf(err, "downloading most recent positive image from GCS")
 	}
 
 	// Return algorithm's output.
-	sklog.Infof("Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
-	return matcher.Match(mostRecentPositiveImage, image), algorithmName, nil
+	infof(ctx, "Non-exact image comparison using algorithm %q against most recent positive digest %q.\n", algorithmName, mostRecentPositiveDigest)
+	return matcher.Match(mostRecentPositiveImage, img), algorithmName, nil
 }
 
 // Finalize implements the GoldClient interface.
-func (c *CloudClient) Finalize() error {
-	if err := c.isReady(); err != nil {
-		return skerr.Fmt("Cannot finalize - client not ready: %s", err)
-	}
-	uploader, err := c.auth.GetGCSUploader()
-	if err != nil {
-		return skerr.Fmt("Error retrieving uploader: %s", err)
-	}
-	return c.uploadResultJSON(uploader)
+func (c *CloudClient) Finalize(ctx context.Context) error {
+	return c.uploadResultJSON(ctx)
 }
 
 // uploadResultJSON uploads the results (which live in SharedConfig, specifically
 // SharedConfig.Results), to GCS.
-func (c *CloudClient) uploadResultJSON(uploader GCSUploader) error {
+func (c *CloudClient) uploadResultJSON(ctx context.Context) error {
 	localFileName := filepath.Join(c.workDir, jsonTempFile)
-	resultFilePath := c.resultState.getResultFilePath(c.now())
-	if err := uploader.UploadJSON(context.TODO(), c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
+	resultFilePath := c.resultState.getResultFilePath(ctx)
+	uploader := extractGCSUploader(ctx)
+	if err := uploader.UploadJSON(ctx, c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
 		return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
 	}
-	return nil
-}
-
-// setHttpClient sets authenticated httpClient, if authentication was configured via SetAuthConfig.
-// It also retrieves a token of the configured source to make sure it works.
-func (c *CloudClient) setHttpClient() error {
-	// If no auth option was set, we return an unauthenticated client.
-	client, err := c.auth.GetHTTPClient()
-	if err != nil {
-		return err
-	}
-	c.httpClient = client
-	return nil
-}
-
-// saveAuthOpt assumes that auth has been set. It saves it to the work directory for retrieval
-// during later calls.
-func (c *CloudClient) saveAuthOpt() error {
-	outFile := filepath.Join(c.workDir, authFile)
-	return saveJSONFile(outFile, c.auth)
-}
-
-// isReady returns true if the instance is ready to accept test results (all necessary info has been
-// configured)
-func (c *CloudClient) isReady() error {
-	if c.ready {
-		return nil
-	}
-
-	// if resultState hasn't been set yet, then we are simply not ready.
-	if c.resultState == nil {
-		return skerr.Fmt("No result state object available")
-	}
-
-	// Check whether we have some means of uploading results
-	if c.auth == nil {
-		return skerr.Fmt("No authentication information provided.")
-	}
-	if err := c.auth.Validate(); err != nil {
-		return skerr.Fmt("Invalid auth: %s", err)
-	}
-
-	// Check if the GoldResults instance is complete once results are added.
-	if err := c.resultState.SharedConfig.Validate(true); err != nil {
-		return skerr.Wrapf(err, "Gold results fields invalid")
-	}
-
-	c.ready = true
 	return nil
 }
 
@@ -623,7 +546,7 @@ func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKey
 	// If said command was not previously invoked (e.g. when calling "imgtest check") the shared
 	// config will be nil, in which case we initialize the shared keys as an empty map.
 	sharedKeys := map[string]string{}
-	if c.resultState.SharedConfig != nil {
+	if len(c.resultState.SharedConfig.Key) != 0 {
 		sharedKeys = c.resultState.SharedConfig.Key
 	}
 
@@ -649,19 +572,19 @@ func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKey
 
 // downloadHashesAndBaselineFromGold downloads the hashes and baselines
 // and stores them to resultState.
-func (c *CloudClient) downloadHashesAndBaselineFromGold() error {
+func (c *CloudClient) downloadHashesAndBaselineFromGold(ctx context.Context) error {
 	// What hashes have we seen already (to avoid uploading them again).
-	if err := c.resultState.loadKnownHashes(c.httpClient); err != nil {
+	if err := c.resultState.loadKnownHashes(ctx); err != nil {
 		return err
 	}
 
-	fmt.Printf("Loaded %d known hashes\n", len(c.resultState.KnownHashes))
+	infof(ctx, "Loaded %d known hashes\n", len(c.resultState.KnownHashes))
 
 	// Fetch the baseline (may be empty but should not fail).
-	if err := c.resultState.loadExpectations(c.httpClient); err != nil {
+	if err := c.resultState.loadExpectations(ctx); err != nil {
 		return err
 	}
-	fmt.Printf("Loaded %d tests from the baseline\n", len(c.resultState.Expectations))
+	infof(ctx, "Loaded %d tests from the baseline\n", len(c.resultState.Expectations))
 
 	return nil
 }
@@ -690,7 +613,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 
 	// 2) Check JSON endpoint digests to download
 	u := fmt.Sprintf("%s/json/v1/digests?test=%s&corpus=%s", c.resultState.GoldURL, url.QueryEscape(string(name)), url.QueryEscape(corpus))
-	jb, err := getWithRetries(c.httpClient, u)
+	jb, err := getWithRetries(ctx, u)
 	if err != nil {
 		return skerr.Wrapf(err, "reading images for test %s, corpus %s from gold (url: %s)", name, corpus, u)
 	}
@@ -700,11 +623,11 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 		return skerr.Wrapf(err, "invalid JSON from digests served from %s: %s", u, string(jb))
 	}
 	if len(dlr.Digests) == 0 {
-		sklog.Warningf("Gold doesn't know of any digests that match %s and corpus %s", name, corpus)
+		errorf(ctx, "Gold doesn't know of any digests that match %s and corpus %s\n", name, corpus)
 		return nil
 	}
 
-	sklog.Infof("Going to compare %s.png against %d other images", inputDigest, len(dlr.Digests))
+	infof(ctx, "Going to compare %s.png against %d other images\n", inputDigest, len(dlr.Digests))
 
 	// 3a) Download those from bucket (or use from working directory cache). We download them with
 	//    the same credentials that let us upload them.
@@ -725,14 +648,15 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 		// 3b) Compare each of the images to the given image, looking for the smallest combined
 		//     diff metric.
 		dm, diffImg := diff.PixelDiff(leftImg, rightImg)
-		if dm.CombinedMetric < smallestCombined {
-			smallestCombined = dm.CombinedMetric
+		combined := diff.CombinedDiffMetric(dm.MaxRGBADiffs, dm.PixelDiffPercent)
+		if combined < smallestCombined {
+			smallestCombined = combined
 			closestDiffImg = diffImg
 			closestRightImg = db
 			closestRightDigest = d
 		}
 	}
-	sklog.Infof("Digest %s was closest (combined metric of %f)", closestRightDigest, smallestCombined)
+	infof(ctx, "Digest %s was closest (combined metric of %f)\n", closestRightDigest, smallestCombined)
 
 	// 4) Write closest image and the diff to that image to the output directory.
 	o := filepath.Join(outDir, fmt.Sprintf("closest-%s.png", closestRightDigest))
@@ -775,10 +699,7 @@ func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.
 
 	// Download and cache digest if it wasn't found on the cache.
 	if os.IsNotExist(err) {
-		downloader, err := c.auth.GetImageDownloader()
-		if err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
+		downloader := extractImageDownloader(ctx)
 
 		// Download digest.
 		digestGcsPath := c.resultState.getGCSImagePath(digest)
@@ -794,17 +715,17 @@ func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.
 	}
 
 	// Decode PNG file.
-	image, err := png.Decode(bytes.NewReader(digestBytes))
+	img, err := png.Decode(bytes.NewReader(digestBytes))
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "decoding PNG file at %s", digestPath)
 	}
 
-	return image, digestBytes, nil
+	return img, digestBytes, nil
 }
 
 // Whoami fulfills the GoldClient interface.
-func (c *CloudClient) Whoami() (string, error) {
-	jsonBytes, err := getWithRetries(c.httpClient, c.resultState.GoldURL+"/json/v1/whoami")
+func (c *CloudClient) Whoami(ctx context.Context) (string, error) {
+	jsonBytes, err := getWithRetries(ctx, c.resultState.GoldURL+"/json/v1/whoami")
 	if err != nil {
 		return "", skerr.Wrapf(err, "making request to %s/json/v1/whoami", c.resultState.GoldURL)
 	}
@@ -823,7 +744,7 @@ func (c *CloudClient) Whoami() (string, error) {
 }
 
 // TriageAsPositive fulfills the GoldClient interface.
-func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName string) error {
+func (c *CloudClient) TriageAsPositive(ctx context.Context, testName types.TestName, digest types.Digest, algorithmName string) error {
 	// Build TriageRequest struct and encode it into JSON.
 	triageRequest := &frontend.TriageRequest{
 		TestDigestStatus:       map[types.TestName]map[types.Digest]expectations.Label{testName: {digest: expectations.Positive}},
@@ -837,7 +758,7 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 	}
 
 	// Make /json/v1/triage request. Response is always empty.
-	_, err = post(c.httpClient, c.resultState.GoldURL+"/json/v1/triage", "application/json", bytes.NewReader(jsonTriageRequest))
+	_, err = post(ctx, c.resultState.GoldURL+"/json/v1/triage", "application/json", bytes.NewReader(jsonTriageRequest))
 	if err != nil {
 		return skerr.Wrapf(err, `making POST request to %s/json/v1/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangelistID)
 	}
@@ -846,10 +767,10 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 }
 
 // MostRecentPositiveDigest fulfills the GoldClient interface.
-func (c *CloudClient) MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error) {
+func (c *CloudClient) MostRecentPositiveDigest(ctx context.Context, traceId tiling.TraceID) (types.Digest, error) {
 	endpointUrl := c.resultState.GoldURL + "/json/v1/latestpositivedigest/" + string(traceId)
 
-	jsonBytes, err := getWithRetries(c.httpClient, endpointUrl)
+	jsonBytes, err := getWithRetries(ctx, endpointUrl)
 	if err != nil {
 		return "", skerr.Wrapf(err, "making request to %s", endpointUrl)
 	}
@@ -907,6 +828,16 @@ func (c *CloudClient) DumpKnownHashes() (string, error) {
 	_, _ = s.WriteString(strings.Join(hashes, "\n\t"))
 	_, _ = s.WriteString("\n")
 	return s.String(), nil
+}
+
+func infof(ctx context.Context, fmtStr string, args ...interface{}) {
+	w := extractLogWriter(ctx)
+	_, _ = fmt.Fprintf(w, fmtStr, args...)
+}
+
+func errorf(ctx context.Context, fmtStr string, args ...interface{}) {
+	w := extractErrorWriter(ctx)
+	_, _ = fmt.Fprintf(w, fmtStr, args...)
 }
 
 // Make sure CloudClient fulfills the GoldClient interface

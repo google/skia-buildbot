@@ -11,7 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
+	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -22,7 +23,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -55,6 +56,8 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 
 	ctx := context.Background()
 
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+
 	gUrl := "https://fake-skia-review.googlesource.com"
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
 		AccountId: 101,
@@ -65,15 +68,17 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(codereview.GERRIT_CONFIGS[cfg.Gerrit.Config], gUrl, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(codereview.GerritConfigs[parentCfg.Gerrit.Config], gUrl, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg.ChildRepo = child.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
+	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
+	parentCfg.Dep.Primary.Id = child.RepoUrl()
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
+	childCfg.Gitiles.RepoUrl = child.RepoUrl()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	// Create the RepoManager.
-	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g))
 	require.NoError(t, err)
 
 	// Mock requests for Update().
@@ -82,13 +87,13 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.DefaultBranch)
-	if len(cfg.TransitiveDeps) > 0 {
+	if len(parentCfg.Dep.Transitive) > 0 {
 		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	}
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
-		if len(cfg.TransitiveDeps) > 0 {
+		if len(parentCfg.Dep.Transitive) > 0 {
 			mockChild.MockReadFile(ctx, "DEPS", hash)
 		}
 	}
@@ -105,19 +110,34 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
 
-func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
-	return &NoCheckoutDEPSRepoManagerConfig{
-		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  defaultBranchTmpl(t),
-				ChildPath:    childPath,
-				ParentBranch: defaultBranchTmpl(t),
+func noCheckoutDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: "todo.git",
+				},
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
+						Id:   "todo.git",
+						Path: deps_parser.DepsFileName,
+					},
+				},
+				Gerrit: &config.GerritConfig{
+					Url:     "https://fake-skia-review.googlesource.com",
+					Project: "fake-gerrit-project",
+					Config:  config.GerritConfig_CHROMIUM,
+				},
 			},
 		},
-		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
-			Project: "fake-gerrit-project",
-			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: &config.GitilesChildConfig{
+				Gitiles: &config.GitilesConfig{
+					Branch:  git.DefaultBranch,
+					RepoUrl: "todo.git",
+				},
+			},
 		},
 	}
 }
@@ -133,13 +153,14 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.DefaultBranch)
-	if len(cfg.TransitiveDeps) > 0 {
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	if len(parentCfg.Dep.Transitive) > 0 {
 		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	}
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
-		if len(cfg.TransitiveDeps) > 0 {
+		if len(parentCfg.Dep.Transitive) > 0 {
 			mockChild.MockReadFile(ctx, "DEPS", hash)
 		}
 	}
@@ -151,7 +172,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	require.Equal(t, len(notRolledRevs), len(childCommits)-1)
 }
 
-func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) {
+func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.ParentChildRepoManagerConfig) {
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
@@ -221,7 +242,8 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEP
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	gerritCfg := codereview.GerritConfigs[parentCfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	} else {
@@ -244,22 +266,31 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollNoCQ(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	cfg.Gerrit.Config = codereview.GERRIT_CONFIG_CHROMIUM_NO_CQ
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg.Gerrit.Config = config.GerritConfig_CHROMIUM_NO_CQ
 	testNoCheckoutDEPSRepoManagerCreateNewRoll(t, cfg)
 }
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	cfg.TransitiveDeps = []*version_file_common.TransitiveDepConfig{
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
-			Child: &version_file_common.VersionFileConfig{
-				ID:   "https://grandchild-in-child",
+			Child: &config.VersionFileConfig{
+				Id:   "https://grandchild-in-child",
 				Path: "DEPS",
 			},
-			Parent: &version_file_common.VersionFileConfig{
-				ID:   "https://grandchild-in-parent",
+			Parent: &config.VersionFileConfig{
+				Id:   "https://grandchild-in-parent",
 				Path: "DEPS",
 			},
+		},
+	}
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
+	childCfg.Gitiles.Dependencies = []*config.VersionFileConfig{
+		{
+			Id:   "https://grandchild-in-child",
+			Path: "DEPS",
 		},
 	}
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)

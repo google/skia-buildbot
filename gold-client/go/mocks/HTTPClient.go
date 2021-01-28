@@ -3,8 +3,9 @@
 package mocks
 
 import (
-	io "io"
 	http "net/http"
+
+	io "io"
 
 	mock "github.com/stretchr/testify/mock"
 )

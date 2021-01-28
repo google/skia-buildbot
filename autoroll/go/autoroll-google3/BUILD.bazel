@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/autoroll-google3",
     visibility = ["//visibility:private"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/modes",
         "//autoroll/go/recent_rolls",
         "//autoroll/go/roller",
@@ -29,10 +30,10 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//go/webhook",
-        "@com_github_flynn_json5//:json5",
         "@com_github_gorilla_mux//:mux",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_google_api//option",
+        "@org_golang_google_protobuf//encoding/prototext",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

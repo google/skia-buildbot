@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"flag"
@@ -18,8 +17,9 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
-	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
@@ -52,7 +53,7 @@ const (
 // flags
 var (
 	chatWebHooksFile  = flag.String("chat_webhooks_file", "", "Chat webhook config.")
-	config            = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
+	configContents    = flag.String("config", "", "Base 64 encoded configuration in JSON format, mutually exclusive with --config_file.")
 	configFile        = flag.String("config_file", "", "Configuration file to use, mutually exclusive with --config.")
 	emailCreds        = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
@@ -93,24 +94,25 @@ func main() {
 	}
 
 	// Decode the config.
-	var cfg roller.AutoRollerConfig
-	if (*config == "" && *configFile == "") || (*config != "" && *configFile != "") {
+	if (*configContents == "" && *configFile == "") || (*configContents != "" && *configFile != "") {
 		sklog.Fatal("Exactly one of --config or --config_file is required.")
 	}
-	if *config != "" {
-		b, err := base64.StdEncoding.DecodeString(*config)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		if err := json5.NewDecoder(bytes.NewReader(b)).Decode(&cfg); err != nil {
-			sklog.Fatal(err)
-		}
+	var configBytes []byte
+	var err error
+	if *configContents != "" {
+		configBytes, err = base64.StdEncoding.DecodeString(*configContents)
 	} else {
-		if err := util.WithReadFile(*configFile, func(f io.Reader) error {
-			return json5.NewDecoder(f).Decode(&cfg)
-		}); err != nil {
-			sklog.Fatal(err)
-		}
+		err = util.WithReadFile(*configFile, func(f io.Reader) error {
+			configBytes, err = ioutil.ReadAll(f)
+			return err
+		})
+	}
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	var cfg config.Config
+	if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
+		sklog.Fatal(err)
 	}
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
@@ -188,9 +190,9 @@ func main() {
 		}
 	}
 
-	serverURL := roller.AUTOROLL_URL_PUBLIC + "/r/" + cfg.RollerName
+	serverURL := roller.AutorollURLPublic + "/r/" + cfg.RollerName
 	if cfg.IsInternal {
-		serverURL = roller.AUTOROLL_URL_PRIVATE + "/r/" + cfg.RollerName
+		serverURL = roller.AutorollURLPrivate + "/r/" + cfg.RollerName
 	}
 
 	// TODO(borenet/rmistry): Create a code review sub-config as described in
@@ -207,17 +209,18 @@ func main() {
 		}
 	}
 
-	if cfg.Gerrit != nil {
+	if cfg.GetGerrit() != nil {
 		// Create the code review API client.
-		gc, err := cfg.Gerrit.GetConfig()
-		if err != nil {
-			sklog.Fatalf("Failed to get Gerrit config: %s", err)
+		gc := cfg.GetGerrit()
+		if gc == nil {
+			sklog.Fatal("Gerrit config doesn't exist.")
 		}
-		g, err = gerrit.NewGerritWithConfig(gc, cfg.Gerrit.URL, client)
+		gerritConfig := codereview.GerritConfigs[gc.Config]
+		g, err = gerrit.NewGerritWithConfig(gerritConfig, gc.Url, client)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
-	} else if cfg.Github != nil {
+	} else if cfg.GetGithub() != nil {
 		pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 		if !*local {
 			pathToGithubToken = filepath.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
@@ -248,7 +251,11 @@ func main() {
 		}
 		gToken := strings.TrimSpace(string(gBody))
 		githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
-		githubClient, err = github.NewGitHub(ctx, cfg.Github.RepoOwner, cfg.Github.RepoName, githubHttpClient)
+		gc := cfg.GetGithub()
+		if gc == nil {
+			sklog.Fatal("Github config doesn't exist.")
+		}
+		githubClient, err = github.NewGitHub(ctx, gc.RepoOwner, gc.RepoName, githubHttpClient)
 		if err != nil {
 			sklog.Fatalf("Could not create Github client: %s", err)
 		}
@@ -269,7 +276,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, manualRolls)
+	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, manualRolls)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -309,12 +316,13 @@ func main() {
 				}
 			}
 		}()
-	} else if githubClient != nil {
+	} else if githubClient != nil && cfg.GetParentChildRepoManager() != nil {
+		rm := cfg.GetParentChildRepoManager()
 		var forkRepoURL string
-		if cfg.GithubDEPSRepoManager != nil {
-			forkRepoURL = cfg.GithubDEPSRepoManager.ForkRepoURL
-		} else if cfg.GithubRepoManager != nil {
-			forkRepoURL = cfg.GithubRepoManager.ForkRepoURL
+		if rm.GetDepsLocalGithubParent() != nil {
+			forkRepoURL = rm.GetDepsLocalGithubParent().ForkRepoUrl
+		} else if rm.GetGitCheckoutGithubFileParent() != nil {
+			forkRepoURL = rm.GetGitCheckoutGithubFileParent().GitCheckout.ForkRepoUrl
 		}
 		if forkRepoURL != "" {
 			// Periodically delete old fork branches for this roller.
@@ -326,7 +334,7 @@ func main() {
 			go func() {
 				for range time.Tick(60 * time.Minute) {
 					sklog.Infof("Finding all fork branches that start with the rollers name %s", rollerName)
-					forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+					forkRepoMatches := parent.REGitHubForkRepoURL.FindStringSubmatch(forkRepoURL)
 					forkRepoOwner := forkRepoMatches[2]
 					forkRepoName := forkRepoMatches[3]
 					refs, err := githubClient.ListMatchingReferences(forkRepoOwner, forkRepoName, fmt.Sprintf("refs/heads/%s-", rollerName))

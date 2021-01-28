@@ -3,9 +3,9 @@ package child
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -19,52 +19,6 @@ var (
 	githubPullRequestLinksRE = regexp.MustCompile(`(?m) \((#[0-9]+)\)$`)
 )
 
-// GitCheckoutGithubConfig provides configuration for a Child which uses a local
-// Git checkout of a Github repo.
-type GitCheckoutGithubConfig struct {
-	GitCheckoutConfig
-	GithubRepoName string `json:"githubRepoName"`
-	GithubUserName string `json:"githubUserName"`
-}
-
-// Validate implements util.Validator.
-func (c GitCheckoutGithubConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if c.GithubRepoName == "" {
-		return skerr.Fmt("GithubRepoName is required")
-	}
-	if c.GithubUserName == "" {
-		return skerr.Fmt("GithubUserName is required")
-	}
-	return nil
-}
-
-// GitCheckoutGithubConfigToProto converts a GitCheckoutGithubConfig to a
-// config.GitCheckoutGitHubChildConfig.
-func GitCheckoutGithubConfigToProto(cfg *GitCheckoutGithubConfig) *config.GitCheckoutGitHubChildConfig {
-	return &config.GitCheckoutGitHubChildConfig{
-		GitCheckout: GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
-		RepoOwner:   cfg.GithubUserName,
-		RepoName:    cfg.GithubRepoName,
-	}
-}
-
-// ProtoToGitCheckoutGithubConfig converts a config.GitCheckoutGitHubChildConfig
-// to a GitCheckoutGithubChildConfig.
-func ProtoToGitCheckoutGithubConfig(cfg *config.GitCheckoutGitHubChildConfig) (*GitCheckoutGithubConfig, error) {
-	co, err := ProtoToGitCheckoutConfig(cfg.GitCheckout)
-	if err != nil {
-		return nil, err
-	}
-	return &GitCheckoutGithubConfig{
-		GitCheckoutConfig: *co,
-		GithubRepoName:    cfg.RepoName,
-		GithubUserName:    cfg.RepoOwner,
-	}, nil
-}
-
 // GitCheckoutGithubChild is an implementation of Child which uses a local Git
 // checkout of a Github repo.
 type GitCheckoutGithubChild struct {
@@ -75,18 +29,18 @@ type GitCheckoutGithubChild struct {
 
 // NewGitCheckoutGithub returns an implementation of Child which uses a local
 // Git checkout of a Github repo.
-func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, client *http.Client, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutGithubChild, error) {
+func NewGitCheckoutGithub(ctx context.Context, c *config.GitCheckoutGitHubChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout) (*GitCheckoutGithubChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	child, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
+	child, err := NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &GitCheckoutGithubChild{
 		GitCheckoutChild: child,
-		repoName:         c.GithubRepoName,
-		userName:         c.GithubUserName,
+		repoName:         c.RepoName,
+		userName:         c.RepoOwner,
 	}, nil
 }
 

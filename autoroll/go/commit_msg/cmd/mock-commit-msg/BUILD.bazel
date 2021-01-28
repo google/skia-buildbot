@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//autoroll/go/commit_msg",
+        "//autoroll/go/config",
         "//autoroll/go/config_vars",
         "//autoroll/go/revision",
         "//autoroll/go/roller",
@@ -19,11 +20,10 @@ go_library(
         "//go/github",
         "//go/httputils",
         "//go/repo_root",
-        "//go/util",
-        "@com_github_flynn_json5//:json5",
         "@com_github_pmezard_go_difflib//difflib",
         "@com_google_cloud_go_datastore//:datastore",
         "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_protobuf//encoding/prototext",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

@@ -80,7 +80,7 @@ func createPagesets() error {
 		"-u", userAgent,
 		"-o", pathToPagesets,
 	}
-	if err := util.ExecuteCmd(ctx, "python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+	if err := util.ExecuteCmd(ctx, util.BINARY_PYTHON, args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		return err
 	}
 

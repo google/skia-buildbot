@@ -7,18 +7,16 @@ particles-player-sk {
   border: 0;
 
   .widget {
-    display: inline-block;
     margin: 1px 3px;
     padding: 2px;
     border-radius: 5px;
-    border: 1px solid #DDD;
+    border: 1px solid var(--on-surface);
     * {
       vertical-align: middle;
     }
   }
 
   canvas {
-    display:block;
+    display: block;
   }
-
 }

@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -21,30 +22,39 @@ import (
 )
 
 const (
-	FtReadmePath         = "third_party/freetype/README.chromium"
-	FtReadmeVersionTmpl  = "%sVersion: %s"
-	FtReadmeRevisionTmpl = "%sRevision: %s"
+	// FtReadmePath is the path to the FreeType readme file.
+	FtReadmePath = "third_party/freetype/README.chromium"
+	// ftReadmeVersionTmpl is the template used for writing versions to the
+	// FreeType readme file.
+	ftReadmeVersionTmpl = "%sVersion: %s"
+	// ftReadmeRevisionTmpl is the template used for writing revisions to the
+	// FreeType readme file.
+	ftReadmeRevisionTmpl = "%sRevision: %s"
 
-	FtIncludeSrc  = "include"
+	// FtIncludeSrc is the includes directory in the child repo.
+	FtIncludeSrc = "include"
+	// FtIncludeDest is the includes directory in the parent repo.
 	FtIncludeDest = "third_party/freetype/include/freetype-custom"
 )
 
 var (
-	FtReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(FtReadmeVersionTmpl, "(?m)^", ".*"))
-	FtReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(FtReadmeRevisionTmpl, "(?m)^", ".*"))
+	ftReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, "(?m)^", ".*"))
+	ftReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, "(?m)^", ".*"))
 
+	// FtIncludesToMerge are header files which should be merged when rolling.
 	FtIncludesToMerge = []string{
 		"freetype/config/ftoption.h",
 		"freetype/config/public-macros.h",
 	}
 )
 
-func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
-	localChildRepo, err := git.NewRepo(ctx, c.DependencyConfig.ID, workdir)
+// NewFreeTypeParent returns a Parent instance which rolls FreeType.
+func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
+	localChildRepo, err := git.NewRepo(ctx, c.Gitiles.Dep.Primary.Id, workdir)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	getChangesHelper := gitilesFileGetChangesForRollFunc(c.DependencyConfig)
+	getChangesHelper := gitilesFileGetChangesForRollFunc(c.Gitiles.Dep)
 	getChangesForRoll := func(ctx context.Context, parentRepo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, error) {
 		// Get the DEPS changes via gitilesDEPSGetChangesForRollFunc.
 		changes, err := getChangesHelper(ctx, parentRepo, baseCommit, from, to, rolling)
@@ -70,8 +80,8 @@ func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Re
 			return nil, skerr.Wrap(err)
 		}
 		oldReadmeContents := string(oldReadmeBytes)
-		newReadmeContents := FtReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(FtReadmeVersionTmpl, "", ftVersion))
-		newReadmeContents = FtReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(FtReadmeRevisionTmpl, "", to.Id))
+		newReadmeContents := ftReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(ftReadmeVersionTmpl, "", ftVersion))
+		newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, "", to.Id))
 		if newReadmeContents != oldReadmeContents {
 			changes[FtReadmePath] = newReadmeContents
 		}
@@ -86,14 +96,14 @@ func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Re
 		// Check modules.cfg. Give up if it has changed.
 		diff, err := localChildRepo.Git(ctx, "diff", "--name-only", git.LogFromTo(from.Id, to.Id))
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		if strings.Contains(diff, "modules.cfg") {
 			return nil, skerr.Fmt("modules.cfg has been modified; cannot roll automatically.")
 		}
 		return changes, nil
 	}
-	return newGitiles(ctx, c, reg, client, serverURL, getChangesForRoll)
+	return newGitiles(ctx, c.Gitiles, reg, client, serverURL, getChangesForRoll)
 }
 
 // Perform a three-way merge for this header file in a temporary dir. Adds the

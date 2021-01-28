@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
@@ -33,7 +34,6 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/skerr"
@@ -42,20 +42,23 @@ import (
 )
 
 const (
-	AUTOROLL_URL_PUBLIC  = "https://autoroll.skia.org"
-	AUTOROLL_URL_PRIVATE = "https://skia-autoroll.corp.goog"
+	// AutorollURLPublic is the public autoroll frontend URL.
+	AutorollURLPublic = "https://autoroll.skia.org"
+	// AutorollURLPrivate is the private autoroll frontend URL.
+	AutorollURLPrivate = "https://skia-autoroll.corp.goog"
 
-	// Maximum number of not-yet-rolled revisions to store in the DB.
-	MAX_NOT_ROLLED_REVS = 50
+	// maxNotRolledRevs is the maximum number of not-yet-rolled revisions to
+	// store in the DB.
+	maxNotRolledRevs = 50
 
 	// We'll send a notification if this many rolls fail in a row.
-	NOTIFY_IF_LAST_N_FAILED = 3
+	notifyIfLastNFailed = 3
 )
 
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	cfg                AutoRollerConfig
+	cfg                *config.Config
 	codereview         codereview.CodeReview
 	commitMsgBuilder   *commit_msg.Builder
 	currentRoll        codereview.RollImpl
@@ -94,12 +97,20 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
 	}
-	cr, err := c.CodeReview().Init(g, githubClient)
+	var cr codereview.CodeReview
+	var err error
+	if c.GetGerrit() != nil {
+		cr, err = codereview.NewGerrit(c.GetGerrit(), g)
+	} else if c.GetGithub() != nil {
+		cr, err = codereview.NewGitHub(c.GetGithub(), githubClient)
+	} else {
+		return nil, skerr.Fmt("Either GitHub or Gerrit is required.")
+	}
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize code review")
 	}
@@ -109,7 +120,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 
 	// Create the RepoManager.
-	rm, err := c.CreateRepoManager(ctx, cr, reg, g, githubClient, workdir, recipesCfgFile, serverURL, rollerName, gcsClient, client, local)
+	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, recipesCfgFile, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -164,9 +175,9 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	// Throttling counters.
 	sklog.Info("Creating throttlers")
 	if c.SafetyThrottle == nil {
-		c.SafetyThrottle = SAFETY_THROTTLE_CONFIG_DEFAULT
+		c.SafetyThrottle = config.DefaultSafetyThrottleConfig
 	}
-	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
+	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow.AsDuration(), int64(c.SafetyThrottle.AttemptCount))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create safety throttler")
 	}
@@ -176,19 +187,16 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, skerr.Wrapf(err, "Failed to create failure throttler")
 	}
 
-	var maxRollFreq time.Duration
-	if c.MaxRollFrequency != "" {
-		maxRollFreq, err = human.ParseDuration(c.MaxRollFrequency)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to parse maxRollFrequency")
-		}
+	var rollCooldown time.Duration
+	if c.RollCooldown != nil {
+		rollCooldown = c.RollCooldown.AsDuration()
 	}
-	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", maxRollFreq, 1)
+	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", rollCooldown, 1)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
 	sklog.Info("Getting reviewers")
-	emails, err := GetReviewers(c.RollerName, c.Sheriff, c.SheriffBackup)
+	emails, err := GetReviewers(c.RollerName, c.Reviewer, c.ReviewerBackup)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get reviewers")
 	}
@@ -212,7 +220,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 			return nil, skerr.Wrapf(err, "Failed to create TimeWindow")
 		}
 	}
-	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsgConfig, c.ChildDisplayName, serverURL, c.TransitiveDeps)
+	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsg, c.ChildDisplayName, serverURL, c.TransitiveDeps)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -228,7 +236,6 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		modeHistory:        mh,
 		nextRollRev:        nextRollRev,
 		notifier:           n,
-		notifierConfigs:    c.Notifiers,
 		notRolledRevs:      notRolledRevs,
 		recent:             recent,
 		reg:                reg,
@@ -238,8 +245,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
 		safetyThrottle:     safetyThrottle,
 		serverURL:          serverURL,
-		reviewers:          c.Sheriff,
-		reviewersBackup:    c.SheriffBackup,
+		reviewers:          c.Reviewer,
+		reviewersBackup:    c.ReviewerBackup,
 		status:             statusCache,
 		strategy:           strat,
 		strategyHistory:    sh,
@@ -336,7 +343,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 	// Update the current reviewers in a loop.
 	lvReviewers := metrics2.NewLiveness("last_successful_reviewers_retrieval", map[string]string{"roller": r.roller})
 	cleanup.Repeat(30*time.Minute, func(ctx context.Context) {
-		emails, err := GetReviewers(r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
+		emails, err := GetReviewers(r.cfg.RollerName, r.cfg.Reviewer, r.cfg.ReviewerBackup)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current reviewers: %s", err)
 		} else {
@@ -344,7 +351,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 			defer r.emailsMtx.Unlock()
 			r.emails = emails
 
-			configCopies := replaceReviewersPlaceholder(r.notifierConfigs, emails)
+			configCopies := replaceReviewersPlaceholder(r.cfg.Notifiers, emails)
 			if err := r.notifier.ReloadConfigs(ctx, configCopies); err != nil {
 				sklog.Errorf("Failed to reload configs: %s", err)
 				return
@@ -373,10 +380,10 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 
 // Utility for replacing the placeholder $REVIEWERS with real reviewer emails
 // in configs. A modified copy of the passed in configs are returned.
-func replaceReviewersPlaceholder(configs []*notifier.Config, emails []string) []*notifier.Config {
+func replaceReviewersPlaceholder(configs []*config.NotifierConfig, emails []string) []*notifier.Config {
 	configCopies := []*notifier.Config{}
 	for _, n := range configs {
-		configCopy := n.Copy()
+		configCopy := arb_notifier.ProtoToConfig(n)
 		if configCopy.Email != nil {
 			newEmails := []string{}
 			for _, e := range configCopy.Email.Emails {
@@ -665,9 +672,9 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	notRolledRevs := r.notRolledRevs
 	numNotRolled := len(notRolledRevs)
 	sklog.Infof("Updating status (%d revisions behind)", numNotRolled)
-	if numNotRolled > MAX_NOT_ROLLED_REVS {
+	if numNotRolled > maxNotRolledRevs {
 		notRolledRevs = notRolledRevs[:1]
-		sklog.Warningf("Truncating NotRolledRevisions; %d is more than the maximum of %d", numNotRolled, MAX_NOT_ROLLED_REVS)
+		sklog.Warningf("Truncating NotRolledRevisions; %d is more than the maximum of %d", numNotRolled, maxNotRolledRevs)
 	}
 	currentRollRev := ""
 	currentRoll := r.recent.CurrentRoll()
@@ -838,8 +845,8 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 			nFailed++
 		}
 	}
-	if nFailed == NOTIFY_IF_LAST_N_FAILED {
-		r.notifier.SendLastNFailed(ctx, NOTIFY_IF_LAST_N_FAILED, issueURL)
+	if nFailed == notifyIfLastNFailed {
+		r.notifier.SendLastNFailed(ctx, notifyIfLastNFailed, issueURL)
 	}
 
 	return nil

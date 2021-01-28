@@ -5,7 +5,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -13,18 +12,17 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/rpc"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -39,11 +37,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 var (
 	// flags.
-	configs           = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
+	configsContents   = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
 	configFiles       = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	host              = flag.String("host", "localhost", "HTTP service host")
@@ -66,7 +65,7 @@ var (
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
 
-	rollerConfigs map[string]*roller.AutoRollerConfig
+	rollerConfigs map[string]*config.Config
 )
 
 func reloadTemplates() {
@@ -91,7 +90,7 @@ func reloadTemplates() {
 	))
 }
 
-func getRoller(w http.ResponseWriter, r *http.Request) *roller.AutoRollerConfig {
+func getRoller(w http.ResponseWriter, r *http.Request) *config.Config {
 	name, ok := mux.Vars(r)["roller"]
 	if !ok {
 		http.Error(w, "Unable to find roller name in request path.", http.StatusBadRequest)
@@ -191,35 +190,37 @@ func main() {
 	throttleDB := unthrottle.NewDatastore(ctx)
 
 	// Read the configs for the rollers.
-	if len(*configs) > 0 && len(*configFiles) > 0 {
+	if len(*configsContents) > 0 && len(*configFiles) > 0 {
 		sklog.Fatal("--config and --config_file are mutually exclusive.")
-	} else if len(*configs) == 0 && len(*configFiles) == 0 {
+	} else if len(*configsContents) == 0 && len(*configFiles) == 0 {
 		sklog.Fatal("At least one instance of --config or --config_file is required.")
 	}
-	cfgs := make([]*roller.AutoRollerConfig, 0, len(*configs)+len(*configFiles))
-	for _, cfgStr := range *configs {
+	cfgBytes := make([][]byte, 0, len(*configsContents)+len(*configFiles))
+	for _, cfgStr := range *configsContents {
 		b, err := base64.StdEncoding.DecodeString(cfgStr)
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Failed to base64-decode config: %s\n\nbase64:\n%s", err, cfgStr)
 		}
-		var cfg roller.AutoRollerConfig
-		if err := json5.NewDecoder(bytes.NewReader(b)).Decode(&cfg); err != nil {
-			sklog.Fatal(err)
-		}
-		cfgs = append(cfgs, &cfg)
+		cfgBytes = append(cfgBytes, b)
 	}
 	for _, path := range *configFiles {
-		var cfg roller.AutoRollerConfig
-		if err := util.WithReadFile(path, func(f io.Reader) error {
-			return json5.NewDecoder(f).Decode(&cfg)
-		}); err != nil {
-			sklog.Fatal(err)
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			sklog.Fatalf("Failed to read config file %s: %s", path, err)
+		}
+		cfgBytes = append(cfgBytes, b)
+	}
+	cfgs := make([]*config.Config, 0, len(cfgBytes))
+	for _, b := range cfgBytes {
+		var cfg config.Config
+		if err := prototext.Unmarshal(b, &cfg); err != nil {
+			sklog.Fatalf("Failed to decode proto string: %s\n\nstring:\n%s", err, string(b))
 		}
 		cfgs = append(cfgs, &cfg)
 	}
 
 	// Validate the configs.
-	rollerConfigs = make(map[string]*roller.AutoRollerConfig, len(cfgs))
+	rollerConfigs = make(map[string]*config.Config, len(cfgs))
 	rollers := make(map[string]*rpc.AutoRoller, len(cfgs))
 	for _, cfg := range cfgs {
 		if err := cfg.Validate(); err != nil {

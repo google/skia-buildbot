@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -11,7 +12,9 @@ func TestNamedTemplateAndroid_AllFeatures(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
-	b.cfg.Template = TmplNameAndroid
+	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
+		BuiltIn: config.CommitMsgConfig_ANDROID,
+	}
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
@@ -50,7 +53,9 @@ func TestNamedTemplateAndroid_NoLog(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
-	b.cfg.Template = TmplNameAndroid
+	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
+		BuiltIn: config.CommitMsgConfig_ANDROID,
+	}
 	b.cfg.IncludeLog = false
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
@@ -88,7 +93,9 @@ func TestNamedTemplateAndroid_NoBugs(t *testing.T) {
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
-	b.cfg.Template = TmplNameAndroid
+	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
+		BuiltIn: config.CommitMsgConfig_ANDROID,
+	}
 	result, err := b.Build(FakeCommitMsgInputs())
 	require.NoError(t, err)
 	require.Equal(t, `Roll fake/child/src from aaaaaaaaaaaa to cccccccccccc (2 revisions)
@@ -126,8 +133,10 @@ func TestNamedTemplateAndroid_Minimal(t *testing.T) {
 
 	b := fakeBuilder(t)
 	b.cfg.BugProject = ""
-	b.cfg.Template = TmplNameAndroid
-	b.cfg.ChildLogURLTmpl = ""
+	b.cfg.Template = &config.CommitMsgConfig_BuiltIn_{
+		BuiltIn: config.CommitMsgConfig_ANDROID,
+	}
+	b.cfg.ChildLogUrlTmpl = ""
 	b.cfg.CqExtraTrybots = nil
 	b.cfg.IncludeLog = false
 	b.cfg.IncludeTbrLine = false

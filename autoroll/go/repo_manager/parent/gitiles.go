@@ -15,64 +15,10 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
 )
-
-// GitilesConfig provides configuration for a Parent which uses Gitiles.
-type GitilesConfig struct {
-	gitiles_common.GitilesConfig
-	version_file_common.DependencyConfig
-	// Gerrit provides configuration for the Gerrit instance used for
-	// uploading rolls.
-	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
-}
-
-// Validate implements util.Validator.
-func (c GitilesConfig) Validate() error {
-	if c.Gerrit == nil {
-		return skerr.Fmt("Gerrit is required")
-	}
-	if err := c.Gerrit.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := c.GitilesConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := c.DependencyConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if len(c.GitilesConfig.Dependencies) != 0 {
-		return skerr.Fmt("Dependencies are inherited from the DependencyConfig and should not be set on the GitilesConfig.")
-	}
-	return nil
-}
-
-// GitilesConfigToProto converts a GitilesConfig to a
-// config.GitilesParentConfig.
-func GitilesConfigToProto(cfg *GitilesConfig) *config.GitilesParentConfig {
-	return &config.GitilesParentConfig{
-		Gitiles: gitiles_common.GitilesConfigToProto(&cfg.GitilesConfig),
-		Dep:     version_file_common.DependencyConfigToProto(&cfg.DependencyConfig),
-		Gerrit:  codereview.GerritConfigToProto(cfg.Gerrit),
-	}
-}
-
-// ProtoToGitilesConfig converts a config.GitilesParentConfig to a
-// GitilesConfig.
-func ProtoToGitilesConfig(cfg *config.GitilesParentConfig) (*GitilesConfig, error) {
-	gc, err := gitiles_common.ProtoToGitilesConfig(cfg.Gitiles)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &GitilesConfig{
-		GitilesConfig:    *gc,
-		DependencyConfig: *version_file_common.ProtoToDependencyConfig(cfg.Dep),
-		Gerrit:           codereview.ProtoToGerritConfig(cfg.Gerrit),
-	}, nil
-}
 
 // gitilesGetChangesForRollFunc computes the changes to be made in the next
 // roll. These are returned in a map[string]string whose keys are file paths
@@ -85,7 +31,7 @@ type gitilesParent struct {
 	*gitiles_common.GitilesRepo
 	childID      string
 	gerrit       gerrit.GerritInterface
-	gerritConfig *codereview.GerritConfig
+	gerritConfig *config.GerritConfig
 	serverURL    string
 
 	getChangesForRoll gitilesGetChangesForRollFunc
@@ -98,30 +44,31 @@ type gitilesParent struct {
 }
 
 // newGitiles returns a base for implementations of Parent which use Gitiles.
-func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
+func newGitiles(ctx context.Context, c *config.GitilesParentConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
-	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
-	for _, td := range c.DependencyConfig.TransitiveDeps {
+	deps := make([]*config.VersionFileConfig, 0, len(c.Dep.Transitive)+1)
+	deps = append(deps, c.Dep.Primary)
+	for _, td := range c.Dep.Transitive {
 		deps = append(deps, td.Parent)
 	}
-	c.GitilesConfig.Dependencies = deps
-	gr, err := gitiles_common.NewGitilesRepo(ctx, c.GitilesConfig, reg, client)
+	// TODO(borenet): No modification of passed-in configs!
+	c.Gitiles.Dependencies = deps
+	gr, err := gitiles_common.NewGitilesRepo(ctx, c.Gitiles, reg, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	gc, err := c.Gerrit.GetConfig()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get Gerrit config")
+	gc, ok := codereview.GerritConfigs[c.Gerrit.Config]
+	if !ok {
+		return nil, skerr.Fmt("Unknown Gerrit config %s", c.Gerrit.Config)
 	}
-	g, err := gerrit.NewGerritWithConfig(gc, c.Gerrit.URL, client)
+	g, err := gerrit.NewGerritWithConfig(gc, c.Gerrit.Url, client)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
 	}
 	return &gitilesParent{
-		childID:           c.DependencyConfig.ID,
+		childID:           c.Dep.Primary.Id,
 		GitilesRepo:       gr,
 		gerrit:            g,
 		gerritConfig:      c.Gerrit,

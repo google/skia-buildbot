@@ -3,11 +3,11 @@ package goldclient
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"regexp"
-	"time"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/baseline"
@@ -49,7 +49,7 @@ var md5Regexp = regexp.MustCompile(`^[a-f0-9]{32}$`)
 type resultState struct {
 	// SharedConfig is all the data that is common test to test, for example, the
 	// keys about this machine (e.g. GPU, OS).
-	SharedConfig    *jsonio.GoldResults
+	SharedConfig    jsonio.GoldResults
 	PerTestPassFail bool
 	FailureFile     string
 	UploadOnly      bool
@@ -61,7 +61,7 @@ type resultState struct {
 }
 
 // newResultState creates a new instance of resultState
-func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) *resultState {
+func newResultState(sharedConfig jsonio.GoldResults, config *GoldClientConfig) *resultState {
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
 		goldURL = GetGoldInstanceURL(config.InstanceID)
@@ -90,12 +90,12 @@ func getBucket(instanceID string) string {
 }
 
 // loadKnownHashes loads the list of known hashes from the Gold instance.
-func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
+func (r *resultState) loadKnownHashes(ctx context.Context) error {
 	r.KnownHashes = types.DigestSet{}
 
 	// Fetch the known hashes via http
 	hashesURL := r.GoldURL + shared.KnownHashesRouteV1
-	body, err := getWithRetries(httpClient, hashesURL)
+	body, err := getWithRetries(ctx, hashesURL)
 	if err != nil {
 		return skerr.Wrapf(err, "getting known hashes from %s (with retries)", hashesURL)
 	}
@@ -115,14 +115,14 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 }
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
-func (r *resultState) loadExpectations(httpClient HTTPClient) error {
+func (r *resultState) loadExpectations(ctx context.Context) error {
 	urlPath := shared.ExpectationsRouteV2
-	if r.SharedConfig != nil && r.SharedConfig.ChangelistID != "" {
+	if r.SharedConfig.ChangelistID != "" {
 		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangelistID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
 
 	u := r.GoldURL + urlPath
-	jsonBytes, err := getWithRetries(httpClient, u)
+	jsonBytes, err := getWithRetries(ctx, u)
 	if err != nil {
 		return skerr.Wrapf(err, "getting expectations from %s (with retries)", u)
 	}
@@ -130,11 +130,11 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	exp := &baseline.Baseline{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
-		fmt.Printf("Fetched from %s\n", u)
+		infof(ctx, "Fetched from %s\n", u)
 		if len(jsonBytes) > 200 {
-			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
+			infof(ctx, `Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
 		} else {
-			fmt.Printf(`Invalid JSON: "%s"`, string(jsonBytes))
+			infof(ctx, `Invalid JSON: "%s"`, string(jsonBytes))
 		}
 		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
 	}
@@ -149,7 +149,8 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 //    https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
-func (r *resultState) getResultFilePath(now time.Time) string {
+func (r *resultState) getResultFilePath(ctx context.Context) string {
+	now := extractNowSource(ctx).Now()
 	year, month, day := now.Date()
 	hour := now.Hour()
 
@@ -190,7 +191,7 @@ func (r *resultState) getResultFilePath(now time.Time) string {
 
 // getGCSImagePath returns the path in GCS where the image with the given hash should be stored.
 func (r *resultState) getGCSImagePath(imgHash types.Digest) string {
-	return fmt.Sprintf("%s%s/%s/%s.png", gcsPrefix, r.Bucket, imagePrefix, imgHash)
+	return fmt.Sprintf("gs://%s/%s/%s.png", r.Bucket, imagePrefix, imgHash)
 }
 
 // loadStateFromJSON loads a serialization of a resultState instance that was previously written

@@ -3,6 +3,7 @@ package child
 import (
 	"context"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -12,32 +13,6 @@ import (
 	"go.skia.org/infra/go/vfs"
 )
 
-// GitCheckoutConfig provides configuration for a Child which uses a local
-// Git checkout.
-type GitCheckoutConfig struct {
-	git_common.GitCheckoutConfig
-}
-
-// GitCheckoutConfigToProto converts a GitCheckoutConfig to a
-// config.GitCheckoutChildConfig.
-func GitCheckoutConfigToProto(cfg *GitCheckoutConfig) *config.GitCheckoutChildConfig {
-	return &config.GitCheckoutChildConfig{
-		GitCheckout: git_common.GitCheckoutConfigToProto(&cfg.GitCheckoutConfig),
-	}
-}
-
-// ProtoToGitCheckoutConfig converts a config.GitCheckoutChildConfig to a
-// GitCheckoutConfig.
-func ProtoToGitCheckoutConfig(cfg *config.GitCheckoutChildConfig) (*GitCheckoutConfig, error) {
-	co, err := git_common.ProtoToGitCheckoutConfig(cfg.GitCheckout)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return &GitCheckoutConfig{
-		GitCheckoutConfig: *co,
-	}, nil
-}
-
 // GitCheckoutChild is an implementation of Child which uses a local Git
 // checkout.
 type GitCheckoutChild struct {
@@ -46,8 +21,8 @@ type GitCheckoutChild struct {
 
 // NewGitCheckout returns an implementation of Child which uses a local Git
 // checkout.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutChild, error) {
-	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
+func NewGitCheckout(ctx context.Context, c *config.GitCheckoutChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout) (*GitCheckoutChild, error) {
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
