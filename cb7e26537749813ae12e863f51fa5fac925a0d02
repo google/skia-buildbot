@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b0c29945_ecd9f2b9",
+        "filename": "am/modules/bot-chooser-sk/bot-chooser-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-28T21:10:03Z",
+      "side": 1,
+      "message": "Same comment about resolving to \u0027undefined\u0027 on cancel, also just an FYI.",
+      "revId": "cb7e26537749813ae12e863f51fa5fac925a0d02",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
