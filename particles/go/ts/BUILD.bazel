@@ -1,23 +1,20 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "particles_lib",
+    name = "ts_lib",
     srcs = ["main.go"],
-    importpath = "go.skia.org/infra/particles/go/particles",
+    importpath = "go.skia.org/infra/particles/go/ts",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/common",
-        "//go/httputils",
         "//go/sklog",
         "//go/util",
-        "//scrap/go/client",
         "//scrap/go/scrap",
-        "@com_github_gorilla_mux//:mux",
+        "@com_github_skia_dev_go2ts//:go2ts",
     ],
 )
 
 go_binary(
-    name = "particles",
-    embed = [":particles_lib"],
+    name = "ts",
+    embed = [":ts_lib"],
     visibility = ["//visibility:public"],
 )
