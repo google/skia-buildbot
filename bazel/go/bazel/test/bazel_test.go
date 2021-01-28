@@ -15,14 +15,14 @@ import (
 
 func TestInBazel(t *testing.T) {
 	unittest.SmallTest(t)
-	unittest.BazelTest(t)
+	unittest.BazelOnlyTest(t)
 
 	require.True(t, bazel.InBazel())
 }
 
 func TestRunfilesDir_UsedToLocateAKnownRunfile_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	unittest.BazelTest(t)
+	unittest.BazelOnlyTest(t)
 
 	runfile := filepath.Join(bazel.RunfilesDir(), "bazel/go/bazel/test/testdata/hello.txt")
 	bytes, err := ioutil.ReadFile(runfile)
