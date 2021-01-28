@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/go/bt",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/emulators",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

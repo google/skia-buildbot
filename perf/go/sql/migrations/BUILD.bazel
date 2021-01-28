@@ -21,8 +21,8 @@ go_test(
     data = ["//perf/migrations:cockroachdb"],
     embed = [":migrations"],
     deps = [
+        "//go/emulators",
         "//go/testutils/unittest",
-        "//perf/go/sql",
         "//perf/go/sql/migrations/cockroachdb",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
