@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "870366fe_b62c7017",
+        "filename": "am/modules/silence-sk/silence-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-28T21:12:01Z",
+      "side": 1,
+      "message": "private?",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 9
+      },
+      "revId": "6c7f549f61ab51ef2a58aece087fe830c33ecea0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
