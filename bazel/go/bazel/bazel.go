@@ -12,6 +12,13 @@ func InBazel() bool {
 	return os.Getenv("TEST_WORKSPACE") != ""
 }
 
+// InRBE returns true if running under Bazel on RBE (e.g. "bazel test --config=remote"), or false
+// otherwise.
+func InRBE() bool {
+	// The BAZEL_REMOTE environment variable is set in //.bazelrc when running with --config=remote.
+	return InBazel() && os.Getenv("BAZEL_REMOTE") == "true"
+}
+
 // RunfilesDir returns the path to the directory under which a Bazel-built binary or test can find
 // its runfiles (e.g. files included in the "data" attribute of *_test targets) using relative
 // paths.
