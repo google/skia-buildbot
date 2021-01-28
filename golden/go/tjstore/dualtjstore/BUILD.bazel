@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "dualtjstore",
+    srcs = ["dualtjstore.go"],
+    importpath = "go.skia.org/infra/golden/go/tjstore/dualtjstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/continuous_integration",
+        "//golden/go/tjstore",
+        "@org_golang_x_sync//errgroup",
+    ],
+)

@@ -1,3 +1,4 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -8,7 +9,6 @@ go_library(
         "cmd_dump.go",
         "cmd_imgtest.go",
         "cmd_match.go",
-        "cmd_validate.go",
         "cmd_whoami.go",
         "main.go",
     ],
@@ -18,13 +18,13 @@ go_library(
         "//go/fileutil",
         "//go/skerr",
         "//go/util",
+        "//gold-client/go/auth",
         "//gold-client/go/goldclient",
         "//gold-client/go/imgmatching",
         "//gold-client/go/imgmatching/fuzzy",
         "//gold-client/go/imgmatching/sobel",
         "//golden/go/jsonio",
         "//golden/go/types",
-        "@com_github_davecgh_go_spew//spew",
         "@com_github_spf13_cobra//:cobra",
     ],
 )
@@ -33,4 +33,16 @@ go_binary(
     name = "goldctl",
     embed = [":goldctl_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "goldctl_test",
+    srcs = ["cmd_auth_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":goldctl_lib"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )

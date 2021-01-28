@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "auth",
+    srcs = ["goldauth.go"],
+    importpath = "go.skia.org/infra/gold-client/go/auth",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/fileutil",
+        "//go/httputils",
+        "//go/luciauth",
+        "//go/skerr",
+        "//go/util",
+        "//gold-client/go/gcsuploader",
+        "//gold-client/go/httpclient",
+        "//gold-client/go/imagedownloader",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_x_oauth2//:oauth2",
+    ],
+)

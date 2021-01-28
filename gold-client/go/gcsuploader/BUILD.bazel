@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "gcsuploader",
+    srcs = ["gcsuploader.go"],
+    importpath = "go.skia.org/infra/gold-client/go/gcsuploader",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec",
+        "//go/gcs",
+        "//go/skerr",
+        "@com_google_cloud_go_storage//:storage",
+        "@org_golang_google_api//option",
+    ],
+)
+
+go_test(
+    name = "gcsuploader_test",
+    srcs = ["gcsuploader_test.go"],
+    embed = [":gcsuploader"],
+    deps = [
+        "//go/exec",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

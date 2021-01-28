@@ -1,28 +1,23 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
-    name = "autoroll-pusher_lib",
+    name = "convert_configs_lib",
     srcs = ["main.go"],
-    importpath = "go.skia.org/infra/autoroll/go/autoroll-pusher",
+    importpath = "go.skia.org/infra/autoroll/go/config/convert_configs",
     visibility = ["//visibility:private"],
     deps = [
-        "//autoroll/go/config",
         "//autoroll/go/roller",
-        "//go/auth",
         "//go/common",
-        "//go/exec",
-        "//go/gcr",
-        "//go/git",
         "//go/skerr",
+        "//go/sklog",
         "//go/util",
         "@com_github_flynn_json5//:json5",
-        "@org_golang_google_protobuf//encoding/protojson",
         "@org_golang_google_protobuf//encoding/prototext",
     ],
 )
 
 go_binary(
-    name = "autoroll-pusher",
-    embed = [":autoroll-pusher_lib"],
+    name = "convert_configs",
+    embed = [":convert_configs_lib"],
     visibility = ["//visibility:public"],
 )

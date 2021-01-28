@@ -6,14 +6,15 @@ go_library(
     importpath = "go.skia.org/infra/infra/bots/task_drivers/validate_autoroll_configs",
     visibility = ["//visibility:private"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/roller",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
-        "@com_github_flynn_json5//:json5",
         "@com_github_pmezard_go_difflib//difflib",
+        "@org_golang_google_protobuf//encoding/prototext",
     ],
 )
 
