@@ -132,7 +132,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 	sqlTS := sqltjstore.New(db)
 	return &goldTryjobProcessor{
 		cisClients:    cisClients,
-		tryJobStore:   dualtjstore.New(fireTS, sqlTS),
+		tryJobStore:   dualtjstore.New(sqlTS, fireTS),
 		reviewSystems: reviewSystems,
 	}, nil
 }

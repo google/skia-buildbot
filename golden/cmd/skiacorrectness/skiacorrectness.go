@@ -497,7 +497,7 @@ func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClien
 func mustMakeTryJobStore(client *firestore.Client, db *pgxpool.Pool) tjstore.Store {
 	fireTS := fs_tjstore.New(client)
 	sqlTS := sqltjstore.New(db)
-	return dualtjstore.New(fireTS, sqlTS)
+	return dualtjstore.New(sqlTS, fireTS)
 }
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
