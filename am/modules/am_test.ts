@@ -1,7 +1,9 @@
+import { expect } from 'chai';
+import sinon from 'sinon';
 import { getDurationTillNextDay } from './am';
 
 describe('am', () => {
-  let clock;
+  let clock: sinon.SinonFakeTimers;
   before(() => {
     clock = sinon.useFakeTimers();
   });
