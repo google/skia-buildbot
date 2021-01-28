@@ -138,11 +138,19 @@ func FakeExeTest(t sktest.TestingT) {
 	}
 }
 
-// BazelTest is a function which should be called at the beginning of tests
+// BazelOnlyTest is a function which should be called at the beginning of tests
 // which should only run under Bazel (e.g. via "bazel test ...").
-func BazelTest(t sktest.TestingT) {
+func BazelOnlyTest(t sktest.TestingT) {
 	if !bazel.InBazel() {
 		t.Skip("Not running Bazel tests from outside Bazel.")
+	}
+}
+
+// LinuxOnlyTest is a function which should be called at the beginning of a test
+// which should only run on Linux.
+func LinuxOnlyTest(t sktest.TestingT) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Not running Linux-only tests.")
 	}
 }
 
@@ -193,13 +201,5 @@ If you need to install CockroachDB, follow the instructions at:
 	https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html
 and make sure the environment variable COCKROACHDB_EMULATOR_HOST is set.
 `)
-	}
-}
-
-// LinuxOnlyTest is a function which should be called at the beginning of a test
-// which should only run on Linux.
-func LinuxOnlyTest(t sktest.TestingT) {
-	if runtime.GOOS != "linux" {
-		t.Skip("Not running Linux-only tests.")
 	}
 }
