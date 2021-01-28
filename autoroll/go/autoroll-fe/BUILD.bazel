@@ -9,7 +9,6 @@ go_library(
         "//autoroll/go/config",
         "//autoroll/go/manual",
         "//autoroll/go/modes",
-        "//autoroll/go/roller",
         "//autoroll/go/rpc",
         "//autoroll/go/status",
         "//autoroll/go/strategy",

@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/autoroll-be",
     visibility = ["//visibility:private"],
     deps = [
+        "//autoroll/go/codereview",
         "//autoroll/go/config",
         "//autoroll/go/manual",
         "//autoroll/go/repo_manager/parent",
