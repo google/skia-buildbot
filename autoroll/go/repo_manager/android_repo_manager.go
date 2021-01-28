@@ -150,7 +150,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		httpClient:       client,
 		parentBranch:     parentBranch,
 		preUploadSteps:   preUploadSteps,
-		workdir:          workdir,
+		workdir:          wd,
 	}
 	return r, nil
 }
