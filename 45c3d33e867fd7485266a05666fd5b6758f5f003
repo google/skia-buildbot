@@ -26,6 +26,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "79ca37f3_0b1be3b1",
+        "filename": "go/emulators/emulators.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-28T19:57:39Z",
+      "side": 1,
+      "message": "I see two options: 1) rename this to WasStarted(emulator Emulator) and keep the current behavior, or 2) actually check that the process is still alive, and optionally probe the emulator via its API to check that it\u0027s responding to \"echo\"-style queries.\n\nCurrently this function\u0027s only caller outside this package is the setUpEmulatorBazelRBEOnly(emulator emulators.Emulator) function here: https://skia-review.googlesource.com/c/buildbot/+/360800/10/go/testutils/unittest/unittest.go#271. My intent there wasn\u0027t to actually check that the emulator is running, but simply to check whether the emulator was already started via StartEmulator(). So renaming IsRunning to WasStarted seems like a good idea if we leave everything else as-is.\n\nWe could certainly add an extra step to check that the emulator is actually running (in which case we would preserve the current IsRunning function name). This should hopefully make emulator tests fail faster in the case that an emulator dies. In my experience running these tests on RBE, most tests fail quickly if something goes wrong with the emulator process, though I haven\u0027t seen many such errors. One notable exception are the PubSub tests, which seem to hang forever waiting for a response from the emulator, e.g. in the case that one forgets to set the PUBSUB_EMULATOR_HOST variable, so PubSub tests could benefit from a health/readiness check.\n\nWDYT?",
+      "parentUuid": "6cc80f88_bebcf2f8",
+      "range": {
+        "startLine": 177,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 40
+      },
+      "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3010733c_49b83eb9",
         "filename": "go/emulators/emulators.go",
         "patchSetId": 10
@@ -37,6 +61,30 @@
       "writtenOn": "2021-01-28T19:22:20Z",
       "side": 1,
       "message": "Could we add a StartEmulator(s)IfNotRunning function?  It\u0027d be nice if the caller didn\u0027t have to check.",
+      "range": {
+        "startLine": 183,
+        "startChar": 0,
+        "endLine": 185,
+        "endChar": 2
+      },
+      "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1414ff85_22571e52",
+        "filename": "go/emulators/emulators.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-28T19:57:39Z",
+      "side": 1,
+      "message": "Instead of introducing a new function, how about renaming it to StartEmulatorOnce, and have it return a boolean? We could return true if the emulator was actually started, or false if we skipped it because it was already started / is already running.",
+      "parentUuid": "3010733c_49b83eb9",
       "range": {
         "startLine": 183,
         "startChar": 0,
