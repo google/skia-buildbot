@@ -223,6 +223,9 @@ type MockTestingT struct {
 	IsFailed bool
 }
 
+func (m *MockTestingT) Cleanup(fn func()) {
+	panic("Cleanup is not implemented.")
+}
 func (m *MockTestingT) Error(args ...interface{}) {
 	m.Log(args...)
 	m.Fail()
