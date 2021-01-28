@@ -166,6 +166,6 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
-		Version: "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378",
+		Version: "git_revision:f19e9f103574744189b380c3bd949602233da07b",
 	},
 }
