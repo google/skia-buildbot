@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eca67802_e3315909",
+        "filename": "am/modules/incident-sk/incident-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-01-28T20:23:33Z",
+      "side": 1,
+      "message": "This file has not diff\u0027ed well. Code has mainly just moved from one place to another.",
+      "revId": "b5bd7582fbfd7764a1ef901a8c6ba7fb06f79400",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
