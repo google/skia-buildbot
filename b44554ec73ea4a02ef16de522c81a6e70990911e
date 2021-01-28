@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1e89c5b3_1f6cbdc1",
+        "filename": "go/testutils/unittest/unittest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-28T18:35:23Z",
+      "side": 1,
+      "message": "Should these functions also check whether the emulators are actually running?  Or is it okay to let the tests fail when they try to actually use the emulator?",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 42
+      },
+      "revId": "b44554ec73ea4a02ef16de522c81a6e70990911e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
