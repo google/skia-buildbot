@@ -4,11 +4,11 @@ package ds
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -387,12 +387,7 @@ func (k *keySliceIterator) next() ([]*datastore.Key, bool, error) {
 
 // EnsureNotEmulator will panic if it detects the Datastore Emulator is configured.
 func EnsureNotEmulator() {
-	s := os.Getenv("DATASTORE_EMULATOR_HOST")
-	if s != "" {
-		panic(`Datastore Emulator detected. Be sure to unset the following environment variables:
-DATASTORE_EMULATOR_HOST
-DATASTORE_EMULATOR_HOST_PATH
-DATASTORE_HOST
-`)
+	if emulators.GetEmulatorHostEnvVar(emulators.Datastore) != "" {
+		panic("Datastore Emulator detected. Be sure to unset the following environment variable: " + emulators.GetEmulatorHostEnvVarName(emulators.Datastore))
 	}
 }
