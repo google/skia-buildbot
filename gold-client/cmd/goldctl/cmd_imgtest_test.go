@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -672,13 +673,30 @@ func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
 	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
 }
 
-func testContext(g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader, n goldclient.NowSource) (context.Context, *bytes.Buffer, *exitCodeRecorder) {
-	output := &bytes.Buffer{}
+func testContext(g gcsuploader.GCSUploader, h httpclient.HTTPClient, i imagedownloader.ImageDownloader, n goldclient.NowSource) (context.Context, *threadSafeBuffer, *exitCodeRecorder) {
+	output := &threadSafeBuffer{}
 	exit := &exitCodeRecorder{}
 
 	ctx := executionContext(context.Background(), output, output, exit.ExitWithCode)
 	ctx = context.WithValue(ctx, goldclient.NowSourceKey, n)
 	return goldclient.WithContext(ctx, g, h, i), output, exit
+}
+
+type threadSafeBuffer struct {
+	buf   bytes.Buffer
+	mutex sync.Mutex
+}
+
+func (t *threadSafeBuffer) Write(p []byte) (n int, err error) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	return t.buf.Write(p)
+}
+
+func (t *threadSafeBuffer) String() string {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	return t.buf.String()
 }
 
 func mockTime(ts time.Time) goldclient.NowSource {
