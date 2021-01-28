@@ -18,7 +18,6 @@ go_library(
         "//go/autoroll",
         "//go/gerrit",
         "//go/github",
-        "//go/skerr",
         "//go/sklog",
         "//go/travisci",
         "//go/util",
@@ -31,6 +30,7 @@ go_test(
     srcs = ["roll_test.go"],
     embed = [":codereview"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/recent_rolls",
         "//autoroll/go/revision",
         "//go/autoroll",

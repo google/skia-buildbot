@@ -53,6 +53,7 @@ go_test(
     srcs = ["pre_upload_steps_test.go"],
     embed = [":parent"],
     deps = [
+        "//autoroll/go/config",
         "//go/exec",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",

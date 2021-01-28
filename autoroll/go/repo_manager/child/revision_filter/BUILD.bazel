@@ -9,7 +9,6 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter",
     visibility = ["//visibility:public"],
     deps = [
-        "//autoroll/go/config",
         "//autoroll/go/revision",
         "//go/buildbucket",
         "//go/skerr",

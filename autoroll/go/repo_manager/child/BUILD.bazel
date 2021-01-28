@@ -16,6 +16,7 @@ go_library(
     importpath = "go.skia.org/infra/autoroll/go/repo_manager/child",
     visibility = ["//visibility:public"],
     deps = [
+        "//autoroll/go/codereview",
         "//autoroll/go/config",
         "//autoroll/go/config_vars",
         "//autoroll/go/repo_manager/common/git_common",
@@ -49,8 +50,8 @@ go_test(
     # cipd_test.go requires the "gcloud" binary.
     tags = ["no-sandbox"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/config_vars",
-        "//autoroll/go/repo_manager/common/gitiles_common",
         "//autoroll/go/revision",
         "//go/auth",
         "//go/chrome_branch/mocks",

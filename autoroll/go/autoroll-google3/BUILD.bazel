@@ -13,7 +13,6 @@ go_library(
         "//autoroll/go/config",
         "//autoroll/go/modes",
         "//autoroll/go/recent_rolls",
-        "//autoroll/go/roller",
         "//autoroll/go/state_machine",
         "//autoroll/go/status",
         "//autoroll/go/strategy",
@@ -49,8 +48,8 @@ go_test(
     srcs = ["google3_test.go"],
     embed = [":autoroll-google3_lib"],
     deps = [
+        "//autoroll/go/config",
         "//autoroll/go/recent_rolls",
-        "//autoroll/go/roller",
         "//go/autoroll",
         "//go/deepequal/assertdeep",
         "//go/ds",
