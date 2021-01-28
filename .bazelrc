@@ -42,6 +42,9 @@ build --test_env=COCKROACHDB_EMULATOR_HOST
 build --test_env=GOOGLE_APPLICATION_CREDENTIALS
 build:remote --test_env=GOOGLE_APPLICATION_CREDENTIALS=
 
+# RBE-only environment variable for tests to detect whether they're running locally or on RBE.
+build:remote --test_env=BAZEL_REMOTE=true
+
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
 # Setting it too high can result in jobs that timeout, however, while waiting
