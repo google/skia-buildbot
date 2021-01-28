@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6130d71_fa6c0bc3",
+        "filename": "perf/go/sql/sql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-01-28T18:57:03Z",
+      "side": 0,
+      "message": "I believe removing this will cause local testing to break.",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 11
+      },
+      "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
