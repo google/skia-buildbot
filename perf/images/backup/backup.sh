@@ -10,6 +10,7 @@ CONFIGS=(
   'cdb-nano.json'
   'cdb-flutter-engine.json'
   'flutter-flutter.json'
+  'flutter-flutter2.json'
   'cdb-android-x.json'
   'cdb-android-prod.json'
 )
