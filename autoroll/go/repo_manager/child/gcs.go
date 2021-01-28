@@ -99,7 +99,7 @@ func (c *gcsChild) Update(ctx context.Context, lastRollRev *revision.Revision) (
 		if err == nil {
 			versions = append(versions, ver)
 			revisions[rev.Id] = rev
-		} else if err == errInvalidGCSVersion {
+		} else if skerr.Unwrap(err) == errInvalidGCSVersion {
 			// There are files we don't care about in this bucket. Just ignore.
 		} else {
 			sklog.Error(err)

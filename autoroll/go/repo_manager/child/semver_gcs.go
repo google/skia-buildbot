@@ -31,7 +31,7 @@ func parseSemanticVersion(regex *regexp.Regexp, ver string) ([]int, error) {
 		}
 		return matchInts, nil
 	}
-	return nil, skerr.Wrap(errInvalidGCSVersion)
+	return nil, errInvalidGCSVersion
 }
 
 // compareSemanticVersions returns 1 if A comes before B, -1 if A comes
