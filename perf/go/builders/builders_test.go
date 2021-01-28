@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts/alertstest"
@@ -18,7 +19,6 @@ import (
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
 	"go.skia.org/infra/perf/go/shortcut/shortcuttest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -75,7 +75,7 @@ func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.Instanc
 
 	const databaseName = "builders"
 
-	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
+	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", emulators.GetEmulatorHostEnvVar(emulators.CockroachDB), databaseName)
 
 	_, cleanup := sqltest.NewCockroachDBForTests(t, databaseName)
 
