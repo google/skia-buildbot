@@ -22,6 +22,7 @@ type testEntity struct {
 
 func TestDeleteAll(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresDatastoreEmulator(t)
 
 	require.NoError(t, InitForTesting("test-project", "test-namespace"))
 	client := DS
@@ -42,6 +43,7 @@ func TestDeleteAll(t *testing.T) {
 
 func TestIterKeys(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresDatastoreEmulator(t)
 
 	nEntries := 1200
 	maxID := int64(nEntries / 2)
