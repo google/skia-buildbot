@@ -22,6 +22,30 @@
       },
       "revId": "b44554ec73ea4a02ef16de522c81a6e70990911e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d81464b2_e0b1eebd",
+        "filename": "go/testutils/unittest/unittest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-28T19:39:20Z",
+      "side": 1,
+      "message": "I made some changes in a CL further down this chain (https://skia-review.googlesource.com/c/buildbot/+/360800/10/go/testutils/unittest/unittest.go) where the *_EMULATOR_HOST variables are unset on RBE by default, and are only set for those individual test cases that call the corresponding unittest.Requires*Emulator() functions. Said environment variables are unset after each such test case completes, thus \"resetting\" the environment for any subsequent test cases.\n\nThe above causes tests that use the emulators, but do not call said functions, to fail more or less immediately. This is only true on RBE, though. When running tests locally, the non-RBE branches of all the unittest.Requires*Emulator() functions preserve the current behavior.\n\nIn principle we could add some extra logic to emulators.StartEmulator() (https://skia-review.googlesource.com/c/buildbot/+/360800/10/go/emulators/emulators.go#182) to actually check that the requested emulator is up and running (for example by probing the emulator via the emulator\u0027s client library) but I\u0027m not sure it\u0027s worth the extra effort.\n\nWDYT?",
+      "parentUuid": "1e89c5b3_1f6cbdc1",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 42
+      },
+      "revId": "b44554ec73ea4a02ef16de522c81a6e70990911e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

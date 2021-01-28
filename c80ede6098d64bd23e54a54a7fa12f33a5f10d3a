@@ -22,6 +22,30 @@
       },
       "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "99edcc0b_36dcc3fd",
+        "filename": "perf/go/sql/sql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-28T19:39:20Z",
+      "side": 0,
+      "message": "This change assumes that you would set the COCKROACHDB_EMULATOR_HOST variable during local development. Would that be OK with you?\n\nThe advantage of this is that it\u0027s consistent with how the other emulator tests in our repo work: If the *_EMULATOR_HOST variable is set, then any code that uses that service will hit the emulator, otherwise it will hit the actual production service. Downstream CLs in this chain rely on this assumption.\n\nIn your case, it would mean calling \"export COCKROACHDB_EMULATOR_HOST\u003dlocalhost:26257\" before running your tests. Or, you could run the \"run_emulators\" script and just set the environment variables it prints out.\n\nWDYT?",
+      "parentUuid": "a6130d71_fa6c0bc3",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 11
+      },
+      "revId": "c80ede6098d64bd23e54a54a7fa12f33a5f10d3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
