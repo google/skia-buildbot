@@ -26,15 +26,15 @@ func TestRun(t *testing.T) {
 	}{
 		{
 			Name:   "a",
-			Result: td.STEP_RESULT_SUCCESS,
+			Result: td.StepResultSuccess,
 		},
 		{
 			Name:   "b",
-			Result: td.STEP_RESULT_FAILURE,
+			Result: td.StepResultFailure,
 		},
 		{
 			Name:   "c",
-			Result: td.STEP_RESULT_SUCCESS,
+			Result: td.StepResultSuccess,
 		},
 	}
 	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
@@ -42,7 +42,7 @@ func TestRun(t *testing.T) {
 			for _, stepData := range steps {
 				if stepData.Name == line {
 					s := sm.StartStep(td.Props(stepData.Name))
-					if stepData.Result != td.STEP_RESULT_SUCCESS {
+					if stepData.Result != td.StepResultSuccess {
 						s.Fail()
 					}
 					s.End()
@@ -111,13 +111,13 @@ echo "Step3"
 	// There should be a single root-level step, which is the execution of
 	// the script itself.
 	require.Equal(t, 1, len(res.Steps))
-	require.Equal(t, td.STEP_RESULT_FAILURE, res.Steps[0].Result)
+	require.Equal(t, td.StepResultFailure, res.Steps[0].Result)
 
 	// We saw two log lines before the timeout, so we should have two steps.
 	// The second should be a failure because of the timeout.
 	require.Equal(t, 2, len(res.Steps[0].Steps))
-	require.Equal(t, td.STEP_RESULT_SUCCESS, res.Steps[0].Steps[0].Result)
-	require.Equal(t, td.STEP_RESULT_FAILURE, res.Steps[0].Steps[1].Result)
+	require.Equal(t, td.StepResultSuccess, res.Steps[0].Steps[0].Result)
+	require.Equal(t, td.StepResultFailure, res.Steps[0].Steps[1].Result)
 
 	// The active steps should have received errors in their logs.
 	assertLogMatchesContent(t, res.Steps[0], logNameStderr, context.DeadlineExceeded.Error()+"\n")
@@ -189,7 +189,7 @@ print('more err in step 2', file=sys.stderr)
 	// command.
 	require.Equal(t, 1, len(res.Steps))
 	base := res.Steps[0]
-	require.Equal(t, td.STEP_RESULT_SUCCESS, base.Result)
+	require.Equal(t, td.StepResultSuccess, base.Result)
 	assertLogMatchesContent(t, base, logNameStdout, `Step 1: Do a thing
 log for step 1
 ... more
@@ -209,7 +209,7 @@ more err in step 2
 	require.Equal(t, 2, len(base.Steps))
 	step1 := base.Steps[0]
 	require.Equal(t, "Do a thing", step1.Name)
-	require.Equal(t, td.STEP_RESULT_SUCCESS, step1.Result)
+	require.Equal(t, td.StepResultSuccess, step1.Result)
 	assertLogMatchesContent(t, step1, logNameStdout, `Step 1: Do a thing
 log for step 1
 ... more
@@ -217,7 +217,7 @@ log for step 1
 
 	step2 := base.Steps[1]
 	require.Equal(t, "Do another thing", step2.Name)
-	require.Equal(t, td.STEP_RESULT_SUCCESS, step2.Result)
+	require.Equal(t, td.StepResultSuccess, step2.Result)
 	assertLogMatchesContent(t, step2, logNameStdout, `Step 2: Do another thing
 inside step 2
 `)

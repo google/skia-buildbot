@@ -38,7 +38,7 @@ func TestWithEnv(t *testing.T) {
 			require.True(t, util.In(fmt.Sprintf("GOPATH=%s", filepath.Join(wd, "gopath")), cmd.Env))
 
 			// We don't override any default vars except PATH.
-			for _, v := range td.BASE_ENV {
+			for _, v := range td.BaseEnv {
 				if !strings.HasPrefix(v, "PATH=") {
 					require.True(t, util.In(v, cmd.Env))
 				}
@@ -115,7 +115,7 @@ func executeAndExpectResult(t *testing.T, content test2json.TestContent, expectR
 func TestRunTestSteps_FailingTestHasFailureResult(t *testing.T) {
 	unittest.MediumTest(t)
 
-	res := executeAndExpectResult(t, test2json.ContentFail, td.STEP_RESULT_FAILURE)
+	res := executeAndExpectResult(t, test2json.ContentFail, td.StepResultFailure)
 
 	// Verify that the step for the failed test has the expected log snippet
 	// in its Errors field.
@@ -131,19 +131,19 @@ func TestRunTestSteps_FailingTestHasFailureResult(t *testing.T) {
 func TestRunTestSteps_PassingTestHasSuccessResult(t *testing.T) {
 	unittest.MediumTest(t)
 
-	executeAndExpectResult(t, test2json.ContentPass, td.STEP_RESULT_SUCCESS)
+	executeAndExpectResult(t, test2json.ContentPass, td.StepResultSuccess)
 }
 
 func TestRunTestSteps_SkippedTestHasSuccessResult(t *testing.T) {
 	unittest.MediumTest(t)
 
-	executeAndExpectResult(t, test2json.ContentPass, td.STEP_RESULT_SUCCESS)
+	executeAndExpectResult(t, test2json.ContentPass, td.StepResultSuccess)
 }
 
 func TestRunTestSteps_NestedTestHasSuccessResultAndNestedSteps(t *testing.T) {
 	unittest.MediumTest(t)
 
-	res := executeAndExpectResult(t, test2json.ContentNested, td.STEP_RESULT_SUCCESS)
+	res := executeAndExpectResult(t, test2json.ContentNested, td.StepResultSuccess)
 
 	// Verify that we have the correct tree of steps.
 

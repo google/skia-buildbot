@@ -64,6 +64,7 @@ type StepData struct {
 	MsgIndex int         `json:"msgIndex"`
 }
 
+// StepDataSlice is a slice of StepData.
 type StepDataSlice []*StepData
 
 func (s StepDataSlice) Len() int { return len(s) }
@@ -123,9 +124,9 @@ func (t *TaskDriverRun) Copy() *TaskDriverRun {
 	}
 }
 
-// Update a TaskDriverRun from the given Message. This is NOT thread-safe, so DB
-// implementations will need to serialize calls to UpdateFromMessage for a given
-// TaskDriverRun.
+// UpdateFromMessage updates a TaskDriverRun from the given Message. This is NOT
+// thread-safe, so DB implementations will need to serialize calls to
+// UpdateFromMessage for a given TaskDriverRun.
 func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 	if t.TaskId != m.TaskId {
 		return fmt.Errorf("Message TaskId doesn't match TaskDriverRun TaskId (%s vs %s)", m.TaskId, t.TaskId)
@@ -159,7 +160,7 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		// STEP_FINISHED message arrives before STEP_FAILED, the step
 		// will have the wrong result until we process STEP_FAILED.
 		if step.Result == "" {
-			step.Result = td.STEP_RESULT_SUCCESS
+			step.Result = td.StepResultSuccess
 		}
 	case td.MSG_TYPE_STEP_DATA:
 		sd := &StepData{
@@ -180,7 +181,7 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		// TODO(borenet): If we have both a failure and an exception for
 		// the same step, we'll have a race condition depending on what
 		// order the messages arrive in.
-		step.Result = td.STEP_RESULT_FAILURE
+		step.Result = td.StepResultFailure
 		if m.Error != "" {
 			step.Errors = append(step.Errors, m.Error)
 		}
@@ -188,7 +189,7 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 		// TODO(borenet): If we have both a failure and an exception for
 		// the same step, we'll have a race condition depending on what
 		// order the messages arrive in.
-		step.Result = td.STEP_RESULT_EXCEPTION
+		step.Result = td.StepResultException
 		if m.Error != "" {
 			step.Errors = append(step.Errors, m.Error)
 		}

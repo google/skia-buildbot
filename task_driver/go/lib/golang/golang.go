@@ -42,7 +42,7 @@ func WithEnv(ctx context.Context, workdir string) context.Context {
 		filepath.Join(workdir, "gcloud_linux", "bin"),
 		filepath.Join(workdir, "protoc", "bin"),
 		filepath.Join(workdir, "node", "node", "bin"),
-		td.PATH_PLACEHOLDER,
+		td.PathPlaceholder,
 	}, string(os.PathListSeparator))
 	return td.WithEnv(ctx, []string{
 		"CGO_ENABLED=0",

@@ -22,49 +22,49 @@ func TestOsSteps(t *testing.T) {
 	expect := []td.StepResult{}
 
 	// Stat the nonexistent dir.
-	expect = append(expect, td.STEP_RESULT_EXCEPTION)
+	expect = append(expect, td.StepResultException)
 	dir1 := filepath.Join(tr.Dir(), "test_dir")
 	fi, err := Stat(s, dir1)
 	require.True(t, os.IsNotExist(err))
 
 	// Try to remove the dir.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	err = RemoveAll(s, dir1)
 	require.NoError(t, err) // os.RemoveAll doesn't return error if the dir doesn't exist.
 
 	// Create the dir.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	err = MkdirAll(s, dir1)
 	require.NoError(t, err)
 
 	// Stat the dir.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	fi, err = Stat(s, dir1)
 	require.NoError(t, err)
 	require.True(t, fi.IsDir())
 
 	// Try to create the dir again.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	err = MkdirAll(s, dir1)
 	require.NoError(t, err) // os.MkdirAll doesn't return error if the dir already exists.
 
 	// Create a tempDir inside the dir.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	tempDir, err := TempDir(s, dir1, "test_prefix_")
 	require.NoError(t, err)
 	// Verify the tempDir exists.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	fi, err = Stat(s, tempDir)
 	require.NoError(t, err)
 	require.True(t, fi.IsDir())
 
 	// Remove the dir.
-	expect = append(expect, td.STEP_RESULT_SUCCESS)
+	expect = append(expect, td.StepResultSuccess)
 	err = RemoveAll(s, dir1)
 	require.NoError(t, err)
 
 	// Stat the dir.
-	expect = append(expect, td.STEP_RESULT_EXCEPTION)
+	expect = append(expect, td.StepResultException)
 	fi, err = Stat(s, dir1)
 	require.True(t, os.IsNotExist(err))
 

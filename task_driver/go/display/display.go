@@ -129,7 +129,7 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 				sklog.Infof("Error when gathering steps: %s", err)
 				continue
 			}
-			if s.Properties.Id == td.STEP_ID_ROOT {
+			if s.Properties.Id == td.StepIDRoot {
 				rv.StepDisplay = steps[s.Properties.Id]
 			}
 		}
