@@ -34,6 +34,7 @@ go_test(
     data = ["//perf/migrations:cockroachdb"],
     embed = [":builders"],
     deps = [
+        "//go/emulators",
         "//go/paramtools",
         "//go/testutils/unittest",
         "//perf/go/alerts/alertstest",
@@ -42,7 +43,6 @@ go_test(
         "//perf/go/git/gittest",
         "//perf/go/regression/regressiontest",
         "//perf/go/shortcut/shortcuttest",
-        "//perf/go/sql",
         "//perf/go/sql/sqltest",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
