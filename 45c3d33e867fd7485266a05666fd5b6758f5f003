@@ -48,6 +48,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "28759de2_e2a98f2f",
+        "filename": "go/emulators/emulators.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-01-29T19:40:03Z",
+      "side": 1,
+      "message": "I think this is fine as-is",
+      "parentUuid": "79ca37f3_0b1be3b1",
+      "range": {
+        "startLine": 177,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 40
+      },
+      "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3010733c_49b83eb9",
