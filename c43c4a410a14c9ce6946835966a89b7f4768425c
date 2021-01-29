@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "96bf412c_893070e6",
+        "filename": "golden/go/storage/gcsclient_manual_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-01-29T12:22:06Z",
+      "side": 1,
+      "message": "Aren\u0027t ManualTest and LargeTest mutually exclusive? i.e. we only need Large test if we are running the test on the CI?",
+      "range": {
+        "startLine": 26,
+        "startChar": 10,
+        "endLine": 26,
+        "endChar": 19
+      },
+      "revId": "c43c4a410a14c9ce6946835966a89b7f4768425c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
