@@ -87,9 +87,9 @@ container_run_and_commit(
         "rm /usr/bin/python3",
         "ln -s /usr/bin/python3.5 /usr/bin/python3",
 
-        # Install the add-apt-repository command.
+        # Install the add-apt-repository command, and other packages needed to fetch repositories.
         "apt-get update",
-        "yes | apt-get install software-properties-common",
+        "apt-get install -y software-properties-common apt-transport-https ca-certificates gnupg",
 
         # Add the Chrome repository.
         "curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -",
@@ -104,7 +104,7 @@ container_run_and_commit(
         #
         # Adapted from:
         # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
-        "yes | apt-get install " + " ".join([
+        "apt-get install -y " + " ".join([
             "google-chrome-stable",
             "fonts-ipafont-gothic",
             "fonts-wqy-zenhei",
@@ -115,6 +115,29 @@ container_run_and_commit(
             # See https://github.com/puppeteer/puppeteer/issues/6192.
             "libxss1",
         ]),
+
+        # Add the Google Cloud SDK repository as per the instructions here:
+        # https://cloud.google.com/sdk/docs/install#deb.
+        "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] " +
+        "      https://packages.cloud.google.com/apt cloud-sdk main'" +
+        " | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list",
+        "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg" +
+        " | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -",
+        "apt-get update",
+
+        # Install the Google Cloud SDK and emulators.
+        "apt-get install -y " + " ".join([
+            "google-cloud-sdk",
+            "google-cloud-sdk-bigtable-emulator",
+            "google-cloud-sdk-datastore-emulator",
+            "google-cloud-sdk-firestore-emulator",
+            "google-cloud-sdk-pubsub-emulator",
+        ]),
+
+        # Install CockroachDB as per the instructions here:
+        # https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux.
+        "wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar xvz",
+        "cp -i cockroach-v20.2.4.linux-amd64/cockroach /usr/local/bin/",
     ],
     image = "@rbe_ubuntu1604//image",
     tags = ["no-remote"],
