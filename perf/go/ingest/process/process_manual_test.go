@@ -15,13 +15,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestevents"
-	"go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"google.golang.org/api/option"
 )
@@ -75,7 +75,7 @@ func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 		DataStoreConfig: config.DataStoreConfig{
 			DataStoreType:    config.CockroachDBDataStoreType,
 			TileSize:         256,
-			ConnectionString: fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", sql.GetCockroachDBEmulatorHost(), CockroachDatabaseName),
+			ConnectionString: fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", emulators.GetEmulatorHostEnvVar(emulators.CockroachDB), CockroachDatabaseName),
 		},
 		IngestionConfig: config.IngestionConfig{
 			SourceConfig: config.SourceConfig{

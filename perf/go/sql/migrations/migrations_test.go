@@ -2,23 +2,14 @@ package migrations
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/testutils/unittest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 )
-
-func getEmulatorHost() string {
-	ret := os.Getenv("COCKROACHDB_EMULATOR_HOST")
-	if ret == "" {
-		ret = "localhost:26257"
-	}
-	return ret
-}
 
 func TestUpDown_CockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
@@ -27,7 +18,7 @@ func TestUpDown_CockroachDB(t *testing.T) {
 	cockroachMigrations, err := cockroachdb.New()
 	require.NoError(t, err)
 
-	cockroachDBTest := fmt.Sprintf("cockroach://root@%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost())
+	cockroachDBTest := fmt.Sprintf("cockroach://root@%s?sslmode=disable", emulators.GetEmulatorHostEnvVar(emulators.CockroachDB))
 
 	err = Up(cockroachMigrations, cockroachDBTest)
 	assert.NoError(t, err)

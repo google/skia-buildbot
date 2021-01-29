@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/auth",
+        "//go/emulators",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
-	"os"
 	"time"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machineserver/config"
@@ -40,7 +40,7 @@ func main() {
 	err := util.WithReadFile(*configFlag, func(r io.Reader) error {
 		return json.NewDecoder(r).Decode(&instanceConfig)
 	})
-	if os.Getenv("PUBSUB_EMULATOR_HOST") != "" {
+	if emulators.GetEmulatorHostEnvVar(emulators.PubSub) != "" {
 		sklog.Fatal("Do not run with the pubsub emulator.")
 	}
 	if err != nil {

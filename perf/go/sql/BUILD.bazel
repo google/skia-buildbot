@@ -1,8 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "sql",
-    srcs = ["sql.go"],
-    importpath = "go.skia.org/infra/perf/go/sql",
-    visibility = ["//visibility:public"],
-)

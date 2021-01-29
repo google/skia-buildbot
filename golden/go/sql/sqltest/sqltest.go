@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"os"
 	"os/exec"
 	"reflect"
 	"strings"
@@ -15,19 +14,15 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
-// cockroachDBEmulatorHostEnvVar is the name of the environment variable
-// that points to a test instance of CockroachDB.
-const cockroachDBEmulatorHostEnvVar = "COCKROACHDB_EMULATOR_HOST"
-
-// NewCockroachDBForTests creates a randomly named database on the presumed to be running
-// cockroachDB instance as configured by the COCKROACHDB_EMULATOR_HOST environment variable.
-// The returned pool will automatically be closed after the test finishes.
+// NewCockroachDBForTests creates a randomly named database on a test CockroachDB instance (aka the
+// CockroachDB emulator). The returned pool will automatically be closed after the test finishes.
 func NewCockroachDBForTests(ctx context.Context, t *testing.T) *pgxpool.Pool {
 	unittest.RequiresCockroachDB(t)
 	out, err := exec.Command("cockroach", "version").CombinedOutput()
@@ -36,18 +31,18 @@ func NewCockroachDBForTests(ctx context.Context, t *testing.T) *pgxpool.Pool {
 	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
 	require.NoError(t, err)
 	dbName := "for_tests" + n.String()
-	port := os.Getenv(cockroachDBEmulatorHostEnvVar)
+	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)
 
-	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+port,
+	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+host,
 		"--execute=CREATE DATABASE IF NOT EXISTS "+dbName).CombinedOutput()
 	require.NoError(t, err, `creating test database: %s
 If running locally, make sure you set the env var TMPDIR and ran:
 ./scripts/run_emulators/run_emulators start
-and now currently have COCKROACHDB_EMULATOR_HOST set. Even though we call it an "emulator",
+and now currently have %s set. Even though we call it an "emulator",
 this sets up a real version of cockroachdb.
-`, out)
+`, out, emulators.GetEmulatorHostEnvVarName(emulators.CockroachDB))
 
-	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", port, dbName)
+	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", host, dbName)
 	conn, err := pgxpool.Connect(ctx, connectionString)
 	require.NoError(t, err)
 	t.Cleanup(func() {

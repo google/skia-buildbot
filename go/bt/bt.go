@@ -2,9 +2,9 @@ package bt
 
 import (
 	"context"
-	"os"
 
 	"cloud.google.com/go/bigtable"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -86,10 +86,7 @@ func ErrToCode(err error) (error, codes.Code) {
 
 // EnsureNotEmulator will panic if it detects the BigTable Emulator is configured.
 func EnsureNotEmulator() {
-	s := os.Getenv("BIGTABLE_EMULATOR_HOST")
-	if s != "" {
-		panic(`BigTable Emulator detected. Be sure to unset the following environment variables:
-BIGTABLE_EMULATOR_HOST
-`)
+	if emulators.GetEmulatorHostEnvVar(emulators.BigTable) != "" {
+		panic("BigTable Emulator detected. Be sure to unset the following environment variable: " + emulators.GetEmulatorHostEnvVarName(emulators.BigTable))
 	}
 }
