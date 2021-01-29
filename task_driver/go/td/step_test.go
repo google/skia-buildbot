@@ -39,7 +39,7 @@ func TestDefer(t *testing.T) {
 	res := RunTestSteps(t, true, func(ctx context.Context) error {
 		panic("halp")
 	})
-	require.Equal(t, res.Result, STEP_RESULT_EXCEPTION)
+	require.Equal(t, res.Result, StepResultException)
 	res = RunTestSteps(t, true, func(ctx context.Context) error {
 		return Do(ctx, nil, func(ctx context.Context) error {
 			return Do(ctx, nil, func(ctx context.Context) error {
@@ -49,7 +49,7 @@ func TestDefer(t *testing.T) {
 	})
 	got := 0
 	res.Recurse(func(s *StepReport) bool {
-		require.Equal(t, s.Result, STEP_RESULT_EXCEPTION)
+		require.Equal(t, s.Result, StepResultException)
 		require.Equal(t, 1, len(s.Exceptions))
 		require.Equal(t, "Caught panic: halp", s.Exceptions[0])
 		got++
@@ -75,11 +75,11 @@ func TestDefer(t *testing.T) {
 	})
 	// The top-level step should not have inherited the sub-step result,
 	// since we did not call FailStep for "parent".
-	require.Equal(t, STEP_RESULT_SUCCESS, res.Result)
+	require.Equal(t, StepResultSuccess, res.Result)
 	// Find the actual failed step, ensure that it has the error.
 	s, err := res.findStep(id)
 	require.NoError(t, err)
-	require.Equal(t, STEP_RESULT_FAILURE, s.Result)
+	require.Equal(t, StepResultFailure, s.Result)
 	require.Equal(t, 1, len(s.Errors))
 	require.Equal(t, "whoops", s.Errors[0])
 }
@@ -228,7 +228,7 @@ func TestEnv(t *testing.T) {
 		return true
 	})
 	require.NotNil(t, leaf)
-	expect := MergeEnv(os.Environ(), BASE_ENV)
+	expect := MergeEnv(os.Environ(), BaseEnv)
 	expect = append(expect, "a=a", "b=b", "c=c")
 	assertdeep.Equal(t, expect, leaf.StepProperties.Environ)
 
@@ -294,18 +294,18 @@ func TestEnvMerge(t *testing.T) {
 		{
 			expect: []string{"PATH=p1:p2"},
 			a:      []string{"PATH=p1"},
-			b:      []string{fmt.Sprintf("PATH=%s:p2", PATH_PLACEHOLDER)},
+			b:      []string{fmt.Sprintf("PATH=%s:p2", PathPlaceholder)},
 		},
 		{
 			expect: []string{"PATH=p2:p1"},
 			a:      []string{"PATH=p1"},
-			b:      []string{fmt.Sprintf("PATH=p2:%s", PATH_PLACEHOLDER)},
+			b:      []string{fmt.Sprintf("PATH=p2:%s", PathPlaceholder)},
 		},
 		// There's no good reason to do this, but it would work.
 		{
 			expect: []string{"PATH=p1:p1"},
 			a:      []string{"PATH=p1"},
-			b:      []string{fmt.Sprintf("PATH=%s:%s", PATH_PLACEHOLDER, PATH_PLACEHOLDER)},
+			b:      []string{fmt.Sprintf("PATH=%s:%s", PathPlaceholder, PathPlaceholder)},
 		},
 	}
 
@@ -319,7 +319,7 @@ func TestEnvInheritance(t *testing.T) {
 
 	// Set up exec mock and expectations.
 	runCount := 0
-	expect := MergeEnv(os.Environ(), BASE_ENV)
+	expect := MergeEnv(os.Environ(), BaseEnv)
 	expect = append(expect, "a=a", "b=b", "c=c", "d=d")
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {

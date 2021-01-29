@@ -19,7 +19,7 @@ import (
 const (
 	// Maximum number of output lines stored in memory to pass along as
 	// error messages for failed tests.
-	OUTPUT_LINES = 20
+	outputLines = 20
 
 	// logNameStdout is the log name used for the stdout stream of each step.
 	logNameStdout = "stdout"
@@ -49,9 +49,9 @@ type Step struct {
 
 // newStep returns a Step instance.
 func newStep(ctx context.Context, name string, parent *Step) *Step {
-	logBuf := ring.NewStringRing(OUTPUT_LINES)
-	stdout := io.MultiWriter(logBuf, td.NewLogStream(ctx, logNameStdout, td.Info))
-	stderr := io.MultiWriter(logBuf, td.NewLogStream(ctx, logNameStderr, td.Error))
+	logBuf := ring.NewStringRing(outputLines)
+	stdout := io.MultiWriter(logBuf, td.NewLogStream(ctx, logNameStdout, td.SeverityInfo))
+	stderr := io.MultiWriter(logBuf, td.NewLogStream(ctx, logNameStderr, td.SeverityError))
 	if parent != nil && !parent.isRoot {
 		stdout = io.MultiWriter(stdout, parent.stdout)
 		stderr = io.MultiWriter(stderr, parent.stderr)

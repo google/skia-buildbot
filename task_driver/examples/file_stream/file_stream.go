@@ -58,7 +58,7 @@ func example1(ctx context.Context) (rv error) {
 		return td.FailStep(ctx, fmt.Errorf("Failed to obtain path of current file."))
 	}
 	script := filepath.Join(filepath.Dir(filename), "write_logs.py")
-	fs, err := td.NewFileStream(ctx, "verbose", td.Debug)
+	fs, err := td.NewFileStream(ctx, "verbose", td.SeverityDebug)
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}
@@ -83,7 +83,7 @@ func example2(ctx context.Context) (rv error) {
 	}); err != nil {
 		return td.FailStep(ctx, err)
 	}
-	fs, err := td.NewFileStream(ctx, "copied", td.Debug)
+	fs, err := td.NewFileStream(ctx, "copied", td.SeverityDebug)
 	if err != nil {
 		return td.FailStep(ctx, err)
 	}

@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	SUBSCRIPTION_NAME = "td_server_log_collector"
+	subscriptionName = "td_server_log_collector"
 )
 
 var (
@@ -303,20 +303,20 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	topic := client.Topic(td.PUBSUB_TOPIC_LOGS)
+	topic := client.Topic(td.PubsubTopicLogs)
 	if exists, err := topic.Exists(ctx); err != nil {
 		sklog.Fatal(err)
 	} else if !exists {
-		topic, err = client.CreateTopic(ctx, td.PUBSUB_TOPIC_LOGS)
+		topic, err = client.CreateTopic(ctx, td.PubsubTopicLogs)
 		if err != nil {
 			sklog.Fatal(err)
 		}
 	}
-	sub := client.Subscription(SUBSCRIPTION_NAME)
+	sub := client.Subscription(subscriptionName)
 	if exists, err := sub.Exists(ctx); err != nil {
 		sklog.Fatal(err)
 	} else if !exists {
-		sub, err = client.CreateSubscription(ctx, SUBSCRIPTION_NAME, pubsub.SubscriptionConfig{
+		sub, err = client.CreateSubscription(ctx, subscriptionName, pubsub.SubscriptionConfig{
 			Topic:       topic,
 			AckDeadline: 10 * time.Second,
 		})

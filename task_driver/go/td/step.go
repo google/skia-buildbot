@@ -24,21 +24,23 @@ import (
 )
 
 const (
-	MAX_STEP_NAME_CHARS = 100
+	// StepResultSuccess indicates that the step finished successfully.
+	StepResultSuccess StepResult = "SUCCESS"
+	// StepResultFailure indicates that the step failed.
+	StepResultFailure StepResult = "FAILURE"
+	// StepResultException indicates that the step failed in an exceptional way,
+	// eg. it timed out or was interrupted.
+	StepResultException StepResult = "EXCEPTION"
 
-	STEP_RESULT_SUCCESS   StepResult = "SUCCESS"
-	STEP_RESULT_FAILURE   StepResult = "FAILURE"
-	STEP_RESULT_EXCEPTION StepResult = "EXCEPTION"
-
-	// PATH_PLACEHOLDER is a placeholder for any existing value of PATH,
+	// PathPlaceholder is a placeholder for any existing value of PATH,
 	// used when merging environments to avoid overriding the PATH
 	// altogether.
-	PATH_PLACEHOLDER = "%(PATH)s"
+	PathPlaceholder = "%(PATH)s"
 )
 
-// Merge the second env into the base, returning a new env with the original
-// unchanged. Variables in the second env override those in the base, except
-// for PATH, which is merged. If PATH defined by the second env contains
+// MergeEnv merges the second env into the base, returning a new env with the
+// original unchanged. Variables in the second env override those in the base,
+// except for PATH, which is merged. If PATH defined by the second env contains
 // %(PATH)s, then the result is the PATH from the second env with PATH from
 // the first env inserted in place of %(PATH)s. Otherwise, the PATH from the
 // second env overrides PATH from the first. Note that setting PATH to the empty
@@ -60,9 +62,9 @@ func MergeEnv(base, other []string) []string {
 			continue
 		}
 		k, v := split[0], split[1]
-		if existing, ok := m[k]; ok && k == PATH_VAR {
-			if strings.Contains(v, PATH_PLACEHOLDER) {
-				v = strings.Replace(v, PATH_PLACEHOLDER, existing, -1)
+		if existing, ok := m[k]; ok && k == envVarPath {
+			if strings.Contains(v, PathPlaceholder) {
+				v = strings.Replace(v, PathPlaceholder, existing, -1)
 			}
 		}
 		m[k] = v
@@ -102,7 +104,7 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 	return ctx
 }
 
-// Create a step.
+// StartStep creates a new Step.
 func StartStep(ctx context.Context, props *StepProperties) context.Context {
 	parent := getCtx(ctx).step
 	return newStep(ctx, uuid.New().String(), parent, props)
@@ -128,8 +130,8 @@ func InfraError(err error) error {
 	return err
 }
 
-// Mark the step as failed, with the given error. Returns the passed-in error
-// for convenience, so that the caller can do things like:
+// FailStep marks the step as failed, with the given error. Returns the
+// assed-in error for convenience, so that the caller can do things like:
 //
 //	if err := doSomething(); err != nil {
 //		return FailStep(ctx, err)
@@ -144,7 +146,8 @@ func FailStep(ctx context.Context, err error) error {
 	return err
 }
 
-// Mark the Step as finished. This is intended to be used in a defer, eg.
+// EndStep marks the Step as finished. This is intended to be used in a defer,
+// eg.
 //
 //	ctx = td.StartStep(ctx)
 //	defer td.EndStep(ctx)
@@ -173,7 +176,7 @@ func finishStep(ctx context.Context, recovered interface{}) {
 	e.Finish(props.Id)
 }
 
-// Attach the given StepData to this Step.
+// StepData attaches the given StepData to this Step.
 func StepData(ctx context.Context, typ DataType, d interface{}) {
 	props := getCtx(ctx).step
 	getCtx(ctx).run.AddStepData(props.Id, typ, d)
@@ -240,8 +243,8 @@ type LogData struct {
 	Log      string `json:"log,omitempty"`
 }
 
-// Create an io.Writer that will act as a log stream for this Step. Callers
-// probably want to use a higher-level method instead.
+// NewLogStream creates an io.Writer that will act as a log stream for this
+// Step. Callers probably want to use a higher-level method instead.
 func NewLogStream(ctx context.Context, name string, severity Severity) io.Writer {
 	props := getCtx(ctx).step
 	return getCtx(ctx).run.LogStream(props.Id, name, severity)
@@ -265,8 +268,8 @@ type FileStream struct {
 	watcher *fsnotify.Watcher
 }
 
-// Create a log stream which uses an intermediate file, eg. for writing from a
-// test program.
+// NewFileStream creates a log stream which uses an intermediate file, eg. for
+// writing from a test program.
 func NewFileStream(ctx context.Context, name string, severity Severity) (*FileStream, error) {
 	w := NewLogStream(ctx, name, severity)
 	f, err := ioutil.TempFile("", "log")
@@ -368,7 +371,7 @@ func (fs *FileStream) Close() error {
 	return fs.err.ErrorOrNil()
 }
 
-// Return the path to the logfile used by this FileStream.
+// FilePath returns the path to the logfile used by this FileStream.
 func (fs *FileStream) FilePath() string {
 	return fs.file.Name()
 }
@@ -398,12 +401,12 @@ func execCtx(ctx context.Context) context.Context {
 
 		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
 			// Set up stdout and stderr streams.
-			stdout := NewLogStream(ctx, "stdout", Info)
+			stdout := NewLogStream(ctx, "stdout", SeverityInfo)
 			if cmd.Stdout != nil {
 				stdout = util.MultiWriter([]io.Writer{cmd.Stdout, stdout})
 			}
 			cmd.Stdout = stdout
-			stderr := NewLogStream(ctx, "stderr", Error)
+			stderr := NewLogStream(ctx, "stderr", SeverityError)
 			if cmd.Stderr != nil {
 				stderr = util.MultiWriter([]io.Writer{cmd.Stderr, stderr})
 			}
@@ -467,8 +470,8 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	})
 }
 
-// Return an http.Client which wraps the given http.Client to record data about
-// the requests it sends.
+// HttpClient returns an http.Client which wraps the given http.Client to record
+// data about the requests it sends.
 func HttpClient(ctx context.Context, c *http.Client) *http.Client {
 	if c == nil {
 		c = httputils.DefaultClientConfig().Client()

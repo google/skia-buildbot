@@ -67,7 +67,7 @@ func (p *StepProperties) Copy() *StepProperties {
 func (p *StepProperties) Validate() error {
 	if p.Id == "" {
 		return errors.New("Id is required.")
-	} else if p.Id != STEP_ID_ROOT && p.Parent == "" {
+	} else if p.Id != StepIDRoot && p.Parent == "" {
 		return errors.New("Non-root steps must have a parent.")
 	}
 	return nil

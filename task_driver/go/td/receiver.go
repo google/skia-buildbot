@@ -20,10 +20,18 @@ import (
 type Severity int
 
 const (
-	Debug   = Severity(logging.Debug)
-	Info    = Severity(logging.Info)
-	Warning = Severity(logging.Warning)
-	Error   = Severity(logging.Error)
+	// SeverityDebug is the lowest, most verbose log severity, containing
+	// messages only needed for detailed debugging.
+	SeverityDebug = Severity(logging.Debug)
+	// SeverityInfo is the base severity level for normal, informational
+	// messages.
+	SeverityInfo = Severity(logging.Info)
+	// SeverityWarning indicates higher-priority messages which may indicate a
+	// problem of some kind.
+	SeverityWarning = Severity(logging.Warning)
+	// SeverityError indicates high-priority messages which report actual
+	// errors.
+	SeverityError = Severity(logging.Error)
 )
 
 // asCloudLoggingSeverity returns the equivalent logging.Severity for s.
@@ -48,7 +56,7 @@ type Receiver interface {
 // MultiReceiver is a Receiver which multiplexes messages to multiple Receivers.
 type MultiReceiver []Receiver
 
-// See documentation for Receiver interface.
+// HandleMessage implements Receiver.
 func (r MultiReceiver) HandleMessage(m *Message) error {
 	g := util.NewNamedErrGroup()
 	for _, rec := range r {
@@ -61,7 +69,7 @@ func (r MultiReceiver) HandleMessage(m *Message) error {
 	return g.Wait()
 }
 
-// See documentation for Receiver interface.
+// LogStream implements Receiver.
 func (r MultiReceiver) LogStream(stepId, logId string, severity Severity) (io.Writer, error) {
 	writers := make([]io.Writer, 0, len(r))
 	for _, rec := range r {
@@ -74,7 +82,7 @@ func (r MultiReceiver) LogStream(stepId, logId string, severity Severity) (io.Wr
 	return util.MultiWriter(writers), nil
 }
 
-// See documentation for Receiver interface.
+// Close implements Receiver.
 func (r MultiReceiver) Close() error {
 	g := util.NewNamedErrGroup()
 	for _, rec := range r {
@@ -91,7 +99,7 @@ func (r MultiReceiver) Close() error {
 // to Cloud Logging).
 type DebugReceiver struct{}
 
-// See documentation for Receiver interface.
+// HandleMessage implements Receiver.
 func (r *DebugReceiver) HandleMessage(m *Message) error {
 	switch m.Type {
 	case MSG_TYPE_RUN_STARTED:
@@ -116,15 +124,15 @@ func (r *DebugReceiver) HandleMessage(m *Message) error {
 	return nil
 }
 
-// See documentation for Receiver interface.
+// LogStream implements Receiver.
 func (r *DebugReceiver) LogStream(stepId, logId string, severity Severity) (io.Writer, error) {
-	if severity >= Warning {
+	if severity >= SeverityWarning {
 		return os.Stderr, nil
 	}
 	return os.Stdout, nil
 }
 
-// See documentation for Receiver interface.
+// Close implements Receiver.
 func (r *DebugReceiver) Close() error {
 	glog.Info("Run finished.")
 	return nil
@@ -195,7 +203,7 @@ func (r *ReportReceiver) findStep(id string) (*StepReport, error) {
 	return r.root.findStep(id)
 }
 
-// See documentation for Receiver interface.
+// HandleMessage implements Receiver.
 func (r *ReportReceiver) HandleMessage(m *Message) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
@@ -208,7 +216,7 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 			StepProperties: m.Step,
 			Logs:           map[string]*bytes.Buffer{},
 		}
-		if m.Step.Id == STEP_ID_ROOT {
+		if m.Step.Id == StepIDRoot {
 			r.root = s
 		} else {
 			parent, err := r.findStep(m.Step.Parent)
@@ -223,7 +231,7 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 			return err
 		}
 		if len(s.Errors) == 0 && len(s.Exceptions) == 0 {
-			s.Result = STEP_RESULT_SUCCESS
+			s.Result = StepResultSuccess
 		}
 	case MSG_TYPE_STEP_FAILED:
 		s, err := r.findStep(m.StepId)
@@ -231,14 +239,14 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 			return err
 		}
 		s.Errors = append(s.Errors, m.Error)
-		s.Result = STEP_RESULT_FAILURE
+		s.Result = StepResultFailure
 	case MSG_TYPE_STEP_EXCEPTION:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
 		}
 		s.Exceptions = append(s.Exceptions, m.Error)
-		s.Result = STEP_RESULT_EXCEPTION
+		s.Result = StepResultException
 	case MSG_TYPE_STEP_DATA:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
@@ -249,7 +257,7 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 	return nil
 }
 
-// See documentation for Receiver interface.
+// Close implements Receiver.
 func (r *ReportReceiver) Close() error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
@@ -288,7 +296,7 @@ func (r *ReportReceiver) Close() error {
 	})
 }
 
-// See documentation for Receiver interface.
+// LogStream implements Receiver.
 func (r *ReportReceiver) LogStream(stepId, logId string, _ Severity) (io.Writer, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
@@ -312,15 +320,15 @@ type CloudLoggingReceiver struct {
 	logger *logging.Logger
 }
 
-// Return a new CloudLoggingReceiver. This initializes Cloud Logging for the
-// entire test run.
+// NewCloudLoggingReceiver returns a CloudLoggingReceiver instance. This
+// initializes Cloud Logging for the entire test run.
 func NewCloudLoggingReceiver(logger *logging.Logger) (*CloudLoggingReceiver, error) {
 	return &CloudLoggingReceiver{
 		logger: logger,
 	}, nil
 }
 
-// See documentation for Receiver interface.
+// HandleMessage implements Receiver.
 func (r *CloudLoggingReceiver) HandleMessage(m *Message) error {
 	// TODO(borenet): When should we LogSync, or Flush? If the program
 	// crashes or is killed, we'll want to have already flushed the logs.
@@ -356,7 +364,7 @@ func (w *cloudLogsWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-// See documentation for Receiver interface.
+// LogStream implements Receiver.
 func (r *CloudLoggingReceiver) LogStream(stepId, logId string, severity Severity) (io.Writer, error) {
 	return &cloudLogsWriter{
 		logger: r.logger,
@@ -368,7 +376,7 @@ func (r *CloudLoggingReceiver) LogStream(stepId, logId string, severity Severity
 	}, nil
 }
 
-// See documentation for Receiver interface.
+// Close implements Receiver.
 func (r *CloudLoggingReceiver) Close() error {
 	return r.logger.Flush()
 }

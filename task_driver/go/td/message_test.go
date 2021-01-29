@@ -40,12 +40,12 @@ func TestMessageValidation(t *testing.T) {
 	msgStepStarted := func() *Message {
 		return &Message{
 			Index:     int(atomic.AddInt32(&msgIndex, 1)),
-			StepId:    STEP_ID_ROOT,
+			StepId:    StepIDRoot,
 			TaskId:    "fake-task-id",
 			Timestamp: now,
 			Type:      MSG_TYPE_STEP_STARTED,
 			Step: &StepProperties{
-				Id:      STEP_ID_ROOT,
+				Id:      StepIDRoot,
 				Name:    "step-name",
 				IsInfra: false,
 			},
@@ -115,7 +115,7 @@ func TestMessageValidation(t *testing.T) {
 	nonRootStarted := msgStepStarted()
 	nonRootStarted.StepId = "fake-step-id"
 	nonRootStarted.Step.Id = "fake-step-id"
-	nonRootStarted.Step.Parent = STEP_ID_ROOT
+	nonRootStarted.Step.Parent = StepIDRoot
 	checkValid(nonRootStarted)
 	checkValid(msgStepFinished())
 	checkValid(msgTextStepData())
@@ -167,7 +167,7 @@ func TestMessageValidation(t *testing.T) {
 	checkNotValid(func() *Message {
 		m := msgStepStarted()
 		m.Step.Id = "mismatch"
-		m.Step.Parent = STEP_ID_ROOT
+		m.Step.Parent = StepIDRoot
 		return m
 	}, "StepId must equal Step.Id (root vs mismatch)")
 	checkNotValid(func() *Message {

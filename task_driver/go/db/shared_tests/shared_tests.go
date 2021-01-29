@@ -42,11 +42,11 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	m := &td.Message{
 		Index:     int(atomic.AddInt32(&msgIndex, 1)),
 		TaskId:    id,
-		StepId:    td.STEP_ID_ROOT,
+		StepId:    td.StepIDRoot,
 		Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
 		Type:      td.MSG_TYPE_STEP_STARTED,
 		Step: &td.StepProperties{
-			Id: td.STEP_ID_ROOT,
+			Id: td.StepIDRoot,
 		},
 	}
 	require.NoError(t, m.Validate())
@@ -57,9 +57,9 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	expect := &db.TaskDriverRun{
 		TaskId: id,
 		Steps: map[string]*db.Step{
-			td.STEP_ID_ROOT: {
+			td.StepIDRoot: {
 				Properties: &td.StepProperties{
-					Id: td.STEP_ID_ROOT,
+					Id: td.StepIDRoot,
 				},
 				Started: m.Timestamp,
 			},
@@ -71,7 +71,7 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	m = &td.Message{
 		Index:     int(atomic.AddInt32(&msgIndex, 1)),
 		TaskId:    id,
-		StepId:    td.STEP_ID_ROOT,
+		StepId:    td.StepIDRoot,
 		Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
 		Type:      td.MSG_TYPE_STEP_DATA,
 		Data: td.LogData{
@@ -87,7 +87,7 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	r, err = d.GetTaskDriver(id)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	expect.Steps[td.STEP_ID_ROOT].Data = append(expect.Steps[td.STEP_ID_ROOT].Data, &db.StepData{
+	expect.Steps[td.StepIDRoot].Data = append(expect.Steps[td.StepIDRoot].Data, &db.StepData{
 		Type:     m.DataType,
 		Data:     m.Data,
 		MsgIndex: m.Index,

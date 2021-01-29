@@ -43,49 +43,49 @@ func TestBuild(t *testing.T) {
 				tag: "success",
 			},
 			timeout:  time.Minute,
-			expected: td.STEP_RESULT_SUCCESS,
+			expected: td.StepResultSuccess,
 			expectedSteps: []td.StepReport{
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 1/7 : FROM debian:testing-slim",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 6/7 : USER skia",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 			},
 			wantErr:   false,
@@ -97,49 +97,49 @@ func TestBuild(t *testing.T) {
 				tag: "failure",
 			},
 			timeout:  time.Minute,
-			expected: td.STEP_RESULT_FAILURE,
+			expected: td.StepResultFailure,
 			expectedSteps: []td.StepReport{
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 1/7 : FROM debian:testing-slim",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 6/7 : USER skia",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv",
 					},
-					Result: td.STEP_RESULT_FAILURE,
+					Result: td.StepResultFailure,
 				},
 			},
 			wantErr:   true,
@@ -151,7 +151,7 @@ func TestBuild(t *testing.T) {
 				tag: "failure_no_output",
 			},
 			timeout:       time.Minute,
-			expected:      td.STEP_RESULT_FAILURE,
+			expected:      td.StepResultFailure,
 			expectedSteps: []td.StepReport{},
 			wantErr:       true,
 			buildArgs:     nil,
@@ -162,49 +162,49 @@ func TestBuild(t *testing.T) {
 				tag: "timeout",
 			},
 			timeout:  100 * time.Millisecond,
-			expected: td.STEP_RESULT_FAILURE,
+			expected: td.StepResultFailure,
 			expectedSteps: []td.StepReport{
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 1/7 : FROM debian:testing-slim",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 6/7 : USER skia",
 					},
-					Result: td.STEP_RESULT_SUCCESS,
+					Result: td.StepResultSuccess,
 				},
 				{
 					StepProperties: &td.StepProperties{
 						Name: "Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv",
 					},
-					Result: td.STEP_RESULT_FAILURE,
+					Result: td.StepResultFailure,
 				},
 			},
 			wantErr:   true,
@@ -232,7 +232,7 @@ func TestBuild(t *testing.T) {
 
 			// The root step is always successful, since we don't
 			// do td.FailStep or td.Fatal.
-			require.Equal(t, td.STEP_RESULT_SUCCESS, results.Result)
+			require.Equal(t, td.StepResultSuccess, results.Result)
 
 			// We should have exactly one sub-step, which is the
 			// "docker run" as a whole.
