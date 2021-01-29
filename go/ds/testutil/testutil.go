@@ -6,12 +6,12 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
@@ -40,7 +40,6 @@ func cleanup(t require.TestingT, kinds ...ds.Kind) {
 // the given 'kinds' from the datastore.
 func InitDatastore(t require.TestingT, kinds ...ds.Kind) util.CleanupFunc {
 	unittest.RequiresDatastoreEmulator(t.(*testing.T))
-
 	// Copied from net/http to create a fresh http client. In some tests the
 	// httpmock replaces the default http client and the healthcheck below fails.
 	var transport http.RoundTripper = &http.Transport{
@@ -58,7 +57,7 @@ func InitDatastore(t require.TestingT, kinds ...ds.Kind) util.CleanupFunc {
 	httpClient := &http.Client{Transport: transport}
 
 	// Do a quick healthcheck against the host, which will fail immediately if it's down.
-	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
+	emulatorHost := emulators.GetEmulatorHostEnvVar(emulators.Datastore)
 	_, err := httpClient.Get("http://" + emulatorHost + "/")
 	require.NoError(t, err, fmt.Sprintf("Cloud emulator host %s appears to be down or not accessible.", emulatorHost))
 
