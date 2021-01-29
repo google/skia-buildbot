@@ -36,7 +36,7 @@ func NewCockroachDBForTests(ctx context.Context, t *testing.T) *pgxpool.Pool {
 	out, err = exec.Command("cockroach", "sql", "--insecure", "--host="+host,
 		"--execute=CREATE DATABASE IF NOT EXISTS "+dbName).CombinedOutput()
 	require.NoError(t, err, `creating test database: %s
-If running locally, make sure you set the env var TMPDIR and ran:
+If running locally, make sure you set the env var COCKROACHDB_EMULATOR_STORE_DIR and ran:
 ./scripts/run_emulators/run_emulators start
 and now currently have %s set. Even though we call it an "emulator",
 this sets up a real version of cockroachdb.
