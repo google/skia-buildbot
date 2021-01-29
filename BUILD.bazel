@@ -67,6 +67,18 @@ buildifier(
 #
 # This container can be pushed to GCR via the container_push target defined below.
 #
+# To debug this image:
+#
+#     # Build the container image.
+#     $ bazel build //:rbe_container_skia_infra
+#
+#     # Load the container.
+#     $ docker load -i bazel-bin/rbe_container_skia_infra_commit.tar
+#     Loaded image: bazel/default:rbe_container_skia_infra
+#
+#     # Run the container.
+#     $ docker run -it bazel/default:rbe_container_skia_infra /bin/bash
+#
 # Notes:
 #
 #  - This target is tagged with "no-remote" because the container_run_and_commit rule calls the
@@ -138,6 +150,36 @@ container_run_and_commit(
         # https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux.
         "wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar xvz",
         "cp -i cockroach-v20.2.4.linux-amd64/cockroach /usr/local/bin/",
+
+        # Install a recent version of Git. The Git distribution that comes preinstalled on the base
+        # image is quite old (version 2.7.4), and presents some subtle differences that cause some
+        # tests that shell out to the Git CLI to fail (e.g. capitalization differences in error
+        # messages: "Not a git repository" vs. "not a git repository").
+        "add-apt-repository ppa:git-core/ppa -y",
+        "apt-get update",
+        "apt-get install git -y",
+
+        # Create a default Git user. This is necessary for some Git tests to pass.
+        "echo '[user]' > /etc/gitconfig",
+        """echo '    user = \\"Bazel RBE Test User\\"' >> /etc/gitconfig""",
+        """echo '    email = \\"bazel-rbe-test-user@example.com\\"' >> /etc/gitconfig""",
+
+        # Install depot_tools, necessary to pull binaries via cipd.
+        "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git /depot_tools",
+
+        # Initialize the CIPD root directory.
+        "mkdir /cipd-bin",
+        "/depot_tools/cipd init /cipd-bin -force",
+
+        # Install isolate and isolated. This is needed by some tests.
+        "/depot_tools/cipd install infra/tools/luci/isolate/linux-amd64 latest -root /cipd-bin",
+        "/depot_tools/cipd install infra/tools/luci/isolated/linux-amd64 latest -root /cipd-bin",
+
+        # Make the CIPD-installed binaries available to Bazel actions.
+        "cp /cipd-bin/* /usr/local/bin",
+
+        # Make the base image's Go binaries available to Bazel actions. Some tests need this.
+        "cp /usr/local/go/bin/* /usr/local/bin",
     ],
     image = "@rbe_ubuntu1604//image",
     tags = ["no-remote"],
