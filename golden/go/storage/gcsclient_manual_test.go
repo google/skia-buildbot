@@ -23,7 +23,7 @@ const (
 // TestWritingHashes writes hashes to an actual GCS location, then reads from it, before
 // cleaning it up.
 func TestWritingReadingHashes(t *testing.T) {
-	unittest.LargeTest(t)
+	unittest.ManualTest(t) // This test hits a production service and requires a service account.
 	gsClient, opt := initGSClient(t)
 
 	knownDigests := types.DigestSlice{
