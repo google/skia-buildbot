@@ -12,6 +12,7 @@ import (
 
 func TestPeriodic(t *testing.T) {
 	unittest.LargeTest(t)
+	unittest.RequiresPubSubEmulator(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
