@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
@@ -209,29 +210,7 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 // concurrent tests don't interfere with each other. It also returns a
 // CleanupFunc that closes the Client.
 func NewClientForTesting(ctx context.Context, t sktest.TestingT) (*Client, util.CleanupFunc) {
-	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
-		t.Fatal(`This test requires the Firestore emulator, which you can start with
-./scripts/run_emulators/run_emulators start
-and then set the environment variables it prints out.
-
-# If you need to set up the Firestore emulator:
-gcloud beta emulators firestore start
-# The above will install the emulator and fail with an error like:
-#   [firestore] Error trying to exec /path/to/cloud-firestore-emulator.jar
-# See b/134379774
-chmod +x /path/to/cloud-firestore-emulator.jar
-
-# If you want to start only the Firestore emulator, the default params
-# try to use IPv6, which doesn't work great for our clients, so we need to start
-# it manually like:
-/path/to/cloud-firestore-emulator.jar --host=localhost --port=8894
-
-# Once the emulator is running, we need to run the following in the terminal
-# that we are running the tests in:
-export FIRESTORE_EMULATOR_HOST=localhost:8894
-`)
-		return nil, nil
-	}
+	unittest.RequiresFirestoreEmulator(t)
 
 	project := "test-project"
 	app := "NewClientForTesting"

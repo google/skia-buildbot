@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/sql/sqltest",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/testutils/unittest",
         "//perf/go/sql",
         "//perf/go/sql/migrations",
         "//perf/go/sql/migrations/cockroachdb",

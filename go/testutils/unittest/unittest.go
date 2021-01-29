@@ -169,24 +169,6 @@ and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
 	}
 }
 
-// RequiresPubSubEmulator is a function that documents a unittest requires the
-// PubSub Emulator and checks that the appropriate environment variable is set.
-func RequiresPubSubEmulator(t sktest.TestingT) {
-	s := os.Getenv("PUBSUB_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the PubSub emulator, which you can start with
-
-    docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
-		--project test-project --host-port 0.0.0.0:8010
-
-and then set the environment:
-
-    export PUBSUB_EMULATOR_HOST=localhost:8010
-
-`)
-	}
-}
-
 // RequiresCockroachDB is a function that documents a unittest requires a local running version
 // of the CockroachDB executable. It must be configured with the appropriate environment variable.
 // For historical reasons, the environment variable uses "EMULATOR" in the name, despite it being
@@ -200,6 +182,63 @@ and then set the environment variables it prints out.
 If you need to install CockroachDB, follow the instructions at:
 	https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html
 and make sure the environment variable COCKROACHDB_EMULATOR_HOST is set.
+`)
+	}
+}
+
+// RequiresDatastoreEmulator is a function that documents a unittest requires the
+// Datastore emulator and checks that the appropriate environment variable is set.
+func RequiresDatastoreEmulator(t sktest.TestingT) {
+	s := os.Getenv("DATASTORE_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires the Datastore emulator, which you can start with
+./scripts/run_emulators/run_emulators start
+and then set the environment variables it prints out.
+`)
+	}
+}
+
+// RequiresFirestoreEmulator is a function that documents a unittest requires the
+// Firestore emulator and checks that the appropriate environment variable is set.
+func RequiresFirestoreEmulator(t sktest.TestingT) {
+	s := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires the Firestore emulator, which you can start with
+./scripts/run_emulators/run_emulators start
+and then set the environment variables it prints out.
+
+# If you need to set up the Firestore emulator:
+gcloud beta emulators firestore start
+# The above will install the emulator and fail with an error like:
+#   [firestore] Error trying to exec /path/to/cloud-firestore-emulator.jar
+# See b/134379774
+chmod +x /path/to/cloud-firestore-emulator.jar
+
+# If you want to start only the Firestore emulator, the default params
+# try to use IPv6, which doesn't work great for our clients, so we need to start
+# it manually like:
+/path/to/cloud-firestore-emulator.jar --host=localhost --port=8894
+
+# Once the emulator is running, we need to run the following in the terminal
+# that we are running the tests in:
+export FIRESTORE_EMULATOR_HOST=localhost:8894
+`)
+	}
+}
+
+// RequiresPubSubEmulator is a function that documents a unittest requires the
+// PubSub Emulator and checks that the appropriate environment variable is set.
+func RequiresPubSubEmulator(t sktest.TestingT) {
+	s := os.Getenv("PUBSUB_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires the PubSub emulator, which you can start with
+
+    docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
+		--project test-project --host-port 0.0.0.0:8010
+
+and then set the environment:
+
+    export PUBSUB_EMULATOR_HOST=localhost:8010
 `)
 	}
 }

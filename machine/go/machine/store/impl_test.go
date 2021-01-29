@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -60,7 +59,7 @@ func TestMachineToStoreDescription_WithPowerCycle(t *testing.T) {
 }
 
 func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
-	require.NotEmpty(t, os.Getenv("FIRESTORE_EMULATOR_HOST"), "This test requires the firestore emulator.")
+	unittest.RequiresFirestoreEmulator(t)
 	cfg := config.InstanceConfig{
 		Store: config.Store{
 			Project:  "test-project",
