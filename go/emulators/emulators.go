@@ -27,19 +27,19 @@ type Emulator string
 
 const (
 	// BigTable represents a Google Cloud BigTable emulator.
-	BigTable = Emulator("bigtable")
+	BigTable = Emulator("BigTable")
 
 	// CockroachDB represents a test-only CockroachDB instance.
-	CockroachDB = Emulator("cockroachdb")
+	CockroachDB = Emulator("CockroachDB")
 
 	// Datastore represents a Google Cloud Datastore emulator.
-	Datastore = Emulator("datastore")
+	Datastore = Emulator("Datastore")
 
 	// Firestore represents a Google Cloud Firestore emulator.
-	Firestore = Emulator("firestore")
+	Firestore = Emulator("Firestore")
 
 	// PubSub represents a Google Cloud PubSub emulator.
-	PubSub = Emulator("pubsub")
+	PubSub = Emulator("PubSub")
 )
 
 // AllEmulators contains a list of all known emulators.
