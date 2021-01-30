@@ -27,7 +27,7 @@ http_archive(
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    sha256 = "1dbb1f39c17b1cbc011cc22394e6e88b0de13ad101eb40047c603297286c8398",
+    sha256 = "38b78d2018529f77e9ba99e8e03d1505bf3d4236dbaac62a001e6db8c4c88798",
     strip_prefix = "buildtools-master",
     url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
 )

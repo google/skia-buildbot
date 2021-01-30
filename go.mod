@@ -182,7 +182,8 @@ require (
 	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
-	golang.org/x/tools v0.0.0-20201030010431-2feb2bb1ff51
+	golang.org/x/tools v0.0.0-20201204180437-c46b611624b3
+	golang.org/x/tools/gopls v0.5.5 // indirect
 	google.golang.org/api v0.34.0
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20201029200359-8ce4113da6f7
