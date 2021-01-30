@@ -117,6 +117,30 @@
       },
       "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8baef415_f1100e87",
+        "filename": "go/emulators/emulators.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-30T00:45:31Z",
+      "side": 1,
+      "message": "I ended up implementing your proposed StartEmulatorIfNotRunning variant.",
+      "parentUuid": "1414ff85_22571e52",
+      "range": {
+        "startLine": 183,
+        "startChar": 0,
+        "endLine": 185,
+        "endChar": 2
+      },
+      "revId": "45c3d33e867fd7485266a05666fd5b6758f5f003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
