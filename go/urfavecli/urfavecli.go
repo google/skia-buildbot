@@ -20,11 +20,14 @@ import (
 //          },
 //      },
 func LogFlags(cliContext *cli.Context) {
+	for _, flag := range cliContext.App.Flags {
+		name := flag.Names()[0]
+		sklog.Infof("App Flags: --%s=%v", name, cliContext.Value(name))
+	}
 	for _, flag := range cliContext.Command.Flags {
 		name := flag.Names()[0]
-		sklog.Infof("Flags: --%s=%v", name, cliContext.Value(name))
+		sklog.Infof("Command Flags: --%s=%v", name, cliContext.Value(name))
 	}
-
 }
 
 // MarkdownDocTemplate is a common template used to format commands as Markdown.
