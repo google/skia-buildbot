@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -20,14 +21,18 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/cipd/mocks"
+	infra_common "go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -88,6 +93,19 @@ func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig)
 	require.NoError(t, err)
 	ctx := context.Background()
 
+	// Under Bazel and RBE, there is no pre-existing depot_tools repository checkout for tests to use,
+	// so depot_tools.Get() will try to clone the depot_tools repository. However, the delegate "run"
+	// function of the exec.CommandCollector below skips any "git clone" commands. For this reason, we
+	// clone said repository here before setting up the aforementioned delegate "run" function, and
+	// make the checkout available to the caller test case via the corresponding environment variable.
+	originalDepotToolsTestEnvVar := os.Getenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR)
+	if bazel.InRBE() {
+		depotToolsDir := filepath.Join(wd, "depot_tools")
+		_, err := git.NewCheckout(ctx, infra_common.REPO_DEPOT_TOOLS, wd)
+		require.NoError(t, err)
+		require.NoError(t, os.Setenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR, depotToolsDir))
+	}
+
 	// Create parent repo.
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, "DEPS", fmt.Sprintf(`
@@ -113,6 +131,7 @@ deps = {
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "git") {
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" || cmd.Args[0] == "reset" {
+				sklog.Infof("Skipping command: %s %s", cmd.Name, strings.Join(cmd.Args, " "))
 				return nil
 			}
 			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.DefaultBranch {
@@ -138,6 +157,7 @@ deps = {
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
+		require.NoError(t, os.Setenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR, originalDepotToolsTestEnvVar))
 		parent.Cleanup()
 	}
 
