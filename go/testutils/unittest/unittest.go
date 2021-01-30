@@ -4,6 +4,7 @@ import (
 	"flag"
 	"runtime"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/emulators"
@@ -156,6 +157,11 @@ func LinuxOnlyTest(t sktest.TestingT) {
 // RequiresBigTableEmulator is a function that documents a unittest requires the
 // BigTable Emulator and checks that the appropriate environment variable is set.
 func RequiresBigTableEmulator(t sktest.TestingT) {
+	if bazel.InRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulators.BigTable)
+		return
+	}
+
 	host := emulators.GetEmulatorHostEnvVar(emulators.BigTable)
 	if host == "" {
 		t.Fatalf(`This test requires the Bigtable emulator, which you can start with
@@ -173,6 +179,11 @@ func RequiresBigTableEmulator(t sktest.TestingT) {
 // For historical reasons, the environment variable uses "EMULATOR" in the name, despite it being
 // an actual instance.
 func RequiresCockroachDB(t sktest.TestingT) {
+	if bazel.InRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulators.CockroachDB)
+		return
+	}
+
 	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)
 	if host == "" {
 		t.Fatalf(`This test requires a local CockroachDB executable, which you can start with
@@ -188,6 +199,11 @@ func RequiresCockroachDB(t sktest.TestingT) {
 // RequiresDatastoreEmulator is a function that documents a unittest requires the
 // Datastore emulator and checks that the appropriate environment variable is set.
 func RequiresDatastoreEmulator(t sktest.TestingT) {
+	if bazel.InRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulators.Datastore)
+		return
+	}
+
 	host := emulators.GetEmulatorHostEnvVar(emulators.Datastore)
 	if host == "" {
 		t.Fatalf(`This test requires the Datastore emulator, which you can start with
@@ -200,6 +216,11 @@ func RequiresDatastoreEmulator(t sktest.TestingT) {
 // RequiresFirestoreEmulator is a function that documents a unittest requires the
 // Firestore emulator and checks that the appropriate environment variable is set.
 func RequiresFirestoreEmulator(t sktest.TestingT) {
+	if bazel.InRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulators.Firestore)
+		return
+	}
+
 	host := emulators.GetEmulatorHostEnvVar(emulators.Firestore)
 	if host == "" {
 		t.Fatalf(`This test requires the Firestore emulator, which you can start with
@@ -228,6 +249,11 @@ func RequiresFirestoreEmulator(t sktest.TestingT) {
 // RequiresPubSubEmulator is a function that documents a unittest requires the
 // PubSub Emulator and checks that the appropriate environment variable is set.
 func RequiresPubSubEmulator(t sktest.TestingT) {
+	if bazel.InRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulators.PubSub)
+		return
+	}
+
 	host := emulators.GetEmulatorHostEnvVar(emulators.PubSub)
 	if host == "" {
 		t.Fatalf(`This test requires the PubSub emulator, which you can start with
@@ -240,4 +266,41 @@ func RequiresPubSubEmulator(t sktest.TestingT) {
 			export %s=localhost:8010
 `, emulators.GetEmulatorHostEnvVarName(emulators.PubSub))
 	}
+}
+
+func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator emulators.Emulator) {
+	if !bazel.InRBE() {
+		panic("This function must only be called when running under Bazel and RBE.")
+	}
+
+	// We only start each emulator once per test suite. If the emulator was already started by an
+	// earlier test case, then we'll reuse the emulator instance that's already running.
+	ok, err := emulators.StartEmulatorIfNotRunning(emulator)
+	if err != nil {
+		t.Fatalf("Error starting emulator: %v", err)
+	}
+
+	// If the above function call actually started the emulator, give the emulator time to boot.
+	//
+	// Empirically chosen: A delay of 3 seconds seems OK for all emulators; shorter delays tend to
+	// cause flakes.
+	if ok {
+		time.Sleep(3 * time.Second)
+	}
+
+	// Setting the corresponding *_EMULATOR_HOST environment variable is what effectively makes the
+	// emulator visible to the test case.
+	if err := emulators.SetEmulatorHostEnvVar(emulator); err != nil {
+		t.Fatalf("Error setting emulator host environment variables: %v", err)
+	}
+
+	t.Cleanup(func() {
+		// By unsetting any *_EMULATOR_HOST environment variables set by the current test case, we
+		// ensure that any subsequent test cases only "see" the emulators they request via any of the
+		// unittest.Requires*Emulator functions. This makes dependencies on emulators explicit at the
+		// test case level, and makes individual test cases more self-documenting.
+		if err := emulators.UnsetAllEmulatorHostEnvVars(); err != nil {
+			t.Fatalf("Error while unsetting the emulator host environment variables: %v", err)
+		}
+	})
 }
