@@ -1,4 +1,4 @@
-// / <reference path="../infra-sk/html-webpack-inject-attributes-plugin.d.ts" />
+/// <reference path="../infra-sk/html-webpack-inject-attributes-plugin.d.ts" />
 
 import { resolve } from 'path';
 import webpack from 'webpack';
