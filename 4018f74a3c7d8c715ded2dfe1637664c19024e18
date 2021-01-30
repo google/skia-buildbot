@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8aef211e_2cdb3b85",
+        "filename": "BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-30T05:30:02Z",
+      "side": 1,
+      "message": "Done, assuming it\u0027s the same as in //cipd.ensure.",
+      "parentUuid": "1e3e3dcc_237e93c7",
+      "range": {
+        "startLine": 153,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 0
+      },
+      "revId": "4018f74a3c7d8c715ded2dfe1637664c19024e18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "29b10330_1b8f554f",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-01-29T19:26:23Z",
       "side": 1,
       "message": "Does this work?  Some/most CIPD packages unpack as symlinks.",
+      "range": {
+        "startLine": 179,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 40
+      },
+      "revId": "4018f74a3c7d8c715ded2dfe1637664c19024e18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "33aabf39_b291bad7",
+        "filename": "BUILD.bazel",
+        "patchSetId": 2
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-01-30T05:30:02Z",
+      "side": 1,
+      "message": "It did work, but I\u0027ve since changed things slightly: instead of blindly copying binaries from the CIPD directory into /usr/local/bin, I\u0027ve updated the PATH under RBE to include the CIPD directory and others (see changes to the .bazelrc file).",
+      "parentUuid": "29b10330_1b8f554f",
       "range": {
         "startLine": 179,
         "startChar": 0,
