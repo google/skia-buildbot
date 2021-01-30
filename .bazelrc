@@ -53,6 +53,10 @@ build:remote --test_env=GOOGLE_APPLICATION_CREDENTIALS=
 # RBE-only environment variable for tests to detect whether they're running locally or on RBE.
 build:remote --test_env=BAZEL_REMOTE=true
 
+# Update the PATH environment variable under RBE to include the locations of various binaries
+# installed in our custom RBE container toolchain image.
+build:remote --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin:/cipd:/cipd/bin
+
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
 # Setting it too high can result in jobs that timeout, however, while waiting
