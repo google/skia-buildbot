@@ -26,12 +26,20 @@ build --experimental_allow_tags_propagation
 # We should remove this flag once a new release of rules_docker is available.
 build --incompatible_restrict_string_escapes=false
 
-# Pipe through the system's *_EMULATOR_HOST environment variables to Bazel tests.
-build --test_env=DATASTORE_EMULATOR_HOST
+# Pipe through the host system's *_EMULATOR_HOST environment variables to Bazel tests.
+#
+# We unset said environment variables under RBE because emulator tests under RBE spin up their own
+# emulator instances.
 build --test_env=BIGTABLE_EMULATOR_HOST
-build --test_env=PUBSUB_EMULATOR_HOST
-build --test_env=FIRESTORE_EMULATOR_HOST
 build --test_env=COCKROACHDB_EMULATOR_HOST
+build --test_env=DATASTORE_EMULATOR_HOST
+build --test_env=FIRESTORE_EMULATOR_HOST
+build --test_env=PUBSUB_EMULATOR_HOST
+build:remote --test_env=BIGTABLE_EMULATOR_HOST=
+build:remote --test_env=COCKROACHDB_EMULATOR_HOST=
+build:remote --test_env=DATASTORE_EMULATOR_HOST=
+build:remote --test_env=FIRESTORE_EMULATOR_HOST=
+build:remote --test_env=PUBSUB_EMULATOR_HOST=
 
 # Pipe through GOOGLE_APPLICATION_CREDENTIALS for local tests. This breaks test hermeticity, so use
 # judiciously. Most tests that depend on this variable should probably tagged with "no-remote".

@@ -5,5 +5,8 @@ go_library(
     srcs = ["emulators.go"],
     importpath = "go.skia.org/infra/go/emulators",
     visibility = ["//visibility:public"],
-    deps = ["//go/skerr"],
+    deps = [
+        "//bazel/go/bazel",
+        "//go/skerr",
+    ],
 )
