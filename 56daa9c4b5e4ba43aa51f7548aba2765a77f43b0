@@ -1,0 +1,250 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9a31532d_7b874b30",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "Needs top level description of the form or a comment that refers to the README.md.",
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e62086b3_0da8cc8a",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "Return should be (string, error) and replace calls to must() to bubble up the error.\n\nActually, all calls to runNanobench ignore the returned string, so is it really needed?",
+      "range": {
+        "startLine": 25,
+        "startChar": 76,
+        "endLine": 25,
+        "endChar": 82
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d95e0f9d_89598a59",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "if err !\u003d nil {\n  return \"\", fmt.Errorf(\"Failed to execute command %q: %s\", binary, err)\n}",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 10
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "388e3640_ea2cc7c3",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "Move this to be a global variable so you only compile it once.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 101
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6f283b07_51718412",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "Avoid panic, return an error:\n\nif !outputCheck.MatchString(lines[1]) {\n  return \"\", fmt.Errorf(\"Unexpected format. Did nanobench\u0027s format change?\")\n}",
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "774119f2_8d48d7eb",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "The parsing code should be broken out into its own function that has unit tests.",
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ffef1c3d_a6af5829",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "for i :\u003d range samples {",
+      "range": {
+        "startLine": 47,
+        "startChar": 1,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a920780f_0678b83f",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "Make into flags?",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 89,
+        "endChar": 14
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8f6ed206_1be6a28e",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "Flag descriptions should be full sentences.",
+      "range": {
+        "startLine": 91,
+        "startChar": 36,
+        "endLine": 91,
+        "endChar": 54
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "862e88a8_af0b20c9",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "See nanostat/main.go for how to add a usage function.",
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ca6ba554_dcc4164c",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "// Avoid using panic. Also supply context around errors:\n\noldBinary, err :\u003d exec.LookPath(*oldPath)\nif err !\u003d nil {\n  sklog.Fatalf(\"Failed to find %q: %s\", *oldPath, err)\n}\n\n\nSame for newBinary and all uses of must().",
+      "range": {
+        "startLine": 98,
+        "startChar": 1,
+        "endLine": 99,
+        "endChar": 10
+      },
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a913682d_a68f2daa",
+        "filename": "perf/nanobenchAB/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-01T17:18:29Z",
+      "side": 1,
+      "message": "This should be moved to a README.md in this directory.",
+      "revId": "56daa9c4b5e4ba43aa51f7548aba2765a77f43b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
