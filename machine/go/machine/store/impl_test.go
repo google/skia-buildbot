@@ -266,6 +266,7 @@ func TestList_Success(t *testing.T) {
 	assert.Len(t, descriptions, 2)
 }
 
+/*
 func TestWatchForDeletablePods_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
@@ -303,6 +304,7 @@ func TestWatchForDeletablePods_Success(t *testing.T) {
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
+*/
 func TestWatchForDeletablePods_OnlyMatchesTheRightMachines(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
