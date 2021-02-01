@@ -154,117 +154,68 @@ func LinuxOnlyTest(t sktest.TestingT) {
 	}
 }
 
-// RequiresBigTableEmulator is a function that documents a unittest requires the
-// BigTable Emulator and checks that the appropriate environment variable is set.
+// RequiresBigTableEmulator should be called by any test case that requires the BigTable emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
 func RequiresBigTableEmulator(t sktest.TestingT) {
-	if bazel.InRBE() {
-		setUpEmulatorBazelRBEOnly(t, emulators.BigTable)
-		return
-	}
-
-	host := emulators.GetEmulatorHostEnvVar(emulators.BigTable)
-	if host == "" {
-		t.Fatalf(`This test requires the Bigtable emulator, which you can start with
-	./scripts/run_emulators/run_emulators start
-	and then set the environment variables it prints out.
-	If you need to set up the Bigtable emulator, follow the instructions at:
-		https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
-	and make sure the environment variable %s is set.
-`, emulators.GetEmulatorHostEnvVarName(emulators.BigTable))
-	}
+	requiresEmulator(t, emulators.BigTable)
 }
 
-// RequiresCockroachDB is a function that documents a unittest requires a local running version
-// of the CockroachDB executable. It must be configured with the appropriate environment variable.
-// For historical reasons, the environment variable uses "EMULATOR" in the name, despite it being
-// an actual instance.
+// RequiresCockroachDB should be called by any test case that requires the CockroachDB emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
+//
+// Note: The CockroachDB emulator is just a test-only, real CockroachDB instance. We refer to it as
+// an emulator for consistency with the Google Cloud emulators.
 func RequiresCockroachDB(t sktest.TestingT) {
-	if bazel.InRBE() {
-		setUpEmulatorBazelRBEOnly(t, emulators.CockroachDB)
-		return
-	}
-
-	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)
-	if host == "" {
-		t.Fatalf(`This test requires a local CockroachDB executable, which you can start with
-	./scripts/run_emulators/run_emulators start
-	and then set the environment variables it prints out.
-	If you need to install CockroachDB, follow the instructions at:
-		https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html
-	and make sure the environment variable %s is set.
-`, emulators.GetEmulatorHostEnvVarName(emulators.CockroachDB))
-	}
+	requiresEmulator(t, emulators.CockroachDB)
 }
 
-// RequiresDatastoreEmulator is a function that documents a unittest requires the
-// Datastore emulator and checks that the appropriate environment variable is set.
+// RequiresDatastoreEmulator should be called by any test case that requires the Datastore emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
 func RequiresDatastoreEmulator(t sktest.TestingT) {
-	if bazel.InRBE() {
-		setUpEmulatorBazelRBEOnly(t, emulators.Datastore)
-		return
-	}
-
-	host := emulators.GetEmulatorHostEnvVar(emulators.Datastore)
-	if host == "" {
-		t.Fatalf(`This test requires the Datastore emulator, which you can start with
-	./scripts/run_emulators/run_emulators start
-	and then set the environment variables it prints out.
-`)
-	}
+	requiresEmulator(t, emulators.Datastore)
 }
 
-// RequiresFirestoreEmulator is a function that documents a unittest requires the
-// Firestore emulator and checks that the appropriate environment variable is set.
+// RequiresFirestoreEmulator should be called by any test case that requires the Firestore emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
 func RequiresFirestoreEmulator(t sktest.TestingT) {
-	if bazel.InRBE() {
-		setUpEmulatorBazelRBEOnly(t, emulators.Firestore)
-		return
-	}
-
-	host := emulators.GetEmulatorHostEnvVar(emulators.Firestore)
-	if host == "" {
-		t.Fatalf(`This test requires the Firestore emulator, which you can start with
-	./scripts/run_emulators/run_emulators start
-	and then set the environment variables it prints out.
-
-	# If you need to set up the Firestore emulator:
-	gcloud beta emulators firestore start
-	# The above will install the emulator and fail with an error like:
-	#   [firestore] Error trying to exec /path/to/cloud-firestore-emulator.jar
-	# See b/134379774
-	chmod +x /path/to/cloud-firestore-emulator.jar
-
-	# If you want to start only the Firestore emulator, the default params
-	# try to use IPv6, which doesn't work great for our clients, so we need to start
-	# it manually like:
-	/path/to/cloud-firestore-emulator.jar --host=localhost --port=8894
-
-	# Once the emulator is running, we need to run the following in the terminal
-	# that we are running the tests in:
-	export %s=localhost:8894
-`, emulators.GetEmulatorHostEnvVarName(emulators.Firestore))
-	}
+	requiresEmulator(t, emulators.Firestore)
 }
 
-// RequiresPubSubEmulator is a function that documents a unittest requires the
-// PubSub Emulator and checks that the appropriate environment variable is set.
+// RequiresPubSubEmulator should be called by any test case that requires the PubSub emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
 func RequiresPubSubEmulator(t sktest.TestingT) {
+	requiresEmulator(t, emulators.PubSub)
+}
+
+func requiresEmulator(t sktest.TestingT, emulator emulators.Emulator) {
 	if bazel.InRBE() {
-		setUpEmulatorBazelRBEOnly(t, emulators.PubSub)
+		setUpEmulatorBazelRBEOnly(t, emulator)
 		return
 	}
 
-	host := emulators.GetEmulatorHostEnvVar(emulators.PubSub)
+	// When running locally, the developer is responsible for running any necessary emulators.
+	host := emulators.GetEmulatorHostEnvVar(emulator)
 	if host == "" {
-		t.Fatalf(`This test requires the PubSub emulator, which you can start with
+		t.Fatalf(`This test requires the %s emulator, which you can start with
 
-			docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
-			--project test-project --host-port 0.0.0.0:8010
+    $ ./scripts/run_emulators/run_emulators start
 
-	and then set the environment:
-
-			export %s=localhost:8010
-`, emulators.GetEmulatorHostEnvVarName(emulators.PubSub))
+and then set the environment variables it prints out.`, emulator)
 	}
 }
 
