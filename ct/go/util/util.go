@@ -661,7 +661,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// Could not figure out how to make vpython work on windows so use python instead.
 		// The downside of this is that we might have to keep installing packages on win GCE
 		// instances.
-		pythonExec = BINARY_PYTHON
+		pythonExec = BINARY_PYTHON_FOR_CHROMIUM
 	} else if targetPlatform == PLATFORM_ANDROID {
 		env = append(env, "BOTO_CONFIG=/home/chrome-bot/.boto.puppet-bak")
 		// Reset android logcat prior to the run so that we can examine the logs later.
