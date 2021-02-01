@@ -183,8 +183,8 @@ const (
 	ADB_CIPD_PACKAGE             = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
 	LUCI_AUTH_CIPD_PACKAGE_LINUX = "cipd_bin_packages:infra/tools/luci-auth/linux-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
 	LUCI_AUTH_CIPD_PACKAGE_WIN   = "cipd_bin_packages:infra/tools/luci-auth/windows-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
-	PYTHON3_CIPD_PACKAGE_LINUX   = "infra/3pp/tools/cpython3/linux-amd64"
-	PYTHON3_CIPD_PACKAGE_WIN     = "infra/3pp/tools/cpython3/windows-amd64"
+	PYTHON3_CIPD_PACKAGE_LINUX   = "cipd_bin_packages:infra/3pp/tools/cpython3/linux-amd64:version:3.8.7.chromium.12"
+	PYTHON3_CIPD_PACKAGE_WIN     = "cipd_bin_packages:infra/3pp/tools/cpython3/windows-amd64:version:3.8.7.chromium.12"
 )
 
 type PagesetTypeInfo struct {
