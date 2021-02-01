@@ -8,6 +8,7 @@ release: wasm_libs_tot
 
 release_ci: app
 	cd ../infra-sk && npm ci
+	cd ../puppeteer-tests && npm ci
 	npm ci
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
