@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fadbd5d1_a043edd6",
+        "filename": "particles/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-01T12:26:32Z",
+      "side": 1,
+      "message": "copypasta",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 16
+      },
+      "revId": "b1e935d7def8a56a65044e9a03befe8fb7891fae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
