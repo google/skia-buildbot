@@ -11,14 +11,14 @@
 # that is complete it should be the canconical way to create named scraps.
 
 # Create a name for each scrap.
-curl --silent -X PUT -d "{\"Hash\": \"c5156240f082cf023c9513e878cc3c33d40c451db60a00f5adcc7c669c1300b7\", \"Description\": \"Fireworks\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@fireworks
-curl --silent -X PUT -d "{\"Hash\": \"f7e261bd0844b38e1be1e3ef110dcc62d99fd840cf7e94b8cd3f29b6b4b9f14c\", \"Description\": \"Spiral\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@spiral
-curl --silent -X PUT -d "{\"Hash\": \"7e28ab22af1d50676f47c4ecb17e1c944f455f43b5ccef0a82868ba42fe95550\", \"Description\": \"Double Helix\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@swirl
-curl --silent -X PUT -d "{\"Hash\": \"7a637af12b5eccad978384e47bd54c222ac1a64ff0a39da76fbb1676fb6427a0\", \"Description\": \"Text\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@text
-curl --silent -X PUT -d "{\"Hash\": \"e1bc35b5dc8b18aa9a93dae4195dae35229027de3d5cae844bd6cab330e65880\", \"Description\": \"Wave\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@wave
-curl --silent -X PUT -d "{\"Hash\": \"93cad83247636630172e515781cf89467ca0055e8311a6048df69fe308390520\", \"Description\": \"Cube\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@cube
-curl --silent -X PUT -d "{\"Hash\": \"3c2af2f8333e831edeebe0f159de40195860f296305e471eb24818ee54760972\", \"Description\": \"Confetti\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@confetti
-curl --silent -X PUT -d "{\"Hash\": \"9d478ee84ed47f0f3b4fb08b50c67d4c830fa8617bb6298de92cd888f41cf350\", \"Description\": \"Uniforms Examples\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@uniforms
+curl --silent -X PUT -d "{\"Hash\": \"480762f9ee5ceec1d748f190d87ea9858a8f6ed57d059f7ba13c6783eaa7a502\", \"Description\": \"Fireworks\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@fireworks
+curl --silent -X PUT -d "{\"Hash\": \"b57c18b37fb4536992460f4f342966433df11dba07f6d20f1dd6cecb0609af52\", \"Description\": \"Spiral\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@spiral
+curl --silent -X PUT -d "{\"Hash\": \"3a317dfa0bd381471d5878c1497a1bb55afb796f08c7e7cd5593b1dabb4fbf4f\", \"Description\": \"Double Helix\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@swirl
+curl --silent -X PUT -d "{\"Hash\": \"9dfd1e4fe47ab4655bfd70e9a5361c14db9b62d12535ed675caf763653bd2e94\", \"Description\": \"Text\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@text
+curl --silent -X PUT -d "{\"Hash\": \"2a3536975f5cb60daf382663c58108b6c92726b38bcc17bb45a5c7b457ccb3f0\", \"Description\": \"Wave\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@wave
+curl --silent -X PUT -d "{\"Hash\": \"8a330970150e0bb63b94b8f3389b65eff009a8a85b1e55a4db83b5ea32ce673e\", \"Description\": \"Cube\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@cube
+curl --silent -X PUT -d "{\"Hash\": \"1083f66b397dbfa038b1d7d1196a9496fd0526eb6dac6bc2da5d46f320a6c74a\", \"Description\": \"Confetti\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@confetti
+curl --silent -X PUT -d "{\"Hash\": \"e766451e6a257788e27d8a058417da0c6c0077151461adcfcef151d34a2b5460\", \"Description\": \"Uniforms Examples\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/particle/@uniforms
 
 
 # List all named particle scraps.
