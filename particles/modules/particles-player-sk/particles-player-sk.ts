@@ -37,8 +37,6 @@ const kitReady = CanvasKitInit({
   locateFile: (file: any) => `${scriptOrigin}/dist/${file}`,
 });
 
-type UniformType = 'particle' | 'effect';
-
 /**
  * Information needed to construct a single HTML control for a uniform. Note
  * that some uniforms actually represent more than one control, such as a
@@ -48,7 +46,6 @@ type UniformType = 'particle' | 'effect';
 interface UniformControl {
   id: string;
   uniformSlot: number;
-  type: UniformType;
 }
 
 interface Point {
@@ -197,18 +194,13 @@ export class ParticlesPlayerSk extends ElementSk {
 
     // Go through all the sliders on the page that we created and poll those inputs for their
     // value. Plug those values (range [0.0, 1.0]) into the uniforms.
-    const particlesUniforms = this.animation.particleUniforms();
-    const effectsUniforms = this.animation.effectUniforms();
+    const uniforms = this.animation.uniforms();
     this.sliders.forEach((slider) => {
       const s = $$<HTMLInputElement>(`input#${slider.id}`, this);
       if (!s) {
         return;
       }
-      if (slider.type === 'particle') {
-        particlesUniforms[slider.uniformSlot] = s.valueAsNumber;
-      } else {
-        effectsUniforms[slider.uniformSlot] = s.valueAsNumber;
-      }
+      uniforms[slider.uniformSlot] = s.valueAsNumber;
     });
     window.requestAnimationFrame(() => this.drawFrame());
     if (!this.lastTime) {
@@ -276,10 +268,10 @@ export class ParticlesPlayerSk extends ElementSk {
     // to be re-used on shaders.skia.org.
     this.sliders = [];
     const an = this.animation;
-    for (let i = 0; i < an.getParticleUniformCount(); i++) {
-      const name = an.getParticleUniformName(i);
+    for (let i = 0; i < an.getUniformCount(); i++) {
+      const name = an.getParticleName(i);
       if (name.startsWith('slider_')) {
-        const uniform = an.getParticleUniform(i);
+        const uniform = an.getUniform(i);
         for (let row = 0; row < uniform.rows; row++) {
           for (let col = 0; col < uniform.columns; col++) {
             let id = `${name.substring('slider_'.length)}`;
@@ -292,36 +284,12 @@ export class ParticlesPlayerSk extends ElementSk {
             this.sliders.push({
               id: id,
               uniformSlot: uniform.slot + row + col * uniform.rows,
-              type: 'particle',
             });
           }
         }
       }
     }
 
-    for (let i = 0; i < an.getEffectUniformCount(); i++) {
-      const name = an.getEffectUniformName(i);
-      if (name.startsWith('slider_')) {
-        const uniform = an.getEffectUniform(i);
-
-        for (let row = 0; row < uniform.rows; row++) {
-          for (let col = 0; col < uniform.columns; col++) {
-            let id = `${name.substring('slider_'.length)}`;
-            if (uniform.rows > 1) {
-              id += `_${row}`;
-            }
-            if (uniform.columns > 1) {
-              id += `_${col}`;
-            }
-            this.sliders.push({
-              id: id,
-              uniformSlot: uniform.slot + row + col * uniform.rows,
-              type: 'effect',
-            });
-          }
-        }
-      }
-    }
     this._render();
     this.canvas!.clear(this.kit!.BLACK);
     this.resetView();
