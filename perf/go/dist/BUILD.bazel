@@ -2,11 +2,15 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "dist",
-    srcs = ["dist.go"],
+    srcs = [
+        "dist.go",
+        "rice-box.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/dist",
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
         "@com_github_geertjohan_go_rice//:go_rice",
+        "@com_github_geertjohan_go_rice//embedded",
     ],
 )
