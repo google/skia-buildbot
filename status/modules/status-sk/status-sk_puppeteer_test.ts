@@ -22,7 +22,7 @@ describe('status-sk', () => {
       await takeScreenshot(testBed.page, 'status', 'status-sk');
     });
     it('changes repos', async () => {
-      testBed.page.select('#repoSelector', 'infra');
+      await testBed.page.select('#repoSelector', 'infra');
       await takeScreenshot(testBed.page, 'status', 'status-sk_repo_change');
     });
   });
