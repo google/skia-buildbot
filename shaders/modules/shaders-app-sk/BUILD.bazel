@@ -1,0 +1,47 @@
+load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
+load("//infra-sk/karma_test:index.bzl", "karma_test")
+
+package(default_visibility = ["//shaders:__subpackages__"])
+
+##############################
+# shaders-app-sk element. #
+##############################
+
+ts_library(
+    name = "shaders-app-sk",
+    srcs = [
+        "index.ts",
+        "shaders-app-sk.ts",
+    ],
+    deps = [
+        "//infra-sk/modules/ElementSk:element-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
+
+sass_library(
+    name = "styles",
+    srcs = ["shaders-app-sk.scss"],
+    deps = [
+        "//infra-sk:elements-sk_scss",
+        "//infra-sk/modules/theme-chooser-sk:styles",
+    ],
+)
+
+###########################
+# shaders-app-sk test. #
+###########################
+
+karma_test(
+    name = "test",
+    srcs = ["shaders-app-sk_test.ts"],
+    deps = [
+        ":shaders-app-sk",
+        "//infra-sk/modules:test_util",
+        "@infra-sk_npm//fetch-mock",
+    ],
+)
