@@ -266,7 +266,6 @@ func TestList_Success(t *testing.T) {
 	assert.Len(t, descriptions, 2)
 }
 
-/*
 func TestWatchForDeletablePods_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
@@ -279,10 +278,20 @@ func TestWatchForDeletablePods_Success(t *testing.T) {
 	defer store.watchForDeletablePodsDataToErrorCounter.Reset()
 	defer store.watchForDeletablePodsReceiveSnapshotCounter.Reset()
 
+	const podName = "rpi-swarming-123456-987"
+
+	// Start with some data.
+	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.PodName = podName
+		ret.RunningSwarmingTask = false
+		return ret
+	})
+	require.NoError(t, err)
+
 	// First add the watch.
 	ch := store.WatchForDeletablePods(ctx)
-
-	const podName = "rpi-swarming-123456-987"
 
 	// Then create the document.
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
@@ -304,7 +313,6 @@ func TestWatchForDeletablePods_Success(t *testing.T) {
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
-*/
 func TestWatchForDeletablePods_OnlyMatchesTheRightMachines(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
@@ -317,10 +325,20 @@ func TestWatchForDeletablePods_OnlyMatchesTheRightMachines(t *testing.T) {
 	defer store.watchForDeletablePodsDataToErrorCounter.Reset()
 	defer store.watchForDeletablePodsReceiveSnapshotCounter.Reset()
 
+	const podName = "rpi-swarming-123456-987"
+
+	// Start with some data.
+	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.PodName = podName
+		ret.RunningSwarmingTask = false
+		return ret
+	})
+	require.NoError(t, err)
+
 	// First add the watch.
 	ch := store.WatchForDeletablePods(ctx)
-
-	const podName = "rpi-swarming-123456-987"
 
 	// Add some changes that should not match the query.
 	err = store.Update(ctx, "skia-rpi2-rack4-shelf2-001", func(previous machine.Description) machine.Description {

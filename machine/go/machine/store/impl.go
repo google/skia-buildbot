@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
@@ -173,9 +174,13 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 func (st *StoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
 	q := st.machinesCollection.Where("ScheduledForDeletion", ">", "").Where("RunningSwarmingTask", "==", false)
 	ch := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		defer close(ch)
-		for qsnap := range firestore.QuerySnapshotChannel(ctx, q) {
+		snapshotChannel := firestore.QuerySnapshotChannel(ctx, q)
+		wg.Done()
+		for qsnap := range snapshotChannel {
 			for {
 				snap, err := qsnap.Documents.Next()
 				if err == iterator.Done {
@@ -197,6 +202,7 @@ func (st *StoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
 			}
 		}
 	}()
+	wg.Wait()
 	return ch
 }
 
