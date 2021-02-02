@@ -43,13 +43,13 @@ silence-sk {
   }
 
   delete-icon-sk {
-    fill: var(--gray);
+    fill: var(--on-background);
     cursor: pointer;
     border: solid transparent 1px;
   }
 
   delete-icon-sk:hover {
-    border: solid var(--gray) 1px;
+    border: solid var(--on-background) 1px;
   }
 
   input.duration {
@@ -103,11 +103,11 @@ silence-sk {
   }
 
   h2.inactive {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   p {
-    background: var(--white);
+    background: var(--comments);
     padding: 0.5em;
     display: block;
     border-radius: 0.5em;
@@ -130,5 +130,5 @@ silence-sk[collapsable] .matches {
 
 silence-sk[collapsable] {
   margin: 1em;
-  background: var(--dark-white);
+  background: var(--minimized);
 }
