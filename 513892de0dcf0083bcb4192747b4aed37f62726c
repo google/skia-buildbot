@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3f8dcd65_79538199",
+        "filename": "BAZEL_CHEATSHEET.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-02T12:52:56Z",
+      "side": 1,
+      "message": "Is it suggested we use \u0027bazel run\u0027 to run built commands, or should we still run the executable directly?",
+      "revId": "513892de0dcf0083bcb4192747b4aed37f62726c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
