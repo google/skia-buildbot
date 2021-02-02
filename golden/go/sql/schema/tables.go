@@ -9,6 +9,12 @@ import (
 	"go.skia.org/infra/go/paramtools"
 )
 
+// TileWidth is the number of sparse commits whose data is grouped together when creating
+// the PrimaryBranchParams and TiledTraceDigests tables. This should speed up queries that would
+// otherwise have to look at potentially 100x as much data. For data that is very dense, this
+// might not help as much, so we might need to have instance-dependent widths.
+const TileWidth = 100
+
 // MD5Hash is a specialized type for an array of bytes representing an MD5Hash. We use MD5 hashes
 // a lot because they are a deterministic way to generate primary keys, which allows us to more
 // easily cache and deduplicate data when ingesting. Additionally, these hashes are somewhat
