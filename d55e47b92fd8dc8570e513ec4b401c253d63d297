@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8812ea2a_73473bb5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5631
+      },
+      "writtenOn": "2021-02-02T14:08:56Z",
+      "side": 1,
+      "message": "Should fix the PushAppsFromWASMDockerImage failure",
+      "revId": "d55e47b92fd8dc8570e513ec4b401c253d63d297",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
