@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "61c28420_39044f6d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-02T20:20:22Z",
+      "side": 1,
+      "message": "This is really unfortunate but I couldn\u0027t find a way around it.",
+      "revId": "9ab27f8006af5b26fa20a6983a01014d5c7a9fe2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
