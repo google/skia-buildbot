@@ -46,6 +46,30 @@
       },
       "revId": "75ae5a4540de49d8059399df93c8b2a300a41146",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff5dcf52_7310571e",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-02T19:51:34Z",
+      "side": 1,
+      "message": "SGTM, thanks for explaining!",
+      "parentUuid": "6dd52bf5_60ad53f4",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "75ae5a4540de49d8059399df93c8b2a300a41146",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
