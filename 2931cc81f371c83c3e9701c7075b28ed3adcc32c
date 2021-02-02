@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6c1531a2_04cdfade",
+        "filename": "perf/reingest-android-data.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-02T16:05:48Z",
+      "side": 1,
+      "message": "Could also pass this in via an arg which defaults to current date if not set.",
+      "range": {
+        "startLine": 12,
+        "startChar": 55,
+        "endLine": 12,
+        "endChar": 65
+      },
+      "revId": "2931cc81f371c83c3e9701c7075b28ed3adcc32c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
