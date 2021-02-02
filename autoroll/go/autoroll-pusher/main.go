@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/flynn/json5"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -50,7 +50,7 @@ const (
 	DEFAULT_K8S_CONFIG_DIR = "/tmp/k8s-config"
 
 	// Repo containing the k8s config files.
-	K8S_CONFIG_REPO = "https://skia.googlesource.com/k8s-config.git"
+	K8S_CONFIG_REPO = "https://skia.googlesource.com/k8s-proto.git"
 
 	// Google Cloud projects used by the autoroller.
 	PROJECT_PUBLIC = "skia-public"
@@ -114,7 +114,7 @@ func kubeConfGen(ctx context.Context, tmpl, dstConfig string, extraVars map[stri
 // kubeConfGenBe generates the Kubernetes YAML config file for the given backend
 // instance.
 func kubeConfGenBe(ctx context.Context, tmpl, srcConfig, dstConfig, configFileBase64, image string) (bool, error) {
-	// Generate the k8s config.
+	// Generate the k8s proto.
 	return kubeConfGen(ctx, tmpl, dstConfig, map[string]string{
 		"configBase64": configFileBase64,
 		"image":        image,
@@ -158,7 +158,7 @@ func kubeConfGenFe(ctx context.Context, tmpl, srcConfig, dstConfig string, cfgBa
 		return false, skerr.Wrapf(err, "failed kube-conf-gen")
 	}
 
-	// Generate the k8s config.
+	// Generate the k8s proto.
 	return kubeConfGen(ctx, tmpl, dstConfig, map[string]string{
 		"image": image,
 	}, srcConfig, cfgsJson)
@@ -199,10 +199,10 @@ func getLatestImage(image string) (string, error) {
 
 // switchCluster runs the gcloud commands to switch to the given cluster, using
 // a kube config file in temporary dir to avoid clobbering the user's global
-// kube config. Returns the path to the kube config file and a cleanup func, or
+// kube proto. Returns the path to the kube config file and a cleanup func, or
 // any error which occurred.
 func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup func(), rvErr error) {
-	// Use a temporary dir to avoid clobbering the global kube config.
+	// Use a temporary dir to avoid clobbering the global kube proto.
 	wd, err := ioutil.TempDir("", "")
 	if err != nil {
 		return "", nil, skerr.Wrapf(err, "Failed to switch cluster; failed to create temp dir")
@@ -233,11 +233,11 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 // updateConfigs updates the Kubernetes config files in k8sConfigDir to reflect
 // the current contents of configDir, inserting the roller configs into the
 // given ConfigMap.
-func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*config.Config) ([]string, error) {
+func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*proto.Config) ([]string, error) {
 	// This is the subdir for the current cluster.
 	clusterCfgDir := filepath.Join(co.Dir(), cfgDir.ClusterName)
 
-	// Pull some information out of the frontend config.
+	// Pull some information out of the frontend proto.
 	var configFe struct {
 		AppName string `json:"appName"`
 	}
@@ -271,7 +271,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 					AllowPartial:   true,
 					DiscardUnknown: true,
 				}
-				cfg := new(config.Config)
+				cfg := new(proto.Config)
 				if err := opts.Unmarshal(dec, cfg); err != nil {
 					return nil, skerr.Wrapf(err, "failed to decode existing roller config")
 				}
@@ -289,7 +289,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 			// be the same, so we consider it preferable to encode
 			// the parsed config, which will strip things like
 			// comments and whitespace that would otherwise produce
-			// a "different" config.
+			// a "different" proto.
 			b, err := prototext.MarshalOptions{
 				AllowPartial: true,
 				EmitUnknown:  true,
@@ -351,7 +351,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				}
 			}
 
-			// kube-conf-gen wants a JSON version of the config. Write it to a
+			// kube-conf-gen wants a JSON version of the proto. Write it to a
 			// temporary directory.
 			tmp, err := ioutil.TempDir("", "")
 			if err != nil {
@@ -462,17 +462,17 @@ func main() {
 
 	// Load all configs. This a nested map whose keys are config dir paths,
 	// sub-map keys are config file names, and values are roller configs.
-	configs := map[*configDir]map[string]*config.Config{}
+	configs := map[*configDir]map[string]*proto.Config{}
 	for _, dir := range cfgDirs {
 		dirEntries, err := ioutil.ReadDir(dir.Dir)
 		if err != nil {
 			log.Fatalf("Failed to read roller configs in %s: %s", dir, err)
 		}
-		cfgsInDir := make(map[string]*config.Config, len(dirEntries))
+		cfgsInDir := make(map[string]*proto.Config, len(dirEntries))
 		for _, entry := range dirEntries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".cfg") {
 				cfgPath := filepath.Join(dir.Dir, entry.Name())
-				var cfg config.Config
+				var cfg proto.Config
 				if err := util.WithReadFile(cfgPath, func(f io.Reader) error {
 					configBytes, err := ioutil.ReadAll(f)
 					if err != nil {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gitiles"
@@ -19,11 +19,11 @@ import (
 type GitilesRepo struct {
 	*gitiles.Repo
 	branch *config_vars.Template
-	deps   []*config.VersionFileConfig
+	deps   []*proto.VersionFileConfig
 }
 
 // NewGitilesRepo returns a GitilesRepo instance.
-func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, reg *config_vars.Registry, client *http.Client) (*GitilesRepo, error) {
+func NewGitilesRepo(ctx context.Context, c *proto.GitilesConfig, reg *config_vars.Registry, client *http.Client) (*GitilesRepo, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

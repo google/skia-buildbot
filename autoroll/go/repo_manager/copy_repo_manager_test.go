@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -24,28 +24,28 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
-	return &config.ParentChildRepoManagerConfig{
-		Parent: &config.ParentChildRepoManagerConfig_CopyParent{
-			CopyParent: &config.CopyParentConfig{
-				Gitiles: &config.GitilesParentConfig{
-					Gitiles: &config.GitilesConfig{
+func copyCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
+	return &proto.ParentChildRepoManagerConfig{
+		Parent: &proto.ParentChildRepoManagerConfig_CopyParent{
+			CopyParent: &proto.CopyParentConfig{
+				Gitiles: &proto.GitilesParentConfig{
+					Gitiles: &proto.GitilesConfig{
 						Branch:  git.DefaultBranch,
 						RepoUrl: "http://fake.parent",
 					},
-					Dep: &config.DependencyConfig{
-						Primary: &config.VersionFileConfig{
+					Dep: &proto.DependencyConfig{
+						Primary: &proto.VersionFileConfig{
 							Id:   "http://fake.child",
 							Path: filepath.Join(childPath, "version.sha1"),
 						},
 					},
-					Gerrit: &config.GerritConfig{
+					Gerrit: &proto.GerritConfig{
 						Url:     "https://fake-skia-review.googlesource.com",
 						Project: "fake-gerrit-project",
-						Config:  config.GerritConfig_CHROMIUM,
+						Config:  proto.GerritConfig_CHROMIUM,
 					},
 				},
-				Copies: []*config.CopyParentConfig_CopyEntry{
+				Copies: []*proto.CopyParentConfig_CopyEntry{
 					// TODO(borenet): Test a directory.
 					{
 						SrcRelPath: path.Join("child-dir", "child-file.txt"),
@@ -58,9 +58,9 @@ func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 			},
 		},
-		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
-			GitilesChild: &config.GitilesChildConfig{
-				Gitiles: &config.GitilesConfig{
+		Child: &proto.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: &proto.GitilesChildConfig{
+				Gitiles: &proto.GitilesConfig{
 					Branch:  git.DefaultBranch,
 					RepoUrl: "todo.git",
 				},
@@ -69,7 +69,7 @@ func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 	}
 }
 
-func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupCopy(t *testing.T) (context.Context, *proto.ParentChildRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -103,8 +103,8 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_CopyParent)
-	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild)
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_CopyParent)
+	childCfg := cfg.Child.(*proto.ParentChildRepoManagerConfig_GitilesChild)
 	childCfg.GitilesChild.Gitiles.RepoUrl = child.RepoUrl()
 	parentCfg.CopyParent.Gitiles.Gitiles.RepoUrl = parent.RepoUrl()
 	parentCfg.CopyParent.Gitiles.Dep.Primary.Id = child.RepoUrl()
