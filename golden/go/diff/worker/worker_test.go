@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -195,6 +197,150 @@ func TestComputeDiffs_NoNewMetrics_Success(t *testing.T) {
 	}, actualMetrics)
 }
 
+func TestComputeDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	// Remove existing diffs, so the ones for triangle test can be recomputed.
+	existingData.DiffMetrics = nil
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+	w := newWorkerUsingImagesFromKitchenSink(t, db)
+
+	grouping := paramtools.Params{
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.TriangleTest,
+	}
+	require.NoError(t, w.ComputeDiffs(ctx, grouping, nil))
+
+	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualMetrics []schema.DiffMetricRow
+	for rows.Next() {
+		var m schema.DiffMetricRow
+		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
+			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
+		m.Timestamp = m.Timestamp.UTC()
+		actualMetrics = append(actualMetrics, m)
+	}
+	assert.Equal(t, []schema.DiffMetricRow{
+		expectedFromKS(t, dks.DigestBlank, dks.DigestB01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestBlank, dks.DigestB02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestBlank, dks.DigestB03Neg, fakeNow),
+		expectedFromKS(t, dks.DigestBlank, dks.DigestB04Neg, fakeNow),
+
+		expectedFromKS(t, dks.DigestB01Pos, dks.DigestBlank, fakeNow),
+		expectedFromKS(t, dks.DigestB01Pos, dks.DigestB02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestB01Pos, dks.DigestB03Neg, fakeNow),
+		expectedFromKS(t, dks.DigestB01Pos, dks.DigestB04Neg, fakeNow),
+
+		expectedFromKS(t, dks.DigestB02Pos, dks.DigestBlank, fakeNow),
+		expectedFromKS(t, dks.DigestB02Pos, dks.DigestB01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestB02Pos, dks.DigestB03Neg, fakeNow),
+		expectedFromKS(t, dks.DigestB02Pos, dks.DigestB04Neg, fakeNow),
+
+		expectedFromKS(t, dks.DigestB03Neg, dks.DigestBlank, fakeNow),
+		expectedFromKS(t, dks.DigestB03Neg, dks.DigestB01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestB03Neg, dks.DigestB02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestB03Neg, dks.DigestB04Neg, fakeNow),
+
+		expectedFromKS(t, dks.DigestB04Neg, dks.DigestBlank, fakeNow),
+		expectedFromKS(t, dks.DigestB04Neg, dks.DigestB01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestB04Neg, dks.DigestB02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestB04Neg, dks.DigestB03Neg, fakeNow),
+	}, actualMetrics)
+}
+
+func TestComputeDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	// Only C03, C04, C05 will be in the last two tiles for this data.
+	sparseData := makeSparseData()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, sparseData))
+	waitForSystemTime()
+	w := newWorkerUsingImagesFromKitchenSink(t, db)
+
+	grouping := paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	}
+	require.NoError(t, w.ComputeDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}))
+
+	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualMetrics []schema.DiffMetricRow
+	for rows.Next() {
+		var m schema.DiffMetricRow
+		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
+			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
+		m.Timestamp = m.Timestamp.UTC()
+		actualMetrics = append(actualMetrics, m)
+	}
+	assert.Equal(t, []schema.DiffMetricRow{
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC05Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC06Pos_CL, fakeNow),
+
+		expectedFromKS(t, dks.DigestC04Unt, dks.DigestC03Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC04Unt, dks.DigestC05Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC04Unt, dks.DigestC06Pos_CL, fakeNow),
+
+		expectedFromKS(t, dks.DigestC05Unt, dks.DigestC03Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC05Unt, dks.DigestC04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC05Unt, dks.DigestC06Pos_CL, fakeNow),
+
+		expectedFromKS(t, dks.DigestC06Pos_CL, dks.DigestC03Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC06Pos_CL, dks.DigestC04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC06Pos_CL, dks.DigestC05Unt, fakeNow),
+	}, actualMetrics)
+}
+
+func makeSparseData() schema.Tables {
+	b := databuilder.TablesBuilder{}
+	// Make a few commits with data across several tiles (tile width == 100)
+	b.CommitsWithData().
+		Insert(337, "whomever", "commit 337", "2020-12-01T00:00:01Z").
+		Insert(437, "whomever", "commit 437", "2020-12-01T00:00:02Z").
+		Insert(537, "whomever", "commit 537", "2020-12-01T00:00:03Z").
+		Insert(637, "whomever", "commit 637", "2020-12-01T00:00:04Z").
+		Insert(687, "whomever", "commit 687", "2020-12-01T00:00:05Z")
+	// Then add a bunch of empty commits after. These should not impact the latest commit/tile
+	// with data.
+	nd := b.CommitsWithNoData()
+	for i := 688; i < 710; i++ {
+		nd.Insert(i, "no data author", "no data "+strconv.Itoa(i), "2020-12-01T00:00:06Z")
+	}
+
+	b.SetDigests(map[rune]types.Digest{
+		// All of these will be untriaged because diffs don't care about triage status
+		'a': dks.DigestC01Pos,
+		'b': dks.DigestC02Pos,
+		'c': dks.DigestC03Unt,
+		'd': dks.DigestC04Unt,
+		'e': dks.DigestC05Unt,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+
+	b.AddTracesWithCommonKeys(paramtools.Params{
+		types.CorpusField: dks.RoundCorpus,
+	}).History("abcde").Keys([]paramtools.Params{{types.PrimaryKeyField: dks.CircleTest}}).
+		OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom([]string{"file1", "file2", "file3", "file4", "file5"}, // not used in this test
+			[]string{"2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z"})
+
+	rv := b.Build()
+	rv.DiffMetrics = nil
+	return rv
+}
+
 // sentinelMetricRow returns a DiffMetricRow with arbitrary data that should not change as a result
 // of the test using it (DiffMetrics are immutable).
 func sentinelMetricRow(left types.Digest, right types.Digest) schema.DiffMetricRow {
@@ -218,18 +364,23 @@ func sentinelMetricRow(left types.Digest, right types.Digest) schema.DiffMetricR
 	}
 }
 
+func kitchenSinkRoot(t *testing.T) string {
+	root, err := repo_root.Get()
+	if err != nil {
+		require.NoError(t, err)
+	}
+	return filepath.Join(root, "golden", "go", "sql", "datakitchensink", "img")
+}
+
 func newWorkerUsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
-	infraRoot, err := repo_root.Get()
-	require.NoError(t, err)
-	kitchenSinkPath := filepath.Join(infraRoot, "golden", "go", "sql", "datakitchensink", "img")
-	return New(db, &fsImageSource{root: kitchenSinkPath})
+	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, 2)
 }
 
 func newWorkerUsingBlankImages(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
 	infraRoot, err := repo_root.Get()
 	require.NoError(t, err)
 	blankImagePath := filepath.Join(infraRoot, "golden", "go", "sql", "datakitchensink", "img", string(dks.DigestBlank+".png"))
-	return New(db, &fixedImageSource{img: blankImagePath})
+	return New(db, &fixedImageSource{img: blankImagePath}, 2)
 }
 
 var kitchenSinkData = dks.Build()
