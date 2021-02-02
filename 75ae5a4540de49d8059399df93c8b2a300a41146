@@ -22,6 +22,30 @@
       },
       "revId": "75ae5a4540de49d8059399df93c8b2a300a41146",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6dd52bf5_60ad53f4",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-02T19:43:24Z",
+      "side": 1,
+      "message": "I don\u0027t yet know. This tile size affects the tables PrimaryBranchParams and TiledTraceDigests, more or less as a way to index/group data together so we can speed up queries later. For simplicity, I would like all instances to have the same tile size (thus the constant here), but that might change as things go on (maybe if data is very very sparse). For somewhat sparse data, maybe we need to do something different than \"go back N tiles\" anyway.\n\nFor now, I moved the constant to the schema package and commented a bit about it.",
+      "parentUuid": "418cfab6_8a8db495",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "75ae5a4540de49d8059399df93c8b2a300a41146",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
