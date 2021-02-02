@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7e24f2aa_35a080dd",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-02T00:53:58Z",
+      "side": 1,
+      "message": "Ubernit: left, right types.Digest",
+      "range": {
+        "startLine": 167,
+        "startChar": 47,
+        "endLine": 167,
+        "endChar": 84
+      },
+      "revId": "a37f7eeae33e3fa3a56e2921ac1442130b91bec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "49d1c3f4_547db0e6",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-02T00:53:58Z",
+      "side": 1,
+      "message": "It might be useful to add a comment with the rationale for these numbers.",
+      "range": {
+        "startLine": 237,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 23
+      },
+      "revId": "a37f7eeae33e3fa3a56e2921ac1442130b91bec3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
