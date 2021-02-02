@@ -269,7 +269,7 @@ export class ParticlesPlayerSk extends ElementSk {
     this.sliders = [];
     const an = this.animation;
     for (let i = 0; i < an.getUniformCount(); i++) {
-      const name = an.getParticleName(i);
+      const name = an.getUniformName(i);
       if (name.startsWith('slider_')) {
         const uniform = an.getUniform(i);
         for (let row = 0; row < uniform.rows; row++) {
