@@ -9,7 +9,7 @@ import (
 	"text/template"
 	"time"
 
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -18,9 +18,9 @@ import (
 var (
 	// namedCommitMsgTemplates contains pre-defined commit message templates
 	// which may be referenced by name in config files.
-	namedCommitMsgTemplates = map[config.CommitMsgConfig_BuiltIn]*template.Template{
-		config.CommitMsgConfig_ANDROID: tmplAndroid,
-		config.CommitMsgConfig_DEFAULT: tmplCommitMsg,
+	namedCommitMsgTemplates = map[proto.CommitMsgConfig_BuiltIn]*template.Template{
+		proto.CommitMsgConfig_ANDROID: tmplAndroid,
+		proto.CommitMsgConfig_DEFAULT: tmplCommitMsg,
 	}
 
 	limitEmptyLinesRegex = regexp.MustCompile(`\n\n\n+`)
@@ -36,14 +36,14 @@ type transitiveDepUpdate struct {
 
 // Builder is a helper used to build commit messages.
 type Builder struct {
-	cfg            *config.CommitMsgConfig
+	cfg            *proto.CommitMsgConfig
 	childName      string
 	serverURL      string
-	transitiveDeps []*config.TransitiveDepConfig
+	transitiveDeps []*proto.TransitiveDepConfig
 }
 
 // NewBuilder returns a Builder instance.
-func NewBuilder(c *config.CommitMsgConfig, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig) (*Builder, error) {
+func NewBuilder(c *proto.CommitMsgConfig, childName, serverURL string, transitiveDeps []*proto.TransitiveDepConfig) (*Builder, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -72,7 +72,7 @@ func (b *Builder) Build(from, to *revision.Revision, rolling []*revision.Revisio
 }
 
 // buildCommitMsg builds a commit message for the given roll.
-func buildCommitMsg(c *config.CommitMsgConfig, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
+func buildCommitMsg(c *proto.CommitMsgConfig, childName, serverURL string, transitiveDeps []*proto.TransitiveDepConfig, from, to *revision.Revision, rolling []*revision.Revision, reviewers []string) (string, error) {
 	vars, err := makeVars(c, childName, serverURL, transitiveDeps, from, to, rolling, reviewers)
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -112,7 +112,7 @@ func fixupRevision(rev *revision.Revision) *revision.Revision {
 }
 
 // makeVars derives commitMsgVars from the CommitMsgConfig for the given roll.
-func makeVars(c *config.CommitMsgConfig, childName, serverURL string, transitiveDeps []*config.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers []string) (*commitMsgVars, error) {
+func makeVars(c *proto.CommitMsgConfig, childName, serverURL string, transitiveDeps []*proto.TransitiveDepConfig, from, to *revision.Revision, revisions []*revision.Revision, reviewers []string) (*commitMsgVars, error) {
 	// Create the commitMsgVars object to be used as input to the template.
 	revsCopy := make([]*revision.Revision, 0, len(revisions))
 	for _, rev := range revisions {
@@ -210,7 +210,7 @@ func makeVars(c *config.CommitMsgConfig, childName, serverURL string, transitive
 
 // commitMsgVars contains variables used to fill in a commit message template.
 type commitMsgVars struct {
-	*config.CommitMsgConfig
+	*proto.CommitMsgConfig
 	Bugs           []string
 	ChildLogURL    string
 	ChildName      string
@@ -258,33 +258,33 @@ const fakeChildDep1 = "child/dep1"
 const fakeChildDep2 = "child/dep2"
 const fakeChildDep3 = "child/dep3"
 
-var fakeTransitiveDeps = []*config.TransitiveDepConfig{
+var fakeTransitiveDeps = []*proto.TransitiveDepConfig{
 	{
-		Child: &config.VersionFileConfig{
+		Child: &proto.VersionFileConfig{
 			Id:   fakeChildDep1,
 			Path: "DEPS",
 		},
-		Parent: &config.VersionFileConfig{
+		Parent: &proto.VersionFileConfig{
 			Id:   "parent/dep1",
 			Path: "DEPS",
 		},
 	},
 	{
-		Child: &config.VersionFileConfig{
+		Child: &proto.VersionFileConfig{
 			Id:   fakeChildDep2,
 			Path: "DEPS",
 		},
-		Parent: &config.VersionFileConfig{
+		Parent: &proto.VersionFileConfig{
 			Id:   "parent/dep2",
 			Path: "DEPS",
 		},
 	},
 	{
-		Child: &config.VersionFileConfig{
+		Child: &proto.VersionFileConfig{
 			Id:   fakeChildDep3,
 			Path: "DEPS",
 		},
-		Parent: &config.VersionFileConfig{
+		Parent: &proto.VersionFileConfig{
 			Id:   "parent/dep3",
 			Path: "DEPS",
 		},
