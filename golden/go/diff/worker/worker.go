@@ -6,6 +6,7 @@ package worker
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"image"
 	"image/png"
 	"sort"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/sync/errgroup"
 
@@ -34,6 +36,8 @@ const (
 	downloadedImageCacheSize = 10_000
 
 	diffingRoutines = 8
+
+	tileWidth = 100
 )
 
 type contextKey string
@@ -55,15 +59,21 @@ type WorkerImpl struct {
 	db                   *pgxpool.Pool
 	imageSource          ImageSource
 	downloadedImageCache *lru.Cache
+	tilesToProcess       int
 }
 
 // New returns a WorkerImpl that is ready to compute diffs.
-func New(db *pgxpool.Pool, src ImageSource) *WorkerImpl {
+func New(db *pgxpool.Pool, src ImageSource, tilesToProcess int) *WorkerImpl {
 	imgCache, err := lru.New(downloadedImageCacheSize)
 	if err != nil {
 		panic(err) // should only happen if provided size is negative.
 	}
-	return &WorkerImpl{db: db, imageSource: src, downloadedImageCache: imgCache}
+	return &WorkerImpl{
+		db:                   db,
+		imageSource:          src,
+		downloadedImageCache: imgCache,
+		tilesToProcess:       tilesToProcess,
+	}
 }
 
 type digestPair struct {
@@ -74,8 +84,11 @@ type digestPair struct {
 // ComputeDiffs recomputes all diffs for the current grouping, including any digests provided.
 func (w *WorkerImpl) ComputeDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
 	// TODO(kjlubick) fetch existing digests from DB
-	allDigests := additional
-
+	allDigests, err := w.getExisting(ctx, grouping)
+	if err != nil {
+		return skerr.Wrapf(err, "getting existing for %v", grouping)
+	}
+	allDigests = append(allDigests, additional...)
 	sort.Sort(types.DigestSlice(allDigests))
 
 	toCompute := map[digestPair]bool{}
@@ -117,21 +130,65 @@ func (w *WorkerImpl) ComputeDiffs(ctx context.Context, grouping paramtools.Param
 	if err := eg.Wait(); err != nil {
 		return skerr.Wrap(err)
 	}
-
 	if len(newMetrics) == 0 {
 		return nil
 	}
-
 	if err := w.writeMetrics(ctx, newMetrics); err != nil {
 		return skerr.Wrapf(err, "writing %d new metrics for grouping %v", len(newMetrics), grouping)
 	}
 	return nil
 }
 
+func (w *WorkerImpl) getExisting(ctx context.Context, grouping paramtools.Params) ([]types.Digest, error) {
+	row := w.db.QueryRow(ctx, `SELECT max(commit_id) FROM Commits
+AS OF SYSTEM TIME '-0.1s'
+WHERE has_data = TRUE`)
+	var lc pgtype.Int4
+	if err := row.Scan(&lc); err != nil {
+		return nil, skerr.Wrapf(err, "getting latest commit")
+	}
+	if lc.Status == pgtype.Null {
+		// There are no commits with data
+		return nil, nil
+	}
+	latestCommit := schema.CommitID(lc.Int)
+	currentTileStart := sql.ComputeTileStartID(latestCommit, tileWidth)
+	// Go backwards so we can use the current tile plus the previous n-1 tiles.
+	beginTileStart := currentTileStart - schema.CommitID(tileWidth*(w.tilesToProcess-1))
+	_, groupingID := sql.SerializeMap(grouping)
+
+	const statement = `
+WITH
+TracesMatchingGrouping AS (
+  SELECT trace_id FROM Traces WHERE grouping_id = $1
+)
+SELECT DISTINCT digest FROM TiledTraceDigests
+JOIN TracesMatchingGrouping on TiledTraceDigests.trace_id = TracesMatchingGrouping.trace_id
+WHERE TiledTraceDigests.start_commit_id >= $2`
+
+	rows, err := w.db.Query(ctx, statement, groupingID, beginTileStart)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching digests")
+	}
+	defer rows.Close()
+	var rv []types.Digest
+	for rows.Next() {
+		var d schema.DigestBytes
+		if err := rows.Scan(&d); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, types.Digest(hex.EncodeToString(d)))
+	}
+	return rv, nil
+}
+
 // removeAlreadyComputed will query the SQL database for DiffMetrics that have already been computed
 // and will mark those entries in the provided map as false, signalling that they should not be
 // recomputed.
 func (w *WorkerImpl) removeAlreadyComputed(ctx context.Context, toCompute map[digestPair]bool, digests []types.Digest) error {
+	if len(digests) == 0 || len(toCompute) == 0 {
+		return nil
+	}
 	const statement = `
 SELECT encode(left_digest, 'hex'), encode(right_digest, 'hex') FROM DiffMetrics
 AS OF SYSTEM TIME '-0.1s'
