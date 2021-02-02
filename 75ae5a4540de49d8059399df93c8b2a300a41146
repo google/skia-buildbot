@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "418cfab6_8a8db495",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-02T19:11:18Z",
+      "side": 1,
+      "message": "Do different Gold instances use different tile widths? If so, it\u0027s okay to hardcode this for now but please leave a note that we need to pipe through the instance-specific value from the config at some point. If it\u0027s not instance dependent, please provide a rationale for this number.",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "75ae5a4540de49d8059399df93c8b2a300a41146",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
