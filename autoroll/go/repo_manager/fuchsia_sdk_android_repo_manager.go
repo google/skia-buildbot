@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -29,7 +29,7 @@ const (
 // SDK into Android. Unlike the fuchsiaSDKRepoManager, it actually unzips the
 // contents of the SDK and checks them into the target repo. Additionally, it
 // generates an Android.bp file.
-func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *config.FuchsiaSDKAndroidRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
+func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *proto.FuchsiaSDKAndroidRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -50,7 +50,7 @@ type androidRepoManager struct {
 	parentRepoURL     string
 	repoToolPath      string
 
-	projectMetadataFileConfig *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig
+	projectMetadataFileConfig *proto.AndroidRepoManagerConfig_ProjectMetadataFileConfig
 
 	childBranch      *config_vars.Template
 	childDir         string
@@ -66,7 +66,7 @@ type androidRepoManager struct {
 }
 
 // NewAndroidRepoManager returns an androidRepoManager instance.
-func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
+func NewAndroidRepoManager(ctx context.Context, c *proto.AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

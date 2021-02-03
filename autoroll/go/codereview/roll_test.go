@@ -12,7 +12,7 @@ import (
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
@@ -27,7 +27,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func makeFakeRoll(t *testing.T, cfg *config.GerritConfig, issueNum int64, from, to string, dryRun bool) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue) {
+func makeFakeRoll(t *testing.T, cfg *proto.GerritConfig, issueNum int64, from, to string, dryRun bool) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue) {
 	// Gerrit API only has millisecond precision.
 	now := time.Now().UTC().Round(time.Millisecond)
 	description := fmt.Sprintf(`Roll src/third_party/skia/ %s..%s (42 commits).
@@ -83,7 +83,7 @@ Tbr: some-reviewer
 	}
 }
 
-func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
+func testGerritRoll(t *testing.T, cfg *proto.GerritConfig) {
 	unittest.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
@@ -361,18 +361,18 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 }
 
 func TestGerritRoll(t *testing.T) {
-	testGerritRoll(t, &config.GerritConfig{
+	testGerritRoll(t, &proto.GerritConfig{
 		Url:     "???",
 		Project: "???",
-		Config:  config.GerritConfig_CHROMIUM,
+		Config:  proto.GerritConfig_CHROMIUM,
 	})
 }
 
 func TestGerritAndroidRoll(t *testing.T) {
-	testGerritRoll(t, &config.GerritConfig{
+	testGerritRoll(t, &proto.GerritConfig{
 		Url:     "???",
 		Project: "???",
-		Config:  config.GerritConfig_ANDROID,
+		Config:  proto.GerritConfig_ANDROID,
 	})
 }
 

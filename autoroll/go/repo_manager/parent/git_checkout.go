@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -32,13 +32,13 @@ type GitCheckoutParent struct {
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c *proto.GitCheckoutParentConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
 	// TODO(borenet): Don't modify the passed-in config!
-	deps := make([]*config.VersionFileConfig, 0, len(c.Dep.Transitive)+1)
+	deps := make([]*proto.VersionFileConfig, 0, len(c.Dep.Transitive)+1)
 	deps = append(deps, c.Dep.Primary)
 	for _, td := range c.Dep.Transitive {
 		deps = append(deps, td.Parent)
@@ -77,7 +77,7 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 // gitCheckoutFileCreateRollFunc returns a GitCheckoutCreateRollFunc which uses
 // a local Git checkout and pins dependencies using a file checked into the
 // repo.
-func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.CreateRollFunc {
+func gitCheckoutFileCreateRollFunc(dep *proto.DependencyConfig) git_common.CreateRollFunc {
 	return func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Determine what changes need to be made.
 		getFile := func(ctx context.Context, path string) (string, error) {
