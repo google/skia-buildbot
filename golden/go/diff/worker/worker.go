@@ -13,6 +13,10 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/sklog"
+
+	ttlcache "github.com/patrickmn/go-cache"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -38,6 +42,12 @@ const (
 	diffingRoutines = 8
 )
 
+var (
+	// In an effort to prevent spamming the ProblemImages database, we skip known bad images for
+	// a period of time. This time is controlled by badImageCooldown and a TTL cache.
+	badImageCooldown = time.Minute
+)
+
 type contextKey string
 
 // NowSource is an abstraction around a clock.
@@ -56,6 +66,7 @@ type ImageSource interface {
 type WorkerImpl struct {
 	db                   *pgxpool.Pool
 	imageSource          ImageSource
+	badDigestsCache      *ttlcache.Cache
 	downloadedImageCache *lru.Cache
 	// TODO(kjlubick) this might not be the best parameter for "digests to compute against" as we
 	//   might just want to query for the last N commits with data and start at that tile to better
@@ -72,6 +83,7 @@ func New(db *pgxpool.Pool, src ImageSource, tilesToProcess int) *WorkerImpl {
 	return &WorkerImpl{
 		db:                   db,
 		imageSource:          src,
+		badDigestsCache:      ttlcache.New(badImageCooldown, 2*badImageCooldown),
 		downloadedImageCache: imgCache,
 		tilesToProcess:       tilesToProcess,
 	}
@@ -110,9 +122,22 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	for i := 0; i < diffingRoutines; i++ {
 		eg.Go(func() error {
 			for pair := range work {
-				nm, err := w.diff(eCtx, pair.left, pair.right)
+				// If either image is known to be bad, skip this work
+				_, bad1 := w.badDigestsCache.Get(string(pair.left))
+				_, bad2 := w.badDigestsCache.Get(string(pair.right))
+				if bad1 || bad2 {
+					continue
+				}
+				nm, badDigest, err := w.diff(eCtx, pair.left, pair.right)
+				// If there is an error diffing, it is because we couldn't download or decode
+				// one of the images. If so, we skip that entry and report it, before moving on.
 				if err != nil {
-					return skerr.Wrapf(err, "diffing %s and %s", pair.left, pair.right)
+					// Add the bad image to the ttlcache so we skip it for a short while.
+					w.badDigestsCache.Set(string(badDigest), true, ttlcache.DefaultExpiration)
+					if err2 := w.reportProblemImage(eCtx, badDigest, err); err2 != nil {
+						return skerr.Wrap(err2)
+					}
+					continue
 				}
 				newMutex.Lock()
 				newMetrics = append(newMetrics, nm)
@@ -223,23 +248,24 @@ WHERE left_digest IN `
 }
 
 // diff computes the difference between the two images with the provided digests and returns
-// it in a format that can be inserted into the SQL database.
-func (w *WorkerImpl) diff(ctx context.Context, left, right types.Digest) (schema.DiffMetricRow, error) {
+// it in a format that can be inserted into the SQL database. If there is an error downloading
+// or decoding a digest, an error is returned along with the problematic digest.
+func (w *WorkerImpl) diff(ctx context.Context, left, right types.Digest) (schema.DiffMetricRow, types.Digest, error) {
 	lb, err := sql.DigestToBytes(left)
 	if err != nil {
-		return schema.DiffMetricRow{}, skerr.Wrap(err)
+		return schema.DiffMetricRow{}, left, skerr.Wrap(err)
 	}
 	rb, err := sql.DigestToBytes(right)
 	if err != nil {
-		return schema.DiffMetricRow{}, skerr.Wrap(err)
+		return schema.DiffMetricRow{}, right, skerr.Wrap(err)
 	}
 	leftImg, err := w.getDecodedImage(ctx, left)
 	if err != nil {
-		return schema.DiffMetricRow{}, skerr.Wrap(err)
+		return schema.DiffMetricRow{}, left, skerr.Wrap(err)
 	}
 	rightImg, err := w.getDecodedImage(ctx, right)
 	if err != nil {
-		return schema.DiffMetricRow{}, skerr.Wrap(err)
+		return schema.DiffMetricRow{}, right, skerr.Wrap(err)
 	}
 	m := diff.ComputeDiffMetrics(leftImg, rightImg)
 	return schema.DiffMetricRow{
@@ -252,7 +278,7 @@ func (w *WorkerImpl) diff(ctx context.Context, left, right types.Digest) (schema
 		CombinedMetric:    m.CombinedMetric,
 		DimensionsDiffer:  m.DimDiffer,
 		Timestamp:         now(ctx),
-	}, nil
+	}, "", nil
 }
 
 func max(diffs [4]int) int {
@@ -314,6 +340,23 @@ max_channel_diff, combined_metric, dimensions_differ, ts) VALUES `
 		_, err := w.db.Exec(ctx, baseStatement+vp, arguments...)
 		return skerr.Wrap(err)
 	}))
+}
+
+// reportProblemImage creates or updates a row in the ProblemImages table for the given digest.
+func (w *WorkerImpl) reportProblemImage(ctx context.Context, digest types.Digest, imgErr error) error {
+	sklog.Warningf("Reporting problem with image %s: %s", digest, imgErr)
+	const statement = `
+INSERT INTO ProblemImages (digest, num_errors, latest_error, error_ts)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (digest)
+DO UPDATE SET (num_errors, latest_error, error_ts) =
+(ProblemImages.num_errors + 1, $3, $4)`
+
+	_, err := w.db.Exec(ctx, statement, digest, 1, imgErr.Error(), now(ctx))
+	if err != nil {
+		return skerr.Wrapf(err, "writing to ProblemImages")
+	}
+	return nil
 }
 
 // decode decodes the provided bytes as a PNG and returns them.
