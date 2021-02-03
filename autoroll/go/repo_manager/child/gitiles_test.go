@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/chrome_branch/mocks"
 	"go.skia.org/infra/go/git"
@@ -73,8 +73,8 @@ func TestGitilesChildPathFilter(t *testing.T) {
 	commits = append(commits, repo.Commit(ctx))
 
 	// Create the GitilesChild.
-	cfg := config.GitilesChildConfig{
-		Gitiles: &config.GitilesConfig{
+	cfg := proto.GitilesChildConfig{
+		Gitiles: &proto.GitilesConfig{
 			Branch:  git.DefaultBranch,
 			RepoUrl: repo.RepoUrl(),
 		},

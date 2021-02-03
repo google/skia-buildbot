@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
@@ -47,30 +47,30 @@ const (
 	afdoVersionFilePath = "chrome/android/profiles/newest.txt"
 )
 
-func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
-	return &config.ParentChildRepoManagerConfig{
-		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
-			GitilesParent: &config.GitilesParentConfig{
-				Gitiles: &config.GitilesConfig{
+func afdoCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
+	return &proto.ParentChildRepoManagerConfig{
+		Parent: &proto.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: &proto.GitilesParentConfig{
+				Gitiles: &proto.GitilesConfig{
 					Branch:  git.DefaultBranch,
 					RepoUrl: "todo.git",
 				},
-				Dep: &config.DependencyConfig{
-					Primary: &config.VersionFileConfig{
+				Dep: &proto.DependencyConfig{
+					Primary: &proto.VersionFileConfig{
 						Id:   "AFDO",
 						Path: afdoVersionFilePath,
 					},
 				},
-				Gerrit: &config.GerritConfig{
+				Gerrit: &proto.GerritConfig{
 					Url:     "https://fake-skia-review.googlesource.com",
 					Project: "fake-gerrit-project",
-					Config:  config.GerritConfig_CHROMIUM,
+					Config:  proto.GerritConfig_CHROMIUM,
 				},
 			},
 		},
-		Child: &config.ParentChildRepoManagerConfig_SemverGcsChild{
-			SemverGcsChild: &config.SemVerGCSChildConfig{
-				Gcs: &config.GCSChildConfig{
+		Child: &proto.ParentChildRepoManagerConfig_SemverGcsChild{
+			SemverGcsChild: &proto.SemVerGCSChildConfig{
+				Gcs: &proto.GCSChildConfig{
 					GcsBucket: afdoGsBucket,
 					GcsPath:   afdoGsPath,
 				},
@@ -82,10 +82,10 @@ func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 }
 
 func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
-	rv, err := codereview.NewGerrit(&config.GerritConfig{
+	rv, err := codereview.NewGerrit(&proto.GerritConfig{
 		Url:     "https://skia-review.googlesource.com",
 		Project: "skia",
-		Config:  config.GerritConfig_CHROMIUM,
+		Config:  proto.GerritConfig_CHROMIUM,
 	}, g)
 	require.NoError(t, err)
 	return rv
@@ -119,7 +119,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	require.NoError(t, err)
 
 	cfg := afdoCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
 
 	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipe-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g))

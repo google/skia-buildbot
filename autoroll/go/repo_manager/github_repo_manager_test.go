@@ -15,7 +15,7 @@ import (
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -32,7 +32,7 @@ const (
 )
 
 func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
-	rv, err := codereview.NewGitHub(&config.GitHubConfig{
+	rv, err := codereview.NewGitHub(&proto.GitHubConfig{
 		RepoOwner:     "me",
 		RepoName:      "my-repo",
 		ChecksWaitFor: []string{"a", "b", "c"},
@@ -41,18 +41,18 @@ func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 	return rv
 }
 
-func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
-	return &config.ParentChildRepoManagerConfig{
-		Parent: &config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent{
-			GitCheckoutGithubFileParent: &config.GitCheckoutGitHubFileParentConfig{
-				GitCheckout: &config.GitCheckoutGitHubParentConfig{
-					GitCheckout: &config.GitCheckoutParentConfig{
-						GitCheckout: &config.GitCheckoutConfig{
+func githubRmCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
+	return &proto.ParentChildRepoManagerConfig{
+		Parent: &proto.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent{
+			GitCheckoutGithubFileParent: &proto.GitCheckoutGitHubFileParentConfig{
+				GitCheckout: &proto.GitCheckoutGitHubParentConfig{
+					GitCheckout: &proto.GitCheckoutParentConfig{
+						GitCheckout: &proto.GitCheckoutConfig{
 							Branch:  git.DefaultBranch,
 							RepoUrl: "todo.git",
 						},
-						Dep: &config.DependencyConfig{
-							Primary: &config.VersionFileConfig{
+						Dep: &proto.DependencyConfig{
+							Primary: &proto.VersionFileConfig{
 								Id:   "todo.git",
 								Path: githubVersionFile,
 							},
@@ -62,10 +62,10 @@ func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 			},
 		},
-		Child: &config.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
-			GitCheckoutGithubChild: &config.GitCheckoutGitHubChildConfig{
-				GitCheckout: &config.GitCheckoutChildConfig{
-					GitCheckout: &config.GitCheckoutConfig{
+		Child: &proto.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
+			GitCheckoutGithubChild: &proto.GitCheckoutGitHubChildConfig{
+				GitCheckout: &proto.GitCheckoutChildConfig{
+					GitCheckout: &proto.GitCheckoutConfig{
 						Branch:  git.DefaultBranch,
 						RepoUrl: "todo.git",
 					},
@@ -77,7 +77,7 @@ func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 	}
 }
 
-func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
+func setupGithub(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -104,11 +104,11 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 	fork.Git(ctx, "checkout", git.DefaultBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
 	parentCfg.GitCheckout.ForkRepoUrl = fork.RepoUrl()
 	parentCfg.GitCheckout.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
 	parentCfg.GitCheckout.GitCheckout.Dep.Primary.Id = child.RepoUrl()
-	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
+	childCfg := cfg.Child.(*proto.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
 	childCfg.GitCheckout.GitCheckout.RepoUrl = child.RepoUrl()
 	childCfg.RepoName = child.RepoUrl()
 
@@ -253,8 +253,8 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 		ran = true
 		return nil
 	})
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
-	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
+	parentCfg.PreUploadSteps = []proto.PreUploadStep{stepName}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
 	defer cleanup()
 
@@ -280,8 +280,8 @@ func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
 		ran = true
 		return expectedErr
 	})
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
-	parentCfg.PreUploadSteps = []config.PreUploadStep{stepName}
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitCheckoutGithubFileParent).GitCheckoutGithubFileParent
+	parentCfg.PreUploadSteps = []proto.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithub(t, cfg)
 	defer cleanup()

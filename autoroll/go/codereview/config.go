@@ -1,7 +1,7 @@
 package codereview
 
 import (
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/util"
 )
@@ -29,12 +29,12 @@ const (
 
 var (
 	// GerritConfigs maps Gerrit config names to gerrit.Configs.
-	GerritConfigs = map[config.GerritConfig_Config]*gerrit.Config{
-		config.GerritConfig_ANDROID:        gerrit.CONFIG_ANDROID,
-		config.GerritConfig_ANGLE:          gerrit.CONFIG_ANGLE,
-		config.GerritConfig_CHROMIUM:       gerrit.CONFIG_CHROMIUM,
-		config.GerritConfig_CHROMIUM_NO_CQ: gerrit.CONFIG_CHROMIUM_NO_CQ,
-		config.GerritConfig_LIBASSISTANT:   gerrit.CONFIG_LIBASSISTANT,
+	GerritConfigs = map[proto.GerritConfig_Config]*gerrit.Config{
+		proto.GerritConfig_ANDROID:        gerrit.CONFIG_ANDROID,
+		proto.GerritConfig_ANGLE:          gerrit.CONFIG_ANGLE,
+		proto.GerritConfig_CHROMIUM:       gerrit.CONFIG_CHROMIUM,
+		proto.GerritConfig_CHROMIUM_NO_CQ: gerrit.CONFIG_CHROMIUM_NO_CQ,
+		proto.GerritConfig_LIBASSISTANT:   gerrit.CONFIG_LIBASSISTANT,
 	}
 )
 

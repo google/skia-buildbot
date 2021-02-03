@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
@@ -27,7 +27,7 @@ type parentChildRepoManager struct {
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
-func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
+func newParentChildRepoManager(ctx context.Context, c *proto.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
 	var childRM child.Child
 	var parentRM parent.Parent
 	var err error

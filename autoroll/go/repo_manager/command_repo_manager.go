@@ -3,14 +3,13 @@ package repo_manager
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -38,16 +37,16 @@ type CommandTmplVars struct {
 type CommandRepoManager struct {
 	co            *git_common.Checkout
 	shortRevRegex *config_vars.Template
-	getTipRev     *config.CommandRepoManagerConfig_CommandConfig
-	getPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
-	setPinnedRev  *config.CommandRepoManagerConfig_CommandConfig
+	getTipRev     *proto.CommandRepoManagerConfig_CommandConfig
+	getPinnedRev  *proto.CommandRepoManagerConfig_CommandConfig
+	setPinnedRev  *proto.CommandRepoManagerConfig_CommandConfig
 	createRoll    git_common.CreateRollFunc
 	uploadRoll    git_common.UploadRollFunc
 }
 
 // NewCommandRepoManager returns a RepoManager implementation which rolls
 // trace_processor_shell into Chrome.
-func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, cr codereview.CodeReview) (*CommandRepoManager, error) {
+func NewCommandRepoManager(ctx context.Context, c *proto.CommandRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, cr codereview.CodeReview) (*CommandRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -104,7 +103,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 	return rm, nil
 }
 
-func makeCommand(cfg *config.CommandRepoManagerConfig_CommandConfig, baseDir string, vars *CommandTmplVars) (*exec.Command, error) {
+func makeCommand(cfg *proto.CommandRepoManagerConfig_CommandConfig, baseDir string, vars *CommandTmplVars) (*exec.Command, error) {
 	args := make([]string, 0, len(cfg.Command))
 	for _, arg := range cfg.Command {
 		tmpl, err := template.New(arg).Parse(arg)
@@ -125,15 +124,15 @@ func makeCommand(cfg *config.CommandRepoManagerConfig_CommandConfig, baseDir str
 	if cfg.Dir != "" {
 		c.Dir = filepath.Join(c.Dir, cfg.Dir)
 	}
-	for k, v := range cfg.Env {
-		c.Env = append(c.Env, fmt.Sprintf("%s=%s", k, v))
+	for _, envVar := range cfg.Env {
+		c.Env = append(c.Env, envVar)
 	}
 	c.InheritEnv = true
 	return c, nil
 }
 
 // Run the given command and return the output.
-func (rm *CommandRepoManager) run(ctx context.Context, cmd *config.CommandRepoManagerConfig_CommandConfig, vars *CommandTmplVars) (string, error) {
+func (rm *CommandRepoManager) run(ctx context.Context, cmd *proto.CommandRepoManagerConfig_CommandConfig, vars *CommandTmplVars) (string, error) {
 	c, err := makeCommand(cmd, rm.co.Dir(), vars)
 	if err != nil {
 		return "", skerr.Wrap(err)

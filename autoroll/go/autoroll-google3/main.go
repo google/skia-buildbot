@@ -10,7 +10,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -43,7 +43,7 @@ func main() {
 		sklog.Fatal("--webhook_request_salt is required.")
 	}
 
-	var cfg config.Config
+	var cfg proto.Config
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
 		configBytes, err := ioutil.ReadAll(f)
 		if err != nil {

@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
@@ -39,22 +39,22 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 
 var (
 	// preUploadSteps is the registry of known PreUploadStep instances.
-	preUploadSteps = map[config.PreUploadStep]PreUploadStep{
-		config.PreUploadStep_ANGLE_CODE_GENERATION:               ANGLECodeGeneration,
-		config.PreUploadStep_ANGLE_ROLL_CHROMIUM:                 ANGLERollChromium,
-		config.PreUploadStep_GO_GENERATE_CIPD:                    GoGenerateCipd,
-		config.PreUploadStep_TRAIN_INFRA:                         TrainInfra,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:             FlutterLicenseScripts,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:    FlutterLicenseScriptsForDart,
-		config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA: FlutterLicenseScriptsForFuchsia,
-		config.PreUploadStep_ANGLE_GN_TO_BP:                      AngleGnToBp,
-		config.PreUploadStep_SKIA_GN_TO_BP:                       SkiaGnToBp,
-		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
+	preUploadSteps = map[proto.PreUploadStep]PreUploadStep{
+		proto.PreUploadStep_ANGLE_CODE_GENERATION:               ANGLECodeGeneration,
+		proto.PreUploadStep_ANGLE_ROLL_CHROMIUM:                 ANGLERollChromium,
+		proto.PreUploadStep_GO_GENERATE_CIPD:                    GoGenerateCipd,
+		proto.PreUploadStep_TRAIN_INFRA:                         TrainInfra,
+		proto.PreUploadStep_FLUTTER_LICENSE_SCRIPTS:             FlutterLicenseScripts,
+		proto.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_DART:    FlutterLicenseScriptsForDart,
+		proto.PreUploadStep_FLUTTER_LICENSE_SCRIPTS_FOR_FUCHSIA: FlutterLicenseScriptsForFuchsia,
+		proto.PreUploadStep_ANGLE_GN_TO_BP:                      AngleGnToBp,
+		proto.PreUploadStep_SKIA_GN_TO_BP:                       SkiaGnToBp,
+		proto.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
 	}
 )
 
 // GetPreUploadStep returns the PreUploadStep with the given name.
-func GetPreUploadStep(s config.PreUploadStep) (PreUploadStep, error) {
+func GetPreUploadStep(s proto.PreUploadStep) (PreUploadStep, error) {
 	rv, ok := preUploadSteps[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -63,7 +63,7 @@ func GetPreUploadStep(s config.PreUploadStep) (PreUploadStep, error) {
 }
 
 // GetPreUploadSteps returns the PreUploadSteps with the given names.
-func GetPreUploadSteps(steps []config.PreUploadStep) ([]PreUploadStep, error) {
+func GetPreUploadSteps(steps []proto.PreUploadStep) ([]PreUploadStep, error) {
 	rv := make([]PreUploadStep, 0, len(steps))
 	for _, s := range steps {
 		step, err := GetPreUploadStep(s)
@@ -78,13 +78,13 @@ func GetPreUploadSteps(steps []config.PreUploadStep) ([]PreUploadStep, error) {
 // AddPreUploadStepForTesting adds the given PreUploadStep to the global
 // registry to be used for testing. Returns a unique name for the step. Not safe
 // to be used concurrently with GetPreUploadStep(s).
-func AddPreUploadStepForTesting(s PreUploadStep) config.PreUploadStep {
-	id := config.PreUploadStep(len(preUploadSteps))
+func AddPreUploadStepForTesting(s PreUploadStep) proto.PreUploadStep {
+	id := proto.PreUploadStep(len(preUploadSteps))
 	preUploadSteps[id] = s
 	// Add to the config package maps.
 	stepName := fmt.Sprintf("Test-Step-%d", id)
-	config.PreUploadStep_name[int32(id)] = stepName
-	config.PreUploadStep_value[stepName] = int32(id)
+	proto.PreUploadStep_name[int32(id)] = stepName
+	proto.PreUploadStep_value[stepName] = int32(id)
 	return id
 }
 

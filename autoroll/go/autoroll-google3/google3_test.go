@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -29,10 +29,10 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 	gb := git_testutils.GitInit(t, ctx)
 	urlmock := mockhttpclient.NewURLMock()
 	mockChild := gitiles_testutils.NewMockRepo(t, gb.RepoUrl(), git.GitDir(gb.Dir()), urlmock)
-	a, err := NewAutoRoller(ctx, &config.Config{
+	a, err := NewAutoRoller(ctx, &proto.Config{
 		ChildDisplayName: "test-child",
-		RepoManager: &config.Config_Google3RepoManager{
-			Google3RepoManager: &config.Google3RepoManagerConfig{
+		RepoManager: &proto.Config_Google3RepoManager{
+			Google3RepoManager: &proto.Google3RepoManagerConfig{
 				ChildBranch: git.DefaultBranch,
 				ChildRepo:   gb.RepoUrl(),
 			},

@@ -1,4 +1,4 @@
-package rpc
+package proto
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/twitchtv/twirp"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -22,14 +21,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// Generate the go code from the protocol buffer definitions.
-//go:generate protoc --go_opt=paths=source_relative --twirp_out=. --go_out=. ./rpc.proto
-//go:generate mv ./go.skia.org/infra/autoroll/go/rpc/rpc.twirp.go ./rpc.twirp.go
-//go:generate rm -rf ./go.skia.org
-//go:generate goimports -w rpc.pb.go
-//go:generate goimports -w rpc.twirp.go
-//go:generate protoc --twirp_typescript_out=../../modules/rpc ./rpc.proto
-
 // timeNowFunc allows tests to mock out time.Now() for testing.
 var timeNowFunc = time.Now
 
@@ -40,7 +31,7 @@ func NewAutoRollServer(ctx context.Context, rollers map[string]*AutoRoller, manu
 	return twirp_auth.Middleware(srv)
 }
 
-// autoRollServerImpl implements AutoRollRPCs.
+// autoRollServerImpl implements AutoRollService.
 type autoRollServerImpl struct {
 	*twirp_auth.AuthHelper
 	manualRollDB manual.DB
@@ -82,7 +73,7 @@ func (s autoRollMiniStatusSlice) Swap(a, b int) {
 	s[a], s[b] = s[b], s[a]
 }
 
-// GetRollers implements AutoRollRPCs.
+// GetRollers implements AutoRollService.
 func (s *autoRollServerImpl) GetRollers(ctx context.Context, req *GetRollersRequest) (*GetRollersResponse, error) {
 	// Verify that the user has view access.
 	if _, err := s.GetViewer(ctx); err != nil {
@@ -108,7 +99,7 @@ func (s *autoRollServerImpl) GetRollers(ctx context.Context, req *GetRollersRequ
 	}, nil
 }
 
-// GetMiniStatus implements AutoRollRPCs.
+// GetMiniStatus implements AutoRollService.
 func (s *autoRollServerImpl) GetMiniStatus(ctx context.Context, req *GetMiniStatusRequest) (*GetMiniStatusResponse, error) {
 	// Verify that the user has view access.
 	if _, err := s.GetViewer(ctx); err != nil {
@@ -148,7 +139,7 @@ func (s *autoRollServerImpl) getStatus(ctx context.Context, rollerID string) (*A
 	return convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
 }
 
-// GetStatus implements AutoRollRPCs.
+// GetStatus implements AutoRollService.
 func (s *autoRollServerImpl) GetStatus(ctx context.Context, req *GetStatusRequest) (*GetStatusResponse, error) {
 	st, err := s.getStatus(ctx, req.RollerId)
 	if err != nil {
@@ -159,7 +150,7 @@ func (s *autoRollServerImpl) GetStatus(ctx context.Context, req *GetStatusReques
 	}, nil
 }
 
-// SetMode implements AutoRollRPCs.
+// SetMode implements AutoRollService.
 func (s *autoRollServerImpl) SetMode(ctx context.Context, req *SetModeRequest) (*SetModeResponse, error) {
 	// Verify that the user has edit access.
 	user, err := s.GetEditor(ctx)
@@ -193,7 +184,7 @@ func (s *autoRollServerImpl) SetMode(ctx context.Context, req *SetModeRequest) (
 	}, nil
 }
 
-// SetStrategy implements AutoRollRPCs.
+// SetStrategy implements AutoRollService.
 func (s *autoRollServerImpl) SetStrategy(ctx context.Context, req *SetStrategyRequest) (*SetStrategyResponse, error) {
 	// Verify that the user has edit access.
 	user, err := s.GetEditor(ctx)
@@ -227,7 +218,7 @@ func (s *autoRollServerImpl) SetStrategy(ctx context.Context, req *SetStrategyRe
 	}, nil
 }
 
-// CreateManualRoll implements AutoRollRPCs.
+// CreateManualRoll implements AutoRollService.
 func (s *autoRollServerImpl) CreateManualRoll(ctx context.Context, req *CreateManualRollRequest) (*CreateManualRollResponse, error) {
 	// Verify that the user has edit access.
 	user, err := s.GetEditor(ctx)
@@ -257,7 +248,7 @@ func (s *autoRollServerImpl) CreateManualRoll(ctx context.Context, req *CreateMa
 	}, nil
 }
 
-// Unthrottle implements AutoRollRPCs.
+// Unthrottle implements AutoRollService.
 func (s *autoRollServerImpl) Unthrottle(ctx context.Context, req *UnthrottleRequest) (*UnthrottleResponse, error) {
 	// Verify that the user has edit access.
 	if _, err := s.GetEditor(ctx); err != nil {
@@ -273,9 +264,21 @@ func (s *autoRollServerImpl) Unthrottle(ctx context.Context, req *UnthrottleRequ
 	return &UnthrottleResponse{}, nil
 }
 
+// GetConfig implements AutoRollService.
+func (s *autoRollServerImpl) GetConfig(ctx context.Context, req *GetConfigRequest) (*GetConfigResponse, error) {
+	// TODO
+	return nil, fmt.Errorf("not implemented")
+}
+
+// SetConfig implements AutoRollService.
+func (s *autoRollServerImpl) PutConfig(ctx context.Context, req *PutConfigRequest) (*PutConfigResponse, error) {
+	// TODO
+	return nil, fmt.Errorf("not implemented")
+}
+
 // AutoRoller provides interactions with a single roller.
 type AutoRoller struct {
-	Cfg *config.Config
+	Cfg *Config
 
 	// Interactions with the roller through the DB.
 	Mode     modes.ModeHistory
@@ -480,7 +483,7 @@ func convertRevisions(inp []*revision.Revision) []*Revision {
 	return rv
 }
 
-func convertConfig(inp *config.Config) *AutoRollConfig {
+func convertConfig(inp *Config) *AutoRollConfig {
 	return &AutoRollConfig{
 		ParentWaterfall:     inp.ParentWaterfall,
 		RollerId:            inp.RollerName,
@@ -551,7 +554,7 @@ func convertManualRollRequest(inp *manual.ManualRollRequest) (*ManualRoll, error
 	}, nil
 }
 
-func convertStatus(st *status.AutoRollStatus, cfg *config.Config, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
+func convertStatus(st *status.AutoRollStatus, cfg *Config, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
 	mode := modes.ModeRunning
 	if modeChange != nil {
 		mode = modeChange.Mode

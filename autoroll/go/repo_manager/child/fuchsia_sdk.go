@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
@@ -47,7 +47,7 @@ type FuchsiaSDKChild struct {
 
 // NewFuchsiaSDK returns a Child implementation which deals with the Fuchsia
 // SDK.
-func NewFuchsiaSDK(ctx context.Context, c *config.FuchsiaSDKChildConfig, client *http.Client) (*FuchsiaSDKChild, error) {
+func NewFuchsiaSDK(ctx context.Context, c *proto.FuchsiaSDKChildConfig, client *http.Client) (*FuchsiaSDKChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
 	}
