@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df6fbc61_c940d18f",
+        "filename": "shaders/go/shaders/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-03T20:53:46Z",
+      "side": 1,
+      "message": "nit: skerr.Wrap()",
+      "range": {
+        "startLine": 36,
+        "startChar": 14,
+        "endLine": 36,
+        "endChar": 17
+      },
+      "revId": "f8aa645be1e6bfa6e1cda6be3199a07fb01c961f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
