@@ -5,10 +5,8 @@
 
 """Tests for module csv_merger."""
 
-import csv
 import csv_merger
 import os
-import test_utils
 import unittest
 
 
@@ -34,8 +32,12 @@ class TestCsvMerger(unittest.TestCase):
     merger.Merge()
 
     # Compare actual with expected.
-    expected_csv = os.path.join(self._test_csv_dir, 'expected_output')
-    test_utils.assertCSVs(expected_csv, self._actual_output)
+    expected_output = os.path.join(self._test_csv_dir, 'expected_output')
+    with open(expected_output, 'rb') as f:
+      expected_output_lines = f.readlines()
+    with open(self._actual_output, 'rb') as f:
+      actual_output_lines = f.readlines()
+    self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
 
   def test_E2EMergerWithStrings(self):
     merger = csv_merger.CsvMerger(csv_dir=self._test_csv_dir,
@@ -44,9 +46,13 @@ class TestCsvMerger(unittest.TestCase):
     merger.Merge()
 
     # Compare actual with expected.
-    expected_csv = os.path.join(self._test_csv_dir,
+    expected_output = os.path.join(self._test_csv_dir,
                                    'expected_output_with_strings')
-    test_utils.assertCSVs(expected_csv, self._actual_output)
+    with open(expected_output, 'rb') as f:
+      expected_output_lines = f.readlines()
+    with open(self._actual_output, 'rb') as f:
+      actual_output_lines = f.readlines()
+    self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
 
 
 if __name__ == '__main__':

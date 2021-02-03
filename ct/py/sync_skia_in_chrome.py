@@ -10,7 +10,7 @@ import os
 import re
 import shlex
 import sys
-from urllib.request import urlopen
+import urllib2
 
 import gclient_utils
 import misc
@@ -85,7 +85,7 @@ def Sync(skia_revision=SKIA_REV_DEPS, chrome_revision=CHROME_REV_LKGR,
 
   # Use Chrome LKGR, since gclient_utils will force a sync to origin/master.
   if chrome_revision == CHROME_REV_LKGR:
-    chrome_revision = urlopen(CHROME_LKGR_URL).read()
+    chrome_revision = urllib2.urlopen(CHROME_LKGR_URL).read()
   elif chrome_revision == CHROME_REV_MASTER:
     chrome_revision = shlex.split(
         GetRemoteMasterHash(CHROME_GIT_URL))[0]
@@ -123,7 +123,7 @@ def Sync(skia_revision=SKIA_REV_DEPS, chrome_revision=CHROME_REV_LKGR,
       raise e
     file_to_delete = match.groups()[0]
     try:
-      print('Attempting to remove %s' % file_to_delete)
+      print 'Attempting to remove %s' % file_to_delete
       os.remove(file_to_delete)
     except OSError:
       # If the file no longer exists, just try again.
@@ -137,13 +137,13 @@ def Sync(skia_revision=SKIA_REV_DEPS, chrome_revision=CHROME_REV_LKGR,
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
   actual_chrome_rev = shell_utils.run([gclient_utils.GIT, 'rev-parse', 'HEAD'],
-                                      log_in_real_time=False).rstrip().decode()
+                                      log_in_real_time=False).rstrip()
 
 
   # Find the actually-obtained Skia revision.
   with misc.ChDir(os.path.join('third_party', 'skia')):
     actual_skia_rev = shell_utils.run([gclient_utils.GIT, 'rev-parse', 'HEAD'],
-                                      log_in_real_time=False).rstrip().decode()
+                                      log_in_real_time=False).rstrip()
 
   # Run gclient hooks
   gclient_utils.RunHooks(gyp_defines=gyp_defines, gyp_generators=gyp_generators)
@@ -193,8 +193,8 @@ def Main():
         skia_revision=options.skia_revision or SKIA_REV_DEPS,
         chrome_revision=options.chrome_revision or CHROME_REV_MASTER,
         fetch_target=options.fetch_target)
-    print('Chrome synced to %s' % actual_chrome_rev)
-    print('Skia synced to %s' % actual_skia_rev)
+    print 'Chrome synced to %s' % actual_chrome_rev
+    print 'Skia synced to %s' % actual_skia_rev
 
 
 if __name__ == '__main__':
