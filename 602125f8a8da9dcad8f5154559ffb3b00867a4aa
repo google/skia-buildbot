@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6bdc0bca_8d53834b",
+        "filename": "go/testutils/unittest/unittest.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-03T12:12:46Z",
+      "side": 1,
+      "message": "nit: I\u0027ve found it useful to create a type, and two consts of that type, instead of using a bool:\n\ntype EmulatorReuse int\n\nconst UseSharedEmulatorInstanceUnderRBE \u003d 0\nconst UseTestCaseSpecificEmulatorInstanceUnderRBE \u003d 1\n\nThen the calling code reads more clearly:\n\nrequiresEmulator(t, emulators.BigTable, UseTestCaseSpecificEmulatorInstanceUnderRBE)",
+      "range": {
+        "startLine": 163,
+        "startChar": 41,
+        "endLine": 163,
+        "endChar": 97
+      },
+      "revId": "602125f8a8da9dcad8f5154559ffb3b00867a4aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
