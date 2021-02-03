@@ -1,0 +1,11 @@
+{
+  diff_work_subscription: "gold-skia-diffcalculator", // includes instance id
+  diff_work_topic: "gold-skia-diffmetrics", // includes instance id
+  prom_port: ":20000",
+  pubsub_project_id: "skia-public",
+  ready_port: ":8000",
+  tiles_to_process: 2,
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_REPLICAS: 1
+}

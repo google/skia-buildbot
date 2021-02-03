@@ -34,7 +34,7 @@ const (
 	// be used.
 	NowSourceKey = contextKey("nowSource")
 
-	// 10k decoded images at ~ 1MB a piece = 10 gig of RAM, which should be doable.
+	// 10k encoded images at ~ 1MB a piece = 10 gig of RAM, which should be doable.
 	downloadedImageCacheSize = 10_000
 
 	diffingRoutines = 8
