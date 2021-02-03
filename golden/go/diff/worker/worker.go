@@ -82,8 +82,8 @@ type digestPair struct {
 	right types.Digest
 }
 
-// ComputeDiffs recomputes all diffs for the current grouping, including any digests provided.
-func (w *WorkerImpl) ComputeDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
+// CalculateDiffs recomputes all diffs for the current grouping, including any digests provided.
+func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
 	allDigests, err := w.getExisting(ctx, grouping)
 	if err != nil {
 		return skerr.Wrapf(err, "getting existing for %v", grouping)
