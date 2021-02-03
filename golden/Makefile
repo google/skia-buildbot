@@ -76,6 +76,10 @@ k8s-release-diff-server: build-static-diffserver
 k8s-release-baseline-server: build-static-baseline-server
 	./k8s_release_baseline_server
 
+.PHONY: k8s-release-diffcalculator
+k8s-release-diffcalculator: build-static-diffcalculator
+	./k8s_release_diffcalculator
+
 .PHONY: k8s-release-ingestion
 k8s-release-ingestion: build-static-ingestion
 	./k8s_release_ingestion
@@ -99,6 +103,12 @@ build-static-baseline-server:
 	mkdir -p ./build
 	rm -f ./build/baseline_server_k8s
 	$(KGO) -o build/baseline_server_k8s -a ./cmd/baseline_server/...
+
+.PHONY: build-static-diffcalculator
+build-static-diffcalculator:
+	mkdir -p ./build
+	rm -f ./build/diffcalculator_k8s
+	$(KGO) -o build/diffcalculator_k8s -a ./cmd/diffcalculator/...
 
 .PHONY: build-static-diffserver
 build-static-diffserver:
