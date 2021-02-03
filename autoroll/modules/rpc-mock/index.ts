@@ -23,6 +23,7 @@ import {
 import { GetFakeStatus } from './fake-status';
 import { GetFakeMiniStatuses } from './fake-ministatuses';
 import { GetRollersResponse, Mode, Strategy, ManualRoll_Status, GetStatusResponse, GetMiniStatusResponse, SetModeResponse, SetStrategyResponse, CreateManualRollResponse, ManualRoll_Result } from '../rpc/rpc';
+import { GetFakeConfig } from './fake-config';
 
 export * from './fake-status';
 
@@ -142,9 +143,13 @@ class FakeAutoRollService implements AutoRollService {
   }
 
   getConfig(_: GetConfigRequest): Promise<GetConfigResponse> {
-    return Promise.reject("not implemented")
+    return Promise.resolve({
+      config: GetFakeConfig(),
+    });
   }
   putConfig(_: PutConfigRequest): Promise<PutConfigResponse> {
-    return Promise.reject("not implemented")
+    return Promise.resolve({
+      cl: "https://fake-cl.com/1234",
+    });
   }
 }
