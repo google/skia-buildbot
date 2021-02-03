@@ -68,7 +68,7 @@ func cspReporter(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
+func cspString(allowedHosts []string, options []Option) string {
 	// Configure Content Security Policy (CSP).
 	addScriptSrc := ""
 	if *Local {
@@ -78,7 +78,16 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 	// This non-local CSP string passes the tests at https://csp-evaluator.withgoogle.com/.
 	//
 	// See also: https://csp.withgoogle.com/docs/strict-csp.html
-	cspString := fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' %s https: http: ; report-uri /cspreport ;", addScriptSrc)
+	//
+	unsafeEval := ""
+	if hasWASMOption(options) {
+		unsafeEval = "'unsafe-eval'"
+	}
+
+	return fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' %s %s https: http: ; report-uri /cspreport ;", unsafeEval, addScriptSrc)
+}
+
+func securityMiddleware(allowedHosts []string, options []Option) mux.MiddlewareFunc {
 
 	// Apply CSP and other security minded headers.
 	secureMiddleware := secure.New(secure.Options{
@@ -88,11 +97,26 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 		STSSeconds:            60 * 60 * 24 * 365,
 		STSIncludeSubdomains:  true,
-		ContentSecurityPolicy: cspString,
+		ContentSecurityPolicy: cspString(allowedHosts, options),
 		IsDevelopment:         *Local,
 	})
 
 	return secureMiddleware.Handler
+}
+
+// Option is the base type for options passed to Serve().
+type Option interface{}
+
+// AllowWASM allows 'unsafe-eval' for scripts, which is needed for WASM.
+type AllowWASM struct{}
+
+func hasWASMOption(options []Option) bool {
+	for _, opt := range options {
+		if _, ok := opt.(AllowWASM); ok {
+			return true
+		}
+	}
+	return false
 }
 
 // Serve builds and runs the App in a secure manner in out kubernetes cluster.
@@ -138,7 +162,7 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 //
 // Static resources, e.g. webpack output, will be served at '/dist/' and will
 // serve the contents of the '/dist' directory.
-func Serve(constructor Constructor, allowedHosts []string) {
+func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	// Do common init.
 	common.InitWithMust(
 		"generic-k8s-app", // The app name is only used by ../go/sklog/cloud_logging, and we don't use that on k8s.
@@ -176,7 +200,7 @@ func Serve(constructor Constructor, allowedHosts []string) {
 	middleware = append(middleware, app.AddMiddleware()...)
 	middleware = append(middleware,
 		httputils.LoggingGzipRequestResponse,
-		securityMiddleware(allowedHosts),
+		securityMiddleware(allowedHosts, options),
 	)
 	r.Use(middleware...)
 
