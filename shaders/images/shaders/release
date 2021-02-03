@@ -1,0 +1,16 @@
+#!/bin/bash
+APPNAME=shaders
+
+set -x -e
+
+IMAGE=$(dirname "$0")
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile      ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/shaders
+${INSTALL} --mode=644 ./dist/*                    ${ROOT}/usr/local/share/shaders
+}
+source ../bash/docker_build.sh

@@ -128,7 +128,7 @@ type Uniform struct {
 // SKSLMetaData is metadata for SKSL scraps.
 type SKSLMetaData struct {
 	// Uniforms are all the inputs to the shader.
-	Uniforms []Uniform
+	Uniforms []float32
 
 	// Child shaders. These values are the hashes of shaders, or, if the value
 	// begins with an "@", they are the name of a named shader.
