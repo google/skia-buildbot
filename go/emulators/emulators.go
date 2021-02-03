@@ -19,7 +19,6 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"syscall"
 
 	"go.skia.org/infra/bazel/go/bazel"
 	"go.skia.org/infra/go/skerr"
@@ -260,22 +259,16 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	cmd.Stderr = os.Stderr
 
 	if bazel.InRBE() {
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			// Under Bazel and RBE, emulators are launched by each individual go_test Bazel target. The
-			// below setting kills the emulator processes (and any other child processes) as soon as the
-			// parent process (i.e. the test runner) dies.
-			//
-			// If we don't do this, the emulators will continue running indefinitely, and Bazel will
-			// eventually time out while waiting for these child processes to die.
-			//
-			// This setting is Linux-only, but that's OK because our RBE instance consists of Linux
-			// machines exclusively. Alternative approaches include adding a TestMain function to our
-			// emulator tests that launches the emulators before running the test cases and kills them
-			// afterwards, or leveraging the test_on_env Bazel macro to run an environment binary
-			// alongside the tests which controls the emulators' lifecycle. Any of these approaches would
-			// work on non-Linux OSes as well.
-			Pdeathsig: syscall.SIGKILL,
-		}
+		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)
+		// dies. If we don't do this, the emulators will continue running indefinitely after the parent
+		// process dies, eventually timing out.
+		//
+		// Note that this is only possible under Linux. The below function call will panic under
+		// non-Linux operating systems. Running emulator tests under RBE on non-Linux OSes is therefore
+		// not supported. This is OK because our RBE instance is currently Linux-only. See the comments
+		// in the function body for alternative approaches if we ever decide to run emulator tests under
+		// RBE on other operating systems.
+		cmd.SysProcAttr = makeSysProcAttrWithPdeathsigSIGKILL()
 	}
 
 	if err := cmd.Start(); err != nil {
