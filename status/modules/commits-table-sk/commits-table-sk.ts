@@ -498,11 +498,13 @@ export class CommitsTableSk extends ElementSk {
   private _displayCommitSubject: boolean = false;
   private _filter: Filter = 'Interesting';
   private _search: string = '';
+  private _repo: string = defaultRepo();
   private lastColumn: number = 1;
   private mishapTasks: Array<Task> = [];
   private refreshHandle?: number;
   private requestLimiter: RequestLimiter = new RequestLimiter();
   private stateHasChanged: () => void = () => {};
+  private updatesRunning = false;
 
   private data: Data = new Data();
 
@@ -527,11 +529,7 @@ export class CommitsTableSk extends ElementSk {
         <select
           id="repoSelector"
           @change=${(e: Event) => {
-            el.dispatchEvent(
-              new CustomEvent('repo-changed', { bubbles: true, detail: (e.target as any).value })
-            );
-            el.stateHasChanged();
-            el.update();
+            el.repo = (e.target as any).value;
           }}
         >
           ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
@@ -649,8 +647,7 @@ export class CommitsTableSk extends ElementSk {
     // Update the Url with the real values after the stateReflector has applied any settings from
     // the url.
     DomReady.then(() => this.stateHasChanged());
-
-    this.update();
+    // setState will be called once the page is fully loaded, this is where we call update().
   }
 
   // We provide this to stateReflector initially, to give it a typed but empty object to create
@@ -670,7 +667,7 @@ export class CommitsTableSk extends ElementSk {
       filter: this.filter,
       search: this.search,
       displayCommitSubject: this.displayCommitSubject,
-      repo: $$<HTMLSelectElement>('#repoSelector', this)!.value,
+      repo: this.repo,
     };
     return (state as unknown) as HintableObject;
   }
@@ -683,13 +680,20 @@ export class CommitsTableSk extends ElementSk {
     if (state.filter) {
       this._filter = state.filter;
     }
-    if (state.repo) {
-      $$<HTMLSelectElement>('#repoSelector', this)!.value = state.repo;
-    }
     this._search = state.search;
     $$<HTMLInputElement>('#searchInput', this)!.value = this._search;
     this._displayCommitSubject = state.displayCommitSubject;
-    this.draw();
+    if (state.repo) {
+      this.repo = state.repo;
+    }
+
+    if (this.updatesRunning) {
+      // Updates are already running and self-scheduling, just update the UI.
+      this.draw();
+    } else {
+      // This is the first time we're reading the query state (page load).
+      this.update();
+    }
   }
 
   disconnectedCallback() {
@@ -735,7 +739,17 @@ export class CommitsTableSk extends ElementSk {
   }
 
   get repo(): string {
-    return ($$('#repoSelector', this) as HTMLSelectElement)?.value || defaultRepo();
+    return this._repo;
+  }
+
+  set repo(v: string) {
+    if (v != this._repo) {
+      this._repo = v;
+      ($$('#repoSelector', this) as HTMLSelectElement)!.value = v;
+      this.stateHasChanged();
+      this.dispatchEvent(new CustomEvent('repo-changed', { bubbles: true, detail: v }));
+      this.update();
+    }
   }
 
   private searchFilter(e: Event) {
@@ -1243,6 +1257,7 @@ export class CommitsTableSk extends ElementSk {
       // There is already an outstanding request, we'll re-update once that resolves.
       return;
     }
+    this.updatesRunning = true;
     const refreshSeconds = Number((<HTMLInputElement>$$('#reloadInput', this)).value);
     const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
     window.clearTimeout(this.refreshHandle);
