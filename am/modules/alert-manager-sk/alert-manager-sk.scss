@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '../themes/themes.scss';
 
 alert-manager-sk {
   spinner-sk[active] {
@@ -40,7 +40,7 @@ alert-manager-sk {
   }
 
   .bot-incident-list {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   .bot-incident-elem {
@@ -66,11 +66,11 @@ alert-manager-sk {
   }
 
   h2.inactive {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   h2.selected {
-    background: var(--white);
+    background: var(--selected);
   }
 
   h2.silenced {
@@ -78,7 +78,7 @@ alert-manager-sk {
   }
 
   .silences h2.inactive {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   footer {
@@ -101,12 +101,13 @@ alert-manager-sk {
 
   tabs-sk {
     padding: 5px 0 0 5px;
-    border-bottom: dotted var(--gray) 1px;
+    border-bottom: dotted var(--on-background) 1px;
 
     button {
       border: none;
-      background: var(--white);
-      color: var(--gray);
+      background: var(--surface);
+      color: var(--on-surface);
+      fill: var(--on-surface);
     }
   }
 
@@ -162,7 +163,7 @@ alert-manager-sk {
   }
 
   .inactive comment-icon-sk {
-    fill: gray;
+    fill: var(--inactive);
   }
 
   person-icon-sk {
@@ -208,7 +209,7 @@ alert-manager-sk {
   header,
   .edit,
   footer {
-    border-left: solid 1px black;
+    border-left: solid 1px var(--on-background);
   }
 
   display: grid;
