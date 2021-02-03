@@ -1445,6 +1445,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "shaders",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "shaders",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "shaders",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf",
           "endpoints": [
             {
@@ -3795,6 +3821,23 @@
                           },
                           "route": {
                             "cluster": "scrapexchange",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "shaders.skia.org",
+                      "name": "shaders.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "shaders",
                             "timeout": {
                               "seconds": 600
                             }
