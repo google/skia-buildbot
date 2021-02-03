@@ -1,5 +1,8 @@
 // Package emulators contains functions to start and stop emulators, and utilities to work with the
 // various *_EMULATOR_HOST environment variables.
+//
+// Unless otherwise specified, all functions in this package assume that there will be at most one
+// instance of each emulator running at any given time.
 package emulators
 
 // This package uses "os/exec" as opposed to "go.skia.org/infra/go/exec" in order to avoid the
@@ -52,48 +55,21 @@ type emulatorInfo struct {
 	port   int    // The emulator's TCP port when running locally. Ignored under RBE.
 }
 
-// cachedEmulatorInfos is populated by getEmulatorInfo() on the first call. Do not use directly.
-var cachedEmulatorInfos = map[Emulator]*emulatorInfo{}
+// cachedEmulatorInfos is populated by getCachedEmulatorInfo() on the first call. Do not use
+// directly.
+var cachedEmulatorInfos = map[Emulator]emulatorInfo{}
 
-// getEmulatorInfo builds and returns an emulatorInfo struct for the given emulator. The struct's
-// contents will depend on whether we are running on Bazel and RBE or not. All structs are computed
-// once and cached. Subsequent calls will return the same struct given the same input.
-func getEmulatorInfo(emulator Emulator) emulatorInfo {
+// getCachedEmulatorInfo builds and returns an emulatorInfo struct for the given emulator. The
+// struct's contents will depend on whether we are running on Bazel and RBE or not. All structs are
+// computed once and cached. Subsequent calls will return the same struct given the same input.
+func getCachedEmulatorInfo(emulator Emulator) emulatorInfo {
 	if len(cachedEmulatorInfos) == 0 {
-		cachedEmulatorInfos = map[Emulator]*emulatorInfo{
-			BigTable: {
-				cmd:    "gcloud beta emulators bigtable start --host-port=localhost:%d --project=test-project",
-				envVar: "BIGTABLE_EMULATOR_HOST",
-				port:   8892,
-			},
-			CockroachDB: {
-				cmd:    computeCockroachDBCmd(),
-				envVar: "COCKROACHDB_EMULATOR_HOST",
-				port:   8895,
-			},
-			Datastore: {
-				cmd:    "gcloud beta emulators datastore start --no-store-on-disk --host-port=localhost:%d --project=test-project",
-				envVar: "DATASTORE_EMULATOR_HOST",
-				port:   8891,
-			},
-			Firestore: {
-				cmd:    "gcloud beta emulators firestore start --host-port=localhost:%d",
-				envVar: "FIRESTORE_EMULATOR_HOST",
-				port:   8894,
-			},
-			PubSub: {
-				cmd:    "gcloud beta emulators pubsub start --host-port=localhost:%d --project=test-project",
-				envVar: "PUBSUB_EMULATOR_HOST",
-				port:   8893,
-			},
-		}
-
-		// Under Bazel and RBE, we choose an unused port to minimize the chances of parallel tests from
-		// interfering with each other.
-		if bazel.InRBE() {
-			for _, emulatorInfo := range cachedEmulatorInfos {
-				emulatorInfo.port = findUnusedTCPPort()
-			}
+		cachedEmulatorInfos = map[Emulator]emulatorInfo{
+			BigTable:    makeEmulatorInfo(BigTable),
+			CockroachDB: makeEmulatorInfo(CockroachDB),
+			Datastore:   makeEmulatorInfo(Datastore),
+			Firestore:   makeEmulatorInfo(Firestore),
+			PubSub:      makeEmulatorInfo(PubSub),
 		}
 	}
 
@@ -101,7 +77,57 @@ func getEmulatorInfo(emulator Emulator) emulatorInfo {
 	if !ok {
 		panic("Unknown emulator: " + emulator)
 	}
-	return *emulatorInfo
+	return emulatorInfo
+}
+
+// makeEmulatorInfo returns an emulatorInfo struct for the given emulator. Under RBE, the emulator
+// port will be chosen by the OS to minimize chances of parallel tests from interfering with each
+// other. This function returns a new struct every time it's called, so different calls under RBE
+// RBE will return structs with different ports.
+func makeEmulatorInfo(emulator Emulator) emulatorInfo {
+	var info emulatorInfo
+	switch emulator {
+	case BigTable:
+		info = emulatorInfo{
+			cmd:    "gcloud beta emulators bigtable start --host-port=localhost:%d --project=test-project",
+			envVar: "BIGTABLE_EMULATOR_HOST",
+			port:   8892,
+		}
+	case CockroachDB:
+		info = emulatorInfo{
+			cmd:    computeCockroachDBCmd(),
+			envVar: "COCKROACHDB_EMULATOR_HOST",
+			port:   8895,
+		}
+	case Datastore:
+		info = emulatorInfo{
+			cmd:    "gcloud beta emulators datastore start --no-store-on-disk --host-port=localhost:%d --project=test-project",
+			envVar: "DATASTORE_EMULATOR_HOST",
+			port:   8891,
+		}
+	case Firestore:
+		info = emulatorInfo{
+			cmd:    "gcloud beta emulators firestore start --host-port=localhost:%d",
+			envVar: "FIRESTORE_EMULATOR_HOST",
+			port:   8894,
+		}
+	case PubSub:
+		info = emulatorInfo{
+			cmd:    "gcloud beta emulators pubsub start --host-port=localhost:%d --project=test-project",
+			envVar: "PUBSUB_EMULATOR_HOST",
+			port:   8893,
+		}
+	default:
+		panic("Unknown emulator: " + emulator)
+	}
+
+	// Under Bazel and RBE, we choose an unused port to minimize the chances of parallel tests from
+	// interfering with each other.
+	if bazel.InRBE() {
+		info.port = findUnusedTCPPort()
+	}
+
+	return info
 }
 
 func computeCockroachDBCmd() string {
@@ -128,6 +154,11 @@ func computeCockroachDBCmd() string {
 
 // findUnusedTCPPort finds an unused TCP port by opening a TCP port on an unused port chosen by the
 // operating system, recovering the port number and immediately closing the socket.
+//
+// This function does not guarantee that multiple calls will return different port numbers, so it
+// might cause tests to flake out. However, the odds of this happening are low. In the future, we
+// might decide to keep track of previously returned port numbers, and keep probing the OS until
+// it returns a previously unseen port number.
 func findUnusedTCPPort() int {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -140,23 +171,30 @@ func findUnusedTCPPort() int {
 	return port
 }
 
-// GetEmulatorHostEnvVar returns the contents of the *_EMULATOR_HOST environment variable corresponding to
-// the given emulator, or the empty string if the environment variable is unset.
+// GetEmulatorHostEnvVar returns the contents of the *_EMULATOR_HOST environment variable
+// corresponding to the given emulator, or the empty string if the environment variable is unset.
 func GetEmulatorHostEnvVar(emulator Emulator) string {
-	return os.Getenv(getEmulatorInfo(emulator).envVar)
+	return os.Getenv(getCachedEmulatorInfo(emulator).envVar)
 }
 
-// SetEmulatorHostEnvVar sets the *_EMULATOR_HOST environment variable for the given emulator.
+// SetEmulatorHostEnvVar sets the *_EMULATOR_HOST environment variable for the given emulator to
+// point to an emulator instance started via StartEmulatorIfNotRunning.
+//
+// It's OK to call this function before calling StartEmulatorIfNotRunning because both functions
+// look up the emulator information (e.g. TCP port) from a package-private, global dictionary.
 func SetEmulatorHostEnvVar(emulator Emulator) error {
-	emulatorInfo := getEmulatorInfo(emulator)
-	return skerr.Wrap(os.Setenv(emulatorInfo.envVar, fmt.Sprintf("localhost:%d", emulatorInfo.port)))
+	return setEmulatorHostEnvVarFromEmulatorInfo(getCachedEmulatorInfo(emulator))
+}
+
+func setEmulatorHostEnvVarFromEmulatorInfo(info emulatorInfo) error {
+	return skerr.Wrap(os.Setenv(info.envVar, fmt.Sprintf("localhost:%d", info.port)))
 }
 
 // UnsetAllEmulatorHostEnvVars unsets the *_EMULATOR_HOST environment variables for all known
 // emulators.
 func UnsetAllEmulatorHostEnvVars() error {
 	for _, emulator := range AllEmulators {
-		if err := os.Setenv(getEmulatorInfo(emulator).envVar, ""); err != nil {
+		if err := os.Setenv(getCachedEmulatorInfo(emulator).envVar, ""); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -166,7 +204,7 @@ func UnsetAllEmulatorHostEnvVars() error {
 // GetEmulatorHostEnvVarName returns the name of the *_EMULATOR_HOST environment variable
 // corresponding to the given emulator.
 func GetEmulatorHostEnvVarName(emulator Emulator) string {
-	return getEmulatorInfo(emulator).envVar
+	return getCachedEmulatorInfo(emulator).envVar
 }
 
 // runningEmulators keeps track of which emulators have been started
@@ -184,8 +222,38 @@ func StartEmulatorIfNotRunning(emulator Emulator) (bool, error) {
 	if IsRunning(emulator) {
 		return false, nil
 	}
+	if err := startEmulator(getCachedEmulatorInfo(emulator)); err != nil {
+		return false, skerr.Wrap(err)
+	}
+	runningEmulators[emulator] = true
+	return true, nil
+}
 
-	emulatorInfo := getEmulatorInfo(emulator)
+// StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly starts a new instance of the given
+// emulator, regardless of whether a previous instance was already started, and sets the
+// corresponding *_EMULATOR_HOST environment variable to point to the newly started instance. Any
+// emulator instances started via this function will be ignored by StartEmulatorIfNotRunning.
+//
+// This only works under RBE because under RBE, emulators are assigned an unused TCP port chosen by
+// the operating system, which makes it possible to run multiple instances of the same emulator in
+// parallel (e.g. one instance started via this function, and another one started via
+// StartEmulatorIfNotRunning). This function will panic if called outside of RBE.
+func StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly(emulator Emulator) error {
+	if !bazel.InRBE() {
+		panic("This function cannot be called outside of RBE.")
+	}
+	info := makeEmulatorInfo(emulator)
+	if err := startEmulator(info); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := setEmulatorHostEnvVarFromEmulatorInfo(info); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// startEmulator starts an emulator using the command in the given struct.
+func startEmulator(emulatorInfo emulatorInfo) error {
 	programAndArgs := strings.Split(fmt.Sprintf(emulatorInfo.cmd, emulatorInfo.port), " ")
 	cmd := exec.Command(programAndArgs[0], programAndArgs[1:]...)
 	cmd.Stdout = os.Stdout
@@ -211,11 +279,10 @@ func StartEmulatorIfNotRunning(emulator Emulator) (bool, error) {
 	}
 
 	if err := cmd.Start(); err != nil {
-		return false, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 
-	runningEmulators[emulator] = true
-	return true, nil
+	return nil
 }
 
 // StartAllEmulators starts all known emulators.
