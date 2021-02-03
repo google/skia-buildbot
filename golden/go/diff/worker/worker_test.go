@@ -3,6 +3,7 @@ package worker
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -16,8 +17,10 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/repo_root"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/gold-client/go/mocks"
+	goldctl_mocks "go.skia.org/infra/gold-client/go/mocks"
+	"go.skia.org/infra/golden/go/diff/mocks"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -42,19 +45,7 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
 	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
-	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualMetrics []schema.DiffMetricRow
-	for rows.Next() {
-		var m schema.DiffMetricRow
-		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
-			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
-		m.Timestamp = m.Timestamp.UTC()
-		actualMetrics = append(actualMetrics, m)
-		// spot check that we handle arrays correctly.
-		assert.NotEqual(t, [4]int{0, 0, 0, 0}, m.MaxRGBADiffs)
-	}
+	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
 		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA02Pos, fakeNow),
 		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA04Unt, fakeNow),
@@ -72,6 +63,7 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA02Pos, fakeNow),
 		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA04Unt, fakeNow),
 	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
 func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
@@ -101,6 +93,7 @@ func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
 	count := 0
 	require.NoError(t, row.Scan(&count))
 	assert.Equal(t, 32*31, count)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
 func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing.T) {
@@ -126,17 +119,7 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
 	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
-	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualMetrics []schema.DiffMetricRow
-	for rows.Next() {
-		var m schema.DiffMetricRow
-		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
-			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
-		m.Timestamp = m.Timestamp.UTC()
-		actualMetrics = append(actualMetrics, m)
-	}
+	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
 		sentinelMetricRow(dks.DigestBlank, dks.DigestA04Unt),
 
@@ -157,6 +140,7 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA02Pos, fakeNow),
 		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA04Unt, fakeNow),
 	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
 func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
@@ -180,21 +164,12 @@ func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos}
 	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
-	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualMetrics []schema.DiffMetricRow
-	for rows.Next() {
-		var m schema.DiffMetricRow
-		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
-			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
-		m.Timestamp = m.Timestamp.UTC()
-		actualMetrics = append(actualMetrics, m)
-	}
+	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
 		sentinelMetricRow(dks.DigestA01Pos, dks.DigestA02Pos),
 		sentinelMetricRow(dks.DigestA02Pos, dks.DigestA01Pos),
 	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
 func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
@@ -216,17 +191,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 	}
 	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil))
 
-	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualMetrics []schema.DiffMetricRow
-	for rows.Next() {
-		var m schema.DiffMetricRow
-		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
-			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
-		m.Timestamp = m.Timestamp.UTC()
-		actualMetrics = append(actualMetrics, m)
-	}
+	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
 		expectedFromKS(t, dks.DigestBlank, dks.DigestB01Pos, fakeNow),
 		expectedFromKS(t, dks.DigestBlank, dks.DigestB02Pos, fakeNow),
@@ -253,6 +218,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 		expectedFromKS(t, dks.DigestB04Neg, dks.DigestB02Pos, fakeNow),
 		expectedFromKS(t, dks.DigestB04Neg, dks.DigestB03Neg, fakeNow),
 	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
 func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
@@ -273,17 +239,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 	}
 	require.NoError(t, w.CalculateDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}))
 
-	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualMetrics []schema.DiffMetricRow
-	for rows.Next() {
-		var m schema.DiffMetricRow
-		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
-			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
-		m.Timestamp = m.Timestamp.UTC()
-		actualMetrics = append(actualMetrics, m)
-	}
+	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
 		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC04Unt, fakeNow),
 		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC05Unt, fakeNow),
@@ -301,10 +257,135 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 		expectedFromKS(t, dks.DigestC06Pos_CL, dks.DigestC04Unt, fakeNow),
 		expectedFromKS(t, dks.DigestC06Pos_CL, dks.DigestC05Unt, fakeNow),
 	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
-// TODO(kjlubick) if downloading an image returns an error for one of the images, we should
-//   compute partial data (so future attempts can try again). See also ProblemImages
+func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	waitForSystemTime()
+
+	// Set up an image source that can download A01 and A02, but returns error on A04
+	b01, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
+	require.NoError(t, err)
+	b02, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA02Pos)+".png"))
+	require.NoError(t, err)
+	mis := &mocks.ImageSource{}
+	mis.On("GetImage", testutils.AnyContext, dks.DigestA01Pos).Return(b01, nil)
+	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
+	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return(nil, errors.New("not found"))
+
+	w := New(db, mis, 2)
+
+	grouping := paramtools.Params{
+		types.CorpusField:     "not used",
+		types.PrimaryKeyField: "not used",
+	}
+	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+
+	actualMetrics := getAllDiffMetricRows(t, db)
+	// We should see partial success
+	assert.Equal(t, []schema.DiffMetricRow{
+		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestA02Pos, dks.DigestA01Pos, fakeNow),
+	}, actualMetrics)
+
+	actualProblemImageRows := getAllProblemImageRows(t, db)
+	require.Len(t, actualProblemImageRows, 1)
+	problem := actualProblemImageRows[0]
+	assert.Equal(t, string(dks.DigestA04Unt), problem.Digest)
+	// could be more than 1 because of multiple goroutines running
+	assert.True(t, problem.NumErrors >= 1)
+	assert.Contains(t, problem.LatestError, "not found")
+	assert.Equal(t, fakeNow, problem.ErrorTS)
+}
+
+func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 2, 2, 2, 2, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	// Write a sentinel error for A04. We expect this to be updated.
+	existingProblem := schema.Tables{ProblemImages: []schema.ProblemImageRow{{
+		Digest:      string(dks.DigestA04Unt),
+		NumErrors:   100,
+		LatestError: "not found",
+		ErrorTS:     time.Date(2020, time.January, 1, 1, 1, 1, 0, time.UTC),
+	}}}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingProblem))
+	waitForSystemTime()
+
+	// Set up an image source that can download A01 and A02, but invalid PNG data for A04
+	b01, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
+	require.NoError(t, err)
+	b02, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA02Pos)+".png"))
+	require.NoError(t, err)
+	mis := &mocks.ImageSource{}
+	mis.On("GetImage", testutils.AnyContext, dks.DigestA01Pos).Return(b01, nil)
+	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
+	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return([]byte(`not a png`), nil)
+
+	w := New(db, mis, 2)
+
+	grouping := paramtools.Params{
+		types.CorpusField:     "not used",
+		types.PrimaryKeyField: "not used",
+	}
+	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+
+	actualMetrics := getAllDiffMetricRows(t, db)
+	// We should see partial success
+	assert.Equal(t, []schema.DiffMetricRow{
+		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestA02Pos, dks.DigestA01Pos, fakeNow),
+	}, actualMetrics)
+
+	actualProblemImageRows := getAllProblemImageRows(t, db)
+	require.Len(t, actualProblemImageRows, 1)
+	problem := actualProblemImageRows[0]
+	assert.Equal(t, string(dks.DigestA04Unt), problem.Digest)
+	// The sentinel value is 100. This should be greater than that because of the new error.
+	assert.True(t, problem.NumErrors >= 101)
+	assert.Contains(t, problem.LatestError, "png: invalid format: not a PNG file")
+	assert.Equal(t, fakeNow, problem.ErrorTS)
+}
+
+func getAllDiffMetricRows(t *testing.T, db *pgxpool.Pool) []schema.DiffMetricRow {
+	rows, err := db.Query(context.Background(), `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualMetrics []schema.DiffMetricRow
+	for rows.Next() {
+		var m schema.DiffMetricRow
+		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
+			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
+		m.Timestamp = m.Timestamp.UTC()
+		actualMetrics = append(actualMetrics, m)
+		// spot check that we handle arrays correctly.
+		assert.NotEqual(t, [4]int{0, 0, 0, 0}, m.MaxRGBADiffs)
+	}
+	return actualMetrics
+}
+
+func getAllProblemImageRows(t *testing.T, db *pgxpool.Pool) []schema.ProblemImageRow {
+	rows, err := db.Query(context.Background(), `SELECT * FROM ProblemImages ORDER BY digest`)
+	require.NoError(t, err)
+	defer rows.Close()
+	var actualRows []schema.ProblemImageRow
+	for rows.Next() {
+		var r schema.ProblemImageRow
+		require.NoError(t, rows.Scan(&r.Digest, &r.NumErrors, &r.LatestError, &r.ErrorTS))
+		r.ErrorTS = r.ErrorTS.UTC()
+		actualRows = append(actualRows, r)
+	}
+	return actualRows
+}
 
 func makeSparseData() schema.Tables {
 	b := databuilder.TablesBuilder{}
@@ -347,17 +428,9 @@ func makeSparseData() schema.Tables {
 // sentinelMetricRow returns a DiffMetricRow with arbitrary data that should not change as a result
 // of the test using it (DiffMetrics are immutable).
 func sentinelMetricRow(left types.Digest, right types.Digest) schema.DiffMetricRow {
-	leftB, err := sql.DigestToBytes(left)
-	if err != nil {
-		panic(err)
-	}
-	rightB, err := sql.DigestToBytes(right)
-	if err != nil {
-		panic(err)
-	}
 	return schema.DiffMetricRow{
-		LeftDigest:        leftB,
-		RightDigest:       rightB,
+		LeftDigest:        d(left),
+		RightDigest:       d(right),
 		NumPixelsDiff:     -1,
 		PercentPixelsDiff: -1,
 		MaxRGBADiffs:      [4]int{-1, -1, -1, -1},
@@ -365,6 +438,14 @@ func sentinelMetricRow(left types.Digest, right types.Digest) schema.DiffMetricR
 		CombinedMetric:    -1,
 		Timestamp:         time.Date(2020, time.March, 14, 15, 9, 26, 0, time.UTC),
 	}
+}
+
+func d(d types.Digest) schema.DigestBytes {
+	b, err := sql.DigestToBytes(d)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 func kitchenSinkRoot(t *testing.T) string {
@@ -391,10 +472,8 @@ var kitchenSinkData = dks.Build()
 // expectedFromKS returns the computed diff metric from the kitchen sink data. It replaces the
 // default timestamp with the provided timestamp.
 func expectedFromKS(t *testing.T, left types.Digest, right types.Digest, ts time.Time) schema.DiffMetricRow {
-	leftB, err := sql.DigestToBytes(left)
-	require.NoError(t, err)
-	rightB, err := sql.DigestToBytes(right)
-	require.NoError(t, err)
+	leftB := d(left)
+	rightB := d(right)
 	for _, row := range kitchenSinkData.DiffMetrics {
 		if bytes.Equal(leftB, row.LeftDigest) && bytes.Equal(rightB, row.RightDigest) {
 			row.Timestamp = ts
@@ -412,7 +491,7 @@ func waitForSystemTime() {
 }
 
 func mockTime(ts time.Time) NowSource {
-	mt := mocks.NowSource{}
+	mt := goldctl_mocks.NowSource{}
 	mt.On("Now").Return(ts)
 	return &mt
 }

@@ -90,6 +90,7 @@ type Tables struct {
 	Options                     []OptionsRow                    `sql_backup:"monthly"`
 	Patchsets                   []PatchsetRow                   `sql_backup:"weekly"`
 	PrimaryBranchParams         []PrimaryBranchParamRow         `sql_backup:"monthly"`
+	ProblemImages               []ProblemImageRow               `sql_backup:"none"`
 	SecondaryBranchExpectations []SecondaryBranchExpectationRow `sql_backup:"daily"`
 	SecondaryBranchParams       []SecondaryBranchParamRow       `sql_backup:"monthly"`
 	SecondaryBranchValues       []SecondaryBranchValueRow       `sql_backup:"monthly"`
@@ -648,4 +649,22 @@ type SecondaryBranchExpectationRow struct {
 func (r SecondaryBranchExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"branch_name", "grouping_id", "digest", "label", "expectation_record_id"},
 		[]interface{}{r.BranchName, r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
+}
+
+type ProblemImageRow struct {
+	// Digest is the identifier of an image we had a hard time downloading or decoding while
+	// computing the diffs. This is a string because it may be a malformed digest.
+	Digest string `sql:"digest STRING PRIMARY KEY"`
+	// NumErrors counts the number of times this digest has been the cause of an error.
+	NumErrors int `sql:"num_errors INT2 NOT NULL"`
+	// LatestError is the string content of the last error associated with this digest.
+	LatestError string `sql:"latest_error STRING NOT NULL"`
+	// ErrorTS is the last time we had an error on this digest.
+	ErrorTS time.Time `sql:"error_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ProblemImageRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"digest", "num_errors", "latest_error", "error_ts"},
+		[]interface{}{r.Digest, r.NumErrors, r.Digest, r.ErrorTS}
 }
