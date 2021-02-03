@@ -1,7 +1,11 @@
 import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
+import {
+  setUpElementUnderTest,
+  eventPromise,
+  setQueryString,
+} from '../../../infra-sk/modules/test_util';
 import {
   incrementalResponse0,
   responseMultiCommitTask,
@@ -15,21 +19,43 @@ import {
   incrementalResponse1,
   resetResponse0,
 } from '../rpc-mock/test_data';
-import { GetIncrementalCommitsResponse } from '../rpc';
+import { GetIncrementalCommitsRequest, GetIncrementalCommitsResponse } from '../rpc';
 import { expect } from 'chai';
 import { CommitsTableSk } from './commits-table-sk';
-import { SetupMocks } from '../rpc-mock';
+import { MockStatusService, SetupMocks } from '../rpc-mock';
+import { SetTestSettings } from '../settings';
 
 describe('commits-table-sk', () => {
   const newTableInstance = setUpElementUnderTest('commits-table-sk');
+  SetTestSettings({
+    swarmingUrl: 'example.com/swarming',
+    logsUrlTemplate:
+      'https://ci.chromium.org/raw/build/logs.chromium.org/skia/{{TaskID}}/+/annotations',
+    taskSchedulerUrl: 'example.com/ts',
+    defaultRepo: 'skia',
+    repos: new Map([
+      ['skia', 'https://skia.googlesource.com/skia/+show/'],
+      ['infra', 'https://skia.googlesource.com/buildbot/+show/'],
+      ['skcms', 'https://skia.googlesource.com/skcms/+show/'],
+    ]),
+  });
 
+  let mocks: MockStatusService;
   beforeEach(async () => {
+    mocks = SetupMocks();
     // Clear Url between tests.
     history.replaceState(null, '', window.location.origin + window.location.pathname);
   });
 
-  let setupWithResponse = async (resp: GetIncrementalCommitsResponse) => {
-    SetupMocks().expectGetIncrementalCommits(resp);
+  afterEach(async () => {
+    expect(mocks.exhausted()).to.be.true;
+  });
+
+  let setupWithResponse = async (
+    resp: GetIncrementalCommitsResponse,
+    validator?: (req: GetIncrementalCommitsRequest) => void
+  ) => {
+    mocks.expectGetIncrementalCommits(resp, validator);
     const ep = eventPromise('end-task');
     const table = newTableInstance((el) => ((<CommitsTableSk>el).filter = 'All')) as CommitsTableSk;
     await ep;
@@ -197,6 +223,16 @@ describe('commits-table-sk', () => {
     // Only the new commit and it's single task are present.
     expect(commitDivs[0].classList.toString()).to.contain(resetResponse0.update!.commits![0].hash);
     expect($('.task[title="Build-Some-Stuff @ childofabc123"]', table)).to.have.length(1);
+  });
+
+  it('initial request uses repo from query string', async () => {
+    setQueryString('?repo=infra');
+    const table = await setupWithResponse(
+      responseMultiCommitTask,
+      (req: GetIncrementalCommitsRequest) => {
+        expect(req.repoPath).to.equal('infra');
+      }
+    );
   });
 
   describe('dialog', () => {
