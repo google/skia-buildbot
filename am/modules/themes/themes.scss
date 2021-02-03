@@ -1,0 +1,44 @@
+@import '~elements-sk/themes/themes';
+@import '../../../infra-sk/themes';
+
+.body-sk.darkmode {
+  --primary: var(--light-blue);
+  --primary-variant: var(--light-blue-200);
+  --on-primary-variant: var(--black);
+  --inactive: #8899A6;
+  --minimized: #192734;
+  --selected: #192734;
+  --comments: #192734;
+
+  --active: var(--red-300);
+  --assigned: var(--orange-300);
+
+  --icons: var(--green-300);
+  --silenced: var(--green-300);
+  --disabled: var(--grey-700);
+}
+
+.body-sk {
+  --secondary: var(--green-500);
+  --primary-variant: var(--light-blue-600);
+  --inactive: #4F4F4F;
+  --minimized: var(--dark-white);
+  --selected: var(--dark-white);
+  --comments: var(--dark-white);
+  --assigned: var(--orange);
+  --assigned-person: var(--light-orange);
+
+  --icons: var(--green);
+  --active: var(--red);
+  --silenced: var(--green);
+
+  input, textarea {
+    border: solid 1px var(--on-surface);
+    color: solid 1px var(--on-surface);
+    background: solid 1px var(--surface);
+  }
+
+  a {
+    color: var(--primary);
+  }
+}
