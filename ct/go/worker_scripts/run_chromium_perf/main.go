@@ -248,6 +248,11 @@ func runChromiumPerf() error {
 				}
 				mutex.RUnlock()
 
+				if *targetPlatform == util.PLATFORM_WINDOWS {
+					fmt.Println("SLEEP FOR 1 HOUR TO DEBUG TRACES FOR WINDOWS")
+					time.Sleep(1 * time.Hour)
+				}
+
 				if timeoutTracker.Read() > MAX_ALLOWED_SEQUENTIAL_TIMEOUTS {
 					sklog.Errorf("Ran into %d sequential timeouts. Something is wrong. Killing the goroutine.", MAX_ALLOWED_SEQUENTIAL_TIMEOUTS)
 					return
