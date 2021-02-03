@@ -1445,6 +1445,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "shaders",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "shaders",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "shaders",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf",
           "endpoints": [
             {
@@ -3803,6 +3829,23 @@
                       ]
                     },
                     {
+                      "domains": "shaders.skia.org",
+                      "name": "shaders.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "shaders",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "perf.skia.org",
                       "name": "perf.skia.org",
                       "routes": [
@@ -3871,8 +3914,8 @@
                       ]
                     },
                     {
-                      "domains": "flutter-engine-perf.skia.org",
-                      "name": "flutter-engine-perf.skia.org",
+                      "domains": "flutter-engine-perf-old.skia.org",
+                      "name": "flutter-engine-perf-old.skia.org",
                       "routes": [
                         {
                           "match": {
@@ -3888,8 +3931,8 @@
                       ]
                     },
                     {
-                      "domains": "flutter-engine-perf2.skia.org",
-                      "name": "flutter-engine-perf2.skia.org",
+                      "domains": "flutter-engine-perf.skia.org",
+                      "name": "flutter-engine-perf.skia.org",
                       "routes": [
                         {
                           "match": {
@@ -3905,8 +3948,8 @@
                       ]
                     },
                     {
-                      "domains": "flutter-flutter-perf.skia.org",
-                      "name": "flutter-flutter-perf.skia.org",
+                      "domains": "flutter-flutter-perf-old.skia.org",
+                      "name": "flutter-flutter-perf-old.skia.org",
                       "routes": [
                         {
                           "match": {
@@ -3922,8 +3965,8 @@
                       ]
                     },
                     {
-                      "domains": "flutter-flutter-perf2.skia.org",
-                      "name": "flutter-flutter-perf2.skia.org",
+                      "domains": "flutter-flutter-perf.skia.org",
+                      "name": "flutter-flutter-perf.skia.org",
                       "routes": [
                         {
                           "match": {
