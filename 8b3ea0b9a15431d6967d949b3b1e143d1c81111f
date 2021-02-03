@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "15e62110_bb82f864",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-03T20:55:50Z",
+      "side": 1,
+      "message": "It might be cleaner to define a custom error type that includes the problematic digest.\n\nExample from Go\u0027s stdlib: https://golang.org/pkg/os/exec/#ExitError.",
+      "range": {
+        "startLine": 255,
+        "startChar": 96,
+        "endLine": 255,
+        "endChar": 115
+      },
+      "revId": "8b3ea0b9a15431d6967d949b3b1e143d1c81111f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
