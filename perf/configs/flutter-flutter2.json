@@ -1,5 +1,5 @@
 {
-    "URL": "https://flutter-flutter-perf2.skia.org/",
+    "URL": "https://flutter-flutter-perf.skia.org/",
     "data_store_config": {
         "datastore_type": "cockroachdb",
         "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_flutter2?sslmode=disable",
