@@ -6,15 +6,17 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
+	"net/http"
 	"path"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	gstorage "cloud.google.com/go/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -26,12 +28,6 @@ import (
 )
 
 const (
-	// This subscription ID doesn't have to be unique instance by instance
-	// because the unique topic id it is listening to will suffice.
-	// By setting the subscriber ID to be the same on all instances of the diff worker,
-	// only one of the diff workers will get each event (usually).
-	subscriptionID = "gold-image-diffs"
-
 	// An arbitrary amount.
 	maxSQLConnections = 20
 
@@ -42,7 +38,13 @@ const (
 type diffCalculatorConfig struct {
 	config.Common
 
-	// PubsubEventTopic the event topic used for diff work
+	// DiffWorkSubscription the event subscription used by all replicas of the diffcalculator.
+	// By setting the subscriber ID to be the same on all instances of the diff worker,
+	// only one of the diff workers will get each event (usually). We like our subscription names
+	// to be unique and keyed to the instance.
+	DiffWorkSubscription string `json:"diff_work_subscription"`
+
+	// DiffWorkTopic the event topic used for diff work.
 	DiffWorkTopic string `json:"diff_work_topic"`
 
 	// Metrics service address (e.g., ':10110')
@@ -50,6 +52,9 @@ type diffCalculatorConfig struct {
 
 	// Project ID that houses the pubsub topics
 	PubsubProjectID string `json:"pubsub_project_id"`
+
+	// The port to provide /healthz
+	ReadyPort string `json:"ready_port"`
 
 	// TileToProcess is how many tiles of commits we should use as the number of available digests
 	// to diff.
@@ -92,12 +97,15 @@ func main() {
 		worker.New(db, gis, dsc.TilesToProcess),
 	}
 
-	sID := subscriptionID
-	if dsc.Local {
-		// This allows us to have an independent diffcalculator when running locally.
-		sID += "-local"
-	}
-	sklog.Fatalf("Listening for work %s", listen(ctx, dsc, sID, sqlProcessor))
+	go func() {
+		// Wait at least 5 seconds for the pubsub connection to be initialized before saying
+		// we are healthy.
+		time.Sleep(5 * time.Second)
+		http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+		sklog.Fatal(http.ListenAndServe(dsc.ReadyPort, nil))
+	}()
+
+	sklog.Fatalf("Listening for work %s", listen(ctx, dsc, sqlProcessor))
 }
 
 func mustInitSQLDatabase(ctx context.Context, dsc diffCalculatorConfig) *pgxpool.Pool {
@@ -150,7 +158,7 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 	return b, skerr.Wrap(err)
 }
 
-func listen(ctx context.Context, dsc diffCalculatorConfig, subscriberID string, p processor) error {
+func listen(ctx context.Context, dsc diffCalculatorConfig, p processor) error {
 	psc, err := pubsub.NewClient(ctx, dsc.PubsubProjectID)
 	if err != nil {
 		return skerr.Wrapf(err, "initializing pubsub client for project %s", dsc.PubsubProjectID)
@@ -164,13 +172,12 @@ func listen(ctx context.Context, dsc diffCalculatorConfig, subscriberID string, 
 		return skerr.Fmt("Diff work topic %s does not exist in project %s", dsc.DiffWorkTopic, dsc.PubsubProjectID)
 	}
 
-	subName := fmt.Sprintf("%s+%s", dsc.DiffWorkTopic, subscriberID)
 	// Check that the subscription exists. Fail if it does not.
-	sub := psc.Subscription(subName)
+	sub := psc.Subscription(dsc.DiffWorkSubscription)
 	if exists, err := sub.Exists(ctx); err != nil {
-		return skerr.Wrapf(err, "checking for existing subscription %s", subName)
+		return skerr.Wrapf(err, "checking for existing subscription %s", dsc.DiffWorkSubscription)
 	} else if !exists {
-		return skerr.Fmt("subscription %s does not exist in project %s", subName, dsc.PubsubProjectID)
+		return skerr.Fmt("subscription %s does not exist in project %s", dsc.DiffWorkSubscription, dsc.PubsubProjectID)
 	}
 
 	// This process will handle one message at a time. This allows us to more finely control the
