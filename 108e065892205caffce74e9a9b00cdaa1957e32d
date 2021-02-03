@@ -129,6 +129,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "68057686_3c9ca64d",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T15:28:47Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "1638d040_51eadf0a",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 32
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e72420ce_3763aa44",
@@ -166,6 +190,30 @@
       "side": 1,
       "message": "As above. I would have put thakis as the only reviewer, honestly, with myself as a \"cc\", but there doesn\u0027t seem to be an option for that. :P",
       "parentUuid": "e72420ce_3763aa44",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 32
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7395bb80_c0a1eb36",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T15:28:47Z",
+      "side": 1,
+      "message": "ack",
+      "parentUuid": "8e37ee9d_81033ae0",
       "range": {
         "startLine": 13,
         "startChar": 0,
