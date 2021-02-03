@@ -419,6 +419,8 @@ message GetConfigResponse {
 message PutConfigRequest {
   // config is the new or updated config for a given roller.
   Config config = 1;
+  // commit_msg is the commit message to use.
+  string commit_msg = 2;
 }
 
 // PutConfigResponse is a response returned by PutConfig.
