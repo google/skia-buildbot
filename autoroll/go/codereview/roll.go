@@ -7,7 +7,7 @@ import (
 	"time"
 
 	github_api "github.com/google/go-github/v29/github"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/state_machine"
@@ -34,7 +34,7 @@ type RollImpl interface {
 
 // updateIssueFromGerrit loads details about the issue from the Gerrit API and
 // updates the AutoRollIssue accordingly.
-func updateIssueFromGerrit(ctx context.Context, cfg *config.GerritConfig, a *autoroll.AutoRollIssue, g gerrit.GerritInterface) (*gerrit.ChangeInfo, error) {
+func updateIssueFromGerrit(ctx context.Context, cfg *proto.GerritConfig, a *autoroll.AutoRollIssue, g gerrit.GerritInterface) (*gerrit.ChangeInfo, error) {
 	info, err := g.GetIssueProperties(ctx, a.Issue)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
@@ -113,7 +113,7 @@ type gerritRoll struct {
 
 // newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, cfg *config.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGerritRoll(ctx context.Context, cfg *proto.GerritConfig, issue *autoroll.AutoRollIssue, g gerrit.GerritInterface, recent *recent_rolls.RecentRolls, issueUrlBase string, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	ci, err := updateIssueFromGerrit(ctx, cfg, issue, g)
 	if err != nil {
 		return nil, err
@@ -378,7 +378,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *config.GitHubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+func newGithubRoll(ctx context.Context, issue *autoroll.AutoRollIssue, g *github.GitHub, recent *recent_rolls.RecentRolls, issueUrlBase string, config *proto.GitHubConfig, rollingTo *revision.Revision, cb func(context.Context, RollImpl) error) (RollImpl, error) {
 	pullRequest, err := updateIssueFromGitHub(ctx, issue, g, config.ChecksWaitFor)
 	if err != nil {
 		return nil, err

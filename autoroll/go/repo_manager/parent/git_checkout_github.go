@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/go/git"
@@ -94,7 +94,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 
 // NewGitCheckoutGithub returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGithub(ctx context.Context, c *config.GitCheckoutGitHubParentConfig, reg *config_vars.Registry, serverURL, workdir, rollerName string, cr codereview.CodeReview, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckoutGithub(ctx context.Context, c *proto.GitCheckoutGitHubParentConfig, reg *config_vars.Registry, serverURL, workdir, rollerName string, cr codereview.CodeReview, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

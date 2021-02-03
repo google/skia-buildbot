@@ -1,23 +1,13 @@
-package config
-
-// Generate the go code from the protocol buffer definitions.
-//go:generate protoc --go_opt=paths=source_relative --twirp_out=. --go_out=. ./config.proto
-//--go:generate mv ./go.skia.org/infra/autoroll/go/config/config.twirp.go ./config.twirp.go
-//go:generate rm -rf ./go.skia.org
-//go:generate goimports -w config.pb.go
-//--go:generate goimports -w config.twirp.go
-//--go:generate protoc --twirp_typescript_out=../../modules/config ./config.proto
+package proto
 
 import (
 	"fmt"
 	"regexp"
-	"time"
 
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 const (
@@ -34,14 +24,14 @@ const (
 	DefaultSafetyThrottleAttemptCount = 3
 	// DefaultSafetyThrottleTimeWindow is the default time window for safety
 	// throttling.
-	DefaultSafetyThrottleTimeWindow = 30 * time.Minute
+	DefaultSafetyThrottleTimeWindow = "30m"
 )
 
 var (
 	// DefaultSafetyThrottleConfig is the default safety throttling config.
 	DefaultSafetyThrottleConfig = &ThrottleConfig{
 		AttemptCount: DefaultSafetyThrottleAttemptCount,
-		TimeWindow:   durationpb.New(DefaultSafetyThrottleTimeWindow),
+		TimeWindow:   DefaultSafetyThrottleTimeWindow,
 	}
 
 	// ValidK8sLabel matches valid labels for Kubernetes.
@@ -402,8 +392,8 @@ func (c *ThrottleConfig) Validate() error {
 	if c.AttemptCount < 1 {
 		return skerr.Fmt("AttemptCount must be greater than zero.")
 	}
-	if c.TimeWindow.AsDuration() == 0 {
-		return skerr.Fmt("TimeWindow must be greater than zero.")
+	if c.TimeWindow == "" {
+		return skerr.Fmt("TimeWindow is required.")
 	}
 	return nil
 }

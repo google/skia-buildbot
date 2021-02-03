@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/modes"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
@@ -45,7 +45,7 @@ const (
 // AutoRoller provides a handler for adding/updating Rolls, translating them into AutoRollIssue for
 // storage in RecentRolls. It also manages an AutoRollStatusCache for status handlers.
 type AutoRoller struct {
-	cfg         *config.Config
+	cfg         *proto.Config
 	recent      *recent_rolls.RecentRolls
 	status      *status.Cache
 	childBranch string
@@ -55,7 +55,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns a Google3 AutoRoller.
-func NewAutoRoller(ctx context.Context, cfg *config.Config, client *http.Client, ts oauth2.TokenSource) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, cfg *proto.Config, client *http.Client, ts oauth2.TokenSource) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, skerr.Wrap(err)

@@ -12,11 +12,11 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/skerr"
@@ -58,7 +59,7 @@ const (
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	cfg                *config.Config
+	cfg                *proto.Config
 	codereview         codereview.CodeReview
 	commitMsgBuilder   *commit_msg.Builder
 	currentRoll        codereview.RollImpl
@@ -97,7 +98,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *proto.Config, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
@@ -174,10 +175,15 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 
 	// Throttling counters.
 	sklog.Info("Creating throttlers")
-	if c.SafetyThrottle == nil {
-		c.SafetyThrottle = config.DefaultSafetyThrottleConfig
+	safetyThrottleCfg := proto.DefaultSafetyThrottleConfig
+	if c.SafetyThrottle != nil {
+		safetyThrottleCfg = c.SafetyThrottle
 	}
-	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow.AsDuration(), int64(c.SafetyThrottle.AttemptCount))
+	safetyThrottleDuration, err := human.ParseDuration(safetyThrottleCfg.TimeWindow)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse safety throttle time window")
+	}
+	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", safetyThrottleDuration, int64(safetyThrottleCfg.AttemptCount))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create safety throttler")
 	}
@@ -188,8 +194,8 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 	}
 
 	var rollCooldown time.Duration
-	if c.RollCooldown != nil {
-		rollCooldown = c.RollCooldown.AsDuration()
+	if c.RollCooldown != "" {
+		rollCooldown, err = human.ParseDuration(c.RollCooldown)
 	}
 	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", rollCooldown, 1)
 	if err != nil {
@@ -380,7 +386,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 
 // Utility for replacing the placeholder $REVIEWERS with real reviewer emails
 // in configs. A modified copy of the passed in configs are returned.
-func replaceReviewersPlaceholder(configs []*config.NotifierConfig, emails []string) []*notifier.Config {
+func replaceReviewersPlaceholder(configs []*proto.NotifierConfig, emails []string) []*notifier.Config {
 	configCopies := []*notifier.Config{}
 	for _, n := range configs {
 		configCopy := arb_notifier.ProtoToConfig(n)

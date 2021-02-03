@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -131,7 +131,7 @@ func semVerShortRev(reTmpl string, id string) string {
 
 // NewSemVerGCS returns a Child which uses semantic versioning to compare object
 // versions in GCS.
-func NewSemVerGCS(ctx context.Context, c *config.SemVerGCSChildConfig, reg *config_vars.Registry, client *http.Client) (*gcsChild, error) {
+func NewSemVerGCS(ctx context.Context, c *proto.SemVerGCSChildConfig, reg *config_vars.Registry, client *http.Client) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

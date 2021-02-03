@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
@@ -31,7 +31,7 @@ const (
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string, cr codereview.CodeReview, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c *proto.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string, cr codereview.CodeReview, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -98,8 +98,8 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	}
 
 	// See documentation for GitCheckoutCreateRollFunc.
-	createRollHelper := gitCheckoutFileCreateRollFunc(&config.DependencyConfig{
-		Primary: &config.VersionFileConfig{
+	createRollHelper := gitCheckoutFileCreateRollFunc(&proto.DependencyConfig{
+		Primary: &proto.VersionFileConfig{
 			Id:   c.GitCheckout.Dep.Primary.Id,
 			Path: deps_parser.DepsFileName,
 		},
@@ -154,8 +154,8 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
-// using the given DEPSLocalConfig.
-func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, workdir string) (string, error) {
+// using the given DEPSLocalproto.
+func GetDEPSCheckoutPath(c *proto.DEPSLocalParentConfig, workdir string) (string, error) {
 	var repoRelPath string
 	if c.CheckoutPath == "" {
 		normUrl, err := git.NormalizeURL(c.GitCheckout.GitCheckout.RepoUrl)
@@ -171,7 +171,7 @@ func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, workdir string) (strin
 
 // NewDEPSLocalGitHub returns a DEPSLocal parent which creates GitHub pull
 // requests.
-func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+func NewDEPSLocalGitHub(ctx context.Context, c *proto.DEPSLocalGitHubParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	githubClient, ok := cr.Client().(*github.GitHub)
 	if !ok {
 		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
@@ -188,7 +188,7 @@ func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConf
 }
 
 // NewDEPSLocalGerrit returns a DEPSLocal parent which creates CLs in Gerrit.
-func NewDEPSLocalGerrit(ctx context.Context, c *config.DEPSLocalGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+func NewDEPSLocalGerrit(ctx context.Context, c *proto.DEPSLocalGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	gerritClient, ok := cr.Client().(gerrit.GerritInterface)
 	if !ok {
 		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")

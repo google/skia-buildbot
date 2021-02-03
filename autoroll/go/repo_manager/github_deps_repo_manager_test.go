@@ -13,7 +13,7 @@ import (
 
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
@@ -38,18 +38,18 @@ var (
 	testPullNumber      = 12345
 )
 
-func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
-	return &config.ParentChildRepoManagerConfig{
-		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{
-			DepsLocalGithubParent: &config.DEPSLocalGitHubParentConfig{
-				DepsLocal: &config.DEPSLocalParentConfig{
-					GitCheckout: &config.GitCheckoutParentConfig{
-						GitCheckout: &config.GitCheckoutConfig{
+func githubDEPSCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
+	return &proto.ParentChildRepoManagerConfig{
+		Parent: &proto.ParentChildRepoManagerConfig_DepsLocalGithubParent{
+			DepsLocalGithubParent: &proto.DEPSLocalGitHubParentConfig{
+				DepsLocal: &proto.DEPSLocalParentConfig{
+					GitCheckout: &proto.GitCheckoutParentConfig{
+						GitCheckout: &proto.GitCheckoutConfig{
 							Branch:  git.DefaultBranch,
 							RepoUrl: "todo.git",
 						},
-						Dep: &config.DependencyConfig{
-							Primary: &config.VersionFileConfig{
+						Dep: &proto.DependencyConfig{
+							Primary: &proto.VersionFileConfig{
 								Id:   "todo.git",
 								Path: deps_parser.DepsFileName,
 							},
@@ -57,17 +57,17 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 					},
 					ChildPath: githubCIPDDEPSChildPath,
 				},
-				Github: &config.GitHubConfig{
+				Github: &proto.GitHubConfig{
 					RepoOwner: githubCIPDUser,
 					RepoName:  "todo.git",
 				},
 				ForkRepoUrl: "todo.git",
 			},
 		},
-		Child: &config.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
-			GitCheckoutGithubChild: &config.GitCheckoutGitHubChildConfig{
-				GitCheckout: &config.GitCheckoutChildConfig{
-					GitCheckout: &config.GitCheckoutConfig{
+		Child: &proto.ParentChildRepoManagerConfig_GitCheckoutGithubChild{
+			GitCheckoutGithubChild: &proto.GitCheckoutGitHubChildConfig{
+				GitCheckout: &proto.GitCheckoutChildConfig{
+					GitCheckout: &proto.GitCheckoutConfig{
 						Branch:  git.DefaultBranch,
 						RepoUrl: "todo.git",
 					},
@@ -79,7 +79,7 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 	}
 }
 
-func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
+func setupGithubDEPS(t *testing.T, c *proto.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -115,12 +115,12 @@ func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (cont
 	fork.Git(ctx, "checkout", git.DefaultBranch)
 	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
-	parentCfg := c.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg := c.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
 	parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
 	parentCfg.DepsLocal.GitCheckout.Dep.Primary.Id = child.RepoUrl()
 	parentCfg.Github.RepoName = parent.RepoUrl()
 	parentCfg.ForkRepoUrl = fork.RepoUrl()
-	childCfg := c.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
+	childCfg := c.Child.(*proto.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
 	childCfg.GitCheckout.GitCheckout.RepoUrl = child.RepoUrl()
 	childCfg.RepoName = child.RepoUrl()
 
@@ -258,21 +258,21 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.GitCheckout.Dep.Transitive = []*config.TransitiveDepConfig{
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.GitCheckout.Dep.Transitive = []*proto.TransitiveDepConfig{
 		{
-			Child: &config.VersionFileConfig{
+			Child: &proto.VersionFileConfig{
 				Id:   "https://grandchild-in-child",
 				Path: "DEPS",
 			},
-			Parent: &config.VersionFileConfig{
+			Parent: &proto.VersionFileConfig{
 				Id:   "https://grandchild-in-parent",
 				Path: "DEPS",
 			},
 		},
 	}
-	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
-	childCfg.GitCheckout.GitCheckout.Dependencies = []*config.VersionFileConfig{
+	childCfg := cfg.Child.(*proto.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
+	childCfg.GitCheckout.GitCheckout.Dependencies = []*proto.VersionFileConfig{
 		{
 			Id:   "https://grandchild-in-child",
 			Path: "DEPS",
@@ -303,8 +303,8 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 		return nil
 	})
 	cfg := githubDEPSCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []proto.PreUploadStep{stepName}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
 	defer cleanup()
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -330,8 +330,8 @@ func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 		return expectedErr
 	})
 	cfg := githubDEPSCfg(t)
-	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
+	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []proto.PreUploadStep{stepName}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
 	defer cleanup()
 
