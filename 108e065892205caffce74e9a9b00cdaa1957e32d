@@ -58,6 +58,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0a33446c_00c972b7",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 16439
+      },
+      "writtenOn": "2021-02-03T15:22:51Z",
+      "side": 1,
+      "message": "Fixed. It might or might not be obvious that I cribbed this configuration entirely from the GoogleTest -\u003e Chromium roller. ;)",
+      "parentUuid": "43fcdbe9_8bb367a5",
+      "range": {
+        "startLine": 4,
+        "startChar": 27,
+        "endLine": 4,
+        "endChar": 36
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b1884b0b_2e8b48fc",
@@ -81,6 +105,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1638d040_51eadf0a",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 16439
+      },
+      "writtenOn": "2021-02-03T15:22:51Z",
+      "side": 1,
+      "message": "There isn\u0027t a team mailing list as such mostly because there isn\u0027t a team as such. thakis suggested that I configure AutoRoll and, FWIW, is the only person listed in https://chromium.googlesource.com/chromium/src/+/refs/heads/master/third_party/re2/OWNERS nowadays. I maintain RE2 and don\u0027t actually work on Chromium or associated projects. Still, I\u0027m open to suggestions. :)",
+      "parentUuid": "b1884b0b_2e8b48fc",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 32
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "e72420ce_3763aa44",
@@ -94,6 +142,30 @@
       "writtenOn": "2021-02-03T13:38:03Z",
       "side": 1,
       "message": "Nit: similarly, is there a sheriff rotation we could use for the reviewer?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 32
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8e37ee9d_81033ae0",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 16439
+      },
+      "writtenOn": "2021-02-03T15:22:51Z",
+      "side": 1,
+      "message": "As above. I would have put thakis as the only reviewer, honestly, with myself as a \"cc\", but there doesn\u0027t seem to be an option for that. :P",
+      "parentUuid": "e72420ce_3763aa44",
       "range": {
         "startLine": 13,
         "startChar": 0,
