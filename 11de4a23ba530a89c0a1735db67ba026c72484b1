@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a85df9b_8ad974e9",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-03T20:51:33Z",
+      "side": 1,
+      "message": "Nit: Please keep these sorted.",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 114
+      },
+      "revId": "11de4a23ba530a89c0a1735db67ba026c72484b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
