@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa5c6b12_d8c099b1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T16:13:07Z",
+      "side": 1,
+      "message": "I still need to figure out the auth scopes for login, so this won\u0027t work as written.",
+      "revId": "5eae64b981ba360a0ebc9634b64bb87c9a349934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
