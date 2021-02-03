@@ -22,6 +22,30 @@
       },
       "revId": "f8aa645be1e6bfa6e1cda6be3199a07fb01c961f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c077cb18_0d51f7a9",
+        "filename": "shaders/go/shaders/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-03T20:59:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "df6fbc61_c940d18f",
+      "range": {
+        "startLine": 36,
+        "startChar": 14,
+        "endLine": 36,
+        "endChar": 17
+      },
+      "revId": "f8aa645be1e6bfa6e1cda6be3199a07fb01c961f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
