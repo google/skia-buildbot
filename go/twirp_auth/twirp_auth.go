@@ -8,6 +8,7 @@ import (
 	"github.com/twitchtv/twirp"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/login"
+	"golang.org/x/oauth2"
 )
 
 /*
@@ -73,6 +74,16 @@ func (h *AuthHelper) GetAdmin(ctx context.Context) (string, error) {
 		return email, nil
 	}
 	return "", twirp.NewError(twirp.PermissionDenied, fmt.Sprintf("%q is not an authorized admin", email))
+}
+
+// GetTokenSource returns a TokenSource associated with the logged-in user or an
+// error if the user is not logged in.
+func (h *AuthHelper) GetTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
+	ts := login.GetTokenSource(ctx)
+	if ts == nil {
+		return nil, twirp.NewError(twirp.Unauthenticated, "User is not logged in")
+	}
+	return ts, nil
 }
 
 // MockGetUserForTesting sets the function used to retrieve the logged-in user

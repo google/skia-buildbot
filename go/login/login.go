@@ -909,3 +909,14 @@ func GetSession(ctx context.Context) *Session {
 	}
 	return nil
 }
+
+// GetTokenSource returns a TokenSource for the logged-in user, or nil if the
+// user is not logged in.  The passed-in Context must be from a request whose
+// http.Handler was wrapped using SessionMiddleware.
+func GetTokenSource(ctx context.Context) oauth2.TokenSource {
+	session := GetSession(ctx)
+	if session == nil {
+		return nil
+	}
+	return oauthConfig.TokenSource(ctx, session.Token)
+}

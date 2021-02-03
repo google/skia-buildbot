@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	path "path"
 	"sort"
 	"time"
 
@@ -17,7 +18,10 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/twirp_auth"
+	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -25,6 +29,7 @@ import (
 var timeNowFunc = time.Now
 
 // NewAutoRollServer creates and returns a Twirp HTTP server.
+// TODO(borenet): We need to update the roller configs as they change.
 func NewAutoRollServer(ctx context.Context, rollers map[string]*AutoRoller, manualRollDB manual.DB, throttle unthrottle.Throttle, viewers, editors, admins allowed.Allow) http.Handler {
 	impl := newAutoRollServerImpl(rollers, manualRollDB, throttle, viewers, editors, admins)
 	srv := NewAutoRollServiceServer(impl, nil)
@@ -266,14 +271,48 @@ func (s *autoRollServerImpl) Unthrottle(ctx context.Context, req *UnthrottleRequ
 
 // GetConfig implements AutoRollService.
 func (s *autoRollServerImpl) GetConfig(ctx context.Context, req *GetConfigRequest) (*GetConfigResponse, error) {
-	// TODO
-	return nil, fmt.Errorf("not implemented")
+	if _, err := s.GetViewer(ctx); err != nil {
+		return nil, err
+	}
+	roller, err := s.getRoller(req.RollerId)
+	if err != nil {
+		return nil, err
+	}
+	return &GetConfigResponse{
+		Config: roller.Cfg,
+	}, nil
 }
 
 // SetConfig implements AutoRollService.
 func (s *autoRollServerImpl) PutConfig(ctx context.Context, req *PutConfigRequest) (*PutConfigResponse, error) {
-	// TODO
-	return nil, fmt.Errorf("not implemented")
+	if err := req.Config.Validate(); err != nil {
+		return nil, err
+	}
+	content, err := prototext.MarshalOptions{
+		Indent: "  ",
+	}.Marshal(req.Config)
+	if err != nil {
+		return nil, err
+	}
+	ts, err := s.GetTokenSource(ctx)
+	if err != nil {
+		return nil, err
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	g, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, client)
+	if err != nil {
+		return nil, err
+	}
+	ci, err := gerrit.CreateAndEditChange(ctx, g, "buildbot", "master", req.CommitMsg, "HEAD", func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+		file := path.Join("config", req.Config.RollerName+".cfg")
+		return g.EditFile(ctx, ci, file, string(content))
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &PutConfigResponse{
+		Cl: g.Url(ci.Issue),
+	}, nil
 }
 
 // AutoRoller provides interactions with a single roller.

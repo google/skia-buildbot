@@ -621,15 +621,18 @@ const JSONToGetConfigResponse = (m: GetConfigResponseJSON): GetConfigResponse =>
 
 export interface PutConfigRequest {
   config?: Config;
+  commitMsg: string;
 }
 
 interface PutConfigRequestJSON {
   config?: ConfigJSON;
+  commit_msg?: string;
 }
 
 const PutConfigRequestToJSON = (m: PutConfigRequest): PutConfigRequestJSON => {
   return {
     config: m.config && ConfigToJSON(m.config),
+    commit_msg: m.commitMsg,
   };
 };
 
