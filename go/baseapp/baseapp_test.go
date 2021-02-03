@@ -1,0 +1,15 @@
+package baseapp
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestSecurityMiddleware_NoOptions(t *testing.T) {
+	require.Equal(t, "base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline'   https: http: ; report-uri /cspreport ;", cspString([]string{"https://example.org"}, []Option{}))
+}
+
+func TestSecurityMiddleware_AllowWASM(t *testing.T) {
+	require.Equal(t, "base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' 'unsafe-eval'  https: http: ; report-uri /cspreport ;", cspString([]string{"https://example.org"}, []Option{AllowWASM{}}))
+}
