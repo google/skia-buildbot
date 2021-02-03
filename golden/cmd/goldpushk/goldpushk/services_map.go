@@ -21,6 +21,7 @@ const (
 
 	// Gold services.
 	BaselineServer  Service = "baselineserver"
+	DiffCalculator  Service = "diffcalculator"
 	DiffServer      Service = "diffserver"
 	IngestionBT     Service = "ingestion-bt"
 	SkiaCorrectness Service = "skiacorrectness"
@@ -71,6 +72,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			DiffServer,
 			IngestionBT,
 			SkiaCorrectness,
+			DiffCalculator,
 		},
 	}
 
@@ -105,6 +107,9 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	})
 	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, SkiaCorrectness, DeploymentOptions{internal: true})
+
+	// Testing diffcalculator
+	s.add(Skia, DiffCalculator)
 
 	return s
 }
