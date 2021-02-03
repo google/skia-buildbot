@@ -332,7 +332,7 @@ func runChromiumPerfOnWorkers() error {
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
 		"--total_archives=" + strconv.Itoa(totalArchivedWebpages),
 	}
-	err = util.ExecuteCmd(ctx, util.BINARY_PYTHON, args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
+	err = util.ExecuteCmd(ctx, "python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running csv_comparer.py: %s", err)
 	}

@@ -72,7 +72,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 		"--skia_revision=SKIA_REV_DEPS",
 	}
 	syncCommand := &exec.Command{
-		Name:      BINARY_PYTHON,
+		Name:      "python",
 		Args:      syncArgs,
 		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
 		LogStdout: true,
@@ -103,7 +103,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 	// Run "tools/mb/mb.py isolate ${TELEMETRY_ISOLATES_OUT_DIR} ${TELEMETRY_ISOLATES_TARGET}"
 	mbArgs := []string{filepath.Join("tools", "mb", "mb.py"), "isolate", TELEMETRY_ISOLATES_OUT_DIR, TELEMETRY_ISOLATES_TARGET}
 	mbCommand := &exec.Command{
-		Name:      BINARY_PYTHON,
+		Name:      "python",
 		Args:      mbArgs,
 		Timeout:   NINJA_TIMEOUT,
 		LogStdout: true,
@@ -167,7 +167,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		"--skia_revision=SKIA_REV_DEPS",
 	}
 	syncCommand := &exec.Command{
-		Name: BINARY_PYTHON,
+		Name: "python",
 		Args: syncArgs,
 		// The below is to bypass the blocking Android license agreement that shows
 		// up sometimes for Android CT builds.
