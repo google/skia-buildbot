@@ -16,6 +16,24 @@
       "message": "I have run this, particles.skia.org now loads those named particles correctly!",
       "revId": "2897f88cf67c93d87b1939679ead53e29ecbc5d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1717828_0ac8c458",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5631
+      },
+      "writtenOn": "2021-02-03T14:48:01Z",
+      "side": 1,
+      "message": "Excellent, thanks for helping to get this all migrated. The upshot is that the code to deal with uniforms (and bundling/passing them around) should be much simpler now, as there\u0027s only going to be one set of data.",
+      "parentUuid": "a0fe396b_0161f8de",
+      "revId": "2897f88cf67c93d87b1939679ead53e29ecbc5d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
