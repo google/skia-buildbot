@@ -16,6 +16,92 @@
       "message": "I hope I did this right. :P",
       "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0f4d1f7e_db1c5bf9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T13:38:03Z",
+      "side": 1,
+      "message": "LGTM with a few nits",
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43fcdbe9_8bb367a5",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T13:38:03Z",
+      "side": 1,
+      "message": "Nit: the \"-autoroll\" suffix is not needed",
+      "range": {
+        "startLine": 4,
+        "startChar": 27,
+        "endLine": 4,
+        "endChar": 36
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b1884b0b_2e8b48fc",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T13:38:03Z",
+      "side": 1,
+      "message": "Nit: it would be slightly preferable to use a team address this if possible",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 32
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e72420ce_3763aa44",
+        "filename": "autoroll/config/re2-chromium.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-03T13:38:03Z",
+      "side": 1,
+      "message": "Nit: similarly, is there a sheriff rotation we could use for the reviewer?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 32
+      },
+      "revId": "108e065892205caffce74e9a9b00cdaa1957e32d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
