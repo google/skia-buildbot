@@ -70,6 +70,18 @@ func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 	return ctx, cfg
 }
 
+func setupForFlakyTest(t *testing.T) (context.Context, config.InstanceConfig) {
+	unittest.RequiresFirestoreEmulatorWithTestCaseSpecificInstanceUnderRBE(t)
+	cfg := config.InstanceConfig{
+		Store: config.Store{
+			Project:  "test-project",
+			Instance: fmt.Sprintf("test-%s", uuid.New()),
+		},
+	}
+	ctx := context.Background()
+	return ctx, cfg
+}
+
 func TestNew(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, cfg := setupForTest(t)
@@ -135,7 +147,7 @@ func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 
 func TestWatch_StartWatchBeforeMachineExists(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, cfg := setupForTest(t)
+	ctx, cfg := setupForFlakyTest(t)
 	store, err := New(ctx, true, cfg)
 	require.NoError(t, err)
 
@@ -266,10 +278,9 @@ func TestList_Success(t *testing.T) {
 	assert.Len(t, descriptions, 2)
 }
 
-/*
 func TestWatchForDeletablePods_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, cfg := setupForTest(t)
+	ctx, cfg := setupForFlakyTest(t)
 	store, err := New(ctx, true, cfg)
 	require.NoError(t, err)
 
@@ -304,10 +315,9 @@ func TestWatchForDeletablePods_Success(t *testing.T) {
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
-*/
 func TestWatchForDeletablePods_OnlyMatchesTheRightMachines(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, cfg := setupForTest(t)
+	ctx, cfg := setupForFlakyTest(t)
 	store, err := New(ctx, true, cfg)
 	require.NoError(t, err)
 
