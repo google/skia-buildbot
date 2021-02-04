@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"sync/atomic"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -17,6 +18,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -95,8 +97,10 @@ func main() {
 
 	db := mustInitSQLDatabase(ctx, dcc)
 	gis := mustMakeGCSImageSource(ctx, dcc)
-	sqlProcessor := processor{
-		worker.New(db, gis, dcc.TilesToProcess),
+	sqlProcessor := &processor{
+		calculator:  worker.New(db, gis, dcc.TilesToProcess),
+		ackCounter:  metrics2.GetCounter("diffcalculator_ack"),
+		nackCounter: metrics2.GetCounter("diffcalculator_nack"),
 	}
 
 	go func() {
@@ -106,6 +110,8 @@ func main() {
 		http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 		sklog.Fatal(http.ListenAndServe(dcc.ReadyPort, nil))
 	}()
+
+	go startMetrics(ctx, sqlProcessor)
 
 	sklog.Fatalf("Listening for work %s", listen(ctx, dcc, sqlProcessor))
 }
@@ -160,7 +166,7 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 	return b, skerr.Wrap(err)
 }
 
-func listen(ctx context.Context, dcc diffCalculatorConfig, p processor) error {
+func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {
 	psc, err := pubsub.NewClient(ctx, dcc.PubsubProjectID)
 	if err != nil {
 		return skerr.Wrapf(err, "initializing pubsub client for project %s", dcc.PubsubProjectID)
@@ -191,18 +197,29 @@ func listen(ctx context.Context, dcc diffCalculatorConfig, p processor) error {
 	return skerr.Wrap(sub.Receive(ctx, p.processPubSubMessage))
 }
 
+type incrementor interface {
+	Inc(i int64)
+}
+
 type processor struct {
-	calculator diff.Calculator
+	calculator  diff.Calculator
+	ackCounter  incrementor
+	nackCounter incrementor
+	busy        int64
 }
 
 // processPubSubMessage processes the data in the given pubsub message and acks or nacks it
 // as appropriate.
-func (p processor) processPubSubMessage(ctx context.Context, msg *pubsub.Message) {
+func (p *processor) processPubSubMessage(ctx context.Context, msg *pubsub.Message) {
+	atomic.StoreInt64(&p.busy, 1)
 	if shouldAck := p.processMessage(ctx, msg.Data); shouldAck {
 		msg.Ack()
+		p.ackCounter.Inc(1)
 	} else {
 		msg.Nack()
+		p.nackCounter.Inc(1)
 	}
+	atomic.StoreInt64(&p.busy, 0)
 }
 
 // processMessage reads the bytes as JSON and calls CalculateDiffs if those bytes were valid.
@@ -222,4 +239,21 @@ func (p processor) processMessage(ctx context.Context, msgData []byte) bool {
 		return false // Let this be tried again.
 	}
 	return true // successfully processed.
+}
+
+func startMetrics(ctx context.Context, p *processor) {
+	// This metric will let us get a sense of how well-utilized this processor is. It reads the
+	// busy int of the processor (which is 0 or 1) and increments the counter with that value.
+	// Because we are updating the counter once per second, we can use rate() [which has units
+	// of per second] on this counter to get a number between 0 and 1 to indicate wall-clock
+	// utilization. Hopefully, this lets us know if we need to add more replicas.
+	go func() {
+		busy := metrics2.GetCounter("diffcalculator_busy_pulses")
+		for range time.Tick(time.Second) {
+			if err := ctx.Err(); err != nil {
+				return
+			}
+			busy.Inc(atomic.LoadInt64(&p.busy))
+		}
+	}()
 }

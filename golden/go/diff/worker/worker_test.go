@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,6 +39,7 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	waitForSystemTime()
 	w := newWorkerUsingImagesFromKitchenSink(t, db)
+	metricBefore := metrics2.GetCounter("diffcalculator_metricscalculated").Get()
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -64,6 +67,9 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA04Unt, fakeNow),
 	}, actualMetrics)
 	assert.Empty(t, getAllProblemImageRows(t, db))
+
+	// 6 distinct pairs of images were compared (left-right order does not matter).
+	assert.Equal(t, metricBefore+6, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
@@ -111,6 +117,7 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	waitForSystemTime()
 	w := newWorkerUsingImagesFromKitchenSink(t, db)
+	metricBefore := metrics2.GetCounter("diffcalculator_metricscalculated").Get()
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -141,6 +148,9 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA04Unt, fakeNow),
 	}, actualMetrics)
 	assert.Empty(t, getAllProblemImageRows(t, db))
+
+	// 5 distinct pairs of images were compared (left-right order does not matter).
+	assert.Equal(t, metricBefore+5, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
@@ -156,6 +166,7 @@ func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	waitForSystemTime()
 	w := newWorkerUsingImagesFromKitchenSink(t, db)
+	metricBefore := metrics2.GetCounter("diffcalculator_metricscalculated").Get()
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -170,6 +181,8 @@ func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
 		sentinelMetricRow(dks.DigestA02Pos, dks.DigestA01Pos),
 	}, actualMetrics)
 	assert.Empty(t, getAllProblemImageRows(t, db))
+	// no pairs of images were compared.
+	assert.Equal(t, metricBefore, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
@@ -267,6 +280,7 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	waitForSystemTime()
+	metricBefore := metrics2.GetCounter("diffcalculator_metricscalculated").Get()
 
 	// Set up an image source that can download A01 and A02, but returns error on A04
 	b01, err := ioutil.ReadFile(filepath.Join(kitchenSinkRoot(t), string(dks.DigestA01Pos)+".png"))
@@ -302,6 +316,9 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	assert.True(t, problem.NumErrors >= 1)
 	assert.Contains(t, problem.LatestError, "not found")
 	assert.Equal(t, fakeNow, problem.ErrorTS)
+
+	// One pair of images was compared successfully.
+	assert.Equal(t, metricBefore+1, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {

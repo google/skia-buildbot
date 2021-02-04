@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -69,7 +71,8 @@ type WorkerImpl struct {
 	// TODO(kjlubick) this might not be the best parameter for "digests to compute against" as we
 	//   might just want to query for the last N commits with data and start at that tile to better
 	//   handle the sparse data case.
-	tilesToProcess int
+	tilesToProcess           int
+	metricsCalculatedCounter metrics2.Counter
 }
 
 // New returns a WorkerImpl that is ready to compute diffs.
@@ -79,11 +82,12 @@ func New(db *pgxpool.Pool, src ImageSource, tilesToProcess int) *WorkerImpl {
 		panic(err) // should only happen if provided size is negative.
 	}
 	return &WorkerImpl{
-		db:                   db,
-		imageSource:          src,
-		badDigestsCache:      ttlcache.New(badImageCooldown, 2*badImageCooldown),
-		downloadedImageCache: imgCache,
-		tilesToProcess:       tilesToProcess,
+		db:                       db,
+		imageSource:              src,
+		badDigestsCache:          ttlcache.New(badImageCooldown, 2*badImageCooldown),
+		downloadedImageCache:     imgCache,
+		tilesToProcess:           tilesToProcess,
+		metricsCalculatedCounter: metrics2.GetCounter("diffcalculator_metricscalculated"),
 	}
 }
 
@@ -158,13 +162,15 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	if err := eg.Wait(); err != nil {
 		return skerr.Wrap(err)
 	}
+	// These numbers can be different in the case of errors.
+	sklog.Infof("Done with those %d/%d new diffs", len(newMetrics), workAssigned)
 	if len(newMetrics) == 0 {
 		return nil
 	}
-	sklog.Infof("Done with those %d new diffs", workAssigned)
 	if err := w.writeMetrics(ctx, newMetrics); err != nil {
 		return skerr.Wrapf(err, "writing %d new metrics for grouping %v", len(newMetrics), grouping)
 	}
+	w.metricsCalculatedCounter.Inc(int64(len(newMetrics)))
 	return nil
 }
 
