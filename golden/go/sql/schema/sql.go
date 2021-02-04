@@ -86,6 +86,12 @@ CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   value STRING,
   PRIMARY KEY (start_commit_id, key, value)
 );
+CREATE TABLE IF NOT EXISTS ProblemImages (
+  digest STRING PRIMARY KEY,
+  num_errors INT2 NOT NULL,
+  latest_error STRING NOT NULL,
+  error_ts TIMESTAMP WITH TIME ZONE NOT NULL
+);
 CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   branch_name STRING,
   grouping_id BYTES,
