@@ -92,6 +92,23 @@
       "parentUuid": "2460e1e1_0b16a764",
       "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "271b3d4e_4881be52",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-02-04T13:38:12Z",
+      "side": 1,
+      "message": "LGTM. I carried them forward from the previous status.  The affect of not having these would be that \u0027BuildStats\u0027 and \u0027Fuzz\u0027 would each become categories, and \u0027Fuzz\u0027 would have a single subcategory and job. I suppose the intent of these was to package those one-off jobs together.  \n\nI could go either way.",
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
