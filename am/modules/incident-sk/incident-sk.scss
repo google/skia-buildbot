@@ -39,7 +39,7 @@ incident-sk {
   }
 
   td a {
-    color: var(--blue);
+    color: var(--primary);
   }
 
   textarea {
@@ -48,7 +48,7 @@ incident-sk {
   }
 
   p {
-    background: var(--white);
+    background: var(--comments);
     padding: 0.5em;
     display: block;
     border-radius: 0.5em;
@@ -65,27 +65,27 @@ incident-sk {
 
   .date {
     margin: 0 1em;
-    color: var(--orange);
+    color: var(--assigned);
   }
 
   .author {
-    color: var(--green);
+    color: var(--icons);
   }
 
   .flaky,
   .recently-expired-silence {
     font-size: 0.75em;
-    color: var(--black);
+    color: var(--background);
   }
 
   delete-icon-sk {
-    fill: var(--gray);
+    fill: var(--on-background);
     cursor: pointer;
     border: solid transparent 1px;
   }
 
   delete-icon-sk:hover {
-    border: solid var(--gray) 1px;
+    border: solid var(--on-background) 1px;
   }
 
   .meta {
@@ -121,5 +121,6 @@ incident-sk[minimized][params] .params {
 
 incident-sk[minimized] {
   margin: 1em;
-  background: var(--dark-white);
+  background: var(--minimized);
+  border-radius: 0.5em;
 }

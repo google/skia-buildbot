@@ -34,6 +34,7 @@ import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
 import { Login } from '../../../infra-sk/modules/login';
 import { BotChooserSk } from '../bot-chooser-sk/bot-chooser-sk';
 import { EmailChooserSk } from '../email-chooser-sk/email-chooser-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 import * as paramset from '../paramset';
 import { displaySilence, expiresIn } from '../am';
@@ -130,7 +131,10 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private static template = (ele: AlertManagerSk) => html`
-<header>${ele.infraGardener()}</header>
+<header>
+  ${ele.infraGardener()}
+  <theme-chooser-sk></theme-chooser-sk>
+</header>
 <section class=nav>
   <tabs-sk @tab-selected-sk=${ele.tabSwitch} selected=${ele.state.tab}>
     <button>Mine</button>
