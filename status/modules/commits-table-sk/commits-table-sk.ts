@@ -65,7 +65,8 @@ const TASK_START_COL = COMMIT_START_COL + 1;
 
 const REVERT_HIGHLIGHT_CLASS = 'highlight-revert';
 const RELAND_HIGHLIGHT_CLASS = 'highlight-reland';
-const VALID_TASK_SPEC_CATEGORIES = ['Build', 'Housekeeper', 'Infra', 'Perf', 'Test', 'Upload'];
+const VALID_TASK_SPEC_CATEGORIES =
+    ['Build', 'Housekeeper', 'Infra', 'Perf', 'Test', 'Upload', 'FM'];
 
 const TASK_STATUS_SUCCESS = 'SUCCESS';
 const TASK_STATUS_FAILURE = 'FAILURE';
