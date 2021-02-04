@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ed9566fc_54ba7e49",
+        "filename": "infra-sk/modules/uniform-slider-sk/uniform-slider-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-04T16:06:30Z",
+      "side": 1,
+      "message": "It would be nice to have a test that tests this branch.",
+      "revId": "0fcf0fcdaa797670b79ff3273edb992958e6cdf1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
