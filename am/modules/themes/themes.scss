@@ -1,0 +1,48 @@
+@import '~elements-sk/themes/themes';
+
+.body-sk.darkmode {
+  --primary: var(--light-blue);
+  --primary-variant: var(--light-blue-200);
+  --on-primary-variant: var(--black);
+  --dark-grayish-blue: #8899A6;
+  --dark-desaturated-blue: #192734;
+
+  --active: var(--red-300);
+  --inactive: var(--dark-grayish-blue);
+  --silenced: var(--green-300);
+  --assigned: var(--orange-300);
+  --selected: var(--dark-desaturated-blue);
+
+  --minimized: var(--dark-desaturated-blue);
+  --comments: var(--dark-desaturated-blue);
+  --icons: var(--green-300);
+  --disabled: var(--grey-700);
+}
+
+.body-sk {
+  --primary: var(--blue-800);
+  --primary-variant: var(--light-blue-600);
+  --secondary: var(--green-500);
+  --very-dark-gray: #4F4F4F;
+
+  --active: var(--red);
+  --inactive: var(--very-dark-gray);
+  --silenced: var(--green);
+  --assigned: var(--orange);
+  --assigned-person: var(--light-orange);
+  --selected: var(--dark-white);
+
+  --minimized: var(--dark-white);
+  --comments: var(--dark-white);
+  --icons: var(--green);
+
+  input, textarea {
+    border: solid 1px var(--on-surface);
+    color: solid 1px var(--on-surface);
+    background: solid 1px var(--surface);
+  }
+
+  a {
+    color: var(--primary);
+  }
+}
