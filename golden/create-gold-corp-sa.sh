@@ -47,6 +47,9 @@ gcloud projects add-iam-policy-binding ${PROJECT_ID} \
 gcloud projects add-iam-policy-binding ${PROJECT_ID} \
     --member serviceAccount:${GS_SA_EMAIL} --role roles/pubsub.editor
 
+gcloud projects add-iam-policy-binding --project ${PROJECT} \
+  --member serviceAccount:${SA_EMAIL} --role roles/cloudtrace.agent
+
 gcloud beta iam service-accounts keys create ${SA_NAME}.json \
     --iam-account="${SA_EMAIL}"
 
