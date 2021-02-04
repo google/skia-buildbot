@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ed64a67_ce33d0b6",
+        "filename": "autoroll/modules/arb-config-sk/arb-config-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-04T14:45:59Z",
+      "side": 1,
+      "message": "nit: this documentation section",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 7
+      },
+      "revId": "c30c5eadc1a649a06a49fee0bb0b9626ac42665f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "13f86ae7_4298c47c",
+        "filename": "autoroll/modules/arb-config-sk/arb-config-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-04T14:45:59Z",
+      "side": 1,
+      "message": "nit: configInput is referenced in 3 places, make constant?",
+      "range": {
+        "startLine": 105,
+        "startChar": 49,
+        "endLine": 105,
+        "endChar": 60
+      },
+      "revId": "c30c5eadc1a649a06a49fee0bb0b9626ac42665f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
