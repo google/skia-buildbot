@@ -10,6 +10,7 @@ import (
 	"unsafe"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -298,4 +299,20 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
 		MaxRGBADiffs:     maxRGBADiffs,
 		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg
+}
+
+type Calculator interface {
+	// CalculateDiffs recomputes all diffs for the current grouping, including any digests provided.
+	CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error
+}
+
+type WorkerMessage struct {
+	// Grouping corresponds to the test that produced the images we should include in our diff
+	// calculation.
+	Grouping paramtools.Params `json:"grouping"`
+
+	// AdditionalDigests are digests beyond those that have been seen on the primary branch that
+	// should be included in the diff calculations. It expected that tryjob results should set
+	// this to be non-empty, as well as when running in compatibility mode with the previous system.
+	AdditionalDigests []types.Digest `json:"additional_digests,omitempty"`
 }

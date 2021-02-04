@@ -26,7 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func TestComputeDiffs_NoExistingData_Success(t *testing.T) {
+func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -39,8 +39,8 @@ func TestComputeDiffs_NoExistingData_Success(t *testing.T) {
 		types.CorpusField:     "not used",
 		types.PrimaryKeyField: "not used",
 	}
-	imagesToComputeDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
-	require.NoError(t, w.ComputeDiffs(ctx, grouping, imagesToComputeDiffsFor))
+	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
 	require.NoError(t, err)
@@ -74,7 +74,7 @@ func TestComputeDiffs_NoExistingData_Success(t *testing.T) {
 	}, actualMetrics)
 }
 
-func TestComputeDiffs_MultipleBatches_Success(t *testing.T) {
+func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -88,14 +88,14 @@ func TestComputeDiffs_MultipleBatches_Success(t *testing.T) {
 		types.CorpusField:     "not used",
 		types.PrimaryKeyField: "not used",
 	}
-	var imagesToComputeDiffsFor []types.Digest
+	var imagesToCalculateDiffsFor []types.Digest
 	// 16 digests should result in 32 * 32 - 32 diffs (a 32 by 32 square with the diagonal removed)
 	// This is more than the batchSize in writeMetrics
 	for i := 0; i < 32; i++ {
 		d := fmt.Sprintf("%032d", i)
-		imagesToComputeDiffsFor = append(imagesToComputeDiffsFor, types.Digest(d))
+		imagesToCalculateDiffsFor = append(imagesToCalculateDiffsFor, types.Digest(d))
 	}
-	require.NoError(t, w.ComputeDiffs(ctx, grouping, imagesToComputeDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	row := db.QueryRow(ctx, `SELECT count(*) FROM DiffMetrics`)
 	count := 0
@@ -103,7 +103,7 @@ func TestComputeDiffs_MultipleBatches_Success(t *testing.T) {
 	assert.Equal(t, 32*31, count)
 }
 
-func TestComputeDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing.T) {
+func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -123,8 +123,8 @@ func TestComputeDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing.T
 		types.CorpusField:     "not used",
 		types.PrimaryKeyField: "not used",
 	}
-	imagesToComputeDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
-	require.NoError(t, w.ComputeDiffs(ctx, grouping, imagesToComputeDiffsFor))
+	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
 	require.NoError(t, err)
@@ -159,7 +159,7 @@ func TestComputeDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing.T
 	}, actualMetrics)
 }
 
-func TestComputeDiffs_NoNewMetrics_Success(t *testing.T) {
+func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -177,8 +177,8 @@ func TestComputeDiffs_NoNewMetrics_Success(t *testing.T) {
 		types.CorpusField:     "not used",
 		types.PrimaryKeyField: "not used",
 	}
-	imagesToComputeDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos}
-	require.NoError(t, w.ComputeDiffs(ctx, grouping, imagesToComputeDiffsFor))
+	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
 
 	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
 	require.NoError(t, err)
@@ -197,7 +197,7 @@ func TestComputeDiffs_NoNewMetrics_Success(t *testing.T) {
 	}, actualMetrics)
 }
 
-func TestComputeDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
+func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -214,7 +214,7 @@ func TestComputeDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 		types.CorpusField:     dks.CornersCorpus,
 		types.PrimaryKeyField: dks.TriangleTest,
 	}
-	require.NoError(t, w.ComputeDiffs(ctx, grouping, nil))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil))
 
 	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
 	require.NoError(t, err)
@@ -255,7 +255,7 @@ func TestComputeDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 	}, actualMetrics)
 }
 
-func TestComputeDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
+func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
@@ -271,7 +271,7 @@ func TestComputeDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 		types.CorpusField:     dks.RoundCorpus,
 		types.PrimaryKeyField: dks.CircleTest,
 	}
-	require.NoError(t, w.ComputeDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}))
 
 	rows, err := db.Query(ctx, `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
 	require.NoError(t, err)
@@ -302,6 +302,9 @@ func TestComputeDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 		expectedFromKS(t, dks.DigestC06Pos_CL, dks.DigestC05Unt, fakeNow),
 	}, actualMetrics)
 }
+
+// TODO(kjlubick) if downloading an image returns an error for one of the images, we should
+//   compute partial data (so future attempts can try again). See also ProblemImages
 
 func makeSparseData() schema.Tables {
 	b := databuilder.TablesBuilder{}
