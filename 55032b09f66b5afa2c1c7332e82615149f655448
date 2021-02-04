@@ -127,6 +127,24 @@
       "parentUuid": "271b3d4e_4881be52",
       "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d2a27b06_d02952fb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-04T13:42:14Z",
+      "side": 1,
+      "message": "I\u0027m 99% sure that at the time the original code was written, those tasks didn\u0027t exist.  There may have been a reason for hard-coding the list at the time, but I don\u0027t remember what it was.\n\nWould the demo page show us the behavioral difference of removing the list?",
+      "parentUuid": "271b3d4e_4881be52",
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
