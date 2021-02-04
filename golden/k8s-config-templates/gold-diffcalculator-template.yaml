@@ -65,6 +65,10 @@ spec:
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /etc/gold-secrets/service-account.json
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           resources:
             requests:
               memory: "11Gi" # 10 Gig for full cache in diff/worker.go + some extra
