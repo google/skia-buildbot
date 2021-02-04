@@ -163,6 +163,24 @@
       "parentUuid": "d2a27b06_d02952fb",
       "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a736e2ed_1e70c2e0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2021-02-04T14:06:13Z",
+      "side": 1,
+      "message": "lgtm, though I\u0027m curious to see if it\u0027s anything other than removing the VALID_TASK_SPEC_CATEGORIES list.  If this makes things more complicated, I don\u0027t really mind keeping VALID_TASK_SPEC_CATEGORIES.",
+      "parentUuid": "58494ce8_66930792",
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
