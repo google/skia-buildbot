@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -62,7 +63,8 @@ func TestProductionDeployableUnitsAllExactlyFuchsiaServicesAreInternal(t *testin
 	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
 	for _, unit := range deployableUnitSet.deployableUnits {
-		require.True(t, unit.internal == (unit.Instance == Fuchsia), msg(unit.DeployableUnitID))
+		// If the unit instance is fuchsia, it should be internal.
+		assert.Equal(t, unit.Instance == Fuchsia, unit.internal, msg(unit.DeployableUnitID))
 	}
 }
 

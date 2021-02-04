@@ -126,6 +126,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	angleSkiaCorrectness := makeID(goldpushk.Angle, goldpushk.SkiaCorrectness)
 	angleDiffServer := makeID(goldpushk.Angle, goldpushk.DiffServer)
 	chromeBaselineServer := makeID(goldpushk.Chrome, goldpushk.BaselineServer)
+	chromeDiffCalculator := makeID(goldpushk.Chrome, goldpushk.DiffCalculator)
 	chromeDiffServer := makeID(goldpushk.Chrome, goldpushk.DiffServer)
 	chromeIngestionBT := makeID(goldpushk.Chrome, goldpushk.IngestionBT)
 	chromeSkiaCorrectness := makeID(goldpushk.Chrome, goldpushk.SkiaCorrectness)
@@ -144,6 +145,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	lottieSkiaCorrectness := makeID(goldpushk.Lottie, goldpushk.SkiaCorrectness)
 	pdfiumDiffServer := makeID(goldpushk.Pdfium, goldpushk.DiffServer)
 	pdfiumSkiaCorrectness := makeID(goldpushk.Pdfium, goldpushk.SkiaCorrectness)
+	skiaDiffCalculator := makeID(goldpushk.Skia, goldpushk.DiffCalculator)
 	skiaDiffServer := makeID(goldpushk.Skia, goldpushk.DiffServer)
 	skiaInfraDiffServer := makeID(goldpushk.SkiaInfra, goldpushk.DiffServer)
 	skiaInfraSkiaCorrectness := makeID(goldpushk.SkiaInfra, goldpushk.SkiaCorrectness)
@@ -210,27 +212,27 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	test("Single instance, all services, no canary",
 		[]string{"chrome"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness},
 		nil)
 	test("Single instance, all services, one canary",
 		[]string{"chrome"}, []string{"all"}, []string{"chrome:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT},
 		[]goldpushk.DeployableUnitID{chromeSkiaCorrectness})
 	test("Single instance, all services, multiple canaries",
 		[]string{"chrome"}, []string{"all"}, []string{"chrome:ingestion-bt", "chrome:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer},
 		[]goldpushk.DeployableUnitID{chromeIngestionBT, chromeSkiaCorrectness})
 	test("Multiple instances, all services, no canary",
 		[]string{"chrome", "skia"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer, skiaIngestionBT, skiaSkiaCorrectness},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffCalculator, skiaDiffServer, skiaIngestionBT, skiaSkiaCorrectness},
 		nil)
 	test("Multiple instances, all services, one canary",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer, skiaIngestionBT},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffCalculator, skiaDiffServer, skiaIngestionBT},
 		[]goldpushk.DeployableUnitID{skiaSkiaCorrectness})
 	test("Multiple instances, all services, multiple canaries",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:ingestion-bt", "skia:skiacorrectness"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffServer},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeSkiaCorrectness, skiaDiffCalculator, skiaDiffServer},
 		[]goldpushk.DeployableUnitID{skiaIngestionBT, skiaSkiaCorrectness})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
