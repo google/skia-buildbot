@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "aa4478d0_90ad3448",
+        "filename": "golden/cmd/diffcalculator/diffcalculator.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-04T13:06:31Z",
+      "side": 1,
+      "message": "The s stands for \"Kevin used copy and paste\"😜. Done.",
+      "parentUuid": "fcd2e66f_bf46d202",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 8
+      },
+      "revId": "e48559108f2297778179b28661a79f9fc1540ca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b64953ab_f6283421",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b70c64a_087690f4",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-04T13:06:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b64953ab_f6283421",
+      "range": {
+        "startLine": 85,
+        "startChar": 18,
+        "endLine": 85,
+        "endChar": 28
+      },
+      "revId": "e48559108f2297778179b28661a79f9fc1540ca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "6705a1b5_c3075988",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-02-03T20:48:10Z",
       "side": 1,
       "message": "Can we add a check that the WorkerImpl struct implements diff.Calculator?",
+      "range": {
+        "startLine": 86,
+        "startChar": 9,
+        "endLine": 86,
+        "endChar": 35
+      },
+      "revId": "e48559108f2297778179b28661a79f9fc1540ca4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f21de463_bbd7b24d",
+        "filename": "golden/go/diff/worker/worker.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-04T13:06:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6705a1b5_c3075988",
       "range": {
         "startLine": 86,
         "startChar": 9,
