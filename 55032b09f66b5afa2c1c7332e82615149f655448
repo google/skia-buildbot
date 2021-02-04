@@ -74,6 +74,24 @@
       "message": "Weston is more familiar with this code than I am at this point.",
       "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f7ae70d0_7750a811",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2021-02-04T13:33:34Z",
+      "side": 1,
+      "message": "Thanks!  I\u0027ll wait for his review.",
+      "parentUuid": "2460e1e1_0b16a764",
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
