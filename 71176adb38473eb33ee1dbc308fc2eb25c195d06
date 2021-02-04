@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a90a14a6_129b7932",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-04T19:42:26Z",
+      "side": 1,
+      "message": "Example usage of the busy_pulses (utilization) metric:\nhttps://screenshot.googleplex.com/6tsMwvBdy3zyLYD\n\nExample trace:\nhttps://console.cloud.google.com/traces/list?tid\u003dace69b425e621006ab931875f8702876\u0026project\u003dskia-public",
+      "revId": "71176adb38473eb33ee1dbc308fc2eb25c195d06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
