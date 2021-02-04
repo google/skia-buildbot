@@ -82,8 +82,9 @@ type digestPair struct {
 	right types.Digest
 }
 
-// ComputeDiffs recomputes all diffs for the current grouping, including any digests provided.
-func (w *WorkerImpl) ComputeDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
+// CalculateDiffs calculates all diffmetrics for the current grouping, including any digests
+// provided. It will not recalculate existing metrics, which are assumed to be immutable over time.
+func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
 	allDigests, err := w.getExisting(ctx, grouping)
 	if err != nil {
 		return skerr.Wrapf(err, "getting existing for %v", grouping)
@@ -222,7 +223,7 @@ WHERE left_digest IN `
 	return nil
 }
 
-// diff computes the difference between the two images with the provided digests and returns
+// diff calculates the difference between the two images with the provided digests and returns
 // it in a format that can be inserted into the SQL database.
 func (w *WorkerImpl) diff(ctx context.Context, left, right types.Digest) (schema.DiffMetricRow, error) {
 	lb, err := sql.DigestToBytes(left)
@@ -324,3 +325,6 @@ func decode(b []byte) (*image.NRGBA, error) {
 	}
 	return diff.GetNRGBA(im), nil
 }
+
+// Make sure WorkerImpl fulfills the diff.Calculator interface.
+var _ diff.Calculator = (*WorkerImpl)(nil)
