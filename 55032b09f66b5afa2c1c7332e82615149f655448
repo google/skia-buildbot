@@ -3,6 +3,29 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "6b90a75e_cece62d1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-04T13:30:43Z",
+      "side": 1,
+      "message": "Yes, I believe so.  Offhand, I don\u0027t know why we couldn\u0027t remove the list and just use the first two segments of the task names as category/subcategory.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 51
+      },
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "37f2b54c_5a0289b6",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 2
@@ -14,6 +37,41 @@
       "writtenOn": "2021-02-04T09:06:09Z",
       "side": 1,
       "message": "Have I got this right?  Anything else to run or regenerate for a change like this?",
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef8710a0_99cda191",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-04T13:30:43Z",
+      "side": 1,
+      "message": "Nothing to generate, but it\u0027s been a long time since I\u0027ve looked at this code.",
+      "parentUuid": "37f2b54c_5a0289b6",
+      "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2460e1e1_0b16a764",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-04T13:30:43Z",
+      "side": 1,
+      "message": "Weston is more familiar with this code than I am at this point.",
       "revId": "55032b09f66b5afa2c1c7332e82615149f655448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
