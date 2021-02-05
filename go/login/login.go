@@ -186,7 +186,7 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 // The authAllowList is the space separated list of domains and email addresses
 // that are allowed to log in.
 func Init(redirectURL string, authAllowList string, clientSecretFile string) error {
-	cookieSalt, clientID, clientSecret := tryLoadingFromKnownLocations()
+	cookieSalt, clientID, clientSecret := TryLoadingFromKnownLocations()
 	if clientID == "" {
 		if clientSecretFile == "" {
 			clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
@@ -822,12 +822,12 @@ type loginInfo struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-// tryLoadingFromKnownLocations tries to load the cookie salt, client id, and
+// TryLoadingFromKnownLocations tries to load the cookie salt, client id, and
 // client secret from a file in a known location. If it fails then it returns
 // the salt it was passed and the client id and secret are the empty string.
 //
 // Returns salt, clientID, clientSecret.
-func tryLoadingFromKnownLocations() (string, string, string) {
+func TryLoadingFromKnownLocations() (string, string, string) {
 	cookieSalt := ""
 	clientID := ""
 	clientSecret := ""
