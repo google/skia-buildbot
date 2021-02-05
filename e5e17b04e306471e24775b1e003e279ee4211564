@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c77e5b9b_8b720cc0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-05T15:10:42Z",
+      "side": 1,
+      "message": "They started as separate CLs and later I noticed I needed some common code. At that point it was just easier to copy the code between the CLs. I can deal with the merge when I land them.",
+      "parentUuid": "6007a5b5_62bf6a60",
+      "revId": "e5e17b04e306471e24775b1e003e279ee4211564",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bace1227_627ff741",
@@ -35,6 +53,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "92bcd861_191ec7e8",
+        "filename": "infra-sk/modules/uniform-color-sk/uniform-color-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-05T15:10:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bace1227_627ff741",
+      "revId": "e5e17b04e306471e24775b1e003e279ee4211564",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "39d85f56_d241054f",
@@ -48,6 +84,30 @@
       "writtenOn": "2021-02-04T16:09:01Z",
       "side": 1,
       "message": "Maybe also a test with eeddcc to make sure the rgb are decoded correctly?",
+      "range": {
+        "startLine": 33,
+        "startChar": 56,
+        "endLine": 33,
+        "endChar": 62
+      },
+      "revId": "e5e17b04e306471e24775b1e003e279ee4211564",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f723a95f_769aa593",
+        "filename": "infra-sk/modules/uniform-color-sk/uniform-color-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-05T15:10:42Z",
+      "side": 1,
+      "message": "Changed test to better confirm color decoding.",
+      "parentUuid": "39d85f56_d241054f",
       "range": {
         "startLine": 33,
         "startChar": 56,
