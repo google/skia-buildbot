@@ -49,15 +49,8 @@ type diffCalculatorConfig struct {
 	// backed up messages?"
 	DiffWorkSubscription string `json:"diff_work_subscription"`
 
-	// DiffWorkTopic the event topic used for computing diff metrics. This will need to match
-	// the places that publish to this topic (ingestion and [legacy] indexer).
-	DiffWorkTopic string `json:"diff_work_topic"`
-
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
-
-	// Project ID that houses the pubsub topic.
-	PubsubProjectID string `json:"pubsub_project_id"`
 
 	// The port to provide a web handler for /healthz
 	ReadyPort string `json:"ready_port"`
