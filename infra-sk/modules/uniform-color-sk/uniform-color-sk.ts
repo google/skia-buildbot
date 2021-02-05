@@ -15,8 +15,8 @@ import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {
   name: 'u_color',
-  rows: 1,
-  columns: 3,
+  rows: 3,
+  columns: 1,
   slot: 0,
 };
 
@@ -46,8 +46,9 @@ export class UniformColorSk extends ElementSk implements UniformControl {
   }
 
   set uniform(val: Uniform) {
-    if (val.columns !== 3 || val.rows !== 1) {
-      throw new Error('uniform-color-sk can only work on a uniform of size 3.');
+    // TODO(jcgregorio) Handle the case of a float4, i.e. there is an alpha channel.
+    if (val.rows !== 3 || val.columns !== 1) {
+      throw new Error('uniform-color-sk can only work on a uniform of float3.');
     }
     this._uniform = val;
     this._render();
