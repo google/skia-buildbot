@@ -36,8 +36,9 @@ const (
 	// be used.
 	NowSourceKey = contextKey("nowSource")
 
-	// 10k encoded images at ~ 1MB a piece = 10 gig of RAM, which should be doable.
-	downloadedImageCacheSize = 10_000
+	// 3k decoded images at ~4MB a piece = 12 gig of RAM, which should be doable.
+	// The size of 4MB comes from the 90th percentile of real-world data.
+	decodedImageCacheSize = 3_000
 
 	diffingRoutines = 8
 )
@@ -64,10 +65,10 @@ type ImageSource interface {
 
 // WorkerImpl is a basic implementation that reads and writes to the SQL backend.
 type WorkerImpl struct {
-	db                   *pgxpool.Pool
-	imageSource          ImageSource
-	badDigestsCache      *ttlcache.Cache
-	downloadedImageCache *lru.Cache
+	db                *pgxpool.Pool
+	imageSource       ImageSource
+	badDigestsCache   *ttlcache.Cache
+	decodedImageCache *lru.Cache
 	// TODO(kjlubick) this might not be the best parameter for "digests to compute against" as we
 	//   might just want to query for the last N commits with data and start at that tile to better
 	//   handle the sparse data case.
@@ -79,7 +80,7 @@ type WorkerImpl struct {
 
 // New returns a WorkerImpl that is ready to compute diffs.
 func New(db *pgxpool.Pool, src ImageSource, tilesToProcess int) *WorkerImpl {
-	imgCache, err := lru.New(downloadedImageCacheSize)
+	imgCache, err := lru.New(decodedImageCacheSize)
 	if err != nil {
 		panic(err) // should only happen if provided size is negative.
 	}
@@ -87,7 +88,7 @@ func New(db *pgxpool.Pool, src ImageSource, tilesToProcess int) *WorkerImpl {
 		db:                       db,
 		imageSource:              src,
 		badDigestsCache:          ttlcache.New(badImageCooldown, 2*badImageCooldown),
-		downloadedImageCache:     imgCache,
+		decodedImageCache:        imgCache,
 		tilesToProcess:           tilesToProcess,
 		metricsCalculatedCounter: metrics2.GetCounter("diffcalculator_metricscalculated"),
 		decodedImageBytesSummary: metrics2.GetFloat64SummaryMetric("diffcalculator_decodedimagebytes"),
@@ -333,14 +334,13 @@ func now(ctx context.Context) time.Time {
 func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (*image.NRGBA, error) {
 	ctx, span := trace.StartSpan(ctx, "getDecodedImage")
 	defer span.End()
-	if cachedBytes, ok := w.downloadedImageCache.Get(digest); ok {
-		return decode(ctx, cachedBytes.([]byte))
+	if cachedImg, ok := w.decodedImageCache.Get(digest); ok {
+		return cachedImg.(*image.NRGBA), nil
 	}
 	b, err := w.imageSource.GetImage(ctx, digest)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting image with digest %s", digest)
 	}
-	w.downloadedImageCache.Add(digest, b)
 	w.encodedImageBytesSummary.Observe(float64(len(b)))
 	img, err := decode(ctx, b)
 	if err != nil {
@@ -349,6 +349,7 @@ func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (
 	// In memory, the image takes up 4 bytes per pixel.
 	s := img.Bounds().Size()
 	w.decodedImageBytesSummary.Observe(float64(s.X * s.Y * 4))
+	w.decodedImageCache.Add(digest, img)
 	return img, nil
 }
 
