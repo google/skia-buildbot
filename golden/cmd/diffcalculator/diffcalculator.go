@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -49,15 +50,8 @@ type diffCalculatorConfig struct {
 	// backed up messages?"
 	DiffWorkSubscription string `json:"diff_work_subscription"`
 
-	// DiffWorkTopic the event topic used for computing diff metrics. This will need to match
-	// the places that publish to this topic (ingestion and [legacy] indexer).
-	DiffWorkTopic string `json:"diff_work_topic"`
-
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
-
-	// Project ID that houses the pubsub topic.
-	PubsubProjectID string `json:"pubsub_project_id"`
 
 	// The port to provide a web handler for /healthz
 	ReadyPort string `json:"ready_port"`
@@ -196,9 +190,12 @@ func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {
 		return skerr.Fmt("subscription %s does not exist in project %s", dcc.DiffWorkSubscription, dcc.PubsubProjectID)
 	}
 
+	// This is a limit of how many messages to fetch when PubSub has no work. Waiting for PubSub
+	// to give us messages can take a second or two, so we choose a small, but not too small
+	// batch size.
+	sub.ReceiveSettings.MaxOutstandingMessages = 10
 	// This process will handle one message at a time. This allows us to more finely control the
 	// scaling up as necessary.
-	sub.ReceiveSettings.MaxOutstandingMessages = 1
 	sub.ReceiveSettings.NumGoroutines = 1
 
 	// Blocks until context cancels or pubsub fails in a non retryable way.
@@ -212,11 +209,17 @@ type processor struct {
 	// busy is either 1 or 0 depending on if this processor is working or not. This allows us
 	// to gather data on wall-clock utilization.
 	busy int64
+	// PubSub sometimes gives us more than one messages at a time. This mutex ensures that
+	// we only really process one at a time, which makes sure we don't overload our CPU estimate
+	// and we avoid cache thrashing.
+	oneMessageAtATime sync.Mutex
 }
 
 // processPubSubMessage processes the data in the given pubsub message and acks or nacks it
 // as appropriate.
 func (p *processor) processPubSubMessage(ctx context.Context, msg *pubsub.Message) {
+	p.oneMessageAtATime.Lock()
+	defer p.oneMessageAtATime.Unlock()
 	ctx, span := trace.StartSpan(ctx, "processFromPubSub")
 	defer span.End()
 	atomic.StoreInt64(&p.busy, 1)
@@ -235,7 +238,7 @@ func (p *processor) processPubSubMessage(ctx context.Context, msg *pubsub.Messag
 // pubsub message without the emulator because there are private members that need initializing).
 // It returns a bool that represents whether the message should be Ack'd (not retried) or Nack'd
 // (retried later).
-func (p processor) processMessage(ctx context.Context, msgData []byte) bool {
+func (p *processor) processMessage(ctx context.Context, msgData []byte) bool {
 	var wm diff.WorkerMessage
 	if err := json.Unmarshal(msgData, &wm); err != nil {
 		sklog.Errorf("Invalid message passed in: %s\n%s", err, string(msgData))
