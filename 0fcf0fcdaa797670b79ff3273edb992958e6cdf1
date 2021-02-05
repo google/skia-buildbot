@@ -16,6 +16,24 @@
       "message": "It would be nice to have a test that tests this branch.",
       "revId": "0fcf0fcdaa797670b79ff3273edb992958e6cdf1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9c8c97fd_69ea9390",
+        "filename": "infra-sk/modules/uniform-slider-sk/uniform-slider-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-05T15:14:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed9566fc_54ba7e49",
+      "revId": "0fcf0fcdaa797670b79ff3273edb992958e6cdf1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
