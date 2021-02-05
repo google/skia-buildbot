@@ -1,7 +1,7 @@
 import { $$ } from 'common-sk/modules/dom';
 import './index';
-import { UniformSliderSk } from './uniform-slider-sk';
 import { $ } from 'common-sk/modules/dom';
+import { UniformSliderSk } from './uniform-slider-sk';
 
 $$('#apply')!.addEventListener('click', () => {
   const uniforms = new Float32Array(3);
