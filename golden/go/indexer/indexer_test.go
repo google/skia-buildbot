@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -18,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
+	diff_mocks "go.skia.org/infra/golden/go/diff/mocks"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
@@ -44,16 +46,19 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	mdw := &mock_warmer.DiffWarmer{}
 	mes := &mock_expectations.Store{}
 	mgc := &mocks.GCSClient{}
+	mdp := &diff_mocks.Calculator{}
 
 	defer mds.AssertExpectations(t)
 	defer mdw.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
+	defer mdp.AssertExpectations(t)
 
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	ic := IndexerConfig{
 		DiffStore:         mds,
+		DiffWorkPublisher: mdp,
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
 		Warmer:            mdw,
@@ -96,6 +101,26 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	})
 
 	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
+
+	mdp.On("CalculateDiffs", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		grouping := args.Get(1).(paramtools.Params)
+		digests := args.Get(2).([]types.Digest)
+		if grouping[types.PrimaryKeyField] == string(data.AlphaTest) {
+			assert.Equal(t, paramtools.Params{
+				types.CorpusField:     data.GMCorpus,
+				types.PrimaryKeyField: string(data.AlphaTest),
+			}, grouping)
+			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, digests)
+		} else if grouping[types.PrimaryKeyField] == string(data.BetaTest) {
+			assert.Equal(t, paramtools.Params{
+				types.CorpusField:     data.GMCorpus,
+				types.PrimaryKeyField: string(data.BetaTest),
+			}, grouping)
+			assert.ElementsMatch(t, []types.Digest{data.BetaPositiveDigest, data.BetaUntriagedDigest}, digests)
+		} else {
+			assert.Fail(t, "unknown grouping %v and digests %s", grouping, digests)
+		}
+	}).Return(nil)
 
 	ixr, err := New(context.Background(), ic, 0)
 	require.NoError(t, err)

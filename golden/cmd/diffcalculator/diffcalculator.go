@@ -49,15 +49,8 @@ type diffCalculatorConfig struct {
 	// backed up messages?"
 	DiffWorkSubscription string `json:"diff_work_subscription"`
 
-	// DiffWorkTopic the event topic used for computing diff metrics. This will need to match
-	// the places that publish to this topic (ingestion and [legacy] indexer).
-	DiffWorkTopic string `json:"diff_work_topic"`
-
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
-
-	// Project ID that houses the pubsub topic.
-	PubsubProjectID string `json:"pubsub_project_id"`
 
 	// The port to provide a web handler for /healthz
 	ReadyPort string `json:"ready_port"`
@@ -196,9 +189,12 @@ func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {
 		return skerr.Fmt("subscription %s does not exist in project %s", dcc.DiffWorkSubscription, dcc.PubsubProjectID)
 	}
 
+	// This is a limit of how many messages to fetch when PubSub has no work. Waiting for PubSub
+	// to give us messages can take a second or two, so we choose a small, but not too small
+	// batch size.
+	sub.ReceiveSettings.MaxOutstandingMessages = 5
 	// This process will handle one message at a time. This allows us to more finely control the
 	// scaling up as necessary.
-	sub.ReceiveSettings.MaxOutstandingMessages = 1
 	sub.ReceiveSettings.NumGoroutines = 1
 
 	// Blocks until context cancels or pubsub fails in a non retryable way.
