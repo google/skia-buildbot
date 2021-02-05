@@ -274,6 +274,7 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 
 type IndexerConfig struct {
 	ExpChangeListener expectations.ChangeEventRegisterer
+	DiffWorkPublisher diff.Calculator
 	DiffStore         diff.DiffStore
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
@@ -318,6 +319,9 @@ func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexe
 	// These are run in parallel because they can take tens of seconds
 	// in large repos like Skia.
 	countsNodeExclude := root.Child(calcDigestCountsExclude)
+
+	// This can run in parallel because it's just counting and sending data to Pub/Sub.
+	root.Child(ret.sendWorkToDiffCalculators)
 
 	preSliceNode := root.Child(preSliceData)
 
@@ -893,6 +897,51 @@ func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangelistIndex {
 	}
 	// Return a copy to prevent clients from messing with the cached version.
 	return clIdx.Copy()
+}
+
+// sendWorkToDiffCalculators groups the digests seen per test and sends them to the DiffCalculators
+// (via Pub/Sub). We cannot use the results of digestCounters since those do not report the corpus,
+// which we need for groupings.
+func (ix *Indexer) sendWorkToDiffCalculators(ctx context.Context, state interface{}) error {
+	idx := state.(*SearchIndex)
+	tile := idx.cpxTile.GetTile(types.IncludeIgnoredTraces)
+	// For every digest on every trace within the sliding window (tile), compute the
+	// unique digests for each grouping (i.e. test)
+	digestsPerGrouping := map[hashableGrouping]types.DigestSet{}
+	for _, trace := range tile.Traces {
+		grouping := getHashableGrouping(trace.Keys())
+		uniqueDigests := digestsPerGrouping[grouping]
+		if len(uniqueDigests) == 0 {
+			uniqueDigests = types.DigestSet{}
+		}
+		for _, d := range trace.Digests {
+			if d != tiling.MissingDigest {
+				uniqueDigests[d] = true
+			}
+		}
+		digestsPerGrouping[grouping] = uniqueDigests
+	}
+
+	for hg, ds := range digestsPerGrouping {
+		grouping := paramtools.Params{
+			types.CorpusField:     hg[0],
+			types.PrimaryKeyField: hg[1],
+		}
+		digests := ds.Keys()
+		// This should be pretty fast because it's just sending off the work, not blocking until
+		// the work is calculated.
+		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, digests); err != nil {
+			return skerr.Wrapf(err, "publishing diff calculation of %d digests in grouping %v", len(digests), grouping)
+		}
+	}
+	return nil
+}
+
+// hashableGrouping is the corpus and test name of a trace.
+type hashableGrouping [2]string
+
+func getHashableGrouping(keys paramtools.Params) [2]string {
+	return [2]string{keys[types.CorpusField], keys[types.PrimaryKeyField]}
 }
 
 // Make sure SearchIndex fulfills the IndexSearcher interface

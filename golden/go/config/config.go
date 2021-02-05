@@ -27,6 +27,9 @@ type Common struct {
 	// identify valid CLs when ingesting data.
 	CodeReviewSystems []CodeReviewSystem `json:"code_review_systems"`
 
+	// DiffWorkTopic the event topic used for computing diff metrics.
+	DiffWorkTopic string `json:"diff_work_topic"`
+
 	// Google Cloud Storage bucket name.
 	GCSBucket string `json:"gcs_bucket"`
 
@@ -46,6 +49,9 @@ type Common struct {
 	// The project with the Firestore instance. Datastore and Firestore can't be enabled the same
 	// project.
 	FirestoreProjectID string `json:"fs_project_id"`
+
+	// Project ID that houses the pubsub topic.
+	PubsubProjectID string `json:"pubsub_project_id"`
 
 	// SQL username, host and port; typically root@localhost:26234 or root@gold-cockroachdb:26234
 	SQLConnection string `json:"sql_connection" optional:"true"`

@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -17,8 +18,11 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -33,6 +37,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -575,7 +580,13 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 
 // mustMakeIndexer makes a new indexer.Indexer.
 func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, diffStore diff.DiffStore, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
+	psc, err := pubsub.NewClient(ctx, fsc.PubsubProjectID)
+	if err != nil {
+		sklog.Fatalf("initializing pubsub client for project %s: %s", fsc.PubsubProjectID, err)
+	}
+
 	ic := indexer.IndexerConfig{
+		DiffWorkPublisher: &pubsubDiffPublisher{client: psc, topic: fsc.DiffWorkTopic},
 		DiffStore:         diffStore,
 		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
@@ -595,6 +606,32 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 	sklog.Infof("Indexer created.")
 
 	return ixr
+}
+
+type pubsubDiffPublisher struct {
+	client *pubsub.Client
+	topic  string
+}
+
+// CalculateDiffs publishes a WorkerMessage to the configured PubSub topic so that a worker
+// (see diffcalculator) can pick it up and calculate the diffs.
+func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
+	body, err := json.Marshal(diff.WorkerMessage{
+		Grouping:          grouping,
+		AdditionalDigests: additional,
+	})
+	if err != nil {
+		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
+	}
+	pr := p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
+		Data: body,
+	})
+	// Blocks until message actual sent
+	_, err = pr.Get(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // mustStartCommenters starts a background process that comments on CLs for each of the review
@@ -869,7 +906,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 
 // addUnauthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
 // that do not require authentication.
-func addUnauthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, handlers *web.Handlers) {
 	add := func(jsonRoute string, handlerFunc http.HandlerFunc) {
 		addJSONRoute(jsonRoute, httputils.CorsHandler(handlerFunc), router, "").Methods("GET")
 	}
