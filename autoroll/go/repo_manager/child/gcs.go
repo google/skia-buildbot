@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/skerr"
@@ -70,7 +70,7 @@ type gcsChild struct {
 }
 
 // newGCS returns a Child implementation which loads revision from GCS.
-func newGCS(ctx context.Context, c *proto.GCSChildConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc) (*gcsChild, error) {
+func newGCS(ctx context.Context, c *config.GCSChildConfig, client *http.Client, getVersion gcsGetVersionFunc, shortRev gcsShortRevFunc) (*gcsChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}

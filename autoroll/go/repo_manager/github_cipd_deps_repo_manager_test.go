@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -53,18 +53,18 @@ var (
 	githubCIPDTs = cipd.UnixTime(time.Unix(1592417178, 0))
 )
 
-func githubCipdDEPSRmCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
-	return &proto.ParentChildRepoManagerConfig{
-		Parent: &proto.ParentChildRepoManagerConfig_DepsLocalGithubParent{
-			DepsLocalGithubParent: &proto.DEPSLocalGitHubParentConfig{
-				DepsLocal: &proto.DEPSLocalParentConfig{
-					GitCheckout: &proto.GitCheckoutParentConfig{
-						GitCheckout: &proto.GitCheckoutConfig{
+func githubCipdDEPSRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_DepsLocalGithubParent{
+			DepsLocalGithubParent: &config.DEPSLocalGitHubParentConfig{
+				DepsLocal: &config.DEPSLocalParentConfig{
+					GitCheckout: &config.GitCheckoutParentConfig{
+						GitCheckout: &config.GitCheckoutConfig{
 							Branch:  git.DefaultBranch,
 							RepoUrl: "todo.git",
 						},
-						Dep: &proto.DependencyConfig{
-							Primary: &proto.VersionFileConfig{
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
 								Id:   githubCIPDAssetName,
 								Path: deps_parser.DepsFileName,
 							},
@@ -72,15 +72,15 @@ func githubCipdDEPSRmCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
 					},
 					ChildPath: githubCIPDDEPSChildPath,
 				},
-				Github: &proto.GitHubConfig{
+				Github: &config.GitHubConfig{
 					RepoOwner: githubCIPDUser,
 					RepoName:  "todo.git",
 				},
 				ForkRepoUrl: "todo.git",
 			},
 		},
-		Child: &proto.ParentChildRepoManagerConfig_CipdChild{
-			CipdChild: &proto.CIPDChildConfig{
+		Child: &config.ParentChildRepoManagerConfig_CipdChild{
+			CipdChild: &config.CIPDChildConfig{
 				Name: githubCIPDAssetName,
 				Tag:  githubCIPDAssetTag,
 			},
@@ -88,7 +88,7 @@ func githubCipdDEPSRmCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
 	}
 }
 
-func setupGithubCipdDEPS(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
+func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -147,7 +147,7 @@ deps = {
 
 	g, urlMock := setupFakeGithub(ctx, t, nil)
 
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
 	parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
 	parentCfg.ForkRepoUrl = fork.RepoUrl()
 	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", recipesCfg, "fake.server.com", nil, githubCR(t, g))
@@ -275,8 +275,8 @@ func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 		return nil
 	})
 	cfg := githubCipdDEPSRmCfg(t)
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.PreUploadSteps = []proto.PreUploadStep{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
 	defer cleanup()
@@ -302,8 +302,8 @@ func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 		return expectedErr
 	})
 	cfg := githubCipdDEPSRmCfg(t)
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
-	parentCfg.DepsLocal.PreUploadSteps = []proto.PreUploadStep{stepName}
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
+	parentCfg.DepsLocal.PreUploadSteps = []config.PreUploadStep{stepName}
 
 	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
 	defer cleanup()

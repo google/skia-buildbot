@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -24,13 +24,13 @@ const (
 type Checkout struct {
 	*git.Checkout
 	Branch       *config_vars.Template
-	Dependencies []*proto.VersionFileConfig
+	Dependencies []*config.VersionFileConfig
 	RepoURL      string
 	RevLinkTmpl  string
 }
 
 // NewCheckout returns a Checkout instance.
-func NewCheckout(ctx context.Context, c *proto.GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*Checkout, error) {
+func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*Checkout, error) {
 	// Clean up any lockfiles, in case the process was interrupted.
 	if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 		return nil, skerr.Wrap(err)
