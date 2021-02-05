@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "29be9c3b_f434d903",
+        "filename": "infra-sk/modules/uniform-time-sk/uniform-time-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-05T18:14:44Z",
+      "side": 1,
+      "message": "\u003e \"replacable\" is a possible misspelling of \"replicable\" or \"replaceable\".\n\nDone.",
+      "parentUuid": "5fc997f3_ff4e1478",
+      "range": {
+        "startLine": 35,
+        "startChar": 45,
+        "endLine": 35,
+        "endChar": 55
+      },
+      "revId": "bc51baee3119f7013ab0eb0740dc163d350005c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
