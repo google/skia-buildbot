@@ -1,8 +1,6 @@
 {
   diff_work_subscription: "gold-skia-infra-diffcalculator", // includes instance id
-  diff_work_topic: "gold-skia-infra-diffmetrics", // includes instance id
   prom_port: ":20000",
-  pubsub_project_id: "skia-public",
   ready_port: ":8000",
   tiles_to_process: 2,
 
