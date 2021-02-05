@@ -19,8 +19,8 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
@@ -110,7 +110,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	var cfg proto.Config
+	var cfg config.Config
 	if err := prototext.Unmarshal(configBytes, &cfg); err != nil {
 		sklog.Fatal(err)
 	}

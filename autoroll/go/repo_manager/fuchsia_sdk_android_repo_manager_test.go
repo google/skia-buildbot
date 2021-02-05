@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -23,21 +23,21 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-func fuchsiaAndroidCfg(t *testing.T) *proto.FuchsiaSDKAndroidRepoManagerConfig {
-	return &proto.FuchsiaSDKAndroidRepoManagerConfig{
-		Parent: &proto.GitCheckoutParentConfig{
-			GitCheckout: &proto.GitCheckoutConfig{
+func fuchsiaAndroidCfg(t *testing.T) *config.FuchsiaSDKAndroidRepoManagerConfig {
+	return &config.FuchsiaSDKAndroidRepoManagerConfig{
+		Parent: &config.GitCheckoutParentConfig{
+			GitCheckout: &config.GitCheckoutConfig{
 				Branch:  git.DefaultBranch,
 				RepoUrl: "todo.git",
 			},
-			Dep: &proto.DependencyConfig{
-				Primary: &proto.VersionFileConfig{
+			Dep: &config.DependencyConfig{
+				Primary: &config.VersionFileConfig{
 					Id:   "FuchsiaSDK",
 					Path: "sdk_id",
 				},
 			},
 		},
-		Child: &proto.FuchsiaSDKChildConfig{
+		Child: &config.FuchsiaSDKChildConfig{
 			IncludeMacSdk: false,
 		},
 		GenSdkBpRepo:   "TODO",

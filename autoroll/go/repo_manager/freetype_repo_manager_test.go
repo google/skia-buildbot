@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
@@ -87,28 +87,28 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
 	require.NoError(t, err)
 
-	cfg := &proto.FreeTypeRepoManagerConfig{
-		Parent: &proto.FreeTypeParentConfig{
-			Gitiles: &proto.GitilesParentConfig{
-				Gitiles: &proto.GitilesConfig{
+	cfg := &config.FreeTypeRepoManagerConfig{
+		Parent: &config.FreeTypeParentConfig{
+			Gitiles: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
 					Branch:  git.DefaultBranch,
 					RepoUrl: parentRepo.RepoUrl(),
 				},
-				Dep: &proto.DependencyConfig{
-					Primary: &proto.VersionFileConfig{
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
 						Id:   child.RepoUrl(),
 						Path: deps_parser.DepsFileName,
 					},
 				},
-				Gerrit: &proto.GerritConfig{
+				Gerrit: &config.GerritConfig{
 					Url:     "https://fake-skia-review.googlesource.com",
 					Project: "fake-gerrit-project",
-					Config:  proto.GerritConfig_CHROMIUM,
+					Config:  config.GerritConfig_CHROMIUM,
 				},
 			},
 		},
-		Child: &proto.GitilesChildConfig{
-			Gitiles: &proto.GitilesConfig{
+		Child: &config.GitilesChildConfig{
+			Gitiles: &config.GitilesConfig{
 				Branch:  git.DefaultBranch,
 				RepoUrl: child.RepoUrl(),
 			},
