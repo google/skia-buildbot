@@ -41,6 +41,14 @@ Logs for Gold instances in skia-public/skia-corp are in the usual
 GKE container grouping, for example:
 <https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container&logName=projects%2Fskia-public%2Flogs%2Fgold-flutter-skiacorrectness>
 
+Opencensus Tracing
+==================
+We export Open Census tracing to Stackdriver in Google Cloud. These traces are handy for diagnosing
+performance. To find the traces, search for them at <http://console.cloud.google.com/traces/list>.
+
+When adding a new application (or retrofitting open census tracing onto an existing app), be sure
+to call tracing.Initialize() so they can be reported.
+
 Managing the CockroachDB (SQL) database
 =======================================
 The most reliable way to have open and use a connection to the SQL database is to create an
