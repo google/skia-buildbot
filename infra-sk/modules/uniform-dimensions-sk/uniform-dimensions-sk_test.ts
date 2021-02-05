@@ -1,48 +1,45 @@
 import './index';
-import { UniformColorSk } from './uniform-color-sk';
+import { UniformDimensionsSk } from './uniform-dimensions-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { assert } from 'chai';
-import { $$ } from 'common-sk/modules/dom';
 
-describe('uniform-color-sk', () => {
-  const newInstance = setUpElementUnderTest<UniformColorSk>('uniform-color-sk');
+describe('uniform-dimensions-sk', () => {
+  const newInstance = setUpElementUnderTest<UniformDimensionsSk>(
+    'uniform-dimensions-sk'
+  );
 
-  let element: UniformColorSk;
+  let element: UniformDimensionsSk;
   beforeEach(() => {
-    element = newInstance((el: UniformColorSk) => {
+    element = newInstance((el: UniformDimensionsSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
       // document-level event listeners, etc.).
     });
   });
 
-  describe('some action', () => {
-    it('puts values in correct spot in uniforms array', () => {
+  describe('unform-dimensions-sk', () => {
+    it('applies uniforms correctly', () => {
       // Make uniforms longer than needed to show we don't disturb other values.
       const uniforms = new Float32Array(5);
 
       element.uniform = {
-        name: 'color',
-        columns: 1,
-        rows: 3,
+        name: 'iDimensions',
+        columns: 3,
+        rows: 1,
         slot: 1,
       };
 
-      // Set the color to white, which gives us all ones as output uniforms.
-      $$<HTMLInputElement>('input', element)!.value = '#8090a0';
+      element.x = 800;
+      element.y = 600;
       element.applyUniformValues(uniforms);
-      assert.deepEqual(
-        uniforms,
-        new Float32Array([0, 128 / 255, 144 / 255, 160 / 255, 0])
-      );
+      assert.deepEqual(uniforms, new Float32Array([0, 800, 600, 0, 0]));
     });
 
     it('throws on invalid uniforms', () => {
-      // Uniform is too small to be a color.
       assert.throws(() => {
         element.uniform = {
-          name: 'color',
+          name: '',
           columns: 1,
           rows: 1,
           slot: 1,
