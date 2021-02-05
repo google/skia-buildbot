@@ -1,0 +1,62 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "rpc",
+    srcs = [
+        "rpc.pb.go",
+        "rpc.twirp.go",
+        "rpc_impl.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/rpc",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/manual",
+        "//autoroll/go/modes",
+        "//autoroll/go/revision",
+        "//autoroll/go/status",
+        "//autoroll/go/strategy",
+        "//autoroll/go/unthrottle",
+        "//go/allowed",
+        "//go/autoroll",
+        "//go/firestore",
+        "//go/twirp_auth",
+        "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_twitchtv_twirp//:twirp",
+        "@com_github_twitchtv_twirp//ctxsetters",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)
+
+go_test(
+    name = "rpc_test",
+    srcs = ["rpc_impl_test.go"],
+    embed = [":rpc"],
+    deps = [
+        "//autoroll/go/config",
+        "//autoroll/go/config_vars",
+        "//autoroll/go/manual",
+        "//autoroll/go/manual/mocks",
+        "//autoroll/go/modes",
+        "//autoroll/go/modes/mocks",
+        "//autoroll/go/revision",
+        "//autoroll/go/status",
+        "//autoroll/go/status/mocks",
+        "//autoroll/go/strategy",
+        "//autoroll/go/strategy/mocks",
+        "//autoroll/go/unthrottle/mocks",
+        "//go/allowed",
+        "//go/autoroll",
+        "//go/deepequal/assertdeep",
+        "//go/firestore",
+        "//go/git",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)

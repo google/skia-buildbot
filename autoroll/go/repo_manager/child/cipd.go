@@ -14,7 +14,7 @@ import (
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
 
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
@@ -35,7 +35,7 @@ var (
 // NewCIPD returns an implementation of Child which deals with a CIPD package.
 // If the caller calls CIPDChild.Download, the destination must be a descendant of
 // the provided workdir.
-func NewCIPD(ctx context.Context, c *proto.CIPDChildConfig, client *http.Client, workdir string) (*CIPDChild, error) {
+func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client, workdir string) (*CIPDChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

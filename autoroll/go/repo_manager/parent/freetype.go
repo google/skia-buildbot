@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
@@ -49,7 +49,7 @@ var (
 )
 
 // NewFreeTypeParent returns a Parent instance which rolls FreeType.
-func NewFreeTypeParent(ctx context.Context, c *proto.FreeTypeParentConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
+func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
 	localChildRepo, err := git.NewRepo(ctx, c.Gitiles.Dep.Primary.Id, workdir)
 	if err != nil {
 		return nil, skerr.Wrap(err)

@@ -20,9 +20,10 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/rpc"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
@@ -64,7 +65,7 @@ var (
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
 
-	rollerConfigs map[string]*proto.Config
+	rollerConfigs map[string]*config.Config
 )
 
 func reloadTemplates() {
@@ -89,7 +90,7 @@ func reloadTemplates() {
 	))
 }
 
-func getRoller(w http.ResponseWriter, r *http.Request) *proto.Config {
+func getRoller(w http.ResponseWriter, r *http.Request) *config.Config {
 	name, ok := mux.Vars(r)["roller"]
 	if !ok {
 		http.Error(w, "Unable to find roller name in request path.", http.StatusBadRequest)
@@ -140,7 +141,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", rollerHandler)
-	r.PathPrefix(proto.AutoRollServicePathPrefix).Handler(srv)
+	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(srv)
 	h := httputils.LoggingRequestResponse(r)
 	if !*local {
 		if *internal {
@@ -209,9 +210,9 @@ func main() {
 		}
 		cfgBytes = append(cfgBytes, b)
 	}
-	cfgs := make([]*proto.Config, 0, len(cfgBytes))
+	cfgs := make([]*config.Config, 0, len(cfgBytes))
 	for _, b := range cfgBytes {
-		var cfg proto.Config
+		var cfg config.Config
 		if err := prototext.Unmarshal(b, &cfg); err != nil {
 			sklog.Fatalf("Failed to decode proto string: %s\n\nstring:\n%s", err, string(b))
 		}
@@ -219,8 +220,8 @@ func main() {
 	}
 
 	// Validate the configs.
-	rollerConfigs = make(map[string]*proto.Config, len(cfgs))
-	rollers := make(map[string]*proto.AutoRoller, len(cfgs))
+	rollerConfigs = make(map[string]*config.Config, len(cfgs))
+	rollers := make(map[string]*rpc.AutoRoller, len(cfgs))
 	for _, cfg := range cfgs {
 		if err := cfg.Validate(); err != nil {
 			sklog.Fatalf("Invalid roller config %q: %s", cfg.RollerName, err)
@@ -259,7 +260,7 @@ func main() {
 				sklog.Error(err)
 			}
 		})
-		rollers[cfg.RollerName] = &proto.AutoRoller{
+		rollers[cfg.RollerName] = &rpc.AutoRoller{
 			Cfg:      cfg,
 			Mode:     arbMode,
 			Status:   arbStatus,
@@ -277,7 +278,7 @@ func main() {
 	}
 	editAllow := allowed.Googlers()
 	adminAllow := allowed.Googlers()
-	srv := proto.NewAutoRollServer(ctx, rollers, manualRollDB, throttleDB, viewAllow, editAllow, adminAllow)
+	srv := rpc.NewAutoRollServer(ctx, rollers, manualRollDB, throttleDB, viewAllow, editAllow, adminAllow)
 	if err != nil {
 		sklog.Fatal(err)
 	}

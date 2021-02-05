@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -194,7 +194,7 @@ func TestTotalOverride(t *testing.T) {
 	unittest.SmallTest(t)
 
 	b := fakeBuilder(t)
-	b.cfg.Template = &proto.CommitMsgConfig_Custom{
+	b.cfg.Template = &config.CommitMsgConfig_Custom{
 		Custom: `{{ define "commitMsg" }}Completely custom commit message.
 
 Seriously, this can be anything at all.

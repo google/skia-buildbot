@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/autoroll"
@@ -42,7 +42,7 @@ type CodeReview interface {
 
 // gerritCodeReview is a CodeReview backed by Gerrit.
 type gerritCodeReview struct {
-	cfg            *proto.GerritConfig
+	cfg            *config.GerritConfig
 	fullHistoryUrl string
 	gerritClient   gerrit.GerritInterface
 	issueUrlBase   string
@@ -51,7 +51,7 @@ type gerritCodeReview struct {
 }
 
 // NewGerrit returns a gerritCodeReview instance.
-func NewGerrit(cfg *proto.GerritConfig, gerritClient gerrit.GerritInterface) (CodeReview, error) {
+func NewGerrit(cfg *config.GerritConfig, gerritClient gerrit.GerritInterface) (CodeReview, error) {
 	userEmail, err := gerritClient.GetUserEmail(context.TODO())
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (c *gerritCodeReview) Client() interface{} {
 
 // githubCodeReview is a CodeReview backed by Github.
 type githubCodeReview struct {
-	cfg            *proto.GitHubConfig
+	cfg            *config.GitHubConfig
 	fullHistoryUrl string
 	githubClient   *github.GitHub
 	issueUrlBase   string
@@ -108,7 +108,7 @@ type githubCodeReview struct {
 }
 
 // NewGitHub returns a githubCodeReview instance.
-func NewGitHub(cfg *proto.GitHubConfig, githubClient *github.GitHub) (CodeReview, error) {
+func NewGitHub(cfg *config.GitHubConfig, githubClient *github.GitHub) (CodeReview, error) {
 	user, err := githubClient.GetAuthenticatedUser()
 	if err != nil {
 		return nil, err

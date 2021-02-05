@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -33,7 +33,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 
 	// Setup.
 	ctx := context.Background()
-	cfg := proto.CIPDChildConfig{
+	cfg := config.CIPDChildConfig{
 		Name: pkgName,
 		Tag:  pkgTag,
 	}

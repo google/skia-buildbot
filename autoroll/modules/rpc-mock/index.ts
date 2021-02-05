@@ -3,15 +3,11 @@ import {
   AutoRollService,
   AutoRollStatus,
   CreateManualRollRequest,
-  GetConfigRequest,
-  GetConfigResponse,
   GetRollersRequest,
   GetMiniStatusRequest,
   GetStatusRequest,
   ManualRoll,
   ModeChange,
-  PutConfigRequest,
-  PutConfigResponse,
   SetModeRequest,
   SetStrategyRequest,
   StrategyChange,
@@ -21,7 +17,7 @@ import {
 } from '../rpc';
 
 import { GetFakeStatus } from './fake-status';
-import { GetFakeMiniStatuses } from './fake-ministatuses';
+import { GetFakeMiniStatuses} from './fake-ministatuses';
 import { GetRollersResponse, Mode, Strategy, ManualRoll_Status, GetStatusResponse, GetMiniStatusResponse, SetModeResponse, SetStrategyResponse, CreateManualRollResponse, ManualRoll_Result } from '../rpc/rpc';
 
 export * from './fake-status';
@@ -94,7 +90,7 @@ class FakeAutoRollService implements AutoRollService {
       const validStrategy = validStrategies.indexOf(req.strategy);
       if (validStrategy < 0) {
         reject("Invalid strategy: " + req.strategy + "; valid strategies: " +
-          validStrategies);
+                validStrategies);
         return;
       }
       const sc: StrategyChange = {
@@ -112,7 +108,7 @@ class FakeAutoRollService implements AutoRollService {
   }
 
   createManualRoll(req: CreateManualRollRequest): Promise<CreateManualRollResponse> {
-    const result = manualRollResults[this.manualRollResult++ % manualRollResults.length];
+    const result =  manualRollResults[this.manualRollResult++ % manualRollResults.length];
     const id: string = "manualRequest" + this.manualRequestId;
     this.manualRequestId++;
     const rv: ManualRoll = {
@@ -139,12 +135,5 @@ class FakeAutoRollService implements AutoRollService {
 
   unthrottle(_: UnthrottleRequest): Promise<UnthrottleResponse> {
     return Promise.resolve({});
-  }
-
-  getConfig(_: GetConfigRequest): Promise<GetConfigResponse> {
-    return Promise.reject("not implemented")
-  }
-  putConfig(_: PutConfigRequest): Promise<PutConfigResponse> {
-    return Promise.reject("not implemented")
   }
 }

@@ -14,8 +14,8 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -51,7 +51,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to read %s: %s", *configFile, err)
 	}
-	var cfg proto.Config
+	var cfg config.Config
 	if err := prototext.Unmarshal(cfgBytes, &cfg); err != nil {
 		log.Fatalf("Failed to decode config: %s", err)
 	}

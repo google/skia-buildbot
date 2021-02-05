@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -36,23 +36,23 @@ var (
 )
 
 func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
-	rv, err := codereview.NewGerrit(&proto.GerritConfig{
+	rv, err := codereview.NewGerrit(&config.GerritConfig{
 		Url:     "https://googleplex-android-review.googlesource.com",
 		Project: "platform/external/skia",
-		Config:  proto.GerritConfig_ANDROID,
+		Config:  config.GerritConfig_ANDROID,
 	}, g)
 	require.NoError(t, err)
 	return rv
 }
 
-func androidCfg(t *testing.T) *proto.AndroidRepoManagerConfig {
-	return &proto.AndroidRepoManagerConfig{
+func androidCfg(t *testing.T) *config.AndroidRepoManagerConfig {
+	return &config.AndroidRepoManagerConfig{
 		ChildBranch:   git.DefaultBranch,
 		ChildPath:     childPath,
 		ChildRepoUrl:  common.REPO_SKIA,
 		ParentBranch:  git.DefaultBranch,
 		ParentRepoUrl: "https://my-repo.com",
-		Metadata: &proto.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
+		Metadata: &config.AndroidRepoManagerConfig_ProjectMetadataFileConfig{
 			FilePath:    "METADATA",
 			Name:        "skia",
 			Description: "Skia Graphics Library",
@@ -196,6 +196,6 @@ func TestAndroidConfigValidation(t *testing.T) {
 
 	// The only fields come from the nested Configs, so exclude them and
 	// verify that we fail validation.
-	cfg = &proto.AndroidRepoManagerConfig{}
+	cfg = &config.AndroidRepoManagerConfig{}
 	require.Error(t, cfg.Validate())
 }

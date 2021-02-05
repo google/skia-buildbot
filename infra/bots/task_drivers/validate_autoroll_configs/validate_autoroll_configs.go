@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -38,7 +38,7 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 	var rollerName string
 	return rollerName, td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
 		// Decode the config.
-		var cfg proto.Config
+		var cfg config.Config
 		if err := util.WithReadFile(f, func(f io.Reader) error {
 			b, err := ioutil.ReadAll(f)
 			if err != nil {

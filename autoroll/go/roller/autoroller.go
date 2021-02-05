@@ -12,11 +12,11 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/commit_msg"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -59,7 +59,7 @@ const (
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	cfg                *proto.Config
+	cfg                *config.Config
 	codereview         codereview.CodeReview
 	commitMsgBuilder   *commit_msg.Builder
 	currentRoll        codereview.RollImpl
@@ -98,7 +98,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c *proto.Config, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, manualRollDB manual.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
@@ -175,7 +175,7 @@ func NewAutoRoller(ctx context.Context, c *proto.Config, emailer *email.GMail, c
 
 	// Throttling counters.
 	sklog.Info("Creating throttlers")
-	safetyThrottleCfg := proto.DefaultSafetyThrottleConfig
+	safetyThrottleCfg := config.DefaultSafetyThrottleConfig
 	if c.SafetyThrottle != nil {
 		safetyThrottleCfg = c.SafetyThrottle
 	}
@@ -386,7 +386,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 
 // Utility for replacing the placeholder $REVIEWERS with real reviewer emails
 // in configs. A modified copy of the passed in configs are returned.
-func replaceReviewersPlaceholder(configs []*proto.NotifierConfig, emails []string) []*notifier.Config {
+func replaceReviewersPlaceholder(configs []*config.NotifierConfig, emails []string) []*notifier.Config {
 	configCopies := []*notifier.Config{}
 	for _, n := range configs {
 		configCopy := arb_notifier.ProtoToConfig(n)

@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -74,7 +74,7 @@ func TestCommandRepoManager(t *testing.T) {
 		RollingFrom: pinnedRev0,
 		RollingTo:   tipRev0,
 	}
-	getTipRev := &proto.CommandRepoManagerConfig_CommandConfig{
+	getTipRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"echo", tipRev0},
 		Dir:     ".",
 		Env: []string{
@@ -85,7 +85,7 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	getTipRevCount := 0
 
-	getPinnedRev := &proto.CommandRepoManagerConfig_CommandConfig{
+	getPinnedRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"cat", "version"},
 		Dir:     ".",
 		Env: []string{
@@ -96,7 +96,7 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	getPinnedRevCount := 0
 
-	setPinnedRev := &proto.CommandRepoManagerConfig_CommandConfig{
+	setPinnedRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"bash", "-c", "echo \"{{.RollingTo}}\" > version"},
 		Dir:     ".",
 		Env: []string{
@@ -107,8 +107,8 @@ func TestCommandRepoManager(t *testing.T) {
 	require.NoError(t, err)
 	setPinnedRevCount := 0
 
-	cfg := &proto.CommandRepoManagerConfig{
-		GitCheckout: &proto.GitCheckoutConfig{
+	cfg := &config.CommandRepoManagerConfig{
+		GitCheckout: &config.GitCheckoutConfig{
 			Branch:  git.DefaultBranch,
 			RepoUrl: parent.RepoUrl(),
 		},

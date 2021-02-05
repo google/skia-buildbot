@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
@@ -31,7 +31,7 @@ type gitilesParent struct {
 	*gitiles_common.GitilesRepo
 	childID      string
 	gerrit       gerrit.GerritInterface
-	gerritConfig *proto.GerritConfig
+	gerritConfig *config.GerritConfig
 	serverURL    string
 
 	getChangesForRoll gitilesGetChangesForRollFunc
@@ -44,11 +44,11 @@ type gitilesParent struct {
 }
 
 // newGitiles returns a base for implementations of Parent which use Gitiles.
-func newGitiles(ctx context.Context, c *proto.GitilesParentConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
+func newGitiles(ctx context.Context, c *config.GitilesParentConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	deps := make([]*proto.VersionFileConfig, 0, len(c.Dep.Transitive)+1)
+	deps := make([]*config.VersionFileConfig, 0, len(c.Dep.Transitive)+1)
 	deps = append(deps, c.Dep.Primary)
 	for _, td := range c.Dep.Transitive {
 		deps = append(deps, td.Parent)

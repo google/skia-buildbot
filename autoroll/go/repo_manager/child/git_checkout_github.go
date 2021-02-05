@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/proto"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -29,7 +29,7 @@ type GitCheckoutGithubChild struct {
 
 // NewGitCheckoutGithub returns an implementation of Child which uses a local
 // Git checkout of a Github repo.
-func NewGitCheckoutGithub(ctx context.Context, c *proto.GitCheckoutGitHubChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout) (*GitCheckoutGithubChild, error) {
+func NewGitCheckoutGithub(ctx context.Context, c *config.GitCheckoutGitHubChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout) (*GitCheckoutGithubChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

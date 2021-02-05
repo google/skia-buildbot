@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -16,15 +16,15 @@ func TestGetPreUploadStep(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Test for existing steps.
-	infraStep, err := GetPreUploadStep(proto.PreUploadStep_TRAIN_INFRA)
+	infraStep, err := GetPreUploadStep(config.PreUploadStep_TRAIN_INFRA)
 	assert.NoError(t, err)
 	assert.NotNil(t, infraStep)
-	flutterStep, err := GetPreUploadStep(proto.PreUploadStep_FLUTTER_LICENSE_SCRIPTS)
+	flutterStep, err := GetPreUploadStep(config.PreUploadStep_FLUTTER_LICENSE_SCRIPTS)
 	assert.NoError(t, err)
 	assert.NotNil(t, flutterStep)
 
 	// Test for missing step.
-	missingStep, err := GetPreUploadStep(proto.PreUploadStep(9999))
+	missingStep, err := GetPreUploadStep(config.PreUploadStep(9999))
 	assert.Error(t, err)
 	assert.Equal(t, "No such pre-upload step: 9999", err.Error())
 	assert.Nil(t, missingStep)

@@ -1,4 +1,4 @@
-package proto
+package rpc
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	manual_mocks "go.skia.org/infra/autoroll/go/manual/mocks"
@@ -51,7 +52,7 @@ func defaultBranchTmpl(t *testing.T) *config_vars.Template {
 	return tmpl
 }
 
-func makeFakeModeChange(cfg *Config) *modes.ModeChange {
+func makeFakeModeChange(cfg *config.Config) *modes.ModeChange {
 	return &modes.ModeChange{
 		Message: "dry run!",
 		// We can't use the first enum value, or assertdeep.Copy will fail.
@@ -62,7 +63,7 @@ func makeFakeModeChange(cfg *Config) *modes.ModeChange {
 	}
 }
 
-func makeFakeStrategyChange(cfg *Config) *strategy.StrategyChange {
+func makeFakeStrategyChange(cfg *config.Config) *strategy.StrategyChange {
 	return &strategy.StrategyChange{
 		Message: "set strategy",
 		// We can't use the first enum value, or assertdeep.Copy will fail.
@@ -73,7 +74,7 @@ func makeFakeStrategyChange(cfg *Config) *strategy.StrategyChange {
 	}
 }
 
-func makeFakeManualRollRequest(cfg *Config) *manual.ManualRollRequest {
+func makeFakeManualRollRequest(cfg *config.Config) *manual.ManualRollRequest {
 	return &manual.ManualRollRequest{
 		Id:                "manual123",
 		DbModified:        timeNowFunc(),
@@ -125,7 +126,7 @@ func makeFakeRoll() *autoroll.AutoRollIssue {
 	}
 }
 
-func makeFakeStatus(cfg *Config) *status.AutoRollStatus {
+func makeFakeStatus(cfg *config.Config) *status.AutoRollStatus {
 	current := makeFakeRoll()
 	last := makeFakeRoll()
 	return &status.AutoRollStatus{
@@ -169,33 +170,33 @@ func makeFakeStatus(cfg *Config) *status.AutoRollStatus {
 }
 
 func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mocks.DB) *AutoRoller {
-	cfg := &Config{
+	cfg := &config.Config{
 		ChildDisplayName:  name + "_child",
 		ParentDisplayName: name + "_parent",
 		ParentWaterfall:   "https://parent",
 		RollerName:        name,
-		RepoManager: &Config_ParentChildRepoManager{
-			ParentChildRepoManager: &ParentChildRepoManagerConfig{
-				Child: &ParentChildRepoManagerConfig_GitilesChild{
-					GitilesChild: &GitilesChildConfig{
-						Gitiles: &GitilesConfig{
+		RepoManager: &config.Config_ParentChildRepoManager{
+			ParentChildRepoManager: &config.ParentChildRepoManagerConfig{
+				Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+					GitilesChild: &config.GitilesChildConfig{
+						Gitiles: &config.GitilesConfig{
 							Branch:  git.DefaultBranch,
 							RepoUrl: "https://fake.child",
 						},
 					},
 				},
-				Parent: &ParentChildRepoManagerConfig_GitilesParent{
-					GitilesParent: &GitilesParentConfig{
-						Gitiles: &GitilesConfig{
+				Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+					GitilesParent: &config.GitilesParentConfig{
+						Gitiles: &config.GitilesConfig{
 							Branch:  git.DefaultBranch,
 							RepoUrl: "https://fake.parent",
 						},
-						Dep: &DependencyConfig{
-							Primary: &VersionFileConfig{
+						Dep: &config.DependencyConfig{
+							Primary: &config.VersionFileConfig{
 								Id: "https://fake.child",
 							},
 						},
-						Gerrit: &GerritConfig{},
+						Gerrit: &config.GerritConfig{},
 					},
 				},
 			},
