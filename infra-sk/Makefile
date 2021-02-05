@@ -9,6 +9,9 @@ all:
 default: package-lock.json
 	npx webpack --mode=development
 
+watch: package-lock.json
+	npx webpack --mode=development --watch
+
 release: package-lock.json
 	npx webpack --mode=production
 
