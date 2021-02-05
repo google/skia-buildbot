@@ -4,17 +4,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 // fakeCommitMsgConfig returns a valid CommitMsgConfig instance.
-func fakeCommitMsgConfig(t *testing.T) *proto.CommitMsgConfig {
-	c := &proto.CommitMsgConfig{
+func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
+	c := &config.CommitMsgConfig{
 		BugProject: fakeBugProject,
-		Template: &proto.CommitMsgConfig_BuiltIn_{
-			BuiltIn: proto.CommitMsgConfig_DEFAULT,
+		Template: &config.CommitMsgConfig_BuiltIn_{
+			BuiltIn: config.CommitMsgConfig_DEFAULT,
 		},
 		ChildLogUrlTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
 		CqExtraTrybots:       []string{"some-trybot"},
@@ -128,7 +128,7 @@ func TestNamedTemplatesValid(t *testing.T) {
 
 	cfg := fakeCommitMsgConfig(t)
 	for tmpl := range namedCommitMsgTemplates {
-		cfg.Template = &proto.CommitMsgConfig_BuiltIn_{
+		cfg.Template = &config.CommitMsgConfig_BuiltIn_{
 			BuiltIn: tmpl,
 		}
 		require.NoError(t, cfg.Validate())

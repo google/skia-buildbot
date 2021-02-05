@@ -4,16 +4,16 @@
 
 include ../kube/kube.mk
 
-# First create a list of all the modules that ./go/proto depends upon.
-rpcDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/proto)
+# First create a list of all the modules that ./go/rpc depends upon.
+rpcDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/rpc)
 
 # Then use that list to find all the Go files that make up those dependent modules.
-rpcDependentFiles := ./go/proto/rpc.proto $(shell echo $(rpcDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}')
+rpcDependentFiles := ./go/rpc/rpc.proto $(shell echo $(rpcDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}')
 
-rpcOutputFiles := ./go/proto/rpc.pb.go ./go/proto/rpc.twirp.go ./modules/rpc/rpc.ts ./modules/rpc/twirp.ts
+rpcOutputFiles := ./go/rpc/rpc.pb.go ./go/rpc/rpc.twirp.go ./modules/rpc/rpc.ts ./modules/rpc/twirp.ts
 
 $(rpcOutputFiles): $(rpcDependentFiles)
-	go generate ./go/proto
+	go generate ./go/rpc
 
 ./package-lock.json: package.json
 	npm install

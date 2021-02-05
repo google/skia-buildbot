@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupNoCheckout(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -56,7 +56,7 @@ func setupNoCheckout(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) (con
 
 	ctx := context.Background()
 
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
@@ -73,7 +73,7 @@ func setupNoCheckout(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) (con
 
 	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
 	parentCfg.Dep.Primary.Id = child.RepoUrl()
-	childCfg := cfg.Child.(*proto.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
 	childCfg.Gitiles.RepoUrl = child.RepoUrl()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
@@ -110,30 +110,30 @@ func setupNoCheckout(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) (con
 	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
 }
 
-func noCheckoutDEPSCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
-	return &proto.ParentChildRepoManagerConfig{
-		Parent: &proto.ParentChildRepoManagerConfig_GitilesParent{
-			GitilesParent: &proto.GitilesParentConfig{
-				Gitiles: &proto.GitilesConfig{
+func noCheckoutDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
 					Branch:  git.DefaultBranch,
 					RepoUrl: "todo.git",
 				},
-				Dep: &proto.DependencyConfig{
-					Primary: &proto.VersionFileConfig{
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
 						Id:   "todo.git",
 						Path: deps_parser.DepsFileName,
 					},
 				},
-				Gerrit: &proto.GerritConfig{
+				Gerrit: &config.GerritConfig{
 					Url:     "https://fake-skia-review.googlesource.com",
 					Project: "fake-gerrit-project",
-					Config:  proto.GerritConfig_CHROMIUM,
+					Config:  config.GerritConfig_CHROMIUM,
 				},
 			},
 		},
-		Child: &proto.ParentChildRepoManagerConfig_GitilesChild{
-			GitilesChild: &proto.GitilesChildConfig{
-				Gitiles: &proto.GitilesConfig{
+		Child: &config.ParentChildRepoManagerConfig_GitilesChild{
+			GitilesChild: &config.GitilesChildConfig{
+				Gitiles: &config.GitilesConfig{
 					Branch:  git.DefaultBranch,
 					RepoUrl: "todo.git",
 				},
@@ -153,7 +153,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.DefaultBranch)
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 	if len(parentCfg.Dep.Transitive) > 0 {
 		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	}
@@ -172,7 +172,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	require.Equal(t, len(notRolledRevs), len(childCommits)-1)
 }
 
-func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *proto.ParentChildRepoManagerConfig) {
+func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.ParentChildRepoManagerConfig) {
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
@@ -242,7 +242,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *proto.ParentC
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 	gerritCfg := codereview.GerritConfigs[parentCfg.Gerrit.Config]
 	if gerritCfg.HasCq {
 		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
@@ -266,28 +266,28 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollNoCQ(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
-	parentCfg.Gerrit.Config = proto.GerritConfig_CHROMIUM_NO_CQ
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg.Gerrit.Config = config.GerritConfig_CHROMIUM_NO_CQ
 	testNoCheckoutDEPSRepoManagerCreateNewRoll(t, cfg)
 }
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
-	parentCfg.Dep.Transitive = []*proto.TransitiveDepConfig{
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
-			Child: &proto.VersionFileConfig{
+			Child: &config.VersionFileConfig{
 				Id:   "https://grandchild-in-child",
 				Path: "DEPS",
 			},
-			Parent: &proto.VersionFileConfig{
+			Parent: &config.VersionFileConfig{
 				Id:   "https://grandchild-in-parent",
 				Path: "DEPS",
 			},
 		},
 	}
-	childCfg := cfg.Child.(*proto.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
-	childCfg.Gitiles.Dependencies = []*proto.VersionFileConfig{
+	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
+	childCfg.Gitiles.Dependencies = []*config.VersionFileConfig{
 		{
 			Id:   "https://grandchild-in-child",
 			Path: "DEPS",

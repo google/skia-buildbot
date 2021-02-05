@@ -41,7 +41,7 @@ exclude (
 // We're using this fork-of-a-fork which contains various bug fixes and adds
 // support for things like enums.  We can remove it if/when those changes ever
 // get upstreamed.
-replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20210202205011-7b9e748daeea
+replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20200902150932-4a52797b9171
 
 require (
 	cloud.google.com/go v0.70.0

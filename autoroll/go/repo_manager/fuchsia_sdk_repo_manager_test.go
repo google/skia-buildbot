@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -41,41 +41,41 @@ var (
 	fuchsiaSDKLatestArchiveUrlMac   = fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "LATEST_MAC")
 )
 
-func fuchsiaCfg(t *testing.T) *proto.ParentChildRepoManagerConfig {
-	return &proto.ParentChildRepoManagerConfig{
-		Parent: &proto.ParentChildRepoManagerConfig_GitilesParent{
-			GitilesParent: &proto.GitilesParentConfig{
-				Gitiles: &proto.GitilesConfig{
+func fuchsiaCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
+	return &config.ParentChildRepoManagerConfig{
+		Parent: &config.ParentChildRepoManagerConfig_GitilesParent{
+			GitilesParent: &config.GitilesParentConfig{
+				Gitiles: &config.GitilesConfig{
 					Branch:  git.DefaultBranch,
 					RepoUrl: "todo.git",
 				},
-				Dep: &proto.DependencyConfig{
-					Primary: &proto.VersionFileConfig{
+				Dep: &config.DependencyConfig{
+					Primary: &config.VersionFileConfig{
 						Id:   "FuchsiaSDK",
 						Path: fuchsiaSDKVersionFilePathLinux,
 					},
-					Transitive: []*proto.TransitiveDepConfig{
+					Transitive: []*config.TransitiveDepConfig{
 						{
-							Child: &proto.VersionFileConfig{
+							Child: &config.VersionFileConfig{
 								Id:   "development/LATEST_MAC",
 								Path: fuchsiaSDKVersionFilePathMac,
 							},
-							Parent: &proto.VersionFileConfig{
+							Parent: &config.VersionFileConfig{
 								Id:   "development/LATEST_MAC",
 								Path: fuchsiaSDKVersionFilePathMac,
 							},
 						},
 					},
 				},
-				Gerrit: &proto.GerritConfig{
+				Gerrit: &config.GerritConfig{
 					Url:     "https://fake-skia-review.googlesource.com",
 					Project: "fake-gerrit-project",
-					Config:  proto.GerritConfig_CHROMIUM,
+					Config:  config.GerritConfig_CHROMIUM,
 				},
 			},
 		},
-		Child: &proto.ParentChildRepoManagerConfig_FuchsiaSdkChild{
-			FuchsiaSdkChild: &proto.FuchsiaSDKChildConfig{
+		Child: &config.ParentChildRepoManagerConfig_FuchsiaSdkChild{
+			FuchsiaSdkChild: &config.FuchsiaSDKChildConfig{
 				IncludeMacSdk: true,
 			},
 		},
@@ -89,7 +89,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	ctx := context.Background()
 
 	cfg := fuchsiaCfg(t)
-	parentCfg := cfg.Parent.(*proto.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
+	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 
 	// Create child and parent repos.
 	parent := git_testutils.GitInit(t, ctx)
