@@ -1,21 +1,17 @@
 import './index';
+import { assert } from 'chai';
 import { UniformDimensionsSk } from './uniform-dimensions-sk';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { assert } from 'chai';
+import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-dimensions-sk', () => {
   const newInstance = setUpElementUnderTest<UniformDimensionsSk>(
-    'uniform-dimensions-sk'
+    'uniform-dimensions-sk',
   );
 
   let element: UniformDimensionsSk;
   beforeEach(() => {
-    element = newInstance((el: UniformDimensionsSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+    element = newInstance();
   });
 
   describe('unform-dimensions-sk', () => {

@@ -9,11 +9,7 @@ describe('uniform-mouse-sk', () => {
 
   let element: UniformMouseSk;
   beforeEach(() => {
-    element = newInstance((el: UniformMouseSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+    element = newInstance();
   });
 
   describe('uniform-mouse-sk', () => {

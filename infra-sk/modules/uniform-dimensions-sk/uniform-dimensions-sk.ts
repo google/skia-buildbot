@@ -10,7 +10,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {
@@ -23,34 +23,34 @@ const defaultUniform: Uniform = {
 export class UniformDimensionsSk extends ElementSk implements UniformControl {
   private _uniform: Uniform = defaultUniform;
 
-  private static template = (ele: UniformDimensionsSk) =>
-    html`<span>${ele.x} x ${ele.y}</span>`;
-
   constructor() {
     super(UniformDimensionsSk.template);
   }
+
+  private static template = (ele: UniformDimensionsSk) => html`<span>${ele.x} x ${ele.y}</span>`;
 
   applyUniformValues(uniforms: Float32Array): void {
     uniforms[this._uniform.slot] = this.x;
     uniforms[this._uniform.slot + 1] = this.y;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
   }
 
-  get uniform() {
+  get uniform(): Uniform {
     return this._uniform;
   }
-  set uniform(val) {
+
+  set uniform(val: Uniform) {
     if (val.rows !== 1 || val.columns !== 3) {
       throw new Error('A dimensions uniform must be float3.');
     }
     this._uniform = val;
   }
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['x', 'y'];
   }
 
@@ -70,7 +70,7 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
     this.setAttribute('y', val.toFixed(0));
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(): void{
     this._render();
   }
 }

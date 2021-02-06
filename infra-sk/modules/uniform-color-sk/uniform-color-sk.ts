@@ -10,7 +10,7 @@
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {
@@ -25,16 +25,18 @@ export class UniformColorSk extends ElementSk implements UniformControl {
 
   private input: HTMLInputElement | null = null;
 
-  private static template = (ele: UniformColorSk) => html` <label>
-    <input value="#808080" type="color" />
-    ${ele.uniform.name}
-  </label>`;
-
   constructor() {
     super(UniformColorSk.template);
   }
 
-  connectedCallback() {
+  private static template = (ele: UniformColorSk) => html`
+  <label>
+    <input value="#808080" type="color" />
+    ${ele.uniform.name}
+  </label>`;
+
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this.input = $$<HTMLInputElement>('input', this);

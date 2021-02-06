@@ -7,7 +7,7 @@
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {
@@ -22,17 +22,17 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
 
   private input: HTMLInputElement | null = null;
 
-  private static template = (ele: UniformSliderSk) =>
-    html` <label>
-      <input min="0" max="1" step="0.001" type="range" />
-      ${ele.uniform.name}
-    </label>`;
 
   constructor() {
     super(UniformSliderSk.template);
   }
 
-  connectedCallback() {
+  private static template = (ele: UniformSliderSk) => html` <label>
+  <input min="0" max="1" step="0.001" type="range" />
+  ${ele.uniform.name}
+</label>`;
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this.input = $$<HTMLInputElement>('input', this);
@@ -46,7 +46,7 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
   set uniform(val: Uniform) {
     if (val.columns !== 1 || val.rows !== 1) {
       throw new Error(
-        'uniform-slider-sk can only work on a uniform of size 1.'
+        'uniform-slider-sk can only work on a uniform of size 1.',
       );
     }
     this._uniform = val;
@@ -54,7 +54,7 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
   }
 
   /** Copies the values of the control into the uniforms array. */
-  applyUniformValues(uniforms: Float32Array) {
+  applyUniformValues(uniforms: Float32Array): void {
     uniforms[this.uniform.slot] = this.input!.valueAsNumber;
   }
 }
