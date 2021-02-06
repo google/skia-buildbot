@@ -22,15 +22,15 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
 
   private input: HTMLInputElement | null = null;
 
-
   constructor() {
     super(UniformSliderSk.template);
   }
 
-  private static template = (ele: UniformSliderSk) => html` <label>
-  <input min="0" max="1" step="0.001" type="range" />
-  ${ele.uniform.name}
-</label>`;
+  private static template = (ele: UniformSliderSk) => html`
+  <label>
+    <input min="0" max="1" step="0.001" type="range" />
+    ${ele.uniform.name}
+  </label>`;
 
   connectedCallback(): void {
     super.connectedCallback();
