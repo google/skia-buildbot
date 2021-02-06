@@ -1,21 +1,17 @@
 import './index';
+import { assert } from 'chai';
 import { UniformSliderSk } from './uniform-slider-sk';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { assert } from 'chai';
+import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-slider-sk', () => {
   const newInstance = setUpElementUnderTest<UniformSliderSk>(
-    'uniform-slider-sk'
+    'uniform-slider-sk',
   );
 
   let element: UniformSliderSk;
   beforeEach(() => {
-    element = newInstance((el: UniformSliderSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+    element = newInstance();
   });
 
   describe('applyUniformValues', () => {

@@ -11,7 +11,7 @@ describe('uniform-dimensions-sk', () => {
   let testBed: TestBed;
   before(async () => {
     testBed = await loadCachedTestBed(
-      path.join(__dirname, '..', '..', 'webpack.config.ts')
+      path.join(__dirname, '..', '..', 'webpack.config.ts'),
     );
   });
 
@@ -19,7 +19,7 @@ describe('uniform-dimensions-sk', () => {
     await testBed.page.goto(
       inBazel()
         ? testBed.baseUrl
-        : `${testBed.baseUrl}/uniform-dimensions-sk.html`
+        : `${testBed.baseUrl}/uniform-dimensions-sk.html`,
     );
     await testBed.page.setViewport({ width: 400, height: 550 });
   });

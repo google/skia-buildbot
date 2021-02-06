@@ -2,8 +2,8 @@ import './index';
 
 import { $$ } from 'common-sk/modules/dom';
 import './index';
-import { UniformColorSk } from './uniform-color-sk';
 import { $ } from 'common-sk/modules/dom';
+import { UniformColorSk } from './uniform-color-sk';
 
 $$('#apply')!.addEventListener('click', () => {
   const uniforms = new Float32Array(6);

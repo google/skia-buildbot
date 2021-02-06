@@ -8,7 +8,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementSk } from '../ElementSk';
 import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/fast-rewind-icon-sk';
@@ -23,7 +23,7 @@ const defaultUniform: Uniform = {
 };
 
 // The type of Date.now.
-type DateNow = () => number;
+type DateNow = ()=> number;
 
 export class UniformTimeSk extends ElementSk implements UniformControl {
   private startTime: number = 0; // The time as recorded from this._dateNow in ms.
@@ -36,43 +36,28 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
 
   private playing: boolean = true;
 
-  private static template = (ele: UniformTimeSk) => html`
-    <button id="restart" @click=${ele.restart}>
-      <fast-rewind-icon-sk></fast-rewind-icon-sk>
-    </button>
-    <button id="playpause" @click=${ele.togglePlaying}>
-      <play-arrow-icon-sk ?hidden=${ele.playing}></play-arrow-icon-sk>
-      <pause-icon-sk ?hidden=${!ele.playing}></pause-icon-sk>
-    </button>
-    <span>${ele.time.toFixed(3)}</span>
-    <span>${ele._uniform.name}</span>
-  `;
-
   constructor() {
     super(UniformTimeSk.template);
   }
 
-  connectedCallback() {
+  private static template = (ele: UniformTimeSk) => html`
+  <button id="restart" @click=${ele.restart}>
+    <fast-rewind-icon-sk></fast-rewind-icon-sk>
+  </button>
+  <button id="playpause" @click=${ele.togglePlaying}>
+    <play-arrow-icon-sk ?hidden=${ele.playing}></play-arrow-icon-sk>
+    <pause-icon-sk ?hidden=${!ele.playing}></pause-icon-sk>
+  </button>
+  <span>${ele.time.toFixed(3)}</span>
+  <span>${ele._uniform.name}</span>
+`;
+
+
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
     this.startTime = this.dateNow();
     this.time = 0;
-  }
-
-  private restart() {
-    this.time = 0;
-    this.pauseTime = 0;
-    this._render();
-  }
-
-  private togglePlaying() {
-    if (this.playing) {
-      this.pauseTime = this.time;
-    } else {
-      this.time = this.pauseTime;
-    }
-    this.playing = !this.playing;
-    this._render();
   }
 
   render(): void {
@@ -85,16 +70,16 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
   }
 
   /** Allows overriding the Date.now function for testing. */
-  get dateNow() {
+  get dateNow(): DateNow {
     return this._dateNow;
   }
 
-  set dateNow(val) {
+  set dateNow(val: DateNow) {
     this._dateNow = val;
   }
 
   /** The current time offset in seconds. */
-  get time() {
+  get time(): number {
     if (!this.playing) {
       return this.pauseTime;
     }
@@ -116,6 +101,22 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
       throw new Error('Invalid time uniform dimensions.');
     }
     this._uniform = val;
+    this._render();
+  }
+
+  private restart() {
+    this.time = 0;
+    this.pauseTime = 0;
+    this._render();
+  }
+
+  private togglePlaying() {
+    if (this.playing) {
+      this.pauseTime = this.time;
+    } else {
+      this.time = this.pauseTime;
+    }
+    this.playing = !this.playing;
     this._render();
   }
 }

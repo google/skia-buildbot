@@ -1,20 +1,16 @@
 import './index';
-import { UniformTimeSk } from './uniform-time-sk';
-
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
+import { UniformTimeSk } from './uniform-time-sk';
+
+import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-time-sk', () => {
   const newInstance = setUpElementUnderTest<UniformTimeSk>('uniform-time-sk');
 
   let element: UniformTimeSk;
   beforeEach(() => {
-    element = newInstance((el: UniformTimeSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+    element = newInstance();
   });
 
   describe('unform-time-sk', () => {

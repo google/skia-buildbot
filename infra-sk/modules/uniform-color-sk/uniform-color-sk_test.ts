@@ -1,20 +1,16 @@
 import './index';
-import { UniformColorSk } from './uniform-color-sk';
-
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { assert } from 'chai';
 import { $$ } from 'common-sk/modules/dom';
+import { UniformColorSk } from './uniform-color-sk';
+
+import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-color-sk', () => {
   const newInstance = setUpElementUnderTest<UniformColorSk>('uniform-color-sk');
 
   let element: UniformColorSk;
   beforeEach(() => {
-    element = newInstance((el: UniformColorSk) => {
-      // Place here any code that must run after the element is instantiated but
-      // before it is attached to the DOM (e.g. property setter calls,
-      // document-level event listeners, etc.).
-    });
+    element = newInstance();
   });
 
   describe('some action', () => {
@@ -34,7 +30,7 @@ describe('uniform-color-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(
         uniforms,
-        new Float32Array([0, 128 / 255, 144 / 255, 160 / 255, 0])
+        new Float32Array([0, 128 / 255, 144 / 255, 160 / 255, 0]),
       );
     });
 
