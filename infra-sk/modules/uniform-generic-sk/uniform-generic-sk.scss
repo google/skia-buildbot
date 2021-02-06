@@ -1,0 +1,14 @@
+uniform-generic-sk {
+  input {
+    width: 64px;
+  }
+
+  div {
+    display: flex;
+    align-items: center;
+  }
+
+  span {
+    margin-left: 8px;
+  }
+}
