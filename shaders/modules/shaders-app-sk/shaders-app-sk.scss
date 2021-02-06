@@ -41,6 +41,28 @@ shaders-app-sk {
     padding: 8px;
   }
 
+  main #shaderControls {
+    margin-left: 8px;
+
+    .action {
+      margin: 8px;
+    }
+  }
+
+  main #uniformControls {
+    margin-left: 0;
+  }
+
+  main #uniformControls > * {
+    padding: 0;
+    margin: 8px;
+  }
+
+  main #uniformControls uniform-mouse-sk {
+    padding: 0;
+    margin: 0;
+  }
+
   details {
     margin-left: 16px;
 
@@ -70,7 +92,48 @@ shaders-app-sk {
     background: var(--surface);
   }
 
+  details#shaderinputs textarea {
+    display: block;
+    background: var(--surface);
+    color: var(--secondary);
+    font-family: monospace;
+    resize: none;
+    font-size: 11px;
+  }
+
+  details#shaderinputs {
+    display: initial;
+    margin: initial;
+    padding: initial;
+    list-style: initial;
+    box-shadow: initial;
+    margin: 0 0 8px 0;
+    font-size: 11px;
+  }
+
+  details#shaderinputs summary {
+    display: initial;
+    margin: initial;
+    padding: initial;
+    list-style: initial;
+    box-shadow: initial;
+    outline: initial;
+    outline-offset: initial;
+    border: none;
+    background: var(--surface);
+    color: var(--on-surface);
+  }
+
+  details#shaderinputs summary::-webkit-details-marker {
+    display: initial;
+  }
+
   .CodeMirror {
     height: auto;
+  }
+
+  .CodeMirror * {
+    font-family: monospace;
+    font-size: 13px;
   }
 }

@@ -14,7 +14,7 @@ import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {
-  name: 'iDimensions',
+  name: 'iResulution',
   columns: 3,
   rows: 1,
   slot: 0,

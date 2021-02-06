@@ -1,11 +1,14 @@
 uniform-time-sk {
-  button {
+  display: block;
+
+  button#restart,
+  button#playpause {
     min-width: auto;
     text-align: center;
     text-transform: none;
     outline: none;
     padding: 4px;
-    margin: 4px;
+    margin: 0;
     height: fit-content;
   }
 }
