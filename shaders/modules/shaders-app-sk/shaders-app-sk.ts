@@ -6,14 +6,13 @@
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
-import { SKIA_VERSION } from '../../build/version';
 import { errorMessage } from 'elements-sk/errorMessage';
 import CodeMirror from 'codemirror';
 import { $$ } from 'common-sk/modules/dom';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { HintableObject } from 'common-sk/modules/hintable';
+import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import type {
   CanvasKit,
   Surface,
@@ -25,7 +24,8 @@ import type {
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/theme-chooser-sk';
-import { HintableObject } from 'common-sk/modules/hintable';
+import { SKIA_VERSION } from '../../build/version';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
 import { ScrapBody, ScrapID } from '../json';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -42,13 +42,15 @@ const kitReady = CanvasKitInit({
 
 const DEFAULT_SIZE = 256;
 
-const defaultShader = `uniform float u_time;
+const predefinedShaderInputs = `uniform float3 iResolution; // Viewport resolution (pixels)
+uniform float  iTime;       // Shader playback time (s)
+uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)`;
 
-half4 main(float2 fragCoord) {
- return vec4(1.0, 0, u_time, 1.0);
+const defaultShader = `half4 main(float2 fragCoord) {
+ return vec4(1.0, 0, iTime, 1.0);
 }`;
 
-type stateChangedCallback = () => void;
+type stateChangedCallback = ()=> void;
 
 // State represents data reflected to/from the URL.
 interface State {
@@ -130,7 +132,13 @@ export class ShadersAppSk extends ElementSk {
       >
         Your browser does not support the canvas tag.
       </canvas>
-      <div id="codeEditor"></div>
+      <div>
+        <details id=shaderinputs>
+          <summary>Shader Inputs</summary>
+          <textarea rows=3 cols=75 readonly id="predefinedShaderInputs"></textarea>
+        </details>
+        <div id="codeEditor"></div>
+      </div>
       <div>
         <button
           ?hidden=${ele.editedCode === ele.runningCode}
@@ -156,9 +164,7 @@ export class ShadersAppSk extends ElementSk {
    * For this to work the associated CSS themes must be loaded. See
    * shaders-app-sk.scss.
    */
-  private static themeFromCurrentMode = () => {
-    return isDarkMode() ? 'base16-dark' : 'base16-light';
-  };
+  private static themeFromCurrentMode = () => (isDarkMode() ? 'base16-dark' : 'base16-light');
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -173,6 +179,8 @@ export class ShadersAppSk extends ElementSk {
       viewportMargin: Infinity,
     });
     this.codeMirror.on('change', () => this.codeChange());
+
+    $$<HTMLTextAreaElement>('#predefinedShaderInputs', this)!.value = predefinedShaderInputs;
 
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
@@ -193,7 +201,7 @@ export class ShadersAppSk extends ElementSk {
             } else {
               this.loadShaderIfNecessary();
             }
-          }
+          },
         );
       } catch (error) {
         errorMessage(error);
@@ -222,7 +230,7 @@ export class ShadersAppSk extends ElementSk {
 
   private startShader(shaderCode: string) {
     // Cancel any pending drawFrames.
-    if (this.rafID != RAF_NOT_RUNNING) {
+    if (this.rafID !== RAF_NOT_RUNNING) {
       cancelAnimationFrame(this.rafID);
       this.rafID = RAF_NOT_RUNNING;
     }
@@ -232,6 +240,7 @@ export class ShadersAppSk extends ElementSk {
     this.editedCode = shaderCode;
     this.codeMirror!.setValue(shaderCode);
 
+    // eslint-disable-next-line no-unused-expressions
     this.surface?.delete();
     this.surface = this.kit!.MakeCanvasSurface(this.canvasEle!);
     if (!this.surface) {
@@ -242,16 +251,22 @@ export class ShadersAppSk extends ElementSk {
     // the parent surface will do that for us.
     this.canvas = this.surface.getCanvas();
     this.canvasKitContext = this.kit!.currentContext();
+    // eslint-disable-next-line no-unused-expressions
     this.effect?.delete();
     // TODO(jcgregorio) Once RuntimeEffect.Make() supports an optional callback
     // that reports compilation errors we can supply detailed error messages to
     // the user.
-    this.effect = this.kit!.RuntimeEffect.Make(shaderCode);
+    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedShaderInputs}\n${shaderCode}`);
     if (!this.effect) {
       errorMessage('Could not create RuntimeEffect');
       return;
     }
+    /*
+    for (let i = 0; i < this.effect.getUniformCount(); i++) {
+      console.log(this.effect.getUniformName(i));
+    }
 
+    */
     this.drawFrame();
   }
 
@@ -260,7 +275,7 @@ export class ShadersAppSk extends ElementSk {
 
     // Build uniforms and pass into makeShader.
     // TODO(jcgregorio) Interrogate the effect for its uniforms.
-    const uniforms = [this.playbackPosition];
+    const uniforms = [this.playbackPosition, this.playbackPosition, this.playbackPosition, this.playbackPosition, this.playbackPosition, this.playbackPosition, this.playbackPosition, this.playbackPosition];
     const shader = this.effect!.makeShader(uniforms);
 
     // Draw the shader.
@@ -314,7 +329,7 @@ export class ShadersAppSk extends ElementSk {
    *
    * The value returned depends on Date.now() and this.startTime.
    */
-  get playbackPosition() {
+  get playbackPosition(): number {
     const elapsedTime = Date.now() - this.startTime;
     let playbackPosition = elapsedTime / this.duration;
     if (playbackPosition > 1) {
