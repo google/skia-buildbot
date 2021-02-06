@@ -76,7 +76,7 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
   }
 
   set uniform(val: Uniform) {
-    if (val.rows !== 4 || val.columns !== 1) {
+    if (val.columns !== 4 || val.rows !== 1) {
       throw new Error('The mouse uniform must be a float4.');
     }
     this._uniform = val;
