@@ -6,16 +6,16 @@ import { $ } from 'common-sk/modules/dom';
 import { UniformColorSk } from './uniform-color-sk';
 
 $$('#apply')!.addEventListener('click', () => {
-  const uniforms = new Float32Array(6);
+  const uniforms = new Float32Array(8);
   $<UniformColorSk>('uniform-color-sk')!.forEach((ele) => {
     ele.applyUniformValues(uniforms);
   });
   $$<HTMLPreElement>('#results')!.innerText = uniforms.toString();
 });
 
-$$<UniformColorSk>('#secondColor')!.uniform = {
-  name: 'particle',
+$$<UniformColorSk>('#withAlphaColor')!.uniform = {
+  name: 'iColorWithAlpha',
   rows: 1,
-  columns: 3,
+  columns: 4,
   slot: 3,
 };

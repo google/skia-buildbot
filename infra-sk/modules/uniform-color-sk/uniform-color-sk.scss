@@ -5,6 +5,11 @@ uniform-color-sk {
 
   label {
     display: flex;
+    align-items: center;
+  }
+
+  label.hidden {
+    display: none;
   }
 
   input {
