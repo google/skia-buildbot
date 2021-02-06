@@ -121,42 +121,33 @@ export class ShadersAppSk extends ElementSk {
       return ret;
     }
     for (let i = 0; i < effect.getUniformCount(); i++) {
-      const name = effect.getUniformName(i);
-      const uniform = effect.getUniform(i);
-      const controlUniform: Uniform = {
-        rows: uniform.rows,
-        columns: uniform.columns,
-        slot: uniform.slot,
-        name: name,
-      };
-      if (!name.startsWith('i')) {
+      const uniform: Uniform = { ...effect.getUniform(i), name: effect.getUniformName(i) };
+      if (!uniform.name.startsWith('i')) {
         continue;
       }
-      switch (name) {
+      switch (uniform.name) {
         case 'iTime':
-          ret.push(html`<uniform-time-sk .uniform=${controlUniform}></uniform-time-sk>`);
+          ret.push(html`<uniform-time-sk .uniform=${uniform}></uniform-time-sk>`);
           break;
         case 'iMouse':
-          ret.push(html`<uniform-mouse-sk .uniform=${controlUniform} .elementToMonitor=${ele.canvasEle}></uniform-mouse-sk>`);
+          ret.push(html`<uniform-mouse-sk .uniform=${uniform} .elementToMonitor=${ele.canvasEle}></uniform-mouse-sk>`);
           break;
         case 'iResolution':
-          ret.push(html`<uniform-dimensions-sk .uniform=${controlUniform} x=${ele.width} y=${ele.height}></uniform-dimensions-sk>`);
+          ret.push(html`<uniform-dimensions-sk .uniform=${uniform} x=${ele.width} y=${ele.height}></uniform-dimensions-sk>`);
           break;
-
         default:
-          if (name.toLowerCase().indexOf('color') !== -1) {
-            ret.push(html`<uniform-color-sk .uniform=${controlUniform}></uniform-color-sk>`);
+          if (uniform.name.toLowerCase().indexOf('color') !== -1) {
+            ret.push(html`<uniform-color-sk .uniform=${uniform}></uniform-color-sk>`);
           } else if (uniform.rows === 1 && uniform.columns === 1) {
-            ret.push(html`<uniform-slider-sk .uniform=${controlUniform}></uniform-slider-sk>`);
+            ret.push(html`<uniform-slider-sk .uniform=${uniform}></uniform-slider-sk>`);
           } else {
-            ret.push(html`<uniform-generic-sk .uniform=${controlUniform}></uniform-generic-sk>`);
+            ret.push(html`<uniform-generic-sk .uniform=${uniform}></uniform-generic-sk>`);
           }
           break;
       }
     }
     return ret;
   }
-
 
   private static template = (ele: ShadersAppSk) => html`
     <header>
@@ -309,13 +300,15 @@ export class ShadersAppSk extends ElementSk {
     }
     this._render();
 
+    // Render so the uniform controls get displayed.
+    this._render();
     this.drawFrame();
   }
 
   private drawFrame() {
     this.kit!.setCurrentContext(this.canvasKitContext);
 
-    // Build uniforms and pass into makeShader.
+    // Populate the uniforms values from the controls.
     const uniforms = new Float32Array(this.effect!.getUniformFloatCount());
     $('#uniformControls > *').forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
@@ -324,6 +317,9 @@ export class ShadersAppSk extends ElementSk {
     const shader = this.effect!.makeShader(uniforms);
     this._render();
 
+
+    // Allow uniform controls to update, such as uniform-timer-sk.
+    this._render();
 
     // Draw the shader.
     this.canvas!.clear(this.kit!.BLACK);
