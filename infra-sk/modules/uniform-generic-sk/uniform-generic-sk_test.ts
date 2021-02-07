@@ -1,5 +1,6 @@
 import './index';
 import { assert } from 'chai';
+import { $$ } from 'common-sk/modules/dom';
 import { UniformGenericSk } from './uniform-generic-sk';
 
 import { setUpElementUnderTest } from '../test_util';
@@ -41,6 +42,22 @@ describe('uniform-generic-sk', () => {
       };
       element.applyUniformValues(uniforms);
       assert.deepEqual(uniforms, new Float32Array([0, 1, 0, 0, 1, 0]));
+    });
+
+    it('applies uniform values in column major order', () => {
+      // Make uniforms longer than needed to show we don't disturb other values.
+      const uniforms = new Float32Array(6);
+
+      // The control defaults to the identity matrix for square uniforms.
+      element.uniform = {
+        name: 'square',
+        columns: 2,
+        rows: 2,
+        slot: 1,
+      };
+      $$<HTMLInputElement>('#square_1_0', element)!.value = '0.5'; // row=1 col=0
+      element.applyUniformValues(uniforms);
+      assert.deepEqual(uniforms, new Float32Array([0, 1, 0.5, 0, 1, 0]));
     });
   });
 });
