@@ -24,19 +24,23 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
 
   private _elementToMonitor: HTMLElement | null = null;
 
-  private location: [number, number] = [0, 0];
+  private x: number= 0;
 
-  private lastClick: [number, number] = [1, 1];
+  private y: number= 0;
+
+  private clickX: number = 1;
+
+  private clickY: number = 1;
 
   private mouseDown: boolean = false;
 
   private mouseClick: boolean = false;
 
   applyUniformValues(uniforms: Float32Array): void {
-    uniforms[this._uniform.slot] = this.location[0];
-    uniforms[this._uniform.slot + 1] = this.location[1];
-    uniforms[this._uniform.slot + 2] = Math.abs(this.lastClick[0]) * (this.mouseDown ? 1 : -1);
-    uniforms[this._uniform.slot + 3] = Math.abs(this.lastClick[1]) * (this.mouseClick ? 1 : -1);
+    uniforms[this._uniform.slot] = this.x;
+    uniforms[this._uniform.slot + 1] = this.y;
+    uniforms[this._uniform.slot + 2] = Math.abs(this.clickX) * (this.mouseDown ? 1 : -1);
+    uniforms[this._uniform.slot + 3] = Math.abs(this.clickY) * (this.mouseClick ? 1 : -1);
   }
 
   get elementToMonitor(): HTMLElement {
@@ -44,30 +48,43 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
   }
 
   set elementToMonitor(val: HTMLElement) {
+    if (this.elementToMonitor === val) {
+      return;
+    }
+    if (this.elementToMonitor) {
+      this._elementToMonitor!.removeEventListener('mouseup', this.mouseUpHandler.bind(this));
+      this._elementToMonitor!.removeEventListener('mousedown', this.mouseDownHandler.bind(this));
+      this._elementToMonitor!.removeEventListener('mousemove', this.mouseMoveHandler.bind(this));
+      this._elementToMonitor!.removeEventListener('click', this.clickHandler.bind(this));
+    }
     this._elementToMonitor = val;
-    this._elementToMonitor!.addEventListener('mouseup', (e) => this.mouseUpHandler(e));
-    this._elementToMonitor!.addEventListener('mousedown', (e) => this.mouseDownHandler(e));
-    this._elementToMonitor!.addEventListener('mousemove', (e) => this.mouseMoveHandler(e));
-    this._elementToMonitor!.addEventListener('click', (e) => this.clickHandler(e));
+    this._elementToMonitor!.addEventListener('mouseup', this.mouseUpHandler.bind(this));
+    this._elementToMonitor!.addEventListener('mousedown', this.mouseDownHandler.bind(this));
+    this._elementToMonitor!.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+    this._elementToMonitor!.addEventListener('click', this.clickHandler.bind(this));
   }
 
   private mouseUpHandler(e: MouseEvent) {
     this.mouseDown = false;
-    this.location = [e.offsetX, e.offsetY];
+    this.x = e.offsetX;
+    this.y = e.offsetY;
   }
 
   private mouseDownHandler(e: MouseEvent) {
     this.mouseDown = true;
-    this.location = [e.offsetX, e.offsetY];
+    this.x = e.offsetX;
+    this.y = e.offsetY;
   }
 
 
   private mouseMoveHandler(e: MouseEvent) {
-    this.location = [e.offsetX, e.offsetY];
+    this.x = e.offsetX;
+    this.y = e.offsetY;
   }
 
   private clickHandler(e: MouseEvent) {
-    this.lastClick = [e.offsetX, e.offsetY];
+    this.clickX = e.offsetX;
+    this.clickY = e.offsetY;
     this.mouseClick = true;
   }
 
