@@ -17,7 +17,7 @@ import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 import JSZip from 'jszip';
-import { replaceTexts } from '../skottie-text-editor/text-replace';
+import { replaceTextsByLayerName } from '../skottie-text-editor/text-replace';
 import { bmAnim } from './bm';
 import { rondaAnim } from './ronda';
 
@@ -142,7 +142,7 @@ class SkottieLibrarySk extends HTMLElement {
 
   replaceTexts(texts) {
     this._state.initialized = false;
-    this._state.animations = this._state.animations.map((animation) => replaceTexts(texts, animation));
+    this._state.animations = this._state.animations.map((animation) => replaceTextsByLayerName(texts, animation));
     this._render();
   }
 
