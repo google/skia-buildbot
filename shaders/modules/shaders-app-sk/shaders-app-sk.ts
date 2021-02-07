@@ -35,6 +35,7 @@ import '../../../infra-sk/modules/uniform-slider-sk';
 import '../../../infra-sk/modules/uniform-mouse-sk';
 import '../../../infra-sk/modules/uniform-color-sk';
 import { Uniform, UniformControl } from '../../../infra-sk/modules/uniform/uniform';
+import { FPS } from '../fps/fps';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
@@ -110,6 +111,8 @@ export class ShadersAppSk extends ElementSk {
   // stateReflector update function.
   private stateChanged: stateChangedCallback | null = null;
 
+  private fps: FPS = new FPS();
+
   constructor() {
     super(ShadersAppSk.template);
   }
@@ -179,6 +182,9 @@ export class ShadersAppSk extends ElementSk {
         <div id="codeEditor"></div>
       </div>
       <div id=shaderControls>
+        <div id=fps>
+          ${ele.fps.fps.toFixed(0)} fps
+        </div>
         <div id=uniformControls>
           ${ShadersAppSk.uniformControls(ele)}
         </div>
@@ -306,6 +312,7 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private drawFrame() {
+    this.fps.raf();
     this.kit!.setCurrentContext(this.canvasKitContext);
 
     // Populate the uniforms values from the controls.

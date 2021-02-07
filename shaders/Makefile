@@ -36,6 +36,11 @@ NODE_MEMORY_LIMIT=4096
 testpptr:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
+.PHONY: testjs
+testjs:
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
 
