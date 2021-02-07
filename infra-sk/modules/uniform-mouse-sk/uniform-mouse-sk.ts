@@ -44,11 +44,20 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
   }
 
   set elementToMonitor(val: HTMLElement) {
+    if (this.elementToMonitor === val) {
+      return;
+    }
+    if (this.elementToMonitor) {
+      this._elementToMonitor!.removeEventListener('mouseup', this.mouseUpHandler.bind(this));
+      this._elementToMonitor!.removeEventListener('mousedown', this.mouseDownHandler.bind(this));
+      this._elementToMonitor!.removeEventListener('mousemove', this.mouseMoveHandler.bind(this));
+      this._elementToMonitor!.removeEventListener('click', this.clickHandler.bind(this));
+    }
     this._elementToMonitor = val;
-    this._elementToMonitor!.addEventListener('mouseup', (e) => this.mouseUpHandler(e));
-    this._elementToMonitor!.addEventListener('mousedown', (e) => this.mouseDownHandler(e));
-    this._elementToMonitor!.addEventListener('mousemove', (e) => this.mouseMoveHandler(e));
-    this._elementToMonitor!.addEventListener('click', (e) => this.clickHandler(e));
+    this._elementToMonitor!.addEventListener('mouseup', this.mouseUpHandler.bind(this));
+    this._elementToMonitor!.addEventListener('mousedown', this.mouseDownHandler.bind(this));
+    this._elementToMonitor!.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+    this._elementToMonitor!.addEventListener('click', this.clickHandler.bind(this));
   }
 
   private mouseUpHandler(e: MouseEvent) {
