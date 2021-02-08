@@ -615,10 +615,12 @@ type pubsubDiffPublisher struct {
 
 // CalculateDiffs publishes a WorkerMessage to the configured PubSub topic so that a worker
 // (see diffcalculator) can pick it up and calculate the diffs.
-func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
+func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
 	body, err := json.Marshal(diff.WorkerMessage{
-		Grouping:          grouping,
-		AdditionalDigests: additional,
+		Version:         diff.WorkerMessageVersion,
+		Grouping:        grouping,
+		AdditionalLeft:  left,
+		AdditionalRight: right,
 	})
 	if err != nil {
 		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
