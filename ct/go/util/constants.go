@@ -32,14 +32,16 @@ const (
 	MAX_URI_GET_TRIES = 4
 
 	// Pageset types supported by CT.
-	PAGESET_TYPE_ALL             = "All"
-	PAGESET_TYPE_100k            = "100k"
-	PAGESET_TYPE_MOBILE_100k     = "Mobile100k"
-	PAGESET_TYPE_10k             = "10k"
-	PAGESET_TYPE_MOBILE_10k      = "Mobile10k"
-	PAGESET_TYPE_MOBILE_VOLT_10k = "VoltMobile10k"
-	PAGESET_TYPE_DUMMY_1k        = "Dummy1k"       // Used for testing.
-	PAGESET_TYPE_MOBILE_DUMMY_1k = "DummyMobile1k" // Used for testing.
+	PAGESET_TYPE_ALL              = "All"
+	PAGESET_TYPE_100k             = "100k"
+	PAGESET_TYPE_MOBILE_100k      = "Mobile100k"
+	PAGESET_TYPE_LAYOUTSHIFT_100k = "LayoutShift100k"
+	PAGESET_TYPE_10k              = "10k"
+	PAGESET_TYPE_MOBILE_10k       = "Mobile10k"
+	PAGESET_TYPE_MOBILE_VOLT_10k  = "VoltMobile10k"
+	PAGESET_TYPE_LAYOUTSHIFT_10k  = "LayoutShift10k"
+	PAGESET_TYPE_DUMMY_1k         = "Dummy1k"       // Used for testing.
+	PAGESET_TYPE_MOBILE_DUMMY_1k  = "DummyMobile1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME          = "chrome"
@@ -265,6 +267,15 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
+		PAGESET_TYPE_LAYOUTSHIFT_100k: {
+			NumPages:                   100000,
+			CSVSource:                  "csv/layout-shift-100k.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Layout Shift 100K (with desktop user-agent)",
+		},
 		PAGESET_TYPE_10k: {
 			NumPages:                   10000,
 			CSVSource:                  "csv/top-1m.csv",
@@ -291,6 +302,15 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Volt 10K (with mobile user-agent)",
+		},
+		PAGESET_TYPE_LAYOUTSHIFT_10k: {
+			NumPages:                   10000,
+			CSVSource:                  "csv/layout-shift-10k.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Layout Shift 10K (with desktop user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: {
 			NumPages:                   1000,
