@@ -87,7 +87,7 @@ class SkottieLibrarySk extends HTMLElement {
       animations: defaultAnimations,
       initialized: false,
     };
-    this._syncAnimations = true;
+    this._syncAnimations = false;
     this._thumbnail_size = THUMBNAIL_SIZE;
   }
 
