@@ -1,6 +1,23 @@
 {
   "comments": [
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "23c7d9d3_7fc2f002",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T16:31:37Z",
+      "side": 1,
+      "message": "If we need more performance, we could pass the MallocObj into the shader controls and have them write directly into their portion of that memory buffer.",
+      "revId": "985ea97e7a7af81c9fdf07c1f096d2c86d5d32ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "37ef5877_cfd2ee85",
