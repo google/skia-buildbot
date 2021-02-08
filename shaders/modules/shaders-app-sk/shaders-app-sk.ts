@@ -20,6 +20,7 @@ import type {
   Canvas,
   RuntimeEffect,
   Paint,
+  MallocObj,
 } from '../../build/canvaskit/canvaskit.js';
 
 import 'elements-sk/error-toast-sk';
@@ -96,6 +97,10 @@ export class ShadersAppSk extends ElementSk {
   private effect: RuntimeEffect | null = null;
 
   private state: State = defaultState;
+
+  // Keep a MallocObj around to pass uniforms to the shader to avoid the need to
+  // make copies.
+  private uniformsMallocObj: MallocObj | null = null;
 
   // The requestAnimationFrame id if we are running, otherwise we are not running.
   private rafID: number = RAF_NOT_RUNNING;
@@ -399,9 +404,21 @@ export class ShadersAppSk extends ElementSk {
   private drawFrame() {
     this.fps.raf();
     this.kit!.setCurrentContext(this.canvasKitContext);
-    const uniforms = this.getUniformValuesFromControls();
-    this.currentUserUniformValues = this.getCurrentUserUniformValues(uniforms);
-    const shader = this.effect!.makeShader(uniforms);
+    const uniformsArray = this.getUniformValuesFromControls();
+    this.currentUserUniformValues = this.getCurrentUserUniformValues(uniformsArray);
+
+    // Copy uniforms into this.uniformsMallocObj, which is kept around to avoid
+    // copying overhead in WASM.
+    if (!this.uniformsMallocObj) {
+      this.uniformsMallocObj = this.kit!.Malloc(Float32Array, uniformsArray.length);
+    } else if (this.uniformsMallocObj.length !== uniformsArray.length) {
+      this.kit!.Free(this.uniformsMallocObj);
+      this.uniformsMallocObj = this.kit!.Malloc(Float32Array, uniformsArray.length);
+    }
+    const uniformsFloat32Array: Float32Array = this.uniformsMallocObj.toTypedArray() as Float32Array;
+    uniformsArray.forEach((val, index) => { uniformsFloat32Array[index] = val; });
+
+    const shader = this.effect!.makeShader(uniformsFloat32Array);
     this._render();
 
     // Allow uniform controls to update, such as uniform-timer-sk.
