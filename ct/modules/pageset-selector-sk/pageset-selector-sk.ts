@@ -73,7 +73,8 @@ ${ele.hasAttribute('disable-custom-webpages')
         this._unfilteredPageSets = json;
         this._filterPageSets();
         this._render();
-      this._selector!.selection = 0;
+        // Always start with the default 10k.
+        this.selected = '10k';
       })
       .catch(errorMessage);
     this._render();

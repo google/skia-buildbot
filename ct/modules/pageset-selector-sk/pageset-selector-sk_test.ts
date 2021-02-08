@@ -49,12 +49,12 @@ describe('pageset-selector-sk', () => {
     selector = await newInstance(undefined);
     expect($('select-sk div')).to.have.length(8);
     expect($$('.pageset-list', selector)).to.have.property('hidden', false);
-    expect(selector).to.have.property('selected', '100k');
+    expect(selector).to.have.property('selected', '10k');
   });
 
   it('reflects changes to selected', async () => {
     selector = await newInstance(undefined);
-    expect(selector).to.have.property('selected', '100k');
+    expect(selector).to.have.property('selected', '10k');
     ($$('select-sk', selector) as SelectSk).selection = 3;
     expect(selector).to.have.property('selected', 'Mobile10k');
     selector.selected = 'Dummy1k';
