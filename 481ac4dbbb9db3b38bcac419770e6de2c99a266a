@@ -22,6 +22,30 @@
       },
       "revId": "481ac4dbbb9db3b38bcac419770e6de2c99a266a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4db8d9c5_72d87247",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-08T14:41:19Z",
+      "side": 1,
+      "message": "Added comment in https://skia-review.googlesource.com/c/buildbot/+/367597.",
+      "parentUuid": "a325b614_bfaf8d47",
+      "range": {
+        "startLine": 124,
+        "startChar": 33,
+        "endLine": 124,
+        "endChar": 36
+      },
+      "revId": "481ac4dbbb9db3b38bcac419770e6de2c99a266a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
