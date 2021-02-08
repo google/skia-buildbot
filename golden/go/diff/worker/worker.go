@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"image"
 	"image/png"
-	"sync"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -40,6 +39,8 @@ const (
 	decodedImageCacheSize = 3_000
 
 	diffingRoutines = 8
+
+	reportingBatchSize = 100
 )
 
 var (
@@ -147,15 +148,21 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 		return skerr.Wrapf(err, "checking existing diff metrics")
 	}
 
-	sCtx, computeSpan := trace.StartSpan(ctx, "computeDiffsInParallel")
-	// Compute diffs in parallel
-	work := make(chan digestPair, len(toCompute))
-	var newMetrics []schema.DiffMetricRow
-	newMutex := sync.Mutex{}
-	eg, eCtx := errgroup.WithContext(sCtx)
+	sCtx, computeSpan := trace.StartSpan(ctx, "computeAndReportDiffsInParallel")
+	defer computeSpan.End()
+	// Compute diffs in parallel. To do this, we spin up an error group that uses a channel to
+	// distribute work and an error group that listens to the output channel and uploads in batches.
+	// This way, we have some way to stream results and the metrics will be smoother in case a lot
+	// of computations need to happen over the course of several minutes.
+	availableWork := make(chan digestPair, len(toCompute))
+	// We expect pushing to SQL to be much faster than diffing, so we don't want the newMetrics
+	// chan to be blocking computation. As such, make the buffer size decently big.
+	newMetrics := make(chan schema.DiffMetricRow, 2*reportingBatchSize)
+	computeGroup, eCtx := errgroup.WithContext(sCtx)
 	for i := 0; i < diffingRoutines; i++ {
-		eg.Go(func() error {
-			for pair := range work {
+		computeGroup.Go(func() error {
+			// Worker goroutines will run until the channel is empty and closed.
+			for pair := range availableWork {
 				// If either image is known to be bad, skip this work
 				_, bad1 := w.badDigestsCache.Get(string(pair.left))
 				_, bad2 := w.badDigestsCache.Get(string(pair.right))
@@ -173,36 +180,54 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 					}
 					continue
 				}
-				newMutex.Lock()
-				newMetrics = append(newMetrics, nm)
-				newMutex.Unlock()
+				newMetrics <- nm
 			}
 			return nil
 		})
 	}
+	reportGroup, eCtx2 := errgroup.WithContext(sCtx)
+	reportGroup.Go(func() error {
+		// This goroutine will run until the newMetrics channel is empty and closed.
+		buffer := make([]schema.DiffMetricRow, 0, reportingBatchSize)
+		for nm := range newMetrics {
+			buffer = append(buffer, nm)
+			if len(buffer) >= reportingBatchSize {
+				w.metricsCalculatedCounter.Inc(int64(len(buffer)))
+				if err := w.writeMetrics(eCtx2, buffer); err != nil {
+					return skerr.Wrap(err)
+				}
+				buffer = buffer[:0] // reset buffer
+			}
+		}
+		w.metricsCalculatedCounter.Inc(int64(len(buffer)))
+		if err := w.writeMetrics(eCtx2, buffer); err != nil {
+			return skerr.Wrap(err)
+		}
+		return nil
+	})
+	// Now that the goroutines are started, fill up the availableWork channel and close it.
 	workAssigned := 0
 	for pair, shouldCompute := range toCompute {
 		if !shouldCompute {
 			continue
 		}
 		workAssigned++
-		work <- pair
+		availableWork <- pair
 	}
-	close(work)
+	close(availableWork)
 	sklog.Infof("Computing %d new diffs for grouping %v (%d diffs total)", workAssigned, grouping, len(toCompute))
-	if err := eg.Wait(); err != nil {
+	// Wait for computation to complete.
+	if err := computeGroup.Wait(); err != nil {
+		close(newMetrics) // shut down the reporting go routine as well.
 		return skerr.Wrap(err)
 	}
-	computeSpan.End()
-	// These numbers can be different in the case of errors.
-	sklog.Infof("Done with those %d/%d new diffs", len(newMetrics), workAssigned)
-	if len(newMetrics) == 0 {
-		return nil
+	// We know computation is complete, so close the reporting channel and wait for it to be done
+	// reporting the remaining metrics.
+	close(newMetrics)
+	if err := reportGroup.Wait(); err != nil {
+		return skerr.Wrap(err)
 	}
-	if err := w.writeMetrics(ctx, newMetrics); err != nil {
-		return skerr.Wrapf(err, "writing %d new metrics for grouping %v", len(newMetrics), grouping)
-	}
-	w.metricsCalculatedCounter.Inc(int64(len(newMetrics)))
+	sklog.Infof("Done with those %d new diffs", workAssigned)
 	return nil
 }
 
@@ -412,6 +437,9 @@ func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (
 // writeMetrics writes two copies of the provided metrics (one for left-right and one for
 // right-left) to the SQL database.
 func (w *WorkerImpl) writeMetrics(ctx context.Context, metrics []schema.DiffMetricRow) error {
+	if len(metrics) == 0 {
+		return nil
+	}
 	ctx, span := trace.StartSpan(ctx, "writeMetrics")
 	defer span.End()
 	const baseStatement = `UPSERT INTO DiffMetrics
