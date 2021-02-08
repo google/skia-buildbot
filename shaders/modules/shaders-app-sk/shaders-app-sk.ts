@@ -101,6 +101,10 @@ export class ShadersAppSk extends ElementSk {
 
   private state: State = defaultState;
 
+  // Keep a Float32Array around to pass uniforms to the shader to avoid the need
+  // to make copies.
+  private uniforms: Float32Array = new Float32Array();
+
   // The requestAnimationFrame id if we are running, otherwise we are not running.
   private rafID: number = RAF_NOT_RUNNING;
 
@@ -398,7 +402,15 @@ export class ShadersAppSk extends ElementSk {
     this.kit!.setCurrentContext(this.canvasKitContext);
     const uniforms = this.getUniformValuesFromControls();
     this.currentUserUniformValues = this.getCurrentUserUniformValues(uniforms);
-    const shader = this.effect!.makeShader(uniforms);
+
+    // Copy uniforms into this.uniforms, which is a Float32Array kept around to
+    // avoid copying overhead in WASM
+    if (this.uniforms.length !== uniforms.length) {
+      this.uniforms = new Float32Array(uniforms.length);
+    }
+    uniforms.forEach((val, index) => { this.uniforms[index] = val; });
+
+    const shader = this.effect!.makeShader(this.uniforms);
     this._render();
 
     // Allow uniform controls to update, such as uniform-timer-sk.
