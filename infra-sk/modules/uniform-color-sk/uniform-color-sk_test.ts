@@ -15,7 +15,7 @@ describe('uniform-color-sk', () => {
   describe('some action', () => {
     it('puts values in correct spot in uniforms array', () => {
       // Make uniforms longer than needed to show we don't disturb other values.
-      const uniforms = new Float32Array(5);
+      const uniforms = new Array(5);
 
       element.uniform = {
         name: 'color',
@@ -28,13 +28,13 @@ describe('uniform-color-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(
         uniforms,
-        new Float32Array([0, 128 / 255, 144 / 255, 160 / 255, 0]),
+        [0, 128 / 255, 144 / 255, 160 / 255, 0],
       );
     });
 
     it('puts values in correct spot in uniforms array with an alpha', () => {
       // Make uniforms longer than needed to show we don't disturb other values.
-      const uniforms = new Float32Array(6);
+      const uniforms: number[] = new Array(6);
 
       element.uniform = {
         name: 'color',
@@ -47,7 +47,7 @@ describe('uniform-color-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(
         uniforms,
-        new Float32Array([0, 128 / 255, 144 / 255, 160 / 255, 0.5, 0]),
+        [0, 128 / 255, 144 / 255, 160 / 255, 0.5, 0],
       );
     });
 
