@@ -80,6 +80,8 @@ const (
 	USE_LIVE_SITES_FLAGS = "--use-live-sites"
 	// Pageset repeat flag.
 	PAGESET_REPEAT_FLAG = "--pageset-repeat"
+	// User agent flag.
+	USER_AGENT_FLAG = "--user-agent"
 	// Run Benchmark timeout flag.
 	RUN_BENCHMARK_TIMEOUT_FLAG = "--run-benchmark-timeout"
 	// Max pages per bot flag.
