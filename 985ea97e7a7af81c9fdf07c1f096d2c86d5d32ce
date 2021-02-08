@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "37ef5877_cfd2ee85",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T16:31:09Z",
+      "side": 1,
+      "message": "Hopefully Typescript can deduce that uniformsMallocObj will be non-null here.",
+      "range": {
+        "startLine": 412,
+        "startChar": 43,
+        "endLine": 412,
+        "endChar": 44
+      },
+      "revId": "985ea97e7a7af81c9fdf07c1f096d2c86d5d32ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
