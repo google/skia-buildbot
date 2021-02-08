@@ -14,9 +14,9 @@ describe('uniform-mouse-sk', () => {
 
   describe('uniform-mouse-sk', () => {
     it('reports uniform values correctly', () => {
-      const uniforms = new Float32Array(4);
+      const uniforms: number[] = new Array(4);
       element.applyUniformValues(uniforms);
-      assert.deepEqual(uniforms, new Float32Array([0, 0, -1, -1]));
+      assert.deepEqual(uniforms, [0, 0, -1, -1]);
     });
 
     it('throws on an invalid uniform', () => {

@@ -3,7 +3,7 @@ import { UniformTimeSk } from './uniform-time-sk';
 import './index';
 
 $$('#apply')!.addEventListener('click', () => {
-  const uniforms = new Float32Array(2);
+  const uniforms = [0, 0];
   $<UniformTimeSk>('uniform-time-sk')!.forEach((ele) => {
     ele.applyUniformValues(uniforms);
   });
