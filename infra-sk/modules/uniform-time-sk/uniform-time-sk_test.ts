@@ -72,7 +72,7 @@ describe('uniform-time-sk', () => {
       element.time = 10; // s
 
       // Make uniforms longer than needed to show we don't disturb other values.
-      const uniforms = new Float32Array(3);
+      const uniforms = [0, 0, 0];
 
       // The control defaults to a value of 0.5.
       element.uniform = {
@@ -82,7 +82,7 @@ describe('uniform-time-sk', () => {
         slot: 1,
       };
       element.applyUniformValues(uniforms);
-      assert.deepEqual(uniforms, new Float32Array([0, 10, 0]));
+      assert.deepEqual(uniforms, [0, 10, 0]);
     });
   });
 });
