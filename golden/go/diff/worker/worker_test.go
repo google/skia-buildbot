@@ -45,7 +45,7 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -92,7 +92,7 @@ func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
 		d := fmt.Sprintf("%032d", i)
 		imagesToCalculateDiffsFor = append(imagesToCalculateDiffsFor, types.Digest(d))
 	}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
 
 	row := db.QueryRow(ctx, `SELECT count(*) FROM DiffMetrics`)
 	count := 0
@@ -123,7 +123,7 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt, dks.DigestA05Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -172,7 +172,7 @@ func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -201,7 +201,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 		types.CorpusField:     dks.CornersCorpus,
 		types.PrimaryKeyField: dks.TriangleTest,
 	}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil, nil))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -249,7 +249,7 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 		types.CorpusField:     dks.RoundCorpus,
 		types.PrimaryKeyField: dks.CircleTest,
 	}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, []types.Digest{dks.DigestC06Pos_CL}, []types.Digest{dks.DigestC06Pos_CL}))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	assert.Equal(t, []schema.DiffMetricRow{
@@ -298,7 +298,7 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	// We should see partial success
@@ -353,7 +353,7 @@ func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 		types.PrimaryKeyField: "not used",
 	}
 	imagesToCalculateDiffsFor := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos, dks.DigestA04Unt}
-	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor))
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, imagesToCalculateDiffsFor, imagesToCalculateDiffsFor))
 
 	actualMetrics := getAllDiffMetricRows(t, db)
 	// We should see partial success
@@ -370,6 +370,107 @@ func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	assert.True(t, problem.NumErrors >= 101)
 	assert.Contains(t, problem.LatestError, "png: invalid format: not a PNG file")
 	assert.Equal(t, fakeNow, problem.ErrorTS)
+}
+
+func TestCalculateDiffs_LeftDigestsComparedOnlyToRightDigests_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := schema.Tables{DiffMetrics: []schema.DiffMetricRow{
+		sentinelMetricRow(dks.DigestA01Pos, dks.DigestA05Unt), // should not be recomputed
+		sentinelMetricRow(dks.DigestA05Unt, dks.DigestA01Pos), // should not be recomputed
+	}}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+	w := newWorkerUsingImagesFromKitchenSink(t, db)
+	metricBefore := metrics2.GetCounter("diffcalculator_metricscalculated").Get()
+
+	grouping := paramtools.Params{
+		types.CorpusField:     "not",
+		types.PrimaryKeyField: "used",
+	}
+	leftDigests := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos,
+		dks.DigestA04Unt, dks.DigestA05Unt, dks.DigestA06Unt}
+	rightDigests := []types.Digest{dks.DigestA01Pos, dks.DigestA02Pos}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, leftDigests, rightDigests))
+
+	actualMetrics := getAllDiffMetricRows(t, db)
+	assert.Equal(t, []schema.DiffMetricRow{
+		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA04Unt, fakeNow),
+		sentinelMetricRow(dks.DigestA01Pos, dks.DigestA05Unt),
+		expectedFromKS(t, dks.DigestA01Pos, dks.DigestA06Unt, fakeNow),
+
+		expectedFromKS(t, dks.DigestA02Pos, dks.DigestA01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestA02Pos, dks.DigestA04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestA02Pos, dks.DigestA05Unt, fakeNow),
+		expectedFromKS(t, dks.DigestA02Pos, dks.DigestA06Unt, fakeNow),
+
+		expectedFromKS(t, dks.DigestA04Unt, dks.DigestA01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestA04Unt, dks.DigestA02Pos, fakeNow),
+
+		sentinelMetricRow(dks.DigestA05Unt, dks.DigestA01Pos),
+		expectedFromKS(t, dks.DigestA05Unt, dks.DigestA02Pos, fakeNow),
+
+		expectedFromKS(t, dks.DigestA06Unt, dks.DigestA01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestA06Unt, dks.DigestA02Pos, fakeNow),
+	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
+
+	// 6 pairs of images calculated (1 was already calculated)
+	assert.Equal(t, metricBefore+6, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
+}
+
+func TestCalculateDiffs_IgnoredTracesNotComparedToEachOther_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	// C04 and C05 appear only on ignored traces. C01, C02 appear only on non-ignored traces.
+	// C03 appears on both an ignored trace and an ignored trace.
+	sparseData := makeDataWithIgnoredTraces()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, sparseData))
+	waitForSystemTime()
+	w := newWorkerUsingImagesFromKitchenSink(t, db)
+
+	grouping := paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil, nil))
+
+	// The images that are only on ignored traces should not be compared to each other.
+	actualMetrics := getAllDiffMetricRows(t, db)
+	assert.Equal(t, []schema.DiffMetricRow{
+		expectedFromKS(t, dks.DigestC01Pos, dks.DigestC02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC01Pos, dks.DigestC03Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC01Pos, dks.DigestC04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC01Pos, dks.DigestC05Unt, fakeNow),
+
+		expectedFromKS(t, dks.DigestC02Pos, dks.DigestC01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC02Pos, dks.DigestC03Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC02Pos, dks.DigestC04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC02Pos, dks.DigestC05Unt, fakeNow),
+
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC04Unt, fakeNow),
+		expectedFromKS(t, dks.DigestC03Unt, dks.DigestC05Unt, fakeNow),
+
+		expectedFromKS(t, dks.DigestC04Unt, dks.DigestC01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC04Unt, dks.DigestC02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC04Unt, dks.DigestC03Unt, fakeNow),
+		// expectedFromKS(t, dks.DigestC04Unt, dks.DigestC05Unt, fakeNow), skipped
+
+		expectedFromKS(t, dks.DigestC05Unt, dks.DigestC01Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC05Unt, dks.DigestC02Pos, fakeNow),
+		expectedFromKS(t, dks.DigestC05Unt, dks.DigestC03Unt, fakeNow),
+		// expectedFromKS(t, dks.DigestC05Unt, dks.DigestC04Unt, fakeNow), skipped
+	}, actualMetrics)
+	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
 func getAllDiffMetricRows(t *testing.T, db *pgxpool.Pool) []schema.DiffMetricRow {
@@ -435,6 +536,52 @@ func makeSparseData() schema.Tables {
 		OptionsAll(paramtools.Params{"ext": "png"}).
 		IngestedFrom([]string{"file1", "file2", "file3", "file4", "file5"}, // not used in this test
 			[]string{"2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z"})
+
+	b.AddIgnoreRule("userOne", "userOne", "2020-12-02T0:00:00Z", "nop ignore",
+		paramtools.ParamSet{"matches": []string{"nothing"}})
+
+	rv := b.Build()
+	rv.DiffMetrics = nil
+	return rv
+}
+
+func makeDataWithIgnoredTraces() schema.Tables {
+	b := databuilder.TablesBuilder{}
+	b.CommitsWithData().
+		Insert(8, "whomever", "commit 8", "2020-12-01T00:00:01Z").
+		Append("whomever", "commit 9", "2020-12-01T00:00:02Z")
+
+	b.SetDigests(map[rune]types.Digest{
+		// All of these will be untriaged because diffs don't care about triage status
+		'a': dks.DigestC01Pos,
+		'b': dks.DigestC02Pos,
+		'c': dks.DigestC03Unt,
+		'd': dks.DigestC04Unt,
+		'e': dks.DigestC05Unt,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+
+	b.AddTracesWithCommonKeys(paramtools.Params{
+		types.CorpusField:     dks.RoundCorpus,
+		types.PrimaryKeyField: dks.CircleTest,
+	}).History(
+		"aa",
+		"bb",
+		"cb",
+		"cd", // ignored
+		"ee", // ignored
+	).Keys([]paramtools.Params{
+		{"device": "one"},
+		{"device": "two"},
+		{"device": "three"},
+		{"device": "four"},
+		{"device": "five"},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom([]string{"file1", "file2"}, // not used in this test
+			[]string{"2020-12-01T00:00:05Z", "2020-12-01T00:00:05Z"})
+
+	b.AddIgnoreRule("userOne", "userOne", "2020-12-02T0:00:00Z", "buggy",
+		paramtools.ParamSet{"device": []string{"four", "five"}})
 
 	rv := b.Build()
 	rv.DiffMetrics = nil
