@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "588f2551_8952cc1d",
+        "filename": "infra-sk/modules/uniform-generic-sk/uniform-generic-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T12:16:21Z",
+      "side": 1,
+      "message": "2x2 is a little confusing terminology-wise when there are 1 row and 1 column. And this appears to cover any size?",
+      "range": {
+        "startLine": 16,
+        "startChar": 9,
+        "endLine": 16,
+        "endChar": 17
+      },
+      "revId": "8b5b28976b831d33e4716b7c8776a38ca012ad3d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
