@@ -526,6 +526,26 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	return outputFilePath, noOutputWorkers, nil
 }
 
+// GetStrFlagValue returns the defaultValue if the specified flag name is not in benchmarkArgs.
+func GetStrFlagValue(benchmarkArgs, flagName, defaultValue string) string {
+	if strings.Contains(benchmarkArgs, flagName) {
+		r := regexp.MustCompile(flagName + `[= ](\w+)`)
+		m := r.FindStringSubmatch(benchmarkArgs)
+		fmt.Println("m is")
+		fmt.Println(len(m))
+		if len(m) >= 2 {
+			return m[1]
+		}
+	}
+	// If we reached here then return the default Value.
+	return defaultValue
+}
+
+// GetUserAgentValue returns the defaultValue if "--user-agent" is not specified in benchmarkArgs.
+func GetUserAgentValue(benchmarkArgs, defaultValue string) string {
+	return GetStrFlagValue(benchmarkArgs, USER_AGENT_FLAG, defaultValue)
+}
+
 // GetRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.
 func GetRepeatValue(benchmarkArgs string, defaultValue int) int {
 	return GetIntFlagValue(benchmarkArgs, PAGESET_REPEAT_FLAG, defaultValue)
@@ -593,14 +613,19 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		return "", fmt.Errorf("Could not read %s: %s", pagesetPath, err)
 	}
 	sklog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
+	// HERE HERE
 	args := []string{
 		filepath.Join(GetPathToTelemetryBinaries(!runOnSwarming), BINARY_RUN_BENCHMARK),
 		benchmarkName,
 		"--also-run-disabled-tests",
-		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,
 		"--archive-data-file=" + decodedPageset.ArchiveDataFile,
 	}
+	if GetUserAgentValue(benchmarkExtraArgs, "") == "" {
+		// Add --user-agent only if the flag is not already specified. See skbug.com/11283 for context.
+		args = append(args, "--user-agent="+decodedPageset.UserAgent)
+	}
+
 	// Need to capture output for all benchmarks.
 	outputDirArgValue := filepath.Join(localOutputDir, pagesetName)
 	args = append(args, "--output-dir="+outputDirArgValue)
