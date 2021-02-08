@@ -34,6 +34,11 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
     uniforms[this._uniform.slot + 1] = this.y;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restoreUniformValues(uniforms: Float32Array): void {
+    // This is a noop.
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     this._render();

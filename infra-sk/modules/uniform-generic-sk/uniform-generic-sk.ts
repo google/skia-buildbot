@@ -44,7 +44,6 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
       ret.push(html`
         <td>
           <input
-            type="number"
             value="${UniformGenericSk.defaultValue(ele, row, col)}"
             id="${ele._uniform.name}_${row}_${col}"
           >
@@ -89,7 +88,15 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
   applyUniformValues(uniforms: Float32Array): void {
     for (let col = 0; col < this._uniform.columns; col++) {
       for (let row = 0; row < this._uniform.rows; row++) {
-        uniforms[this.uniform.slot + col * this._uniform.rows + row] = $$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.valueAsNumber;
+        uniforms[this.uniform.slot + col * this._uniform.rows + row] = +$$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.value;
+      }
+    }
+  }
+
+  restoreUniformValues(uniforms: Float32Array): void {
+    for (let col = 0; col < this._uniform.columns; col++) {
+      for (let row = 0; row < this._uniform.rows; row++) {
+        $$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.value = uniforms[this.uniform.slot + col * this._uniform.rows + row].toString();
       }
     }
   }

@@ -20,6 +20,13 @@ const defaultUniform: Uniform = {
   slot: 0,
 };
 
+const fixup = (s: string): string => {
+  if (s.length === 1) {
+    return `0${s}`;
+  }
+  return s;
+};
+
 export class UniformColorSk extends ElementSk implements UniformControl {
   private _uniform: Uniform = defaultUniform;
 
@@ -76,6 +83,17 @@ export class UniformColorSk extends ElementSk implements UniformControl {
     // Set the alpha channel if present.
     if (this.hasAlphaChannel()) {
       uniforms[this.uniform.slot + 3] = this.alphaInput!.valueAsNumber;
+    }
+  }
+
+  restoreUniformValues(uniforms: Float32Array): void {
+    const r = Math.floor(0.5 + uniforms[this.uniform.slot] * 255).toString(16);
+    const g = Math.floor(0.5 + uniforms[this.uniform.slot + 1] * 255).toString(16);
+    const b = Math.floor(0.5 + uniforms[this.uniform.slot + 2] * 255).toString(16);
+    this.colorInput!.value = `#${fixup(r)}${fixup(g)}${fixup(b)}`;
+
+    if (this.hasAlphaChannel()) {
+      this.alphaInput!.valueAsNumber = uniforms[this.uniform.slot + 3];
     }
   }
 
