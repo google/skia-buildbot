@@ -32,11 +32,16 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
 
   private mouseClick: boolean = false;
 
-  applyUniformValues(uniforms: Float32Array): void {
+  applyUniformValues(uniforms: number[]): void {
     uniforms[this._uniform.slot] = this.location[0];
     uniforms[this._uniform.slot + 1] = this.location[1];
     uniforms[this._uniform.slot + 2] = Math.abs(this.lastClick[0]) * (this.mouseDown ? 1 : -1);
     uniforms[this._uniform.slot + 3] = Math.abs(this.lastClick[1]) * (this.mouseClick ? 1 : -1);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restoreUniformValues(uniforms: number[]): void {
+    // This is a noop, we don't restore predefined uniform values.
   }
 
   get elementToMonitor(): HTMLElement {
