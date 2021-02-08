@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"image"
 	"image/png"
-	"sort"
 	"sync"
 	"time"
 
@@ -101,26 +100,50 @@ type digestPair struct {
 	right types.Digest
 }
 
+// newDigestPair returns a digestPair in a "canonical" order, such that left < right. This avoids
+// effective duplicates (since comparing left to right is the same right to left).
+func newDigestPair(one, two types.Digest) digestPair {
+	if one < two {
+		return digestPair{left: one, right: two}
+	}
+	return digestPair{left: two, right: one}
+}
+
 // CalculateDiffs calculates all diffmetrics for the current grouping, including any digests
 // provided. It will not recalculate existing metrics, which are assumed to be immutable over time.
-func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
+// Digests from all traces will be included in the left bucket, digests from not ignored traces
+// will be included in the right bucket.
+func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, addLeft, addRight []types.Digest) error {
 	ctx, span := trace.StartSpan(ctx, "CalculateDiffs")
 	defer span.End()
-	allDigests, err := w.getExisting(ctx, grouping)
+	startingTile, err := w.getStartingTile(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "getting existing for %v", grouping)
+		return skerr.Wrapf(err, "get starting tile")
 	}
-	allDigests = append(allDigests, additional...)
-	sort.Sort(types.DigestSlice(allDigests))
+
+	leftDigests, err := w.getAllExisting(ctx, startingTile, grouping)
+	if err != nil {
+		return skerr.Wrapf(err, "getting all existing for %v", grouping)
+	}
+	leftDigests = append(leftDigests, addLeft...)
+
+	rightDigests, err := w.getNonIgnoredExisting(ctx, startingTile, grouping)
+	if err != nil {
+		return skerr.Wrapf(err, "getting not-ignored existing for %v", grouping)
+	}
+	rightDigests = append(rightDigests, addRight...)
 
 	// Enumerate all the possible diffs that might need to be computed.
 	toCompute := map[digestPair]bool{}
-	for i := range allDigests {
-		for j := i + 1; j < len(allDigests); j++ {
-			toCompute[digestPair{left: allDigests[i], right: allDigests[j]}] = true
+	for _, d1 := range leftDigests {
+		for _, d2 := range rightDigests {
+			if d1 != d2 {
+				toCompute[newDigestPair(d1, d2)] = true
+			}
 		}
 	}
-	if err := w.removeAlreadyComputed(ctx, toCompute, allDigests); err != nil {
+	// We expect leftDigests to be a superset of rightDigest
+	if err := w.removeAlreadyComputed(ctx, toCompute, leftDigests); err != nil {
 		return skerr.Wrapf(err, "checking existing diff metrics")
 	}
 
@@ -183,28 +206,31 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	return nil
 }
 
-// getExisting returns the unique digests that were seen on the primary branch for a given grouping
-// over the most recent N tiles.
-func (w *WorkerImpl) getExisting(ctx context.Context, grouping paramtools.Params) ([]types.Digest, error) {
-	ctx, span := trace.StartSpan(ctx, "getExisting")
-	defer span.End()
+// getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
+// get enough data to do our comparisons).
+func (w *WorkerImpl) getStartingTile(ctx context.Context) (schema.CommitID, error) {
 	row := w.db.QueryRow(ctx, `SELECT max(commit_id) FROM Commits
 AS OF SYSTEM TIME '-0.1s'
 WHERE has_data = TRUE`)
 	var lc pgtype.Int4
 	if err := row.Scan(&lc); err != nil {
-		return nil, skerr.Wrapf(err, "getting latest commit")
+		return 0, skerr.Wrapf(err, "getting latest commit")
 	}
 	if lc.Status == pgtype.Null {
 		// There are no commits with data
-		return nil, nil
+		return 0, nil
 	}
 	latestCommit := schema.CommitID(lc.Int)
 	currentTileStart := sql.ComputeTileStartID(latestCommit, schema.TileWidth)
 	// Go backwards so we can use the current tile plus the previous n-1 tiles.
-	beginTileStart := currentTileStart - schema.CommitID(schema.TileWidth*(w.tilesToProcess-1))
-	_, groupingID := sql.SerializeMap(grouping)
+	return currentTileStart - schema.CommitID(schema.TileWidth*(w.tilesToProcess-1)), nil
+}
 
+// getAllExisting returns the unique digests that were seen on the primary branch for a given
+// grouping starting at the given commit.
+func (w *WorkerImpl) getAllExisting(ctx context.Context, beginTileStart schema.CommitID, grouping paramtools.Params) ([]types.Digest, error) {
+	ctx, span := trace.StartSpan(ctx, "getAllExisting")
+	defer span.End()
 	const statement = `
 WITH
 TracesMatchingGrouping AS (
@@ -214,6 +240,36 @@ SELECT DISTINCT digest FROM TiledTraceDigests
 JOIN TracesMatchingGrouping on TiledTraceDigests.trace_id = TracesMatchingGrouping.trace_id
 WHERE TiledTraceDigests.start_commit_id >= $2`
 
+	_, groupingID := sql.SerializeMap(grouping)
+	rows, err := w.db.Query(ctx, statement, groupingID, beginTileStart)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "fetching digests")
+	}
+	defer rows.Close()
+	var rv []types.Digest
+	for rows.Next() {
+		var d schema.DigestBytes
+		if err := rows.Scan(&d); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, types.Digest(hex.EncodeToString(d)))
+	}
+	return rv, nil
+}
+
+func (w *WorkerImpl) getNonIgnoredExisting(ctx context.Context, beginTileStart schema.CommitID, grouping paramtools.Params) ([]types.Digest, error) {
+	ctx, span := trace.StartSpan(ctx, "getNonIgnoredExisting")
+	defer span.End()
+	const statement = `
+WITH
+NotIgnoredTracesMatchingGrouping AS (
+  SELECT trace_id FROM Traces WHERE grouping_id = $1 AND matches_any_ignore_rule = FALSE
+)
+SELECT DISTINCT digest FROM TiledTraceDigests
+JOIN NotIgnoredTracesMatchingGrouping on TiledTraceDigests.trace_id = NotIgnoredTracesMatchingGrouping.trace_id
+WHERE TiledTraceDigests.start_commit_id >= $2`
+
+	_, groupingID := sql.SerializeMap(grouping)
 	rows, err := w.db.Query(ctx, statement, groupingID, beginTileStart)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching digests")
@@ -264,7 +320,7 @@ WHERE left_digest IN `
 			return skerr.Wrap(err)
 		}
 		// Mark this entry false to indicate we've already seen it.
-		toCompute[digestPair{left: left, right: right}] = false
+		toCompute[newDigestPair(left, right)] = false
 	}
 	return nil
 }

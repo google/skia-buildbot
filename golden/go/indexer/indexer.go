@@ -906,11 +906,11 @@ func (ix *Indexer) sendWorkToDiffCalculators(ctx context.Context, state interfac
 	idx := state.(*SearchIndex)
 	tile := idx.cpxTile.GetTile(types.IncludeIgnoredTraces)
 	// For every digest on every trace within the sliding window (tile), compute the
-	// unique digests for each grouping (i.e. test)
-	digestsPerGrouping := map[hashableGrouping]types.DigestSet{}
+	// unique digests for each grouping (i.e. test). These will be the left digests.
+	leftDigestsPerGrouping := map[hashableGrouping]types.DigestSet{}
 	for _, trace := range tile.Traces {
 		grouping := getHashableGrouping(trace.Keys())
-		uniqueDigests := digestsPerGrouping[grouping]
+		uniqueDigests := leftDigestsPerGrouping[grouping]
 		if len(uniqueDigests) == 0 {
 			uniqueDigests = types.DigestSet{}
 		}
@@ -919,19 +919,39 @@ func (ix *Indexer) sendWorkToDiffCalculators(ctx context.Context, state interfac
 				uniqueDigests[d] = true
 			}
 		}
-		digestsPerGrouping[grouping] = uniqueDigests
+		leftDigestsPerGrouping[grouping] = uniqueDigests
 	}
 
-	for hg, ds := range digestsPerGrouping {
+	tile = idx.cpxTile.GetTile(types.ExcludeIgnoredTraces)
+	// For every digest on every trace within the sliding window (tile), compute the
+	// unique digests for each grouping (i.e. test). These will be the right digests, i.e.
+	// all the "probably good" digests.
+	rightDigestsPerGrouping := map[hashableGrouping]types.DigestSet{}
+	for _, trace := range tile.Traces {
+		grouping := getHashableGrouping(trace.Keys())
+		uniqueDigests := rightDigestsPerGrouping[grouping]
+		if len(uniqueDigests) == 0 {
+			uniqueDigests = types.DigestSet{}
+		}
+		for _, d := range trace.Digests {
+			if d != tiling.MissingDigest {
+				uniqueDigests[d] = true
+			}
+		}
+		rightDigestsPerGrouping[grouping] = uniqueDigests
+	}
+
+	for hg, ds := range leftDigestsPerGrouping {
 		grouping := paramtools.Params{
 			types.CorpusField:     hg[0],
 			types.PrimaryKeyField: hg[1],
 		}
-		digests := ds.Keys()
+		leftDigests := ds.Keys()
+		rightDigests := rightDigestsPerGrouping[hg].Keys()
 		// This should be pretty fast because it's just sending off the work, not blocking until
 		// the work is calculated.
-		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, digests); err != nil {
-			return skerr.Wrapf(err, "publishing diff calculation of %d digests in grouping %v", len(digests), grouping)
+		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, leftDigests, rightDigests); err != nil {
+			return skerr.Wrapf(err, "publishing diff calculation of (%d, %d) digests in grouping %v", len(leftDigests), len(rightDigests), grouping)
 		}
 	}
 	return nil

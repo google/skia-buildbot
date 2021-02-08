@@ -102,23 +102,27 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 
 	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
-	mdp.On("CalculateDiffs", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+	mdp.On("CalculateDiffs", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		grouping := args.Get(1).(paramtools.Params)
-		digests := args.Get(2).([]types.Digest)
+		leftDigests := args.Get(2).([]types.Digest)
+		rightDigests := args.Get(3).([]types.Digest)
 		if grouping[types.PrimaryKeyField] == string(data.AlphaTest) {
 			assert.Equal(t, paramtools.Params{
 				types.CorpusField:     data.GMCorpus,
 				types.PrimaryKeyField: string(data.AlphaTest),
 			}, grouping)
-			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, digests)
+			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, leftDigests)
+			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, rightDigests)
 		} else if grouping[types.PrimaryKeyField] == string(data.BetaTest) {
 			assert.Equal(t, paramtools.Params{
 				types.CorpusField:     data.GMCorpus,
 				types.PrimaryKeyField: string(data.BetaTest),
 			}, grouping)
-			assert.ElementsMatch(t, []types.Digest{data.BetaPositiveDigest, data.BetaUntriagedDigest}, digests)
+			assert.ElementsMatch(t, []types.Digest{data.BetaPositiveDigest, data.BetaUntriagedDigest}, leftDigests)
+			// data.BetaUntriagedDigest is produced by an ignored trace.
+			assert.ElementsMatch(t, []types.Digest{data.BetaPositiveDigest}, rightDigests)
 		} else {
-			assert.Fail(t, "unknown grouping %v and digests %s", grouping, digests)
+			assert.Fail(t, "unknown grouping %v, leftDigests %s, rightDigests %s", grouping, leftDigests, rightDigests)
 		}
 	}).Return(nil)
 
