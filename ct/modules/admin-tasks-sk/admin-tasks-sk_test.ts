@@ -74,7 +74,7 @@ describe('admin-tasks-sk', () => {
     await fetchMock.flush(true);
     const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
     const expectation = {
-      page_sets: '100k',
+      page_sets: '10k',
       repeat_after_days: '0',
     };
 
@@ -94,7 +94,7 @@ describe('admin-tasks-sk', () => {
     await fetchMock.flush(true);
     const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any);
     const expectation = {
-      page_sets: '100k',
+      page_sets: '10k',
       repeat_after_days: '0',
     };
 
