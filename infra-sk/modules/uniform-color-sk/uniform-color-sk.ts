@@ -20,6 +20,15 @@ const defaultUniform: Uniform = {
   slot: 0,
 };
 
+// Converts the uniform value in the range [0, 1] into a two digit hex string.
+export const slotToHex = (uniforms: number[], slot: number): string => {
+  const s = Math.floor(0.5 + uniforms[slot] * 255).toString(16);
+  if (s.length === 1) {
+    return `0${s}`;
+  }
+  return s;
+};
+
 export class UniformColorSk extends ElementSk implements UniformControl {
   private _uniform: Uniform = defaultUniform;
 
@@ -63,7 +72,7 @@ export class UniformColorSk extends ElementSk implements UniformControl {
   }
 
   /** Copies the values of the control into the uniforms array. */
-  applyUniformValues(uniforms: Float32Array): void {
+  applyUniformValues(uniforms: number[]): void {
     // Set all three floats from the color.
     const hex = this.colorInput!.value;
     const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -76,6 +85,17 @@ export class UniformColorSk extends ElementSk implements UniformControl {
     // Set the alpha channel if present.
     if (this.hasAlphaChannel()) {
       uniforms[this.uniform.slot + 3] = this.alphaInput!.valueAsNumber;
+    }
+  }
+
+  restoreUniformValues(uniforms: number[]): void {
+    const r = slotToHex(uniforms, this.uniform.slot);
+    const g = slotToHex(uniforms, this.uniform.slot + 1);
+    const b = slotToHex(uniforms, this.uniform.slot + 2);
+    this.colorInput!.value = `#${r}${g}${b}`;
+
+    if (this.hasAlphaChannel()) {
+      this.alphaInput!.valueAsNumber = uniforms[this.uniform.slot + 3];
     }
   }
 

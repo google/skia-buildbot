@@ -6,7 +6,7 @@ const mouseUniformControl = $$<UniformMouseSk>('uniform-mouse-sk')!;
 mouseUniformControl.elementToMonitor = $$<HTMLCanvasElement>('canvas')!;
 
 const applyUniformValues = () => {
-  const uniforms = new Float32Array(4);
+  const uniforms = [0, 0, 0, 0];
   $<UniformMouseSk>('uniform-mouse-sk')!.forEach((ele) => {
     ele.applyUniformValues(uniforms);
   });
