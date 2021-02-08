@@ -64,13 +64,13 @@ describe('pageset-selector-sk', () => {
     expect(selector).to.have.property('selected', '');
   });
 
-  it('filters out hideIfKeyContains options', async () => {
+  it('filters out hideKeys options', async () => {
     selector = await newInstance((ele) => {
-      ele.hideIfKeyContains = ['Mobile', '100'];
+      ele.hideKeys = ['Mobile100k', '100k', 'Dummy1k', 'non-existant'];
     });
-    expect($('select-sk div', selector)).to.have.length(3);
+    expect($('select-sk div', selector)).to.have.length(5);
     // Check that options can be recovered.
-    selector.hideIfKeyContains = [];
+    selector.hideKeys = [];
     expect($('select-sk div', selector)).to.have.length(8);
   });
 
