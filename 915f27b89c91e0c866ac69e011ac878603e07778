@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7079293a_0f2b7136",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T15:39:42Z",
+      "side": 1,
+      "message": "You want CanvasKit.Malloc(Float32Array, uniforms.length).\n\nIt\u0027s important to call .toTypedArray() on the returned object before writing because if the WASM memory is resized, the typed array passed previously will be invalid.\n\nIf the uniforms needs to be reallocated, free up the previous memory with CanvasKit.Free().\n\nhttps://github.com/google/skia/blob/master/modules/canvaskit/canvaskit/types/index.d.ts#L167",
+      "range": {
+        "startLine": 409,
+        "startChar": 26,
+        "endLine": 409,
+        "endChar": 38
+      },
+      "revId": "915f27b89c91e0c866ac69e011ac878603e07778",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
