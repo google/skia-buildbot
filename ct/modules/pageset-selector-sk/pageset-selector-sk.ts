@@ -37,7 +37,7 @@ export class PagesetSelectorSk extends ElementSk {
 
   private _selector: SelectSk | null = null;
 
-  private _hideIfKeyContains: string[] = [];
+  private _hideKeys: string[] = [];
 
   constructor() {
     super(PagesetSelectorSk.template);
@@ -102,24 +102,22 @@ ${ele.hasAttribute('disable-custom-webpages')
   }
 
   /**
-   * @prop {Array<string>} hideIfKeyContains - Entries containing these substrings
+   * @prop {Array<string>} hideKeys - Entries containing these keys
    * are removed from the pageSet listing.
    */
-  get hideIfKeyContains(): string[] {
-    return this._hideIfKeyContains;
+  get hideKeys(): string[] {
+    return this._hideKeys;
   }
 
-  set hideIfKeyContains(val: string[]) {
-    this._hideIfKeyContains = val;
+  set hideKeys(val: string[]) {
+    this._hideKeys = val;
     this._filterPageSets();
     this._render();
   }
 
   _filterPageSets(): void {
-    const exclude = this._hideIfKeyContains;
-    const psHasSubstring = (ps: PageSet) => exclude.some((s) => ps.key.includes(s));
     this._pageSets = this._unfilteredPageSets
-      .filter((ps) => !psHasSubstring(ps));
+      .filter((ps) => !this._hideKeys.includes(ps.key));
   }
 
   _updatePageSetHidden(): void {
