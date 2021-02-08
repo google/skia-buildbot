@@ -17,7 +17,7 @@ describe('uniform-slider-sk', () => {
   describe('applyUniformValues', () => {
     it('puts value in correct spot in uniforms array', () => {
       // Make uniforms longer than needed to show we don't disturb other values.
-      const uniforms = new Float32Array(3);
+      const uniforms: number[] = [0, 0, 0];
 
       // The control defaults to a value of 0.5.
       element.uniform = {
@@ -27,8 +27,24 @@ describe('uniform-slider-sk', () => {
         slot: 1,
       };
       element.applyUniformValues(uniforms);
-      assert.deepEqual(uniforms, new Float32Array([0, 0.5, 0]));
+      assert.deepEqual(uniforms, [0, 0.5, 0]);
     });
+
+    it('retores value in correct spot in uniforms array', () => {
+      // The control defaults to a value of 0.5.
+      element.uniform = {
+        name: '',
+        columns: 1,
+        rows: 1,
+        slot: 1,
+      };
+      element.restoreUniformValues([0, 0.4, 0]);
+
+      const uniforms: number[] = [0, 0, 0];
+      element.applyUniformValues(uniforms);
+      assert.deepEqual(uniforms, [0, 0.4, 0]);
+    });
+
     it('throws on invalid uniforms', () => {
       assert.throws(() => {
         // Rows and columns must both equal 1.

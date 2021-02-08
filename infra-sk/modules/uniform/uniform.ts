@@ -20,5 +20,8 @@ export interface UniformControl {
   uniform: Uniform;
 
   /** Copies the values of the control into the uniforms array. */
-  applyUniformValues(uniforms: Float32Array): void;
+  applyUniformValues(uniforms: number[]): void;
+
+  /** Copies the values from the uniforms array into the control. */
+  restoreUniformValues(uniforms: number[]): void;
 }

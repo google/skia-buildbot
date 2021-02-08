@@ -51,9 +51,14 @@ const kitReady = CanvasKitInit({
 
 const DEFAULT_SIZE = 256;
 
-const predefinedShaderInputs = `uniform float3 iResolution; // Viewport resolution (pixels)
+const predefinedUniforms = `uniform float3 iResolution; // Viewport resolution (pixels)
 uniform float  iTime;       // Shader playback time (s)
 uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)`;
+
+// Counts the number of uniforms defined in 'predefinedUniforms'. All the
+// remaining uniforms that start with 'i' will be referred to as "user
+// uniforms".
+const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length;
 
 const defaultShader = `half4 main(float2 fragCoord) {
   return vec4(1.0, 0, mod(iTime/2, 1), 1.0);
@@ -108,6 +113,14 @@ export class ShadersAppSk extends ElementSk {
   // The current code in the editor.
   private editedCode = defaultShader;
 
+  // These are the uniform values for all the user defined uniforms. They
+  // exclude the predefined uniform values.
+  private lastSavedUserUniformValues: number[] = [];
+
+  // These are the uniform values for all the user defined uniforms. They
+  // exclude the predefined uniform values.
+  private currentUserUniformValues: number[] = [];
+
   // stateReflector update function.
   private stateChanged: stateChangedCallback | null = null;
 
@@ -124,6 +137,7 @@ export class ShadersAppSk extends ElementSk {
       return ret;
     }
     for (let i = 0; i < effect.getUniformCount(); i++) {
+      // Use object spread operator to clone the SkSLUniform and add a name to make a Uniform.
       const uniform: Uniform = { ...effect.getUniform(i), name: effect.getUniformName(i) };
       if (!uniform.name.startsWith('i')) {
         continue;
@@ -196,7 +210,7 @@ export class ShadersAppSk extends ElementSk {
           Run
         </button>
         <button
-          ?hidden=${ele.editedCode === ele.lastSavedCode}
+          ?hidden=${ele.editedCode === ele.lastSavedCode && !ele.userUniformValuesHaveBeenEdited()}
           @click=${ele.saveClick}
           class=action
         >
@@ -228,7 +242,7 @@ export class ShadersAppSk extends ElementSk {
     });
     this.codeMirror.on('change', () => this.codeChange());
 
-    $$<HTMLTextAreaElement>('#predefinedShaderInputs', this)!.value = predefinedShaderInputs;
+    $$<HTMLTextAreaElement>('#predefinedShaderInputs', this)!.value = predefinedUniforms;
 
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
@@ -268,6 +282,11 @@ export class ShadersAppSk extends ElementSk {
       const json = (await jsonOrThrow(resp)) as ScrapBody;
       this.lastSavedCode = json.Body;
       this.startShader(json.Body);
+      if (json.SKSLMetaData && json.SKSLMetaData.Uniforms !== null) {
+        this.setCurrentUserUniformValues(json.SKSLMetaData.Uniforms);
+        // We round trip the uniforms through the controls so we are sure to get an exact match.
+        this.lastSavedUserUniformValues = this.getCurrentUserUniformValues(this.getUniformValuesFromControls());
+      }
     } catch (error) {
       errorMessage(error);
       // Return to the default view.
@@ -300,7 +319,7 @@ export class ShadersAppSk extends ElementSk {
     this.canvasKitContext = this.kit!.currentContext();
     // eslint-disable-next-line no-unused-expressions
     this.effect?.delete();
-    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedShaderInputs}\n${shaderCode}`, (err) => errorMessage(err));
+    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedUniforms}\n${shaderCode}`, (err) => errorMessage(err));
     if (!this.effect) {
       return;
     }
@@ -311,19 +330,76 @@ export class ShadersAppSk extends ElementSk {
     this.drawFrame();
   }
 
-  private drawFrame() {
-    this.fps.raf();
-    this.kit!.setCurrentContext(this.canvasKitContext);
-
+  private getUniformValuesFromControls(): number[] {
     // Populate the uniforms values from the controls.
-    const uniforms = new Float32Array(this.effect!.getUniformFloatCount());
+    const uniforms: number[] = new Array(this.effect!.getUniformFloatCount());
     $('#uniformControls > *').forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
+    return uniforms;
+  }
 
+  private setUniformValuesToControls(uniforms: number[]): void {
+    // Populate the control values from the uniforms.
+    $('#uniformControls > *').forEach((control) => {
+      (control as unknown as UniformControl).restoreUniformValues(uniforms);
+    });
+  }
+
+  private userUniformValuesHaveBeenEdited(): boolean {
+    if (this.currentUserUniformValues.length !== this.lastSavedUserUniformValues.length) {
+      return true;
+    }
+    for (let i = 0; i < this.currentUserUniformValues.length; i++) {
+      if (this.currentUserUniformValues[i] !== this.lastSavedUserUniformValues[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private totalPredefinedUniformValues(): number {
+    let ret = 0;
+    if (!this.effect) {
+      return 0;
+    }
+    for (let i = 0; i < numPredefinedUniforms; i++) {
+      const u = this.effect.getUniform(i);
+      ret += u.rows * u.columns;
+    }
+    return ret;
+  }
+
+  private setCurrentUserUniformValues(userUniformValues: number[]): void {
+    if (this.effect) {
+      const uniforms = this.getUniformValuesFromControls();
+      // Update only the non-predefined uniform values.
+      const begin = this.totalPredefinedUniformValues();
+      for (let i = begin; i < this.effect.getUniformFloatCount(); i++) {
+        uniforms[i] = userUniformValues[i - begin];
+      }
+      this.setUniformValuesToControls(uniforms);
+    }
+  }
+
+  private getCurrentUserUniformValues(uniforms: number[]): number[] {
+    const uniformsArray: number[] = [];
+    if (this.effect) {
+      // Return only the non-predefined uniform values.
+      for (let i = this.totalPredefinedUniformValues(); i < this.effect.getUniformFloatCount(); i++) {
+        uniformsArray.push(uniforms[i]);
+      }
+    }
+    return uniformsArray;
+  }
+
+  private drawFrame() {
+    this.fps.raf();
+    this.kit!.setCurrentContext(this.canvasKitContext);
+    const uniforms = this.getUniformValuesFromControls();
+    this.currentUserUniformValues = this.getCurrentUserUniformValues(uniforms);
     const shader = this.effect!.makeShader(uniforms);
     this._render();
-
 
     // Allow uniform controls to update, such as uniform-timer-sk.
     this._render();
@@ -345,9 +421,14 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private async saveClick() {
+    const userUniformValues = this.getCurrentUserUniformValues(this.getUniformValuesFromControls());
     const body: ScrapBody = {
       Body: this.editedCode,
       Type: 'sksl',
+      SKSLMetaData: {
+        Uniforms: userUniformValues,
+        Children: [],
+      },
     };
     try {
       // POST the JSON to /_/upload
@@ -363,6 +444,7 @@ export class ShadersAppSk extends ElementSk {
 
       this.state.id = json.Hash;
       this.lastSavedCode = this.editedCode;
+      this.lastSavedUserUniformValues = userUniformValues;
       this.stateChanged!();
       this._render();
     } catch (error) {

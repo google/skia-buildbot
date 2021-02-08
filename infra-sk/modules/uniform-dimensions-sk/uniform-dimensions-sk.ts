@@ -29,9 +29,14 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
 
   private static template = (ele: UniformDimensionsSk) => html`<span>${ele.x} x ${ele.y}</span>`;
 
-  applyUniformValues(uniforms: Float32Array): void {
+  applyUniformValues(uniforms: number[]): void {
     uniforms[this._uniform.slot] = this.x;
     uniforms[this._uniform.slot + 1] = this.y;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restoreUniformValues(uniforms: number[]): void {
+    // This is a noop, we don't restore predefined uniform values.
   }
 
   connectedCallback(): void {
