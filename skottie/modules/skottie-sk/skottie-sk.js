@@ -351,6 +351,7 @@ define('skottie-sk', class extends HTMLElement {
   _updateAnimation(event) {
     const animation = event.detail;
     this._state.lottie = animation;
+
     this._upload();
   }
 
@@ -621,10 +622,20 @@ define('skottie-sk', class extends HTMLElement {
       try {
         this._renderLottieWeb();
         this._renderJSONEditor();
+        this._renderTextEditor();
       } catch(e) {
         console.warn('caught error while rendering third party code', e);
       }
 
+    }
+  }
+
+  _renderTextEditor() {
+    if (this._showTextEditor) {
+      const textEditor = $$('skottie-text-editor', this);
+      if (textEditor) {
+        textEditor.animation = this._state.lottie;
+      }
     }
   }
 
