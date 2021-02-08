@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "b1fc1bbb_dd87aef3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-08T16:40:12Z",
+      "side": 1,
+      "message": "Since we are pulling the values out of the DOM I doubt that number[] -\u003e MallocObj is our long pole of performance right now :-)",
+      "parentUuid": "23c7d9d3_7fc2f002",
+      "revId": "985ea97e7a7af81c9fdf07c1f096d2c86d5d32ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "37ef5877_cfd2ee85",
@@ -31,6 +49,30 @@
       "writtenOn": "2021-02-08T16:31:09Z",
       "side": 1,
       "message": "Hopefully Typescript can deduce that uniformsMallocObj will be non-null here.",
+      "range": {
+        "startLine": 412,
+        "startChar": 43,
+        "endLine": 412,
+        "endChar": 44
+      },
+      "revId": "985ea97e7a7af81c9fdf07c1f096d2c86d5d32ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "995899a6_e1cf7b74",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-08T16:40:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37ef5877_cfd2ee85",
       "range": {
         "startLine": 412,
         "startChar": 43,
