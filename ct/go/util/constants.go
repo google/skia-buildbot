@@ -70,6 +70,7 @@ const (
 	BENCHMARK_V8_LOADING_RUNTIME_STATS = "v8.loading_runtime_stats.cluster_telemetry"
 	BENCHMARK_GENERIC_TRACE            = "generic_trace_ct"
 	BENCHMARK_AD_TAGGING               = "ad_tagging.cluster_telemetry"
+	BENCHMARK_LAYOUT_SHIFT             = "layout_shift.cluster_telemetry"
 
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = ""
@@ -324,6 +325,7 @@ var (
 		BENCHMARK_V8_LOADING_RUNTIME_STATS: "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_runtime_stats_ct.py",
 		BENCHMARK_GENERIC_TRACE:            "https://docs.google.com/document/d/1vGd7dnrxayMYHPO72wWkwTvjMnIRrel4yxzCr1bMiis/",
 		BENCHMARK_AD_TAGGING:               "https://docs.google.com/document/d/1zlWQoLjGuYOWDR_vkVRYoVbU89JetNDOlcDuOaNAzDc/",
+		BENCHMARK_LAYOUT_SHIFT:             "https://docs.google.com/document/d/1bYffpPHWFVaaAve2OZCFuv5xentVlFZF4GxZTaDLoXc/",
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
