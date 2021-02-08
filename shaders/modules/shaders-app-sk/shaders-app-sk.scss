@@ -3,7 +3,7 @@
 @import '~codemirror/theme/base16-dark.css';
 @import '~codemirror/theme/base16-light.css';
 
-shaders-app-sk {
+.body-sk shaders-app-sk {
   display: block;
   background: var(--surface);
   margin: 0;
@@ -21,6 +21,10 @@ shaders-app-sk {
 
     h2 {
       margin: 8px 0 8px 0;
+
+      a {
+        background: var(--surface-1dp);
+      }
     }
 
     #githash {
