@@ -75,9 +75,10 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
     this.location = [e.offsetX, e.offsetY];
   }
 
-
   private mouseMoveHandler(e: MouseEvent) {
-    this.location = [e.offsetX, e.offsetY];
+    if (this.mouseDown) {
+      this.location = [e.offsetX, e.offsetY];
+    }
   }
 
   private clickHandler(e: MouseEvent) {
