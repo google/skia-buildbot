@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f509a5be_b0a5c649",
+        "filename": "infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T12:20:20Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 17,
+        "startChar": 9,
+        "endLine": 17,
+        "endChar": 20
+      },
+      "revId": "d7cb3a1979c651b5cf1d150308dfd5dc088c31f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "230b86e6_7a0c895a",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T12:20:20Z",
+      "side": 1,
+      "message": "nit: doesn\u0027t scss allow us to put styles inside main so we don\u0027t have to prefix all these rules with main?",
+      "range": {
+        "startLine": 36,
+        "startChar": 7,
+        "endLine": 36,
+        "endChar": 13
+      },
+      "revId": "d7cb3a1979c651b5cf1d150308dfd5dc088c31f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
