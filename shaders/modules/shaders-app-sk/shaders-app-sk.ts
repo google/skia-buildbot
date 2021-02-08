@@ -169,7 +169,7 @@ export class ShadersAppSk extends ElementSk {
 
   private static template = (ele: ShadersAppSk) => html`
     <header>
-      <h2>SkSL Shaders</h2>
+      <h2><a href="/">SkSL Shaders</a></h2>
       <span>
         <a
           id="githash"
@@ -181,13 +181,16 @@ export class ShadersAppSk extends ElementSk {
       </span>
     </header>
     <main>
-      <canvas
-        id="player"
-        width=${ele.width}
-        height=${ele.height}
-      >
-        Your browser does not support the canvas tag.
-      </canvas>
+      <div>
+        <p>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a></p>
+        <canvas
+          id="player"
+          width=${ele.width}
+          height=${ele.height}
+        >
+          Your browser does not support the canvas tag.
+        </canvas>
+      </div>
       <div>
         <details id=shaderinputs>
           <summary>Shader Inputs</summary>
