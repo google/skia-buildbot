@@ -54,8 +54,12 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
   }
 
   /** Copies the values of the control into the uniforms array. */
-  applyUniformValues(uniforms: Float32Array): void {
+  applyUniformValues(uniforms: number[]): void {
     uniforms[this.uniform.slot] = this.input!.valueAsNumber;
+  }
+
+  restoreUniformValues(uniforms: number[]): void {
+      this.input!.valueAsNumber = uniforms[this.uniform.slot];
   }
 }
 

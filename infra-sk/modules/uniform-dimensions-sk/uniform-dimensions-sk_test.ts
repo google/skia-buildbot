@@ -17,7 +17,7 @@ describe('uniform-dimensions-sk', () => {
   describe('unform-dimensions-sk', () => {
     it('applies uniforms correctly', () => {
       // Make uniforms longer than needed to show we don't disturb other values.
-      const uniforms = new Float32Array(5);
+      const uniforms = [0, 0, 0, 0, 0];
 
       element.uniform = {
         name: 'iDimensions',
@@ -29,7 +29,7 @@ describe('uniform-dimensions-sk', () => {
       element.x = 800;
       element.y = 600;
       element.applyUniformValues(uniforms);
-      assert.deepEqual(uniforms, new Float32Array([0, 800, 600, 0, 0]));
+      assert.deepEqual(uniforms, [0, 800, 600, 0, 0]);
     });
 
     it('throws on invalid uniforms', () => {

@@ -65,8 +65,13 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
   }
 
   /** Copies the values of the control into the uniforms array. */
-  applyUniformValues(uniforms: Float32Array): void {
+  applyUniformValues(uniforms: number[]): void {
     uniforms[this._uniform.slot] = this.time;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restoreUniformValues(uniforms: number[]): void {
+    // This is a noop, we don't restore predefined uniform values.
   }
 
   /** Allows overriding the Date.now function for testing. */

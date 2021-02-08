@@ -6,7 +6,7 @@ import { $ } from 'common-sk/modules/dom';
 import { UniformColorSk } from './uniform-color-sk';
 
 $$('#apply')!.addEventListener('click', () => {
-  const uniforms = new Float32Array(8);
+  const uniforms: number[] = [0, 0, 0, 0, 0, 0, 0];
   $<UniformColorSk>('uniform-color-sk')!.forEach((ele) => {
     ele.applyUniformValues(uniforms);
   });
