@@ -18,53 +18,53 @@ shaders-app-sk {
     justify-content: space-between;
     padding: 0 16px;
     align-items: center;
-  }
 
-  header h2 {
-    margin: 8px 0 8px 0;
-  }
+    h2 {
+      margin: 8px 0 8px 0;
+    }
 
-  header #githash {
-    background: var(--surface-1dp);
+    #githash {
+      background: var(--surface-1dp);
+    }
   }
 
   main {
     padding: 16px;
     display: flex;
-  }
 
-  main canvas {
-    margin: 0 16px 16px 0;
-  }
+    canvas {
+      margin: 0 16px 16px 0;
+    }
 
-  main #codeEditor > div {
-    padding: 8px;
-  }
+    #codeEditor > div {
+      padding: 8px;
+    }
 
-  main #shaderControls {
-    margin-left: 8px;
+    #shaderControls {
+      margin-left: 8px;
 
-    .action {
+      .action {
+        margin: 8px;
+      }
+    }
+
+    #fps {
+      margin-left: 8px;
+    }
+
+    #uniformControls {
+      margin-left: 0;
+    }
+
+    #uniformControls > * {
+      padding: 0;
       margin: 8px;
     }
-  }
 
-  main #fps {
-    margin-left: 8px;
-  }
-
-  main #uniformControls {
-    margin-left: 0;
-  }
-
-  main #uniformControls > * {
-    padding: 0;
-    margin: 8px;
-  }
-
-  main #uniformControls uniform-mouse-sk {
-    padding: 0;
-    margin: 0;
+    #uniformControls uniform-mouse-sk {
+      padding: 0;
+      margin: 0;
+    }
   }
 
   details {
@@ -96,15 +96,6 @@ shaders-app-sk {
     background: var(--surface);
   }
 
-  details#shaderinputs textarea {
-    display: block;
-    background: var(--surface);
-    color: var(--secondary);
-    font-family: monospace;
-    resize: none;
-    font-size: 11px;
-  }
-
   details#shaderinputs {
     display: initial;
     margin: initial;
@@ -113,31 +104,40 @@ shaders-app-sk {
     box-shadow: initial;
     margin: 0 0 8px 0;
     font-size: 11px;
-  }
 
-  details#shaderinputs summary {
-    display: initial;
-    margin: initial;
-    padding: initial;
-    list-style: initial;
-    box-shadow: initial;
-    outline: initial;
-    outline-offset: initial;
-    border: none;
-    background: var(--surface);
-    color: var(--on-surface);
-  }
+    textarea {
+      display: block;
+      background: var(--surface);
+      color: var(--secondary);
+      font-family: monospace;
+      resize: none;
+      font-size: 11px;
+    }
 
-  details#shaderinputs summary::-webkit-details-marker {
-    display: initial;
+    summary {
+      display: initial;
+      margin: initial;
+      padding: initial;
+      list-style: initial;
+      box-shadow: initial;
+      outline: initial;
+      outline-offset: initial;
+      border: none;
+      background: var(--surface);
+      color: var(--on-surface);
+    }
+
+    summary::-webkit-details-marker {
+      display: initial;
+    }
   }
 
   .CodeMirror {
     height: auto;
-  }
 
-  .CodeMirror * {
-    font-family: monospace;
-    font-size: 13px;
+    * {
+      font-family: monospace;
+      font-size: 13px;
+    }
   }
 }

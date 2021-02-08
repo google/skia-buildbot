@@ -13,9 +13,9 @@ import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';
 
 const defaultUniform: Uniform = {
-  name: 'float2x2',
+  name: 'iCoord',
   rows: 1,
-  columns: 1,
+  columns: 2,
   slot: 0,
 };
 
