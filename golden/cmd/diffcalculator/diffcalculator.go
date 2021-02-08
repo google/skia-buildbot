@@ -244,7 +244,10 @@ func (p *processor) processMessage(ctx context.Context, msgData []byte) bool {
 		sklog.Errorf("Invalid message passed in: %s\n%s", err, string(msgData))
 		return true // ack this message so no other subscriber gets it (it will still be invalid).
 	}
-	err := p.calculator.CalculateDiffs(ctx, wm.Grouping, wm.AdditionalDigests)
+	if wm.Version != diff.WorkerMessageVersion {
+		return true // This is an old or a new message, skip it.
+	}
+	err := p.calculator.CalculateDiffs(ctx, wm.Grouping, wm.AdditionalLeft, wm.AdditionalRight)
 	if err != nil {
 		sklog.Errorf("Calculating diffs for %v: %s", wm, err)
 		return false // Let this be tried again.

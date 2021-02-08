@@ -17,13 +17,13 @@ type Calculator struct {
 	mock.Mock
 }
 
-// CalculateDiffs provides a mock function with given fields: ctx, grouping, additional
-func (_m *Calculator) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
-	ret := _m.Called(ctx, grouping, additional)
+// CalculateDiffs provides a mock function with given fields: ctx, grouping, additionalLeft, additionalRight
+func (_m *Calculator) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additionalLeft []types.Digest, additionalRight []types.Digest) error {
+	ret := _m.Called(ctx, grouping, additionalLeft, additionalRight)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, []types.Digest) error); ok {
-		r0 = rf(ctx, grouping, additional)
+	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, []types.Digest, []types.Digest) error); ok {
+		r0 = rf(ctx, grouping, additionalLeft, additionalRight)
 	} else {
 		r0 = ret.Error(0)
 	}
