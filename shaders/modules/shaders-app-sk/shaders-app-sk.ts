@@ -49,7 +49,7 @@ const kitReady = CanvasKitInit({
   locateFile: (file: any) => `${scriptOrigin}/dist/${file}`,
 });
 
-const DEFAULT_SIZE = 256;
+const DEFAULT_SIZE = 512;
 
 const predefinedUniforms = `uniform float3 iResolution; // Viewport resolution (pixels)
 uniform float  iTime;       // Shader playback time (s)
@@ -92,10 +92,6 @@ export class ShadersAppSk extends ElementSk {
   private canvas: Canvas | null = null;
 
   private paint: Paint | null = null;
-
-  private width: number = DEFAULT_SIZE;
-
-  private height: number = DEFAULT_SIZE;
 
   private effect: RuntimeEffect | null = null;
 
@@ -182,9 +178,8 @@ export class ShadersAppSk extends ElementSk {
     <main>
       <canvas
         id="player"
-        width=${ele.width * window.devicePixelRatio}
-        height=${ele.height * window.devicePixelRatio}
-        style="width: ${ele.width}px; height: ${ele.height}px;"
+        width=${ele.width}
+        height=${ele.height}
       >
         Your browser does not support the canvas tag.
       </canvas>
@@ -271,6 +266,11 @@ export class ShadersAppSk extends ElementSk {
     });
   }
 
+  private monitorIfResolutionChanges() {
+    const mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
+    matchMedia(mqString).addEventListener('change', () => this.startShader(this.runningCode));
+  }
+
   private async loadShaderIfNecessary() {
     if (!this.state.id) {
       return;
@@ -296,6 +296,7 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private startShader(shaderCode: string) {
+    this.monitorIfResolutionChanges();
     // Cancel any pending drawFrames.
     if (this.rafID !== RAF_NOT_RUNNING) {
       cancelAnimationFrame(this.rafID);
@@ -456,6 +457,10 @@ export class ShadersAppSk extends ElementSk {
     this.editedCode = this.codeMirror!.getValue();
     this._render();
   }
+
+  private get width(): number { return DEFAULT_SIZE * window.devicePixelRatio; }
+
+  private get height(): number { return DEFAULT_SIZE * window.devicePixelRatio; }
 }
 
 define('shaders-app-sk', ShadersAppSk);
