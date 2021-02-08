@@ -69,6 +69,11 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
     uniforms[this._uniform.slot] = this.time;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restoreUniformValues(uniforms: Float32Array): void {
+    // This is a noop.
+  }
+
   /** Allows overriding the Date.now function for testing. */
   get dateNow(): DateNow {
     return this._dateNow;

@@ -93,6 +93,14 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
       }
     }
   }
+
+  restoreUniformValues(uniforms: Float32Array): void {
+    for (let col = 0; col < this._uniform.columns; col++) {
+      for (let row = 0; row < this._uniform.rows; row++) {
+        $$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.valueAsNumber = uniforms[this.uniform.slot + col * this._uniform.rows + row];
+      }
+    }
+  }
 }
 
 define('uniform-generic-sk', UniformGenericSk);
