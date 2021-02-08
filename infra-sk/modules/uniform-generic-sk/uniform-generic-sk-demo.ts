@@ -17,7 +17,7 @@ $$<UniformGenericSk>('#float3x3')!.uniform = {
 };
 
 $$('#apply')!.addEventListener('click', () => {
-  const uniforms = new Float32Array(1 + 2 + 9 + 1);
+  const uniforms: number[] = new Array(1 + 2 + 9 + 1);
   $<UniformGenericSk>('uniform-generic-sk')!.forEach((ele) => {
     ele.applyUniformValues(uniforms);
   });
