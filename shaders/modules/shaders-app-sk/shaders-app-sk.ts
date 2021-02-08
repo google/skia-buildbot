@@ -342,6 +342,7 @@ export class ShadersAppSk extends ElementSk {
 
   private async runClick() {
     this.startShader(this.editedCode);
+    this.saveClick();
   }
 
   private async saveClick() {
