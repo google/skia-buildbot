@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a325b614_bfaf8d47",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-08T12:23:18Z",
+      "side": 1,
+      "message": "Object destructuring is still a somewhat \"new\" and \"hard-to-google-for-the-name\" feature of JS. consider including a comment reminding a reader what it\u0027s called and what it\u0027s doing here (making a copy and including an extra field, right?)",
+      "range": {
+        "startLine": 124,
+        "startChar": 33,
+        "endLine": 124,
+        "endChar": 36
+      },
+      "revId": "481ac4dbbb9db3b38bcac419770e6de2c99a266a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
