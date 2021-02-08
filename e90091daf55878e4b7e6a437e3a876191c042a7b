@@ -16,6 +16,24 @@
       "message": "I don\u0027t know if I like the removal of Float32Arrays. Without those, I think it will be a bit harder to sync those values with the WASM code. If we can pass in a Float32Array, we can have Float32Array backed by the WASM memory so setting the value instantly affects the shader. If we use a normal array, we have to copy those values every frame or when they change.",
       "revId": "e90091daf55878e4b7e6a437e3a876191c042a7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b3ccdc2d_e774be4a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-08T15:34:49Z",
+      "side": 1,
+      "message": "Fix in https://skia-review.googlesource.com/c/buildbot/+/367763.",
+      "parentUuid": "bd0fc348_8c60483d",
+      "revId": "e90091daf55878e4b7e6a437e3a876191c042a7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
