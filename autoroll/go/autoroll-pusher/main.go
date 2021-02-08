@@ -50,7 +50,7 @@ const (
 	DEFAULT_K8S_CONFIG_DIR = "/tmp/k8s-config"
 
 	// Repo containing the k8s config files.
-	K8S_CONFIG_REPO = "https://skia.googlesource.com/k8s-proto.git"
+	K8S_CONFIG_REPO = "https://skia.googlesource.com/k8s-config.git"
 
 	// Google Cloud projects used by the autoroller.
 	PROJECT_PUBLIC = "skia-public"
