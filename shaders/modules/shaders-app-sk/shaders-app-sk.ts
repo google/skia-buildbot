@@ -62,7 +62,7 @@ uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)`;
 const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length;
 
 const defaultShader = `half4 main(float2 fragCoord) {
-  return vec4(1.0, 0, mod(iTime/2, 1), 1.0);
+  return vec4(1, 0, 0, 1);
 }`;
 
 type stateChangedCallback = ()=> void;
@@ -73,7 +73,7 @@ interface State {
 }
 
 const defaultState: State = {
-  id: '',
+  id: '@default',
 };
 
 // requestAnimationFrame id if requestAnimationFrame is not running.
@@ -169,7 +169,7 @@ export class ShadersAppSk extends ElementSk {
 
   private static template = (ele: ShadersAppSk) => html`
     <header>
-      <h2>SkSL Shaders</h2>
+      <h2><a href="/">SkSL Shaders</a></h2>
       <span>
         <a
           id="githash"
@@ -181,13 +181,16 @@ export class ShadersAppSk extends ElementSk {
       </span>
     </header>
     <main>
-      <canvas
-        id="player"
-        width=${ele.width}
-        height=${ele.height}
-      >
-        Your browser does not support the canvas tag.
-      </canvas>
+      <div>
+        <p @click=${ele.fastLoad}>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a></p>
+        <canvas
+          id="player"
+          width=${ele.width}
+          height=${ele.height}
+        >
+          Your browser does not support the canvas tag.
+        </canvas>
+      </div>
       <div>
         <details id=shaderinputs>
           <summary>Shader Inputs</summary>
@@ -476,6 +479,21 @@ export class ShadersAppSk extends ElementSk {
   private codeChange() {
     this.editedCode = this.codeMirror!.getValue();
     this._render();
+  }
+
+  /**
+   * Load example by changing state rather than actually following the links.
+   */
+  private fastLoad(e: Event): void{
+    const ele = (e.target as HTMLLinkElement);
+    if (ele.tagName !== 'A') {
+      return;
+    }
+    e.preventDefault();
+    const id = new URL(ele.href).searchParams.get('id') || '';
+    this.state.id = id;
+    this.stateChanged!();
+    this.loadShaderIfNecessary();
   }
 
   private get width(): number { return DEFAULT_SIZE * window.devicePixelRatio; }
