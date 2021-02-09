@@ -7,8 +7,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"image"
 	"image/png"
+	"sync/atomic"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -22,6 +24,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -36,6 +39,8 @@ const (
 	// 2k decoded images at ~5MB a piece = 10 gig of RAM, which should be doable.
 	// The size of 5MB comes from the 90th percentile of real-world data.
 	decodedImageCacheSize = 2000
+
+	fetchingRoutines = 4
 
 	diffingRoutines = 4
 
@@ -116,6 +121,9 @@ func newDigestPair(one, two types.Digest) digestPair {
 // will be included in the right bucket.
 func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Params, addLeft, addRight []types.Digest) error {
 	ctx, span := trace.StartSpan(ctx, "CalculateDiffs")
+	if span.IsRecordingEvents() {
+		addMetadata(span, grouping, len(addLeft), len(addRight))
+	}
 	defer span.End()
 	startingTile, err := w.getStartingTile(ctx)
 	if err != nil {
@@ -134,27 +142,13 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	}
 	rightDigests = append(rightDigests, addRight...)
 
-	// Enumerate all the possible diffs that might need to be computed.
-	toCompute := map[digestPair]bool{}
-	for _, d1 := range leftDigests {
-		for _, d2 := range rightDigests {
-			if d1 != d2 {
-				toCompute[newDigestPair(d1, d2)] = true
-			}
-		}
-	}
-	// We expect leftDigests to be a superset of rightDigest
-	if err := w.removeAlreadyComputed(ctx, toCompute, leftDigests); err != nil {
-		return skerr.Wrapf(err, "checking existing diff metrics")
-	}
-
 	sCtx, computeSpan := trace.StartSpan(ctx, "computeAndReportDiffsInParallel")
 	defer computeSpan.End()
 	// Compute diffs in parallel. To do this, we spin up an error group that uses a channel to
 	// distribute work and an error group that listens to the output channel and uploads in batches.
 	// This way, we have some way to stream results and the metrics will be smoother in case a lot
 	// of computations need to happen over the course of several minutes.
-	availableWork := make(chan digestPair, len(toCompute))
+	availableWork := make(chan digestPair, len(leftDigests)*len(rightDigests))
 	// We expect pushing to SQL to be much faster than diffing, so we don't want the newMetrics
 	// chan to be blocking computation. As such, make the buffer size decently big.
 	newMetrics := make(chan schema.DiffMetricRow, 2*reportingBatchSize)
@@ -206,16 +200,12 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 		return nil
 	})
 	// Now that the goroutines are started, fill up the availableWork channel and close it.
-	workAssigned := 0
-	for pair, shouldCompute := range toCompute {
-		if !shouldCompute {
-			continue
-		}
-		workAssigned++
-		availableWork <- pair
+	workAssigned, err := w.calculateWorkNeeded(ctx, availableWork, leftDigests, rightDigests)
+	if err != nil {
+		return skerr.Wrapf(err, "calculating work needed and using existing metrics")
 	}
 	close(availableWork)
-	sklog.Infof("Computing %d new diffs for grouping %v (%d diffs total)", workAssigned, grouping, len(toCompute))
+	sklog.Infof("Computing %d new diffs for grouping %v (%d diffs total)", workAssigned, grouping, len(leftDigests)*len(rightDigests))
 	// Wait for computation to complete.
 	if err := computeGroup.Wait(); err != nil {
 		close(newMetrics) // shut down the reporting go routine as well.
@@ -229,6 +219,16 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	}
 	sklog.Infof("Done with those %d new diffs", workAssigned)
 	return nil
+}
+
+// addMetadata adds some attributes to the span so we can tell how much work it was supposed to
+// be doing when we are looking at the traces and the performance.
+func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount, rightDigestCount int) {
+	groupingStr, _ := json.Marshal(grouping)
+	span.AddAttributes(
+		trace.StringAttribute("grouping", string(groupingStr)),
+		trace.Int64Attribute("left_digests", int64(leftDigestCount)),
+		trace.Int64Attribute("right_digests", int64(rightDigestCount)))
 }
 
 // getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
@@ -311,43 +311,80 @@ WHERE TiledTraceDigests.start_commit_id >= $2`
 	return rv, nil
 }
 
-// removeAlreadyComputed will query the SQL database for DiffMetrics that have already been computed
-// and will mark those entries in the provided map as false, signalling that they should not be
-// recomputed.
-func (w *WorkerImpl) removeAlreadyComputed(ctx context.Context, toCompute map[digestPair]bool, digests []types.Digest) error {
-	ctx, span := trace.StartSpan(ctx, "removeAlreadyComputed")
+// calculateWorkNeeded will create a len(left) by len(right) half rectangle of all possible work
+// and query the SQL database for DiffMetrics that have already been computed. Entries that have
+// not already been calculated will be put in the availableWork channel. This function returns the
+// amount of entries that were added to the channel and any error from interacting with the
+// SQL database.
+func (w *WorkerImpl) calculateWorkNeeded(ctx context.Context, availableWork chan<- digestPair, left, right []types.Digest) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "calculateWorkNeeded")
 	defer span.End()
-	if len(digests) == 0 || len(toCompute) == 0 {
-		return nil
+	if len(left) == 0 || len(right) == 0 {
+		return 0, nil
 	}
-	const statement = `
-SELECT encode(left_digest, 'hex'), encode(right_digest, 'hex') FROM DiffMetrics
+	workAdded := int32(0)
+	chunkSize := len(left)/fetchingRoutines + 1 // + 1 to avoid 0 chunkSize
+	err := util.ChunkIterParallel(ctx, len(left), chunkSize, func(ctx context.Context, startIdx int, endIdx int) error {
+		const statement = `
+SELECT encode(right_digest, 'hex') FROM DiffMetrics
 AS OF SYSTEM TIME '-0.1s'
-WHERE left_digest IN `
-	vp := sql.ValuesPlaceholders(len(digests), 1)
-	arguments := make([]interface{}, 0, len(digests))
-	for _, d := range digests {
-		b, err := sql.DigestToBytes(d)
-		if err != nil {
-			return skerr.Wrap(err)
+WHERE left_digest = $1 AND right_digest IN `
+		// First argument reserved for the left digest
+		arguments := make([]interface{}, 1, len(right)+1)
+		for _, r := range right {
+			rb, err := sql.DigestToBytes(r)
+			if err != nil {
+				return skerr.Wrapf(err, "bad digest %s", r)
+			}
+			arguments = append(arguments, rb)
 		}
-		arguments = append(arguments, b)
-	}
-	rows, err := w.db.Query(ctx, statement+vp, arguments...)
+		vp := sql.ValuesPlaceholders(len(right)+1, 1) // TODO(kjlubick) create this dynamically if used bloom filter
+
+		for _, leftD := range left[startIdx:endIdx] {
+			if err := ctx.Err(); err != nil {
+				return skerr.Wrap(err)
+			}
+			lb, err := sql.DigestToBytes(leftD)
+			if err != nil {
+				return skerr.Wrapf(err, "bad digest %s", leftD)
+			}
+			arguments[0] = lb
+			toCompute := make(map[types.Digest]bool, len(right))
+			for _, rightD := range right {
+				// TODO(kjlubick) can check bloom filter
+				if leftD != rightD {
+					toCompute[rightD] = true
+				}
+			}
+			rows, err := w.db.Query(ctx, statement+vp, arguments...)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			for rows.Next() {
+				var rightD types.Digest
+				if err := rows.Scan(&rightD); err != nil {
+					rows.Close()
+					return skerr.Wrap(err)
+				}
+				toCompute[rightD] = false
+			}
+			rows.Close()
+			for rightD, needsComputing := range toCompute {
+				if !needsComputing {
+					continue
+				}
+				dp := newDigestPair(leftD, rightD)
+				availableWork <- dp
+				atomic.AddInt32(&workAdded, 1)
+				// TODO(kjlubick) can update bloom filter
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		return skerr.Wrap(err)
+		return 0, skerr.Wrapf(err, "creating diffs for %d left and %d right images", len(left), len(right))
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var left types.Digest
-		var right types.Digest
-		if err := rows.Scan(&left, &right); err != nil {
-			return skerr.Wrap(err)
-		}
-		// Mark this entry false to indicate we've already seen it.
-		toCompute[newDigestPair(left, right)] = false
-	}
-	return nil
+	return int(workAdded), nil
 }
 
 type imgError struct {
