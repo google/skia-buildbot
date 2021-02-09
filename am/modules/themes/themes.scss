@@ -46,3 +46,57 @@
     color: var(--primary);
   }
 }
+
+/*
+   The following styles are for scrollbars. There are some non-standard looking
+   styles because it is 2020 and there's still no standard way to style
+   scrollbars on a web page.
+
+   https://caniuse.com/#feat=css-scrollbar
+
+   There is currently an editor's draft for styling scrollbars:
+   https://drafts.csswg.org/css-scrollbars-1/, but it is only supported by
+   FireFox. So set that first.
+*/
+
+* {
+  scrollbar-color: var(--surface-1dp) var(--background);
+}
+
+/* Now set the non-standard styles. Unfortunately the way webpack/cssmin is
+   configured currently it will strip the following rules from the output so we
+   turn the autoprefixer off.
+*/
+
+/* autoprefixer: off */
+
+/* Turn on a 13x13 scrollbar */
+::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+
+/* Turn off single button up on top and down on bottom */
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:end:decrement {
+  display: none;
+}
+
+/* Track below and above */
+::-webkit-scrollbar-track-piece {
+  background-color: var(--background);
+  border: solid 1px var(--surface-2dp);
+}
+
+/* The thumb itself */
+::-webkit-scrollbar-thumb {
+  border: solid 1px var(--on-surface);
+  background: var(--surface-1dp);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface);
+}
