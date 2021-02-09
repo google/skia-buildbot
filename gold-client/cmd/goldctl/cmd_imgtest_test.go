@@ -56,7 +56,7 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 	keysFile := filepath.Join(workDir, "keys.json")
 	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
-	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
 		Negative("other-test", blankDigest).
 		Known("11111111111111111111111111111111").Build()
 
@@ -92,7 +92,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
 	// and the known hashes (both empty).
@@ -161,6 +161,85 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	assert.Contains(t, string(fb), "https://my-instance-gold.skia.org/detail?test=pixel-tests&digest=00000000000000000000000000000000")
 }
 
+func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+	td, err := testutils.TestDataDir()
+	require.NoError(t, err)
+
+	mh := mockRPCResponses("https://my-custom-gold-url.example.com").Build()
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes (both empty).
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		bucketOverride:  "my-custom-bucket",
+		commitHash:      "1234567890123456789012345678901234567890",
+		corpus:          "my_corpus",
+		instanceID:      "my-instance",
+		passFailStep:    true,
+		failureFile:     filepath.Join(workDir, "failures.txt"),
+		workDir:         workDir,
+		testKeysStrings: []string{"os:Android"},
+		urlOverride:     "https://my-custom-gold-url.example.com",
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	mg := &mocks.GCSUploader{}
+	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
+		assert.Equal(t, jsonio.GoldResults{
+			GitHash: "1234567890123456789012345678901234567890",
+			Key: map[string]string{
+				"os":          "Android",
+				"source_type": "my_corpus",
+			},
+			Results: []*jsonio.Result{{
+				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
+				Options: map[string]string{"some_option": "is optional", "ext": "png"},
+				Digest:  blankDigest,
+			}},
+		}, results)
+		return true
+	})
+	mg.On("UploadJSON", testutils.AnyContext, resultsMatcher, mock.Anything,
+		`my-custom-bucket/dm-json-v1/2021/01/23/22/1234567890123456789012345678901234567890/waterfall/dm-1611440480000000019.json`).Return(nil)
+	bytesMatcher := mock.MatchedBy(func(b []byte) bool {
+		assert.Len(t, b, 78) // spot check length
+		return true
+	})
+	mg.On("UploadBytes", testutils.AnyContext, bytesMatcher, mock.Anything,
+		`gs://my-custom-bucket/dm-images-v1/00000000000000000000000000000000.png`).Return(nil)
+
+	// Now call imgtest add with the following flags. This is simulating a test uploading a single
+	// result for a test called pixel-tests.
+	ctx, output, exit = testContext(mg, nil, nil, mockTime(timeOne))
+	env = imgTest{
+		workDir:                 workDir,
+		testName:                "pixel-tests",
+		pngFile:                 filepath.Join(td, "00000000000000000000000000000000.png"),
+		pngDigest:               blankDigest,
+		testKeysStrings:         []string{"device:angler"},
+		testOptionalKeysStrings: []string{"some_option:is optional"},
+	}
+	runUntilExit(t, func() {
+		env.Add(ctx)
+	})
+	logs := output.String()
+	exit.AssertWasCalledWithCode(t, 1, logs)
+	mg.AssertExpectations(t)
+	assert.Contains(t, logs, `Untriaged or negative image: https://my-custom-gold-url.example.com/detail?test=pixel-tests&digest=00000000000000000000000000000000`)
+	assert.Contains(t, logs, `Test: pixel-tests FAIL`)
+
+	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
+	require.NoError(t, err)
+	assert.Contains(t, string(fb), "https://my-custom-gold-url.example.com/detail?test=pixel-tests&digest=00000000000000000000000000000000")
+}
+
 func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testing.T) {
 	unittest.MediumTest(t)
 
@@ -169,7 +248,7 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
 	// and the known hashes.
@@ -238,7 +317,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
 	// and the known hashes.
@@ -342,7 +421,7 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 	keysFile := filepath.Join(workDir, "keys.json")
 	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
 
-	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
 	mg := &mocks.GCSUploader{}
 	resultsMatcher := mock.MatchedBy(func(results jsonio.GoldResults) bool {
@@ -399,7 +478,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
 	// and the known hashes.
@@ -493,7 +572,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 
 	// Call imgtest init with the following flags. We expect it to load the baseline expectations
 	// and the known hashes.
@@ -599,7 +678,7 @@ func TestImgTest_Check_CloseEnoughForFuzzyMatch_ExitCodeZero(t *testing.T) {
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Positive("pixel-tests", a01Digest).
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", a01Digest).
 		LatestPositive(a01Digest, paramtools.Params{
 			"device": "bullhead", "name": "pixel-tests", "source_type": "my-instance",
 		}).Build()
@@ -639,7 +718,7 @@ func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
 	td, err := testutils.TestDataDir()
 	require.NoError(t, err)
 
-	mh := mockRPCResponses().Positive("pixel-tests", a01Digest).
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", a01Digest).
 		LatestPositive(a01Digest, paramtools.Params{
 			"device": "bullhead", "name": "pixel-tests", "source_type": "my-instance",
 		}).BuildForCL("gerritHub", "cl_1234")
@@ -709,11 +788,13 @@ type rpcResponsesBuilder struct {
 	knownDigests    []string
 	exp             *expectations.Expectations
 	latestPositives map[tiling.TraceID]types.Digest
+	urlBase         string
 }
 
-func mockRPCResponses() *rpcResponsesBuilder {
+func mockRPCResponses(instanceURL string) *rpcResponsesBuilder {
 	return &rpcResponsesBuilder{
-		exp: &expectations.Expectations{},
+		exp:     &expectations.Expectations{},
+		urlBase: instanceURL,
 	}
 }
 
@@ -746,7 +827,7 @@ func (r *rpcResponsesBuilder) LatestPositive(digest types.Digest, traceKeys para
 func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 	mh := &mocks.HTTPClient{}
 	knownResp := strings.Join(r.knownDigests, "\n")
-	mh.On("Get", "https://my-instance-gold.skia.org/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
+	mh.On("Get", r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
 
 	exp, err := json.Marshal(baseline.Baseline{
 		MD5:          "somemd5",
@@ -755,7 +836,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 	if err != nil {
 		panic(err)
 	}
-	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/expectations").Return(
+	mh.On("Get", r.urlBase+"/json/v2/expectations").Return(
 		httpResponse(string(exp), "200 OK", http.StatusOK), nil)
 
 	for traceID, digest := range r.latestPositives {
@@ -763,7 +844,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 		if err != nil {
 			panic(err)
 		}
-		url := string("https://my-instance-gold.skia.org/json/v1/latestpositivedigest/" + traceID)
+		url := r.urlBase + "/json/v1/latestpositivedigest/" + string(traceID)
 		mh.On("Get", url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
@@ -774,7 +855,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 	mh := &mocks.HTTPClient{}
 	knownResp := strings.Join(r.knownDigests, "\n")
-	mh.On("Get", "https://my-instance-gold.skia.org/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
+	mh.On("Get", r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
 
 	exp, err := json.Marshal(baseline.Baseline{
 		MD5:              "somemd5",
@@ -785,7 +866,7 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 	if err != nil {
 		panic(err)
 	}
-	url := fmt.Sprintf("https://my-instance-gold.skia.org/json/v2/expectations?issue=%s&crs=%s", clID, crs)
+	url := fmt.Sprintf("%s/json/v2/expectations?issue=%s&crs=%s", r.urlBase, clID, crs)
 	mh.On("Get", url).Return(
 		httpResponse(string(exp), "200 OK", http.StatusOK), nil)
 
@@ -794,7 +875,7 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 		if err != nil {
 			panic(err)
 		}
-		url := string("https://my-instance-gold.skia.org/json/v1/latestpositivedigest/" + traceID)
+		url := r.urlBase + "/json/v1/latestpositivedigest/" + string(traceID)
 		mh.On("Get", url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
@@ -805,7 +886,7 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mh := mockRPCResponses().Build()
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 	resp, err := mh.Get("https://my-instance-gold.skia.org/json/v1/hashes")
 	require.NoError(t, err)
 	b, err := ioutil.ReadAll(resp.Body)
@@ -822,7 +903,7 @@ func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
 func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mh := mockRPCResponses().
+	mh := mockRPCResponses("http://my-custom-url.example.com").
 		Known("first_digest").
 		Positive("alpha test", "second_digest").
 		Positive("beta test", "third_digest").
@@ -830,7 +911,7 @@ func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
 		LatestPositive("third_digest", paramtools.Params{"alpha": "beta", "gamma": "delta epsilon"}).
 		Known("fifth_digest").
 		Build()
-	resp, err := mh.Get("https://my-instance-gold.skia.org/json/v1/hashes")
+	resp, err := mh.Get("http://my-custom-url.example.com/json/v1/hashes")
 	require.NoError(t, err)
 	b, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -840,13 +921,13 @@ third_digest
 fourth_digest
 fifth_digest`, string(b))
 
-	resp, err = mh.Get("https://my-instance-gold.skia.org/json/v2/expectations")
+	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/expectations")
 	require.NoError(t, err)
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, `{"md5":"somemd5","primary":{"alpha test":{"fourth_digest":"negative","second_digest":"positive"},"beta test":{"third_digest":"positive"}}}`, string(b))
 
-	resp, err = mh.Get("https://my-instance-gold.skia.org/json/v1/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
+	resp, err = mh.Get("http://my-custom-url.example.com/json/v1/latestpositivedigest/,alpha=beta,gamma=delta epsilon,")
 	require.NoError(t, err)
 	b, err = ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
