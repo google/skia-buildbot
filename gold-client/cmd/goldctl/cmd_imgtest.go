@@ -19,18 +19,19 @@ import (
 // Specifically, it houses the flags.
 type imgTest struct {
 	// Common flags.
+	bucketOverride              string
+	changelistID                string
 	codeReviewSystem            string
-	continuousIntegrationSystem string
 	commitHash                  string
+	continuousIntegrationSystem string
 	corpus                      string
 	failureFile                 string
 	instanceID                  string
-	changelistID                string
-	tryJobID                    string
 	keysFile                    string
 	passFailStep                bool
-	patchsetOrder               int
 	patchsetID                  string
+	patchsetOrder               int
+	tryJobID                    string
 	uploadOnly                  bool
 	urlOverride                 string
 	workDir                     string
@@ -118,8 +119,9 @@ Does not upload anything nor queue anything for upload.`,
 	imgTestCheckCmd.Flags().StringVar(&env.pngFile, "png-file", "", "Path to the PNG file that contains the test results.")
 	imgTestCheckCmd.Flags().StringVar(&env.instanceID, "instance", "", "ID of the Gold instance.")
 
+	imgTestCheckCmd.Flags().StringVar(&env.bucketOverride, "bucket", "", "GCS Bucket to use. If empty the URL will be derived from the value of 'instance'")
 	imgTestCheckCmd.Flags().StringVar(&env.changelistID, "changelist", "", "If provided, the ChangelistExpectations matching this will apply.")
-	imgTestCheckCmd.Flags().StringVar(&env.urlOverride, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
+	imgTestCheckCmd.Flags().StringVar(&env.urlOverride, "url", "", "URL of the Gold instance. If empty the URL will be derived from the value of 'instance'")
 
 	must(imgTestCheckCmd.MarkFlagRequired(fstrWorkDir))
 	must(imgTestCheckCmd.MarkFlagRequired("test-name"))
@@ -142,6 +144,7 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().BoolVar(&i.passFailStep, "passfail", false, "Whether the 'add' call returns a pass/fail for each test.")
 	cmd.Flags().BoolVar(&i.uploadOnly, "upload-only", false, "Skip reading expectations from the server. Incompatible with passfail=true.")
 
+	cmd.Flags().StringVar(&i.bucketOverride, "bucket", "", "GCS Bucket to write to. If empty the URL will be derived from the value of 'instance'")
 	cmd.Flags().StringVar(&i.changelistID, "changelist", "", "Changelist ID if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.codeReviewSystem, "crs", "", "CodeReviewSystem, if any (e.g. 'gerrit', 'github')")
 	cmd.Flags().StringVar(&i.commitHash, "commit", "", "Git commit hash")
@@ -152,7 +155,7 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().IntVar(&i.patchsetOrder, "patchset", 0, "Patchset number if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.patchsetID, "patchset_id", "", "Patchset id (e.g. githash) if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.tryJobID, "jobid", "", "TryJob ID if this is a TryJob run.")
-	cmd.Flags().StringVar(&i.urlOverride, "url", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
+	cmd.Flags().StringVar(&i.urlOverride, "url", "", "URL of the Gold instance. If empty the URL will be derived from the value of 'instance'")
 
 	cmd.Flags().StringVar(&i.changelistID, "issue", "", "[deprecated] Gerrit issue if this is trybot run. ")
 	must(cmd.MarkFlagRequired(fstrWorkDir))
@@ -192,9 +195,10 @@ func (i *imgTest) Check(ctx context.Context) {
 	if err != nil {
 		logErrf(ctx, "Could not load existing run, trying to initialize %s\n%s\n", i.workDir, err)
 		config := goldclient.GoldClientConfig{
-			WorkDir:         i.workDir,
 			InstanceID:      i.instanceID,
+			OverrideBucket:  i.bucketOverride,
 			OverrideGoldURL: i.urlOverride,
+			WorkDir:         i.workDir,
 		}
 		goldClient, err = goldclient.NewCloudClient(config)
 		ifErrLogExit(ctx, err)
@@ -250,6 +254,7 @@ func (i *imgTest) Init(ctx context.Context) {
 	config := goldclient.GoldClientConfig{
 		FailureFile:     i.failureFile,
 		InstanceID:      i.instanceID,
+		OverrideBucket:  i.bucketOverride,
 		OverrideGoldURL: i.urlOverride,
 		PassFailStep:    i.passFailStep,
 		UploadOnly:      i.uploadOnly,
@@ -317,6 +322,7 @@ func (i *imgTest) Add(ctx context.Context) {
 		config := goldclient.GoldClientConfig{
 			FailureFile:     i.failureFile,
 			InstanceID:      i.instanceID,
+			OverrideBucket:  i.bucketOverride,
 			OverrideGoldURL: i.urlOverride,
 			PassFailStep:    i.passFailStep,
 			UploadOnly:      i.uploadOnly,

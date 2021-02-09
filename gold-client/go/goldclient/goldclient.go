@@ -160,8 +160,11 @@ type GoldClientConfig struct {
 	// any failures. Only written to if PassFailStep is true
 	FailureFile string
 
-	// OverrideGoldURL is optional and allows to override the GoldURL for testing.
+	// OverrideGoldURL is optional and overrides the formulaic GoldURL (typically legacy instances).
 	OverrideGoldURL string
+
+	// OverrideBucket is optional and overrides the formulaic GCS Bucket.
+	OverrideBucket string
 
 	// UploadOnly is a mode where we don't check expectations against the server - i.e.
 	// we just operate in upload mode.
@@ -261,10 +264,11 @@ func (c *CloudClient) SetSharedConfig(ctx context.Context, sharedConfig jsonio.G
 		WorkDir: c.workDir,
 	}
 	if c.resultState != nil {
-		existingConfig.InstanceID = c.resultState.InstanceID
-		existingConfig.PassFailStep = c.resultState.PerTestPassFail
 		existingConfig.FailureFile = c.resultState.FailureFile
+		existingConfig.InstanceID = c.resultState.InstanceID
+		existingConfig.OverrideBucket = c.resultState.Bucket
 		existingConfig.OverrideGoldURL = c.resultState.GoldURL
+		existingConfig.PassFailStep = c.resultState.PerTestPassFail
 		existingConfig.UploadOnly = c.resultState.UploadOnly
 	}
 	c.resultState = newResultState(sharedConfig, &existingConfig)
