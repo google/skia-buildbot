@@ -30,13 +30,6 @@ const (
 	// bucketTemplate constructs the name of the ingestion bucket from the instance id
 	bucketTemplate = "skia-gold-%s"
 
-	// Skia's naming conventions are old and don't follow the patterns that
-	// newer clients do. One day, it might be nice to align the skia names
-	// to match the rest.
-	bucketSkiaLegacy     = "skia-infra-gm"
-	hostSkiaLegacy       = "https://gold.skia.org"
-	instanceIDSkiaLegacy = "skia"
-
 	hostFuchsiaCorp   = "https://fuchsia-gold.corp.goog"
 	instanceIDFuchsia = "fuchsia"
 )
@@ -64,7 +57,11 @@ type resultState struct {
 func newResultState(sharedConfig jsonio.GoldResults, config *GoldClientConfig) *resultState {
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
-		goldURL = GetGoldInstanceURL(config.InstanceID)
+		goldURL = getGoldInstanceURL(config.InstanceID)
+	}
+	bucket := config.OverrideBucket
+	if bucket == "" {
+		bucket = getBucket(config.InstanceID)
 	}
 
 	ret := &resultState{
@@ -74,18 +71,24 @@ func newResultState(sharedConfig jsonio.GoldResults, config *GoldClientConfig) *
 		InstanceID:      config.InstanceID,
 		UploadOnly:      config.UploadOnly,
 		GoldURL:         goldURL,
-		Bucket:          getBucket(config.InstanceID),
+		Bucket:          bucket,
 	}
 
 	return ret
 }
 
-// getBucket returns the bucket name for a given instance id.
+// getGoldInstanceURL returns the URL for a given Gold instance id.
 // This is usually a formulaic transform, but there are some special cases.
-func getBucket(instanceID string) string {
-	if instanceID == instanceIDSkiaLegacy {
-		return bucketSkiaLegacy
+func getGoldInstanceURL(instanceID string) string {
+	if instanceID == instanceIDFuchsia {
+		return hostFuchsiaCorp
 	}
+	return fmt.Sprintf(goldHostTemplate, instanceID)
+}
+
+// getBucket returns the formulaic bucket name for a given instance id. Legacy instances may
+// have a different naming scheme and would override the bucket.
+func getBucket(instanceID string) string {
 	return fmt.Sprintf(bucketTemplate, instanceID)
 }
 
