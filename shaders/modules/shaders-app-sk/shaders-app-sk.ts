@@ -61,9 +61,17 @@ uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)`;
 // uniforms".
 const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length;
 
+// The number of lines prefixed to every shader for predefined uniforms. Needed
+// to properly adjust error line numbers.
+const numPredefinedUniformLines = predefinedUniforms.split('\n').length + 1;
+
 const defaultShader = `half4 main(float2 fragCoord) {
   return vec4(1, 0, 0, 1);
 }`;
+
+// Regex that finds lines in shader compiler error messages that mention a line number
+// and makes that line number available as a capture.
+const shaderCompilerErrorRegex = /^error: (\d+)/i;
 
 type stateChangedCallback = ()=> void;
 
@@ -97,6 +105,14 @@ export class ShadersAppSk extends ElementSk {
   private effect: RuntimeEffect | null = null;
 
   private state: State = defaultState;
+
+  // If not the empty string, this contains the full last shader compiler error
+  // message.
+  private compileErrorMessage: string = '';
+
+  // Records the lines that have been marked as having errors. We keep these
+  // around so we can clear the error annotations efficiently.
+  private compileErrorLines: CodeMirror.TextMarker[] = [];
 
   // Keep a MallocObj around to pass uniforms to the shader to avoid the need to
   // make copies.
@@ -197,6 +213,10 @@ export class ShadersAppSk extends ElementSk {
           <textarea rows=3 cols=75 readonly id="predefinedShaderInputs"></textarea>
         </details>
         <div id="codeEditor"></div>
+        <div ?hidden=${!ele.compileErrorMessage} id="compileErrors">
+          <h3>Errors</h3>
+          <pre>${ele.compileErrorMessage}</pre>
+        </div>
       </div>
       <div id=shaderControls>
         <div id=fps>
@@ -269,7 +289,7 @@ export class ShadersAppSk extends ElementSk {
           },
         );
       } catch (error) {
-        errorMessage(error);
+        errorMessage(error, 0);
       }
     });
   }
@@ -298,7 +318,7 @@ export class ShadersAppSk extends ElementSk {
         this.lastSavedUserUniformValues = this.getCurrentUserUniformValues(this.getUniformValuesFromControls());
       }
     } catch (error) {
-      errorMessage(error);
+      errorMessage(error, 0);
       // Return to the default view.
       this.state = Object.assign({}, defaultState);
       this.stateChanged!();
@@ -321,7 +341,7 @@ export class ShadersAppSk extends ElementSk {
     this.surface?.delete();
     this.surface = this.kit!.MakeCanvasSurface(this.canvasEle!);
     if (!this.surface) {
-      errorMessage('Could not make Surface.');
+      errorMessage('Could not make Surface.', 0);
       return;
     }
     // We don't need to call .delete() on the canvas because
@@ -330,15 +350,47 @@ export class ShadersAppSk extends ElementSk {
     this.canvasKitContext = this.kit!.currentContext();
     // eslint-disable-next-line no-unused-expressions
     this.effect?.delete();
-    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedUniforms}\n${shaderCode}`, (err) => errorMessage(err));
+    this.clearAllEditorErrorAnnotations();
+    this.compileErrorMessage = '';
+    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedUniforms}\n${shaderCode}`, (err) => {
+      // Fix up the line numbers on the error messages, because they are off by
+      // the number of lines we prefixed with the predefined uniforms. The regex
+      // captures the line number so we can replace it with the correct value.
+      // While doing the fix up of the error message we also annotate the
+      // corresponding lines in the CodeMirror editor.
+      err = err.replace(shaderCompilerErrorRegex, (_match, firstRegexCaptureValue): string => {
+        const lineNumber = (+firstRegexCaptureValue - numPredefinedUniformLines);
+        this.setEditorErrorLineAnnotation(lineNumber);
+        return `error: ${lineNumber.toFixed(0)}`;
+      });
+      this.compileErrorMessage = err;
+    });
+    // Render so the uniform controls get displayed.
+    this._render();
+
     if (!this.effect) {
       return;
     }
-    this._render();
 
-    // Render so the uniform controls get displayed.
-    this._render();
     this.drawFrame();
+  }
+
+  private clearAllEditorErrorAnnotations(): void{
+    // eslint-disable-next-line no-unused-expressions
+    this.compileErrorLines?.forEach((textMarker) => {
+      textMarker.clear();
+    });
+  }
+
+  private setEditorErrorLineAnnotation(lineNumber: number): void {
+    // Set the class of that line to 'cm-error'.
+    this.compileErrorLines.push(this.codeMirror!.markText(
+      { line: lineNumber - 1, ch: 0 },
+      { line: lineNumber - 1, ch: 200 }, // Some large number for the character offset.
+      {
+        className: 'cm-error', // See the base16-dark.css file in CodeMirror for the class name.
+      },
+    ));
   }
 
   private getUniformValuesFromControls(): number[] {
@@ -472,7 +524,7 @@ export class ShadersAppSk extends ElementSk {
       this.stateChanged!();
       this._render();
     } catch (error) {
-      errorMessage(`${error}`);
+      errorMessage(`${error}`, 0);
     }
   }
 
