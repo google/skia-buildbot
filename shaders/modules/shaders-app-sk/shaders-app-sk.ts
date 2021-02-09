@@ -61,6 +61,10 @@ uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)`;
 // uniforms".
 const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length;
 
+// The number of lines prefixed to every shader for predefined uniforms. Needed
+// to properly adjust error line numbers.
+const numPredefinedUniformLines = predefinedUniforms.split('\n').length + 1;
+
 const defaultShader = `half4 main(float2 fragCoord) {
   return vec4(1, 0, 0, 1);
 }`;
@@ -97,6 +101,10 @@ export class ShadersAppSk extends ElementSk {
   private effect: RuntimeEffect | null = null;
 
   private state: State = defaultState;
+
+  private compileErrorMessage: string = '';
+
+  private compileErrorLines: number[] = [];
 
   // Keep a MallocObj around to pass uniforms to the shader to avoid the need to
   // make copies.
@@ -197,6 +205,7 @@ export class ShadersAppSk extends ElementSk {
           <textarea rows=3 cols=75 readonly id="predefinedShaderInputs"></textarea>
         </details>
         <div id="codeEditor"></div>
+        <pre id="compileErrors" ?hidden=${!ele.compileErrorMessage}>${ele.compileErrorMessage}</pre>
       </div>
       <div id=shaderControls>
         <div id=fps>
@@ -269,7 +278,7 @@ export class ShadersAppSk extends ElementSk {
           },
         );
       } catch (error) {
-        errorMessage(error);
+        errorMessage(error, 0);
       }
     });
   }
@@ -298,7 +307,7 @@ export class ShadersAppSk extends ElementSk {
         this.lastSavedUserUniformValues = this.getCurrentUserUniformValues(this.getUniformValuesFromControls());
       }
     } catch (error) {
-      errorMessage(error);
+      errorMessage(error, 0);
       // Return to the default view.
       this.state = Object.assign({}, defaultState);
       this.stateChanged!();
@@ -321,7 +330,7 @@ export class ShadersAppSk extends ElementSk {
     this.surface?.delete();
     this.surface = this.kit!.MakeCanvasSurface(this.canvasEle!);
     if (!this.surface) {
-      errorMessage('Could not make Surface.');
+      errorMessage('Could not make Surface.', 0);
       return;
     }
     // We don't need to call .delete() on the canvas because
@@ -330,14 +339,26 @@ export class ShadersAppSk extends ElementSk {
     this.canvasKitContext = this.kit!.currentContext();
     // eslint-disable-next-line no-unused-expressions
     this.effect?.delete();
-    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedUniforms}\n${shaderCode}`, (err) => errorMessage(err));
+    this.compileErrorLines = [];
+    this.compileErrorMessage = '';
+    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedUniforms}\n${shaderCode}`, (err) => {
+      // Fix up the line numbers on the error messages.
+      const regex = /^error: (\d+):/i;
+      err = err.replace(regex, (_match, p1): string => {
+        const lineNumber = (+p1 - numPredefinedUniformLines);
+        this.compileErrorLines.push(lineNumber);
+        return `error: ${lineNumber.toFixed(0)}`;
+      });
+
+      this.compileErrorMessage = err;
+    });
+    // Render so the uniform controls get displayed.
+    this._render();
+
     if (!this.effect) {
       return;
     }
-    this._render();
 
-    // Render so the uniform controls get displayed.
-    this._render();
     this.drawFrame();
   }
 
@@ -472,7 +493,7 @@ export class ShadersAppSk extends ElementSk {
       this.stateChanged!();
       this._render();
     } catch (error) {
-      errorMessage(`${error}`);
+      errorMessage(`${error}`, 0);
     }
   }
 

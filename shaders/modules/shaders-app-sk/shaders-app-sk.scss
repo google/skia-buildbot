@@ -69,6 +69,10 @@
       padding: 0;
       margin: 0;
     }
+
+    .compileErrors {
+      color: var(--error);
+    }
   }
 
   details {
