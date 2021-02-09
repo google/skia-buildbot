@@ -239,6 +239,7 @@ func (p *processor) processPubSubMessage(ctx context.Context, msg *pubsub.Messag
 // It returns a bool that represents whether the message should be Ack'd (not retried) or Nack'd
 // (retried later).
 func (p *processor) processMessage(ctx context.Context, msgData []byte) bool {
+	defer metrics2.FuncTimer().Stop()
 	var wm diff.WorkerMessage
 	if err := json.Unmarshal(msgData, &wm); err != nil {
 		sklog.Errorf("Invalid message passed in: %s\n%s", err, string(msgData))

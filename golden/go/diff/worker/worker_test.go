@@ -67,8 +67,8 @@ func TestCalculateDiffs_NoExistingData_Success(t *testing.T) {
 	}, actualMetrics)
 	assert.Empty(t, getAllProblemImageRows(t, db))
 
-	// 6 distinct pairs of images were compared (left-right order does not matter).
-	assert.Equal(t, metricBefore+6, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
+	// 6 distinct pairs of images were compared.
+	assert.Equal(t, metricBefore+12, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_MultipleBatches_Success(t *testing.T) {
@@ -148,8 +148,8 @@ func TestCalculateDiffs_ExistingMetrics_NoExistingTiledTraces_Success(t *testing
 	}, actualMetrics)
 	assert.Empty(t, getAllProblemImageRows(t, db))
 
-	// 5 distinct pairs of images were compared (left-right order does not matter).
-	assert.Equal(t, metricBefore+5, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
+	// 5 distinct pairs of images were compared.
+	assert.Equal(t, metricBefore+10, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_NoNewMetrics_Success(t *testing.T) {
@@ -317,7 +317,7 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	assert.Equal(t, fakeNow, problem.ErrorTS)
 
 	// One pair of images was compared successfully.
-	assert.Equal(t, metricBefore+1, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
+	assert.Equal(t, metricBefore+2, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
@@ -419,8 +419,8 @@ func TestCalculateDiffs_LeftDigestsComparedOnlyToRightDigests_Success(t *testing
 	}, actualMetrics)
 	assert.Empty(t, getAllProblemImageRows(t, db))
 
-	// 6 pairs of images calculated (1 was already calculated)
-	assert.Equal(t, metricBefore+6, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
+	// 6 pairs of images calculated, one (02+05) in both directions.
+	assert.Equal(t, metricBefore+7, metrics2.GetCounter("diffcalculator_metricscalculated").Get())
 }
 
 func TestCalculateDiffs_IgnoredTracesNotComparedToEachOther_Success(t *testing.T) {
