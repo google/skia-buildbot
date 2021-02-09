@@ -69,6 +69,15 @@
       padding: 0;
       margin: 0;
     }
+
+    #compileErrors h3 {
+      margin: 8px 0;
+      color: var(--error);
+    }
+
+    #compileErrors pre {
+      margin: 0 0 0 8px;
+    }
   }
 
   details {
