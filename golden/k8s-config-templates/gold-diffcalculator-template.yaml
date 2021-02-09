@@ -33,16 +33,6 @@ spec:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                      - gold-{{.INSTANCE_ID}}-diffcalculator
-              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
@@ -71,8 +61,8 @@ spec:
                   fieldPath: metadata.name
           resources:
             requests:
-              memory: "18Gi" # 12 Gig for full cache in diff/worker.go + 50% for burst
-              cpu: "8"       # 8 diff goroutines in diff/worker.go
+              memory: "20Gi" # 10 Gig for full cache in diff/worker.go + 100% for burst
+              cpu: "4"       # 4 diff goroutines in diff/worker.go
           readinessProbe:
             httpGet:
               path: /healthz

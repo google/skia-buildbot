@@ -5,5 +5,5 @@
   tiles_to_process: 2,
 
   // These values affect the k8s deployment; they are not read in by the binary.
-  K8S_REPLICAS: 8
+  K8S_REPLICAS: 24
 }
