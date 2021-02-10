@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4141222f_93c621ac",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7838
+      },
+      "writtenOn": "2021-02-10T20:01:02Z",
+      "side": 1,
+      "message": "No permission to CQ+2, please land when you see this.",
+      "revId": "6d78b9cca22511941b9adbc1b7a400375b369985",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
