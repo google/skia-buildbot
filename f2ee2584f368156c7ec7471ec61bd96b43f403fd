@@ -16,6 +16,23 @@
       "message": "Note: I haven\u0027t added any handling for the config file names.  My plan is to rename all of the config files to match the roller names so that the file names can be inferred.",
       "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a491b3f2_7d353573",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-10T16:05:44Z",
+      "side": 1,
+      "message": "Friendly ping",
+      "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
