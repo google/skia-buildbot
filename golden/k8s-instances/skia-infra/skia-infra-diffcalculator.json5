@@ -1,5 +1,7 @@
 {
+  diff_cache_namespace: "skia-infra",
   diff_work_subscription: "gold-skia-infra-diffcalculator", // includes instance id
+  memcached_server: "gold-memcached-0.gold-memcached:11211",
   prom_port: ":20000",
   ready_port: ":8000",
   tiles_to_process: 2,
