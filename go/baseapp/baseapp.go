@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -76,11 +77,13 @@ func cspString(allowedHosts []string, local bool, options []Option) string {
 		addScriptSrc = "'unsafe-eval'"
 	}
 
+	addImageSrc := strings.Join(hasImageSourcesOption(options), " ")
+
 	// This non-local, non-WASM CSP string passes the tests at https://csp-evaluator.withgoogle.com/.
 	//
 	// See also: https://csp.withgoogle.com/docs/strict-csp.html
 	//
-	return fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", addScriptSrc)
+	return fmt.Sprintf("base-uri 'none';  img-src 'self' %s ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", addImageSrc, addScriptSrc)
 }
 
 func securityMiddleware(allowedHosts []string, local bool, options []Option) mux.MiddlewareFunc {
@@ -103,16 +106,30 @@ func securityMiddleware(allowedHosts []string, local bool, options []Option) mux
 // Option is the base type for options passed to Serve().
 type Option interface{}
 
-// AllowWASM allows 'unsafe-eval' for scripts, which is needed for WASM.
-type AllowWASM struct{}
+// AllowWASMOption allows 'unsafe-eval' for scripts, which is needed for WASM.
+type AllowWASMOption struct{}
 
 func hasWASMOption(options []Option) bool {
 	for _, opt := range options {
-		if _, ok := opt.(AllowWASM); ok {
+		if _, ok := opt.(AllowWASMOption); ok {
 			return true
 		}
 	}
 	return false
+}
+
+// ImageSourcesOption adds URLs to 'img-src', which is needed if images are loaded from other domains..
+type ImageSourcesOption struct {
+	URLs []string
+}
+
+func hasImageSourcesOption(options []Option) []string {
+	for _, opt := range options {
+		if sources, ok := opt.(ImageSourcesOption); ok {
+			return sources.URLs
+		}
+	}
+	return nil
 }
 
 // Serve builds and runs the App in a secure manner in our kubernetes cluster.
