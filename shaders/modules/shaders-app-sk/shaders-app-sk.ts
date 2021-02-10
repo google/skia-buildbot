@@ -76,6 +76,65 @@ const defaultState: State = {
   id: '@default',
 };
 
+function words(str: string): any {
+  const obj: any = {};
+  str.split(' ').forEach((word) => {
+    obj[word] = true;
+  });
+  return obj;
+}
+
+const cKeywords = 'auto if break case register continue return default do sizeof '
++ 'static else struct switch extern typedef union for goto while enum const '
++ 'volatile inline restrict asm fortran';
+
+// Keywords from https://en.cppreference.com/w/cpp/keyword includes C++20.
+const cppKeywords = 'alignas alignof and and_eq audit axiom bitand bitor catch '
++ 'class compl concept constexpr const_cast decltype delete dynamic_cast '
++ 'explicit export final friend import module mutable namespace new noexcept '
++ 'not not_eq operator or or_eq override private protected public '
++ 'reinterpret_cast requires static_assert static_cast template this '
++ 'thread_local throw try typeid typename using virtual xor xor_eq';
+
+const cBlockKeywords = 'case do else for if switch while struct enum union';
+const cDefKeywords = 'struct enum union';
+const builtins = `radians, degrees
+sin, cos, tan, asin, acos, atan
+pow, exp, log, exp2, log2
+sqrt, inversesqrt
+abs, sign, floor, ceil, fract, mod
+min, max, clamp, saturate
+mix, step, smoothstep
+length, distance, dot, cross, normalize
+faceforward, reflect, refract
+matrixCompMult, inverse
+lessThan, lessThanEqual, greaterThan, greaterThanEqual, equal, notEqual
+any, all, not
+sample, unpremul`;
+
+CodeMirror.defineMIME('text/x-sksl', {
+  name: 'sksl',
+  keywords: words(`${cKeywords} ${cppKeywords}  in, out, inout, uniform, layout `),
+  types: words(`int long char short double float unsigned signed void bool float, float2, float3, float4,
+  float2x2, float3x3, float4x4
+  half, half2, half3, half4,
+  half2x2, half3x3, half4x4
+  bool, bool2, bool3, bool4
+  int, int2, int3, int4
+  fragmentProcessor, shader,
+  vec2, vec3, vec4
+  ivec2, ivec3, ivec4
+  bvec2, bvec3, bvec4
+  mat2, mat3, mat4
+  `),
+  builtin: words(builtins),
+  blockKeywords: words(cBlockKeywords),
+  defKeywords: words(cDefKeywords),
+  typeFirstDefinitions: true,
+  atoms: words('sk_FragCoord true false'),
+  modeProps: { fold: ['brace', 'include'] },
+});
+
 // requestAnimationFrame id if requestAnimationFrame is not running.
 const RAF_NOT_RUNNING = -1;
 
@@ -239,7 +298,7 @@ export class ShadersAppSk extends ElementSk {
     this.canvasEle = $$<HTMLCanvasElement>('#player', this);
     this.codeMirror = CodeMirror($$<HTMLDivElement>('#codeEditor', this)!, {
       lineNumbers: true,
-      mode: 'text/x-c++src',
+      mode: 'text/x-sksl',
       theme: ShadersAppSk.themeFromCurrentMode(),
       viewportMargin: Infinity,
     });
