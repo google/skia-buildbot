@@ -291,7 +291,7 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return(nil, errors.New("not found"))
 
-	w := New(db, mis, 2)
+	w := New(db, mis, memDiffCache{}, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -346,7 +346,7 @@ func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return([]byte(`not a png`), nil)
 
-	w := New(db, mis, 2)
+	w := New(db, mis, memDiffCache{}, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -620,14 +620,14 @@ func kitchenSinkRoot(t *testing.T) string {
 }
 
 func newWorkerUsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
-	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, 2)
+	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, memDiffCache{}, 2)
 }
 
 func newWorkerUsingBlankImages(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
 	infraRoot, err := repo_root.Get()
 	require.NoError(t, err)
 	blankImagePath := filepath.Join(infraRoot, "golden", "go", "sql", "datakitchensink", "img", string(dks.DigestBlank+".png"))
-	return New(db, &fixedImageSource{img: blankImagePath}, 2)
+	return New(db, &fixedImageSource{img: blankImagePath}, memDiffCache{}, 2)
 }
 
 var kitchenSinkData = dks.Build()
@@ -676,4 +676,14 @@ type fixedImageSource struct {
 
 func (f fixedImageSource) GetImage(_ context.Context, _ types.Digest) ([]byte, error) {
 	return ioutil.ReadFile(f.img)
+}
+
+type memDiffCache map[string]bool
+
+func (m memDiffCache) AlreadyComputedDiff(_ context.Context, left, right types.Digest) bool {
+	return m[string(left+right)]
+}
+
+func (m memDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
+	m[string(left+right)] = true
 }

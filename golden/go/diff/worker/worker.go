@@ -68,9 +68,20 @@ type ImageSource interface {
 	GetImage(ctx context.Context, digest types.Digest) ([]byte, error)
 }
 
+type DiffCache interface {
+	// AlreadyComputedDiff returns true if, for certain, we have already computed this diff.
+	// It returns false if we have not or we are not sure. Errors should be logged and false should
+	// be returned.
+	AlreadyComputedDiff(ctx context.Context, left, right types.Digest) bool
+
+	// StoreDiffComputed updates the cache to let it know that yes, we did compute the diff.
+	StoreDiffComputed(ctx context.Context, left, right types.Digest)
+}
+
 // WorkerImpl is a basic implementation that reads and writes to the SQL backend.
 type WorkerImpl struct {
 	db                *pgxpool.Pool
+	diffCache         DiffCache // should be faster to query than db for a "yes/no" answer.
 	imageSource       ImageSource
 	badDigestsCache   *ttlcache.Cache
 	decodedImageCache *lru.Cache
@@ -84,13 +95,14 @@ type WorkerImpl struct {
 }
 
 // New returns a WorkerImpl that is ready to compute diffs.
-func New(db *pgxpool.Pool, src ImageSource, tilesToProcess int) *WorkerImpl {
+func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, tilesToProcess int) *WorkerImpl {
 	imgCache, err := lru.New(decodedImageCacheSize)
 	if err != nil {
 		panic(err) // should only happen if provided size is negative.
 	}
 	return &WorkerImpl{
 		db:                       db,
+		diffCache:                dc,
 		imageSource:              src,
 		badDigestsCache:          ttlcache.New(badImageCooldown, 2*badImageCooldown),
 		decodedImageCache:        imgCache,
@@ -330,15 +342,7 @@ SELECT encode(right_digest, 'hex') FROM DiffMetrics
 AS OF SYSTEM TIME '-0.1s'
 WHERE left_digest = $1 AND right_digest IN `
 		// First argument reserved for the left digest
-		arguments := make([]interface{}, 1, len(right)+1)
-		for _, r := range right {
-			rb, err := sql.DigestToBytes(r)
-			if err != nil {
-				return skerr.Wrapf(err, "bad digest %s", r)
-			}
-			arguments = append(arguments, rb)
-		}
-		vp := sql.ValuesPlaceholders(len(right)+1, 1) // TODO(kjlubick) create this dynamically if used bloom filter
+		arguments := make([]interface{}, 0, len(right)+1)
 
 		for _, leftD := range left[startIdx:endIdx] {
 			if err := ctx.Err(); err != nil {
@@ -348,14 +352,29 @@ WHERE left_digest = $1 AND right_digest IN `
 			if err != nil {
 				return skerr.Wrapf(err, "bad digest %s", leftD)
 			}
-			arguments[0] = lb
-			toCompute := make(map[types.Digest]bool, len(right))
+			// put the left digest as the first item in the re-used/cleaned arguments list.
+			arguments = append(arguments[:0], lb)
+			toCompute := make(map[digestPair]bool, len(right))
 			for _, rightD := range right {
-				// TODO(kjlubick) can check bloom filter
-				if leftD != rightD {
-					toCompute[rightD] = true
+				if leftD == rightD {
+					continue
 				}
+				dp := newDigestPair(leftD, rightD)
+				if w.diffCache.AlreadyComputedDiff(ctx, dp.left, dp.right) {
+					continue
+				}
+				rightBytes, err := sql.DigestToBytes(rightD)
+				if err != nil {
+					return skerr.Wrapf(err, "bad digest %s", rightD)
+				}
+				toCompute[dp] = true
+				arguments = append(arguments, rightBytes)
 			}
+
+			if len(toCompute) == 0 {
+				continue // go to the next leftDigest because there's no work here.
+			}
+			vp := sql.ValuesPlaceholders(len(arguments), 1)
 			rows, err := w.db.Query(ctx, statement+vp, arguments...)
 			if err != nil {
 				return skerr.Wrap(err)
@@ -366,17 +385,17 @@ WHERE left_digest = $1 AND right_digest IN `
 					rows.Close()
 					return skerr.Wrap(err)
 				}
-				toCompute[rightD] = false
+				dp := newDigestPair(leftD, rightD)
+				w.diffCache.StoreDiffComputed(ctx, dp.left, dp.right)
+				toCompute[dp] = false
 			}
 			rows.Close()
-			for rightD, needsComputing := range toCompute {
+			for pair, needsComputing := range toCompute {
 				if !needsComputing {
 					continue
 				}
-				dp := newDigestPair(leftD, rightD)
-				availableWork <- dp
+				availableWork <- pair
 				atomic.AddInt32(&workAdded, 1)
-				// TODO(kjlubick) can update bloom filter
 			}
 		}
 		return nil
