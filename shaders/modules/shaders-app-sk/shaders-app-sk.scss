@@ -129,6 +129,16 @@
       font-size: 11px;
     }
 
+    #imageSources {
+      display: flex;
+      align-items: center;
+      margin: 8px;
+
+      span {
+        margin-right: 8px;
+      }
+    }
+
     summary {
       display: initial;
       margin: initial;
