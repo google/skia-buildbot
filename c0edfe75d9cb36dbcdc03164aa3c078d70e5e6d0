@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "180e3486_c276296f",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-10T20:59:52Z",
+      "side": 1,
+      "message": "This needs to be renamed to \"_\"",
+      "range": {
+        "startLine": 358,
+        "startChar": 1,
+        "endLine": 358,
+        "endChar": 4
+      },
+      "revId": "c0edfe75d9cb36dbcdc03164aa3c078d70e5e6d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
