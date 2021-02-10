@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -298,7 +299,7 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 	// Create a dummy pre-upload step.
 	ran := false
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true
 		return nil
 	})
@@ -325,7 +326,7 @@ func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 	// Create a dummy pre-upload step.
 	ran := false
 	expectedErr := errors.New("Expected error")
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true
 		return expectedErr
 	})
