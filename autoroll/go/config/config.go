@@ -4,7 +4,7 @@ package config
 //go:generate protoc --go_opt=paths=source_relative --go_out=. ./config.proto
 //go:generate rm -rf ./go.skia.org
 //go:generate goimports -w config.pb.go
-//--go:generate protoc --twirp_typescript_out=../../modules/config ./config.proto
+//go:generate protoc --twirp_typescript_out=../../modules/config ./config.proto
 
 import (
 	"fmt"

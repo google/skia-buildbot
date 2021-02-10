@@ -15,10 +15,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/manual"
@@ -32,26 +34,35 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
 var (
 	// flags.
-	configsContents   = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
-	configFiles       = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config.")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	host              = flag.String("host", "localhost", "HTTP service host")
-	internal          = flag.Bool("internal", false, "If true, display the internal rollers.")
-	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port              = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	hang              = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
+	configsContents     = common.NewMultiStringFlag("config", nil, "Base 64 encoded config in JSON format. Supply this flag once for each roller. Mutually exclusive with --config_file.")
+	configFiles         = common.NewMultiStringFlag("config_file", nil, "Path to autoroller config file. Supply this flag once for each roller. Mutually exclusive with --config.")
+	configGerritProject = flag.String("config_gerrit_project", "", "Gerrit project used for editing configs.")
+	configRepo          = flag.String("config_repo", "", "Repo URL where configs are stored.")
+	configRepoPath      = flag.String("config_repo_path", "", "Path within the config repo where configs are stored.")
+	firestoreInstance   = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	host                = flag.String("host", "localhost", "HTTP service host")
+	internal            = flag.Bool("internal", false, "If true, display the internal rollers.")
+	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port                = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	hang                = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
 
 	allowedViewers = []string{
 		"prober@skia-public.iam.gserviceaccount.com",
@@ -64,8 +75,22 @@ var (
 
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
+	configTemplate *template.Template = nil
 
 	rollerConfigs map[string]*config.Config
+
+	configEditsInProgress               = map[string]*config.Config{}
+	configGitiles         *gitiles.Repo = nil
+
+	// gerritOauthConfig is the OAuth 2.0 client configuration used for
+	// interacting with Gerrit.
+	gerritOauthConfig = &oauth2.Config{
+		ClientID:     "not-a-valid-client-id",
+		ClientSecret: "not-a-valid-client-secret",
+		Scopes:       []string{gerrit.AUTH_SCOPE},
+		Endpoint:     google.Endpoint,
+		RedirectURL:  "http://localhost:8000/oauth2callback/",
+	}
 )
 
 func reloadTemplates() {
@@ -87,6 +112,9 @@ func reloadTemplates() {
 	))
 	rollerTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "roller.html"),
+	))
+	configTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "config.html"),
 	))
 }
 
@@ -132,15 +160,141 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func configHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		// Parse and validate the config.
+		configJson := r.FormValue("configJson")
+		var cfg config.Config
+		if err := protojson.Unmarshal([]byte(configJson), &cfg); err != nil {
+			httputils.ReportError(w, err, "Failed to parse config as JSON", http.StatusBadRequest)
+			return
+		}
+		if err := cfg.Validate(); err != nil {
+			httputils.ReportError(w, err, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// We're going to redirect for the OAuth2 flow. Store the config in
+		// memory.
+		// TODO(borenet): What happens if we scale Kubernetes up to multiple
+		// frontend pods and the user redirects back to a different instance?
+		var sessionID string
+		for {
+			sessionID = uuid.New().String()
+			if _, ok := configEditsInProgress[sessionID]; !ok {
+				break
+			}
+		}
+		configEditsInProgress[sessionID] = &cfg
+		time.AfterFunc(time.Hour, func() {
+			delete(configEditsInProgress, sessionID)
+		})
+
+		// Redirect for OAuth2.
+		opts := []oauth2.AuthCodeOption{oauth2.AccessTypeOnline, oauth2.SetAuthURLParam("approval_prompt", "auto")}
+		redirectURL := gerritOauthConfig.AuthCodeURL(sessionID, opts...)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+	} else {
+		w.Header().Set("Content-Type", "text/html")
+		if err := configTemplate.Execute(w, nil); err != nil {
+			httputils.ReportError(w, errors.New("Failed to expand template."), fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
+		}
+	}
+}
+
+func configJSONHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	cfg := getRoller(w, r)
+	if cfg == nil {
+		return // Errors are handled by getRoller.
+	}
+
+	b, err := protojson.Marshal(cfg)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
+		return
+	}
+	if _, err := w.Write(b); err != nil {
+		httputils.ReportError(w, err, "Failed to write response.", http.StatusInternalServerError)
+		return
+	}
+}
+
+func submitConfigUpdate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	sessionID := r.FormValue("state")
+	cfg, ok := configEditsInProgress[sessionID]
+	if !ok {
+		msg := "Unable to find config"
+		httputils.ReportError(w, errors.New(msg), msg, http.StatusBadRequest)
+		return
+	}
+	content, err := prototext.MarshalOptions{
+		Indent: "  ",
+	}.Marshal(cfg)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to encode config to proto.", http.StatusInternalServerError)
+		return
+	}
+	code := r.FormValue("code")
+	token, err := gerritOauthConfig.Exchange(ctx, code)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to authenticate.", http.StatusInternalServerError)
+		return
+	}
+	ts := gerritOauthConfig.TokenSource(ctx, token)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	g, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, client)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to initialize Gerrit API.", http.StatusInternalServerError)
+		return
+	}
+	baseCommit, err := configGitiles.ResolveRef(ctx, git.DefaultBranch)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to find base commit.", http.StatusInternalServerError)
+		return
+	}
+	configFile := cfg.RollerName + ".cfg"
+	if *configRepoPath != "" {
+		configFile = path.Join(*configRepoPath, configFile)
+	}
+	// TODO(borenet): Handle custom commit messages.
+	ci, err := gerrit.CreateAndEditChange(ctx, g, *configGerritProject, git.DefaultBranch, "Update AutoRoller Config", baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+		return g.EditFile(ctx, ci, configFile, string(content))
+	})
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to create change.", http.StatusInternalServerError)
+		return
+	}
+	redirectURL := g.Url(ci.Issue)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+func oAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
+	// We share the same OAuth2 redirect URL between the normal login flow and
+	// the Gerrit auth flow used for editing roller configs.  Use the presence
+	// of the state variable in the configEditsInProgress map to distinguish
+	// between the two.
+	state := r.FormValue("state")
+	if _, ok := configEditsInProgress[state]; ok {
+		submitConfigUpdate(w, r)
+	} else {
+		login.OAuth2CallbackHandler(w, r)
+	}
+}
+
 func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
+	r.HandleFunc("/config", configHandler)
+	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, oAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", rollerHandler)
+	rollerRouter.HandleFunc("/config", configJSONHandler)
 	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(srv)
 	h := httputils.LoggingRequestResponse(r)
 	if !*local {
@@ -169,7 +323,7 @@ func main() {
 		select {}
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -188,6 +342,15 @@ func main() {
 		sklog.Fatal(err)
 	}
 	throttleDB := unthrottle.NewDatastore(ctx)
+
+	if *configRepo == "" {
+		sklog.Fatal("--config_repo is required.")
+	}
+	if *configGerritProject == "" {
+		sklog.Fatal("--config_gerrit_project is required.")
+	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	configGitiles = gitiles.NewRepo(*configRepo, client)
 
 	// Read the configs for the rollers.
 	if len(*configsContents) > 0 && len(*configFiles) > 0 {
@@ -288,6 +451,15 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllow, editAllow, viewAllow)
+
+	// Load the OAuth2 config information.
+	_, clientID, clientSecret := login.TryLoadingFromKnownLocations()
+	if clientID == "" || clientSecret == "" {
+		sklog.Fatal("Failed to load OAuth2 configuration.")
+	}
+	gerritOauthConfig.ClientID = clientID
+	gerritOauthConfig.ClientSecret = clientSecret
+	gerritOauthConfig.RedirectURL = serverURL + login.DEFAULT_OAUTH2_CALLBACK
 
 	// Create the server.
 	runServer(ctx, serverURL, srv)
