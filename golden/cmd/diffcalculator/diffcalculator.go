@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/bradfitz/gomemcache/memcache"
+
 	"cloud.google.com/go/pubsub"
 	gstorage "cloud.google.com/go/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -43,12 +45,20 @@ const (
 type diffCalculatorConfig struct {
 	config.Common
 
+	// DiffCacheNamespace is a namespace for differentiating the DiffCache entities. The instance
+	// name is fine here.
+	DiffCacheNamespace string
+
 	// DiffWorkSubscription is the subscription name used by all replicas of the diffcalculator.
 	// By setting the subscriber ID to be the same on all instances of the diffcalculator,
 	// only one of the replicas will get each event (usually). We like our subscription names
 	// to be unique and keyed to the instance, for easier following up on "Why are there so many
 	// backed up messages?"
 	DiffWorkSubscription string `json:"diff_work_subscription"`
+
+	// MemcachedServer is the address in the form dns_name:port
+	// (e.g. gold-memcached-0.gold-memcached:11211).
+	MemcachedServer string `json:"memcached_server"`
 
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
@@ -99,8 +109,9 @@ func main() {
 
 	db := mustInitSQLDatabase(ctx, dcc)
 	gis := mustMakeGCSImageSource(ctx, dcc)
+	diffcache := mustMakeDiffCache(ctx, dcc)
 	sqlProcessor := &processor{
-		calculator:  worker.New(db, gis, dcc.TilesToProcess),
+		calculator:  worker.New(db, gis, diffcache, dcc.TilesToProcess),
 		ackCounter:  metrics2.GetCounter("diffcalculator_ack"),
 		nackCounter: metrics2.GetCounter("diffcalculator_nack"),
 	}
@@ -166,6 +177,53 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 	defer util.Close(r)
 	b, err := ioutil.ReadAll(r)
 	return b, skerr.Wrap(err)
+}
+
+type memcachedDiffCache struct {
+	client *memcache.Client
+
+	// namespace is the string to add to each key to avoid conflicts with more than one
+	// gold instance.
+	namespace string
+}
+
+func key(namespace string, left, right types.Digest) string {
+	return namespace + string(left+"_"+right)
+}
+
+// AlreadyComputedDiff implements the DiffCache interface.
+func (m *memcachedDiffCache) AlreadyComputedDiff(_ context.Context, left, right types.Digest) bool {
+	_, err := m.client.Get(key(m.namespace, left, right))
+	if err == memcache.ErrCacheMiss {
+		return false
+	} else if err != nil {
+		sklog.Warningf("Could not read from memcached: %s", err)
+		return false
+	}
+	return true
+}
+
+// StoreDiffComputed implements the DiffCache interface.
+func (m *memcachedDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
+	err := m.client.Set(&memcache.Item{
+		Key:   key(m.namespace, left, right),
+		Value: []byte{0x01},
+	})
+	if err != nil {
+		sklog.Warningf("Could not set in memcached: %s", err)
+	}
+}
+
+func mustMakeDiffCache(_ context.Context, dcc diffCalculatorConfig) worker.DiffCache {
+	c := memcache.New(dcc.MemcachedServer)
+	c.Timeout = time.Second
+	if err := c.Ping(); err != nil {
+		sklog.Fatalf("Could not ping memcached server %s: %s", dcc.MemcachedServer, err)
+	}
+	return &memcachedDiffCache{
+		client:    c,
+		namespace: dcc.DiffCacheNamespace,
+	}
 }
 
 func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {
