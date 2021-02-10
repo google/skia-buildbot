@@ -51,6 +51,7 @@ var (
 		config.PreUploadStep_ANGLE_GN_TO_BP:                      AngleGnToBp,
 		config.PreUploadStep_SKIA_GN_TO_BP:                       SkiaGnToBp,
 		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
+		config.PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE:   VulkanDepsUpdateCommitMessage,
 	}
 )
 
@@ -349,5 +350,18 @@ func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parent
 		Env:  env,
 	})
 	sklog.Infof("Output from roll_chromium_deps.py:\n%s", out)
+	return skerr.Wrap(err)
+}
+
+// VulkanDepsUpdateCommitMessage runs a script to produce a more usful commit message.
+func VulkanDepsUpdateCommitMessage(ctx context.Context, env []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
+	sklog.Info("Running update-commit-message script...")
+	out, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python3",
+		Args: []string{filepath.Join("third_party", "vulkan-deps", "update-commit-message.py", "--old-revision", from.Id)},
+		Dir:  parentRepoDir,
+		Env:  env,
+	})
+	sklog.Infof("Output from update-commit-message.py:\n%s", out)
 	return skerr.Wrap(err)
 }
