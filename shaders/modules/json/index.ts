@@ -6,6 +6,7 @@ export interface SVGMetaData {
 export interface SKSLMetaData {
 	Uniforms: number[] | null;
 	Children: string[] | null;
+	SourceImageURLs: string[] | null;
 }
 
 export interface ParticlesMetaData {

@@ -211,6 +211,10 @@ export class ShadersAppSk extends ElementSk {
         <details id=shaderinputs>
           <summary>Shader Inputs</summary>
           <textarea rows=3 cols=75 readonly id="predefinedShaderInputs"></textarea>
+          <div id=imageSources>
+            <span>Source Image:</span>
+            <img style="width: 32px; height: 32px;" loading="eager" src=https://storage.googleapis.com/skia-public-shader-images/mandrill.png>
+        </div>
         </details>
         <div id="codeEditor"></div>
         <div ?hidden=${!ele.compileErrorMessage} id="compileErrors">
@@ -504,6 +508,7 @@ export class ShadersAppSk extends ElementSk {
       SKSLMetaData: {
         Uniforms: userUniformValues,
         Children: [],
+        SourceImageURLs: [],
       },
     };
     try {

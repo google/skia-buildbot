@@ -133,6 +133,9 @@ type SKSLMetaData struct {
 	// Child shaders. These values are the hashes of shaders, or, if the value
 	// begins with an "@", they are the name of a named shader.
 	Children []string
+
+	// SourceImageURLs are the URLs of images to use as input shaders.
+	SourceImageURLs []string
 }
 
 // ParticlesMetaData is metadata for Particle scraps.
