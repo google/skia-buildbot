@@ -19,5 +19,5 @@ func TestSecurityMiddleware_LocalNoOptions(t *testing.T) {
 
 func TestSecurityMiddleware_NotLocalAllowWASM(t *testing.T) {
 	unittest.SmallTest(t)
-	require.Equal(t, "base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-eval' 'unsafe-inline' https: http: ; report-uri /cspreport ;", cspString([]string{"https://example.org"}, false, []Option{AllowWASM{}}))
+	require.Equal(t, "base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-eval' 'unsafe-inline' https: http: ; report-uri /cspreport ;", cspString([]string{"https://example.org"}, false, []Option{AllowWASMOption{}}))
 }
