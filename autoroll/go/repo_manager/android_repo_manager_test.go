@@ -176,7 +176,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 
 	ran := false
 	rm.(*androidRepoManager).preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
+		func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 			ran = true
 			return nil
 		},

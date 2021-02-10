@@ -249,7 +249,7 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 	cfg := githubRmCfg(t)
 	// Create a dummy pre-upload step.
 	ran := false
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true
 		return nil
 	})
@@ -276,7 +276,7 @@ func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
 	// Create a dummy pre-upload step.
 	ran := false
 	expectedErr := errors.New("Expected error")
-	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error {
 		ran = true
 		return expectedErr
 	})
