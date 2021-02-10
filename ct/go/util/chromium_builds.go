@@ -49,11 +49,12 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 //
 // ctx is the Context to use.
 // runID is the unique id of the current run (typically requester + timestamp).
+// targetPlatform is the platform the benchmark will run on (Android / Linux / Windows).
 // chromiumHash is the hash the checkout should be synced to.
 // pathToPyFiles is the local path to CT's python scripts. Eg: sync_skia_in_chrome.py.
 // gitExec is the local path to the git binary.
 // applyPatches if true looks for Chromium/Skia/V8/Catapult patches in the temp dir.
-func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyFiles, gitExec string, applyPatches bool) error {
+func CreateTelemetryIsolates(ctx context.Context, runID, targetPlatform, chromiumHash, pathToPyFiles, gitExec string, applyPatches bool) error {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	MkdirAll(chromiumBuildDir, 0700)
 
@@ -96,8 +97,12 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 	if err := os.Setenv("PATH", DepotToolsDir+string(os.PathListSeparator)+os.Getenv("PATH")); err != nil {
 		return fmt.Errorf("Could not set PATH env var: %s", err)
 	}
-	// Run "gn gen out/${TELEMETRY_ISOLATES_OUT_DIR}"
-	if err := ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "gn"), []string{"gen", TELEMETRY_ISOLATES_OUT_DIR}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+	// Run "gn gen out/${TELEMETRY_ISOLATES_OUT_DIR} --args=..."
+	gn_args := []string{}
+	if targetPlatform == PLATFORM_WINDOWS {
+		gn_args = append(gn_args, "enable_precompiled_headers=false")
+	}
+	if err := ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "gn"), []string{"gen", TELEMETRY_ISOLATES_OUT_DIR, fmt.Sprintf("--args=%s", strings.Join(gn_args, " "))}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "tools/mb/mb.py isolate ${TELEMETRY_ISOLATES_OUT_DIR} ${TELEMETRY_ISOLATES_TARGET}"
@@ -120,7 +125,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 // CreateChromiumBuildOnSwarming creates a chromium build using the specified arguments.
 
 // runID is the unique id of the current run (typically requester + timestamp).
-// targetPlatform is the platform the benchmark will run on (Android / Linux ).
+// targetPlatform is the platform the benchmark will run on (Android / Linux / Windows ).
 // chromiumHash is the hash the checkout should be synced to. If not specified then
 // Chromium's Tot hash is used.
 // skiaHash is the hash the checkout should be synced to. If not specified then
