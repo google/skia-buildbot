@@ -54,7 +54,9 @@ class CsvMerger(object):
         dict_reader = csv.DictReader(f)
         for row in dict_reader:
           field_name = self._GetFieldNameFromRow(row)
-          field_names.add(field_name)
+          field_names.add(field_name.rstrip('\r') if field_name else field_name)
+      print 'field_names are'
+      print field_names
     # We use 'page_name' in the output CSV to ID the webpage.
     field_names.add(OUTPUT_PAGE_NAME_KEY);
     field_names.add(TELEMETRY_TRACE_URLS_KEY);
@@ -73,6 +75,7 @@ class CsvMerger(object):
     return avg/len(l)
 
   def _GetTraceURLVal(self, values):
+    # HERE HERE (get rid of carriage returns I think)
     if not values:
       return ''
     # Deduplicate and maintain the order of items in the list.
@@ -84,12 +87,19 @@ class CsvMerger(object):
     fieldname_to_values = {}
     for row in rows:
       page_name = row[TELEMETRY_PAGE_NAME_KEY]
-      value = row[self._value_column_name]
+      try:
+        value = row[self._value_column_name]
+      except:
+        print 'FAILED'
+        print row
       fieldname = self._GetFieldNameFromRow(row)
       fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
 
+      print 'TRACEURL GOT THIS'
       traceURL = row.get(TELEMETRY_TRACE_URLS_KEY)
+      print traceURL
       if traceURL:
+        traceURL = traceURL.rstrip()
         if TELEMETRY_TRACE_URLS_KEY in fieldname_to_values:
           fieldname_to_values[TELEMETRY_TRACE_URLS_KEY].append(traceURL)
         else:
