@@ -118,5 +118,7 @@ func (srv *server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
-	baseapp.Serve(new, []string{"shaders.skia.org"}, baseapp.AllowWASM{})
+	baseapp.Serve(new, []string{"shaders.skia.org"}, baseapp.AllowWASMOption{}, baseapp.ImageSourcesOption{
+		URLs: []string{"https://storage.googleapis.com/"},
+	})
 }
