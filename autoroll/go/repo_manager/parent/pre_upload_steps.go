@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
@@ -35,7 +36,7 @@ var cipdRoot = path.Join(os.TempDir(), "cipd")
 // variables which should be used by the pre-upload step. The http.Client should
 // be authenticated. The string parameter is the absolute path to the directory
 // of the parent repo.
-type PreUploadStep func(context.Context, []string, *http.Client, string) error
+type PreUploadStep func(context.Context, []string, *http.Client, string, *revision.Revision, *revision.Revision) error
 
 var (
 	// preUploadSteps is the registry of known PreUploadStep instances.
@@ -89,7 +90,7 @@ func AddPreUploadStepForTesting(s PreUploadStep) config.PreUploadStep {
 }
 
 // TrainInfra trains the infra expectations.
-func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
 	_, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
@@ -133,7 +134,7 @@ func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRe
 // Flutter.
 // See https://bugs.chromium.org/p/skia/issues/detail?id=8437#c18 and
 // https://bugs.chromium.org/p/skia/issues/detail?id=8437#c21 for context.
-func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	sklog.Info("Running create_updated_flutter_deps.py and then \"gclient sync\"")
 
 	scriptDir := filepath.Join(parentRepoDir, "..", "tools", "dart")
@@ -158,17 +159,17 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 // FlutterLicenseScripts runs the flutter license scripts as described in
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
-func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_skia")
 }
 
 // FlutterLicenseScriptsForFuchsia runs the flutter license scripts for fuchsia.
-func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+func FlutterLicenseScriptsForFuchsia(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_fuchsia")
 }
 
 // FlutterLicenseScriptsForDart runs the flutter license scripts for dart.
-func FlutterLicenseScriptsForDart(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string) error {
+func FlutterLicenseScriptsForDart(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_third_party")
 }
 
@@ -252,7 +253,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir, licenseFileName s
 }
 
 // GoGenerateCipd runs "go generate" in go/cipd.
-func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string) error {
+func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
 	goExc, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
@@ -292,7 +293,7 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 }
 
 // AngleGnToBp runs Angle's scripts to roll into Android.
-func AngleGnToBp(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+func AngleGnToBp(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	angleDir := filepath.Join(parentRepoDir, "external", "angle")
 	if _, scriptErr := exec.RunCwd(ctx, angleDir, "./scripts/roll_aosp.sh"); scriptErr != nil {
 		return fmt.Errorf("./scripts/roll_aosp.sh error: %s", scriptErr)
@@ -301,7 +302,7 @@ func AngleGnToBp(ctx context.Context, env []string, client *http.Client, parentR
 }
 
 // SkiaGnToBp runs Skia's gn_to_bp.py script to roll into Android.
-func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	skiaDir := filepath.Join(parentRepoDir, "external", "skia")
 	if err := android_skia_checkout.RunGnToBp(ctx, skiaDir); err != nil {
 		return fmt.Errorf("Error when running gn_to_bp: %s", err)
@@ -318,7 +319,7 @@ func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRe
 }
 
 // ANGLECodeGeneration runs the ANGLE code generation script.
-func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	sklog.Info("Running code generation script...")
 	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name: "python",
@@ -331,7 +332,7 @@ func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client,
 }
 
 // ANGLERollChromium runs the ANGLE roll_chromium_deps.py script.
-func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	sklog.Info("Running roll_chromium_deps script...")
 	contents, err := ioutil.ReadFile(filepath.Join(parentRepoDir, deps_parser.DepsFileName))
 	if err != nil {
