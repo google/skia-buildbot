@@ -90,4 +90,7 @@ push_thanos:
 push_thanos_bounce:
 	pushk thanos-bounce
 
+.PHONY: update_alerts
+update_alerts: push_config_thanos
+
 include ../make/clusters.mk
