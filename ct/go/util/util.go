@@ -950,6 +950,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		"--run_id=" + runID,
 		"--chromium_hash=" + chromiumHash,
 		"--patches=" + strings.Join(patches, ","),
+		"--target_platform=" + targetPlatform,
 		"--out=${ISOLATED_OUTDIR}",
 	}
 	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout)
