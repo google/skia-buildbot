@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5c073681_1cc223dd",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-10T14:58:50Z",
+      "side": 1,
+      "message": "The good news is that I fixed baseapp so that it can work with WASM, so this TODO is now feasible.",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 36
+      },
+      "revId": "4f29457701060a73b56a2f7543f06a5c4fa790fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
