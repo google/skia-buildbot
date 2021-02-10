@@ -128,7 +128,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		// Run the pre-upload steps.
 		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
 		for _, s := range preUploadSteps {
-			if err := s(ctx, depotToolsEnv, client, co.Dir()); err != nil {
+			if err := s(ctx, depotToolsEnv, client, co.Dir(), from, to); err != nil {
 				return "", skerr.Wrapf(err, "failed pre-upload step")
 			}
 		}

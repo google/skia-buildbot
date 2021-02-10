@@ -304,7 +304,7 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -390,7 +390,7 @@ third_party {
 
 	// Run the pre-upload steps.
 	for _, s := range r.preUploadSteps {
-		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {
+		if err := s(ctx, nil, r.httpClient, r.workdir, from, to); err != nil {
 			util.LogErr(r.abortMerge(ctx))
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
