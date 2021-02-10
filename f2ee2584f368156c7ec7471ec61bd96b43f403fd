@@ -33,6 +33,63 @@
       "message": "Friendly ping",
       "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a4aa6b40_41834a8c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-10T16:12:12Z",
+      "side": 1,
+      "message": "LGTM",
+      "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fc54c0ec_9f889b22",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-10T16:12:12Z",
+      "side": 1,
+      "message": "This is not working yet, is that right?\n(there are constants you can use from login.go instead of some of the below if you want, could even directly access oauthConfig from login and then override what you need to, or expose initLogin)",
+      "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2c2899a9_a6088988",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-10T16:12:12Z",
+      "side": 1,
+      "message": "login.DEFAULT_OAUTH2_CALLBACK",
+      "range": {
+        "startLine": 463,
+        "startChar": 47,
+        "endLine": 463,
+        "endChar": 61
+      },
+      "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
