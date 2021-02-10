@@ -1731,6 +1731,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "skottie-tenor",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skottie-tenor",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skottie-tenor",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "status",
           "endpoints": [
             {
@@ -4008,6 +4034,23 @@
                           },
                           "route": {
                             "cluster": "skottie-internal",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skottie-tenor.skia.org",
+                      "name": "skottie-tenor.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skottie-tenor",
                             "timeout": {
                               "seconds": 600
                             }
