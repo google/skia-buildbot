@@ -69,6 +69,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b29e46f_9eada3b5",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-10T16:18:42Z",
+      "side": 1,
+      "message": "Sorry, I forgot to remove this comment.  It\u0027s initialized at line 455 and the flow works end to end.",
+      "parentUuid": "fc54c0ec_9f889b22",
+      "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2c2899a9_a6088988",
@@ -82,6 +100,30 @@
       "writtenOn": "2021-02-10T16:12:12Z",
       "side": 1,
       "message": "login.DEFAULT_OAUTH2_CALLBACK",
+      "range": {
+        "startLine": 463,
+        "startChar": 47,
+        "endLine": 463,
+        "endChar": 61
+      },
+      "revId": "f2ee2584f368156c7ec7471ec61bd96b43f403fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ed211f7_afc13dce",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-10T16:18:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c2899a9_a6088988",
       "range": {
         "startLine": 463,
         "startChar": 47,
