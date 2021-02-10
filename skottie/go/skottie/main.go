@@ -21,9 +21,9 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
@@ -34,9 +34,8 @@ import (
 )
 
 const (
-	// gcsBucket is the Cloud Storage bucket we store files in.
-	gcsBucket         = "skottie-renderer"
-	gcsBucketInternal = "skottie-renderer-internal"
+	// callbackPath is callback endpoint used for the OAuth2 flow
+	callbackPath = "/oauth2callback/"
 
 	// These sizes are in bytes.
 	maxFilenameSize = 5 * 1024
@@ -46,81 +45,145 @@ const (
 	maxZipFiles = 5000
 )
 
-// flags
-var (
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	lockedDown   = flag.Bool("locked_down", false, "Restricted to only @google.com accounts.")
-	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-)
+type skottieConfig struct {
+	// AuthorizedUsers is a list of email addresses or domains that can log into this instance.
+	AuthorizedUsers []string `json:"authorized_users"`
 
-var (
-	canUploadZips = false
-)
+	// CanUploadZips controls if this instance supports people uploading zip files.
+	CanUploadZips bool `json:"can_upload_zips"`
+
+	// ClientSecretFile is the location of the client secret file for OAuth2 authentication.
+	ClientSecretFile string `json:"client_secret_file"`
+
+	// GCSBucket is the bucket to store and retrieve the skottie assets.
+	GCSBucket string `json:"gcs_bucket"`
+
+	// ForceAuth requires users to log in to view the skotties.
+	ForceAuth bool `json:"force_auth"`
+
+	// Local is true if running locally (not in production).
+	Local bool `json:"local"`
+
+	// ResourcesPath houses static assets that should be served to the frontend (JS, CSS, etc.).
+	ResourcesPath string `json:"resources_path"`
+
+	// SiteURL is where this app is hosted.
+	SiteURL string `json:"site_url"`
+}
+
+func main() {
+	var (
+		configPath = flag.String("config", "", "The path to the config JSON5 file.")
+		port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+		promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	)
+	flag.Parse()
+	common.InitWithMust(
+		"skottie",
+		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
+	)
+
+	var sc skottieConfig
+	if err := config.ParseConfigFile(*configPath, "config", &sc); err != nil {
+		sklog.Fatalf("Loading config file %s: %s", *configPath, err)
+	}
+
+	srv, err := newServer(sc)
+	if err != nil {
+		sklog.Fatalf("Failed to start: %s", err)
+	}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/drive", srv.templateHandler("drive.html"))
+	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
+	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html")).Methods("GET")
+	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html")).Methods("GET")
+
+	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
+	r.HandleFunc(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler).Methods("GET")
+	r.HandleFunc("/_/upload", srv.uploadHandler).Methods("POST")
+
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(sc.ResourcesPath))))).Methods("GET")
+
+	// TODO(jcgregorio) Implement CSRF.
+	h := httputils.LoggingGzipRequestResponse(r)
+	h = httputils.CrossOriginResourcePolicy(h)
+	if !sc.Local {
+		if sc.ForceAuth {
+			sklog.Infof("The allowed list of users is: %q", sc.AuthorizedUsers)
+			redirectURL := sc.SiteURL + callbackPath
+			if err := login.Init(redirectURL, strings.Join(sc.AuthorizedUsers, " "), sc.ClientSecretFile); err != nil {
+				sklog.Fatalf("Failed to initialize login: %s", err)
+			}
+			h = login.ForceAuth(h, callbackPath)
+		}
+		h = httputils.HealthzAndHTTPS(h)
+	}
+
+	http.Handle("/", h)
+	sklog.Info("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
+}
 
 // Server is the state of the server.
 type Server struct {
-	bucket    *storage.BucketHandle
-	templates *template.Template
+	alwaysReloadTemplates bool
+	canUploadZips         bool
+	bucket                *storage.BucketHandle
+	resourceDir           string
+	templates             *template.Template
 }
 
-func New() (*Server, error) {
-	if *resourcesDir == "" {
+func newServer(sc skottieConfig) (*Server, error) {
+	resourcesDir := sc.ResourcesPath
+	if resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
+		resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
 	}
 
 	// Need to set the mime-type for wasm files so streaming compile works.
 	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeFullControl)
+	ts, err := auth.NewDefaultTokenSource(sc.Local, storage.ScopeFullControl)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get token source: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to get token source")
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
-		return nil, fmt.Errorf("Problem creating storage client: %s", err)
-	}
-
-	if *lockedDown {
-		allow := allowed.NewAllowedFromList([]string{"google.com"})
-		login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
-	}
-
-	bucket := gcsBucket
-	if *lockedDown {
-		bucket = gcsBucketInternal
+		return nil, skerr.Wrapf(err, "Problem creating storage client")
 	}
 
 	srv := &Server{
-		bucket: storageClient.Bucket(bucket),
+		alwaysReloadTemplates: sc.Local,
+		bucket:                storageClient.Bucket(sc.GCSBucket),
+		resourceDir:           resourcesDir,
 	}
 	srv.loadTemplates()
 	return srv, nil
 }
 
-func (srv *Server) loadTemplates() {
-	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(*resourcesDir, "index.html"),
-		filepath.Join(*resourcesDir, "drive.html"),
-		filepath.Join(*resourcesDir, "embed.html"),
+func (s *Server) loadTemplates() {
+	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+		filepath.Join(s.resourceDir, "index.html"),
+		filepath.Join(s.resourceDir, "drive.html"),
+		filepath.Join(s.resourceDir, "embed.html"),
 	))
 }
-func (srv *Server) templateHandler(filename string) func(http.ResponseWriter, *http.Request) {
+func (s *Server) templateHandler(filename string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		// Set the HTML to expire at the same time as the JS and WASM, otherwise the HTML
 		// (and by extension, the JS with its cachbuster hash) might outlive the WASM
 		// and then the two will skew
 		w.Header().Set("Cache-Control", "max-age=60")
-		if *local {
-			srv.loadTemplates()
+		if s.alwaysReloadTemplates {
+			s.loadTemplates()
 		}
-		if err := srv.templates.ExecuteTemplate(w, filename, nil); err != nil {
+		if err := s.templates.ExecuteTemplate(w, filename, nil); err != nil {
 			sklog.Errorf("Failed to expand template %s: %s", filename, err)
 		}
 	}
@@ -138,7 +201,7 @@ func resourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Reques
 	}
 }
 
-func (srv *Server) verificationHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) verificationHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	_, err := w.Write([]byte("google-site-verification: google99d1f93c6755806b.html"))
 	if err != nil {
@@ -146,12 +209,12 @@ func (srv *Server) verificationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	hash := mux.Vars(r)["hash"]
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
-	reader, err := srv.bucket.Object(path).NewReader(r.Context())
+	reader, err := s.bucket.Object(path).NewReader(r.Context())
 	if err != nil {
 		sklog.Warningf("Can't load JSON file %s from GCS: %s", path, err)
 		w.WriteHeader(http.StatusNotFound)
@@ -167,13 +230,13 @@ func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 // [endpoint]/[hash]/[name]
 // It then looks in the GCS location:
 // gs://[bucket]/[hash]/assets/[name]
-func (srv *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	hash := mux.Vars(r)["hash"]
 	name := mux.Vars(r)["name"]
 	path := strings.Join([]string{hash, "assets", name}, "/")
-	reader, err := srv.bucket.Object(path).NewReader(r.Context())
+	reader, err := s.bucket.Object(path).NewReader(r.Context())
 	if err != nil {
 		sklog.Warningf("Can't load asset %s from GCS: %s", path, err)
 		w.WriteHeader(http.StatusNotFound)
@@ -206,7 +269,7 @@ type UploadResponse struct {
 	Lottie interface{} `json:"lottie"` // the parsed JSON
 }
 
-func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Extract json file.
 	defer util.Close(r.Body)
@@ -236,19 +299,19 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Processing input with hash %s", hash)
 
 	if strings.HasSuffix(req.Filename, ".json") {
-		if err := srv.createFromJSON(ctx, &req, hash); err != nil {
+		if err := s.createFromJSON(ctx, &req, hash); err != nil {
 			httputils.ReportError(w, err, "Failed handing input of JSON.", http.StatusInternalServerError)
 			return
 		}
-	} else if canUploadZips && strings.HasSuffix(req.Filename, ".zip") {
-		if err := srv.createFromZip(ctx, &req, hash); err != nil {
+	} else if s.canUploadZips && strings.HasSuffix(req.Filename, ".zip") {
+		if err := s.createFromZip(ctx, &req, hash); err != nil {
 			httputils.ReportError(w, err, "Failed handing input of JSON.", http.StatusInternalServerError)
 			return
 		}
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := "Only .json files allowed"
-		if canUploadZips {
+		if s.canUploadZips {
 			msg = "Only .json and .zip files allowed"
 		}
 		if _, err := w.Write([]byte(msg)); err != nil {
@@ -267,7 +330,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash string) error {
+func (s *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash string) error {
 	b, err := json.Marshal(req.Lottie)
 	if err != nil {
 		return skerr.Fmt("Can't re-encode lottie file: %s", err)
@@ -276,8 +339,8 @@ func (srv *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash 
 		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", len(b), err)
 	}
 
-	if canUploadZips && req.AssetsZip != "" {
-		if err := srv.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
+	if s.canUploadZips && req.AssetsZip != "" {
+		if err := s.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
 			return skerr.Fmt("Could not process asset folder: %s", err)
 		}
 	}
@@ -285,10 +348,10 @@ func (srv *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash 
 	// We don't need to store the zip contents or filename.
 	req.AssetsZip = ""
 	req.AssetsFilename = ""
-	return srv.uploadState(ctx, req, hash)
+	return s.uploadState(ctx, req, hash)
 }
 
-func (srv *Server) uploadState(ctx context.Context, req *UploadRequest, hash string) error {
+func (s *Server) uploadState(ctx context.Context, req *UploadRequest, hash string) error {
 	// Write JSON file, containing the state (filename, lottie, etc)
 	bytesToUpload, err := json.Marshal(req)
 	if err != nil {
@@ -296,7 +359,7 @@ func (srv *Server) uploadState(ctx context.Context, req *UploadRequest, hash str
 	}
 
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
-	obj := srv.bucket.Object(path)
+	obj := s.bucket.Object(path)
 	wr := obj.NewWriter(ctx)
 	wr.ObjectAttrs.ContentEncoding = "application/json"
 	if _, err := wr.Write(bytesToUpload); err != nil {
@@ -308,7 +371,7 @@ func (srv *Server) uploadState(ctx context.Context, req *UploadRequest, hash str
 	return nil
 }
 
-func (srv *Server) createFromZip(ctx context.Context, req *UploadRequest, hash string) error {
+func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash string) error {
 	zr, err := readBase64Zip(req.AssetsZip)
 	if err != nil {
 		return err
@@ -358,7 +421,7 @@ func (srv *Server) createFromZip(ctx context.Context, req *UploadRequest, hash s
 	// re-attach them if they re-upload the animation.
 	req.AssetsFilename = ""
 
-	if err := srv.uploadState(ctx, req, hash); err != nil {
+	if err := s.uploadState(ctx, req, hash); err != nil {
 		return skerr.Fmt("Could not upload lottie.json state: %s", err)
 	}
 
@@ -376,7 +439,7 @@ func (srv *Server) createFromZip(ctx context.Context, req *UploadRequest, hash s
 			eg.Go(func() error {
 				dest := strings.Join([]string{hash, "assets", strippedName}, "/")
 				sklog.Infof("Uploading %s from zip file to %s", strippedName, dest)
-				if err := srv.writeZipFileToGCS(newCtx, tf, dest, "application/octet-stream"); err != nil {
+				if err := s.writeZipFileToGCS(newCtx, tf, dest, "application/octet-stream"); err != nil {
 					return skerr.Fmt("Failed while uploading asset %s to %s: %s", tf.Name, dest, err)
 				}
 				return nil
@@ -386,13 +449,13 @@ func (srv *Server) createFromZip(ctx context.Context, req *UploadRequest, hash s
 	return eg.Wait()
 }
 
-func (srv *Server) writeZipFileToGCS(ctx context.Context, f *zip.File, dest, encoding string) error {
+func (s *Server) writeZipFileToGCS(ctx context.Context, f *zip.File, dest, encoding string) error {
 	fr, err := f.Open()
 	if err != nil {
 		return skerr.Fmt("Failed reading out of zip file when uploading %s: %s", dest, err)
 	}
 	defer util.Close(fr)
-	obj := srv.bucket.Object(dest)
+	obj := s.bucket.Object(dest)
 	wr := obj.NewWriter(ctx)
 	wr.ObjectAttrs.ContentEncoding = encoding
 	if _, err := io.Copy(wr, fr); err != nil {
@@ -429,7 +492,7 @@ func getFileName(zipName string) string {
 var topJSONFile = regexp.MustCompile(`^(?P<prefix>.*?)(?P<name>[^/]+\.json)$`)
 var validFileName = regexp.MustCompile(`^[A-Za-z0-9._\-]+$`)
 
-func (srv *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip string) error {
+func (s *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip string) error {
 	zr, err := readBase64Zip(b64Zip)
 	if err != nil {
 		return err
@@ -449,7 +512,7 @@ func (srv *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip strin
 			defer util.Close(fr)
 			sklog.Infof("See %s [%s] in zip file, should upload it", strippedName, f.Name)
 			path := strings.Join([]string{lottieHash, "assets", strippedName}, "/")
-			obj := srv.bucket.Object(path)
+			obj := s.bucket.Object(path)
 			wr := obj.NewWriter(ctx)
 
 			wr.ObjectAttrs.ContentEncoding = "application/octet-stream"
@@ -491,49 +554,4 @@ func readBase64Zip(b64Zip string) (*zip.Reader, error) {
 		return nil, skerr.Fmt(".zip has too many files (%d)", len(zr.File))
 	}
 	return zr, nil
-}
-
-func main() {
-	common.InitWithMust(
-		"skottie",
-		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
-	)
-
-	if *lockedDown && *local {
-		sklog.Fatalf("Can't be run as both --locked_down and --local.")
-	}
-	canUploadZips = *lockedDown || *local
-
-	srv, err := New()
-	if err != nil {
-		sklog.Fatalf("Failed to start: %s", err)
-	}
-
-	r := mux.NewRouter()
-	r.HandleFunc("/drive", srv.templateHandler("drive.html"))
-	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
-	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html")).Methods("GET")
-	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html")).Methods("GET")
-
-	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
-	r.HandleFunc(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler).Methods("GET")
-	r.HandleFunc("/_/upload", srv.uploadHandler).Methods("POST")
-
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(*resourcesDir))))).Methods("GET")
-
-	// TODO(jcgregorio) Implement CSRF.
-	h := httputils.LoggingGzipRequestResponse(r)
-	h = httputils.CrossOriginResourcePolicy(h)
-	if !*local {
-		if *lockedDown {
-			h = login.RestrictViewer(h)
-			h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
-		}
-		h = httputils.HealthzAndHTTPS(h)
-	}
-
-	http.Handle("/", h)
-	sklog.Info("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
