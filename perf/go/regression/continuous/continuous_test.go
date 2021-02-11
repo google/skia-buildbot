@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/regression"
 )
 
 func TestBuildConfigsAndParamSet(t *testing.T) {
@@ -59,4 +60,55 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 	// Confirm we continue to get items from the channel.
 	cnp = <-ch
 	assert.Equal(t, c.paramsProvider(), cnp.paramset)
+}
+
+func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	baseRequest := regression.NewRegressionDetectionRequest() // Doesn't take GroupBy into consideration.
+	alert := alerts.NewConfig()
+	alert.GroupBy = "config"
+	alert.Query = "arch=x86"
+	baseRequest.Alert = alert
+	ps := paramtools.ReadOnlyParamSet{
+		"config": []string{"8888", "565"},
+		"arch":   []string{"x86", "arm"},
+	}
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	assert.Len(t, allRequests, 2)
+	assert.Contains(t, []string{"arch=x86&config=8888", "arch=x86&config=565"}, allRequests[0].Query)
+}
+
+func TestAllRequestsFromBaseRequest_WithInvalidValidGroupBy_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	baseRequest := regression.NewRegressionDetectionRequest() // Doesn't take GroupBy into consideration.
+	alert := alerts.NewConfig()
+	alert.GroupBy = "SomeUnknownKey"
+	alert.Query = "arch=x86"
+	baseRequest.Alert = alert
+	ps := paramtools.ReadOnlyParamSet{
+		"config": []string{"8888", "565"},
+		"arch":   []string{"x86", "arm"},
+	}
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	assert.Len(t, allRequests, 0)
+}
+
+func TestAllRequestsFromBaseRequest_WithoutGroupBy_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	baseRequest := regression.NewRegressionDetectionRequest() // Doesn't take GroupBy into consideration.
+	alert := alerts.NewConfig()
+	alert.GroupBy = ""
+	alert.Query = "arch=x86"
+	baseRequest.Alert = alert
+	ps := paramtools.ReadOnlyParamSet{
+		"config": []string{"8888", "565"},
+		"arch":   []string{"x86", "arm"},
+	}
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	// With no GroupBy a slice with just the baseRequest is returned.
+	assert.Len(t, allRequests, 1)
+	assert.Equal(t, baseRequest, allRequests[0])
 }

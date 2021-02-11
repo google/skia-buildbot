@@ -405,18 +405,52 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.flags.NumContinuous),
 				End: time.Time{},
 			}
-			req := regression.NewRegressionDetectionRequest()
-			req.Alert = cfg
-			req.Domain = domain
-			req.Query = cfg.Query
+			baseRequest := regression.NewRegressionDetectionRequest() // Doesn't take GroupBy into consideration.
+			baseRequest.Alert = cfg
+			baseRequest.Domain = domain
+			baseRequest.Query = cfg.Query
 
-			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder); err != nil {
-				sklog.Errorf("Failed regression detection: %s", err)
+			allRequests := allRequestsFromBaseRequest(baseRequest, c.paramsProvider())
+
+			for _, req := range allRequests {
+				if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder); err != nil {
+					sklog.Errorf("Failed regression detection: %s", err)
+				}
 			}
+
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
 		configsCounter.Reset()
 	}
+}
+
+// allRequestsFromBaseRequest returns all possible requests starting from a base
+// request.
+//
+// An Alert with a non-empty GroupBy will be run as a number of requests with
+// more refined queries.
+//
+// An empty slice will be returned on error.
+func allRequestsFromBaseRequest(req *regression.RegressionDetectionRequest, ps paramtools.ReadOnlyParamSet) []*regression.RegressionDetectionRequest {
+	ret := []*regression.RegressionDetectionRequest{}
+
+	if req.Alert.GroupBy == "" {
+		ret = append(ret, req)
+	} else {
+		queries, err := req.Alert.QueriesFromParamset(ps)
+		if err != nil {
+			sklog.Errorf("Failed to build GroupBy combinations: %s", err)
+			return ret
+		}
+		sklog.Infof("Config expanded into %d queries.", len(queries))
+		for _, q := range queries {
+			reqCopy := *req
+			reqCopy.Query = q
+			ret = append(ret, &reqCopy)
+		}
+	}
+
+	return ret
 }
