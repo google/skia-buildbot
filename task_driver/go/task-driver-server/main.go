@@ -235,6 +235,7 @@ func runServer(ctx context.Context, serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	handlers.AddTaskDriverHandlers(r, d, lm)
 	h := httputils.LoggingGzipRequestResponse(r)
+	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
 		h = httputils.HealthzAndHTTPS(h)
 	}

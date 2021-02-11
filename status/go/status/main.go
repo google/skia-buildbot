@@ -709,6 +709,7 @@ func runServer(serverURL string, srv http.Handler) {
 	if !*testing {
 		h = httputils.HealthzAndHTTPS(topLevelRouter)
 	}
+	h = httputils.XFrameOptionsDeny(h)
 	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
