@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -291,7 +292,7 @@ func TestCalculateDiffs_ImageNotFound_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return(nil, errors.New("not found"))
 
-	w := New(db, mis, memDiffCache{}, 2)
+	w := New(db, mis, &memDiffCache{}, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -346,7 +347,7 @@ func TestCalculateDiffs_CorruptedImage_PartialData(t *testing.T) {
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA02Pos).Return(b02, nil)
 	mis.On("GetImage", testutils.AnyContext, dks.DigestA04Unt).Return([]byte(`not a png`), nil)
 
-	w := New(db, mis, memDiffCache{}, 2)
+	w := New(db, mis, &memDiffCache{}, 2)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     "not used",
@@ -620,14 +621,14 @@ func kitchenSinkRoot(t *testing.T) string {
 }
 
 func newWorkerUsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
-	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, memDiffCache{}, 2)
+	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, &memDiffCache{}, 2)
 }
 
 func newWorkerUsingBlankImages(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
 	infraRoot, err := repo_root.Get()
 	require.NoError(t, err)
 	blankImagePath := filepath.Join(infraRoot, "golden", "go", "sql", "datakitchensink", "img", string(dks.DigestBlank+".png"))
-	return New(db, &fixedImageSource{img: blankImagePath}, memDiffCache{}, 2)
+	return New(db, &fixedImageSource{img: blankImagePath}, &memDiffCache{}, 2)
 }
 
 var kitchenSinkData = dks.Build()
@@ -678,18 +679,31 @@ func (f fixedImageSource) GetImage(_ context.Context, _ types.Digest) ([]byte, e
 	return ioutil.ReadFile(f.img)
 }
 
-type memDiffCache map[string]bool
+type memDiffCache struct {
+	mutex sync.Mutex
+	data  map[string]bool
+}
 
-func (m memDiffCache) RemoveAlreadyComputedDiffs(_ context.Context, left types.Digest, rightDigests []types.Digest) []types.Digest {
+func (m *memDiffCache) RemoveAlreadyComputedDiffs(_ context.Context, left types.Digest, rightDigests []types.Digest) []types.Digest {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if m.data == nil {
+		m.data = map[string]bool{}
+	}
 	var rv []types.Digest
 	for _, right := range rightDigests {
-		if !m[string(left+right)] {
+		if !m.data[string(left+right)] {
 			rv = append(rv, right)
 		}
 	}
 	return rv
 }
 
-func (m memDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
-	m[string(left+right)] = true
+func (m *memDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if m.data == nil {
+		m.data = map[string]bool{}
+	}
+	m.data[string(left+right)] = true
 }
