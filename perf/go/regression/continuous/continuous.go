@@ -410,9 +410,10 @@ func (c *Continuous) Run(ctx context.Context) {
 			req.Domain = domain
 			req.Query = cfg.Query
 
-			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder); err != nil {
-				sklog.Errorf("Failed regression detection: %s", err)
+			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider()); err != nil {
+				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 			}
+
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
