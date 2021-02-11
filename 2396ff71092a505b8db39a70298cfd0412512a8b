@@ -45,6 +45,54 @@
       },
       "revId": "2396ff71092a505b8db39a70298cfd0412512a8b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "49bcb32e_777900fb",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 20
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-11T21:58:41Z",
+      "side": 1,
+      "message": "Fixed in follow-up CL.\n\nWeird, if I look at canvaskit.d.ts I do see the right type, but inside VS Code the hover for makeShaderOptions\nshows all the enum parameters as being the same type, \"EmbindEnumEntity\":\n\n(method) Image.makeShaderOptions(tx: EmbindEnumEntity, ty: EmbindEnumEntity, fm: EmbindEnumEntity, mm: EmbindEnumEntity, localMatrix?: number[] | MallocObj | Float32Array | DOMMatrix | undefined): Shader",
+      "parentUuid": "2323cc01_e4179945",
+      "range": {
+        "startLine": 302,
+        "startChar": 111,
+        "endLine": 302,
+        "endChar": 124
+      },
+      "revId": "2396ff71092a505b8db39a70298cfd0412512a8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "df2da5d1_361e730c",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 20
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-11T21:58:41Z",
+      "side": 1,
+      "message": "Yup, using makeShaderOptions on Brian\u0027s recommendation.",
+      "parentUuid": "16794c4f_6a07a513",
+      "range": {
+        "startLine": 302,
+        "startChar": 31,
+        "endLine": 302,
+        "endChar": 48
+      },
+      "revId": "2396ff71092a505b8db39a70298cfd0412512a8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
