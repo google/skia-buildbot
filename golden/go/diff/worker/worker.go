@@ -69,10 +69,9 @@ type ImageSource interface {
 }
 
 type DiffCache interface {
-	// AlreadyComputedDiff returns true if, for certain, we have already computed this diff.
-	// It returns false if we have not or we are not sure. Errors should be logged and false should
-	// be returned.
-	AlreadyComputedDiff(ctx context.Context, left, right types.Digest) bool
+	// RemoveAlreadyComputedDiffs returns a slice that is the set of right digests that have
+	// for certain been compared to the left side.
+	RemoveAlreadyComputedDiffs(ctx context.Context, left types.Digest, right []types.Digest) []types.Digest
 
 	// StoreDiffComputed updates the cache to let it know that yes, we did compute the diff.
 	StoreDiffComputed(ctx context.Context, left, right types.Digest)
@@ -352,7 +351,6 @@ WHERE left_digest = $1 AND right_digest IN `
 			if err := ctx.Err(); err != nil {
 				return skerr.Wrap(err)
 			}
-			t := metrics2.NewTimer("gold_diffcalculator_prefetch_existing")
 			lb, err := sql.DigestToBytes(leftD)
 			if err != nil {
 				return skerr.Wrapf(err, "bad digest %s", leftD)
@@ -360,26 +358,24 @@ WHERE left_digest = $1 AND right_digest IN `
 			// put the left digest as the first item in the re-used/cleaned arguments list.
 			arguments = append(arguments[:0], lb)
 			toCompute := make(map[digestPair]bool, len(right))
-			for _, rightD := range right {
+			rightCandidates := w.diffCache.RemoveAlreadyComputedDiffs(ctx, leftD, right)
+			for _, rightD := range rightCandidates {
 				if leftD == rightD {
-					continue
-				}
-				dp := newDigestPair(leftD, rightD)
-				if w.diffCache.AlreadyComputedDiff(ctx, dp.left, dp.right) {
 					continue
 				}
 				rightBytes, err := sql.DigestToBytes(rightD)
 				if err != nil {
 					return skerr.Wrapf(err, "bad digest %s", rightD)
 				}
+				dp := newDigestPair(leftD, rightD)
 				toCompute[dp] = true
 				arguments = append(arguments, rightBytes)
 			}
-			t.Stop()
 			if len(toCompute) == 0 {
 				continue // go to the next leftDigest because there's no work here.
 			}
-			t = metrics2.NewTimer("gold_diffcalculator_fetch_existing")
+			ctx, sqlSpan := trace.StartSpan(ctx, "querySQL")
+			sqlSpan.AddAttributes(trace.Int64Attribute("arguments", int64(len(arguments))))
 			vp := sql.ValuesPlaceholders(len(arguments), 1)
 			rows, err := w.db.Query(ctx, statement+vp, arguments...)
 			if err != nil {
@@ -396,7 +392,7 @@ WHERE left_digest = $1 AND right_digest IN `
 				toCompute[dp] = false
 			}
 			rows.Close()
-			t.Stop()
+			sqlSpan.End()
 			for pair, needsComputing := range toCompute {
 				if !needsComputing {
 					continue
