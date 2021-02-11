@@ -71,7 +71,7 @@ func TestTooMuchMissingData(t *testing.T) {
 	}
 }
 
-func TestProcessRegressions_BadQueryValue_Fails(t *testing.T) {
+func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
 	unittest.SmallTest(t)
 
 	req := &RegressionDetectionRequest{
@@ -82,7 +82,7 @@ func TestProcessRegressions_BadQueryValue_Fails(t *testing.T) {
 
 	dfb := &mocks.DataFrameBuilder{}
 	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet())
-	require.Error(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, progress.Running, req.Progress.Status())
 	var b bytes.Buffer
 	err = req.Progress.JSON(&b)

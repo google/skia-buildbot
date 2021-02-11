@@ -111,7 +111,8 @@ func ProcessRegressions(ctx context.Context,
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
 		if err != nil {
-			return skerr.Wrapf(err, "Failed to create iterator")
+			sklog.Warningf("Failed to create iterator for query: %q: %s", req.Query, err)
+			continue
 		}
 		detectionProcess := &regressionDetectionProcess{
 			request:                   req,
