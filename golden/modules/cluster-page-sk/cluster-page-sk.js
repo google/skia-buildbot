@@ -33,6 +33,8 @@ const template = (ele) => {
       @search-controls-sk-change=${ele._searchControlsChanged}></search-controls-sk>
 
   <cluster-digests-sk @selection-changed=${ele._selectionChanged}></cluster-digests-sk>
+  
+  THIS IS AN INTENTIONAL DIFFERENCE
 
   ${infoPanel(ele)}
 </div>
