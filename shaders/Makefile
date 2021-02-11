@@ -1,7 +1,7 @@
-default: app
+default: app sources
 	npx webpack --mode=development
 
-release: wasm_libs_tot
+release: wasm_libs_tot sources
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/shaders
 	npx webpack --mode=production
 	./images/shaders/release
@@ -19,6 +19,20 @@ release_ci: app
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/shaders
 	./build_release
+
+sources/mandrill.png:
+	mkdir -p sources
+	# This will work from anywhere because the bucket contents are world readable.
+	cd sources; wget https://storage.googleapis.com/skia-public-shader-images/mandrill.png
+
+sources/soccer.png:
+	mkdir -p sources
+	# This will work from anywhere because the bucket contents are world readable.
+	cd sources; wget https://storage.googleapis.com/skia-public-shader-images/soccer.png
+
+# The images we use as sources for shaders.
+.PHONY: sources
+sources: sources/mandrill.png sources/soccer.png
 
 serve:
 	npx webpack-dev-server --mode=development --watch --watch-poll 100
