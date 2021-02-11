@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2a3becf6_ebf5a06e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 11964
+      },
+      "writtenOn": "2021-02-11T19:57:49Z",
+      "side": 1,
+      "message": "WIP CL for the web player side of the audio layer support. Could not test if Howler liked the format of the external asset src passed into it because asset uploads were not treated well when testing locally. Inline audio assets work and produces sound.",
+      "revId": "9f3c5e3501646731f9d0c97e8ee7b6ae8d813e91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
