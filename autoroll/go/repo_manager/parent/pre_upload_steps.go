@@ -358,7 +358,7 @@ func VulkanDepsUpdateCommitMessage(ctx context.Context, env []string, _ *http.Cl
 	sklog.Info("Running update-commit-message script...")
 	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name: "python3",
-		Args: []string{filepath.Join("third_party", "vulkan-deps", "update-commit-message.py", "--old-revision", from.Id)},
+		Args: []string{filepath.Join("third_party", "vulkan-deps", "update-commit-message.py"), "--old-revision", from.Id},
 		Dir:  parentRepoDir,
 		Env:  env,
 	})
