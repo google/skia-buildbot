@@ -16,6 +16,24 @@
       "message": "Thanks Eric. LMK if there\u0027s any problems that surface.",
       "revId": "70457059ce04163f1028e6b31ab3c231a3c68632",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "69c1b315_692dc4ff",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-11T17:41:31Z",
+      "side": 1,
+      "message": "I just pushed the change to the rollers.  It normally takes at least an hour for a roller which checks out Chromium to start up for the first time.",
+      "parentUuid": "b98ceb2a_21f531d2",
+      "revId": "70457059ce04163f1028e6b31ab3c231a3c68632",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
