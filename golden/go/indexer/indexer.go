@@ -820,6 +820,9 @@ func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 						return skerr.Wrap(err)
 					}
 					untriagedResults, params := indexTryJobResults(existingUntriagedResults, xtjr, exps)
+					if err := ix.sendCLWorkToDiffCalculators(ctx, xtjr); err != nil {
+						return skerr.Wrap(err)
+					}
 					// Copy the existing ParamSet into the newly created one. It is important to copy it from
 					// old into new (and not new into old), so we don't cause a race condition on the cached
 					// ParamSet by writing to it while GetIndexForCL is reading from it.
@@ -876,6 +879,59 @@ func indexTryJobResults(existing, newResults []tjstore.TryJobResult, exps expect
 	combined = append(combined, existing...)
 	combined = append(combined, newlyUntriagedResults...)
 	return combined, params
+}
+
+func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjstore.TryJobResult) error {
+	idx := ix.getIndex()
+	if idx == nil {
+		return nil
+	}
+	// The left and right digests will be the data from these tryjobs as well as the non-ignored
+	// data on the primary branch for the corresponding groupings.
+	digestsPerGrouping := map[hashableGrouping]types.DigestSet{}
+	for _, tjr := range xtjr {
+		traceKeys := paramtools.Params{}
+		traceKeys.Add(tjr.GroupParams, tjr.ResultParams)
+		grouping := getHashableGrouping(traceKeys)
+		uniqueDigests := digestsPerGrouping[grouping]
+		if len(uniqueDigests) == 0 {
+			uniqueDigests = types.DigestSet{}
+		}
+		if tjr.Digest != tiling.MissingDigest {
+			uniqueDigests[tjr.Digest] = true
+		}
+		digestsPerGrouping[grouping] = uniqueDigests
+	}
+
+	tile := idx.cpxTile.GetTile(types.ExcludeIgnoredTraces)
+	// Add the digests from the primary branch (using the index)
+	for grouping := range digestsPerGrouping {
+		q := paramtools.ParamSet{
+			types.CorpusField:     []string{grouping[0]},
+			types.PrimaryKeyField: []string{grouping[1]},
+		}
+		uniqueDigests := digestsPerGrouping[grouping]
+		dc := idx.dCounters[types.ExcludeIgnoredTraces].ByQuery(tile, q)
+		for digest := range dc {
+			uniqueDigests[digest] = true
+		}
+		digestsPerGrouping[grouping] = uniqueDigests
+	}
+
+	sklog.Infof("Sending CL-based message covering %d groupings to diffcalculator", len(digestsPerGrouping))
+	for hg, ds := range digestsPerGrouping {
+		grouping := paramtools.Params{
+			types.CorpusField:     hg[0],
+			types.PrimaryKeyField: hg[1],
+		}
+		digests := ds.Keys()
+		// This should be pretty fast because it's just sending off the work, not blocking until
+		// the work is calculated.
+		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, digests, digests); err != nil {
+			return skerr.Wrapf(err, "publishing diff calculation of %d CL digests in grouping %v", len(digests), grouping)
+		}
+	}
+	return nil
 }
 
 // getCLIndex is a helper that returns the appropriately typed element from changelistIndices.
