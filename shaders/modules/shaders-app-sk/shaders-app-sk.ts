@@ -56,8 +56,8 @@ const DEFAULT_SIZE = 512;
 const predefinedUniforms = `uniform float3 iResolution; // Viewport resolution (pixels)
 uniform float  iTime;       // Shader playback time (s)
 uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)
-uniform shader iImage1;     // An input image (Mandrill).
-uniform shader iImage2;     // An input image (Soccer ball).`;
+uniform shader iImage1;     // An input image (Mandrill - 512 x 512).
+uniform shader iImage2;     // An input image (Soccer ball - 512 x 512).`;
 
 // How many of the uniforms listed in predefinedUniforms are of type 'shader'?
 const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
@@ -299,7 +299,7 @@ export class ShadersAppSk extends ElementSk {
         // Convert them into shaders.
         elements.forEach((ele) => {
           const image = this.kit!.MakeImageFromCanvasImageSource(ele);
-          const shader = image.makeShaderOptions(this.kit!.TileMode.Clamp, this.kit!.TileMode.Clamp, this.kit!.FilterQuality.Medium, this.kit!.MipmapMode.None);
+          const shader = image.makeShaderOptions(this.kit!.TileMode.Clamp, this.kit!.TileMode.Clamp, this.kit!.FilterMode.Linear, this.kit!.MipmapMode.None);
           this.inputImageShaders.push(shader);
         });
       } catch (error) {
