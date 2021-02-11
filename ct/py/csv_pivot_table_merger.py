@@ -88,12 +88,23 @@ class CsvMerger(object):
       fieldname = self._GetFieldNameFromRow(row)
       fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
 
-      traceURL = row.get(TELEMETRY_TRACE_URLS_KEY)
+      traceURL = (row.get(TELEMETRY_TRACE_URLS_KEY) or
+                  row.get(TELEMETRY_TRACE_URLS_KEY + r'\r'))
       if traceURL:
+        traceURL = traceURL.rstrip(r'\r')
         if TELEMETRY_TRACE_URLS_KEY in fieldname_to_values:
           fieldname_to_values[TELEMETRY_TRACE_URLS_KEY].append(traceURL)
         else:
           fieldname_to_values[TELEMETRY_TRACE_URLS_KEY] = [traceURL]
+      else:
+        print 'TRACEURL IS EMPTY!'
+        print row
+        print row.get(TELEMETRY_TRACE_URLS_KEY)
+        print row.get(TELEMETRY_TRACE_URLS_KEY + '\r')
+        print row.get(TELEMETRY_TRACE_URLS_KEY + '\\r')
+        print row.get(TELEMETRY_TRACE_URLS_KEY + r'\r')
+        print row.get(TELEMETRY_TRACE_URLS_KEY + r'\\r')
+        print row.get(TELEMETRY_TRACE_URLS_KEY + r'\r\n')
 
       try:
         value = float(value)
