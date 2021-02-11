@@ -299,7 +299,7 @@ export class ShadersAppSk extends ElementSk {
         // Convert them into shaders.
         elements.forEach((ele) => {
           const image = this.kit!.MakeImageFromCanvasImageSource(ele);
-          const shader = image.makeShaderOptions(this.kit!.TileMode.Clamp, this.kit!.TileMode.Clamp, this.kit!.FilterQuality.Medium, this.kit!.MipmapMode.None);
+          const shader = image.makeShaderOptions(this.kit!.TileMode.Clamp, this.kit!.TileMode.Clamp, this.kit!.FilterMode.Linear, this.kit!.MipmapMode.None);
           this.inputImageShaders.push(shader);
         });
       } catch (error) {
