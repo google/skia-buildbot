@@ -16,6 +16,24 @@
       "message": "Not sure if this was necessary, other yamls have this and they are working. I\u0027m also not sure what we lose by removing this.",
       "revId": "7b80e1aee4a8b9fd276cca6e9dc12800825c1208",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "39606fc2_aeb6956e",
+        "filename": "autoroll/go/autoroll-fe/autoroll-fe.yaml.template",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-11T18:03:24Z",
+      "side": 0,
+      "message": "I can still do \"kubectl get pods -lapp\u003dautoroll-fe\", so I\u0027m not sure that this changed anything",
+      "parentUuid": "f7323313_451adb30",
+      "revId": "7b80e1aee4a8b9fd276cca6e9dc12800825c1208",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

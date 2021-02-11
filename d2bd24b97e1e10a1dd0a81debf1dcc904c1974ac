@@ -16,6 +16,24 @@
       "message": "Just confirming these changes, since the subject says \"Update frontend k8s config template for apps/v1\".",
       "revId": "d2bd24b97e1e10a1dd0a81debf1dcc904c1974ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe688883_41be004d",
+        "filename": "autoroll/go/autoroll-fe/autoroll-fe.yaml.template",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-11T18:03:24Z",
+      "side": 1,
+      "message": "Yeah, this is a drive-by fix after adding the config-editing UI.  I should have mentioned it in the commit message.",
+      "parentUuid": "e1f5bdff_1ac049d5",
+      "revId": "d2bd24b97e1e10a1dd0a81debf1dcc904c1974ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
