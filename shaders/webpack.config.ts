@@ -9,7 +9,7 @@ import HtmlWebpackInjectAttributesPlugin from 'html-webpack-inject-attributes-pl
 import commonBuilder from '../infra-sk/pulito/webpack.common';
 
 
-const configFactory: webpack.ConfigurationFactory = (_, args) : webpack.Configuration => {
+const configFactory: webpack.ConfigurationFactory = (_, args): webpack.Configuration => {
   // Don't minify the HTML since it contains Go template tags.
   const config = commonBuilder(__dirname, args.mode, /* neverMinifyHtml= */ true);
 
@@ -33,6 +33,8 @@ const configFactory: webpack.ConfigurationFactory = (_, args) : webpack.Configur
       { from: resolve(__dirname, 'build/canvaskit/canvaskit.d.ts') },
       { from: resolve(__dirname, 'build/canvaskit/canvaskit.wasm') },
       { from: resolve(__dirname, 'build/VERSION') },
+      { from: resolve(__dirname, 'sources/mandrill.png') },
+      { from: resolve(__dirname, 'sources/soccer.png') },
     ]),
   );
 
