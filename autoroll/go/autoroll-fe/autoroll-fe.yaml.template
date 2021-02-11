@@ -17,11 +17,14 @@ spec:
     app: {{.appName}}
   type: NodePort
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{.appName}}
 spec:
+  selector:
+    matchLabels:
+      app: autoroll-fe
   replicas: 1
   strategy:
     type: RollingUpdate
