@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/dgraph-io/ristretto"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
@@ -36,9 +36,9 @@ const (
 	// be used.
 	NowSourceKey = contextKey("nowSource")
 
-	// 2k decoded images at ~5MB a piece = 10 gig of RAM, which should be doable.
-	// The size of 5MB comes from the 90th percentile of real-world data.
-	decodedImageCacheSize = 2000
+	// Images can vary wildely in size. Thus, we put a limit on the total amount of memory used
+	// for the decoded image cache and let the cache handle that
+	decodedImageCacheSizeGB = 16
 
 	fetchingRoutines = 4
 
@@ -84,7 +84,7 @@ type WorkerImpl struct {
 	diffCache         DiffCache // should be faster to query than db for a "yes/no" answer.
 	imageSource       ImageSource
 	badDigestsCache   *ttlcache.Cache
-	decodedImageCache *lru.Cache
+	decodedImageCache *ristretto.Cache
 	// TODO(kjlubick) this might not be the best parameter for "digests to compute against" as we
 	//   might just want to query for the last N commits with data and start at that tile to better
 	//   handle the sparse data case.
@@ -96,9 +96,13 @@ type WorkerImpl struct {
 
 // New returns a WorkerImpl that is ready to compute diffs.
 func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, tilesToProcess int) *WorkerImpl {
-	imgCache, err := lru.New(decodedImageCacheSize)
+	imgCache, err := ristretto.NewCache(&ristretto.Config{
+		NumCounters: 20_000, // we expect a few thousand decoded images to fit.
+		MaxCost:     decodedImageCacheSizeGB * 1024 * 1024 * 1024,
+		BufferItems: 64, // suggested default
+	})
 	if err != nil {
-		panic(err) // should only happen if provided size is negative.
+		panic(err)
 	}
 	return &WorkerImpl{
 		db:                       db,
@@ -348,6 +352,7 @@ WHERE left_digest = $1 AND right_digest IN `
 			if err := ctx.Err(); err != nil {
 				return skerr.Wrap(err)
 			}
+			t := metrics2.NewTimer("gold_diffcalculator_prefetch_existing")
 			lb, err := sql.DigestToBytes(leftD)
 			if err != nil {
 				return skerr.Wrapf(err, "bad digest %s", leftD)
@@ -370,10 +375,11 @@ WHERE left_digest = $1 AND right_digest IN `
 				toCompute[dp] = true
 				arguments = append(arguments, rightBytes)
 			}
-
+			t.Stop()
 			if len(toCompute) == 0 {
 				continue // go to the next leftDigest because there's no work here.
 			}
+			t = metrics2.NewTimer("gold_diffcalculator_fetch_existing")
 			vp := sql.ValuesPlaceholders(len(arguments), 1)
 			rows, err := w.db.Query(ctx, statement+vp, arguments...)
 			if err != nil {
@@ -390,6 +396,7 @@ WHERE left_digest = $1 AND right_digest IN `
 				toCompute[dp] = false
 			}
 			rows.Close()
+			t.Stop()
 			for pair, needsComputing := range toCompute {
 				if !needsComputing {
 					continue
@@ -471,7 +478,7 @@ func now(ctx context.Context) time.Time {
 func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (*image.NRGBA, error) {
 	ctx, span := trace.StartSpan(ctx, "getDecodedImage")
 	defer span.End()
-	if cachedImg, ok := w.decodedImageCache.Get(digest); ok {
+	if cachedImg, ok := w.decodedImageCache.Get(string(digest)); ok {
 		return cachedImg.(*image.NRGBA), nil
 	}
 	b, err := w.imageSource.GetImage(ctx, digest)
@@ -485,8 +492,9 @@ func (w *WorkerImpl) getDecodedImage(ctx context.Context, digest types.Digest) (
 	}
 	// In memory, the image takes up 4 bytes per pixel.
 	s := img.Bounds().Size()
-	w.decodedImageBytesSummary.Observe(float64(s.X * s.Y * 4))
-	w.decodedImageCache.Add(digest, img)
+	sizeInBytes := s.X * s.Y * 4
+	w.decodedImageBytesSummary.Observe(float64(sizeInBytes))
+	w.decodedImageCache.Set(string(digest), img, int64(sizeInBytes))
 	return img, nil
 }
 
