@@ -129,6 +129,28 @@
       font-size: 11px;
     }
 
+    #imageSources {
+      display: flex;
+      align-items: center;
+      margin: 8px;
+
+      figure {
+        margin: 0 8px 0 0;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+
+        img {
+          width: 32px;
+          height: 32px;
+        }
+
+        figcaption {
+          margin: 4px 0;
+        }
+      }
+    }
+
     summary {
       display: initial;
       margin: initial;

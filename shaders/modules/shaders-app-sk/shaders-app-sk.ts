@@ -21,6 +21,7 @@ import type {
   RuntimeEffect,
   Paint,
   MallocObj,
+  Shader,
 } from '../../build/canvaskit/canvaskit.js';
 
 import 'elements-sk/error-toast-sk';
@@ -54,16 +55,21 @@ const DEFAULT_SIZE = 512;
 
 const predefinedUniforms = `uniform float3 iResolution; // Viewport resolution (pixels)
 uniform float  iTime;       // Shader playback time (s)
-uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)`;
+uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)
+uniform shader iImage1;     // An input image (Mandrill).
+uniform shader iImage2;     // An input image (Soccer ball).`;
+
+// How many of the uniforms listed in predefinedUniforms are of type 'shader'?
+const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
 
 // Counts the number of uniforms defined in 'predefinedUniforms'. All the
 // remaining uniforms that start with 'i' will be referred to as "user
 // uniforms".
-const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length;
+const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length - numPredefinedShaderUniforms;
 
 // The number of lines prefixed to every shader for predefined uniforms. Needed
 // to properly adjust error line numbers.
-const numPredefinedUniformLines = predefinedUniforms.split('\n').length + 1;
+const numPredefinedUniformLines = predefinedUniforms.split('\n').length;
 
 const defaultShader = `half4 main(float2 fragCoord) {
   return vec4(1, 0, 0, 1);
@@ -101,6 +107,8 @@ export class ShadersAppSk extends ElementSk {
   private canvas: Canvas | null = null;
 
   private paint: Paint | null = null;
+
+  private inputImageShaders: Shader[] = [];
 
   private effect: RuntimeEffect | null = null;
 
@@ -198,7 +206,7 @@ export class ShadersAppSk extends ElementSk {
     </header>
     <main>
       <div>
-        <p @click=${ele.fastLoad}>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a></p>
+        <p @click=${ele.fastLoad}>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a> <a href="/?id=@iImage">iImage</a></p>
         <canvas
           id="player"
           width=${ele.width}
@@ -210,7 +218,17 @@ export class ShadersAppSk extends ElementSk {
       <div>
         <details id=shaderinputs>
           <summary>Shader Inputs</summary>
-          <textarea rows=3 cols=75 readonly id="predefinedShaderInputs"></textarea>
+          <textarea rows=${numPredefinedUniformLines} cols=75 readonly id="predefinedShaderInputs">${predefinedUniforms}</textarea>
+          <div id=imageSources>
+            <figure>
+              <img id=iImage1 loading="eager" src="/dist/mandrill.png">
+              <figcaption>iImage1</figcaption>
+            </figure>
+            <figure>
+              <img id=iImage2 loading="eager" src="/dist/soccer.png">
+              <figcaption>iImage2</figcaption>
+            </figure>
+        </div>
         </details>
         <div id="codeEditor"></div>
         <div ?hidden=${!ele.compileErrorMessage} id="compileErrors">
@@ -265,17 +283,30 @@ export class ShadersAppSk extends ElementSk {
     });
     this.codeMirror.on('change', () => this.codeChange());
 
-    $$<HTMLTextAreaElement>('#predefinedShaderInputs', this)!.value = predefinedUniforms;
-
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
       this.codeMirror!.setOption('theme', ShadersAppSk.themeFromCurrentMode());
     });
 
     // Continue the setup once CanvasKit WASM has loaded.
-    kitReady.then((ck: CanvasKit) => {
+    kitReady.then(async (ck: CanvasKit) => {
       this.kit = ck;
-      this.paint = new this.kit!.Paint();
+
+      try {
+        this.inputImageShaders = [];
+        // Wait until all the images are loaded.
+        const elements = await Promise.all<HTMLImageElement>([this.promiseOnImageLoaded('#iImage1'), this.promiseOnImageLoaded('#iImage2')]);
+        // Convert them into shaders.
+        elements.forEach((ele) => {
+          const image = this.kit!.MakeImageFromCanvasImageSource(ele);
+          const shader = image.makeShaderOptions(this.kit!.TileMode.Clamp, this.kit!.TileMode.Clamp, this.kit!.FilterQuality.Medium, this.kit!.MipmapMode.None);
+          this.inputImageShaders.push(shader);
+        });
+      } catch (error) {
+        errorMessage(error);
+      }
+
+      this.paint = new this.kit.Paint();
       try {
         this.stateChanged = stateReflector(
           /* getState */ () => (this.state as unknown) as HintableObject,
@@ -290,6 +321,22 @@ export class ShadersAppSk extends ElementSk {
         );
       } catch (error) {
         errorMessage(error, 0);
+      }
+    });
+  }
+
+  /**
+   * Returns a Promise that resolves when in image loads in an <img> element
+   * with the given id.
+   */
+  private promiseOnImageLoaded(id: string): Promise<HTMLImageElement> {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const ele = $$<HTMLImageElement>(id, this)!;
+      if (ele.complete) {
+        resolve(ele);
+      } else {
+        ele.addEventListener('load', () => resolve(ele));
+        ele.addEventListener('error', (e) => reject(e));
       }
     });
   }
@@ -359,7 +406,7 @@ export class ShadersAppSk extends ElementSk {
       // While doing the fix up of the error message we also annotate the
       // corresponding lines in the CodeMirror editor.
       err = err.replace(shaderCompilerErrorRegex, (_match, firstRegexCaptureValue): string => {
-        const lineNumber = (+firstRegexCaptureValue - numPredefinedUniformLines);
+        const lineNumber = (+firstRegexCaptureValue - (numPredefinedUniformLines + 1));
         this.setEditorErrorLineAnnotation(lineNumber);
         return `error: ${lineNumber.toFixed(0)}`;
       });
@@ -473,7 +520,7 @@ export class ShadersAppSk extends ElementSk {
     const uniformsFloat32Array: Float32Array = this.uniformsMallocObj.toTypedArray() as Float32Array;
     uniformsArray.forEach((val, index) => { uniformsFloat32Array[index] = val; });
 
-    const shader = this.effect!.makeShader(uniformsFloat32Array);
+    const shader = this.effect!.makeShaderWithChildren(uniformsFloat32Array, true, this.inputImageShaders);
     this._render();
 
     // Allow uniform controls to update, such as uniform-timer-sk.
