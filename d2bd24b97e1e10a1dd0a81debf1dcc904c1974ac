@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e1f5bdff_1ac049d5",
+        "filename": "autoroll/go/autoroll-fe/autoroll-fe.yaml.template",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-11T17:58:35Z",
+      "side": 1,
+      "message": "Just confirming these changes, since the subject says \"Update frontend k8s config template for apps/v1\".",
+      "revId": "d2bd24b97e1e10a1dd0a81debf1dcc904c1974ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
