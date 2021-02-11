@@ -31,15 +31,17 @@ type Requests struct {
 	shortcutStore shortcut.Store
 	dfBuilder     dataframe.DataFrameBuilder
 	tracker       progress.Tracker
+	paramsProvier regression.ParamsetProvider
 }
 
 // New create a new dryrun Request processor.
-func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder) *Requests {
+func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider) *Requests {
 	ret := &Requests{
 		perfGit:       perfGit,
 		shortcutStore: shortcutStore,
 		dfBuilder:     dfBuilder,
 		tracker:       tracker,
+		paramsProvier: paramsProvider,
 	}
 	return ret
 }
@@ -120,7 +122,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier())
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

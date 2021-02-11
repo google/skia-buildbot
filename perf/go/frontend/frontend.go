@@ -387,7 +387,7 @@ func (f *Frontend) initialize() {
 	f.configProvider = f.newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder)
+	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)
 
 	if f.flags.DoClustering {
 		go func() {
@@ -689,7 +689,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	f.progressTracker.Add(req.Progress)
 
 	go func() {
-		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.Get())
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

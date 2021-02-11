@@ -103,22 +103,58 @@ func ProcessRegressions(ctx context.Context,
 	perfGit *perfgit.Git,
 	shortcutStore shortcut.Store,
 	dfBuilder dataframe.DataFrameBuilder,
+	ps paramtools.ReadOnlyParamSet,
 ) error {
-	req.Progress.Message("Stage", "Loading data to analyze")
-	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create iterator")
+	allRequests := allRequestsFromBaseRequest(req, ps)
+	for _, req := range allRequests {
+		req.Progress.Message("Stage", "Loading data to analyze")
+		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to create iterator")
+		}
+		detectionProcess := &regressionDetectionProcess{
+			request:                   req,
+			perfGit:                   perfGit,
+			detectorResponseProcessor: detectorResponseProcessor,
+			shortcutStore:             shortcutStore,
+			iter:                      iter,
+		}
+		detectionProcess.iter = iter
+		if err := detectionProcess.run(ctx); err != nil {
+			return skerr.Wrapf(err, "Failed to run a sub-query: %q", req.Query)
+		}
 	}
-	ret := &regressionDetectionProcess{
-		request:                   req,
-		perfGit:                   perfGit,
-		detectorResponseProcessor: detectorResponseProcessor,
-		shortcutStore:             shortcutStore,
-		iter:                      iter,
+	return nil
+}
+
+// allRequestsFromBaseRequest returns all possible requests starting from a base
+// request.
+//
+// An Alert with a non-empty GroupBy will be run as a number of requests with
+// more refined queries.
+//
+// An empty slice will be returned on error.
+func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.ReadOnlyParamSet) []*RegressionDetectionRequest {
+	ret := []*RegressionDetectionRequest{}
+
+	if req.Alert.GroupBy == "" {
+		ret = append(ret, req)
+	} else {
+		queries, err := req.Alert.QueriesFromParamset(ps)
+		if err != nil {
+			sklog.Errorf("Failed to build GroupBy combinations: %s", err)
+			return ret
+		}
+		sklog.Infof("Config expanded into %d queries.", len(queries))
+		for _, q := range queries {
+			reqCopy := *req
+			reqCopy.Query = q
+			ret = append(ret, &reqCopy)
+		}
 	}
-	ret.iter = iter
-	return ret.run(ctx)
+
+	return ret
 }
 
 // reportError records the reason a RegressionDetectionProcess failed.
