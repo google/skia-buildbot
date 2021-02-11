@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -80,7 +81,7 @@ func cspString(allowedHosts []string, local bool, options []Option) string {
 	//
 	// See also: https://csp.withgoogle.com/docs/strict-csp.html
 	//
-	return fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", addScriptSrc)
+	return fmt.Sprintf("base-uri 'none';  img-src 'self' %s; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", imageSourcesFromOptions(options), addScriptSrc)
 }
 
 func securityMiddleware(allowedHosts []string, local bool, options []Option) mux.MiddlewareFunc {
@@ -103,16 +104,31 @@ func securityMiddleware(allowedHosts []string, local bool, options []Option) mux
 // Option is the base type for options passed to Serve().
 type Option interface{}
 
-// AllowWASM allows 'unsafe-eval' for scripts, which is needed for WASM.
-type AllowWASM struct{}
+// AllowWASMOption allows 'unsafe-eval' for scripts, which is needed for WASM.
+type AllowWASMOption struct{}
 
 func hasWASMOption(options []Option) bool {
 	for _, opt := range options {
-		if _, ok := opt.(AllowWASM); ok {
+		if _, ok := opt.(AllowWASMOption); ok {
 			return true
 		}
 	}
 	return false
+}
+
+// AllowedImageSourcesOption adds URLs to 'img-src', which is needed if images are loaded from other domains..
+type AllowedImageSourcesOption struct {
+	// URLs is a slice of URLs that images should be allowed to be loaded from.
+	URLs []string
+}
+
+func imageSourcesFromOptions(options []Option) string {
+	for _, opt := range options {
+		if sources, ok := opt.(AllowedImageSourcesOption); ok {
+			return strings.Join(sources.URLs, " ") + " "
+		}
+	}
+	return ""
 }
 
 // Serve builds and runs the App in a secure manner in our kubernetes cluster.
