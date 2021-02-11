@@ -191,16 +191,37 @@ func key(namespace string, left, right types.Digest) string {
 	return namespace + string(left+"_"+right)
 }
 
-// AlreadyComputedDiff implements the DiffCache interface.
-func (m *memcachedDiffCache) AlreadyComputedDiff(_ context.Context, left, right types.Digest) bool {
-	_, err := m.client.Get(key(m.namespace, left, right))
-	if err == memcache.ErrCacheMiss {
-		return false
-	} else if err != nil {
-		sklog.Warningf("Could not read from memcached: %s", err)
-		return false
+// RemoveAlreadyComputedDiffs implements the DiffCache interface.
+func (m *memcachedDiffCache) RemoveAlreadyComputedDiffs(ctx context.Context, left types.Digest, rightDigests []types.Digest) []types.Digest {
+	ctx, span := trace.StartSpan(ctx, "memcached_removeDiffs")
+	defer span.End()
+	keys := make([]string, 0, len(rightDigests))
+	for _, right := range rightDigests {
+		if left == right {
+			continue // this is never computed
+		}
+		keys = append(keys, key(m.namespace, left, right))
 	}
-	return true
+	alreadyCalculated, err := m.client.GetMulti(keys)
+	if err != nil {
+		sklog.Warningf("Could not read from memcached: %s", err)
+		return rightDigests // on an error, assume all need to be queried from DB.
+	}
+	if len(alreadyCalculated) == len(keys) {
+		return nil // common case, everything has been computed already.
+	}
+	// Go through all the inputs. For each one that is not in the returned value of "already been
+	// calculated", add it to return value of "needs lookup/calculation".
+	rv := make([]types.Digest, 0, len(rightDigests)-len(alreadyCalculated))
+	for _, right := range rightDigests {
+		if left == right {
+			continue // this is never computed
+		}
+		if _, ok := alreadyCalculated[key(m.namespace, left, right)]; !ok {
+			rv = append(rv, right)
+		}
+	}
+	return rv
 }
 
 // StoreDiffComputed implements the DiffCache interface.

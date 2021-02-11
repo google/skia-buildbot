@@ -680,8 +680,14 @@ func (f fixedImageSource) GetImage(_ context.Context, _ types.Digest) ([]byte, e
 
 type memDiffCache map[string]bool
 
-func (m memDiffCache) AlreadyComputedDiff(_ context.Context, left, right types.Digest) bool {
-	return m[string(left+right)]
+func (m memDiffCache) RemoveAlreadyComputedDiffs(_ context.Context, left types.Digest, rightDigests []types.Digest) []types.Digest {
+	var rv []types.Digest
+	for _, right := range rightDigests {
+		if !m[string(left+right)] {
+			rv = append(rv, right)
+		}
+	}
+	return rv
 }
 
 func (m memDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
