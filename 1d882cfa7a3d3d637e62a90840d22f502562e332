@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "659d68b8_bfa953bd",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 798,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-11T18:26:43Z",
+      "side": 1,
+      "message": "nit: DenyiFraming or XFrameOptionsDeny might be clearer names.",
+      "range": {
+        "startLine": 798,
+        "startChar": 5,
+        "endLine": 798,
+        "endChar": 15
+      },
+      "revId": "1d882cfa7a3d3d637e62a90840d22f502562e332",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
