@@ -793,3 +793,11 @@ func CrossOriginResourcePolicy(h http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(s)
 }
+
+// DenyFrames adds "X-Frame-Options: DENY" to every response.
+func DenyFrames(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Frame-Options", "DENY")
+		h.ServeHTTP(w, r)
+	})
+}
