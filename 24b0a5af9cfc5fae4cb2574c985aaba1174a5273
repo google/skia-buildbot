@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8150301b_fcdb8e09",
+        "filename": "perf/go/regression/continuous/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-11T16:25:21Z",
+      "side": 1,
+      "message": "I\u0027m confused by this comment. Is it that the base request doesn\u0027t normally group by anything?",
+      "range": {
+        "startLine": 68,
+        "startChar": 62,
+        "endLine": 68,
+        "endChar": 69
+      },
+      "revId": "24b0a5af9cfc5fae4cb2574c985aaba1174a5273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8524f7d5_b8dd0c73",
+        "filename": "perf/go/regression/continuous/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-11T16:25:21Z",
+      "side": 1,
+      "message": "NoRequestsReturned",
+      "range": {
+        "startLine": 82,
+        "startChar": 55,
+        "endLine": 82,
+        "endChar": 62
+      },
+      "revId": "24b0a5af9cfc5fae4cb2574c985aaba1174a5273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5abca783_c6243609",
+        "filename": "perf/go/regression/continuous/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-11T16:25:21Z",
+      "side": 1,
+      "message": "assert.Empty is probably more clear.",
+      "range": {
+        "startLine": 95,
+        "startChar": 8,
+        "endLine": 95,
+        "endChar": 11
+      },
+      "revId": "24b0a5af9cfc5fae4cb2574c985aaba1174a5273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c90eb451_fcd60f66",
+        "filename": "perf/go/regression/continuous/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-11T16:25:21Z",
+      "side": 1,
+      "message": "BaseRequestReturnedUnchanged",
+      "range": {
+        "startLine": 98,
+        "startChar": 51,
+        "endLine": 98,
+        "endChar": 58
+      },
+      "revId": "24b0a5af9cfc5fae4cb2574c985aaba1174a5273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c1eb3795_3d4617b7",
+        "filename": "perf/go/regression/continuous/continuous_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-11T16:25:21Z",
+      "side": 1,
+      "message": "FWIW: You appear to be comparing pointers here - that might not catch any unintentional changes  to the base request. If there are intentional changes, I would suggest adding explicit assertions for those cases.",
+      "range": {
+        "startLine": 113,
+        "startChar": 17,
+        "endLine": 113,
+        "endChar": 28
+      },
+      "revId": "24b0a5af9cfc5fae4cb2574c985aaba1174a5273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
