@@ -297,6 +297,7 @@ func runServer(ctx context.Context, serverURL string, srv http.Handler) {
 	rollerRouter.HandleFunc("/config", configJSONHandler)
 	r.PathPrefix(rpc.AutoRollServicePathPrefix).Handler(srv)
 	h := httputils.LoggingRequestResponse(r)
+	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
 		if *internal {
 			h = login.RestrictViewer(h)

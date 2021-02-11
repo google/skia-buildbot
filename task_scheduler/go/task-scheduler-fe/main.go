@@ -312,6 +312,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	h := httputils.LoggingRequestResponse(r)
+	h = httputils.XFrameOptionsDeny(h)
 	if !*local {
 		h = httputils.HealthzAndHTTPS(h)
 	}
