@@ -35,9 +35,15 @@
   main {
     padding: 16px;
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 
     canvas {
       margin: 0 16px 16px 0;
+    }
+
+    #codeEditor {
+      margin: 0 8px 8px 8px;
     }
 
     #codeEditor > div {
@@ -45,15 +51,11 @@
     }
 
     #shaderControls {
-      margin-left: 8px;
+      margin-left: 0;
 
       .action {
         margin: 8px;
       }
-    }
-
-    #fps {
-      margin-left: 8px;
     }
 
     #uniformControls {
@@ -62,7 +64,7 @@
 
     #uniformControls > * {
       padding: 0;
-      margin: 8px;
+      margin: 0 8px 8px 0;
     }
 
     #uniformControls uniform-mouse-sk {
