@@ -28,7 +28,7 @@ type Common struct {
 	CodeReviewSystems []CodeReviewSystem `json:"code_review_systems"`
 
 	// DiffWorkTopic the event topic used for computing diff metrics.
-	DiffWorkTopic string `json:"diff_work_topic"`
+	DiffWorkTopic string `json:"diff_work_topic" optional:"true"`
 
 	// Google Cloud Storage bucket name.
 	GCSBucket string `json:"gcs_bucket"`

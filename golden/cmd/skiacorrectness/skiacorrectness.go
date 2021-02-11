@@ -585,8 +585,12 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 		sklog.Fatalf("initializing pubsub client for project %s: %s", fsc.PubsubProjectID, err)
 	}
 
+	dwp := diff.Calculator(&noopDiffPublisher{})
+	if !fsc.IsPublicView {
+		dwp = &pubsubDiffPublisher{client: psc, topic: fsc.DiffWorkTopic}
+	}
 	ic := indexer.IndexerConfig{
-		DiffWorkPublisher: &pubsubDiffPublisher{client: psc, topic: fsc.DiffWorkTopic},
+		DiffWorkPublisher: dwp,
 		DiffStore:         diffStore,
 		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
@@ -633,6 +637,13 @@ func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping param
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	return nil
+}
+
+type noopDiffPublisher struct{}
+
+// CalculateDiffs does nothing, but implements the diff.Calculator interface.
+func (p *noopDiffPublisher) CalculateDiffs(_ context.Context, _ paramtools.Params, _, _ []types.Digest) error {
 	return nil
 }
 
