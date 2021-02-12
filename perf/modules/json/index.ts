@@ -221,7 +221,6 @@ export interface Domain {
 export interface RegressionDetectionRequest {
 	alert: Alert | null;
 	domain: Domain;
-	query: string;
 	step: number;
 	total_queries: number;
 }

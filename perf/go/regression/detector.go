@@ -58,9 +58,9 @@ type RegressionDetectionRequest struct {
 	Alert  *alerts.Alert `json:"alert"`
 	Domain types.Domain  `json:"domain"`
 
-	// Query is the exact query being run. It may be more specific than the one
+	// query is the exact query being run. It may be more specific than the one
 	// in the Alert if the Alert has a non-empty GroupBy.
-	Query string `json:"query"`
+	query string
 
 	// Step/TotalQueries is the current percent of all the queries that have been processed.
 	Step int `json:"step"`
@@ -71,6 +71,26 @@ type RegressionDetectionRequest struct {
 
 	// Progress of the detection request.
 	Progress progress.Progress `json:"-"`
+}
+
+// Query returns the query that the RegressionDetectionRequest process is
+// running.
+//
+// Note that it may be more specific than the Alert.Query if the Alert has a
+// non-empty GroupBy value.
+func (r *RegressionDetectionRequest) Query() string {
+	if r.query != "" {
+		return r.query
+	}
+	if r.Alert != nil {
+		return r.Alert.Query
+	}
+	return ""
+}
+
+// SetQuery sets a more refined query for the RegressionDetectionRequest.
+func (r *RegressionDetectionRequest) SetQuery(q string) {
+	r.query = q
 }
 
 // NewRegressionDetectionRequest returns a new RegressionDetectionRequest.
@@ -105,13 +125,12 @@ func ProcessRegressions(ctx context.Context,
 	dfBuilder dataframe.DataFrameBuilder,
 	ps paramtools.ReadOnlyParamSet,
 ) error {
-	req.Query = req.Alert.Query
 	allRequests := allRequestsFromBaseRequest(req, ps)
 	for _, req := range allRequests {
 		req.Progress.Message("Stage", "Loading data to analyze")
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 		sklog.Infof("Building DataFrameIterator for %q", req.Query)
-		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
+		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query(), req.Domain, req.Alert)
 		if err != nil {
 			sklog.Warningf("Failed to create iterator for query: %q: %s", req.Query, err)
 			continue
@@ -125,7 +144,7 @@ func ProcessRegressions(ctx context.Context,
 		}
 		detectionProcess.iter = iter
 		if err := detectionProcess.run(ctx); err != nil {
-			return skerr.Wrapf(err, "Failed to run a sub-query: %q", req.Query)
+			return skerr.Wrapf(err, "Failed to run a sub-query: %q", req.Query())
 		}
 	}
 	return nil
@@ -152,7 +171,7 @@ func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.R
 		sklog.Infof("Config expanded into %d queries.", len(queries))
 		for _, q := range queries {
 			reqCopy := *req
-			reqCopy.Query = q
+			reqCopy.SetQuery(q)
 			ret = append(ret, &reqCopy)
 		}
 	}
