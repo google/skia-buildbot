@@ -74,10 +74,11 @@ func TestTooMuchMissingData(t *testing.T) {
 func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
 	unittest.SmallTest(t)
 
+	alert := alerts.NewConfig() // A known query that will fail to parse.
+	alert.Query = "http://[::1]a"
 	req := &RegressionDetectionRequest{
-		Query:    "http://[::1]a", // A known query that will fail to parse.
 		Progress: progress.New(),
-		Alert:    alerts.NewConfig(),
+		Alert:    alert,
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
