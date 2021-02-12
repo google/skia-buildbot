@@ -26,6 +26,7 @@ import type {
 
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
+import 'elements-sk/styles/select';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
@@ -39,6 +40,7 @@ import '../../../infra-sk/modules/uniform-color-sk';
 import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { Uniform, UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { FPS } from '../fps/fps';
+import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
@@ -152,6 +154,10 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
 const RAF_NOT_RUNNING = -1;
 
 export class ShadersAppSk extends ElementSk {
+  private width: number = 512;
+
+  private height: number = 512;
+
   private codeMirror: CodeMirror.Editor | null = null;
 
   private canvasEle: HTMLCanvasElement | null = null;
@@ -233,7 +239,11 @@ export class ShadersAppSk extends ElementSk {
           ret.push(html`<uniform-mouse-sk .uniform=${uniform} .elementToMonitor=${ele.canvasEle}></uniform-mouse-sk>`);
           break;
         case 'iResolution':
-          ret.push(html`<uniform-dimensions-sk .uniform=${uniform} x=${ele.width} y=${ele.height}></uniform-dimensions-sk>`);
+          ret.push(html`
+            <uniform-dimensions-sk
+              .uniform=${uniform}
+              @dimensions-changed=${ele.dimensionsChanged}
+            ></uniform-dimensions-sk>`);
           break;
         case 'iImageResolution':
           ret.push(html`<uniform-imageresolution-sk .uniform=${uniform}></uniform-imageresolution-sk>`);
@@ -401,6 +411,13 @@ export class ShadersAppSk extends ElementSk {
         ele.addEventListener('error', (e) => reject(e));
       }
     });
+  }
+
+  private dimensionsChanged(e: Event) {
+    const newDims = (e as CustomEvent<DimensionsChangedEventDetail>).detail;
+    this.width = newDims.width;
+    this.height = newDims.height;
+    this.startShader(this.runningCode);
   }
 
   private monitorIfDevicePixelRatioChanges() {
@@ -656,10 +673,6 @@ export class ShadersAppSk extends ElementSk {
     this.stateChanged!();
     this.loadShaderIfNecessary();
   }
-
-  private get width(): number { return DEFAULT_SIZE; }
-
-  private get height(): number { return DEFAULT_SIZE; }
 }
 
 define('shaders-app-sk', ShadersAppSk);
