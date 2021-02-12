@@ -36,6 +36,7 @@ import '../../../infra-sk/modules/uniform-dimensions-sk';
 import '../../../infra-sk/modules/uniform-slider-sk';
 import '../../../infra-sk/modules/uniform-mouse-sk';
 import '../../../infra-sk/modules/uniform-color-sk';
+import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { Uniform, UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { FPS } from '../fps/fps';
 
@@ -53,11 +54,12 @@ const kitReady = CanvasKitInit({
 
 const DEFAULT_SIZE = 512;
 
-const predefinedUniforms = `uniform float3 iResolution; // Viewport resolution (pixels)
-uniform float  iTime;       // Shader playback time (s)
-uniform float4 iMouse;      // Mouse drag pos=.xy Click pos=.zw (pixels)
-uniform shader iImage1;     // An input image (Mandrill - 512 x 512).
-uniform shader iImage2;     // An input image (Soccer ball - 512 x 512).`;
+const predefinedUniforms = `uniform float3 iResolution;      // Viewport resolution (pixels)
+uniform float  iTime;            // Shader playback time (s)
+uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
+uniform float3 iImageResolution; // iImage1 and iImage2 resolution (pixels)
+uniform shader iImage1;          // An input image (Mandrill).
+uniform shader iImage2;          // An input image (Soccer ball).`;
 
 // How many of the uniforms listed in predefinedUniforms are of type 'shader'?
 const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
@@ -177,6 +179,9 @@ export class ShadersAppSk extends ElementSk {
         case 'iResolution':
           ret.push(html`<uniform-dimensions-sk .uniform=${uniform} x=${ele.width} y=${ele.height}></uniform-dimensions-sk>`);
           break;
+        case 'iImageResolution':
+          ret.push(html`<uniform-imageresolution-sk .uniform=${uniform}></uniform-imageresolution-sk>`);
+          break;
         default:
           if (uniform.name.toLowerCase().indexOf('color') !== -1) {
             ret.push(html`<uniform-color-sk .uniform=${uniform}></uniform-color-sk>`);
@@ -295,6 +300,7 @@ export class ShadersAppSk extends ElementSk {
       try {
         this.inputImageShaders = [];
         // Wait until all the images are loaded.
+        // Note: All shader images MUST be 512 x 512 to agree with iImageResolution.
         const elements = await Promise.all<HTMLImageElement>([this.promiseOnImageLoaded('#iImage1'), this.promiseOnImageLoaded('#iImage2')]);
         // Convert them into shaders.
         elements.forEach((ele) => {
