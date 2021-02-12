@@ -1,6 +1,6 @@
 import { $, $$ } from 'common-sk/modules/dom';
 import './index';
-import { UniformDimensionsSk } from './uniform-dimensions-sk';
+import { DimensionsChangedEventDetail, dimensionsChangedEventName, UniformDimensionsSk } from './uniform-dimensions-sk';
 
 $$('#apply')!.addEventListener('click', () => {
   // Pick a larger than needed uniforms size to show we don't affect the other uniform values.
@@ -9,4 +9,8 @@ $$('#apply')!.addEventListener('click', () => {
     ele.applyUniformValues(uniforms);
   });
   $$<HTMLPreElement>('#results')!.innerText = uniforms.toString();
+});
+
+$$('uniform-dimensions-sk')!.addEventListener(dimensionsChangedEventName, (e: Event) => {
+  $$<HTMLPreElement>('#results')!.innerText = JSON.stringify((e as CustomEvent<DimensionsChangedEventDetail>).detail);
 });
