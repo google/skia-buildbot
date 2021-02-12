@@ -1,6 +1,6 @@
 @import '../themes/themes.scss';
 @import '~codemirror/lib/codemirror.css';
-@import '~codemirror/theme/base16-dark.css';
+@import '~codemirror/theme/ambiance.css';
 @import '~codemirror/theme/base16-light.css';
 
 .body-sk shaders-app-sk {
@@ -44,10 +44,6 @@
 
     #codeEditor {
       margin: 0 8px 8px 8px;
-    }
-
-    #codeEditor > div {
-      padding: 8px;
     }
 
     #shaderControls {
