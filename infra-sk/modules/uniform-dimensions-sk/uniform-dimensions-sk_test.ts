@@ -26,10 +26,24 @@ describe('uniform-dimensions-sk', () => {
         slot: 1,
       };
 
-      element.x = 800;
-      element.y = 600;
       element.applyUniformValues(uniforms);
-      assert.deepEqual(uniforms, [0, 800, 600, 0, 0]);
+      assert.deepEqual(uniforms, [0, 512, 512, 0, 0]);
+    });
+
+    it('changes the applied uniforms when the choice changes', () => {
+      // Make uniforms longer than needed to show we don't disturb other values.
+      const uniforms = [0, 0, 0, 0, 0];
+
+      element.uniform = {
+        name: 'iDimensions',
+        columns: 3,
+        rows: 1,
+        slot: 1,
+      };
+
+      element.choice = 0;
+      element.applyUniformValues(uniforms);
+      assert.deepEqual(uniforms, [0, 128, 128, 0, 0]);
     });
 
     it('throws on invalid uniforms', () => {
