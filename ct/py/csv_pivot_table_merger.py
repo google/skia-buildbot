@@ -88,8 +88,12 @@ class CsvMerger(object):
       fieldname = self._GetFieldNameFromRow(row)
       fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
 
-      traceURL = row.get(TELEMETRY_TRACE_URLS_KEY)
+      # For some reason traceURLs have carriage returns on Windows. We need to
+      # check for them and strip them out. See skbug.com/10590 for context.
+      traceURL = (row.get(TELEMETRY_TRACE_URLS_KEY) or
+                  row.get(TELEMETRY_TRACE_URLS_KEY + '\r'))
       if traceURL:
+        traceURL = traceURL.rstrip('\r')
         if TELEMETRY_TRACE_URLS_KEY in fieldname_to_values:
           fieldname_to_values[TELEMETRY_TRACE_URLS_KEY].append(traceURL)
         else:
