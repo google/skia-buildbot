@@ -105,10 +105,12 @@ func ProcessRegressions(ctx context.Context,
 	dfBuilder dataframe.DataFrameBuilder,
 	ps paramtools.ReadOnlyParamSet,
 ) error {
+	req.Query = req.Alert.Query
 	allRequests := allRequestsFromBaseRequest(req, ps)
 	for _, req := range allRequests {
 		req.Progress.Message("Stage", "Loading data to analyze")
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+		sklog.Infof("Building DataFrameIterator for %q", req.Query)
 		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
 		if err != nil {
 			sklog.Warningf("Failed to create iterator for query: %q: %s", req.Query, err)
