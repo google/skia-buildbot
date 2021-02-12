@@ -105,6 +105,7 @@ func ProcessRegressions(ctx context.Context,
 	dfBuilder dataframe.DataFrameBuilder,
 	ps paramtools.ReadOnlyParamSet,
 ) error {
+	req.Query = req.Alert.Query
 	allRequests := allRequestsFromBaseRequest(req, ps)
 	for _, req := range allRequests {
 		req.Progress.Message("Stage", "Loading data to analyze")
