@@ -36,7 +36,7 @@ const (
 
 	// pollingClusteringDelay is the time to wait between clustering runs, but
 	// only when not doing event driven regression detection.
-	pollingClusteringDelay = 5 * time.Minute
+	pollingClusteringDelay = 5 * time.Second
 
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 )
@@ -317,6 +317,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 				time.Sleep(time.Minute)
 				continue
 			}
+			sklog.Infof("Found %d configs.", len(configs))
 			// Shuffle the order of the configs.
 			//
 			// If we are running parallel continuous regression detectors then
@@ -393,6 +394,8 @@ func (c *Continuous) Run(ctx context.Context) {
 					continue
 				}
 				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
+			} else {
+				sklog.Info("Not a GroupBy Alert.")
 			}
 
 			clusterResponseProcessor := func(req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
