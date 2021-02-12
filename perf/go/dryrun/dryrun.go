@@ -82,7 +82,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			req.Progress.Message("Step", fmt.Sprintf("%d/%d", queryRequest.Step+1, queryRequest.TotalQueries))
-			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query))
+			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query()))
 			req.Progress.Message("Stage", "Looking for regressions in query results.")
 			req.Progress.Message("Commit", fmt.Sprintf("%d", c.CommitNumber))
 			req.Progress.Message("Details", message)

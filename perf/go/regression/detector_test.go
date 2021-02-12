@@ -105,7 +105,7 @@ func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
 	}
 	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
 	assert.Len(t, allRequests, 2)
-	assert.Contains(t, []string{"arch=x86&config=8888", "arch=x86&config=565"}, allRequests[0].Query)
+	assert.Contains(t, []string{"arch=x86&config=8888", "arch=x86&config=565"}, allRequests[0].Query())
 }
 
 func TestAllRequestsFromBaseRequest_WithInvalidGroupBy_NoRequestsReturned(t *testing.T) {
@@ -141,4 +141,27 @@ func TestAllRequestsFromBaseRequest_WithoutGroupBy_BaseRequestReturnedUnchanged(
 	assert.Len(t, allRequests, 1)
 	// Intentionally comparing pointers.
 	assert.Equal(t, baseRequest, allRequests[0])
+}
+
+func TestRegressionDetectionRequestQuery_NoAlert_ReturnsEmptyQuery(t *testing.T) {
+	unittest.SmallTest(t)
+	r := NewRegressionDetectionRequest()
+	assert.Equal(t, "", r.Query())
+}
+
+func TestRegressionDetectionRequestQuery_Alert_ReturnsTheAlertsQueryValue(t *testing.T) {
+	unittest.SmallTest(t)
+	r := NewRegressionDetectionRequest()
+	r.Alert = alerts.NewConfig()
+	r.Alert.Query = "foo"
+	assert.Equal(t, r.Alert.Query, r.Query())
+}
+
+func TestRegressionDetectionRequestQuery_AlertAndSetQueryCalled_ReturnsTheSetQueryValue(t *testing.T) {
+	unittest.SmallTest(t)
+	r := NewRegressionDetectionRequest()
+	r.Alert = alerts.NewConfig()
+	r.Alert.Query = "foo"
+	r.SetQuery("bar")
+	assert.Equal(t, "bar", r.Query())
 }
