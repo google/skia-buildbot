@@ -494,7 +494,8 @@ groups:
       description: 'Swarming bot {{ $labels.bot }} has not run a job in 72 hours. Maybe its dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
   - alert: BotQuarantined
-    expr: avg_over_time(swarming_bots_quarantined{device_state!~"(too_hot)|(low_battery)",bot!="skia-rpi-template"}[20m]) >= 1
+    expr: swarming_bots_quarantined{device_state!~"(too_hot)|(low_battery)",bot!="skia-rpi-template"} >= 1
+    for: 10m
     labels:
       category: infra
       severity: critical
