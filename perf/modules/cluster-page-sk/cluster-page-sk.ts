@@ -301,7 +301,6 @@ export class ClusterPageSk extends ElementSk {
       return;
     }
     const body: RegressionDetectionRequest = {
-      query: this.state.query,
       step: 0,
       total_queries: 0,
       alert: {

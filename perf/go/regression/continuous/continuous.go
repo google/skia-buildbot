@@ -411,7 +411,6 @@ func (c *Continuous) Run(ctx context.Context) {
 			req := regression.NewRegressionDetectionRequest()
 			req.Alert = cfg
 			req.Domain = domain
-			req.Query = cfg.Query
 
 			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider()); err != nil {
 				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
