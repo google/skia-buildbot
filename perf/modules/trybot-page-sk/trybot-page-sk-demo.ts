@@ -108,6 +108,7 @@ window.sk = {
     num_shift: 10,
     interesting: 25,
     step_up_only: false,
+    display_group_by: true,
   },
 };
 
