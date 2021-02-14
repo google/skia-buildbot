@@ -2,6 +2,11 @@ import './index';
 import { AlertConfigSk } from './alert-config-sk';
 import { Alert } from '../json';
 
+window.sk = window.sk || {};
+window.sk.perf = window.sk.perf || {};
+window.sk.perf.key_order = [];
+window.sk.perf.display_group_by = true;
+
 const paramset = {
   config: ['565', '8888'],
   type: ['CPU', 'GPU'],
@@ -62,7 +67,3 @@ const ele = document.querySelector<AlertConfigSk>('alert-config-sk')!;
 window.setInterval(() => {
   state.textContent = JSON.stringify(ele.config, null, '  ');
 }, 100);
-
-window.sk = window.sk || {};
-window.sk.perf = window.sk.perf || {};
-window.sk.perf.key_order = [];
