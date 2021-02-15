@@ -9,12 +9,14 @@
       url_template: "https://fuchsia-review.googlesource.com/%s"
     },
   ],
+  diff_work_topic: "gold-fuchsia-public-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-fuchsia-public",
   git_bt_table: "git-repos2",
   git_repo_branch: "master",
   git_repo_url: "https://fuchsia.googlesource.com/fuchsia",
   fs_namespace: "fuchsia-public",
   fs_project_id: "skia-firestore",
+  pubsub_project_id: "skia-public",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "fuchsiapublic",
   known_hashes_gcs_path: "skia-gold-fuchsia-public/hash_files/gold-fuchsia-public-hashes.txt",

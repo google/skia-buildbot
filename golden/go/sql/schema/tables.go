@@ -185,6 +185,10 @@ type TraceRow struct {
 	// changed. There is a background process that computes this field for any traces with this
 	// unset (i.e. NULL).
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
+
+	// This index speeds up fetching traces by grouping, e.g. when enumerating the work needed for
+	// creating diffs.
+	groupingIgnoredIndex struct{} `sql:"INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
