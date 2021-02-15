@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "50850406_c7d119d0",
+        "filename": "infra-sk/modules/uniform-imageresolution-sk/uniform-imageresolution-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-15T12:39:35Z",
+      "side": 1,
+      "message": "Is this 3 because we use 3d vectors for 2d and 3d data?",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 9
+      },
+      "revId": "1112e4649325c9a0ef5b2e8385b3004e1ac9d94b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
