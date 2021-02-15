@@ -48,7 +48,7 @@ type diffCalculatorConfig struct {
 
 	// DiffCacheNamespace is a namespace for differentiating the DiffCache entities. The instance
 	// name is fine here.
-	DiffCacheNamespace string `json:"diff_cache_namespace"`
+	DiffCacheNamespace string `json:"diff_cache_namespace" optional:"true"`
 
 	// DiffWorkSubscription is the subscription name used by all replicas of the diffcalculator.
 	// By setting the subscriber ID to be the same on all instances of the diffcalculator,
@@ -59,7 +59,7 @@ type diffCalculatorConfig struct {
 
 	// MemcachedServer is the address in the form dns_name:port
 	// (e.g. gold-memcached-0.gold-memcached:11211).
-	MemcachedServer string `json:"memcached_server"`
+	MemcachedServer string `json:"memcached_server" optional:"true"`
 
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
@@ -300,7 +300,21 @@ func (m *memcachedDiffCache) maybeReload() {
 	}()
 }
 
+// noopDiffCache pretends the memcached instance always does not have what we are looking up.
+// It is useful for corp-instances where we do not have memcached setup.
+type noopDiffCache struct{}
+
+func (n noopDiffCache) RemoveAlreadyComputedDiffs(_ context.Context, _ types.Digest, right []types.Digest) []types.Digest {
+	return right
+}
+
+func (n noopDiffCache) StoreDiffComputed(_ context.Context, _, _ types.Digest) {}
+
 func mustMakeDiffCache(_ context.Context, dcc diffCalculatorConfig) worker.DiffCache {
+	if dcc.MemcachedServer == "" || dcc.DiffCacheNamespace == "" {
+		sklog.Infof("not using memcached")
+		return noopDiffCache{}
+	}
 	dc, err := newMemcacheDiffCache(dcc.MemcachedServer, dcc.DiffCacheNamespace)
 	if err != nil {
 		sklog.Fatalf("Could not ping memcached server %s: %s", dcc.MemcachedServer, err)
