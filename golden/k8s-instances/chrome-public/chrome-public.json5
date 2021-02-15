@@ -15,6 +15,7 @@
   git_repo_url: "https://chromium.googlesource.com/chromium/src",
   fs_namespace: "chrome",
   fs_project_id: "skia-firestore",
+  pubsub_project_id: "skia-public",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "chrome",
   known_hashes_gcs_path: "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",

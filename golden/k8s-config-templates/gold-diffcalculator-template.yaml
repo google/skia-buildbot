@@ -33,6 +33,11 @@ spec:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
     spec:
+      # Keep these pods restricted to the 16 core nodes, so we don't fill up the 64 core ones.
+      nodeSelector:
+        "beta.kubernetes.io/instance-type": "n1-standard-16"
+        # The following will be available in 1.17
+        # "node.kubernetes.io/instance-type": "n1-standard-16"
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
