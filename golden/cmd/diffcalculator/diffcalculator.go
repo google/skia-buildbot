@@ -48,7 +48,7 @@ type diffCalculatorConfig struct {
 
 	// DiffCacheNamespace is a namespace for differentiating the DiffCache entities. The instance
 	// name is fine here.
-	DiffCacheNamespace string
+	DiffCacheNamespace string `json:"diff_cache_namespace"`
 
 	// DiffWorkSubscription is the subscription name used by all replicas of the diffcalculator.
 	// By setting the subscriber ID to be the same on all instances of the diffcalculator,
