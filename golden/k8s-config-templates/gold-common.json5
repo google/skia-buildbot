@@ -1,6 +1,6 @@
 {
     "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2021-01-19T14_28_28Z-kjlubick-450bea3-clean",
-    "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2021-02-11T14_13_46Z-kjlubick-263026c-dirty",
+    "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2021-02-15T13_50_15Z-kjlubick-283f79f-dirty",
     "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2021-01-19T14_27_42Z-kjlubick-450bea3-clean",
     "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2021-01-29T12_35_50Z-kjlubick-c74b2cb-clean",
     "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2021-02-11T15_11_51Z-kjlubick-c7ce8ea-dirty",

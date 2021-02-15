@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"path"
 	"sync"
@@ -86,6 +87,7 @@ func main() {
 		sklog.Info("Hanging")
 		select {}
 	}
+	rand.Seed(time.Now().UnixNano())
 
 	var dcc diffCalculatorConfig
 	if err := config.LoadFromJSON5(&dcc, commonInstanceConfig, thisConfig); err != nil {
@@ -179,12 +181,25 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 	return b, skerr.Wrap(err)
 }
 
+const failureReconnectLimit = 100
+
 type memcachedDiffCache struct {
-	client *memcache.Client
+	serverAddress string
+	client        *memcache.Client
+	clientMutex   sync.RWMutex
+	numFailures   int
 
 	// namespace is the string to add to each key to avoid conflicts with more than one
 	// gold instance.
 	namespace string
+}
+
+func newMemcacheDiffCache(server, namespace string) (*memcachedDiffCache, error) {
+	m := &memcachedDiffCache{serverAddress: server, namespace: namespace}
+	c := memcache.New(server)
+	c.Timeout = time.Second
+	m.client = c
+	return m, c.Ping()
 }
 
 func key(namespace string, left, right types.Digest) string {
@@ -202,9 +217,16 @@ func (m *memcachedDiffCache) RemoveAlreadyComputedDiffs(ctx context.Context, lef
 		}
 		keys = append(keys, key(m.namespace, left, right))
 	}
+	m.clientMutex.RLock()
+	if m.client == nil { // memcached client unavailable
+		m.clientMutex.RUnlock()
+		return rightDigests
+	}
 	alreadyCalculated, err := m.client.GetMulti(keys)
+	m.clientMutex.RUnlock()
 	if err != nil {
 		sklog.Warningf("Could not read from memcached: %s", err)
+		m.maybeReload()
 		return rightDigests // on an error, assume all need to be queried from DB.
 	}
 	if len(alreadyCalculated) == len(keys) {
@@ -226,25 +248,59 @@ func (m *memcachedDiffCache) RemoveAlreadyComputedDiffs(ctx context.Context, lef
 
 // StoreDiffComputed implements the DiffCache interface.
 func (m *memcachedDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
+	m.clientMutex.RLock()
+	if m.client == nil { // memcached client unavailable
+		m.clientMutex.RUnlock()
+		return
+	}
 	err := m.client.Set(&memcache.Item{
 		Key:   key(m.namespace, left, right),
 		Value: []byte{0x01},
 	})
+	m.clientMutex.RUnlock()
 	if err != nil {
 		sklog.Warningf("Could not set in memcached: %s", err)
+		m.maybeReload()
 	}
 }
 
+func (m *memcachedDiffCache) maybeReload() {
+	m.clientMutex.Lock()
+	m.numFailures++
+	// We add the m.client == nil check to make it so there's only one goroutine in charge of
+	// reconnecting
+	if m.numFailures < failureReconnectLimit || m.client == nil {
+		m.clientMutex.Unlock()
+		return
+	}
+	m.client = nil
+	m.clientMutex.Unlock()
+	go func() { // spin up a background goroutine to heal the connection.
+		for {
+			// wait 10 seconds + some jitter to re-connect
+			time.Sleep(10*time.Second + time.Duration(float32(10*time.Second)*rand.Float32()))
+			c := memcache.New(m.serverAddress)
+			c.Timeout = time.Second
+			if err := c.Ping(); err != nil {
+				sklog.Warningf("Cannot reconnect to memcached: %s", err)
+				continue // go back to sleep, try again later
+			}
+			m.clientMutex.Lock()
+			m.client = c
+			m.numFailures = 0
+			sklog.Infof("Reconnected to memcached")
+			m.clientMutex.Unlock()
+			return
+		}
+	}()
+}
+
 func mustMakeDiffCache(_ context.Context, dcc diffCalculatorConfig) worker.DiffCache {
-	c := memcache.New(dcc.MemcachedServer)
-	c.Timeout = time.Second
-	if err := c.Ping(); err != nil {
+	dc, err := newMemcacheDiffCache(dcc.MemcachedServer, dcc.DiffCacheNamespace)
+	if err != nil {
 		sklog.Fatalf("Could not ping memcached server %s: %s", dcc.MemcachedServer, err)
 	}
-	return &memcachedDiffCache{
-		client:    c,
-		namespace: dcc.DiffCacheNamespace,
-	}
+	return dc
 }
 
 func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {
@@ -327,6 +383,10 @@ func (p *processor) processMessage(ctx context.Context, msgData []byte) bool {
 	if wm.Version != diff.WorkerMessageVersion {
 		return true // This is an old or a new message, skip it.
 	}
+	// Prevent our workers from getting starved out with long-running tasks. Cancel them, an
+	// requeue them. CalculateDiffs should be streaming results, so we get some partial progress.
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
 	err := p.calculator.CalculateDiffs(ctx, wm.Grouping, wm.AdditionalLeft, wm.AdditionalRight)
 	if err != nil {
 		sklog.Errorf("Calculating diffs for %v: %s", wm, err)
