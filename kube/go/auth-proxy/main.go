@@ -36,6 +36,8 @@ func NewProxy(target *url.URL) *Proxy {
 
 func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Requesting: %s", r.RequestURI)
+	email := login.LoggedInAs(r)
+	r.Header.Add("X-WEBAUTH-USER", email)
 	if r.Method == "POST" && *allowPost {
 		p.reverseProxy.ServeHTTP(w, r)
 		return
