@@ -112,7 +112,7 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 				types.PrimaryKeyField: string(data.AlphaTest),
 			}, grouping)
 			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, leftDigests)
-			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, rightDigests)
+			assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest, data.AlphaNegativeDigest}, rightDigests)
 		} else if grouping[types.PrimaryKeyField] == string(data.BetaTest) {
 			assert.Equal(t, paramtools.Params{
 				types.CorpusField:     data.GMCorpus,
