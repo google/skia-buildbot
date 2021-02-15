@@ -41,7 +41,7 @@ func TestProcessPubSubMessage_ValidJSON_CalculateSucceeds_Ack(t *testing.T) {
 
 	p := processor{calculator: &mc}
 
-	messageBytes := []byte(`{"version":2,"grouping":{"name":"any-test","other grouping":"something","source_type":"any-corpus"},"additional_left":["abcd","ef123"],"additional_right":["4567"]}`)
+	messageBytes := []byte(`{"version":3,"grouping":{"name":"any-test","other grouping":"something","source_type":"any-corpus"},"additional_left":["abcd","ef123"],"additional_right":["4567"]}`)
 	shouldAck := p.processMessage(context.Background(), messageBytes)
 	assert.True(t, shouldAck)
 	mc.AssertExpectations(t)
@@ -62,7 +62,7 @@ func TestProcessPubSubMessage_ValidJSON_CalculateFails_Nack(t *testing.T) {
 
 	p := processor{calculator: &mc}
 
-	messageBytes := []byte(`{"version":2,"grouping":{"name":"any-test","source_type":"any-corpus"}}`)
+	messageBytes := []byte(`{"version":3,"grouping":{"name":"any-test","source_type":"any-corpus"}}`)
 	shouldAck := p.processMessage(context.Background(), messageBytes)
 	assert.False(t, shouldAck)
 	mc.AssertExpectations(t)
