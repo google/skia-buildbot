@@ -64,6 +64,11 @@ type diffCalculatorConfig struct {
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
 
+	// PubSubFetchSize is how many worker messages to ask PubSub for. This defaults to 10, but for
+	// instances that have many tests, but most of the messages result in no-ops, this can be
+	// higher for better utilization and throughput.
+	PubSubFetchSize int `json:"pubsub_fetch_size" optional:"true"`
+
 	// The port to provide a web handler for /healthz
 	ReadyPort string `json:"ready_port"`
 
@@ -328,7 +333,12 @@ func listen(ctx context.Context, dcc diffCalculatorConfig, p *processor) error {
 	// This is a limit of how many messages to fetch when PubSub has no work. Waiting for PubSub
 	// to give us messages can take a second or two, so we choose a small, but not too small
 	// batch size.
-	sub.ReceiveSettings.MaxOutstandingMessages = 10
+	if dcc.PubSubFetchSize == 0 {
+		sub.ReceiveSettings.MaxOutstandingMessages = 10
+	} else {
+		sub.ReceiveSettings.MaxOutstandingMessages = dcc.PubSubFetchSize
+	}
+
 	// This process will handle one message at a time. This allows us to more finely control the
 	// scaling up as necessary.
 	sub.ReceiveSettings.NumGoroutines = 1
