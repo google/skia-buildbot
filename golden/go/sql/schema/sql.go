@@ -144,7 +144,8 @@ CREATE TABLE IF NOT EXISTS Traces (
   corpus STRING AS (keys->>'source_type') STORED NOT NULL,
   grouping_id BYTES NOT NULL,
   keys JSONB NOT NULL,
-  matches_any_ignore_rule BOOL
+  matches_any_ignore_rule BOOL,
+  INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)
 );
 CREATE TABLE IF NOT EXISTS Tryjobs (
   tryjob_id STRING PRIMARY KEY,
