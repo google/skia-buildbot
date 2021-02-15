@@ -9,12 +9,14 @@
       url_template: "https://skia-review.googlesource.com/%s"
     },
   ],
+  diff_work_topic: "gold-lottie-diffmetrics", // includes instance id
   gcs_bucket: "skia-gold-lottie",
   git_bt_table: "git-repos2",
   git_repo_branch: "master",
   git_repo_url: "https://skia.googlesource.com/lottie-ci",
   fs_namespace: "lottie",
   fs_project_id: "skia-firestore",
+  pubsub_project_id: "skia-public",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "lottie",
   known_hashes_gcs_path: "skia-gold-lottie/hash_files/gold-lottie-hashes.txt",
