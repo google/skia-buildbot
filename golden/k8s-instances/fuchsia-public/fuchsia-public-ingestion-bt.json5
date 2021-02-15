@@ -2,7 +2,6 @@
   port: ":9091",
   prom_port: ":20000",
   pubsub_event_topic: "gold-fuchsia-public-eventbus-bt",
-  pubsub_project_id: "skia-public",
 
   ingestion_configs: {
     // Primary Ingester

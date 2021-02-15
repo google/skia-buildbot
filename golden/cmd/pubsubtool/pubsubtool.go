@@ -7,6 +7,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 
@@ -82,7 +83,13 @@ func createTopicAndSubscription(ctx context.Context, psc *pubsub.Client, topic, 
 		return skerr.Fmt("Error checking existence of pubsub subscription '%s': %s", sub, err)
 	} else if !exists {
 		_, err = psc.CreateSubscription(ctx, sub, pubsub.SubscriptionConfig{
-			Topic: t,
+			Topic:             t,
+			AckDeadline:       2 * time.Minute,
+			RetentionDuration: 4 * time.Hour,
+			RetryPolicy: &pubsub.RetryPolicy{
+				MinimumBackoff: time.Minute,
+				MaximumBackoff: 5 * time.Minute,
+			},
 		})
 		if err != nil {
 			return skerr.Fmt("Error creating pubsub subscription '%s': %s", sub, err)
