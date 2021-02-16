@@ -671,6 +671,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
 		return
 	}
+	// TODO(kjlubick) require corpus
 	test := r.Form.Get("test")
 	left := r.Form.Get("left")
 	right := r.Form.Get("right")
@@ -690,7 +691,11 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
+	ctx := r.Context()
+	if r.Form.Get("use_sql") != "" {
+		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+	}
+	ret, err := wh.SearchAPI.DiffDigests(ctx, types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to compare digests", http.StatusInternalServerError)
 		return

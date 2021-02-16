@@ -39,9 +39,11 @@ import (
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
+	"go.skia.org/infra/golden/go/search"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
+	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
@@ -2588,6 +2590,113 @@ func TestListTestsHandler_InvalidQueries_BadRequestError(t *testing.T) {
 	test("empty corpus", "/json/list?corpus=")
 
 	test("invalid trace values", "/json/list?corpus=gm&trace_values=%zz")
+}
+
+func TestDiffHandler_DefaultContext_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search.SearchAPI{}
+
+	const testAlpha = types.TestName("alpha")
+	const leftDigest = types.Digest("11111111111111111111111111111111")
+	const rightDigest = types.Digest("22222222222222222222222222222222")
+	ms.On("DiffDigests", testutils.AnyContext, testAlpha, leftDigest, rightDigest, "", "").Return(&search_fe.DigestComparison{
+		// Arbitrary data from a search unit test.
+		Left: search_fe.SearchResult{
+			Test:   testAlpha,
+			Digest: leftDigest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				"device":              []string{data.BullheadDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
+			},
+		},
+		Right: &search_fe.SRDiffDigest{
+			Digest:           rightDigest,
+			Status:           expectations.Positive,
+			NumDiffPixels:    13,
+			PixelDiffPercent: 0.5,
+			MaxRGBADiffs:     [4]int{8, 9, 10, 11},
+			DimDiffer:        true,
+			CombinedMetric:   4.2,
+			ParamSet: paramtools.ParamSet{
+				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
+			},
+		},
+	}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			SearchAPI: ms,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/diff?test=alpha&left=11111111111111111111111111111111&right=22222222222222222222222222222222", nil)
+	wh.DiffHandler(w, r)
+	const expectedResponse = `{"left":{"digest":"11111111111111111111111111111111","test":"alpha","status":"untriaged","triage_history":null,"paramset":{"device":["bullhead"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]},"traces":{"tileSize":0,"traces":null,"digests":null,"total_digests":0},"refDiffs":null,"closestRef":""},"right":{"numDiffPixels":13,"combinedMetric":4.2,"pixelDiffPercent":0.5,"maxRGBADiffs":[8,9,10,11],"dimDiffer":true,"digest":"22222222222222222222222222222222","status":"positive","paramset":{"device":["angler","crosshatch"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]},"n":0}}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestDiffHandler_RequestSQLDiffMetrics_ContextValueAdded(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ms := &mock_search.SearchAPI{}
+
+	const testAlpha = types.TestName("alpha")
+	const leftDigest = types.Digest("11111111111111111111111111111111")
+	const rightDigest = types.Digest("22222222222222222222222222222222")
+	ctxMatcher := mock.MatchedBy(func(ctx context.Context) bool {
+		v := ctx.Value(search.UseSQLDiffMetricsKey)
+		assert.NotNil(t, v)
+		return true
+	})
+	ms.On("DiffDigests", ctxMatcher, testAlpha, leftDigest, rightDigest, "", "").Return(&search_fe.DigestComparison{
+		// Arbitrary data from a search unit test.
+		Left: search_fe.SearchResult{
+			Test:   testAlpha,
+			Digest: leftDigest,
+			Status: expectations.Untriaged,
+			ParamSet: paramtools.ParamSet{
+				"device":              []string{data.BullheadDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
+			},
+		},
+		Right: &search_fe.SRDiffDigest{
+			Digest:           rightDigest,
+			Status:           expectations.Positive,
+			NumDiffPixels:    13,
+			PixelDiffPercent: 0.5,
+			MaxRGBADiffs:     [4]int{8, 9, 10, 11},
+			DimDiffer:        true,
+			CombinedMetric:   4.2,
+			ParamSet: paramtools.ParamSet{
+				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
+			},
+		},
+	}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			SearchAPI: ms,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/v1/diff?use_sql=true&test=alpha&left=11111111111111111111111111111111&right=22222222222222222222222222222222", nil)
+	wh.DiffHandler(w, r)
+	const expectedResponse = `{"left":{"digest":"11111111111111111111111111111111","test":"alpha","status":"untriaged","triage_history":null,"paramset":{"device":["bullhead"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]},"traces":{"tileSize":0,"traces":null,"digests":null,"total_digests":0},"refDiffs":null,"closestRef":""},"right":{"numDiffPixels":13,"combinedMetric":4.2,"pixelDiffPercent":0.5,"maxRGBADiffs":[8,9,10,11],"dimDiffer":true,"digest":"22222222222222222222222222222222","status":"positive","paramset":{"device":["angler","crosshatch"],"ext":["png"],"name":["test_alpha"],"source_type":["gm"]},"n":0}}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL

@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
@@ -29,6 +31,7 @@ import (
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
@@ -77,10 +80,11 @@ type SearchImpl struct {
 
 	clIndexCacheHitCounter  metrics2.Counter
 	clIndexCacheMissCounter metrics2.Counter
+	sqlDB                   *pgxpool.Pool
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int, sqlDB *pgxpool.Pool) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -99,6 +103,7 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
 		flakyTraceThreshold:    flakyThreshold,
+		sqlDB:                  sqlDB,
 
 		storeCache:         ttlcache.New(searchCacheFreshness, searchCacheCleanup),
 		triageHistoryCache: &triageHistoryCache,
@@ -615,15 +620,11 @@ func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPS
 func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left, right types.Digest, clID string, crs string) (*frontend.DigestComparison, error) {
 	ctx, span := trace.StartSpan(ctx, "search.DiffDigests")
 	defer span.End()
+
 	// Get the diff between the two digests
-	diffResult, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
+	diffMetric, err := s.getDiffMetric(ctx, left, right)
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-
-	// Return an error if we could not find the diff.
-	if len(diffResult) != 1 {
-		return nil, skerr.Fmt("could not find diff between %s and %s", left, right)
 	}
 
 	exp, err := s.getExpectations(ctx, clID, crs)
@@ -640,8 +641,6 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	psRight.Normalize()
 
 	history := s.makeTriageHistoryGetter(crs, clID)
-
-	d := diffResult[right]
 	return &frontend.DigestComparison{
 		Left: frontend.SearchResult{
 			Test:          test,
@@ -654,13 +653,59 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 			Digest:           right,
 			Status:           exp.Classification(test, right),
 			ParamSet:         psRight,
-			NumDiffPixels:    d.NumDiffPixels,
-			CombinedMetric:   d.CombinedMetric,
-			PixelDiffPercent: d.PixelDiffPercent,
-			MaxRGBADiffs:     d.MaxRGBADiffs,
-			DimDiffer:        d.DimDiffer,
+			NumDiffPixels:    diffMetric.NumDiffPixels,
+			CombinedMetric:   diffMetric.CombinedMetric,
+			PixelDiffPercent: diffMetric.PixelDiffPercent,
+			MaxRGBADiffs:     diffMetric.MaxRGBADiffs,
+			DimDiffer:        diffMetric.DimDiffer,
 		},
 	}, nil
+}
+
+// getDiffMetric returns the associated diff metric with the given two digests or an error if
+// it cannot be found. It will use either the Firestore backend or the SQL backend, depending on
+// if UseSQLDiffMetricsKey has a value in the provided context.
+func (s *SearchImpl) getDiffMetric(ctx context.Context, left, right types.Digest) (diff.DiffMetrics, error) {
+	if useSQLDiffMetrics(ctx) {
+		ctx, span := trace.StartSpan(ctx, "search.getSQLDiffMetric")
+		defer span.End()
+		const statement = `
+SELECT num_pixels_diff, percent_pixels_diff, max_rgba_diffs, combined_metric, dimensions_differ
+FROM DiffMetrics WHERE left_digest = $1 AND right_digest = $2`
+		lBytes, err := sql.DigestToBytes(left)
+		if err != nil {
+			return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", left)
+		}
+		rBytes, err := sql.DigestToBytes(right)
+		if err != nil {
+			return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", right)
+		}
+		var m diff.DiffMetrics
+		row := s.sqlDB.QueryRow(ctx, statement, lBytes, rBytes)
+		err = row.Scan(&m.NumDiffPixels, &m.PixelDiffPercent, &m.MaxRGBADiffs,
+			&m.CombinedMetric, &m.DimDiffer)
+		if err == pgx.ErrNoRows {
+			return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
+		} else if err != nil {
+			return diff.DiffMetrics{}, skerr.Wrap(err)
+		}
+		return m, nil
+	}
+	ctx, span := trace.StartSpan(ctx, "search.getFirestoreDiffMetric")
+	defer span.End()
+	res, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
+	if err != nil {
+		return diff.DiffMetrics{}, skerr.Wrap(err)
+	}
+	if len(res) != 1 {
+		return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
+	}
+	return *res[right], nil
+}
+
+// useSQLDiffMetrics returns true if there is a non-nil value associated with UseSQLDiffMetricsKey.
+func useSQLDiffMetrics(ctx context.Context) bool {
+	return ctx.Value(UseSQLDiffMetricsKey) != nil
 }
 
 // filterTile iterates over the tile and accumulates the traces
