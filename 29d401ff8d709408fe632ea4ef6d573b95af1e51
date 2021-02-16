@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f8f4d1e1_6bacb12a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-16T15:12:58Z",
+      "side": 1,
+      "message": "I\u0027m really surprised there isn\u0027t an existing client/wrapper for memcached that takes care\nof reconnecting.",
+      "revId": "29d401ff8d709408fe632ea4ef6d573b95af1e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6014e6b5_4441f425",
+        "filename": "golden/cmd/diffcalculator/diffcalculator.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-16T15:12:58Z",
+      "side": 1,
+      "message": "and",
+      "range": {
+        "startLine": 386,
+        "startChar": 87,
+        "endLine": 386,
+        "endChar": 89
+      },
+      "revId": "29d401ff8d709408fe632ea4ef6d573b95af1e51",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
