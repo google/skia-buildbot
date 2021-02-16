@@ -789,7 +789,13 @@ func addExpectations(results []*frontend.SearchResult, exp expectations.Classifi
 func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp expectations.Classifier, idx indexer.IndexSearcher) error {
 	ctx, span := trace.StartSpan(ctx, "search.getReferenceDiffs")
 	defer span.End()
-	refDiffer := ref_differ.New(exp, s.diffStore, idx)
+	var refDiffer ref_differ.RefDiffer
+	if useSQLDiffMetrics(ctx) {
+		refDiffer = ref_differ.NewSQLImpl(s.sqlDB, exp, idx)
+	} else {
+		refDiffer = ref_differ.NewFirestoreImpl(exp, s.diffStore, idx)
+	}
+
 	errGroup, gCtx := errgroup.WithContext(ctx)
 	sklog.Infof("Going to spawn %d goroutines to get reference diffs", len(resultDigests))
 	for _, retDigest := range resultDigests {

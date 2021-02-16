@@ -552,6 +552,9 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
+	if r.Form.Get("use_sql") != "" {
+		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+	}
 
 	searchResponse, err := wh.SearchAPI.Search(ctx, q)
 	if err != nil {
@@ -1053,9 +1056,13 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	testName := testNames[0]
+	ctx := r.Context()
+	if r.Form.Get("use_sql") != "" {
+		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+	}
 
 	idx := wh.Indexer.GetIndex()
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), &q)
+	searchResponse, err := wh.SearchAPI.Search(ctx, &q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return
