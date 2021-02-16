@@ -24,23 +24,31 @@ var (
 	allowPost  = flag.Bool("allow_post", false, "Allow POST requests to bypass auth.")
 )
 
-type Proxy struct {
+// Send the logged in user email in the following header. This allows decoupling
+// of authentication from the core of the app. See
+// https://grafana.com/blog/2015/12/07/grafana-authproxy-have-it-your-way/ for
+// how Grafana uses this to support almost any authentication handler.
+const webAuthHeaderName = "X-WEBAUTH-USER"
+
+type proxy struct {
 	reverseProxy http.Handler
 }
 
-func NewProxy(target *url.URL) *Proxy {
-	return &Proxy{
+func newProxy(target *url.URL) *proxy {
+	return &proxy{
 		reverseProxy: httputil.NewSingleHostReverseProxy(target),
 	}
 }
 
-func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Requesting: %s", r.RequestURI)
+	email := login.LoggedInAs(r)
+	r.Header.Add(webAuthHeaderName, email)
 	if r.Method == "POST" && *allowPost {
 		p.reverseProxy.ServeHTTP(w, r)
 		return
 	}
-	if login.LoggedInAs(r) == "" {
+	if email == "" {
 		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
 		return
 	}
@@ -64,7 +72,7 @@ func main() {
 		sklog.Fatalf("Unable to parse target URL %s: %s", targetURL, err)
 	}
 
-	var h http.Handler = NewProxy(target)
+	var h http.Handler = newProxy(target)
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
