@@ -16,6 +16,24 @@
       "message": "Do you want to have this handler set a variable so we can assert this function was actually called?",
       "revId": "9921a3bb0d0ab04a682f04b790e90905fd5387ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7691ab9_bcd48324",
+        "filename": "kube/go/auth-proxy/main_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-16T14:51:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15710c8a_f58f61ec",
+      "revId": "9921a3bb0d0ab04a682f04b790e90905fd5387ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
