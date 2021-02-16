@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"github.com/gorilla/mux"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"golang.org/x/time/rate"
@@ -552,9 +554,14 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
+	var span *trace.Span
 	if r.Form.Get("use_sql") != "" {
 		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+		ctx, span = trace.StartSpan(ctx, "SearchHandler_sql")
+	} else {
+		ctx, span = trace.StartSpan(ctx, "SearchHandler_old")
 	}
+	defer span.End()
 
 	searchResponse, err := wh.SearchAPI.Search(ctx, q)
 	if err != nil {
@@ -1057,9 +1064,14 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	testName := testNames[0]
 	ctx := r.Context()
+	var span *trace.Span
 	if r.Form.Get("use_sql") != "" {
 		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+		ctx, span = trace.StartSpan(ctx, "ClusterDiff_sql")
+	} else {
+		ctx, span = trace.StartSpan(ctx, "ClusterDiff_old")
 	}
+	defer span.End()
 
 	idx := wh.Indexer.GetIndex()
 	searchResponse, err := wh.SearchAPI.Search(ctx, &q)
