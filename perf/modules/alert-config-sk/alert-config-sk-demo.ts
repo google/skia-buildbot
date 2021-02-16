@@ -1,6 +1,30 @@
 import './index';
+import { $, $$ } from 'common-sk/modules/dom';
 import { AlertConfigSk } from './alert-config-sk';
 import { Alert } from '../json';
+
+window.sk = window.sk || {};
+window.sk.perf = window.sk.perf || {};
+window.sk.perf.key_order = [];
+window.sk.perf.display_group_by = true;
+
+
+// Force all the alert-config-sk controls on the page to re-render.
+const refreshControls = () => {
+  $<AlertConfigSk>('alert-config-sk')!.forEach((ele) => {
+    // eslint-disable-next-line no-self-assign
+    ele.paramset = ele.paramset;
+  });
+};
+
+$$('#display_group_by')!.addEventListener('click', () => {
+  window.sk.perf.display_group_by = true;
+  refreshControls();
+});
+$$('#hide_group_by')!.addEventListener('click', () => {
+  window.sk.perf.display_group_by = false;
+  refreshControls();
+});
 
 const paramset = {
   config: ['565', '8888'],
@@ -62,7 +86,3 @@ const ele = document.querySelector<AlertConfigSk>('alert-config-sk')!;
 window.setInterval(() => {
   state.textContent = JSON.stringify(ele.config, null, '  ');
 }, 100);
-
-window.sk = window.sk || {};
-window.sk.perf = window.sk.perf || {};
-window.sk.perf.key_order = [];

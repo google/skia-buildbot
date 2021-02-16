@@ -194,6 +194,7 @@ type SkPerfConfig struct {
 	StepUpOnly     bool     `json:"step_up_only"`     // If true then only regressions that are a step up are displayed.
 	CommitRangeURL string   `json:"commit_range_url"` // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
 	Demo           bool     `json:"demo"`             // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
+	DisplayGroupBy bool     `json:"display_group_by"` // True if the Group By section of Alert config should be displayed.
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
@@ -207,6 +208,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			Interesting:    float32(f.flags.Interesting),
 			StepUpOnly:     f.flags.StepUpOnly,
 			CommitRangeURL: f.flags.CommitRangeURL,
+			DisplayGroupBy: f.flags.DisplayGroupBy,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
