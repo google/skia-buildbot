@@ -67,7 +67,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 			betaNegativeDigest: makeDiffMetric(9),
 		}, nil)
 
-	rd := New(es, mds, mis)
+	rd := NewFirestoreImpl(es, mds, mis)
 
 	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
@@ -146,7 +146,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 			betaNegativeDigest: makeDiffMetric(9),
 		}, nil)
 
-	rd := New(es, mds, mis)
+	rd := NewFirestoreImpl(es, mds, mis)
 
 	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
@@ -214,7 +214,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 		},
 	)
 
-	rd := New(es, mds, mis)
+	rd := NewFirestoreImpl(es, mds, mis)
 
 	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField}
@@ -249,7 +249,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(map[types.TestName]digest_counter.DigestCount{})
 
-	rd := New(es, mds, mis)
+	rd := NewFirestoreImpl(es, mds, mis)
 
 	metric := query.CombinedMetric
 	matches := []string{types.PrimaryKeyField}
@@ -305,7 +305,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 			gammaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
-	rd := New(es, mds, mis)
+	rd := NewFirestoreImpl(es, mds, mis)
 
 	metric := query.CombinedMetric
 	matches := []string{"arch", types.PrimaryKeyField} // Only Gamma has x86 in the "arch" values.
@@ -373,7 +373,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 			alphaPositiveDigest: makeDiffMetric(2),
 		}, nil)
 
-	rd := New(es, mds, mis)
+	rd := NewFirestoreImpl(es, mds, mis)
 
 	metric := query.CombinedMetric
 	input := frontend.SearchResult{
