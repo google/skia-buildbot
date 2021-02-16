@@ -226,7 +226,7 @@ func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
 		Statuses []types.JobStatus `json:"valid_statuses"`
 	}{
 		Repos:    *repoUrls,
-		Servers:  []string{gerrit.GERRIT_SKIA_URL},
+		Servers:  []string{gerrit.GerritSkiaURL},
 		Statuses: types.VALID_JOB_STATUSES,
 	}
 	if err := jobSearchTemplate.Execute(w, &page); err != nil {

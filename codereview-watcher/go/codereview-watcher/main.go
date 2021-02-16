@@ -180,13 +180,13 @@ func startPoller(ctx context.Context, githubClient *github.GitHub, gerritClient 
 				msg := fmt.Sprintf(`This PR is being closed because [review.skia.org/%s](%s) has been %s.`, gerritChangeID, gerritURL, strings.ToLower(gerritChangeInfo.Status))
 				isAbandoned := false
 				isMerged := false
-				if gerritChangeInfo.Status == gerrit.CHANGE_STATUS_ABANDONED {
+				if gerritChangeInfo.Status == gerrit.ChangeStatusAbandoned {
 					isAbandoned = true
 					// Inspired by https://github.com/golang/go/pull/42538
 					if reason := gerritChangeInfo.GetAbandonReason(ctx); reason != "" {
 						msg += "\n\nReason: " + reason
 					}
-				} else if gerritChangeInfo.Status == gerrit.CHANGE_STATUS_MERGED {
+				} else if gerritChangeInfo.Status == gerrit.ChangeStatusMerged {
 					isMerged = true
 				}
 
@@ -230,7 +230,7 @@ func main() {
 	}
 
 	// Instantiate gerrit client.
-	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, httpClient)
+	gerritClient, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, httpClient)
 	if err != nil {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}

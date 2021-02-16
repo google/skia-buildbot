@@ -117,7 +117,7 @@ func main() {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
 	// Gerrit API client.
-	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, httpClient)
+	gerrit, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, httpClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}

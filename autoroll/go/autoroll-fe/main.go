@@ -87,7 +87,7 @@ var (
 	gerritOauthConfig = &oauth2.Config{
 		ClientID:     "not-a-valid-client-id",
 		ClientSecret: "not-a-valid-client-secret",
-		Scopes:       []string{gerrit.AUTH_SCOPE},
+		Scopes:       []string{gerrit.AuthScope},
 		Endpoint:     google.Endpoint,
 		RedirectURL:  "http://localhost:8000/oauth2callback/",
 	}
@@ -245,7 +245,7 @@ func submitConfigUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	ts := gerritOauthConfig.TokenSource(ctx, token)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	g, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, client)
+	g, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, client)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to initialize Gerrit API.", http.StatusInternalServerError)
 		return

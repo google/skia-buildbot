@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
@@ -17,7 +18,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
+	"go.skia.org/infra/go/gerrit/mocks"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/testutils"
@@ -46,7 +47,7 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 	return rv
 }
 
-func androidCfg(t *testing.T) *config.AndroidRepoManagerConfig {
+func androidCfg() *config.AndroidRepoManagerConfig {
 	return &config.AndroidRepoManagerConfig{
 		ChildBranch:   git.DefaultBranch,
 		ChildPath:     childPath,
@@ -132,9 +133,11 @@ func TestAndroidRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
-	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
-	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	g := &mocks.GerritInterface{}
+	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
+	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
+	g.On("Config").Return(gerrit.ConfigAndroid)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -150,9 +153,15 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
-	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
-	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	g := &mocks.GerritInterface{}
+	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
+	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
+	g.On("Config").Return(gerrit.ConfigAndroid)
+	g.On("Search", testutils.AnyContext, 1, false, gerrit.SearchCommit("")).Return([]*gerrit.ChangeInfo{{Issue: androidIssueNum}}, nil)
+	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
+	g.On("SetTopic", testutils.AnyContext, mock.AnythingOfType("string"), androidIssueNum).Return(nil)
+	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -168,9 +177,15 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	ctx, reg, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 
-	g := &gerrit_mocks.SimpleGerritInterface{IssueID: androidIssueNum}
-	g.On("Config").Return(gerrit.CONFIG_ANDROID)
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(t), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
+	g := &mocks.GerritInterface{}
+	g.On("GetUserEmail", testutils.AnyContext).Return("fake-service-account", nil)
+	g.On("GetRepoUrl").Return(androidCfg().ParentRepoUrl)
+	g.On("Config").Return(gerrit.ConfigAndroid)
+	g.On("Search", testutils.AnyContext, 1, false, gerrit.SearchCommit("")).Return([]*gerrit.ChangeInfo{{Issue: androidIssueNum}}, nil)
+	g.On("GetIssueProperties", testutils.AnyContext, androidIssueNum).Return(&gerrit.ChangeInfo{Issue: androidIssueNum}, nil)
+	g.On("SetTopic", testutils.AnyContext, mock.AnythingOfType("string"), androidIssueNum).Return(nil)
+	g.On("SetReview", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), reg, wd, "fake.server.com", "fake-service-account", nil, androidGerrit(t, g), true, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -192,7 +207,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 func TestAndroidConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cfg := androidCfg(t)
+	cfg := androidCfg()
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and

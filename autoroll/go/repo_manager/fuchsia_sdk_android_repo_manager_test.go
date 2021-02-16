@@ -100,7 +100,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	require.NoError(t, err)
 	serialized = append([]byte("abcd\n"), serialized...)
 	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(gerrit.CONFIG_ANDROID, gUrl, urlmock.Client())
+	g, err := gerrit.NewGerritWithConfig(gerrit.ConfigAndroid, gUrl, urlmock.Client())
 	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.

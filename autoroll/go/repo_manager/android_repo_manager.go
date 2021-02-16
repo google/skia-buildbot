@@ -319,7 +319,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 
 	// Start the merge.
 	mergeTarget := to.Id
-	if strings.HasPrefix(to.Id, gerrit.CHANGE_REF_PREFIX) {
+	if strings.HasPrefix(to.Id, gerrit.ChangeRefPrefix) {
 		if err := r.childRepo.FetchRefFromRepo(ctx, r.childRepoURL, to.Id); err != nil {
 			return 0, fmt.Errorf("Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
 		}
