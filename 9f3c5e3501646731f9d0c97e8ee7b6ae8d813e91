@@ -16,6 +16,23 @@
       "message": "WIP CL for the web player side of the audio layer support. Could not test if Howler liked the format of the external asset src passed into it because asset uploads were not treated well when testing locally. Inline audio assets work and produces sound.",
       "revId": "9f3c5e3501646731f9d0c97e8ee7b6ae8d813e91",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d431bf76_362db92c",
+        "filename": "skottie/modules/audio.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2021-02-16T15:46:12Z",
+      "side": 1,
+      "message": "do we need to also flip this.playing -\u003e false here?",
+      "revId": "9f3c5e3501646731f9d0c97e8ee7b6ae8d813e91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
