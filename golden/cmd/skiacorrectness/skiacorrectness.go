@@ -74,6 +74,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
+	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 )
@@ -197,6 +198,11 @@ func main() {
 
 	// Speculative memory usage fix? https://github.com/googleapis/google-cloud-go/issues/375
 	grpc.EnableTracing = false
+
+	// Record the traces of all spans, since we expect web requests to be somewhat rare.
+	if err := tracing.Initialize(1.0); err != nil {
+		sklog.Fatalf("Could not initialize tracing: %s", err)
+	}
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
 	rand.Seed(time.Now().UnixNano())
