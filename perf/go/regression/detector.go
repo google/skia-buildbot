@@ -43,7 +43,7 @@ const (
 	// regression detections from being triggered.
 
 	// maxK is the largest K used for clustering.
-	maxK = 100
+	maxK = 200
 )
 
 // DetectorResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
