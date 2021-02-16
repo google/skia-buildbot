@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a3b37881_3ef1e971",
+        "filename": "go/login/login.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 626,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-16T14:40:17Z",
+      "side": 1,
+      "message": "suggestion: Add json tags to make the names explicit. This makes our code a little bit more robust to refactorings in which we rename fields.",
+      "range": {
+        "startLine": 626,
+        "startChar": 1,
+        "endLine": 626,
+        "endChar": 6
+      },
+      "revId": "7445093740b1590ff1519a9f1d9ba06908af8241",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
