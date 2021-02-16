@@ -620,6 +620,18 @@ func normalizeGmailAddress(user string) string {
 	return user
 }
 
+// LoginStatus is the status returned by the StatusHandler endpoint, serialized
+// as JSON.
+type LoginStatus struct {
+	Email      string `json:"Email"`
+	ID         string `json:"ID"`
+	LoginURL   string `json:"LoginURL"`
+	IsAGoogler bool   `json:"IsAGoogler"`
+	IsAdmin    bool   `json:"IsAdmin"`
+	IsEditor   bool   `json:"IsEditor"`
+	IsViewer   bool   `json:"IsViewer"`
+}
+
 // StatusHandler returns the login status of the user as JSON that looks like:
 //
 // {
@@ -637,15 +649,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	email, id := UserIdentifiers(r)
-	body := struct {
-		Email      string
-		ID         string
-		LoginURL   string
-		IsAGoogler bool
-		IsAdmin    bool
-		IsEditor   bool
-		IsViewer   bool
-	}{
+	body := LoginStatus{
 		Email:      email,
 		ID:         id,
 		LoginURL:   LoginURL(w, r),
