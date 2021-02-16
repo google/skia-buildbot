@@ -52,4 +52,16 @@
     mimetype: '',
     responsetest: 'validJSON',
   },
+  skiaperf_do_not_expose_debug_pprof: {
+    urls: [
+      'https://perf.skia.org/debug/pprof/',
+      'https://androidx-perf.skia.org/debug/pprof/',
+      'https://flutter-engine-perf.skia.org/debug/pprof/',
+      'https://flutter-flutter-perf.skia.org/debug/pprof/',
+    ],
+    method: 'GET',
+    expected: [404],
+    body: '',
+    mimetype: '',
+  },
 }

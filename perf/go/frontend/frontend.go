@@ -1496,5 +1496,12 @@ func (f *Frontend) Serve() {
 	http.Handle("/", h)
 
 	sklog.Info("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(f.flags.Port, nil))
+
+	// We create our own server here instead of using http.ListenAndServe, so
+	// that we don't expose the /debug/pprof endpoints to the open web.
+	server := &http.Server{
+		Addr:    f.flags.Port,
+		Handler: h,
+	}
+	sklog.Fatal(server.ListenAndServe())
 }
