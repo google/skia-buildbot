@@ -33,6 +33,24 @@
       "message": "do we need to also flip this.playing -\u003e false here?",
       "revId": "9f3c5e3501646731f9d0c97e8ee7b6ae8d813e91",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c4ceb39_5bf73654",
+        "filename": "skottie/modules/audio.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 11964
+      },
+      "writtenOn": "2021-02-16T20:09:29Z",
+      "side": 1,
+      "message": "Yes, done.",
+      "parentUuid": "d431bf76_362db92c",
+      "revId": "9f3c5e3501646731f9d0c97e8ee7b6ae8d813e91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
