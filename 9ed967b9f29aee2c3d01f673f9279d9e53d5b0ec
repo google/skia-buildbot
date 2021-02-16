@@ -16,6 +16,24 @@
       "message": "Surprised we do not use this anywhere",
       "revId": "9ed967b9f29aee2c3d01f673f9279d9e53d5b0ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b7770fa5_1c693ef1",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-16T17:58:18Z",
+      "side": 0,
+      "message": "Me too.",
+      "parentUuid": "2e235034_66b96317",
+      "revId": "9ed967b9f29aee2c3d01f673f9279d9e53d5b0ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
