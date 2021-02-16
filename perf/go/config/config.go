@@ -224,6 +224,7 @@ type FrontendFlags struct {
 	InternalPort                   string
 	Radius                         int
 	StepUpOnly                     bool
+	DisplayGroupBy                 bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -362,6 +363,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "step_up_only",
 			Value:       false,
 			Usage:       "Only regressions that look like a step up will be reported.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DisplayGroupBy,
+			Name:        "display_group_by",
+			Value:       false,
+			Usage:       "Show the Group By section of Alert configuration.",
 		},
 	}
 }

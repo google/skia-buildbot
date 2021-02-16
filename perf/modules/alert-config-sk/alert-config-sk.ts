@@ -6,7 +6,7 @@
  *
  */
 import { define } from 'elements-sk/define';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/multi-select-sk';
@@ -30,12 +30,14 @@ import {
   ConfigState,
   TryBugRequest,
   TryBugResponse,
+  SkPerfConfig,
 } from '../json';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 
 import '../algo-select-sk';
 import '../query-chooser-sk';
+import '../window/window';
 
 const toDirection = (val: string | null): Direction => {
   if (val === 'UP') {
@@ -311,31 +313,18 @@ export class AlertConfigSk extends ElementSk {
       @input=${(e: InputEvent) => (ele._config.owner = (e.target! as HTMLInputElement).value)}
     />
 
-    <h3>Group By</h3>
-    <label for="groupby">
-      Group clusters by these parameters. (Multiselect)
-    </label>
-    <multi-select-sk
-      @selection-changed=${(
-    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>,
-  ) => (ele._config.group_by = e.detail.selection
-    .map((i) => ele.paramkeys[i])
-    .join(','))}
-      id="groupby"
-    >
-      ${AlertConfigSk._groupByChoices(ele)}
-    </multi-select-sk>
+    ${AlertConfigSk._groupBy(ele)}
 
     <h3>Status</h3>
     <select-sk
       .selection=${ele._config.state === 'ACTIVE' ? 0 : 1}
       @selection-changed=${(
-      e: CustomEvent<SelectSkSelectionChangedEventDetail>,
-    ) => (ele._config.state = toConfigState(
-      (e.target! as HTMLDivElement).children[
-        e.detail.selection
-      ].getAttribute('value'),
-    ))}
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>,
+  ) => (ele._config.state = toConfigState(
+    (e.target! as HTMLDivElement).children[
+      e.detail.selection
+    ].getAttribute('value'),
+  ))}
     >
       <div
         value="ACTIVE"
@@ -347,7 +336,29 @@ export class AlertConfigSk extends ElementSk {
     </select-sk>
   `;
 
-  private static _groupByChoices = (ele: AlertConfigSk) => {
+  private static _groupBy = (ele: AlertConfigSk): TemplateResult => {
+    if (!window.sk?.perf?.display_group_by) {
+      return html``;
+    }
+    return html`
+    <h3>Group By</h3>
+    <label for="groupby">
+      Group clusters by these parameters. (Multiselect)
+    </label>
+    <multi-select-sk
+      @selection-changed=${(
+      e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>,
+    ) => (ele._config.group_by = e.detail.selection
+      .map((i) => ele.paramkeys[i])
+      .join(','))}
+      id="groupby"
+    >
+      ${AlertConfigSk._groupByChoices(ele)}
+    </multi-select-sk>
+    `;
+  }
+
+  private static _groupByChoices = (ele: AlertConfigSk): TemplateResult[] => {
     const groups = ele._config.group_by.split(',');
     return ele.paramkeys.map(
       (p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`,
@@ -358,7 +369,7 @@ export class AlertConfigSk extends ElementSk {
     super.connectedCallback();
     this._upgradeProperty('config');
     this._upgradeProperty('paramset');
-    if (window.sk && window.sk.perf && window.sk.perf.key_order) {
+    if (window.sk?.perf?.key_order) {
       this._key_order = window.sk.perf.key_order;
     }
     this._render();
@@ -465,10 +476,10 @@ export class AlertConfigSk extends ElementSk {
     }
     this._config = val;
     if (this._config.interesting === 0) {
-      this._config.interesting = window.sk.perf.interesting;
+      this._config.interesting = window.sk?.perf?.interesting || 0;
     }
     if (this._config.radius === 0) {
-      this._config.radius = window.sk.perf.radius;
+      this._config.radius = window.sk?.perf?.radius || 0;
     }
     this._render();
   }
