@@ -48,6 +48,7 @@ export interface SearchRequest {
   blame?: string;
   crs?: string;
   issue?: string;
+  use_sql?: boolean;
 
   // Fields populated via the changelist-controls-sk.
   master?: boolean; // Show all results if true, or exclude results from the master branch if false.
@@ -182,6 +183,7 @@ export class SearchPageSk extends ElementSk {
   private _blame: string | null = null;
   private _crs: string | null = null;
   private _changelistId: string | null = null;
+  private _useSQL: boolean = false;
 
   // stateReflector update function.
   private _stateChanged: (() => void) | null = null;
@@ -212,6 +214,7 @@ export class SearchPageSk extends ElementSk {
         state.blame = this._blame || '';
         state.crs = this._crs || '';
         state.issue = this._changelistId || '';
+        state.use_sql = this._useSQL || '';
         state.master = this._includeDigestsFromPrimary || '';
         state.patchsets = this._patchset || '';
         return state;
@@ -224,8 +227,10 @@ export class SearchPageSk extends ElementSk {
         this._blame = (newState.blame as string) || null;
         this._crs = (newState.crs as string) || null;
         this._changelistId = (newState.issue as string) || null;
+        this._useSQL = (newState.use_sql as boolean) || false;
         this._includeDigestsFromPrimary = (newState.master as boolean) || null;
         this._patchset = (newState.patchsets as number) || null;
+
 
         // These RPCs are only called once during the page's lifetime.
         this._fetchCorporaOnce();
@@ -351,6 +356,7 @@ export class SearchPageSk extends ElementSk {
 
     // Populate optional query parameters.
     if (this._blame) searchRequest.blame = this._blame;
+    if (this._useSQL) searchRequest.use_sql = this._useSQL;
     if (this._crs) searchRequest.crs = this._crs;
     if (this._changelistId) searchRequest.issue = this._changelistId;
     if (this._includeDigestsFromPrimary) searchRequest.master = this._includeDigestsFromPrimary;

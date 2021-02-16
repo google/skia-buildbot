@@ -34,6 +34,7 @@ define('diff-page-sk', class extends ElementSk {
     this._changeListID = '';
     this._leftDetails = {};
     this._rightDetails = {};
+    this._useSQL = false;
     this._didInitialLoad = false;
 
     this._stateChanged = stateReflector(
@@ -42,6 +43,7 @@ define('diff-page-sk', class extends ElementSk {
         test: this._grouping, // TODO(kjlubick) rename test -> grouping
         left: this._leftDigest,
         right: this._rightDigest,
+        use_sql: this._useSQL,
         changelist_id: this._changeListID,
         crs: this._crs,
       }), /* setState */(newState) => {
@@ -54,6 +56,7 @@ define('diff-page-sk', class extends ElementSk {
         this._rightDigest = newState.right || '';
         this._changeListID = newState.changelist_id || '';
         this._crs = newState.crs || '';
+        this._useSQL = newState.use_sql || false;
         this._fetch();
         this._render();
       },
@@ -82,10 +85,13 @@ define('diff-page-sk', class extends ElementSk {
     };
     sendBeginTask(this);
 
-    const url = `/json/v1/diff?test=${encodeURIComponent(this._grouping)}`
+    let url = `/json/v1/diff?test=${encodeURIComponent(this._grouping)}`
       + `&left=${encodeURIComponent(this._leftDigest)}`
       + `&right=${encodeURIComponent(this._rightDigest)}`
       + `&changelist_id=${this._changeListID}&crs=${this._crs}`;
+    if (this._useSQL) {
+      url += '&use_sql=true';
+    }
 
     fetch(url, extra)
       .then(jsonOrThrow)
