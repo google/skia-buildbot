@@ -142,6 +142,7 @@ message GerritConfig {
         CHROMIUM = 2;
         CHROMIUM_NO_CQ = 3;
         LIBASSISTANT = 4;
+        CHROMIUM_BOT_COMMIT = 5;
     }
     // config indicates the mode of operation used by the Gerrit host, which
     // informs the roller of, for example, which labels to set. See the

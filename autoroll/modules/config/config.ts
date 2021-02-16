@@ -25,6 +25,7 @@ export enum GerritConfig_Config {
   CHROMIUM = "CHROMIUM",
   CHROMIUM_NO_CQ = "CHROMIUM_NO_CQ",
   LIBASSISTANT = "LIBASSISTANT",
+  CHROMIUM_BOT_COMMIT = "CHROMIUM_BOT_COMMIT",
 }
 
 export enum NotifierConfig_LogLevel {
