@@ -16,6 +16,24 @@
       "message": "There is one more bug in the Android repo manager, but I\u0027m having a hard time identifying where it is in https://skia-review.googlesource.com/c/buildbot/+/358881/7/autoroll/go/repo_manager/android_repo_manager.go#6\n\nI deleted android checkout of autoroll-be-android-next-autoroll because it was running out of space. And it started failing with:\nF0216 16:03:34.715993       1 main.go:281] main.go:281 Failed initial repo manager update: Command exited with exit status 1: /home/skia/bin/repo sync --force-sync external/skia tools/repohooks -j32; Stdout+Stderr:\n\nI brought up the instance with --hang and /data/android_repo is empty (just to see what it created).",
       "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "159b5348_07fa2900",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-16T16:24:02Z",
+      "side": 1,
+      "message": "Hrm, there are no logs?",
+      "parentUuid": "c249a41d_62c68732",
+      "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
