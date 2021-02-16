@@ -34,7 +34,7 @@ func skipTestIfRequired(t *testing.T) {
 func TestHasOpenDependency(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	dep, err := api.HasOpenDependency(context.Background(), 52160, 1)
@@ -49,18 +49,18 @@ func TestHasOpenDependency(t *testing.T) {
 func TestGerritOwnerModifiedSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
-	t_delta := time.Now().Add(-10 * 24 * time.Hour)
-	issues, err := api.Search(context.Background(), 1, true, SearchModifiedAfter(t_delta), SearchOwner("rmistry@google.com"))
+	tDelta := time.Now().Add(-10 * 24 * time.Hour)
+	issues, err := api.Search(context.Background(), 1, true, SearchModifiedAfter(tDelta), SearchOwner("rmistry@google.com"))
 	require.NoError(t, err)
 	require.True(t, len(issues) > 0)
 
 	for _, issue := range issues {
 		details, err := api.GetIssueProperties(context.Background(), issue.Issue)
 		require.NoError(t, err)
-		require.True(t, details.Updated.After(t_delta))
+		require.True(t, details.Updated.After(tDelta))
 		require.True(t, len(details.Patchsets) > 0)
 		require.Equal(t, "rmistry@google.com", details.Owner.Email)
 	}
@@ -72,7 +72,7 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 func TestGerritCommitSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	issues, err := api.Search(context.Background(), 1, true, SearchCommit("a2eb235a16ed430896cc54989e683cf930319eb7"))
@@ -95,7 +95,7 @@ func TestGerritCommitSearch(t *testing.T) {
 func GerritPollerTest(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	cache := NewCodeReviewCache(api, 10*time.Second, 3)
@@ -111,7 +111,7 @@ func GerritPollerTest(t *testing.T) {
 func TestGetPatch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	patch, err := api.GetPatch(context.Background(), 2370, "current")
@@ -135,7 +135,7 @@ index c0f0a49..d5733b3 100644
 func TestAddCC(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	changeInfo, err := api.GetIssueProperties(context.Background(), 2370)
@@ -147,7 +147,7 @@ func TestAddCC(t *testing.T) {
 func TestAddComment(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	changeInfo, err := api.GetIssueProperties(context.Background(), 2370)
@@ -159,13 +159,13 @@ func TestAddComment(t *testing.T) {
 func TestSendToDryRun(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	// Send to dry run.
 	changeInfo, err := api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	defaultLabelValue := changeInfo.Labels[COMMITQUEUE_LABEL].DefaultValue
+	defaultLabelValue := changeInfo.Labels[LabelCommitQueue].DefaultValue
 	err = api.SendToDryRun(context.Background(), changeInfo, "Sending to dry run")
 	require.NoError(t, err)
 
@@ -175,7 +175,7 @@ func TestSendToDryRun(t *testing.T) {
 	// Verify that the change was sent to dry run.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, 1, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
+	require.Equal(t, 1, changeInfo.Labels[LabelCommitQueue].All[0].Value)
 
 	// Remove from dry run.
 	err = api.RemoveFromCQ(context.Background(), changeInfo, "")
@@ -184,19 +184,19 @@ func TestSendToDryRun(t *testing.T) {
 	// Verify that the change was removed from dry run.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, defaultLabelValue, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
+	require.Equal(t, defaultLabelValue, changeInfo.Labels[LabelCommitQueue].All[0].Value)
 }
 
 func TestSendToCQ(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	// Send to CQ.
 	changeInfo, err := api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	defaultLabelValue := changeInfo.Labels[COMMITQUEUE_LABEL].DefaultValue
+	defaultLabelValue := changeInfo.Labels[LabelCommitQueue].DefaultValue
 	err = api.SendToCQ(context.Background(), changeInfo, "Sending to CQ")
 	require.NoError(t, err)
 
@@ -206,7 +206,7 @@ func TestSendToCQ(t *testing.T) {
 	// Verify that the change was sent to CQ.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, 2, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
+	require.Equal(t, 2, changeInfo.Labels[LabelCommitQueue].All[0].Value)
 
 	// Remove from CQ.
 	err = api.RemoveFromCQ(context.Background(), changeInfo, "")
@@ -215,19 +215,19 @@ func TestSendToCQ(t *testing.T) {
 	// Verify that the change was removed from CQ.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, defaultLabelValue, changeInfo.Labels[COMMITQUEUE_LABEL].All[0].Value)
+	require.Equal(t, defaultLabelValue, changeInfo.Labels[LabelCommitQueue].All[0].Value)
 }
 
 func TestApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	// Approve.
 	changeInfo, err := api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	defaultLabelValue := changeInfo.Labels[CODEREVIEW_LABEL].DefaultValue
+	defaultLabelValue := changeInfo.Labels[LabelCodeReview].DefaultValue
 	err = api.Approve(context.Background(), changeInfo, "LGTM")
 	require.NoError(t, err)
 
@@ -237,7 +237,7 @@ func TestApprove(t *testing.T) {
 	// Verify that the change was approved.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, 1, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
+	require.Equal(t, 1, changeInfo.Labels[LabelCodeReview].All[0].Value)
 
 	// Remove approval.
 	err = api.NoScore(context.Background(), changeInfo, "")
@@ -246,13 +246,13 @@ func TestApprove(t *testing.T) {
 	// Verify that the change has no score.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, defaultLabelValue, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
+	require.Equal(t, defaultLabelValue, changeInfo.Labels[LabelCodeReview].All[0].Value)
 }
 
 func TestReadOnlyFailure(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	// Approve.
@@ -265,14 +265,14 @@ func TestReadOnlyFailure(t *testing.T) {
 func TestDisApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	// DisApprove.
 	changeInfo, err := api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	defaultLabelValue := changeInfo.Labels[CODEREVIEW_LABEL].DefaultValue
-	err = api.DisApprove(context.Background(), changeInfo, "not LGTM")
+	defaultLabelValue := changeInfo.Labels[LabelCodeReview].DefaultValue
+	err = api.Disapprove(context.Background(), changeInfo, "not LGTM")
 	require.NoError(t, err)
 
 	// Wait for a second for the above to take place.
@@ -281,7 +281,7 @@ func TestDisApprove(t *testing.T) {
 	// Verify that the change was disapproved.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, -1, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
+	require.Equal(t, -1, changeInfo.Labels[LabelCodeReview].All[0].Value)
 
 	// Remove disapproval.
 	err = api.NoScore(context.Background(), changeInfo, "")
@@ -290,13 +290,13 @@ func TestDisApprove(t *testing.T) {
 	// Verify that the change has no score.
 	changeInfo, err = api.GetIssueProperties(context.Background(), 2370)
 	require.NoError(t, err)
-	require.Equal(t, defaultLabelValue, changeInfo.Labels[CODEREVIEW_LABEL].All[0].Value)
+	require.Equal(t, defaultLabelValue, changeInfo.Labels[LabelCodeReview].All[0].Value)
 }
 
 func TestAbandon(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 	c1 := ChangeInfo{
 		ChangeId: "Idb96a747c8446126f60fdf1adca361dbc2e539d5",
@@ -333,28 +333,28 @@ func TestGetAbandonReason(t *testing.T) {
 		failureMessage        string
 	}{
 		{
-			status:                CHANGE_STATUS_ABANDONED,
+			status:                ChangeStatusAbandoned,
 			messages:              []ChangeInfoMessage{msgWithAbandonFromUser, msgWithAbandonPrefixAndMsgAutogenerated},
 			expectedAbandonReason: "Testing testing",
 			failureMessage:        "autogenerated abandon messages with prefix should return message without prefix",
 		},
 		{
-			status:                CHANGE_STATUS_NEW,
+			status:                ChangeStatusNew,
 			messages:              []ChangeInfoMessage{msgWithAbandonFromUser, msgWithAbandonPrefixAndMsgAutogenerated},
 			expectedAbandonReason: "",
 			failureMessage:        "non-abandoned changes have no abandon message"},
 		{
-			status:                CHANGE_STATUS_ABANDONED,
+			status:                ChangeStatusAbandoned,
 			messages:              []ChangeInfoMessage{msgWithAbandonFromUser, msgWithAbandonAutogenerated},
 			expectedAbandonReason: "",
 			failureMessage:        "autogenerated abandon messages with only prefix should return an empty message"},
 		{
-			status:                CHANGE_STATUS_ABANDONED,
+			status:                ChangeStatusAbandoned,
 			messages:              []ChangeInfoMessage{msgWithAbandonFromUser, msgWithNoPrefixAndMsgAutogenerated},
 			expectedAbandonReason: "Something",
 			failureMessage:        "autogenerated abandon messages with no prefix should return the specified message"},
 		{
-			status:                CHANGE_STATUS_ABANDONED,
+			status:                ChangeStatusAbandoned,
 			messages:              []ChangeInfoMessage{msgWithAbandonFromUser},
 			expectedAbandonReason: "",
 			failureMessage:        "abandon messages from users are ignored"},
@@ -404,7 +404,7 @@ func TestFiles(t *testing.T) {
 
 	defer ts.Close()
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, ts.URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
 	files, err := api.Files(context.Background(), 12345678, "current")
 	require.NoError(t, err)
 	require.Len(t, files, 4)
@@ -453,7 +453,7 @@ func TestGetFileNames(t *testing.T) {
 
 	defer ts.Close()
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, ts.URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, ts.URL, c)
 	files, err := api.GetFileNames(context.Background(), 12345678, "current")
 	require.NoError(t, err)
 	require.Len(t, files, 4)
@@ -478,7 +478,7 @@ func TestIsBinaryPatch(t *testing.T) {
 		require.NoError(t, err)
 	}))
 	defer tsNoBinary.Close()
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, tsNoBinary.URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, tsNoBinary.URL, c)
 	require.NoError(t, err)
 	isBinaryPatch, err := api.IsBinaryPatch(context.Background(), 4649, "3")
 	require.NoError(t, err)
@@ -504,7 +504,7 @@ func TestIsBinaryPatch(t *testing.T) {
 		require.NoError(t, err)
 	}))
 	defer tsBinary.Close()
-	api, err = NewGerritWithConfig(CONFIG_CHROMIUM, tsBinary.URL, c)
+	api, err = NewGerritWithConfig(ConfigChromium, tsBinary.URL, c)
 	require.NoError(t, err)
 	isBinaryPatch, err = api.IsBinaryPatch(context.Background(), 2370, "5")
 	require.NoError(t, err)
@@ -523,7 +523,7 @@ func TestExtractIssueFromCommit(t *testing.T) {
     Reviewed-on: https://skia-review.googlesource.com/549319
     Commit-Queue: John Doe <jdoe@example.com>
 	`
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 	issueID, err := api.ExtractIssueFromCommit(cmtMsg)
 	require.NoError(t, err)
@@ -540,7 +540,7 @@ func TestGetCommit(t *testing.T) {
 	revision := "91740d74af689d53b9fa4d172544e0d5620de9bd"
 	expectedParent := "aaab3c73575d5502ae345dd71cf8748c2070ffda"
 
-	api, err := NewGerritWithConfig(CONFIG_CHROMIUM, GERRIT_SKIA_URL, c)
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
 	commitInfo, err := api.GetCommit(context.Background(), issueID, revision)

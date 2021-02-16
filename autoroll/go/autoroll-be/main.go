@@ -296,12 +296,12 @@ func main() {
 		}
 		go func() {
 			for range time.Tick(60 * time.Minute) {
-				issues, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_DRAFT))
+				issues, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.ChangeStatusDraft))
 				if err != nil {
 					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
 					continue
 				}
-				issues2, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.CHANGE_STATUS_NEW))
+				issues2, err := g.Search(ctx, 100, true, gerrit.SearchOwner(myEmail), gerrit.SearchStatus(gerrit.ChangeStatusNew))
 				if err != nil {
 					sklog.Errorf("Failed to retrieve autoroller issues: %s", err)
 					continue

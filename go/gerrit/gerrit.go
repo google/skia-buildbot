@@ -33,62 +33,109 @@ import (
 )
 
 var (
+	// ErrNotFound indicates that the requested item was not found.
 	ErrNotFound = errors.New("Requested item was not found")
 )
 
 const (
-	TIME_FORMAT         = "2006-01-02 15:04:05.999999"
-	GERRIT_CHROMIUM_URL = "https://chromium-review.googlesource.com"
-	GERRIT_SKIA_URL     = "https://skia-review.googlesource.com"
-	MAX_GERRIT_LIMIT    = 500
+	// TimeFormat is the timestamp format used by the Gerrit API.
+	TimeFormat = "2006-01-02 15:04:05.999999"
+	// GerritSkiaURL is the URL of Skia's Gerrit instance.
+	GerritSkiaURL        = "https://skia-review.googlesource.com"
+	maxSearchResultLimit = 500
 
-	AUTH_SCOPE = auth.SCOPE_GERRIT
+	// AuthScope is the auth scope needed to use the Gerrit API.
+	AuthScope = auth.SCOPE_GERRIT
 
-	CHANGE_STATUS_ABANDONED = "ABANDONED"
-	CHANGE_STATUS_DRAFT     = "DRAFT"
-	CHANGE_STATUS_MERGED    = "MERGED"
-	CHANGE_STATUS_NEW       = "NEW"
+	// ChangeStatusAbandoned indicates the the change is abandoned.
+	ChangeStatusAbandoned = "ABANDONED"
+	// ChangeStatusDraft indicates the the change is a draft.
+	ChangeStatusDraft = "DRAFT"
+	// ChangeStatusMerged indicates the the change is merged.
+	ChangeStatusMerged = "MERGED"
+	// ChangeStatusNew indicates the the change is new.
+	ChangeStatusNew = "NEW"
 
-	// Gerrit labels.
-	CODEREVIEW_LABEL              = "Code-Review"
-	CODEREVIEW_LABEL_DISAPPROVE   = -1
-	CODEREVIEW_LABEL_NONE         = 0
-	CODEREVIEW_LABEL_APPROVE      = 1
-	CODEREVIEW_LABEL_SELF_APPROVE = 2 // Used by ANGLE, not Chromium or Skia.
+	// LabelCodeReview is the label used for code review.
+	LabelCodeReview = "Code-Review"
+	// LabelCodeReviewDisapprove indicates code review disapproval.
+	LabelCodeReviewDisapprove = -1
+	// LabelCodeReviewNone indicates that the change has not been code reviewed.
+	LabelCodeReviewNone = 0
+	// LabelCodeReviewApprove indicates code review approval.
+	LabelCodeReviewApprove = 1
+	// LabelCodeReviewSelfApprove indicates code review self-approval.
+	LabelCodeReviewSelfApprove = 2
 
-	// Chromium specific labels.
-	COMMITQUEUE_LABEL         = "Commit-Queue"
-	COMMITQUEUE_LABEL_NONE    = 0
-	COMMITQUEUE_LABEL_DRY_RUN = 1
-	COMMITQUEUE_LABEL_SUBMIT  = 2
+	// LabelCommitQueue is the label used for the commit queue.
+	LabelCommitQueue = "Commit-Queue"
+	// LabelCommitQueueNone indicates that the commit queue is not running for
+	// this change.
+	LabelCommitQueueNone = 0
+	// LabelCommitQueueDryRun indicates that the commit queue should run in dry
+	// run mode for this change.
+	LabelCommitQueueDryRun = 1
+	// LabelCommitQueueSubmit indicates that the commit queue should run for
+	// this change.
+	LabelCommitQueueSubmit = 2
 
-	// Android specific labels.
-	AUTOSUBMIT_LABEL                  = "Autosubmit"
-	AUTOSUBMIT_LABEL_NONE             = 0
-	AUTOSUBMIT_LABEL_SUBMIT           = 1
-	PRESUBMIT_READY_LABEL             = "Presubmit-Ready"
-	PRESUBMIT_READY_LABEL_NONE        = 0
-	PRESUBMIT_READY_LABEL_ENABLE      = 1
-	PRESUBMIT_VERIFIED_LABEL          = "Presubmit-Verified"
-	PRESUBMIT_VERIFIED_LABEL_REJECTED = -1
-	PRESUBMIT_VERIFIED_LABEL_RUNNING  = 0
-	PRESUBMIT_VERIFIED_LABEL_ACCEPTED = 1
+	// LabelAutoSubmit indicates whether the change should be submitted when it
+	// is approved.
+	LabelAutoSubmit = "Autosubmit"
+	// LabelAutoSubmitNone indicates that the change should not be submitted
+	// when it is approved.
+	LabelAutoSubmitNone = 0
+	// LabelAutoSubmitSubmit indicates that the change should be submitted when
+	// it is approved.
+	LabelAutoSubmitSubmit = 1
 
-	// Some Gerrit hosts use the "Verified" label instead of "Presubmit-Verified".
-	VERIFIED_LABEL          = "Verified"
-	VERIFIED_LABEL_REJECTED = -1
-	VERIFIED_LABEL_RUNNING  = 0
-	VERIFIED_LABEL_ACCEPTED = 1
+	// LabelPresubmitReady indicates whether the presubmit checks should run for
+	// this change.
+	LabelPresubmitReady = "Presubmit-Ready"
+	// LabelPresubmitReadyNone indicates that the presubmit checks should not
+	// run for this change.
+	LabelPresubmitReadyNone = 0
+	// LabelPresubmitReadyEnable indicates that the presubmit checks should run
+	// for this change.
+	LabelPresubmitReadyEnable = 1
 
-	URL_TMPL_CHANGE     = "/changes/%s/detail?o=ALL_REVISIONS"
-	URL_COMMIT_MSG_HOOK = "/tools/hooks/commit-msg"
+	// LabelPresubmitVerified indicates whether the presubmit checks ran
+	// successfully for this change.
+	LabelPresubmitVerified = "Presubmit-Verified"
+	// LabelPresubmitVerifiedRejected indicates that the presubmit checks failed
+	// for this change.
+	LabelPresubmitVerifiedRejected = -1
+	// LabelPresubmitVerifiedRunning indicates that the presubmit checks have
+	// not finished for this change.
+	LabelPresubmitVerifiedRunning = 0
+	// LabelPresubmitVerifiedAccepted indicates that the presubmit checks
+	// succeeded for this change.
+	LabelPresubmitVerifiedAccepted = 1
+
+	// LabelVerified indicates whether the presubmit checks ran successfully for
+	// this change.
+	LabelVerified = "Verified"
+	// LabelVerifiedRejected indicates that the presubmit checks failed for this
+	// change.
+	LabelVerifiedRejected = -1
+	// LabelVerifiedRunning indicates that the presubmit checks have not
+	// finished for this change.
+	LabelVerifiedRunning = 0
+	// LabelVerifiedAccepted indicates that the presubmit checks succeeded for
+	// this change.
+	LabelVerifiedAccepted = 1
+
+	// URLTmplChange is the template for a change URL.
+	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS"
+
+	urlCommitMsgHook = "/tools/hooks/commit-msg"
 
 	// Kinds of patchsets.
-	PATCHSET_KIND_MERGE_FIRST_PARENT_UPDATE = "MERGE_FIRST_PARENT_UPDATE"
-	PATCHSET_KIND_NO_CHANGE                 = "NO_CHANGE"
-	PATCHSET_KIND_NO_CODE_CHANGE            = "NO_CODE_CHANGE"
-	PATCHSET_KIND_REWORK                    = "REWORK"
-	PATCHSET_KIND_TRIVIAL_REBASE            = "TRIVIAL_REBASE"
+	patchSetKindMergeFirstParentUpdate = "MERGE_FIRST_PARENT_UPDATE"
+	patchSetKindNoChange               = "NO_CHANGE"
+	patchSetKindNoCodeChange           = "NO_CODE_CHANGE"
+	patchSetKindRework                 = "REWORK"
+	patchSetKindTrivialRebase          = "TRIVIAL_REBASE"
 
 	// authSuffix is added to the Gerrit API URL to force authentication.
 	authSuffix = "/a"
@@ -96,7 +143,9 @@ const (
 	// extractReg is the regular expression used by ExtractIssueFromCommit.
 	extractRegTmpl = `^\s*Reviewed-on:.*%s.*/([0-9]+)\s*$`
 
-	// Change refs in Gerrit are of this form-
+	// ChangeRefPrefix is the prefix used by change refs in Gerrit, which are of
+	// this form:
+	//
 	//  refs/changes/46/4546/1
 	//                |  |   |
 	//                |  |   +-> Patch set.
@@ -104,14 +153,14 @@ const (
 	//                |  +-> Issue ID.
 	//                |
 	//                +-> Last two digits of Issue ID.
-	CHANGE_REF_PREFIX = "refs/changes/"
+	ChangeRefPrefix = "refs/changes/"
 )
 
 var (
-	TRIVIAL_PATCHSET_KINDS = []string{
-		PATCHSET_KIND_TRIVIAL_REBASE,
-		PATCHSET_KIND_NO_CHANGE,
-		PATCHSET_KIND_NO_CODE_CHANGE,
+	trivialPatchSetKinds = []string{
+		patchSetKindTrivialRebase,
+		patchSetKindNoChange,
+		patchSetKindNoCodeChange,
 	}
 
 	changeIdRegex = regexp.MustCompile(`\s*Change-Id:\s*(\w+)`)
@@ -154,9 +203,9 @@ type ChangeInfo struct {
 	WorkInProgress bool                   `json:"work_in_progress"`
 }
 
-// Find the set of non-trivial patchsets. Returns the Revisions in order of
-// patchset number. Note that this is only correct for Chromium Gerrit instances
-// because it makes Chromium-specific assumptions.
+// GetNonTrivialPatchSets finds the set of non-trivial patchsets. Returns the
+// Revisions in order of patchset number. Note that this is only correct for
+// Chromium Gerrit instances because it makes Chromium-specific assumptions.
 func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 	allPatchSets := make([]int, 0, len(ci.Revisions))
 	byNumber := make(map[int]*Revision, len(ci.Revisions))
@@ -170,10 +219,10 @@ func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 		rev := byNumber[num]
 		// Skip the last patch set for merged CLs, since it is auto-
 		// generated for Chromium projects.
-		if ci.Status == CHANGE_STATUS_MERGED && idx == len(allPatchSets)-1 {
+		if ci.Status == ChangeStatusMerged && idx == len(allPatchSets)-1 {
 			continue
 		}
-		if !util.In(rev.Kind, TRIVIAL_PATCHSET_KINDS) {
+		if !util.In(rev.Kind, trivialPatchSetKinds) {
 			rv = append(rv, rev)
 		}
 	}
@@ -196,19 +245,19 @@ type RelatedChangeAndCommitInfo struct {
 // IsClosed returns true iff the issue corresponding to the ChangeInfo is
 // abandoned or merged.
 func (ci *ChangeInfo) IsClosed() bool {
-	return (ci.Status == CHANGE_STATUS_ABANDONED ||
-		ci.Status == CHANGE_STATUS_MERGED)
+	return (ci.Status == ChangeStatusAbandoned ||
+		ci.Status == ChangeStatusMerged)
 }
 
 // IsMerged returns true iff the issue corresponding to the ChangeInfo is
 // merged.
 func (ci *ChangeInfo) IsMerged() bool {
-	return ci.Status == CHANGE_STATUS_MERGED
+	return ci.Status == ChangeStatusMerged
 }
 
 // GetAbandonReason returns the reason entered by the user that abandoned the change.
 func (ci *ChangeInfo) GetAbandonReason(ctx context.Context) string {
-	if ci.Status != CHANGE_STATUS_ABANDONED {
+	if ci.Status != ChangeStatusAbandoned {
 		// There is no abandon reason if the change isn't abandoned.
 		return ""
 	}
@@ -233,12 +282,14 @@ type Person struct {
 	Name      string `json:"name"`
 }
 
+// LabelEntry describes a label set on a Change in Gerrit.
 type LabelEntry struct {
 	All          []*LabelDetail
 	Values       map[string]string
 	DefaultValue int
 }
 
+// LabelDetail provides details about a label set on a Change in Gerrit.
 type LabelDetail struct {
 	Name  string
 	Email string
@@ -246,6 +297,7 @@ type LabelDetail struct {
 	Value int
 }
 
+// FileInfo provides information about changes to a File in Gerrit.
 type FileInfo struct {
 	Status        string `json:"status"`
 	Binary        bool   `json:"binary"`
@@ -265,6 +317,7 @@ type Revision struct {
 	Kind          string    `json:"kind"`
 }
 
+// GerritInterface describes interactions with a Gerrit host.
 type GerritInterface interface {
 	Abandon(context.Context, *ChangeInfo, string) error
 	AddComment(context.Context, *ChangeInfo, string) error
@@ -274,7 +327,7 @@ type GerritInterface interface {
 	CreateChange(context.Context, string, string, string, string) (*ChangeInfo, error)
 	DeleteChangeEdit(context.Context, *ChangeInfo) error
 	DeleteFile(context.Context, *ChangeInfo, string) error
-	DisApprove(context.Context, *ChangeInfo, string) error
+	Disapprove(context.Context, *ChangeInfo, string) error
 	DownloadCommitMsgHook(ctx context.Context, dest string) error
 	EditFile(context.Context, *ChangeInfo, string, string) error
 	ExtractIssueFromCommit(string) (int64, error)
@@ -317,7 +370,7 @@ type Gerrit struct {
 
 // NewGerrit returns a new Gerrit instance.
 func NewGerrit(gerritUrl string, client *http.Client) (*Gerrit, error) {
-	return NewGerritWithConfig(CONFIG_CHROMIUM, gerritUrl, client)
+	return NewGerritWithConfig(ConfigChromium, gerritUrl, client)
 }
 
 // NewGerritWithConfig returns a new Gerrit instance which uses the given
@@ -377,7 +430,7 @@ func GitCookieAuthDaemonPath() (string, error) {
 }
 
 func parseTime(t string) time.Time {
-	parsed, _ := time.Parse(TIME_FORMAT, t)
+	parsed, _ := time.Parse(TimeFormat, t)
 	return parsed
 }
 
@@ -396,6 +449,7 @@ func (g *Gerrit) Url(issueID int64) string {
 	return fmt.Sprintf("%s/c/%d", g.baseUrl, issueID)
 }
 
+// AccountDetails provides details about an account in Gerrit.
 type AccountDetails struct {
 	AccountId int64  `json:"_account_id"`
 	Name      string `json:"name"`
@@ -475,7 +529,7 @@ func (g *Gerrit) GetIssueProperties(ctx context.Context, issue int64) (*ChangeIn
 
 // GetChange returns the ChangeInfo object for the given ID.
 func (g *Gerrit) GetChange(ctx context.Context, id string) (*ChangeInfo, error) {
-	url := fmt.Sprintf(URL_TMPL_CHANGE, id)
+	url := fmt.Sprintf(URLTmplChange, id)
 	fullIssue := &ChangeInfo{}
 	if err := g.get(ctx, url, fullIssue, ErrNotFound); err != nil {
 		// Pass ErrNotFound through unchanged so calling functions can check for it.
@@ -488,9 +542,9 @@ func (g *Gerrit) GetChange(ctx context.Context, id string) (*ChangeInfo, error) 
 }
 
 // GetPatchsetIDs is a convenience function that returns the sorted list of patchset IDs.
-func (c *ChangeInfo) GetPatchsetIDs() []int64 {
-	ret := make([]int64, len(c.Patchsets))
-	for idx, patchSet := range c.Patchsets {
+func (ci *ChangeInfo) GetPatchsetIDs() []int64 {
+	ret := make([]int64, len(ci.Patchsets))
+	for idx, patchSet := range ci.Patchsets {
 		ret[idx] = patchSet.Number
 	}
 	return ret
@@ -603,32 +657,39 @@ func (g *Gerrit) AddComment(ctx context.Context, issue *ChangeInfo, message stri
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
+// SendToDryRun sets the Commit Queue dry run labels on the Change.
 func (g *Gerrit) SendToDryRun(ctx context.Context, issue *ChangeInfo, message string) error {
 	return g.SetReview(ctx, issue, message, g.cfg.SetDryRunLabels, nil)
 }
 
+// SendToCQ sets the Commit Queue labels on the Change.
 func (g *Gerrit) SendToCQ(ctx context.Context, issue *ChangeInfo, message string) error {
 	return g.SetReview(ctx, issue, message, g.cfg.SetCqLabels, nil)
 }
 
+// RemoveFromCQ unsets the Commit Queue labels on the Change.
 func (g *Gerrit) RemoveFromCQ(ctx context.Context, issue *ChangeInfo, message string) error {
 	return g.SetReview(ctx, issue, message, g.cfg.NoCqLabels, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
+// Approve sets the Code Review label to indicate approval.
 func (g *Gerrit) Approve(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewApprove}, nil)
 }
 
+// NoScore unsets the Code Review label.
 func (g *Gerrit) NoScore(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewNone}, nil)
 }
 
-func (g *Gerrit) DisApprove(ctx context.Context, issue *ChangeInfo, message string) error {
-	return g.SetReview(ctx, issue, message, map[string]int{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
+// Disapprove sets the Code Review label to indicate disapproval.
+func (g *Gerrit) Disapprove(ctx context.Context, issue *ChangeInfo, message string) error {
+	return g.SetReview(ctx, issue, message, map[string]int{LabelCodeReview: LabelCodeReviewDisapprove}, nil)
 }
 
+// SelfApprove sets the Code Review label to indicate self-approval.
 func (g *Gerrit) SelfApprove(ctx context.Context, issue *ChangeInfo, message string) error {
 	return g.SetReview(ctx, issue, message, g.cfg.SelfApproveLabels, nil)
 }
@@ -774,6 +835,7 @@ func SearchOwner(name string) *SearchTerm {
 	}
 }
 
+// SearchCommit is a SearchTerm used for filtering by commit.
 func SearchCommit(commit string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "commit",
@@ -781,6 +843,7 @@ func SearchCommit(commit string) *SearchTerm {
 	}
 }
 
+// SearchStatus is a SearchTerm used for filtering by status.
 func SearchStatus(status string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "status",
@@ -788,6 +851,7 @@ func SearchStatus(status string) *SearchTerm {
 	}
 }
 
+// SearchProject is a SearchTerm used for filtering by project.
 func SearchProject(project string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "project",
@@ -795,6 +859,7 @@ func SearchProject(project string) *SearchTerm {
 	}
 }
 
+// SearchLabel is a SearchTerm used for filtering by label.
 func SearchLabel(label, value string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "label",
@@ -875,7 +940,7 @@ func (g *Gerrit) HasOpenDependency(ctx context.Context, changeNum int64, revisio
 	if len(dependencies) > targetChangeIdx+1 {
 		// The next change will be the direct dependency.
 		dependency := dependencies[targetChangeIdx+1]
-		if dependency.Status != CHANGE_STATUS_ABANDONED && dependency.Status != CHANGE_STATUS_MERGED {
+		if dependency.Status != ChangeStatusAbandoned && dependency.Status != ChangeStatusMerged {
 			// If the dependency is not closed then it is an active dependency.
 			return true, nil
 		}
@@ -888,7 +953,7 @@ func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms 
 	var issues changeListSortable
 	for {
 		data := make([]*ChangeInfo, 0)
-		queryLimit := util.MinInt(limit-len(issues), MAX_GERRIT_LIMIT)
+		queryLimit := util.MinInt(limit-len(issues), maxSearchResultLimit)
 		skip := len(issues)
 
 		q := url.Values{}
@@ -918,6 +983,8 @@ func (g *Gerrit) Search(ctx context.Context, limit int, sortResults bool, terms 
 	return issues, nil
 }
 
+// GetTrybotResults retrieves the trybot results for the given change from
+// BuildBucket.
 func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucketpb.Build, error) {
 	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.baseUrl)
 }
@@ -980,9 +1047,10 @@ func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
 	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
 }
 
-// Download the commit message hook to the specified location.
+// DownloadCommitMsgHook downloads the commit message hook to the specified
+// location.
 func (g *Gerrit) DownloadCommitMsgHook(ctx context.Context, dest string) error {
-	url := g.apiUrl + URL_COMMIT_MSG_HOOK
+	url := g.apiUrl + urlCommitMsgHook
 	resp, err := httputils.GetWithContext(ctx, g.client, url)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", url, err)
@@ -1027,7 +1095,7 @@ func (c *CodeReviewCache) Add(key int64, value *ChangeInfo) {
 	c.cache.Add(key, value)
 }
 
-// Retrieve an issue from the cache.
+// Get retrieves an issue from the cache.
 func (c *CodeReviewCache) Get(key int64) (*ChangeInfo, bool) {
 	sklog.Infof("\nGetting: %d", key)
 	c.mutex.Lock()

@@ -38,12 +38,12 @@ Tbr: some-reviewer
 	rev := &gerrit.Revision{
 		ID:            "1",
 		Number:        1,
-		CreatedString: now.Format(gerrit.TIME_FORMAT),
+		CreatedString: now.Format(gerrit.TimeFormat),
 		Created:       now,
 	}
 	roll := &gerrit.ChangeInfo{
 		Created:       now,
-		CreatedString: now.Format(gerrit.TIME_FORMAT),
+		CreatedString: now.Format(gerrit.TimeFormat),
 		Subject:       description,
 		ChangeId:      fmt.Sprintf("%d", issueNum),
 		Issue:         issueNum,
@@ -57,7 +57,7 @@ Tbr: some-reviewer
 		},
 		Patchsets:     []*gerrit.Revision{rev},
 		Updated:       now,
-		UpdatedString: now.Format(gerrit.TIME_FORMAT),
+		UpdatedString: now.Format(gerrit.TimeFormat),
 	}
 	gc, ok := GerritConfigs[cfg.Config]
 	require.True(t, ok)
@@ -172,7 +172,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	require.False(t, gr.IsDryRunSuccess())
 
 	// Update.
-	ci.Status = gerrit.CHANGE_STATUS_MERGED
+	ci.Status = gerrit.ChangeStatusMerged
 	// Landing a change adds an empty patchset.
 	rev := &gerrit.Revision{
 		Number:  int64(len(ci.Revisions) + 1),
@@ -260,7 +260,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	g.AssertEmpty()
 
 	// Close for cleanup.
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, []*buildbucketpb.Build{tryjob})
@@ -281,7 +281,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes := g.MakePostRequest(ci, "Mode was changed to dry run", gc.SetDryRunLabels)
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
@@ -300,7 +300,7 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	require.NoError(t, gr.InsertIntoDB(ctx))
 	url, reqBytes = g.MakePostRequest(ci, "Mode was changed to normal", gc.SetCqLabels)
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
@@ -317,14 +317,14 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
-	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
+	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
 	req := testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
 	}{
 		Message: "close it!",
 	})
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", []byte(req), "CONFLICT", http.StatusConflict))
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
@@ -341,14 +341,14 @@ func testGerritRoll(t *testing.T, cfg *config.GerritConfig) {
 	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
-	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
+	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
 	req = testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
 	}{
 		Message: "close it!",
 	})
 	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", []byte(req), nil))
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	g.MockGetIssueProperties(ci)
 	if cfg.CanQueryTrybots() {
 		g.MockGetTrybotResults(ci, 1, nil)
@@ -395,11 +395,11 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		ID:            "1",
 		Number:        1,
 		Created:       now,
-		CreatedString: now.Format(gerrit.TIME_FORMAT),
+		CreatedString: now.Format(gerrit.TimeFormat),
 	}
 	ci := &gerrit.ChangeInfo{
 		Created:       now,
-		CreatedString: now.Format(gerrit.TIME_FORMAT),
+		CreatedString: now.Format(gerrit.TimeFormat),
 		Subject:       "roll the deps",
 		ChangeId:      fmt.Sprintf("%d", a.Issue),
 		Issue:         a.Issue,
@@ -412,9 +412,9 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 			rev.ID: rev,
 		},
 		Patchsets:     []*gerrit.Revision{rev},
-		Status:        gerrit.CHANGE_STATUS_NEW,
+		Status:        gerrit.ChangeStatusNew,
 		Updated:       now,
-		UpdatedString: now.Format(gerrit.TIME_FORMAT),
+		UpdatedString: now.Format(gerrit.TimeFormat),
 	}
 	gerrit.SetLabels(ci, cfg.SelfApproveLabels)
 	gerrit.SetLabels(ci, cfg.SetCqLabels)
@@ -455,7 +455,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		gerrit.UnsetLabels(ci, cfg.CqActiveLabels)
 	}
 	ci.Committed = true
-	ci.Status = gerrit.CHANGE_STATUS_MERGED
+	ci.Status = gerrit.ChangeStatusMerged
 	expect.Closed = true
 	expect.Committed = true
 	expect.CqSuccess = true
@@ -470,7 +470,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		gerrit.SetLabels(ci, cfg.CqActiveLabels)
 	}
 	ci.Committed = false
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	expect.Committed = false
 	expect.CqFinished = true // Not really, but the CL is finished.
 	expect.CqSuccess = false
@@ -479,7 +479,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	assertdeep.Equal(t, expect, a)
 
 	// Dry run active.
-	ci.Status = gerrit.CHANGE_STATUS_NEW
+	ci.Status = gerrit.ChangeStatusNew
 	gerrit.UnsetLabels(ci, cfg.SetCqLabels)
 	gerrit.SetLabels(ci, cfg.SetDryRunLabels)
 	expect.Closed = false
@@ -521,7 +521,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	// The CL was abandoned while the dry run was running.
 	expect.TryResults[0].Result = ""
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_SCHEDULED
-	ci.Status = gerrit.CHANGE_STATUS_ABANDONED
+	ci.Status = gerrit.ChangeStatusAbandoned
 	expect.Closed = true
 	expect.DryRunFinished = true
 	expect.DryRunSuccess = false
@@ -531,7 +531,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 
 	// The CL was landed while the dry run was running.
 	ci.Committed = true
-	ci.Status = gerrit.CHANGE_STATUS_MERGED
+	ci.Status = gerrit.ChangeStatusMerged
 	expect.Committed = true
 	expect.DryRunSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
@@ -543,7 +543,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		gerrit.SetLabels(ci, cfg.DryRunSuccessLabels)
 	}
 	ci.Committed = false
-	ci.Status = gerrit.CHANGE_STATUS_NEW
+	ci.Status = gerrit.ChangeStatusNew
 	expect.Closed = false
 	expect.Committed = false
 	expect.CqFinished = false
@@ -557,19 +557,19 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 }
 
 func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
-	testUpdateFromGerritChangeInfo(t, gerrit.CONFIG_ANDROID)
+	testUpdateFromGerritChangeInfo(t, gerrit.ConfigAndroid)
 }
 
 func TestUpdateFromGerritChangeInfoANGLE(t *testing.T) {
-	testUpdateFromGerritChangeInfo(t, gerrit.CONFIG_ANGLE)
+	testUpdateFromGerritChangeInfo(t, gerrit.ConfigANGLE)
 }
 
 func TestUpdateFromGerritChangeInfoChromium(t *testing.T) {
-	testUpdateFromGerritChangeInfo(t, gerrit.CONFIG_CHROMIUM)
+	testUpdateFromGerritChangeInfo(t, gerrit.ConfigChromium)
 }
 
 func TestUpdateFromGerritChangeInfoChromiumNoCQ(t *testing.T) {
-	testUpdateFromGerritChangeInfo(t, gerrit.CONFIG_CHROMIUM_NO_CQ)
+	testUpdateFromGerritChangeInfo(t, gerrit.ConfigChromiumNoCQ)
 }
 
 func TestUpdateFromGitHubPullRequest(t *testing.T) {
