@@ -22,6 +22,30 @@
       },
       "revId": "1112e4649325c9a0ef5b2e8385b3004e1ac9d94b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eeefa2db_8797ceeb",
+        "filename": "infra-sk/modules/uniform-imageresolution-sk/uniform-imageresolution-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-16T15:26:29Z",
+      "side": 1,
+      "message": "Yeah, we follow what shadertoy.com does, which is float3 for resolution, even though the z value is always 0.",
+      "parentUuid": "50850406_c7d119d0",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 9
+      },
+      "revId": "1112e4649325c9a0ef5b2e8385b3004e1ac9d94b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
