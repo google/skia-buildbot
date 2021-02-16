@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	FAKE_GERRIT_URL = "https://fake-skia-review.googlesource.com"
-	FAKE_GITCOOKIES = ".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"
+	// FakeGerritURL is a fake Gerrit URL.
+	FakeGerritURL = "https://fake-skia-review.googlesource.com"
+	// FakeGitCookies are fake .gitcookies contents.
+	FakeGitCookies = ".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"
 )
 
 // MockGerrit is a GerritInterface implementation which mocks out requests to
@@ -29,14 +31,14 @@ type MockGerrit struct {
 
 // NewGerrit returns a mocked Gerrit instance.
 func NewGerrit(t sktest.TestingT, workdir string) *MockGerrit {
-	return NewGerritWithConfig(t, gerrit.CONFIG_CHROMIUM, workdir)
+	return NewGerritWithConfig(t, gerrit.ConfigChromium, workdir)
 }
 
 // NewGerritWithConfig returns a mocked Gerrit instance which uses the given
 // Config.
 func NewGerritWithConfig(t sktest.TestingT, cfg *gerrit.Config, workdir string) *MockGerrit {
 	mock := mockhttpclient.NewURLMock()
-	g, err := gerrit.NewGerritWithConfig(cfg, FAKE_GERRIT_URL, mock.Client())
+	g, err := gerrit.NewGerritWithConfig(cfg, FakeGerritURL, mock.Client())
 	require.NoError(t, err)
 	bb := bb_testutils.NewMockClient(t)
 	g.BuildbucketClient = bb.Client
@@ -48,24 +50,28 @@ func NewGerritWithConfig(t sktest.TestingT, cfg *gerrit.Config, workdir string) 
 	}
 }
 
+// AssertEmpty asserts that the URLMock instance is empty.
 func (g *MockGerrit) AssertEmpty() {
 	require.True(g.t, g.Mock.Empty())
 }
 
+// MockGetIssueProperties mocks the requests for GetIssueProperties.
 func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
-	url := FAKE_GERRIT_URL + "/a" + fmt.Sprintf(gerrit.URL_TMPL_CHANGE, fmt.Sprintf("%d", ci.Issue))
+	url := FakeGerritURL + "/a" + fmt.Sprintf(gerrit.URLTmplChange, fmt.Sprintf("%d", ci.Issue))
 	serialized, err := json.Marshal(ci)
 	require.NoError(g.t, err)
 	serialized = append([]byte(")]}'\n"), serialized...)
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
+// MockGetTrybotResults mocks the requests for GetIssueProperties.
 func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, patchset int, results []*buildbucketpb.Build) {
 	g.bb.MockGetTrybotsForCL(ci.Issue, int64(patchset), g.Gerrit.Url(ci.Issue), results, nil)
 }
 
+// MakePostRequest creates a POST request to Gerrit for mocking.
 func (g *MockGerrit) MakePostRequest(ci *gerrit.ChangeInfo, msg string, labels map[string]int) (string, []byte) {
-	url := fmt.Sprintf("%s/a/changes/%d/revisions/%d/review", FAKE_GERRIT_URL, ci.Issue, len(ci.Revisions))
+	url := fmt.Sprintf("%s/a/changes/%d/revisions/%d/review", FakeGerritURL, ci.Issue, len(ci.Revisions))
 	if labels == nil {
 		labels = map[string]int{}
 	}
@@ -80,25 +86,31 @@ func (g *MockGerrit) MakePostRequest(ci *gerrit.ChangeInfo, msg string, labels m
 	return url, []byte(reqBytes)
 }
 
+// MockPost mocks a POST request to the given change with the given message and
+// labels.
 func (g *MockGerrit) MockPost(ci *gerrit.ChangeInfo, msg string, labels map[string]int) {
 	url, reqBytes := g.MakePostRequest(ci, msg, labels)
 	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", reqBytes, []byte("")))
 }
 
+// MockAddComment mocks addition of a comment to the change.
 func (g *MockGerrit) MockAddComment(ci *gerrit.ChangeInfo, msg string) {
 	g.MockPost(ci, msg, nil)
 }
 
+// MockSetDryRun mocks the setting of the dry run labels.
 func (g *MockGerrit) MockSetDryRun(ci *gerrit.ChangeInfo, msg string) {
 	g.MockPost(ci, msg, g.Gerrit.Config().SetDryRunLabels)
 }
 
+// MockSetCQ mocks the setting of the commit queue labels.
 func (g *MockGerrit) MockSetCQ(ci *gerrit.ChangeInfo, msg string) {
 	g.MockPost(ci, msg, g.Gerrit.Config().SetCqLabels)
 }
 
+// Abandon mocks the request to abandon the change.
 func (g *MockGerrit) Abandon(ci *gerrit.ChangeInfo, msg string) {
-	url := fmt.Sprintf("%s/a/changes/%d/abandon", FAKE_GERRIT_URL, ci.Issue)
+	url := fmt.Sprintf("%s/a/changes/%d/abandon", FakeGerritURL, ci.Issue)
 	req := struct {
 		Message string `json:"message"`
 	}{

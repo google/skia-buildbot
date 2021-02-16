@@ -58,7 +58,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	searchTerms := []*gerrit.SearchTerm{gerrit.SearchOwner("me"), gerrit.SearchStatus(gerrit.CHANGE_STATUS_NEW)}
+	searchTerms := []*gerrit.SearchTerm{gerrit.SearchOwner("me"), gerrit.SearchStatus(gerrit.ChangeStatusNew)}
 	if *lastModifiedBeforeDays != 0 {
 		beforeHours := *lastModifiedBeforeDays * 24
 		searchTerms = append(searchTerms, gerrit.SearchModifiedAfter(time.Now().Add(-time.Duration(beforeHours)*time.Hour)))

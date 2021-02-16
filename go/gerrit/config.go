@@ -1,114 +1,119 @@
 package gerrit
 
 var (
-	CONFIG_ANDROID = &Config{
+	// ConfigAndroid is the configuration for Android Gerrit hosts.
+	ConfigAndroid = &Config{
 		SelfApproveLabels: map[string]int{
-			CODEREVIEW_LABEL: CODEREVIEW_LABEL_SELF_APPROVE,
+			LabelCodeReview: LabelCodeReviewSelfApprove,
 		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
-			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_SUBMIT,
-			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
+			LabelAutoSubmit:     LabelAutoSubmitSubmit,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
 		},
 		SetDryRunLabels: map[string]int{
-			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_NONE,
-			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
 		},
 		NoCqLabels: map[string]int{
-			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_NONE,
-			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_NONE,
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyNone,
 		},
 		CqActiveLabels: map[string]int{
-			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_SUBMIT,
-			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
+			LabelAutoSubmit:     LabelAutoSubmitSubmit,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
 		},
 		CqSuccessLabels: map[string]int{
-			AUTOSUBMIT_LABEL:         AUTOSUBMIT_LABEL_SUBMIT,
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_ACCEPTED,
+			LabelAutoSubmit:        LabelAutoSubmitSubmit,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
 		},
 		CqFailureLabels: map[string]int{
-			AUTOSUBMIT_LABEL:         AUTOSUBMIT_LABEL_SUBMIT,
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_REJECTED,
+			LabelAutoSubmit:        LabelAutoSubmitSubmit,
+			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
 		},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
-			AUTOSUBMIT_LABEL:      AUTOSUBMIT_LABEL_NONE,
-			PRESUBMIT_READY_LABEL: PRESUBMIT_READY_LABEL_ENABLE,
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
 		},
 		DryRunSuccessLabels: map[string]int{
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_ACCEPTED,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
 		},
 		DryRunFailureLabels: map[string]int{
-			PRESUBMIT_VERIFIED_LABEL: PRESUBMIT_VERIFIED_LABEL_REJECTED,
+			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
 		},
 		DryRunUsesTryjobResults: false,
 	}
 
-	CONFIG_ANGLE = &Config{
+	// ConfigANGLE is the configuration for ANGLE Gerrit hosts.
+	ConfigANGLE = &Config{
 		SelfApproveLabels: map[string]int{
-			CODEREVIEW_LABEL: CODEREVIEW_LABEL_SELF_APPROVE,
+			LabelCodeReview: LabelCodeReviewSelfApprove,
 		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+			LabelCommitQueue: LabelCommitQueueSubmit,
 		},
 		SetDryRunLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+			LabelCommitQueue: LabelCommitQueueDryRun,
 		},
 		NoCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
+			LabelCommitQueue: LabelCommitQueueNone,
 		},
 		CqActiveLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+			LabelCommitQueue: LabelCommitQueueSubmit,
 		},
 		CqSuccessLabels:           map[string]int{},
 		CqFailureLabels:           map[string]int{},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+			LabelCommitQueue: LabelCommitQueueDryRun,
 		},
 		DryRunSuccessLabels:     map[string]int{},
 		DryRunFailureLabels:     map[string]int{},
 		DryRunUsesTryjobResults: true,
 	}
 
-	CONFIG_CHROMIUM = &Config{
+	// ConfigChromium is the configuration for Chromium Gerrit hosts.
+	ConfigChromium = &Config{
 		SelfApproveLabels: map[string]int{
-			CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE,
+			LabelCodeReview: LabelCodeReviewApprove,
 		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+			LabelCommitQueue: LabelCommitQueueSubmit,
 		},
 		SetDryRunLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+			LabelCommitQueue: LabelCommitQueueDryRun,
 		},
 		NoCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
+			LabelCommitQueue: LabelCommitQueueNone,
 		},
 		CqActiveLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+			LabelCommitQueue: LabelCommitQueueSubmit,
 		},
 		CqSuccessLabels:           map[string]int{},
 		CqFailureLabels:           map[string]int{},
 		CqLabelsUnsetOnCompletion: true,
 		DryRunActiveLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+			LabelCommitQueue: LabelCommitQueueDryRun,
 		},
 		DryRunSuccessLabels:     map[string]int{},
 		DryRunFailureLabels:     map[string]int{},
 		DryRunUsesTryjobResults: true,
 	}
 
-	CONFIG_CHROMIUM_NO_CQ = &Config{
+	// ConfigChromiumNoCQ is the configuration for Chromium Gerrit hosts which
+	// have no commit queue.
+	ConfigChromiumNoCQ = &Config{
 		SelfApproveLabels: map[string]int{
-			CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE,
+			LabelCodeReview: LabelCodeReviewApprove,
 		},
 		HasCq:           false,
 		SetCqLabels:     map[string]int{},
 		SetDryRunLabels: map[string]int{},
 		NoCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
+			LabelCommitQueue: LabelCommitQueueNone,
 		},
 		CqActiveLabels:            map[string]int{},
 		CqSuccessLabels:           map[string]int{},
@@ -120,43 +125,45 @@ var (
 		DryRunUsesTryjobResults:   false,
 	}
 
-	CONFIG_LIBASSISTANT = &Config{
+	// ConfigLibAssistant is the configuration for LibAssistant Gerrit hosts.
+	ConfigLibAssistant = &Config{
 		SelfApproveLabels: map[string]int{
-			CODEREVIEW_LABEL: CODEREVIEW_LABEL_SELF_APPROVE,
+			LabelCodeReview: LabelCodeReviewSelfApprove,
 		},
 		HasCq: true,
 		SetCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+			LabelCommitQueue: LabelCommitQueueSubmit,
 		},
 		SetDryRunLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+			LabelCommitQueue: LabelCommitQueueDryRun,
 		},
 		NoCqLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE,
+			LabelCommitQueue: LabelCommitQueueNone,
 		},
 		CqActiveLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT,
+			LabelCommitQueue: LabelCommitQueueSubmit,
 		},
 		CqSuccessLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_ACCEPTED,
+			LabelVerified: LabelVerifiedAccepted,
 		},
 		CqFailureLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_REJECTED,
+			LabelVerified: LabelVerifiedRejected,
 		},
 		CqLabelsUnsetOnCompletion: false,
 		DryRunActiveLabels: map[string]int{
-			COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN,
+			LabelCommitQueue: LabelCommitQueueDryRun,
 		},
 		DryRunSuccessLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_ACCEPTED,
+			LabelVerified: LabelVerifiedAccepted,
 		},
 		DryRunFailureLabels: map[string]int{
-			VERIFIED_LABEL: VERIFIED_LABEL_REJECTED,
+			LabelVerified: LabelVerifiedRejected,
 		},
 		DryRunUsesTryjobResults: false,
 	}
 )
 
+// Config describes the configuration for a Gerrit host.
 // TODO(borenet): Consider making Config into an interface with function calls
 // for the various sets of labels and logic below. This format nicely groups the
 // logic into one place but makes it difficult to understand and change.

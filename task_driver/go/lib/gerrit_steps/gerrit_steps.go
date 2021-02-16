@@ -65,8 +65,8 @@ func UploadCL(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout, p
 			var labels map[string]int
 			if !isTryJob {
 				labels = map[string]int{
-					gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
-					gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
+					gerrit.LabelCodeReview:  gerrit.LabelCodeReviewApprove,
+					gerrit.LabelCommitQueue: gerrit.LabelCommitQueueSubmit,
 				}
 			}
 			if err := g.SetReview(ctx, ci, "Ready for review.", labels, reviewers); err != nil {

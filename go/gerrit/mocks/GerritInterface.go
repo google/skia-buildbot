@@ -140,8 +140,8 @@ func (_m *GerritInterface) DeleteFile(_a0 context.Context, _a1 *gerrit.ChangeInf
 	return r0
 }
 
-// DisApprove provides a mock function with given fields: _a0, _a1, _a2
-func (_m *GerritInterface) DisApprove(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
+// Disapprove provides a mock function with given fields: _a0, _a1, _a2
+func (_m *GerritInterface) Disapprove(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 error

@@ -199,7 +199,7 @@ func (c *Client) ReportCQStats(ctx context.Context, change int64, reportedMetric
 			cqBuilds = append(cqBuilds, b)
 		}
 	}
-	gerritURL := fmt.Sprintf("%s/c/%d/%d", gerrit.GERRIT_SKIA_URL, change, latestPatchsetId)
+	gerritURL := fmt.Sprintf("%s/c/%d/%d", gerrit.GerritSkiaURL, change, latestPatchsetId)
 	if len(cqBuilds) == 0 {
 		sklog.Infof("No trybot results were found for %s", gerritURL)
 		return nil

@@ -112,7 +112,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		}
 
 		syncExtraArgs := []string{}
-		if strings.HasPrefix(to.Id, gerrit.CHANGE_REF_PREFIX) {
+		if strings.HasPrefix(to.Id, gerrit.ChangeRefPrefix) {
 			// If the rev is a patch ref then add patch-ref args to gclient sync. Syncing
 			// the child repo will not work without these args.
 			syncExtraArgs = append(syncExtraArgs,

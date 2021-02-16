@@ -50,7 +50,7 @@ func TestGetChangelistLanded(t *testing.T) {
 	const id = "235460"
 	ts := time.Date(2019, time.August, 21, 16, 44, 26, 0, time.UTC)
 	gci := getOpenChangeInfo()
-	gci.Status = gerrit.CHANGE_STATUS_MERGED
+	gci.Status = gerrit.ChangeStatusMerged
 	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
 
 	c := New(mgi)

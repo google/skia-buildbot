@@ -71,11 +71,11 @@ func (c *CRSImpl) GetChangelist(ctx context.Context, id string) (code_review.Cha
 // statusToEnum converts a gerrit status string into a CLStatus enum.
 func statusToEnum(g string) code_review.CLStatus {
 	switch g {
-	case gerrit.CHANGE_STATUS_NEW:
+	case gerrit.ChangeStatusNew:
 		return code_review.Open
-	case gerrit.CHANGE_STATUS_ABANDONED:
+	case gerrit.ChangeStatusAbandoned:
 		return code_review.Abandoned
-	case gerrit.CHANGE_STATUS_MERGED:
+	case gerrit.ChangeStatusMerged:
 		return code_review.Landed
 	}
 	return code_review.Open
