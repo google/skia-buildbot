@@ -3,14 +3,15 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = [
-        "GerritInterface.go",
+        "Calculator.go",
+        "ImageSource.go",
         "generate.go",
     ],
-    importpath = "go.skia.org/infra/go/gerrit/mocks",
+    importpath = "go.skia.org/infra/golden/go/diff/mocks",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gerrit",
+        "//go/paramtools",
+        "//golden/go/types",
         "@com_github_stretchr_testify//mock",
-        "@org_chromium_go_luci//buildbucket/proto",
     ],
 )

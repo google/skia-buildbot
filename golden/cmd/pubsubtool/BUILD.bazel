@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "pubsubtool_lib",
+    srcs = ["pubsubtool.go"],
+    importpath = "go.skia.org/infra/golden/cmd/pubsubtool",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "@com_google_cloud_go_pubsub//:pubsub",
+    ],
+)
+
+go_binary(
+    name = "pubsubtool",
+    embed = [":pubsubtool_lib"],
+    visibility = ["//visibility:public"],
+)

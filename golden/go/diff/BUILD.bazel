@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
+        "//go/paramtools",
         "//go/sklog",
         "//go/util",
         "//golden/go/types",

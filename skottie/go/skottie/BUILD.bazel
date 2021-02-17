@@ -6,9 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/skottie/go/skottie",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/allowed",
         "//go/auth",
         "//go/common",
+        "//go/config",
         "//go/httputils",
         "//go/login",
         "//go/skerr",

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "shaders_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/shaders/go/shaders",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/baseapp",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//scrap/go/client",
+        "//scrap/go/scrap",
+        "@com_github_gorilla_mux//:mux",
+        "@com_github_unrolled_secure//:secure",
+    ],
+)
+
+go_binary(
+    name = "shaders",
+    embed = [":shaders_lib"],
+    visibility = ["//visibility:public"],
+)
