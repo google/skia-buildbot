@@ -92,18 +92,14 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		}
 	}
 
-	wd := path.Join(workdir, "android_repo")
-	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childDir := path.Join(wd, c.ChildPath)
+	childDir := path.Join(workdir, c.ChildPath)
 	if c.ChildSubdir != "" {
-		childDir = path.Join(wd, c.ChildSubdir, c.ChildPath)
+		childDir = path.Join(workdir, c.ChildSubdir, c.ChildPath)
 	}
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
-	if _, err := os.Stat(wd); err == nil {
-		if err := git.DeleteLockFiles(ctx, wd); err != nil {
+	if _, err := os.Stat(workdir); err == nil {
+		if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	}
@@ -150,7 +146,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		httpClient:       client,
 		parentBranch:     parentBranch,
 		preUploadSteps:   preUploadSteps,
-		workdir:          wd,
+		workdir:          workdir,
 	}
 	return r, nil
 }
