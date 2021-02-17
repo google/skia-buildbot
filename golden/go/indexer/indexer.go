@@ -779,14 +779,12 @@ func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 					sklog.Errorf("Changelist indexing timed out (%v)", err)
 					return nil
 				}
-				ctx, expSpan := trace.StartSpan(ctx, "indexer_getCLExpectations")
 				issueExpStore := ix.ExpectationsStore.ForChangelist(cl.SystemID, system.ID)
 				clExps, err := issueExpStore.Get(ctx)
 				if err != nil {
 					return skerr.Wrapf(err, "loading expectations for cl %s (%s)", cl.SystemID, system.ID)
 				}
 				exps := expectations.Join(clExps, masterExp)
-				expSpan.End()
 
 				clKey := fmt.Sprintf("%s_%s", system.ID, cl.SystemID)
 				clIdx, ok := ix.getCLIndex(clKey)
@@ -901,10 +899,15 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	_, spanTryjobData := trace.StartSpan(ctx, "getTryjobData")
+	spanTryjobData.AddAttributes(trace.Int64Attribute("data_points", int64(len(xtjr))))
 	// The left and right digests will be the data from these tryjobs as well as the non-ignored
 	// data on the primary branch for the corresponding groupings.
 	digestsPerGrouping := map[hashableGrouping]types.DigestSet{}
 	for _, tjr := range xtjr {
+		if err := ctx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
 		traceKeys := paramtools.Params{}
 		traceKeys.Add(tjr.GroupParams, tjr.ResultParams)
 		grouping := getHashableGrouping(traceKeys)
@@ -917,10 +920,16 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 		}
 		digestsPerGrouping[grouping] = uniqueDigests
 	}
+	spanTryjobData.End()
 
 	tile := idx.cpxTile.GetTile(types.ExcludeIgnoredTraces)
+	_, primaryBranchData := trace.StartSpan(ctx, "getDataFromPrimarybranch")
+	primaryBranchData.AddAttributes(trace.Int64Attribute("groupings", int64(len(digestsPerGrouping))))
 	// Add the digests from the primary branch (using the index)
 	for grouping := range digestsPerGrouping {
+		if err := ctx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
 		q := paramtools.ParamSet{
 			types.CorpusField:     []string{grouping[0]},
 			types.PrimaryKeyField: []string{grouping[1]},
@@ -934,6 +943,7 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 		}
 		digestsPerGrouping[grouping] = uniqueDigests
 	}
+	primaryBranchData.End()
 
 	sklog.Infof("Sending diff messages for CL %s covering %d groupings to diffcalculator", clID, len(digestsPerGrouping))
 	for hg, ds := range digestsPerGrouping {
