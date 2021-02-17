@@ -29,6 +29,11 @@
         "Infra-Experimental-Small-Win"
       ]
     },
+    "Infra-PerCommit-BazelBuild": {
+      "tasks": [
+        "Infra-PerCommit-BazelBuild"
+      ]
+    },
     "Infra-PerCommit-Build": {
       "tasks": [
         "Infra-PerCommit-Build"
@@ -672,6 +677,46 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "go/go/bin"
+        ]
+      },
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-BazelBuild": {
+      "casSpec": "whole-repo",
+      "cipd_packages": [
+        {
+          "name": "skia/bots/bazel",
+          "path": "bazel",
+          "version": "version:1"
+        }
+      ],
+      "command": [
+        "./bazel_build",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-BazelBuild",
+        "--workdir",
+        ".",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-standard-16",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin"
         ]
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
