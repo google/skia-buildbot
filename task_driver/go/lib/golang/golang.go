@@ -42,6 +42,9 @@ func WithEnv(ctx context.Context, workdir string) context.Context {
 		filepath.Join(workdir, "gcloud_linux", "bin"),
 		filepath.Join(workdir, "protoc", "bin"),
 		filepath.Join(workdir, "node", "node", "bin"),
+		filepath.Join(workdir, "bazel"),
+		filepath.Join(workdir, "bazel", "bin"),
+		filepath.Join(workdir, "bazel", "bazel", "bin"),
 		td.PathPlaceholder,
 	}, string(os.PathListSeparator))
 	return td.WithEnv(ctx, []string{
