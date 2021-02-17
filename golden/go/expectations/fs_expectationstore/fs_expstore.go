@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"cloud.google.com/go/firestore"
 	"golang.org/x/sync/errgroup"
 
@@ -459,6 +461,8 @@ func (s *Store) updateEntryCacheIfNeeded(ctx context.Context) error {
 // Firestore if not.
 func (s *Store) Get(ctx context.Context) (expectations.ReadOnly, error) {
 	if s.hasSnapshotsRunning {
+		_, span := trace.StartSpan(ctx, "fsexpstore_getFromSnapshots")
+		defer span.End()
 		// If the snapshots are running, we first check to see if we have a fresh Expectations.
 		s.returnCacheMutex.Lock()
 		defer s.returnCacheMutex.Unlock()
@@ -503,7 +507,8 @@ func (s *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error)
 // the assumption that loadExpectations will only be called for setups that do not have the
 // snapshot queries, and the entryCache is used to create the expectationChanges (for undoing).
 func (s *Store) loadExpectations(ctx context.Context) (*expectations.Expectations, error) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "fsexpstore_loadExpectations")
+	defer span.End()
 	es := make([][]expectationEntry, s.numShards)
 	queries := fs_utils.ShardOnDigest(s.expectationsCollection(), digestField, s.numShards)
 

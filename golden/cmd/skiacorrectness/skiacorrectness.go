@@ -635,14 +635,10 @@ func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping param
 	if err != nil {
 		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
 	}
-	pr := p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
+	p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
 		Data: body,
 	})
-	// Blocks until message actual sent
-	_, err = pr.Get(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
+	// Don't block until message is sent to speed up throughput.
 	return nil
 }
 
