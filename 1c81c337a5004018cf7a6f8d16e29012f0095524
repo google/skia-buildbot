@@ -70,6 +70,24 @@
       "parentUuid": "9e121757_96c1014e",
       "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3109f53_f4d352f5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-17T13:14:27Z",
+      "side": 1,
+      "message": "Hrm, pretty sure this is the problem: https://skia-review.googlesource.com/c/buildbot/+/358881/7/autoroll/go/repo_manager/android_repo_manager.go#153\n\n\u003e workdir: workdir, // should be `workdir: wd`\n\nThat said, is there a reason we have to have the android_repo directory?  This problem would go away if we removed that too.",
+      "parentUuid": "4c9c4a45_67e323f2",
+      "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
