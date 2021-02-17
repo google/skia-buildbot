@@ -15,6 +15,7 @@ go_library(
         "//golden/go/fs_utils",
         "//golden/go/types",
         "@com_google_cloud_go_firestore//:firestore",
+        "@io_opencensus_go//trace",
         "@org_golang_x_sync//errgroup",
     ],
 )

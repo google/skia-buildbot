@@ -19,6 +19,7 @@ go_library(
         "@com_github_jackc_pgtype//:pgtype",
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
     ],
 )
 
