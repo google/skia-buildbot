@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/clstore"
@@ -53,7 +53,8 @@ LIMIT $3 OFFSET $4
 
 // GetChangelists implements clstore.Store.
 func (s *StoreImpl) GetChangelists(ctx context.Context, opts clstore.SearchOptions) ([]code_review.Changelist, int, error) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "sqlclstore_GetChangelists")
+	defer span.End()
 	if opts.Limit <= 0 {
 		return nil, 0, skerr.Fmt("must supply a limit")
 	}
