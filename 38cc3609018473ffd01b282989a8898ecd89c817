@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0503751b_8f536f7a",
+        "filename": "skottie/modules/audio.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-17T14:53:41Z",
+      "side": 1,
+      "message": "nit: single quotes",
+      "range": {
+        "startLine": 7,
+        "startChar": 23,
+        "endLine": 7,
+        "endChar": 24
+      },
+      "revId": "38cc3609018473ffd01b282989a8898ecd89c817",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e53e1a72_4324a262",
+        "filename": "skottie/modules/audio.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-17T14:53:41Z",
+      "side": 1,
+      "message": "Can this be a module-level const? maybe add a comment how the value was chosen and what unit it is in (seconds?)",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "38cc3609018473ffd01b282989a8898ecd89c817",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1a1fe21b_724155b0",
+        "filename": "skottie/modules/audio.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-17T14:53:41Z",
+      "side": 1,
+      "message": "Prefer const over let where possible",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 11
+      },
+      "revId": "38cc3609018473ffd01b282989a8898ecd89c817",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5818f70e_be179876",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 536,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-17T14:53:41Z",
+      "side": 1,
+      "message": "maybe add a note indicating that Howler doesn\u0027t have a promise or anything to indicate loading, so we just provide the URL and hope for the best.",
+      "range": {
+        "startLine": 536,
+        "startChar": 26,
+        "endLine": 536,
+        "endChar": 37
+      },
+      "revId": "38cc3609018473ffd01b282989a8898ecd89c817",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2621d0f6_8c2e929c",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-17T14:53:41Z",
+      "side": 1,
+      "message": "We don\u0027t need to \"play\" the soundMap on the play button because skottie will invoke the play via callbacks at the right time, correct? Maybe make that explicit as a comment.",
+      "range": {
+        "startLine": 571,
+        "startChar": 51,
+        "endLine": 571,
+        "endChar": 56
+      },
+      "revId": "38cc3609018473ffd01b282989a8898ecd89c817",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
