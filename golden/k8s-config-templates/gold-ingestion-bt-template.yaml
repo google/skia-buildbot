@@ -33,6 +33,18 @@ spec:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
     spec:
+      affinity:
+        nodeAffinity: # Schedule these pods to a specific set of nodes.
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              # The following label/key will be available in 1.17
+              # "node.kubernetes.io/instance-type": "n1-standard-16"
+              - matchExpressions:
+                  - key: "{{.K8S_NODE_SELECTOR_KEY}}"
+                    operator: In
+                    values: # Either of these two values are fine.
+                      - "{{.K8S_NODE_SELECTOR_VALUE1}}"
+                      - "{{.K8S_NODE_SELECTOR_VALUE2}}"
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
