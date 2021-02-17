@@ -14,7 +14,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # not already defined.
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "1adf5db506a7e3c465a26988514cfc3971af6d5b3c2218925cd6e71ee443fc3f",
+    sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
     strip_prefix = "bazel-toolchains-4.0.0",
     urls = [
         "https://github.com/bazelbuild/bazel-toolchains/releases/download/4.0.0/bazel-toolchains-4.0.0.tar.gz",
@@ -27,9 +27,11 @@ http_archive(
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
+    # sha256 = "aaaaaaaaaaaaaaaa011cc22394e6e88b0de13ad101eb40047c603297286c8398",
     sha256 = "1dbb1f39c17b1cbc011cc22394e6e88b0de13ad101eb40047c603297286c8398",
     strip_prefix = "buildtools-master",
-    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+    # url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+    url = "https://github.com/bazelbuild/buildtools/archive/4.0.0.zip",
 )
 
 ##############################
