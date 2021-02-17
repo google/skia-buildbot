@@ -106,6 +106,24 @@
       "parentUuid": "c3109f53_f4d352f5",
       "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d38cecf_126bfaa7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-17T13:20:21Z",
+      "side": 1,
+      "message": "Maybe we need to create the childDir here: https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/android_repo_manager.go#103",
+      "parentUuid": "635d57bf_9756eda3",
+      "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
