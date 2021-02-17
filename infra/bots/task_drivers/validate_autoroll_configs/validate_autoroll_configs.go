@@ -34,6 +34,15 @@ var (
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
 
+var (
+	// "constants"
+	chromiumServiceAccounts = []string{
+		"chromium-autoroll@skia-public.iam.gserviceaccount.com",
+		"chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+		"chromium-internal-autoroll@skia-corp.google.com.iam.gserviceaccount.com",
+	}
+)
+
 func validateConfig(ctx context.Context, f string) (string, error) {
 	var rollerName string
 	return rollerName, td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
@@ -55,6 +64,12 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 		// Validate the config.
 		if err := cfg.Validate(); err != nil {
 			return skerr.Wrap(err)
+		}
+		if util.In(cfg.ServiceAccount, chromiumServiceAccounts) {
+			gerrit := cfg.GetGerrit()
+			if gerrit != nil && gerrit.Config == config.GerritConfig_CHROMIUM {
+				return skerr.Fmt("Chromium rollers must use Gerrit config CHROMIUM_BOT_COMMIT")
+			}
 		}
 
 		rollerName = cfg.RollerName

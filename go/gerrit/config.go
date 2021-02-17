@@ -103,6 +103,36 @@ var (
 		DryRunUsesTryjobResults: true,
 	}
 
+	// ConfigChromiumBotCommit is the configuration for Chromium Gerrit hosts
+	// which use the Bot-Commit label instead of Code-Review.
+	ConfigChromiumBotCommit = &Config{
+		SelfApproveLabels: map[string]int{
+			LabelBotCommit: LabelBotCommitApproved,
+		},
+		HasCq: true,
+		SetCqLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueSubmit,
+		},
+		SetDryRunLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueDryRun,
+		},
+		NoCqLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueNone,
+		},
+		CqActiveLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueSubmit,
+		},
+		CqSuccessLabels:           map[string]int{},
+		CqFailureLabels:           map[string]int{},
+		CqLabelsUnsetOnCompletion: true,
+		DryRunActiveLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueDryRun,
+		},
+		DryRunSuccessLabels:     map[string]int{},
+		DryRunFailureLabels:     map[string]int{},
+		DryRunUsesTryjobResults: true,
+	}
+
 	// ConfigChromiumNoCQ is the configuration for Chromium Gerrit hosts which
 	// have no commit queue.
 	ConfigChromiumNoCQ = &Config{

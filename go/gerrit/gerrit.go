@@ -125,6 +125,15 @@ const (
 	// this change.
 	LabelVerifiedAccepted = 1
 
+	// LabelBotCommit indicates self-approval by a trusted bot.
+	LabelBotCommit = "Bot-Commit"
+	// LabelBotCommitNone indicates that the change is not self-approved by a
+	// trusted bot.
+	LabelBotCommitNone = 0
+	// LabelBotCommitApproved indicates that the change is self-approved by a
+	// trusted bot.
+	LabelBotCommitApproved = 1
+
 	// URLTmplChange is the template for a change URL.
 	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS"
 
