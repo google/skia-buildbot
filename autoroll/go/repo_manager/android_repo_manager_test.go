@@ -142,7 +142,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	lastRollRev, tipRev, _, err := rm.Update(ctx)
 	require.NoError(t, err)
 
-	require.Equal(t, fmt.Sprintf("%s/android_repo/%s", wd, childPath), rm.(*androidRepoManager).childDir)
+	require.Equal(t, fmt.Sprintf("%s/%s", wd, childPath), rm.(*androidRepoManager).childDir)
 	require.Equal(t, childCommits[len(childCommits)-1], lastRollRev.Id)
 	require.Equal(t, childCommits[0], tipRev.Id)
 }
