@@ -9,15 +9,15 @@ import (
 	"time"
 
 	ttlcache "github.com/patrickmn/go-cache"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/tjstore"
+	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/digesttools"
@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tiling"
+	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
@@ -739,11 +740,12 @@ const (
 // calcChangelistIndices goes through all open changelists within a given window and computes
 // an index of them (e.g. the untriaged digests).
 func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "indexer_calcChangelistIndices")
+	defer span.End()
 	// Update the metric when we return (either from error or because we completed indexing).
 	defer metrics2.GetInt64Metric(indexedCLsMetric).Update(int64(ix.changelistIndices.ItemCount()))
-	defer shared.NewMetricsTimer("indexer_calculate_changelist_indices").Stop()
 	// Make sure this doesn't take arbitrarily long.
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 	defer cancel()
 	now := time.Now()
 	masterExp, err := ix.ExpectationsStore.Get(ctx)
@@ -777,13 +779,14 @@ func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 					sklog.Errorf("Changelist indexing timed out (%v)", err)
 					return nil
 				}
-
+				ctx, expSpan := trace.StartSpan(ctx, "indexer_getCLExpectations")
 				issueExpStore := ix.ExpectationsStore.ForChangelist(cl.SystemID, system.ID)
 				clExps, err := issueExpStore.Get(ctx)
 				if err != nil {
 					return skerr.Wrapf(err, "loading expectations for cl %s (%s)", cl.SystemID, system.ID)
 				}
 				exps := expectations.Join(clExps, masterExp)
+				expSpan.End()
 
 				clKey := fmt.Sprintf("%s_%s", system.ID, cl.SystemID)
 				clIdx, ok := ix.getCLIndex(clKey)
@@ -819,8 +822,8 @@ func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 					if err != nil {
 						return skerr.Wrap(err)
 					}
-					untriagedResults, params := indexTryJobResults(existingUntriagedResults, xtjr, exps)
-					if err := ix.sendCLWorkToDiffCalculators(ctx, xtjr); err != nil {
+					untriagedResults, params := indexTryJobResults(ctx, existingUntriagedResults, xtjr, exps)
+					if err := ix.sendCLWorkToDiffCalculators(ctx, xtjr, system.ID+"_"+cl.SystemID); err != nil {
 						return skerr.Wrap(err)
 					}
 					// Copy the existing ParamSet into the newly created one. It is important to copy it from
@@ -845,7 +848,9 @@ func (ix *Indexer) calcChangelistIndices(ctx context.Context) {
 // indexTryJobResults goes through all the TryJobResults and returns results useful for indexing.
 // Concretely, these results are a slice with just the untriaged results and a ParamSet with the
 // observed params.
-func indexTryJobResults(existing, newResults []tjstore.TryJobResult, exps expectations.Classifier) ([]tjstore.TryJobResult, paramtools.ParamSet) {
+func indexTryJobResults(ctx context.Context, existing, newResults []tjstore.TryJobResult, exps expectations.Classifier) ([]tjstore.TryJobResult, paramtools.ParamSet) {
+	ctx, span := trace.StartSpan(ctx, "indexer_indexTryJobResults")
+	defer span.End()
 	params := paramtools.ParamSet{}
 	var newlyUntriagedResults []tjstore.TryJobResult
 	for _, tjr := range newResults {
@@ -881,7 +886,13 @@ func indexTryJobResults(existing, newResults []tjstore.TryJobResult, exps expect
 	return combined, params
 }
 
-func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjstore.TryJobResult) error {
+func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjstore.TryJobResult, clID string) error {
+	ctx, span := trace.StartSpan(ctx, "indexer_sendCLWorkToDiffCalculators")
+	defer span.End()
+	if len(xtjr) == 0 {
+		sklog.Infof("No new Tryjob results for CL %s", clID)
+		return nil
+	}
 	idx := ix.getIndex()
 	if idx == nil {
 		return nil
@@ -924,7 +935,7 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 		digestsPerGrouping[grouping] = uniqueDigests
 	}
 
-	sklog.Infof("Sending CL-based message covering %d groupings to diffcalculator", len(digestsPerGrouping))
+	sklog.Infof("Sending diff messages for CL %s covering %d groupings to diffcalculator", clID, len(digestsPerGrouping))
 	for hg, ds := range digestsPerGrouping {
 		grouping := paramtools.Params{
 			types.CorpusField:     hg[0],
@@ -934,7 +945,7 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 		// This should be pretty fast because it's just sending off the work, not blocking until
 		// the work is calculated.
 		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, digests, digests); err != nil {
-			return skerr.Wrapf(err, "publishing diff calculation of %d CL digests in grouping %v", len(digests), grouping)
+			return skerr.Wrapf(err, "publishing diff calculation for CL %s - %d digests in grouping %v", clID, len(digests), grouping)
 		}
 	}
 	return nil
