@@ -21,6 +21,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
@@ -626,6 +627,8 @@ type pubsubDiffPublisher struct {
 // CalculateDiffs publishes a WorkerMessage to the configured PubSub topic so that a worker
 // (see diffcalculator) can pick it up and calculate the diffs.
 func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
+	ctx, span := trace.StartSpan(ctx, "PublishDiffMessage")
+	defer span.End()
 	body, err := json.Marshal(diff.WorkerMessage{
 		Version:         diff.WorkerMessageVersion,
 		Grouping:        grouping,
@@ -635,14 +638,10 @@ func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping param
 	if err != nil {
 		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
 	}
-	pr := p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
+	p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
 		Data: body,
 	})
-	// Blocks until message actual sent
-	_, err = pr.Get(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
+	// Don't block until message is sent to speed up throughput.
 	return nil
 }
 
