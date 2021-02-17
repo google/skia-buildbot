@@ -124,6 +124,24 @@
       "parentUuid": "635d57bf_9756eda3",
       "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "20055d0a_2628cd98",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-17T14:04:26Z",
+      "side": 1,
+      "message": "\u003e Sorry, never mind you already fixed that  How long had it been since the checkout was deleted before? \n\nActually you had fixed the workdir problem (via this CL on Jan 28th).\n\n\u003e I\u0027m still in favor of removing android_repo for simplicity.\n\nI don\u0027t think there\u0027s any reason to have android_repo, I don\u0027t remember why it was created in the first place. I\u0027ll probably try the childDir creation first and if that doesnt work then will try removing android_repo.\n\n\u003e Is it possible that this has been a problem for a long time and we never noticed?\nI don\u0027t think so, because Android rollers frequently fill up disk and need to be cleaned so it keeps happening periodically. I suspected the latest refactoring because of the timestamps in the two external/skia directories.",
+      "parentUuid": "3d38cecf_126bfaa7",
+      "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
