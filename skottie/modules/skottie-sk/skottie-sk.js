@@ -21,6 +21,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 import '../skottie-text-editor'
+import { SoundMap, AudioPlayer } from '../audio'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -408,11 +409,12 @@ define('skottie-sk', class extends HTMLElement {
 
   _initializePlayer() {
     this._skottiePlayer.initialize({
-      width:  this._width,
-      height: this._height,
-      lottie: this._state.lottie,
-      assets: this._state.assets,
-      fps:    this._fps,
+      width:    this._width,
+      height:   this._height,
+      lottie:   this._state.lottie,
+      assets:   this._state.assets,
+      soundMap: this._state.soundMap,
+      fps:      this._fps,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
       // If the user has specified a value for FPS, we want to lock the
@@ -446,9 +448,12 @@ define('skottie-sk', class extends HTMLElement {
 
     Promise.all(toLoad).then((externalAssets) => {
       const assets = {};
+      const sounds = new SoundMap();
       for (const asset of externalAssets) {
-        if (asset) {
+        if (asset && asset.bytes) {
           assets[asset.name] = asset.bytes;
+        } else if (asset && asset.player) {
+          sounds.setPlayer(asset.name, asset.player);
         }
       }
 
@@ -460,6 +465,7 @@ define('skottie-sk', class extends HTMLElement {
       });
 
       this._state.assets = assets;
+      this._state.soundMap = sounds;
       this.render();
       this._initializePlayer();
       // Re-sync all players
@@ -517,25 +523,43 @@ define('skottie-sk', class extends HTMLElement {
   _loadAssets(assets) {
     const promises = [];
     for (const asset of assets) {
-      // asset.p is the filename, if it's an image.
-      // Don't try to load inline/dataURI images.
-      const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
-      if (should_load) {
-        promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
-          .then((resp) => {
-            // fetch does not reject on 404
-            if (!resp.ok) {
-              console.error(`Could not load ${asset.p}: status ${resp.status}`)
-              return null;
-            }
-            return resp.arrayBuffer().then((buffer) => {
-              return {
-                'name': asset.p,
-                'bytes': buffer
-              };
-            });
-          })
-        );
+      if (asset.id.startsWith('audio_')) {
+        // Howler handles our audio assets, they don't provide a promise when making a new Howl.
+        // We push the audio asset as is and hope that it loads before playback starts.
+        const inline = asset.p && asset.p.startsWith && asset.p.startsWith('data:');
+        if (inline) {
+          promises.push({
+            'name': asset.id,
+            'player': new AudioPlayer(asset.p)
+          });
+        } else {
+          promises.push({
+            'name': asset.id,
+            'player': new AudioPlayer(`${this._assetsPath}/${this._hash}/${asset.p}`)
+          });
+        }
+      }
+      else {
+        // asset.p is the filename, if it's an image.
+        // Don't try to load inline/dataURI images.
+        const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
+        if (should_load) {
+          promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
+            .then((resp) => {
+              // fetch does not reject on 404
+              if (!resp.ok) {
+                console.error(`Could not load ${asset.p}: status ${resp.status}`)
+                return null;
+              }
+              return resp.arrayBuffer().then((buffer) => {
+                return {
+                  'name': asset.p,
+                  'bytes': buffer
+                };
+              });
+            })
+          );
+        }
       }
     }
     return promises;
@@ -546,11 +570,14 @@ define('skottie-sk', class extends HTMLElement {
       this._wasmTimePassed = Date.now() - this._firstFrameTime;
       this._lottie && this._lottie.pause();
       this._live && this._live.pause();
+      this._state.soundMap && this._state.soundMap.pause();
       $$('#playpause').textContent = 'Play';
     } else {
       this._lottie && this._lottie.play();
       this._live && this._live.play();
       this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
+      // There is no need call a soundMap.play() function here.
+      // Skottie invokes the play by calling seek on the needed audio track.
       $$('#playpause').textContent = 'Pause';
     }
     this._playing = !this._playing;
