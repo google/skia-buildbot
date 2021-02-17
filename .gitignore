@@ -1,3 +1,5 @@
+# MacOS file system attributes
+*.DS_Store
 # Compiled python files.
 *.pyc
 # Files open in vi.
