@@ -32,6 +32,7 @@ go_library(
         "//golden/go/types",
         "//golden/go/warmer",
         "@com_github_patrickmn_go_cache//:go-cache",
+        "@io_opencensus_go//trace",
     ],
 )
 
