@@ -88,6 +88,24 @@
       "parentUuid": "4c9c4a45_67e323f2",
       "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "635d57bf_9756eda3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-17T13:16:07Z",
+      "side": 1,
+      "message": "Sorry, never mind you already fixed that.  I\u0027m still in favor of removing android_repo for simplicity.  How long had it been since the checkout was deleted before?  Is it possible that this has been a problem for a long time and we never noticed?",
+      "parentUuid": "c3109f53_f4d352f5",
+      "revId": "1c81c337a5004018cf7a6f8d16e29012f0095524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
