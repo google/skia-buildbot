@@ -5,7 +5,7 @@ export interface SVGMetaData {
 
 export interface SKSLMetaData {
 	Uniforms: number[] | null;
-	Children: string[] | null;
+	Children: { [key: string]: string };
 }
 
 export interface ParticlesMetaData {

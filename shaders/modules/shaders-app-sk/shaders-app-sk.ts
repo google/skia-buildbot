@@ -100,7 +100,7 @@ function words(str: string): {[key: string]: boolean} {
   const obj: any = {};
   str.split(/\s+/).forEach((word) => {
     if (!word) {
-      return
+      return;
     }
     obj[word] = true;
   });
@@ -604,7 +604,6 @@ export class ShadersAppSk extends ElementSk {
     uniformsArray.forEach((val, index) => { uniformsFloat32Array[index] = val; });
 
     const shader = this.effect!.makeShaderWithChildren(uniformsFloat32Array, true, this.inputImageShaders);
-    this._render();
 
     // Allow uniform controls to update, such as uniform-timer-sk.
     this._render();
@@ -633,7 +632,7 @@ export class ShadersAppSk extends ElementSk {
       Type: 'sksl',
       SKSLMetaData: {
         Uniforms: userUniformValues,
-        Children: [],
+        Children: {},
       },
     };
     try {

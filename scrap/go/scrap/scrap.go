@@ -130,9 +130,9 @@ type SKSLMetaData struct {
 	// Uniforms are all the inputs to the shader.
 	Uniforms []float32
 
-	// Child shaders. These values are the hashes of shaders, or, if the value
-	// begins with an "@", they are the name of a named shader.
-	Children []string
+	// Child shaders. Maps the name of the uniform variable to the hash or name
+	// of the scrap to use as the shader.
+	Children map[string]string
 }
 
 // ParticlesMetaData is metadata for Particle scraps.
