@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -141,6 +142,8 @@ WHERE branch_name = $1 AND version_name = $2 and last_ingested_data > $3`
 // GetResults implements the tjstore.Store interface. Of note, it always returns a nil GroupParams
 // because the way the data is stored, there is no way to know which params were ingested together.
 func (s *StoreImpl) GetResults(ctx context.Context, cID tjstore.CombinedPSID, updatedAfter time.Time) ([]tjstore.TryJobResult, error) {
+	ctx, span := trace.StartSpan(ctx, "sqltjstore_GetResults")
+	defer span.End()
 	clID := sql.Qualify(cID.CRS, cID.CL)
 	psID := sql.Qualify(cID.CRS, cID.PS)
 
