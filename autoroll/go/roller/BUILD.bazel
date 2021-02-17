@@ -35,6 +35,7 @@ go_library(
         "//go/gerrit",
         "//go/github",
         "//go/httputils",
+        "//go/human",
         "//go/metrics2",
         "//go/notifier",
         "//go/rotations",
