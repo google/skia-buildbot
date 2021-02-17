@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "92b2b17d_5222d071",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 782,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-17T21:01:08Z",
+      "side": 0,
+      "message": "This was the issue - overwriting the context in a loop. Don\u0027t make spans in loops.",
+      "range": {
+        "startLine": 782,
+        "startChar": 4,
+        "endLine": 782,
+        "endChar": 7
+      },
+      "revId": "63e3608e228cfed6b46b317507ea11f7ebe1b95a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
