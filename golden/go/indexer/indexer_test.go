@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/diff"
 	diff_mocks "go.skia.org/infra/golden/go/diff/mocks"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -300,22 +301,27 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 		"day_of_week": "wednesday",
 	}
 
+	resultParams := paramtools.Params{ // all data points are for the same test.
+		types.CorpusField:     "some_corpus",
+		types.PrimaryKeyField: string(data.AlphaTest),
+	}
+
 	mts.On("GetResults", testutils.AnyContext, firstCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
 		{
-			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: resultParams,
 			GroupParams:  androidGroup,
 			Options:      firstOptionalGroup,
 			Digest:       data.AlphaPositiveDigest,
 			// Other fields ignored
 		},
 		{
-			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: resultParams,
 			GroupParams:  iosGroup,
 			Options:      firstOptionalGroup,
 			Digest:       data.AlphaNegativeDigest,
 		},
 		{
-			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: resultParams,
 			GroupParams:  androidGroup,
 			Options:      secondOptionalGroup,
 			Digest:       data.AlphaUntriagedDigest,
@@ -323,25 +329,40 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 	}, nil)
 	mts.On("GetResults", testutils.AnyContext, secondCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
 		{
-			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: resultParams,
 			GroupParams:  androidGroup,
 			Options:      firstOptionalGroup,
 			Digest:       data.AlphaPositiveDigest,
 		},
 		{
-			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: resultParams,
 			GroupParams:  iosGroup,
 			Options:      firstOptionalGroup,
 			// Note, for this CL, this digest has not yet been triaged.
 			Digest: data.AlphaNegativeDigest,
 		},
 		{
-			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: resultParams,
 			GroupParams:  androidGroup,
 			Options:      firstOptionalGroup,
 			Digest:       data.AlphaUntriagedDigest,
 		},
 	}, nil)
+
+	expectedGrouping := paramtools.Params{
+		types.CorpusField:     "some_corpus",
+		types.PrimaryKeyField: string(data.AlphaTest),
+	}
+	leftDigestsMatcher := mock.MatchedBy(func(left []types.Digest) bool {
+		assert.ElementsMatch(t, []types.Digest{data.AlphaUntriagedDigest, data.AlphaPositiveDigest, data.AlphaNegativeDigest}, left)
+		return true
+	})
+	rightDigestsMatcher := mock.MatchedBy(func(right []types.Digest) bool {
+		assert.ElementsMatch(t, []types.Digest{data.AlphaPositiveDigest}, right)
+		return true
+	})
+	mdc := &diff_mocks.Calculator{}
+	mdc.On("CalculateDiffs", testutils.AnyContext, expectedGrouping, leftDigestsMatcher, rightDigestsMatcher).Return(nil)
 
 	ctx := context.Background()
 	ic := IndexerConfig{
@@ -354,10 +375,12 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 				// URLTemplate and Client are unused here
 			},
 		},
+		DiffWorkPublisher: mdc,
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
 	ixr.changelistsReindexed.Reset()
+	ixr.lastMasterIndex = fakeSearchIndex()
 
 	ixr.calcChangelistIndices(ctx)
 
@@ -374,6 +397,7 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 		"model":       []string{"crosshatch", "iphone3"},
 		"name":        []string{"test_alpha"},
 		"os":          []string{"Android", "iOS"},
+		"source_type": []string{"some_corpus"},
 	}, clIdx.ParamSet)
 
 	clIdx = ixr.GetIndexForCL(gerritCRS, secondCLID)
@@ -391,9 +415,25 @@ func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {
 		"model":       []string{"crosshatch", "iphone3"},
 		"name":        []string{"test_alpha"},
 		"os":          []string{"Android", "iOS"},
+		"source_type": []string{"some_corpus"},
 	}, clIdx.ParamSet)
 
 	assert.Equal(t, int64(2), ixr.changelistsReindexed.Get())
+}
+
+// noopPublisher returns a DiffPublisher that accepts any and all calls to CalculateDiffs.
+func noopPublisher() diff.Calculator {
+	mdc := diff_mocks.Calculator{}
+	mdc.On("CalculateDiffs", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	return &mdc
+}
+
+// fakeSearchIndex returns an arbitrary SearchIndex with enough data to compute CL diff messages.
+func fakeSearchIndex() *SearchIndex {
+	_, tile, _ := makeComplexTileWithCrosshatchIgnores()
+	return &SearchIndex{
+		dCounters: [2]digest_counter.DigestCounter{digest_counter.New(tile), digest_counter.New(tile)},
+	}
 }
 
 func TestIndexer_CalcChangelistIndices_HasIndexForPreviousPS_Success(t *testing.T) {
@@ -470,6 +510,7 @@ func TestIndexer_CalcChangelistIndices_HasIndexForPreviousPS_Success(t *testing.
 				// URLTemplate and Client are unused here
 			},
 		},
+		DiffWorkPublisher: noopPublisher(),
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -506,6 +547,7 @@ func TestIndexer_CalcChangelistIndices_HasIndexForPreviousPS_Success(t *testing.
 		ComputedTS: longAgo,
 	}
 	ixr.changelistIndices.Set("gerrit_111111", &previousIdx, 0)
+	ixr.lastMasterIndex = fakeSearchIndex()
 
 	ixr.calcChangelistIndices(ctx)
 
@@ -594,6 +636,7 @@ func TestIndexer_CalcChangelistIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 				// URLTemplate and Client are unused here
 			},
 		},
+		DiffWorkPublisher: noopPublisher(),
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -624,7 +667,7 @@ func TestIndexer_CalcChangelistIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 		ComputedTS: longAgo,
 	}
 	ixr.changelistIndices.Set("gerrit_111111", &previousIdx, 0)
-
+	ixr.lastMasterIndex = fakeSearchIndex()
 	ixr.calcChangelistIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(gerritCRS, clID)

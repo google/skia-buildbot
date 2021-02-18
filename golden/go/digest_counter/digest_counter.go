@@ -30,7 +30,7 @@ type DigestCounter interface {
 	MaxDigestsByTest() map[types.TestName]types.DigestSet
 
 	// ByQuery returns a DigestCount of all the digests that match the given query in
-	// the provided tile.
+	// the provided tile. Note that this will recompute the digests across the entire tile.
 	ByQuery(tile *tiling.Tile, query paramtools.ParamSet) DigestCount
 }
 
