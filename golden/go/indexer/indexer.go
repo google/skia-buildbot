@@ -899,14 +899,44 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	_, spanTryjobData := trace.StartSpan(ctx, "getTryjobData")
-	spanTryjobData.AddAttributes(trace.Int64Attribute("data_points", int64(len(xtjr))))
+	digestsPerGrouping, err := groupDataFromTryJobs(ctx, xtjr)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	left, right, err := addDataFromPrimaryBranch(ctx, idx, digestsPerGrouping, exp)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	sklog.Infof("Sending diff messages for CL %s covering %d groupings to diffcalculator", clID, len(left))
+	for hg := range left {
+		grouping := paramtools.Params{
+			types.CorpusField:     hg[0],
+			types.PrimaryKeyField: hg[1],
+		}
+		leftDigests := left[hg].Keys()
+		rightDigests := right[hg].Keys()
+		// This should be pretty fast because it's just sending off the work, not blocking until
+		// the work is calculated.
+		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, leftDigests, rightDigests); err != nil {
+			return skerr.Wrapf(err, "publishing diff calculation for CL %s - %d, %d digests in grouping %v", clID, len(leftDigests), len(rightDigests), grouping)
+		}
+	}
+	return nil
+}
+
+// groupDataFromTryJobs takes the data from the provided TryJobResults and groups the unique
+// digests by grouping.
+func groupDataFromTryJobs(ctx context.Context, xtjr []tjstore.TryJobResult) (map[hashableGrouping]types.DigestSet, error) {
+	ctx, span := trace.StartSpan(ctx, "groupDataFromTryJobs")
+	span.AddAttributes(trace.Int64Attribute("data_points", int64(len(xtjr))))
+	defer span.End()
 	// The left and right digests will be the data from these tryjobs as well as the non-ignored
 	// data on the primary branch for the corresponding groupings.
 	digestsPerGrouping := map[hashableGrouping]types.DigestSet{}
 	for _, tjr := range xtjr {
 		if err := ctx.Err(); err != nil {
-			return skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		traceKeys := paramtools.Params{}
 		traceKeys.Add(tjr.GroupParams, tjr.ResultParams)
@@ -920,45 +950,39 @@ func (ix *Indexer) sendCLWorkToDiffCalculators(ctx context.Context, xtjr []tjsto
 		}
 		digestsPerGrouping[grouping] = uniqueDigests
 	}
-	spanTryjobData.End()
+	return digestsPerGrouping, nil
+}
 
-	tile := idx.cpxTile.GetTile(types.ExcludeIgnoredTraces)
-	_, primaryBranchData := trace.StartSpan(ctx, "getDataFromPrimarybranch")
-	primaryBranchData.AddAttributes(trace.Int64Attribute("groupings", int64(len(digestsPerGrouping))))
+// addDataFromPrimaryBranch adds the triaged, not ignored digests from the primary branch to
+// the provided map and returns it as the first return value (the left digests). It adds those same
+// digests to a new map and returns it as the second return value (the right digests).
+func addDataFromPrimaryBranch(ctx context.Context, idx *SearchIndex, leftDigests map[hashableGrouping]types.DigestSet, exp expectations.ReadOnly) (map[hashableGrouping]types.DigestSet, map[hashableGrouping]types.DigestSet, error) {
+	ctx, span := trace.StartSpan(ctx, "addDataFromPrimaryBranch")
+	span.AddAttributes(trace.Int64Attribute("groupings", int64(len(leftDigests))))
+	defer span.End()
+	countByTest := idx.dCounters[types.ExcludeIgnoredTraces].ByTest()
+	rightDigests := make(map[hashableGrouping]types.DigestSet, len(leftDigests))
 	// Add the digests from the primary branch (using the index)
-	for grouping := range digestsPerGrouping {
+	for grouping := range leftDigests {
 		if err := ctx.Err(); err != nil {
-			return skerr.Wrap(err)
+			return nil, nil, skerr.Wrap(err)
 		}
-		q := paramtools.ParamSet{
-			types.CorpusField:     []string{grouping[0]},
-			types.PrimaryKeyField: []string{grouping[1]},
-		}
-		uniqueDigests := digestsPerGrouping[grouping]
-		dc := idx.dCounters[types.ExcludeIgnoredTraces].ByQuery(tile, q)
-		for digest := range dc {
+		allLeftDigests := leftDigests[grouping]
+		allRightDigests := types.DigestSet{}
+		// We assume that test names are unique across corpora. This may not be true in general,
+		// but it allows us to avoid iterating the tile again.
+		for digest := range countByTest[types.TestName(grouping[1])] {
 			if exp.Classification(types.TestName(grouping[1]), digest) != expectations.Untriaged {
-				uniqueDigests[digest] = true
+				allLeftDigests[digest] = true
+				allRightDigests[digest] = true
 			}
 		}
-		digestsPerGrouping[grouping] = uniqueDigests
+		// This won't make a new key in the map, so it should be safe overwrite this key and not
+		// affect iteration.
+		leftDigests[grouping] = allLeftDigests
+		rightDigests[grouping] = allRightDigests
 	}
-	primaryBranchData.End()
-
-	sklog.Infof("Sending diff messages for CL %s covering %d groupings to diffcalculator", clID, len(digestsPerGrouping))
-	for hg, ds := range digestsPerGrouping {
-		grouping := paramtools.Params{
-			types.CorpusField:     hg[0],
-			types.PrimaryKeyField: hg[1],
-		}
-		digests := ds.Keys()
-		// This should be pretty fast because it's just sending off the work, not blocking until
-		// the work is calculated.
-		if err := ix.DiffWorkPublisher.CalculateDiffs(ctx, grouping, digests, digests); err != nil {
-			return skerr.Wrapf(err, "publishing diff calculation for CL %s - %d digests in grouping %v", clID, len(digests), grouping)
-		}
-	}
-	return nil
+	return leftDigests, rightDigests, nil
 }
 
 // getCLIndex is a helper that returns the appropriately typed element from changelistIndices.
