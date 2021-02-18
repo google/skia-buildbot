@@ -46,6 +46,30 @@
       },
       "revId": "0b9393e8a59982a89664aab1a2d846abf6991ccb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ff529ee_7d8b8f5e",
+        "filename": "task_scheduler/go/task-scheduler-fe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-18T20:10:48Z",
+      "side": 1,
+      "message": "Something like:\nr.PathPrefix(rpc.TaskSchedulerServicePathPrefix).HandlerFunc(httputils.CorsHandler(srv.ServeHTTP))",
+      "parentUuid": "e5d8026e_95224c21",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 73
+      },
+      "revId": "0b9393e8a59982a89664aab1a2d846abf6991ccb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
