@@ -38,7 +38,7 @@ const SCRUBBER_RANGE = 1000;
 
 const displayDialog = (ele) => html`
 <skottie-config-sk .state=${ele._state} .width=${ele._width}
-    .height=${ele._height} .fps=${ele._fps}></skottie-config-sk>
+    .height=${ele._height} .fps=${ele._fps} .backgroundColor=${ele._backgroundColor}></skottie-config-sk>
 `;
 
 const skottiePlayer = (ele) => html`
@@ -56,7 +56,7 @@ const lottiePlayer = (ele) => {
   return html`
 <figure>
   <div id=container title=lottie-web
-       style='width: ${ele._width}px; height: ${ele._height}px'></div>
+       style='width: ${ele._width}px; height: ${ele._height}px; background-color: ${ele._backgroundColor}'></div>
   <figcaption>lottie-web (${bodymovin.version})</figcaption>
 </figure>`;
 }
@@ -242,6 +242,7 @@ define('skottie-sk', class extends HTMLElement {
     this._width = 0;
     this._height = 0;
     this._fps = 0;
+    this._backgroundColor = 'rgba(0,0,0,0)';
 
     this._stateChanged = stateReflector(
       /*getState*/() => {
@@ -253,6 +254,7 @@ define('skottie-sk', class extends HTMLElement {
           'w' : this._width,
           'h' : this._height,
           'f' : this._fps,
+          'bg': this._backgroundColor,
         }
     }, /*setState*/(newState) => {
       this._showLottie = newState.l;
@@ -261,6 +263,7 @@ define('skottie-sk', class extends HTMLElement {
       this._width = newState.w;
       this._height = newState.h;
       this._fps = newState.f;
+      this._backgroundColor = newState.bg;
       this._applyTextEdits = this._applyTextEdits.bind(this);
       this.render();
     });
@@ -387,6 +390,7 @@ define('skottie-sk', class extends HTMLElement {
       this._width = e.detail.width;
       this._height = e.detail.height;
       this._fps = e.detail.fps;
+      this._backgroundColor = e.detail.backgroundColor;
       this._autoSize();
       this._stateChanged();
       if (e.detail.fileChanged) {

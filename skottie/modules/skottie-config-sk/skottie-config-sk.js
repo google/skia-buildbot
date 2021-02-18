@@ -33,6 +33,12 @@ import { $$ } from 'common-sk/modules/dom'
 
 const DEFAULT_SIZE = 128;
 
+const BACKGROUND_VALUES = {
+  TRANSPARENT: 'rgba(0,0,0,0)',
+  LIGHT: '#FFFFFF',
+  DARK: '#000000',
+};
+
 const allowZips = window.location.hostname === "skottie-internal.skia.org" ||
                   window.location.hostname === "localhost";
 
@@ -63,6 +69,24 @@ const template = (ele) => html`
   <div class="filename ${ele._state.assetsFilename ? '' : 'empty'}" ?hidden=${!allowZips}>
     ${ele._state.assetsFilename ? ele._state.assetsFilename : 'No asset folder selected.'}
   </div>
+  <label class=number>
+    Background Color
+    <select id="backgroundColor">
+      <option
+        value=${BACKGROUND_VALUES.TRANSPARENT}
+        ?selected=${ele._backgroundColor === BACKGROUND_VALUES.TRANSPARENT}
+      >Transparent</option>
+      <option
+        value=${BACKGROUND_VALUES.LIGHT}
+        ?selected=${ele._backgroundColor === BACKGROUND_VALUES.LIGHT}
+      >Light</option>
+      <option
+        value=${BACKGROUND_VALUES.DARK}
+        test=${ele._backgroundColor}
+        ?selected=${ele._backgroundColor === BACKGROUND_VALUES.DARK}
+       >Dark</option>
+    </select>
+  </label>
   <label class=number>
     <input type=number id=width .value=${ele._width} required /> Width (px)
   </label>
@@ -105,6 +129,7 @@ class SkottieConfigSk extends HTMLElement {
     this._width = DEFAULT_SIZE;
     this._height = DEFAULT_SIZE;
     this._fps = 0;
+    this._backgroundColor = BACKGROUND_VALUES.TRANSPARENT;
     this._fileChanged = false;
     this._starting_state = Object.assign({}, this._state);
   }
@@ -144,6 +169,13 @@ class SkottieConfigSk extends HTMLElement {
   get width() { return this._width; }
   set width(val) {
     this._width = +val;
+    this._render();
+  }
+
+  /** @prop backgroundColor {string} Selected background color for animation. */
+  get backgroundColor() { return this._backgroundColor; }
+  set backgroundColor(val) {
+    this._backgroundColor = val;
     this._render();
   }
 
@@ -237,6 +269,7 @@ class SkottieConfigSk extends HTMLElement {
     this._width = +$$('#width', this).value;
     this._height = +$$('#height', this).value;
     this._fps = +$$('#fps', this).value;
+    this._backgroundColor = $$('#backgroundColor', this).value;
   }
 
   _go() {
@@ -247,6 +280,7 @@ class SkottieConfigSk extends HTMLElement {
       'width' : this._width,
       'height': this._height,
       'fps': this._fps,
+      'backgroundColor': this._backgroundColor,
     }, bubbles: true }));
   }
 
