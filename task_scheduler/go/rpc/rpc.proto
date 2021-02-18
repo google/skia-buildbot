@@ -76,7 +76,7 @@ message CancelJobResponse {
 
 // SearchJobsRequest is a request to SearchJobs.
 message SearchJobsRequest {
-	int64 buildbucket_build_id = 1;
+	string buildbucket_build_id = 1;
 	bool has_buildbucket_build_id = 2;
 	bool is_force = 3;
 	bool has_is_force = 4;
@@ -381,11 +381,11 @@ message TaskStats {
 message Job {
 	// buildbucket_build_id is the ID of the Buildbucket build with which this
 	// Job is associated, if one exists.
-	int64 buildbucket_build_id = 1;
+	string buildbucket_build_id = 1;
 
 	// buildbucket_lease_key is the lease key for running a Buildbucket build.
 	// TODO(borenet): Maybe this doesn't belong in the DB.
-	int64 buildbucket_lease_key = 2;
+	string buildbucket_lease_key = 2;
 
 	// created_at is the creation timestamp. This property should never change
 	// for a given Job instance.

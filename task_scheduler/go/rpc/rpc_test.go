@@ -664,8 +664,8 @@ func TestConvertJob(t *testing.T) {
 
 	require.NoError(t, err)
 	assertdeep.Copy(t, &Job{
-		BuildbucketBuildId:  12345,
-		BuildbucketLeaseKey: 67890,
+		BuildbucketBuildId:  "12345",
+		BuildbucketLeaseKey: "67890",
 		CreatedAt:           timestamppb.New(time.Unix(1600181000, 0)),
 		DbModifiedAt:        timestamppb.New(time.Unix(1600182000, 0)),
 		Dependencies: []*TaskDependencies{

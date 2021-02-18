@@ -318,9 +318,7 @@ export class JobSearchSk extends ElementSk {
 
   private search() {
     const req = {
-      buildbucketBuildId: parseInt(
-        this.searchTerms.get('buildbucketBuildId')?.value || '0'
-      ),
+      buildbucketBuildId: this.searchTerms.get('buildbucketBuildId')?.value || '',
       hasBuildbucketBuildId: !!this.searchTerms.get('buildbucketBuildId'),
       isForce: this.searchTerms.get('isForce')?.value === 'true',
       hasIsForce: !!this.searchTerms.get('isForce'),

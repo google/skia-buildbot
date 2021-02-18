@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 	http "net/http"
 	"sort"
+	"strconv"
 	"time"
 
 	twirp "github.com/twitchtv/twirp"
@@ -187,7 +188,11 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 	}
 	params := &db.JobSearchParams{}
 	if req.HasBuildbucketBuildId {
-		params.BuildbucketBuildID = intPtr(req.BuildbucketBuildId)
+		bbID, err := strconv.ParseInt(req.BuildbucketBuildId, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		params.BuildbucketBuildID = intPtr(bbID)
 	}
 	if req.HasIsForce {
 		params.IsForce = boolPtr(req.IsForce)
@@ -562,9 +567,11 @@ func convertJob(job *types.Job) (*Job, error) {
 			Tasks: ts,
 		})
 	}
+	bbID := fmt.Sprintf("%d", job.BuildbucketBuildId)
+	bbKey := fmt.Sprintf("%d", job.BuildbucketLeaseKey)
 	return &Job{
-		BuildbucketBuildId:  job.BuildbucketBuildId,
-		BuildbucketLeaseKey: job.BuildbucketLeaseKey,
+		BuildbucketBuildId:  bbID,
+		BuildbucketLeaseKey: bbKey,
 		CreatedAt:           timestamppb.New(job.Created),
 		DbModifiedAt:        timestamppb.New(job.DbModified),
 		Dependencies:        deps,

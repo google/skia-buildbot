@@ -189,6 +189,13 @@ export class JobSk extends ElementSk {
               </tr>
             `
           : html``}
+        ${ele.job!.buildbucketBuildId ? html`
+          <tr>
+            <td>Buildbucket Build ID</td>
+            <td>${ele.job!.buildbucketBuildId}</td>
+            <td></td>
+          </tr>
+        `: html``}
         <tr>
           <td>Manually forced</td>
           <td>${ele.job!.isForce ? 'true' : 'false'}</td>
