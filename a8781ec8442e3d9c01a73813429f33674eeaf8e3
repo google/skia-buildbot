@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "43d1f291_6db0d57c",
+        "filename": "go/cipd/asset_versions_gen.go",
+        "patchSetId": 46
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-18T13:21:21Z",
+      "side": 1,
+      "message": "Looks like this is already out of sync with assets/bazel/VERSION ?",
+      "range": {
+        "startLine": 134,
+        "startChar": 20,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "a8781ec8442e3d9c01a73813429f33674eeaf8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4c99e3dc_8f6a5451",
+        "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
+        "patchSetId": 46
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-18T13:21:21Z",
+      "side": 1,
+      "message": "It\u0027s also poor hygiene to leave the machine different than we found it, unless we\u0027re very particular about how it\u0027s done.",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 3
+      },
+      "revId": "a8781ec8442e3d9c01a73813429f33674eeaf8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bedc6d94_94e97da1",
+        "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
+        "patchSetId": 46
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-18T13:21:21Z",
+      "side": 1,
+      "message": "Would we get any benefit from using a named cache here?  It would also live under /mnt/pd0 and could persist between tasks and potentially speed things up.",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 83
+      },
+      "revId": "a8781ec8442e3d9c01a73813429f33674eeaf8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
