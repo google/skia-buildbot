@@ -296,7 +296,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(srv)
+	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).HandlerFunc(httputils.CorsHandler(srv.ServeHTTP))
 	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
 	r.HandleFunc("/job/{id}", httputils.OriginTrial(jobHandler, *local))
 	r.HandleFunc("/job/{id}/timeline", httputils.OriginTrial(jobTimelineHandler, *local))
@@ -304,7 +304,6 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/task/{id}", httputils.OriginTrial(taskHandler, *local))
 	r.HandleFunc("/trigger", httputils.OriginTrial(triggerHandler, *local))
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
-	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(srv)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	r.HandleFunc("/logout/", login.LogoutHandler)
