@@ -224,6 +224,7 @@ export interface AndroidRepoManagerConfig {
   childSubdir: string;
   preUploadSteps?: PreUploadStep[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfig;
+  includeAuthorsAsReviewers: boolean;
 }
 
 interface AndroidRepoManagerConfigJSON {
@@ -236,6 +237,7 @@ interface AndroidRepoManagerConfigJSON {
   child_subdir?: string;
   pre_upload_steps?: string[];
   metadata?: AndroidRepoManagerConfig_ProjectMetadataFileConfigJSON;
+  include_authors_as_reviewers?: boolean;
 }
 
 export interface CommandRepoManagerConfig_CommandConfig {

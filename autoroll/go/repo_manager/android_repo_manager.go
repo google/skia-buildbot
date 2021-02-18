@@ -45,10 +45,11 @@ var (
 // androidRepoManager is a struct used by Android AutoRoller for managing
 // checkouts.
 type androidRepoManager struct {
-	androidRemoteName string
-	childRepoURL      string
-	parentRepoURL     string
-	repoToolPath      string
+	androidRemoteName         string
+	childRepoURL              string
+	parentRepoURL             string
+	repoToolPath              string
+	includeAuthorsAsReviewers bool
 
 	projectMetadataFileConfig *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig
 
@@ -136,6 +137,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.Metadata,
 		childRepoURL:              c.ChildRepoUrl,
+		includeAuthorsAsReviewers: c.IncludeAuthorsAsReviewers,
 
 		childBranch:      childBranch,
 		childDir:         childDir,
@@ -304,8 +306,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
-	parentBranch := r.parentBranch.String()
-
 	// Update the upstream remote.
 	if _, err := r.childRepo.Git(ctx, "fetch", androidUpstreamRemoteName); err != nil {
 		return 0, err
@@ -398,14 +398,13 @@ third_party {
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
-	// If the parent branch is not the main branch then:
-	// Add all authors of merged changes to the email list. We do not do this
-	// for the main branch because developers would get spammed due to multiple
-	// rolls a day. Release branch rolls run rarely and developers should be
-	// aware that their changes are being rolled there.
 	rollEmails := []string{}
 	rollEmails = append(rollEmails, emails...)
-	if parentBranch != "sc-dev" {
+	if r.includeAuthorsAsReviewers {
+		// Add all authors of merged changes to the email list. We do this only
+		// for some rollers because developers would get spammed due to multiple
+		// rolls a day. Release branch rolls run rarely and developers should be
+		// aware that their changes are being rolled there.
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
@@ -476,15 +475,7 @@ third_party {
 	}
 	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
 	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails); err != nil {
-		// Only throw exception here if parentBranch is the main branch. This is
-		// because other branches will not have permissions setup for the
-		// bot to run CR+2.
-		if parentBranch != "sc-dev" {
-			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
-			sklog.Warningf("Not throwing error because branch %q is not %q", parentBranch, "sc-dev")
-		} else {
-			return 0, err
-		}
+		return 0, err
 	}
 
 	// Mark the change as ready for review, if necessary.
