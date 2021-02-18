@@ -182,7 +182,10 @@ container_run_and_commit(
         "git config --system user.email 'bazel-rbe-test-user@example.com'",
     ],
     image = "@rbe_ubuntu1604//image",
-    tags = ["no-remote"],
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        "no-remote",
+    ],
 )
 
 # This target can be used to upload the custom RBE container toolchain to GCR. It will be available
@@ -196,6 +199,10 @@ container_push(
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
     tag = "{STABLE_DOCKER_TAG}",
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        "no-remote",  # We cannot build :rbe_container_skia_infra on RBE.
+    ],
 )
 
 ####################################################################################################
