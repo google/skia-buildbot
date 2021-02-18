@@ -27,7 +27,7 @@ class TestCsvComparer(unittest.TestCase):
     class _MockUtcNow(object):
       @staticmethod
       def strftime(format_str):
-        self.assertEqual('%Y-%m-%d %H:%M UTC', format_str)
+        self.assertEquals('%Y-%m-%d %H:%M UTC', format_str)
         return '2014-05-19 16:50 UTC'
     class _MockDatetime(object):
       @staticmethod

@@ -47,12 +47,12 @@ func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerrit
 
 	oldMetrics := map[metrics2.Int64Metric]struct{}{}
 	util.RepeatCtx(ctx, time.Duration(IN_FLIGHT_POLL_TIME), func(ctx context.Context) {
-		dryRunChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "1"))
+		dryRunChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.LabelCommitQueue, "1"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes with dry run in Gerrit: %s", err)
 			return
 		}
-		cqChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.COMMITQUEUE_LABEL, "2"))
+		cqChanges, err := gerritClient.Search(ctx, MAX_CLS_PER_POLL, true, gerrit.SearchStatus("open"), gerrit.SearchProject("skia"), gerrit.SearchLabel(gerrit.LabelCommitQueue, "2"))
 		if err != nil {
 			sklog.Errorf("Error searching for open changes waiting for CQ in Gerrit: %s", err)
 			return
@@ -154,7 +154,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, httpClient)
+	gerritClient, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, httpClient)
 	if err != nil {
 		sklog.Fatalf("Failed to create Gerrit client: %s", err)
 	}

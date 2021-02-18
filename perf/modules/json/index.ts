@@ -179,6 +179,7 @@ export interface SkPerfConfig {
 	step_up_only: boolean;
 	commit_range_url: string;
 	demo: boolean;
+	display_group_by: boolean;
 }
 
 export interface TriageRequest {
@@ -221,7 +222,6 @@ export interface Domain {
 export interface RegressionDetectionRequest {
 	alert: Alert | null;
 	domain: Domain;
-	query: string;
 	step: number;
 	total_queries: number;
 }

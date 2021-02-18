@@ -37,6 +37,18 @@ func TestGetPathToPyFiles(t *testing.T) {
 	require.True(t, strings.HasSuffix(pathToPyFiles, expectedSwarmingPathSuffix))
 }
 
+func TestGetStrFlagValue(t *testing.T) {
+	unittest.SmallTest(t)
+	require.Equal(t, "desktop", GetStrFlagValue("--user-agent=desktop", USER_AGENT_FLAG, "default-value"))
+	require.Equal(t, "desktop", GetStrFlagValue("--user-agent desktop", USER_AGENT_FLAG, "default-value"))
+	// Use first value if multiple are specified.
+	require.Equal(t, "desktop", GetStrFlagValue("--user-agent=desktop --user-agent=mobile", USER_AGENT_FLAG, "default-value"))
+	// Test that default value gets returned.
+	require.Equal(t, "default-value", GetStrFlagValue("", USER_AGENT_FLAG, "default-value"))
+	require.Equal(t, "default-value", GetStrFlagValue("--user-agentsssss=desktop", USER_AGENT_FLAG, "default-value"))
+	require.Equal(t, "default-value", GetStrFlagValue("--somethingelse", USER_AGENT_FLAG, "default-value"))
+}
+
 func TestGetIntFlagValue(t *testing.T) {
 	unittest.SmallTest(t)
 	require.Equal(t, 4, GetIntFlagValue("--pageset-repeat=4", PAGESET_REPEAT_FLAG, 1))

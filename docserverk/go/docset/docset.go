@@ -88,7 +88,7 @@ func Init(local bool) error {
 		return err
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	gc, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, client)
+	gc, err = gerrit.NewGerrit(gerrit.GerritSkiaURL, client)
 	return err
 }
 

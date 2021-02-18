@@ -161,6 +161,7 @@ func TestLogFlags(t *testing.T) {
 	}
 
 	expected := []string{
+		" --help=false",
 		" --boolNotPassedIn=false",
 		" --bool=true",
 		" --duration=24s",

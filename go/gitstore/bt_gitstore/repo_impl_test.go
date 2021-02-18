@@ -118,6 +118,7 @@ func (u *gitstoreRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 
 // setupGitStore performs common setup for GitStore based Graphs.
 func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, repograph_shared_tests.RepoImplRefresher, func()) {
+	unittest.RequiresBigTableEmulator(t)
 	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
 
 	btConf := &BTConfig{

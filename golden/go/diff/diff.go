@@ -10,6 +10,7 @@ import (
 	"unsafe"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -298,4 +299,42 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
 		MaxRGBADiffs:     maxRGBADiffs,
 		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg
+}
+
+type Calculator interface {
+	// CalculateDiffs recomputes all diffs for the current grouping, including any digests provided.
+	// Images (digests) will be sorted into two buckets, the left and right bucket. The left bucket
+	// is a superset of the right bucket. The right bucket consists of "triaged, not ignored" images
+	// for this grouping. The left bucket consists of *all* digests seen for this grouping.
+	// During search, a user will want to see the closest positive and negative image for a given
+	// image. By splitting the images into two different buckets, we do less precomputation. For
+	// example, if there are several flaky traces in a grouping, it can be that 10% of the overall
+	// images for a grouping are *not* ignored (and are mostly triaged) and 90% are ignored (because
+	// the trace produces something different during most commits). In such a case, computing a
+	// given digest from an ignored trace against a different digest from an ignored trace is a
+	// waste since it won't show up in the search results. By splitting the images into two buckets,
+	// we can dramatically reduce the computation done over a naive N x N comparison scheme.
+	CalculateDiffs(ctx context.Context, grouping paramtools.Params, additionalLeft, additionalRight []types.Digest) error
+}
+
+// WorkerMessageVersion is the current version of the WorkerMessage JSON.
+const WorkerMessageVersion = 3
+
+type WorkerMessage struct {
+	// Version lets us avoid/skip older messages when updating.
+	Version int `json:"version"`
+	// Grouping corresponds to the test that produced the images we should include in our diff
+	// calculation.
+	Grouping paramtools.Params `json:"grouping"`
+
+	// AdditionalLeft are digests beyond those that have been seen on the primary branch that
+	// should be included in the "left bucket" of diff calculations. It expected that tryjob results
+	// should set these to be non-empty, as well as when running in compatibility mode with the
+	// previous system. The digests in this bucket should be everything.
+	AdditionalLeft []types.Digest `json:"additional_left,omitempty"`
+	// AdditionalRight are digests beyond those that have been seen on the primary branch that
+	// should be included in the "right bucket" of diff calculations. It expected that tryjob results
+	// should set these to be non-empty, as well as when running in compatibility mode with the
+	//previous system. The digests in this bucket should be from not-ignored traces.
+	AdditionalRight []types.Digest `json:"additional_right,omitempty"`
 }

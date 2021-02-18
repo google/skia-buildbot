@@ -24,36 +24,35 @@ import (
 )
 
 const (
-	// PubSub topic name for task driver metadata.
-	PUBSUB_TOPIC = "task-driver"
-	// PubSub topic name for task driver logs.
-	PUBSUB_TOPIC_LOGS = "task-driver-logs"
+	// PubsubTopicLogs is the PubSub topic name for task driver logs.
+	PubsubTopicLogs = "task-driver-logs"
 
-	// Log ID for all Task Drivers. Logs are labeled with task ID and step
-	// ID as well, and those labels should be used for filtering in most
-	// cases.
-	LOG_ID = "task-driver"
+	// logID is the StackDriver log ID for all Task Drivers. Logs are labeled
+	// with task ID and step ID as well, and those labels should be used for
+	// filtering in most cases.
+	logID = "task-driver"
 
-	// Special ID of the root step.
-	STEP_ID_ROOT = "root"
+	// StepIDRoot is the fixed ID of the root step.
+	StepIDRoot = "root"
 
 	// Environment variables provided to all Swarming tasks.
-	ENVVAR_SWARMING_BOT    = "SWARMING_BOT_ID"
-	ENVVAR_SWARMING_SERVER = "SWARMING_SERVER"
-	ENVVAR_SWARMING_TASK   = "SWARMING_TASK_ID"
+	envVarSwarmingBot    = "SWARMING_BOT_ID"
+	envVarSwarmingServer = "SWARMING_SERVER"
+	envVarSwarmingTask   = "SWARMING_TASK_ID"
 
-	// PATH_VAR represents the PATH environment variable.
-	PATH_VAR = "PATH"
+	// envVarPath represents the PATH environment variable.
+	envVarPath = "PATH"
 )
 
 var (
-	BASE_ENV = []string{
+	// BaseEnv is the basic set of environment variables provided to all steps.
+	BaseEnv = []string{
 		"CHROME_HEADLESS=1",
 		"GIT_USER_AGENT=git/1.9.1", // I don't think this version matters.
 	}
 
 	// Auth scopes required for all task_drivers.
-	SCOPES = []string{compute.CloudPlatformScope}
+	authScopes = []string{compute.CloudPlatformScope}
 )
 
 // RunProperties are properties for a single run of a Task Driver.
@@ -64,7 +63,7 @@ type RunProperties struct {
 	SwarmingTask   string `json:"swarmingTask,omitempty"`
 }
 
-// Return an error if the RunProperties are not valid.
+// Validate implements util.Validator.
 func (p *RunProperties) Validate() error {
 	if p.Local {
 		if p.SwarmingBot != "" {
@@ -90,7 +89,7 @@ func (p *RunProperties) Validate() error {
 	return nil
 }
 
-// Return a copy of the RunProperties.
+// Copy returns a copy of the RunProperties.
 func (p *RunProperties) Copy() *RunProperties {
 	if p == nil {
 		return nil
@@ -111,9 +110,9 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	// TODO(borenet): Catch SIGINT, SIGKILL and report.
 
 	// Gather RunProperties.
-	swarmingBot := os.Getenv(ENVVAR_SWARMING_BOT)
-	swarmingServer := os.Getenv(ENVVAR_SWARMING_SERVER)
-	swarmingTask := os.Getenv(ENVVAR_SWARMING_TASK)
+	swarmingBot := os.Getenv(envVarSwarmingBot)
+	swarmingServer := os.Getenv(envVarSwarmingServer)
+	swarmingTask := os.Getenv(envVarSwarmingTask)
 
 	// "reproduce" is supplied by "swarming.py reproduce" and indicates that
 	// this is actually a local run, but --local won't have been provided
@@ -131,9 +130,9 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		// swarming.py as an alternative to --swarming.
 		errTmpl := "--local was supplied but %s environment variable was found. Was --local used by accident?"
 		if swarmingBot != "" {
-			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_BOT)
+			return nil, fmt.Errorf(errTmpl, envVarSwarmingBot)
 		} else if swarmingTask != "" {
-			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_TASK)
+			return nil, fmt.Errorf(errTmpl, envVarSwarmingTask)
 		}
 
 		// Prevent clobbering real task data for local tasks.
@@ -147,11 +146,11 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		// user forgot to use --local.
 		errTmpl := "--local was not supplied but environment variable %s was not found. Did you forget to use --local?"
 		if swarmingBot == "" {
-			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_BOT)
+			return nil, fmt.Errorf(errTmpl, envVarSwarmingBot)
 		} else if swarmingServer == "" {
-			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_SERVER)
+			return nil, fmt.Errorf(errTmpl, envVarSwarmingServer)
 		} else if swarmingTask == "" {
-			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_TASK)
+			return nil, fmt.Errorf(errTmpl, envVarSwarmingTask)
 		}
 	}
 
@@ -181,13 +180,13 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	var ts oauth2.TokenSource
 	if *local {
 		var err error
-		ts, err = auth.NewDefaultTokenSource(*local, SCOPES...)
+		ts, err = auth.NewDefaultTokenSource(*local, authScopes...)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		ts, err = luciauth.NewLUCIContextTokenSource(SCOPES...)
+		ts, err = luciauth.NewLUCIContextTokenSource(authScopes...)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
 		}
@@ -206,7 +205,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 			"taskId":   *taskId,
 			"taskName": *taskName,
 		}
-		logger, err := cloud_logging.New(ctx, *projectId, LOG_ID, ts, labels)
+		logger, err := cloud_logging.New(ctx, *projectId, logID, ts, labels)
 		if err != nil {
 			return nil, err
 		}
@@ -235,7 +234,7 @@ func StartRun(projectId, taskId, taskName, output *string, local *bool) context.
 	return ctx
 }
 
-// Perform any cleanup work for the run. Should be deferred in main().
+// EndRun performs any cleanup work for the run. Should be deferred in main().
 func EndRun(ctx context.Context) {
 	defer util.Close(getCtx(ctx).run)
 
@@ -265,8 +264,8 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		run:     r,
 		execRun: exec.DefaultRun,
 	})
-	env := MergeEnv(os.Environ(), BASE_ENV)
-	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName).Env(env))
+	env := MergeEnv(os.Environ(), BaseEnv)
+	ctx = newStep(ctx, StepIDRoot, nil, Props(taskName).Env(env))
 	return ctx
 }
 

@@ -13,7 +13,7 @@ func TestDump_AfterInit_Success(t *testing.T) {
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
 
-	mh := mockRPCResponses().Positive("pixel-tests", blankDigest).
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
 		Negative("other-test", blankDigest).
 		Known("11111111111111111111111111111111").Build()
 

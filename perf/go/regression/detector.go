@@ -58,9 +58,9 @@ type RegressionDetectionRequest struct {
 	Alert  *alerts.Alert `json:"alert"`
 	Domain types.Domain  `json:"domain"`
 
-	// Query is the exact query being run. It may be more specific than the one
+	// query is the exact query being run. It may be more specific than the one
 	// in the Alert if the Alert has a non-empty GroupBy.
-	Query string `json:"query"`
+	query string
 
 	// Step/TotalQueries is the current percent of all the queries that have been processed.
 	Step int `json:"step"`
@@ -71,6 +71,26 @@ type RegressionDetectionRequest struct {
 
 	// Progress of the detection request.
 	Progress progress.Progress `json:"-"`
+}
+
+// Query returns the query that the RegressionDetectionRequest process is
+// running.
+//
+// Note that it may be more specific than the Alert.Query if the Alert has a
+// non-empty GroupBy value.
+func (r *RegressionDetectionRequest) Query() string {
+	if r.query != "" {
+		return r.query
+	}
+	if r.Alert != nil {
+		return r.Alert.Query
+	}
+	return ""
+}
+
+// SetQuery sets a more refined query for the RegressionDetectionRequest.
+func (r *RegressionDetectionRequest) SetQuery(q string) {
+	r.query = q
 }
 
 // NewRegressionDetectionRequest returns a new RegressionDetectionRequest.
@@ -103,22 +123,60 @@ func ProcessRegressions(ctx context.Context,
 	perfGit *perfgit.Git,
 	shortcutStore shortcut.Store,
 	dfBuilder dataframe.DataFrameBuilder,
+	ps paramtools.ReadOnlyParamSet,
 ) error {
-	req.Progress.Message("Stage", "Loading data to analyze")
-	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query, req.Domain, req.Alert)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create iterator")
+	allRequests := allRequestsFromBaseRequest(req, ps)
+	for _, req := range allRequests {
+		req.Progress.Message("Stage", "Loading data to analyze")
+		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+		sklog.Infof("Building DataFrameIterator for %q", req.Query)
+		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query(), req.Domain, req.Alert)
+		if err != nil {
+			sklog.Warningf("Failed to create iterator for query: %q: %s", req.Query, err)
+			continue
+		}
+		detectionProcess := &regressionDetectionProcess{
+			request:                   req,
+			perfGit:                   perfGit,
+			detectorResponseProcessor: detectorResponseProcessor,
+			shortcutStore:             shortcutStore,
+			iter:                      iter,
+		}
+		detectionProcess.iter = iter
+		if err := detectionProcess.run(ctx); err != nil {
+			return skerr.Wrapf(err, "Failed to run a sub-query: %q", req.Query())
+		}
 	}
-	ret := &regressionDetectionProcess{
-		request:                   req,
-		perfGit:                   perfGit,
-		detectorResponseProcessor: detectorResponseProcessor,
-		shortcutStore:             shortcutStore,
-		iter:                      iter,
+	return nil
+}
+
+// allRequestsFromBaseRequest returns all possible requests starting from a base
+// request.
+//
+// An Alert with a non-empty GroupBy will be run as a number of requests with
+// more refined queries.
+//
+// An empty slice will be returned on error.
+func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.ReadOnlyParamSet) []*RegressionDetectionRequest {
+	ret := []*RegressionDetectionRequest{}
+
+	if req.Alert.GroupBy == "" {
+		ret = append(ret, req)
+	} else {
+		queries, err := req.Alert.QueriesFromParamset(ps)
+		if err != nil {
+			sklog.Errorf("Failed to build GroupBy combinations: %s", err)
+			return ret
+		}
+		sklog.Infof("Config expanded into %d queries.", len(queries))
+		for _, q := range queries {
+			reqCopy := *req
+			reqCopy.SetQuery(q)
+			ret = append(ret, &reqCopy)
+		}
 	}
-	ret.iter = iter
-	return ret.run(ctx)
+
+	return ret
 }
 
 // reportError records the reason a RegressionDetectionProcess failed.

@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
@@ -17,8 +18,12 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -33,6 +38,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -69,6 +75,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
+	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 )
@@ -193,6 +200,11 @@ func main() {
 	// Speculative memory usage fix? https://github.com/googleapis/google-cloud-go/issues/375
 	grpc.EnableTracing = false
 
+	// Record the traces of all spans, since we expect web requests to be somewhat rare.
+	if err := tracing.Initialize(1.0); err != nil {
+		sklog.Fatalf("Could not initialize tracing: %s", err)
+	}
+
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
 	rand.Seed(time.Now().UnixNano())
 
@@ -240,7 +252,7 @@ func main() {
 	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, diffStore, gsClient, reviewSystems, tileSource, tjs)
 
 	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold)
+	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
 	sklog.Infof("Search API created")
 
 	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
@@ -497,7 +509,7 @@ func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClien
 func mustMakeTryJobStore(client *firestore.Client, db *pgxpool.Pool) tjstore.Store {
 	fireTS := fs_tjstore.New(client)
 	sqlTS := sqltjstore.New(db)
-	return dualtjstore.New(fireTS, sqlTS)
+	return dualtjstore.New(sqlTS, fireTS)
 }
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
@@ -575,7 +587,17 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 
 // mustMakeIndexer makes a new indexer.Indexer.
 func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, diffStore diff.DiffStore, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
+	psc, err := pubsub.NewClient(ctx, fsc.PubsubProjectID)
+	if err != nil {
+		sklog.Fatalf("initializing pubsub client for project %s: %s", fsc.PubsubProjectID, err)
+	}
+
+	dwp := diff.Calculator(&noopDiffPublisher{})
+	if !fsc.IsPublicView {
+		dwp = &pubsubDiffPublisher{client: psc, topic: fsc.DiffWorkTopic}
+	}
 	ic := indexer.IndexerConfig{
+		DiffWorkPublisher: dwp,
 		DiffStore:         diffStore,
 		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
@@ -593,8 +615,40 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
 	sklog.Infof("Indexer created.")
-
 	return ixr
+}
+
+type pubsubDiffPublisher struct {
+	client *pubsub.Client
+	topic  string
+}
+
+// CalculateDiffs publishes a WorkerMessage to the configured PubSub topic so that a worker
+// (see diffcalculator) can pick it up and calculate the diffs.
+func (p *pubsubDiffPublisher) CalculateDiffs(ctx context.Context, grouping paramtools.Params, left, right []types.Digest) error {
+	ctx, span := trace.StartSpan(ctx, "PublishDiffMessage")
+	defer span.End()
+	body, err := json.Marshal(diff.WorkerMessage{
+		Version:         diff.WorkerMessageVersion,
+		Grouping:        grouping,
+		AdditionalLeft:  left,
+		AdditionalRight: right,
+	})
+	if err != nil {
+		return skerr.Wrap(err) // should never happen because JSON input is well-formed.
+	}
+	p.client.Topic(p.topic).Publish(ctx, &pubsub.Message{
+		Data: body,
+	})
+	// Don't block until message is sent to speed up throughput.
+	return nil
+}
+
+type noopDiffPublisher struct{}
+
+// CalculateDiffs does nothing, but implements the diff.Calculator interface.
+func (p *noopDiffPublisher) CalculateDiffs(_ context.Context, _ paramtools.Params, _, _ []types.Digest) error {
+	return nil
 }
 
 // mustStartCommenters starts a background process that comments on CLs for each of the review
@@ -869,7 +923,7 @@ func addAuthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, h
 
 // addUnauthenticatedJSONRoutes populates the given router with the subset of Gold's JSON RPC routes
 // that do not require authentication.
-func addUnauthenticatedJSONRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Handlers) {
+func addUnauthenticatedJSONRoutes(router *mux.Router, _ *frontendServerConfig, handlers *web.Handlers) {
 	add := func(jsonRoute string, handlerFunc http.HandlerFunc) {
 		addJSONRoute(jsonRoute, httputils.CorsHandler(handlerFunc), router, "").Methods("GET")
 	}

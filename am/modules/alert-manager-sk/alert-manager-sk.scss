@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '../themes/themes.scss';
 
 alert-manager-sk {
   spinner-sk[active] {
@@ -40,7 +40,7 @@ alert-manager-sk {
   }
 
   .bot-incident-list {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   .bot-incident-elem {
@@ -50,7 +50,7 @@ alert-manager-sk {
 
   h2 {
     align-items: center;
-    color: var(--red);
+    color: var(--active);
     margin: 0;
     padding: 0;
     font-size: 14px;
@@ -62,23 +62,23 @@ alert-manager-sk {
   }
 
   h2.assigned {
-    color: var(--orange);
+    color: var(--assigned);
   }
 
   h2.inactive {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   h2.selected {
-    background: var(--white);
+    background: var(--selected);
   }
 
   h2.silenced {
-    color: var(--green);
+    color: var(--silenced);
   }
 
   .silences h2.inactive {
-    color: var(--gray);
+    color: var(--inactive);
   }
 
   footer {
@@ -101,12 +101,13 @@ alert-manager-sk {
 
   tabs-sk {
     padding: 5px 0 0 5px;
-    border-bottom: dotted var(--gray) 1px;
+    border-bottom: dotted var(--on-background) 1px;
 
     button {
       border: none;
-      background: var(--white);
-      color: var(--gray);
+      background: var(--surface);
+      color: var(--on-surface);
+      fill: var(--on-surface);
     }
   }
 
@@ -150,36 +151,36 @@ alert-manager-sk {
     padding: 1em;
 
     h2 {
-      color: var(--blue);
+      color: var(--primary);
       display: flex;
       justify-content: space-between;
     }
   }
 
   comment-icon-sk, alarm-off-icon-sk, thumbs-up-down-icon-sk {
-    fill: var(--green);
+    fill: var(--icons);
     padding: 0.2em 0.6em;
   }
 
   .inactive comment-icon-sk {
-    fill: gray;
+    fill: var(--inactive);
   }
 
   person-icon-sk {
-    fill: var(--light-orange);
+    fill: var(--assigned-person);
   }
 
   .assigned-circle {
     border: solid;
-    border-color: var(--light-orange);
+    border-color: var(--assigned-person);
     border-radius: 50%;
-    color: var(--light-orange);
+    color: var(--assigned-person);
     padding: 0.2em;
   }
 
   notifications-icon-sk {
     padding: 0 0.6em;
-    fill: var(--blue);
+    fill: var(--primary);
   }
 
   .invisible {
@@ -193,22 +194,22 @@ alert-manager-sk {
 
   header {
     grid-area: header;
-    color: var(--blue);
-    fill: var(--blue);
+    color: var(--primary);
+    fill: var(--primary);
     padding: 0.4em;
     justify-content: flex-end;
     display: flex;
 
     login-sk .email,
     login-sk .logInOut {
-      color: var(--blue);
+      color: var(--primary);
     }
   }
 
   header,
   .edit,
   footer {
-    border-left: solid 1px black;
+    border-left: solid 1px var(--on-background);
   }
 
   display: grid;

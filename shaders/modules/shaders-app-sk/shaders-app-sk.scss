@@ -1,0 +1,178 @@
+@import '../themes/themes.scss';
+@import '~codemirror/lib/codemirror.css';
+@import '~codemirror/theme/ambiance.css';
+@import '~codemirror/theme/base16-light.css';
+
+.body-sk shaders-app-sk {
+  display: block;
+  background: var(--surface);
+  margin: 0;
+  min-height: 100vh;
+
+  header {
+    background: var(--surface-1dp);
+    color: var(--primary);
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0 16px;
+    align-items: center;
+
+    h2 {
+      margin: 8px 0 8px 0;
+
+      a {
+        background: var(--surface-1dp);
+      }
+    }
+
+    #githash {
+      background: var(--surface-1dp);
+    }
+  }
+
+  main {
+    padding: 16px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    canvas {
+      margin: 0 16px 16px 0;
+    }
+
+    #codeEditor {
+      margin: 0 8px 8px 8px;
+    }
+
+    #shaderControls {
+      margin-left: 0;
+
+      .action {
+        margin: 8px;
+      }
+    }
+
+    #uniformControls {
+      margin-left: 0;
+    }
+
+    #uniformControls > * {
+      padding: 0;
+      margin: 0 8px 8px 0;
+    }
+
+    #uniformControls uniform-mouse-sk {
+      padding: 0;
+      margin: 0;
+    }
+
+    #compileErrors {
+      h3 {
+        margin: 8px 0;
+        color: var(--error);
+      }
+
+      pre {
+        margin: 0 0 0 8px;
+      }
+    }
+  }
+
+  details {
+    margin-left: 16px;
+
+    summary {
+      display: inline-block;
+      padding: 4px;
+      background: var(--surface);
+      color: var(--on-surface);
+      border: solid 1px var(--on-surface);
+      cursor: pointer;
+      list-style: none;
+      margin: 8px 0;
+      box-shadow: inset 0 0 2px 0px var(--on-surface);
+    }
+
+    summary:focus {
+      outline: dashed 1px var(--on-surface);
+      outline-offset: 3px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  details[open] {
+    background: var(--surface);
+  }
+
+  details#shaderinputs {
+    display: initial;
+    margin: initial;
+    padding: initial;
+    list-style: initial;
+    box-shadow: initial;
+    margin: 0 0 8px 0;
+    font-size: 11px;
+
+    textarea {
+      display: block;
+      background: var(--surface);
+      color: var(--secondary);
+      font-family: monospace;
+      resize: none;
+      font-size: 11px;
+    }
+
+    #imageSources {
+      display: flex;
+      align-items: center;
+      margin: 8px;
+
+      figure {
+        margin: 0 8px 0 0;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+
+        img {
+          width: 32px;
+          height: 32px;
+        }
+
+        figcaption {
+          margin: 4px 0;
+        }
+      }
+    }
+
+    summary {
+      display: initial;
+      margin: initial;
+      padding: initial;
+      list-style: initial;
+      box-shadow: initial;
+      outline: initial;
+      outline-offset: initial;
+      border: none;
+      background: var(--surface);
+      color: var(--on-surface);
+    }
+
+    summary::-webkit-details-marker {
+      display: initial;
+    }
+  }
+
+  .CodeMirror {
+    height: auto;
+
+    * {
+      font-family: monospace;
+      font-size: 13px;
+    }
+  }
+}

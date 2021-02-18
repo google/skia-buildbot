@@ -179,7 +179,7 @@ func TestCombinations(t *testing.T) {
 func TestToCombination(t *testing.T) {
 	unittest.SmallTest(t)
 	res, err := toCombination([]int{1, 2}, []string{"config", "model"},
-		paramtools.ParamSet{
+		paramtools.ReadOnlyParamSet{
 			"model":  []string{"nexus4", "nexus6", "nexus6"},
 			"config": []string{"8888", "565", "nvpr"},
 		})
@@ -202,13 +202,13 @@ func TestGroupCombinations(t *testing.T) {
 	cfg := &Alert{
 		GroupBy: "foo, config",
 	}
-	_, err := cfg.GroupCombinations(ps)
+	_, err := cfg.GroupCombinations(paramtools.ReadOnlyParamSet(ps))
 	assert.Error(t, err, "Unknown key")
 
 	cfg = &Alert{
 		GroupBy: "arch, config",
 	}
-	actual, err := cfg.GroupCombinations(ps)
+	actual, err := cfg.GroupCombinations(paramtools.ReadOnlyParamSet(ps))
 	assert.NoError(t, err)
 	expected := []Combination{
 		{KeyValue{"arch", "ARM"}, KeyValue{"config", "565"}},
@@ -232,14 +232,14 @@ func TestQueriesFromParamset(t *testing.T) {
 	cfg := &Alert{
 		GroupBy: "foo, config",
 	}
-	_, err := cfg.GroupCombinations(ps)
+	_, err := cfg.GroupCombinations(paramtools.ReadOnlyParamSet(ps))
 	assert.Error(t, err, "Unknown key")
 
 	cfg = &Alert{
 		GroupBy: "arch, config",
 		Query:   "model=nexus6",
 	}
-	queries, err := cfg.QueriesFromParamset(ps)
+	queries, err := cfg.QueriesFromParamset(paramtools.ReadOnlyParamSet(ps))
 	assert.NoError(t, err)
 	expected := []string{
 		"arch=ARM&config=565&model=nexus6",
@@ -255,7 +255,7 @@ func TestQueriesFromParamset(t *testing.T) {
 	cfg = &Alert{
 		Query: "model=nexus6",
 	}
-	queries, err = cfg.QueriesFromParamset(ps)
+	queries, err = cfg.QueriesFromParamset(paramtools.ReadOnlyParamSet(ps))
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"model=nexus6"}, queries)
 

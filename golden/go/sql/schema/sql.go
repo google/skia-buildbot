@@ -86,6 +86,12 @@ CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
   value STRING,
   PRIMARY KEY (start_commit_id, key, value)
 );
+CREATE TABLE IF NOT EXISTS ProblemImages (
+  digest STRING PRIMARY KEY,
+  num_errors INT2 NOT NULL,
+  latest_error STRING NOT NULL,
+  error_ts TIMESTAMP WITH TIME ZONE NOT NULL
+);
 CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   branch_name STRING,
   grouping_id BYTES,
@@ -138,7 +144,8 @@ CREATE TABLE IF NOT EXISTS Traces (
   corpus STRING AS (keys->>'source_type') STORED NOT NULL,
   grouping_id BYTES NOT NULL,
   keys JSONB NOT NULL,
-  matches_any_ignore_rule BOOL
+  matches_any_ignore_rule BOOL,
+  INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)
 );
 CREATE TABLE IF NOT EXISTS Tryjobs (
   tryjob_id STRING PRIMARY KEY,

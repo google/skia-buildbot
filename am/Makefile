@@ -1,7 +1,10 @@
 default: build package-lock.json
 	npx webpack --mode=development
 
-build:
+./modules/json/index.ts:
+	go generate ./go/types/ts
+
+build: ./modules/json/index.ts
 	go install ./go/alert-manager ./go/alert-to-pubsub
 
 release: build package-lock.json

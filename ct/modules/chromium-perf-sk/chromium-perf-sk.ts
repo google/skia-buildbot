@@ -37,7 +37,7 @@ import {
 } from '../ctfe_utils';
 
 // Chromium perf doesn't support 1M and 100K pagesets.
-const unsupportedPageSetStrings = ['All', '100k'];
+const unsupportedPageSets = ['All', '100k', 'Mobile100k'];
 
 export class ChromiumPerfSk extends ElementSk {
   _platforms: [string, unknown][] = [];
@@ -87,7 +87,7 @@ export class ChromiumPerfSk extends ElementSk {
     <td>PageSets Type</td>
     <td>
       <pageset-selector-sk id=pageset_selector
-        .hideIfKeyContains=${unsupportedPageSetStrings}>
+        .hideKeys=${unsupportedPageSets}>
       </pageset-selector-sk>
     </td>
   </tr>

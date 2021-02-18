@@ -28,7 +28,7 @@ const (
 )
 
 func setupConfig(t *testing.T) (context.Context, *pubsub.Topic, config.InstanceConfig) {
-	require.NotEmpty(t, os.Getenv("FIRESTORE_EMULATOR_HOST"), "This test requires the firestore emulator.")
+	unittest.RequiresFirestoreEmulator(t)
 	unittest.RequiresPubSubEmulator(t)
 
 	ctx := context.Background()

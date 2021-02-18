@@ -7,6 +7,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/ds",
+        "//go/emulators",
+        "//go/testutils/unittest",
         "//go/util",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_api//iterator",

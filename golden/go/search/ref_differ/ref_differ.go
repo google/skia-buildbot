@@ -39,8 +39,8 @@ type DiffImpl struct {
 	idx       indexer.IndexSearcher
 }
 
-// New returns a *DiffImpl using given types.
-func New(exp expectations.Classifier, diffStore diff.DiffStore, idx indexer.IndexSearcher) *DiffImpl {
+// NewFirestoreImpl returns a *DiffImpl using a Firestore-based DiffStore.
+func NewFirestoreImpl(exp expectations.Classifier, diffStore diff.DiffStore, idx indexer.IndexSearcher) *DiffImpl {
 	return &DiffImpl{
 		exp:       exp,
 		diffStore: diffStore,
@@ -53,8 +53,8 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(iState)[d.Test]
 
 	// TODO(kjlubick) maybe make this use an errgroup
-	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.Positive)
-	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.Negative)
+	posDigests := getDigestsWithLabel(r.exp, d, match, paramsByDigest, rhsQuery, expectations.Positive)
+	negDigests := getDigestsWithLabel(r.exp, d, match, paramsByDigest, rhsQuery, expectations.Negative)
 
 	var err error
 	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 2)
@@ -105,14 +105,14 @@ func getMetric(d *diff.DiffMetrics, metric string) float32 {
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *DiffImpl) getDigestsWithLabel(s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
+func getDigestsWithLabel(exp expectations.Classifier, s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
 		// Accept all digests that are:  in the set of allowed digests
 		//                              match the target label and where the required
 		//                              parameter fields match.
 		if (len(rhsQuery) == 0 || rhsQuery.Matches(digestParams)) &&
-			(r.exp.Classification(s.Test, d) == targetLabel) &&
+			(exp.Classification(s.Test, d) == targetLabel) &&
 			paramSetsMatch(match, s.ParamSet, digestParams) {
 			ret = append(ret, d)
 		}

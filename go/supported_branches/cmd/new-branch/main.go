@@ -165,7 +165,7 @@ func main() {
 				sklog.Fatalf("Failed to set ready for review: %s", err)
 			}
 		}
-		if err := g.SetReview(ctx, ci, "", gerrit.CONFIG_CHROMIUM.SelfApproveLabels, nil); err != nil {
+		if err := g.SetReview(ctx, ci, "", gerrit.ConfigChromium.SelfApproveLabels, nil); err != nil {
 			sklog.Fatalf("Failed to set Code-Review+1: %s", err)
 		}
 		if err := g.Submit(ctx, ci); err != nil {

@@ -183,6 +183,7 @@ func (st *StoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
 				}
 				if err != nil {
 					sklog.Errorf("Failed to read document snapshot: %s", err)
+					continue
 				}
 				var storeDescription storeDescription
 				if err := snap.DataTo(&storeDescription); err != nil {
@@ -213,6 +214,7 @@ func (st *StoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
 				}
 				if err != nil {
 					sklog.Errorf("Failed to read document snapshot: %s", err)
+					continue
 				}
 				var storeDescription storeDescription
 				if err := snap.DataTo(&storeDescription); err != nil {

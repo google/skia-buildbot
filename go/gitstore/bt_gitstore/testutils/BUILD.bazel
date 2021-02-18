@@ -11,6 +11,7 @@ go_library(
         "//go/gitstore",
         "//go/gitstore/bt_gitstore",
         "//go/sktest",
+        "//go/testutils/unittest",
         "//go/timer",
         "//go/util",
         "//go/vcsinfo",

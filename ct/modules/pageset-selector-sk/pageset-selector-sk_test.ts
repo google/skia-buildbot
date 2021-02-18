@@ -49,12 +49,12 @@ describe('pageset-selector-sk', () => {
     selector = await newInstance(undefined);
     expect($('select-sk div')).to.have.length(8);
     expect($$('.pageset-list', selector)).to.have.property('hidden', false);
-    expect(selector).to.have.property('selected', '100k');
+    expect(selector).to.have.property('selected', '10k');
   });
 
   it('reflects changes to selected', async () => {
     selector = await newInstance(undefined);
-    expect(selector).to.have.property('selected', '100k');
+    expect(selector).to.have.property('selected', '10k');
     ($$('select-sk', selector) as SelectSk).selection = 3;
     expect(selector).to.have.property('selected', 'Mobile10k');
     selector.selected = 'Dummy1k';
@@ -64,13 +64,13 @@ describe('pageset-selector-sk', () => {
     expect(selector).to.have.property('selected', '');
   });
 
-  it('filters out hideIfKeyContains options', async () => {
+  it('filters out hideKeys options', async () => {
     selector = await newInstance((ele) => {
-      ele.hideIfKeyContains = ['Mobile', '100'];
+      ele.hideKeys = ['Mobile100k', '100k', 'Dummy1k', 'non-existant'];
     });
-    expect($('select-sk div', selector)).to.have.length(3);
+    expect($('select-sk div', selector)).to.have.length(5);
     // Check that options can be recovered.
-    selector.hideIfKeyContains = [];
+    selector.hideKeys = [];
     expect($('select-sk div', selector)).to.have.length(8);
   });
 

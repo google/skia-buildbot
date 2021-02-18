@@ -31,15 +31,17 @@ type Requests struct {
 	shortcutStore shortcut.Store
 	dfBuilder     dataframe.DataFrameBuilder
 	tracker       progress.Tracker
+	paramsProvier regression.ParamsetProvider
 }
 
 // New create a new dryrun Request processor.
-func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder) *Requests {
+func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider) *Requests {
 	ret := &Requests{
 		perfGit:       perfGit,
 		shortcutStore: shortcutStore,
 		dfBuilder:     dfBuilder,
 		tracker:       tracker,
+		paramsProvier: paramsProvider,
 	}
 	return ret
 }
@@ -80,7 +82,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			req.Progress.Message("Step", fmt.Sprintf("%d/%d", queryRequest.Step+1, queryRequest.TotalQueries))
-			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query))
+			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query()))
 			req.Progress.Message("Stage", "Looking for regressions in query results.")
 			req.Progress.Message("Commit", fmt.Sprintf("%d", c.CommitNumber))
 			req.Progress.Message("Details", message)
@@ -120,7 +122,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier())
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

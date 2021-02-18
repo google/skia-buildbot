@@ -23,10 +23,11 @@ import (
 )
 
 var (
-	runID        = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	chromiumHash = flag.String("chromium_hash", "", "Chromium repo will be synced to this hash if specified. Optional.")
-	patches      = flag.String("patches", "", "Comma separated names of patches to apply to the specified repo. Optional.")
-	outDir       = flag.String("out", "", "The out directory where the isolate hash will be stored.")
+	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	chromiumHash   = flag.String("chromium_hash", "", "Chromium repo will be synced to this hash if specified. Optional.")
+	patches        = flag.String("patches", "", "Comma separated names of patches to apply to the specified repo. Optional.")
+	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform we want to build for.")
+	outDir         = flag.String("out", "", "The out directory where the isolate hash will be stored.")
 )
 
 func buildRepo() error {
@@ -74,7 +75,7 @@ func buildRepo() error {
 	if err != nil {
 		return fmt.Errorf("Could not get path to py files: %s", err)
 	}
-	if err = util.CreateTelemetryIsolates(ctx, *runID, *chromiumHash, pathToPyFiles, gitExec, applyPatches); err != nil {
+	if err = util.CreateTelemetryIsolates(ctx, *runID, *targetPlatform, *chromiumHash, pathToPyFiles, gitExec, applyPatches); err != nil {
 		return fmt.Errorf("Could not create telemetry isolates: %s", err)
 	}
 

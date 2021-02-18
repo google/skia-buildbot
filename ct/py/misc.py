@@ -29,11 +29,11 @@ class ChDir(object):
     """
     self._origin = os.getcwd()
     if self._verbose:
-      print('chdir %s' % self._destination)
+      print 'chdir %s' % self._destination
     os.chdir(self._destination)
 
   def __exit__(self, *args):
     """Change back to the original directory."""
     if self._verbose:
-      print('chdir %s' % self._origin)
+      print 'chdir %s' % self._origin
     os.chdir(self._origin)

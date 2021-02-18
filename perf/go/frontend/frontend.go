@@ -194,6 +194,7 @@ type SkPerfConfig struct {
 	StepUpOnly     bool     `json:"step_up_only"`     // If true then only regressions that are a step up are displayed.
 	CommitRangeURL string   `json:"commit_range_url"` // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
 	Demo           bool     `json:"demo"`             // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
+	DisplayGroupBy bool     `json:"display_group_by"` // True if the Group By section of Alert config should be displayed.
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
@@ -207,6 +208,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			Interesting:    float32(f.flags.Interesting),
 			StepUpOnly:     f.flags.StepUpOnly,
 			CommitRangeURL: f.flags.CommitRangeURL,
+			DisplayGroupBy: f.flags.DisplayGroupBy,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
@@ -387,7 +389,7 @@ func (f *Frontend) initialize() {
 	f.configProvider = f.newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder)
+	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)
 
 	if f.flags.DoClustering {
 		go func() {
@@ -689,7 +691,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	f.progressTracker.Add(req.Progress)
 
 	go func() {
-		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder)
+		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.Get())
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {
@@ -1496,5 +1498,12 @@ func (f *Frontend) Serve() {
 	http.Handle("/", h)
 
 	sklog.Info("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(f.flags.Port, nil))
+
+	// We create our own server here instead of using http.ListenAndServe, so
+	// that we don't expose the /debug/pprof endpoints to the open web.
+	server := &http.Server{
+		Addr:    f.flags.Port,
+		Handler: h,
+	}
+	sklog.Fatal(server.ListenAndServe())
 }

@@ -9,7 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
+	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/metrics2"
@@ -28,7 +31,7 @@ import (
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
-	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
@@ -77,10 +80,11 @@ type SearchImpl struct {
 
 	clIndexCacheHitCounter  metrics2.Counter
 	clIndexCacheMissCounter metrics2.Counter
+	sqlDB                   *pgxpool.Pool
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int, sqlDB *pgxpool.Pool) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -99,6 +103,7 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
 		flakyTraceThreshold:    flakyThreshold,
+		sqlDB:                  sqlDB,
 
 		storeCache:         ttlcache.New(searchCacheFreshness, searchCacheCleanup),
 		triageHistoryCache: &triageHistoryCache,
@@ -110,7 +115,8 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 
 // Search implements the SearchAPI interface.
 func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.SearchResponse, error) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "search.Search")
+	defer span.End()
 	if q == nil {
 		return nil, skerr.Fmt("nil query")
 	}
@@ -230,7 +236,8 @@ func collectDigestsForBulkTriage(results []*frontend.SearchResult) web_frontend.
 
 // GetDigestDetails implements the SearchAPI interface.
 func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest, clID, crs string) (*frontend.DigestDetails, error) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "search.GetDigestDetails")
+	defer span.End()
 	idx := s.indexSource.GetIndex()
 
 	// Make sure we have valid data, i.e. we know about that test/digest
@@ -310,6 +317,8 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 // querying Changelist results. If query is nil the expectations of the master
 // tile are returned.
 func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (expectations.Classifier, error) {
+	ctx, span := trace.StartSpan(ctx, "search.getExpectations")
+	defer span.End()
 	exp, err := s.expectationsStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "loading expectations for master")
@@ -394,8 +403,8 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given Changelist.
 func (s *SearchImpl) queryChangelist(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
-	defer metrics2.FuncTimer().Stop()
-
+	ctx, span := trace.StartSpan(ctx, "search.queryChangelist")
+	defer span.End()
 	// Build the intermediate map to group results belonging to the same test and digest.
 	resultsByGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
 	talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
@@ -609,16 +618,13 @@ func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPS
 
 // DiffDigests implements the SearchAPI interface.
 func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left, right types.Digest, clID string, crs string) (*frontend.DigestComparison, error) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "search.DiffDigests")
+	defer span.End()
+
 	// Get the diff between the two digests
-	diffResult, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
+	diffMetric, err := s.getDiffMetric(ctx, left, right)
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-
-	// Return an error if we could not find the diff.
-	if len(diffResult) != 1 {
-		return nil, skerr.Fmt("could not find diff between %s and %s", left, right)
 	}
 
 	exp, err := s.getExpectations(ctx, clID, crs)
@@ -635,8 +641,6 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	psRight.Normalize()
 
 	history := s.makeTriageHistoryGetter(crs, clID)
-
-	d := diffResult[right]
 	return &frontend.DigestComparison{
 		Left: frontend.SearchResult{
 			Test:          test,
@@ -649,18 +653,66 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 			Digest:           right,
 			Status:           exp.Classification(test, right),
 			ParamSet:         psRight,
-			NumDiffPixels:    d.NumDiffPixels,
-			CombinedMetric:   d.CombinedMetric,
-			PixelDiffPercent: d.PixelDiffPercent,
-			MaxRGBADiffs:     d.MaxRGBADiffs,
-			DimDiffer:        d.DimDiffer,
+			NumDiffPixels:    diffMetric.NumDiffPixels,
+			CombinedMetric:   diffMetric.CombinedMetric,
+			PixelDiffPercent: diffMetric.PixelDiffPercent,
+			MaxRGBADiffs:     diffMetric.MaxRGBADiffs,
+			DimDiffer:        diffMetric.DimDiffer,
 		},
 	}, nil
+}
+
+// getDiffMetric returns the associated diff metric with the given two digests or an error if
+// it cannot be found. It will use either the Firestore backend or the SQL backend, depending on
+// if UseSQLDiffMetricsKey has a value in the provided context.
+func (s *SearchImpl) getDiffMetric(ctx context.Context, left, right types.Digest) (diff.DiffMetrics, error) {
+	if useSQLDiffMetrics(ctx) {
+		ctx, span := trace.StartSpan(ctx, "search.getSQLDiffMetric")
+		defer span.End()
+		const statement = `
+SELECT num_pixels_diff, percent_pixels_diff, max_rgba_diffs, combined_metric, dimensions_differ
+FROM DiffMetrics WHERE left_digest = $1 AND right_digest = $2`
+		lBytes, err := sql.DigestToBytes(left)
+		if err != nil {
+			return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", left)
+		}
+		rBytes, err := sql.DigestToBytes(right)
+		if err != nil {
+			return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", right)
+		}
+		var m diff.DiffMetrics
+		row := s.sqlDB.QueryRow(ctx, statement, lBytes, rBytes)
+		err = row.Scan(&m.NumDiffPixels, &m.PixelDiffPercent, &m.MaxRGBADiffs,
+			&m.CombinedMetric, &m.DimDiffer)
+		if err == pgx.ErrNoRows {
+			return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
+		} else if err != nil {
+			return diff.DiffMetrics{}, skerr.Wrap(err)
+		}
+		return m, nil
+	}
+	ctx, span := trace.StartSpan(ctx, "search.getFirestoreDiffMetric")
+	defer span.End()
+	res, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
+	if err != nil {
+		return diff.DiffMetrics{}, skerr.Wrap(err)
+	}
+	if len(res) != 1 {
+		return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
+	}
+	return *res[right], nil
+}
+
+// useSQLDiffMetrics returns true if there is a non-nil value associated with UseSQLDiffMetricsKey.
+func useSQLDiffMetrics(ctx context.Context) bool {
+	return ctx.Value(UseSQLDiffMetricsKey) != nil
 }
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
+	ctx, span := trace.StartSpan(ctx, "search.filterTile")
+	defer span.End()
 	var acceptFn iterTileAcceptFn
 	if q.GroupTestFilter == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
@@ -735,8 +787,15 @@ func addExpectations(results []*frontend.SearchResult, exp expectations.Classifi
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
 func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp expectations.Classifier, idx indexer.IndexSearcher) error {
-	defer shared.NewMetricsTimer("getReferenceDiffs").Stop()
-	refDiffer := ref_differ.New(exp, s.diffStore, idx)
+	ctx, span := trace.StartSpan(ctx, "search.getReferenceDiffs")
+	defer span.End()
+	var refDiffer ref_differ.RefDiffer
+	if useSQLDiffMetrics(ctx) {
+		refDiffer = ref_differ.NewSQLImpl(s.sqlDB, exp, idx)
+	} else {
+		refDiffer = ref_differ.NewFirestoreImpl(exp, s.diffStore, idx)
+	}
+
 	errGroup, gCtx := errgroup.WithContext(ctx)
 	sklog.Infof("Going to spawn %d goroutines to get reference diffs", len(resultDigests))
 	for _, retDigest := range resultDigests {
@@ -760,6 +819,8 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
 func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*frontend.SearchResult, q *query.Search) []*frontend.SearchResult {
+	ctx, span := trace.StartSpan(ctx, "search.afterDiffResultFilter")
+	defer span.End()
 	newDigestInfo := make([]*frontend.SearchResult, 0, len(digestInfo))
 	filterRGBADiff := (q.RGBAMinFilter > 0) || (q.RGBAMaxFilter < 255)
 	filterDiffMax := q.DiffMaxFilter >= 0
@@ -799,6 +860,8 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 // the slice that should be shown on the page with its offset in the entire
 // result set.
 func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*frontend.SearchResult, offset, limit int) ([]*frontend.SearchResult, int) {
+	ctx, span := trace.StartSpan(ctx, "search.sortAndLimitDigests")
+	defer span.End()
 	fullLength := len(digestInfo)
 	if offset >= fullLength {
 		return []*frontend.SearchResult{}, 0
@@ -820,6 +883,8 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 
 // getTraceComments returns the complete list of TraceComments, ready for display on the frontend.
 func (s *SearchImpl) getTraceComments(ctx context.Context) []frontend.TraceComment {
+	ctx, span := trace.StartSpan(ctx, "search.getTraceComments")
+	defer span.End()
 	var traceComments []frontend.TraceComment
 	// TODO(kjlubick) remove this check once the commentStore is implemented and included from main.
 	if s.commentStore != nil {
@@ -1046,7 +1111,8 @@ func computeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest)
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
 // TryJobResults, so as to improve performance.
 func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error) {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "search.UntriagedUnignoredTryJobExclusiveDigests")
+	defer span.End()
 
 	var resultsForThisPS []tjstore.TryJobResult
 	listTS := time.Now()
@@ -1155,7 +1221,8 @@ func (s *SearchImpl) getTriageHistory(ctx context.Context, history triageHistory
 // addTriageHistory fills in the TriageHistory field of the passed in SRDigests. It does so in
 // parallel to reduce latency of the response.
 func (s *SearchImpl) addTriageHistory(ctx context.Context, history triageHistoryGetter, digestResults []*frontend.SearchResult) {
-	defer shared.NewMetricsTimer("addTriageHistory").Stop()
+	ctx, span := trace.StartSpan(ctx, "search.addTriageHistory")
+	defer span.End()
 	wg := sync.WaitGroup{}
 	wg.Add(len(digestResults))
 	for i, dr := range digestResults {

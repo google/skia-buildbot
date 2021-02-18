@@ -12,13 +12,13 @@ copy_release_files()
 INSTALL="install -D --verbose --backup=none"
 
 if [ ! -f ./thanos-0.10.0-rc.0.linux-amd64/thanos ]; then
-    wget https://github.com/thanos-io/thanos/releases/download/v0.12.2/thanos-0.12.2.linux-amd64.tar.gz
-    tar -xf thanos-0.12.2.linux-amd64.tar.gz
+    wget https://github.com/thanos-io/thanos/releases/download/v0.18.0/thanos-0.18.0.linux-amd64.tar.gz
+    tar -xf thanos-0.18.0.linux-amd64.tar.gz
 fi
 
 # Add the dockerfile and binary.
 ${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile   ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ./thanos-0.12.2.linux-amd64/thanos ${ROOT}/usr/local/bin/thanos
+${INSTALL} --mode=755 -T ./thanos-0.18.0.linux-amd64/thanos ${ROOT}/usr/local/bin/thanos
 }
 
 source ../bash/docker_build.sh

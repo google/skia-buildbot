@@ -186,7 +186,7 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 // The authAllowList is the space separated list of domains and email addresses
 // that are allowed to log in.
 func Init(redirectURL string, authAllowList string, clientSecretFile string) error {
-	cookieSalt, clientID, clientSecret := tryLoadingFromKnownLocations()
+	cookieSalt, clientID, clientSecret := TryLoadingFromKnownLocations()
 	if clientID == "" {
 		if clientSecretFile == "" {
 			clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
@@ -620,6 +620,18 @@ func normalizeGmailAddress(user string) string {
 	return user
 }
 
+// LoginStatus is the status returned by the StatusHandler endpoint, serialized
+// as JSON.
+type LoginStatus struct {
+	Email      string `json:"Email"`
+	ID         string `json:"ID"`
+	LoginURL   string `json:"LoginURL"`
+	IsAGoogler bool   `json:"IsAGoogler"`
+	IsAdmin    bool   `json:"IsAdmin"`
+	IsEditor   bool   `json:"IsEditor"`
+	IsViewer   bool   `json:"IsViewer"`
+}
+
 // StatusHandler returns the login status of the user as JSON that looks like:
 //
 // {
@@ -637,15 +649,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	email, id := UserIdentifiers(r)
-	body := struct {
-		Email      string
-		ID         string
-		LoginURL   string
-		IsAGoogler bool
-		IsAdmin    bool
-		IsEditor   bool
-		IsViewer   bool
-	}{
+	body := LoginStatus{
 		Email:      email,
 		ID:         id,
 		LoginURL:   LoginURL(w, r),
@@ -822,12 +826,12 @@ type loginInfo struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-// tryLoadingFromKnownLocations tries to load the cookie salt, client id, and
+// TryLoadingFromKnownLocations tries to load the cookie salt, client id, and
 // client secret from a file in a known location. If it fails then it returns
 // the salt it was passed and the client id and secret are the empty string.
 //
 // Returns salt, clientID, clientSecret.
-func tryLoadingFromKnownLocations() (string, string, string) {
+func TryLoadingFromKnownLocations() (string, string, string) {
 	cookieSalt := ""
 	clientID := ""
 	clientSecret := ""

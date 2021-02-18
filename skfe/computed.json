@@ -1445,6 +1445,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "shaders",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "shaders",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "shaders",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf",
           "endpoints": [
             {
@@ -1575,6 +1601,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "skiaperf-flutter-engine2",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skiaperf-flutter-engine2",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skiaperf-flutter-engine2",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "skiaperf-flutter-flutter",
           "endpoints": [
             {
@@ -1594,6 +1646,32 @@
           ]
         },
         "name": "skiaperf-flutter-flutter",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "skiaperf-flutter-flutter2",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skiaperf-flutter-flutter2",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skiaperf-flutter-flutter2",
         "type": "STRICT_DNS"
       },
       {
@@ -1646,6 +1724,32 @@
           ]
         },
         "name": "skottie-internal",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "skottie-tenor",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skottie-tenor",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skottie-tenor",
         "type": "STRICT_DNS"
       },
       {
@@ -3751,6 +3855,23 @@
                       ]
                     },
                     {
+                      "domains": "shaders.skia.org",
+                      "name": "shaders.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "shaders",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "perf.skia.org",
                       "name": "perf.skia.org",
                       "routes": [
@@ -3819,6 +3940,23 @@
                       ]
                     },
                     {
+                      "domains": "flutter-engine-perf-old.skia.org",
+                      "name": "flutter-engine-perf-old.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skiaperf-flutter",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "flutter-engine-perf.skia.org",
                       "name": "flutter-engine-perf.skia.org",
                       "routes": [
@@ -3827,7 +3965,24 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "skiaperf-flutter",
+                            "cluster": "skiaperf-flutter-engine2",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "flutter-flutter-perf-old.skia.org",
+                      "name": "flutter-flutter-perf-old.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skiaperf-flutter-flutter",
                             "timeout": {
                               "seconds": 600
                             }
@@ -3844,7 +3999,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "skiaperf-flutter-flutter",
+                            "cluster": "skiaperf-flutter-flutter2",
                             "timeout": {
                               "seconds": 600
                             }
@@ -3879,6 +4034,23 @@
                           },
                           "route": {
                             "cluster": "skottie-internal",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "skottie-tenor.skia.org",
+                      "name": "skottie-tenor.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skottie-tenor",
                             "timeout": {
                               "seconds": 600
                             }

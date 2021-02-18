@@ -3,11 +3,12 @@ package unittest
 import (
 	"flag"
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/bazel/go/bazel"
+	"go.skia.org/infra/go/emulators"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -116,13 +117,13 @@ func ManualTest(t sktest.TestingT) {
 		var ok bool
 		_, file, _, ok = runtime.Caller(skip)
 		if !ok {
-			t.Fatal(fmt.Sprintf("runtime.Caller(%d) failed", skip))
+			t.Fatalf("runtime.Caller(%d) failed", skip)
 		}
 	}
 
 	// Force the naming convention expected by our custom go_test Bazel macro.
 	if !strings.HasSuffix(file, "_manual_test.go") {
-		t.Fatal(fmt.Sprintf(`Manual tests must be placed in files ending with "_manual_test.go", was: "%s"`, file))
+		t.Fatalf(`Manual tests must be placed in files ending with "_manual_test.go", was: "%s"`, file)
 	}
 
 	if !ShouldRun(MANUAL_TEST) {
@@ -138,61 +139,11 @@ func FakeExeTest(t sktest.TestingT) {
 	}
 }
 
-// BazelTest is a function which should be called at the beginning of tests
+// BazelOnlyTest is a function which should be called at the beginning of tests
 // which should only run under Bazel (e.g. via "bazel test ...").
-func BazelTest(t sktest.TestingT) {
+func BazelOnlyTest(t sktest.TestingT) {
 	if !bazel.InBazel() {
 		t.Skip("Not running Bazel tests from outside Bazel.")
-	}
-}
-
-// RequiresBigTableEmulator is a function that documents a unittest requires the
-// BigTable Emulator and checks that the appropriate environment variable is set.
-func RequiresBigTableEmulator(t sktest.TestingT) {
-	s := os.Getenv("BIGTABLE_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the Bigtable emulator, which you can start with
-./scripts/run_emulators/run_emulators start
-and then set the environment variables it prints out.
-If you need to set up the Bigtable emulator, follow the instructions at:
-	https://cloud.google.com/bigtable/docs/emulator#using_the_emulator
-and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
-`)
-	}
-}
-
-// RequiresPubSubEmulator is a function that documents a unittest requires the
-// PubSub Emulator and checks that the appropriate environment variable is set.
-func RequiresPubSubEmulator(t sktest.TestingT) {
-	s := os.Getenv("PUBSUB_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires the PubSub emulator, which you can start with
-
-    docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
-		--project test-project --host-port 0.0.0.0:8010
-
-and then set the environment:
-
-    export PUBSUB_EMULATOR_HOST=localhost:8010
-
-`)
-	}
-}
-
-// RequiresCockroachDB is a function that documents a unittest requires a local running version
-// of the CockroachDB executable. It must be configured with the appropriate environment variable.
-// For historical reasons, the environment variable uses "EMULATOR" in the name, despite it being
-// an actual instance.
-func RequiresCockroachDB(t sktest.TestingT) {
-	s := os.Getenv("COCKROACHDB_EMULATOR_HOST")
-	if s == "" {
-		t.Fatal(`This test requires a local CockroachDB executable, which you can start with
-./scripts/run_emulators/run_emulators start
-and then set the environment variables it prints out.
-If you need to install CockroachDB, follow the instructions at:
-	https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html
-and make sure the environment variable COCKROACHDB_EMULATOR_HOST is set.
-`)
 	}
 }
 
@@ -202,4 +153,175 @@ func LinuxOnlyTest(t sktest.TestingT) {
 	if runtime.GOOS != "linux" {
 		t.Skip("Not running Linux-only tests.")
 	}
+}
+
+// RequiresBigTableEmulator should be called by any test case that requires the BigTable emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
+func RequiresBigTableEmulator(t sktest.TestingT) {
+	requiresEmulator(t, emulators.BigTable, useTestSuiteSharedEmulatorInstanceUnderRBE)
+}
+
+// RequiresCockroachDB should be called by any test case that requires the CockroachDB emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
+//
+// Note: The CockroachDB emulator is just a test-only, real CockroachDB instance. We refer to it as
+// an emulator for consistency with the Google Cloud emulators.
+func RequiresCockroachDB(t sktest.TestingT) {
+	requiresEmulator(t, emulators.CockroachDB, useTestSuiteSharedEmulatorInstanceUnderRBE)
+}
+
+// RequiresDatastoreEmulator should be called by any test case that requires the Datastore emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
+func RequiresDatastoreEmulator(t sktest.TestingT) {
+	requiresEmulator(t, emulators.Datastore, useTestSuiteSharedEmulatorInstanceUnderRBE)
+}
+
+// RequiresFirestoreEmulator should be called by any test case that requires the Firestore emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
+func RequiresFirestoreEmulator(t sktest.TestingT) {
+	requiresEmulator(t, emulators.Firestore, useTestSuiteSharedEmulatorInstanceUnderRBE)
+}
+
+// RequiresFirestoreEmulatorWithTestCaseSpecificInstanceUnderRBE is equivalent to
+// RequiresFirestoreEmulator, except that under Bazel and RBE, it will always launch a new emulator
+// instance that will only be visible to the current test case. After the test case finishes, the
+// emulator instance will *not* be reused by any subsequent test cases, and will eventually be
+// killed after the test suite finishes running.
+//
+// It is safe for some test cases in a test suite to call RequiresFirestoreEmulator, and for some
+// others to call RequiresFirestoreEmulatorWithTestCaseSpecificInstanceUnderRBE.
+//
+// This should only be used in the presence of hard-to-diagnose bugs that only occur under RBE.
+func RequiresFirestoreEmulatorWithTestCaseSpecificInstanceUnderRBE(t sktest.TestingT) {
+	requiresEmulator(t, emulators.Firestore, useTestCaseSpecificEmulatorInstanceUnderRBE)
+}
+
+// RequiresPubSubEmulator should be called by any test case that requires the PubSub emulator.
+//
+// When running locally, the test case will fail if the corresponding environment variable is unset.
+// When running under RBE, the first invocation of this function will start the emulator and set the
+// appropriate environment variable, and any subsequent calls will reuse the emulator instance.
+func RequiresPubSubEmulator(t sktest.TestingT) {
+	requiresEmulator(t, emulators.PubSub, useTestSuiteSharedEmulatorInstanceUnderRBE)
+}
+
+// emulatorScopeUnderRBE indicates whether the test case requesting an emulator can reuse an
+// emulator instance started by an earlier test case, or whether it requires a test case-specific
+// instance not visible to any other test cases.
+//
+// Note that this is ignored outside of Bazel and RBE, in which case, tests will always use the
+// emulator instance pointed to by the corresponding *_EMULATOR_HOST environment variable.
+type emulatorScopeUnderRBE string
+
+const (
+	useTestSuiteSharedEmulatorInstanceUnderRBE  = emulatorScopeUnderRBE("useTestSuiteSharedEmulatorInstanceUnderRBE")
+	useTestCaseSpecificEmulatorInstanceUnderRBE = emulatorScopeUnderRBE("useTestCaseSpecificEmulatorInstanceUnderRBE")
+)
+
+// requiresEmulator fails the test when running outside of RBE if the corresponding *_EMULATOR_HOST
+// environment variable wasn't set, or starts a new emulator instance under RBE if necessary.
+func requiresEmulator(t sktest.TestingT, emulator emulators.Emulator, scope emulatorScopeUnderRBE) {
+	if bazel.InRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulator, scope)
+		return
+	}
+
+	// When running locally, the developer is responsible for running any necessary emulators.
+	host := emulators.GetEmulatorHostEnvVar(emulator)
+	if host == "" {
+		t.Fatalf(`This test requires the %s emulator, which you can start with
+
+    $ ./scripts/run_emulators/run_emulators start
+
+and then set the environment variables it prints out.`, emulator)
+	}
+}
+
+// testCaseSpecificEmulatorInstancesBazelRBEOnly keeps track of the test case-specific emulator
+// instances started by the current test case. We allow at most one test case-specific instance of
+// each emulator.
+var testCaseSpecificEmulatorInstancesBazelRBEOnly = map[emulators.Emulator]bool{}
+
+// setUpEmulatorBazelRBEOnly starts an instance of the given emulator, or reuses an existing
+// instance if one was started by an earlier test case.
+//
+// If a test case-specific instance is requested, it will always start a new emulator instance,
+// regardless of whether one was started by an earlier test case. The test case-specific instance
+// will only be visible to the current test case (i.e. it will not be visible to any subsequent test
+// cases).
+//
+// Test case-specific instances should only be used in the presence of hard-to-diagnose bugs that
+// only occur under RBE.
+func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator emulators.Emulator, scope emulatorScopeUnderRBE) {
+	if !bazel.InRBE() {
+		panic("This function must only be called when running under Bazel and RBE.")
+	}
+
+	var wasEmulatorStarted bool
+
+	switch scope {
+	case useTestCaseSpecificEmulatorInstanceUnderRBE:
+		// If the current test case requests a test case-specific instance of the same emulator more
+		// than once, it's almost surely a bug, so we fail loudly.
+		if testCaseSpecificEmulatorInstancesBazelRBEOnly[emulator] {
+			t.Fatalf("A test-case specific instance of the %s emulator was already started.", emulator)
+		}
+
+		if err := emulators.StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly(emulator); err != nil {
+			t.Fatalf("Error starting a test case-specific instance of the %s emulator: %v", emulator, err)
+		}
+		wasEmulatorStarted = true
+		testCaseSpecificEmulatorInstancesBazelRBEOnly[emulator] = true
+	case useTestSuiteSharedEmulatorInstanceUnderRBE:
+		// Start an emulator instance shared among all test cases. If the emulator was already started
+		// by an earlier test case, then we'll reuse the emulator instance that's already running.
+		var err error
+		wasEmulatorStarted, err = emulators.StartEmulatorIfNotRunning(emulator)
+		if err != nil {
+			t.Fatalf("Error starting emulator: %v", err)
+		}
+
+		// Setting the corresponding *_EMULATOR_HOST environment variable is what effectively makes the
+		// emulator visible to the test case.
+		if err := emulators.SetEmulatorHostEnvVar(emulator); err != nil {
+			t.Fatalf("Error setting emulator host environment variables: %v", err)
+		}
+	default:
+		panic(fmt.Sprintf("Unknown emulatorScopeUnderRBE value: %s", scope))
+	}
+
+	// If the above code actually started the emulator, give the emulator time to boot.
+	//
+	// Empirically chosen: A delay of 3 seconds seems OK for all emulators; shorter delays tend to
+	// cause flakes.
+	if wasEmulatorStarted {
+		time.Sleep(3 * time.Second)
+	}
+
+	t.Cleanup(func() {
+		// By unsetting any *_EMULATOR_HOST environment variables set by the current test case, we
+		// ensure that any subsequent test cases only "see" the emulators they request via any of the
+		// unittest.Requires*Emulator functions. This makes dependencies on emulators explicit at the
+		// test case level, and makes individual test cases more self-documenting.
+		if err := emulators.UnsetAllEmulatorHostEnvVars(); err != nil {
+			t.Fatalf("Error while unsetting the emulator host environment variables: %v", err)
+		}
+
+		// Allow subsequent test cases to start their own test case-specific instances of the emulator.
+		if scope == useTestCaseSpecificEmulatorInstanceUnderRBE {
+			testCaseSpecificEmulatorInstancesBazelRBEOnly[emulator] = false
+		}
+	})
 }

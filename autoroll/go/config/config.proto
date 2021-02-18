@@ -2,8 +2,6 @@ syntax = "proto3";
 package autoroll.config;
 option go_package = "go.skia.org/infra/autoroll/go/config";
 
-import "google/protobuf/duration.proto";
-
 // Config provides configuration for one AutoRoller.
 message Config {
     // roller_name is the name for this roller. It is used as the unique ID for
@@ -39,7 +37,7 @@ message Config {
     repeated string reviewer_backup = 11;
     // roll_cooldown is a period of time after a successful roll attempt during
     // which no new roll attempts will be created. Optional.
-    google.protobuf.Duration roll_cooldown = 12;
+    string roll_cooldown = 12;
     // time_window in which the roller is allowed to upload roll CLs. See the
     // go/time_window package for supported format.
     string time_window = 13;
@@ -144,6 +142,7 @@ message GerritConfig {
         CHROMIUM = 2;
         CHROMIUM_NO_CQ = 3;
         LIBASSISTANT = 4;
+        CHROMIUM_BOT_COMMIT = 5;
     }
     // config indicates the mode of operation used by the Gerrit host, which
     // informs the roller of, for example, which labels to set. See the
@@ -241,6 +240,9 @@ message AndroidRepoManagerConfig {
     // metadata about the child project which should be updated in a file
     // checked into the parent repo.
     ProjectMetadataFileConfig metadata = 9;
+    // include_authors_as_reviewers determines whether the authors of rolled
+    // changes should be included as change reviewers.
+    bool include_authors_as_reviewers = 10;
 }
 
 // CommandRepoManagerConfig provides configuration for a roller which runs
@@ -253,8 +255,9 @@ message CommandRepoManagerConfig {
         repeated string command = 1;
         // dir is the relative path within the Git checkout to run the command.
         string dir = 2;
-        // env are environment variables to supply to the command.
-        map<string, string> env = 3;
+        // env are environment variables to supply to the command, in KEY=VALUE
+        // format.
+        repeated string env = 3;
     }
 
     // git_checkout configures the Git checkout of the parent repo.
@@ -497,6 +500,7 @@ enum PreUploadStep {
     SKIA_GN_TO_BP = 7;
     TRAIN_INFRA = 8;
     UPDATE_FLUTTER_DEPS_FOR_DART = 9;
+    VULKAN_DEPS_UPDATE_COMMIT_MESSAGE = 10;
 }
 
 
@@ -584,7 +588,7 @@ message ThrottleConfig {
     int32 attempt_count = 1;
     // time_window during which, if the number of failed attempts exceeds the
     // specified attempt_count, throttling is enabled.
-    google.protobuf.Duration time_window = 2;
+    string time_window = 2;
 }
 
 // TransitiveDepConfig provides configuration for a dependency referenced by

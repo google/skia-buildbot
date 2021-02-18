@@ -59,9 +59,6 @@ type ingestionServerConfig struct {
 	// PubsubEventTopic the event topic used for ingestion
 	PubsubEventTopic string `json:"pubsub_event_topic" optional:"true"`
 
-	// Project ID that houses the pubsub topics (e.g. for ingestion).
-	PubsubProjectID string `json:"pubsub_project_id"`
-
 	// TODO(kjlubick) Restore this functionality. Without it, we cannot ingest from internal jobs.
 	// URL of the secondary repo that has GitRepoURL as a dependency.
 	SecondaryRepoURL string `json:"secondary_repo_url" optional:"true"`

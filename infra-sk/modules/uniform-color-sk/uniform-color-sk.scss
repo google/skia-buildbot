@@ -1,0 +1,18 @@
+uniform-color-sk {
+  display: block;
+  margin: 0;
+  padding: 0;
+
+  label {
+    display: flex;
+    align-items: center;
+  }
+
+  label.hidden {
+    display: none;
+  }
+
+  input {
+    margin-right: 8px;
+  }
+}

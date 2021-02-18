@@ -50,7 +50,7 @@ class CsvMerger(object):
   def _GetFieldNames(self):
     field_names = set()
     for csv_file in self._input_csv_files:
-      with open(csv_file, 'r') as f:
+      with open(csv_file, 'rb') as f:
         dict_reader = csv.DictReader(f)
         for row in dict_reader:
           field_name = self._GetFieldNameFromRow(row)
@@ -88,8 +88,12 @@ class CsvMerger(object):
       fieldname = self._GetFieldNameFromRow(row)
       fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
 
-      traceURL = row.get(TELEMETRY_TRACE_URLS_KEY)
+      # For some reason traceURLs have carriage returns on Windows. We need to
+      # check for them and strip them out. See skbug.com/10590 for context.
+      traceURL = (row.get(TELEMETRY_TRACE_URLS_KEY) or
+                  row.get(TELEMETRY_TRACE_URLS_KEY + '\r'))
       if traceURL:
+        traceURL = traceURL.rstrip('\r')
         if TELEMETRY_TRACE_URLS_KEY in fieldname_to_values:
           fieldname_to_values[TELEMETRY_TRACE_URLS_KEY].append(traceURL)
         else:
@@ -123,16 +127,16 @@ class CsvMerger(object):
         avg_row[fieldname] = ','.join(values)
 
     print
-    print('For rows: %s' % rows)
-    print('Avg row is %s' % avg_row)
+    print 'For rows: %s' % rows
+    print 'Avg row is %s' % avg_row
     print
     return avg_row
 
   def Merge(self):
     """Method that does the CSV merging."""
     field_names = self._GetFieldNames()
-    print('Merging %d csv files into %d columns' % (len(self._input_csv_files),
-                                                    len(field_names)))
+    print 'Merging %d csv files into %d columns' % (len(self._input_csv_files),
+                                                    len(field_names))
 
     # List that will contain all rows read from the CSV files. It will also
     # combine all rows found with the same TELEMETRY_PAGE_NAME_KEY into one
@@ -145,7 +149,7 @@ class CsvMerger(object):
     page_names_to_rows = {}
 
     for csv_file in self._input_csv_files:
-      with open(csv_file, 'r') as f:
+      with open(csv_file, 'rb') as f:
         dict_reader = csv.DictReader(f)
         for row in dict_reader:
           # Ensure that the row contains page name and that is not empty.
@@ -164,7 +168,7 @@ class CsvMerger(object):
         csv_rows.append(avg_row)
 
     # Write all rows in csv_rows to the specified output CSV.
-    with open(self._output_csv_name, 'w') as f:
+    with open(self._output_csv_name, 'wb') as f:
       dict_writer = csv.DictWriter(f, field_names)
       dict_writer.writeheader()
       total_rows = 0
@@ -172,7 +176,7 @@ class CsvMerger(object):
         dict_writer.writerow(row)
         total_rows += 1
 
-    print('Successfully merged %d rows' % total_rows)
+    print 'Successfully merged %d rows' % total_rows
 
 
 if '__main__' == __name__:

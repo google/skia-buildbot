@@ -183,7 +183,7 @@ define('skottie-player-sk', class extends HTMLElement {
       ck.setDecodeCacheLimitBytes(CACHE_SIZE);
 
       this._engine.kit = ck;
-      this._initializeSkottie(config.lottie, config.assets);
+      this._initializeSkottie(config.lottie, config.assets, config.soundMap);
       this._render();
     });
   }
@@ -223,7 +223,7 @@ define('skottie-player-sk', class extends HTMLElement {
     }
   }
 
-  _initializeSkottie(lottieJSON, assets) {
+  _initializeSkottie(lottieJSON, assets, soundMap) {
     this._state.loading = false;
 
     // Rebuild the surface only if needed.
@@ -252,7 +252,7 @@ define('skottie-player-sk', class extends HTMLElement {
     }
 
     this._engine.animation = this._engine.kit.MakeManagedAnimation(
-      JSON.stringify(lottieJSON), assets,
+      JSON.stringify(lottieJSON), assets, null, soundMap
     );
     if (!this._engine.animation) {
       throw new Error('Could not parse Lottie JSON.');

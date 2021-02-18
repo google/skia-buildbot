@@ -32,6 +32,7 @@ go_library(
         "//golden/go/types",
         "//golden/go/warmer",
         "@com_github_patrickmn_go_cache//:go-cache",
+        "@io_opencensus_go//trace",
     ],
 )
 
@@ -50,6 +51,7 @@ go_test(
         "//golden/go/clstore",
         "//golden/go/clstore/mocks",
         "//golden/go/code_review",
+        "//golden/go/diff/mocks",
         "//golden/go/diffstore/mocks",
         "//golden/go/digest_counter",
         "//golden/go/expectations",
