@@ -184,7 +184,11 @@ container_run_and_commit(
     ],
     image = "@rbe_ubuntu1604//image",
     tags = [
+<<<<<<< HEAD
         "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+=======
+        "manual",
+>>>>>>> 6afbfc93d (Add Infra-PerCommit-BazelBuild tryjob.)
         "no-remote",
     ],
 )
@@ -201,8 +205,13 @@ container_push(
     repository = "skia-public/rbe-container-skia-infra",
     tag = "{STABLE_DOCKER_TAG}",
     tags = [
+<<<<<<< HEAD
         "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
         "no-remote",  # We cannot build :rbe_container_skia_infra on RBE.
+=======
+        "manual",
+        "no-remote",
+>>>>>>> 6afbfc93d (Add Infra-PerCommit-BazelBuild tryjob.)
     ],
 )
 
