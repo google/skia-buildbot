@@ -166,8 +166,8 @@ export const task4: Task = {
 
 // job1 represents real task data.
 export const job1: Job = {
-  buildbucketBuildId: 8921090193851453000,
-  buildbucketLeaseKey: 0,
+  buildbucketBuildId: "8855126827389415264",
+  buildbucketLeaseKey: "",
   createdAt: new Date('2019-02-19T13:20:52.277737Z').toString(),
   dbModifiedAt: new Date('2019-02-19T13:33:14.64704Z').toString(),
   dependencies: [
@@ -275,8 +275,8 @@ export const job1: Job = {
 
 // job2 is fake data but is more visually interesting.
 export const job2: Job = {
-  buildbucketBuildId: 8921090193851453000,
-  buildbucketLeaseKey: 0,
+  buildbucketBuildId: "8855126827389415264",
+  buildbucketLeaseKey: "",
   createdAt: new Date('2019-10-10T13:56:44.572122663Z').toUTCString(),
   dbModifiedAt: new Date('2019-10-10T19:56:44.572122663Z').toUTCString(),
   dependencies: [
