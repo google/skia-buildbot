@@ -1,0 +1,82 @@
+package main
+
+import (
+	"flag"
+	"path/filepath"
+
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/task_driver/go/lib/os_steps"
+	"go.skia.org/infra/task_driver/go/td"
+)
+
+var (
+	// Required properties for this task.
+	projectID = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskID    = flag.String("task_id", "", "ID of this task.")
+	taskName  = flag.String("task_name", "", "Name of the task.")
+	workdir   = flag.String("workdir", ".", "Working directory")
+
+	// Optional flags.
+	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
+	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
+)
+
+func main() {
+	// Setup.
+	ctx := td.StartRun(projectID, taskID, taskName, output, local)
+	defer td.EndRun(ctx)
+
+	// Compute various directory paths.
+	wd, err := os_steps.Abs(ctx, *workdir)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	repoDir := filepath.Join(wd, "buildbot")
+
+	// Temporary directory for the Bazel cache.
+	//
+	// We cannot use the default Bazel cache location ($HOME/.cache/bazel) because:
+	//
+	//  - The cache can be large (>10G).
+	//  - Swarming bots have limited storage space (15G).
+	//  - Because the above, the Bazel build fails with a "no space left on device" error.
+	//  - The Bazel cache under $HOME/.cache/bazel lingers after the tryjob completes, causing the
+	//    Swarming bot to be quarantined due to low disk space.
+	//
+	// The temporary directory created by the below function call lives under /mnt/pd0, which has
+	// significantly more storage space, and will be wiped after the tryjob completes.
+	//
+	// Reference: https://docs.bazel.build/versions/master/output_directories.html#current-layout.
+	bazelCacheDir, err := os_steps.TempDir(ctx, "", "bazelcache")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	if _, err := exec.RunCwd(ctx, repoDir, "bazel", "version"); err != nil {
+		// 	td.Fatal(ctx, err)
+	}
+
+	if _, err := exec.RunCwd(ctx, repoDir, "gcloud", "auth", "list"); err != nil {
+		// 	td.Fatal(ctx, err)
+	}
+
+	if _, err := exec.RunCwd(ctx, repoDir, "bazel", "--output_user_root="+bazelCacheDir, "build", "//..."); err != nil {
+		// 	td.Fatal(ctx, err)
+	}
+
+	// if _, err := exec.RunCwd(ctx, repoDir, "bazel", "build", "--config=remote", "//..."); err != nil {
+	// 	// 	td.Fatal(ctx, err)
+	// }
+
+	// if _, err := exec.RunCwd(ctx, repoDir, filepath.Join(wd, "bazel", "bazel", "bin", "bazel"), "version"); err != nil {
+	// 	// 	td.Fatal(ctx, err)
+	// }
+
+	// if _, err := os_steps.Which(ctx, "bazel"); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
+
+	// if _, err := exec.RunCwd(ctx, repoDir, "bazel", "build", "--config=remote", "//..."); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
+}
