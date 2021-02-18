@@ -20,8 +20,7 @@ func TestBuild(t *testing.T) {
 	// Strip our PATH so we find our version of `docker` which is in the
 	// testdata directory. Then add `/bin` to the PATH since we are running a
 	// Bash shell.
-	testDataDir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	testDataDir := testutils.TestDataDir(t)
 	dockerCmd = filepath.Join(testDataDir, "docker_mock")
 
 	type args struct {

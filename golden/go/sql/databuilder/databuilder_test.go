@@ -92,8 +92,7 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 			"device": []string{"NUC1234"},
 		})
 
-	dir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	dir := testutils.TestDataDir(t)
 	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
 
 	tables := b.Build()
@@ -536,8 +535,7 @@ func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
 			types.PrimaryKeyField: []string{"test_two"},
 		})
 
-	dir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	dir := testutils.TestDataDir(t)
 	b.ComputeDiffMetricsFromImages(dir, "2020-12-14T14:14:14Z")
 
 	tables := b.Build()
@@ -1414,8 +1412,7 @@ func TestExpectationsBuilderNegative_InvalidDigest_Panics(t *testing.T) {
 
 func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
 	unittest.SmallTest(t)
-	testDir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	testDir := testutils.TestDataDir(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)
@@ -1437,8 +1434,7 @@ func TestComputeDiffMetricsFromImages_IncompleteData_Panics(t *testing.T) {
 
 func TestComputeDiffMetricsFromImages_InvalidTime_Panics(t *testing.T) {
 	unittest.SmallTest(t)
-	testDir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	testDir := testutils.TestDataDir(t)
 
 	b := TablesBuilder{}
 	b.SetGroupingKeys(types.CorpusField)

@@ -15,7 +15,7 @@ import (
 
 func TestVCSSuite(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -26,7 +26,7 @@ func TestVCSSuite(t *testing.T) {
 
 func TestFrom(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
@@ -36,7 +36,7 @@ func TestFrom(t *testing.T) {
 
 func TestLastN(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -73,7 +73,7 @@ func TestLastN(t *testing.T) {
 
 func TestByIndex(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
@@ -83,7 +83,7 @@ func TestByIndex(t *testing.T) {
 
 func TestLastNIndex(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
@@ -93,7 +93,7 @@ func TestLastNIndex(t *testing.T) {
 
 func TestIndexOf(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -107,7 +107,7 @@ func TestIndexOf(t *testing.T) {
 
 func TestRange(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
@@ -116,7 +116,7 @@ func TestRange(t *testing.T) {
 }
 func TestLog(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -165,7 +165,7 @@ hello.go
 
 func TestLogFine(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -197,7 +197,7 @@ func TestLogFine(t *testing.T) {
 
 func TestLogArgs(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -218,7 +218,7 @@ func TestLogArgs(t *testing.T) {
 
 func TestShortList(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -270,7 +270,7 @@ func TestShortList(t *testing.T) {
 
 func TestRevList(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -318,7 +318,7 @@ func TestRevList(t *testing.T) {
 
 func TestBranchInfo(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -338,7 +338,7 @@ func TestBranchInfo(t *testing.T) {
 
 func TestSetBranch(t *testing.T) {
 	unittest.MediumTest(t)
-	repoDir, cleanup := vcstu.InitTempRepo()
+	repoDir, cleanup := vcstu.InitTempRepo(t)
 	defer cleanup()
 
 	ctx := context.Background()

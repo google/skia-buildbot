@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-var createdTime time.Time = time.Date(2020, 01, 01, 00, 00, 00, 0000, time.UTC)
+var createdTime = time.Date(2020, 01, 01, 00, 00, 00, 0000, time.UTC)
 
 func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
 	unittest.SmallTest(t)
@@ -26,7 +26,7 @@ func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
 
 	return p, file.File{
 		Name:     filename,
-		Contents: testutils.MustGetReader(filename),
+		Contents: testutils.GetReader(t, filename),
 		Created:  createdTime,
 	}
 }
