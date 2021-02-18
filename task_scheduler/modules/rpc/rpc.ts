@@ -118,7 +118,7 @@ const JSONToCancelJobResponse = (m: CancelJobResponseJSON): CancelJobResponse =>
 };
 
 export interface SearchJobsRequest {
-  buildbucketBuildId: number;
+  buildbucketBuildId: string;
   hasBuildbucketBuildId: boolean;
   isForce: boolean;
   hasIsForce: boolean;
@@ -141,7 +141,7 @@ export interface SearchJobsRequest {
 }
 
 interface SearchJobsRequestJSON {
-  buildbucket_build_id?: number;
+  buildbucket_build_id?: string;
   has_buildbucket_build_id?: boolean;
   is_force?: boolean;
   has_is_force?: boolean;
@@ -662,8 +662,8 @@ const JSONToTaskStats = (m: TaskStatsJSON): TaskStats => {
 };
 
 export interface Job {
-  buildbucketBuildId: number;
-  buildbucketLeaseKey: number;
+  buildbucketBuildId: string;
+  buildbucketLeaseKey: string;
   createdAt?: string;
   dbModifiedAt?: string;
   dependencies?: TaskDependencies[];
@@ -680,8 +680,8 @@ export interface Job {
 }
 
 interface JobJSON {
-  buildbucket_build_id?: number;
-  buildbucket_lease_key?: number;
+  buildbucket_build_id?: string;
+  buildbucket_lease_key?: string;
   created_at?: string;
   db_modified_at?: string;
   dependencies?: TaskDependenciesJSON[];
@@ -699,8 +699,8 @@ interface JobJSON {
 
 const JSONToJob = (m: JobJSON): Job => {
   return {
-    buildbucketBuildId: m.buildbucket_build_id || 0,
-    buildbucketLeaseKey: m.buildbucket_lease_key || 0,
+    buildbucketBuildId: m.buildbucket_build_id || "",
+    buildbucketLeaseKey: m.buildbucket_lease_key || "",
     createdAt: m.created_at,
     dbModifiedAt: m.db_modified_at,
     dependencies: m.dependencies && m.dependencies.map(JSONToTaskDependencies),
