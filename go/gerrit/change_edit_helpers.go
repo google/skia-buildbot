@@ -36,10 +36,10 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create change")
 	}
-	fullCommitMsg := commitMsg + "\n\n" + "Change-Id: " + ci.ChangeId
+	commitMsg = strings.TrimSpace(commitMsg) + "\n" + "Change-Id: " + ci.ChangeId
 	if err := EditChange(ctx, g, ci, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
-		if err := g.SetCommitMessage(ctx, ci, fullCommitMsg); err != nil {
-			return skerr.Wrapf(err, "failed to set commit message to:\n\n%s\n\n", fullCommitMsg)
+		if err := g.SetCommitMessage(ctx, ci, commitMsg); err != nil {
+			return skerr.Wrapf(err, "failed to set commit message to:\n\n%s\n\n", commitMsg)
 		}
 		return fn(ctx, g, ci)
 	}); err != nil {
