@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "77270b93_af2c59c3",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-18T19:07:11Z",
+      "side": 1,
+      "message": "This is likely causing https://bugs.chromium.org/p/skia/issues/detail?id\u003d11339\nIdeally we would collect all the footers separately and then combine them to the commitMsg once at the end.",
+      "range": {
+        "startLine": 39,
+        "startChar": 31,
+        "endLine": 39,
+        "endChar": 35
+      },
+      "revId": "5ecb6911c82bf6b00993373c31de296edfb09a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
