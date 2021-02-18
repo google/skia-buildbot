@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3b0de1b9_d1d4b586",
+        "filename": "task_scheduler/go/task-scheduler-fe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-18T20:05:10Z",
+      "side": 1,
+      "message": "We should probably use httputils.CorsHandler: https://skia.googlesource.com/buildbot/+/master/go/httputils/http.go#489",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 73
+      },
+      "revId": "0b9393e8a59982a89664aab1a2d846abf6991ccb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
