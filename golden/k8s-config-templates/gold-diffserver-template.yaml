@@ -64,6 +64,10 @@ spec:
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account.json
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           resources:
             requests:
               memory: "{{.K8S_MEMORY}}"
