@@ -615,7 +615,6 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 		sklog.Fatalf("Failed to create indexer: %s", err)
 	}
 	sklog.Infof("Indexer created.")
-
 	return ixr
 }
 
