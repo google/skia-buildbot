@@ -240,6 +240,9 @@ message AndroidRepoManagerConfig {
     // metadata about the child project which should be updated in a file
     // checked into the parent repo.
     ProjectMetadataFileConfig metadata = 9;
+    // include_authors_as_reviewers determines whether the authors of rolled
+    // changes should be included as change reviewers.
+    bool include_authors_as_reviewers = 10;
 }
 
 // CommandRepoManagerConfig provides configuration for a roller which runs
