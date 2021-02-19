@@ -72,6 +72,8 @@ var (
 		"Infra-PerCommit-Puppeteer",
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-PerCommit-ValidateAutorollConfigs",
+		"Infra-PerCommit-Bazel-Local-Build",
+		"Infra-PerCommit-Bazel-RBE-Build",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -562,6 +564,54 @@ func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
+	command := []string{
+		"./bazel_build",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--workdir", ".",
+		"--alsologtostderr",
+	}
+	if rbe {
+		command = append(command, "--rbe")
+	} else {
+		command = append(command, "--no_rbe")
+	}
+
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	// Named cache for the Bazel cache, which by default is created in $HOME/.cache/bazel. We override
+	// this behavior via a command-line flag (see task driver). We use a named cache instead of a
+	// temporary directory to potentially speed up the tryjob.
+	caches := []*specs.Cache{
+		{
+			Name: "bazel",
+			Path: "cache/bazel",
+		},
+	}
+	caches = append(caches, CACHES_GO...)
+
+	t := &specs.TaskSpec{
+		Caches:       caches,
+		CasSpec:      CAS_WHOLE_REPO,
+		CipdPackages: cipd,
+		Command:      command,
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazel/bin"},
+		},
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -583,6 +633,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "Bazel-Local-Build") {
+		deps = append(deps, bazelBuild(b, name, false /* =rbe */))
+	} else if strings.Contains(name, "Bazel-RBE-Build") {
+		deps = append(deps, bazelBuild(b, name, true /* =rbe */))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
