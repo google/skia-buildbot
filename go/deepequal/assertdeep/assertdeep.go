@@ -1,8 +1,6 @@
 package assertdeep
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -121,17 +119,4 @@ func Copy(t sktest.TestingT, a, b interface{}) {
 			require.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
 		}
 	}
-}
-
-// JSONRoundTripEqual encodes and decodes an object to/from JSON and asserts
-// that the result is deep equal to the original. obj must be a pointer.
-func JSONRoundTripEqual(t sktest.TestingT, obj interface{}) {
-	val := reflect.ValueOf(obj)
-	require.Equal(t, reflect.Ptr, val.Kind(), "JSONRoundTripEqual must be passed a pointer.")
-	cpyval := reflect.New(val.Elem().Type())
-	cpy := cpyval.Interface()
-	buf := bytes.Buffer{}
-	require.NoError(t, json.NewEncoder(&buf).Encode(obj))
-	require.NoError(t, json.NewDecoder(&buf).Decode(cpy))
-	Equal(t, obj, cpy)
 }

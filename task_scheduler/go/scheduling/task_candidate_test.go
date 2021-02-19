@@ -1,9 +1,12 @@
 package scheduling
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -50,10 +53,15 @@ func TestCopyTaskCandidate(t *testing.T) {
 	assertdeep.Copy(t, v, cp)
 }
 
-func TestTaskCandidateJSON(t *testing.T) {
+func TestTaskCandidate_EncodedToAndFromJSON_BeforeEqualsAfter(t *testing.T) {
 	unittest.SmallTest(t)
 	v := fullTaskCandidate()
-	assertdeep.JSONRoundTripEqual(t, v)
+	jsonB, err := json.Marshal(v)
+	require.NoError(t, err)
+	var reEncoded taskCandidate
+	err = json.Unmarshal(jsonB, &reEncoded)
+	require.NoError(t, err)
+	assert.Equal(t, v, &reEncoded)
 }
 
 func TestTaskCandidateId(t *testing.T) {
