@@ -16,6 +16,92 @@
       "message": "Please take another look. As discussed yesterday, I split this tryjob into two: local and RBE.\n\nI also added a \"go generate\" step that checks that there are no diffs (as per go/skia-infra-bazel), which I forgot to do before.",
       "revId": "1e4ac949b036e1d0d77427069cc4f494ba9ea19b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bfefd7b1_b76ec40e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 77
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T18:36:05Z",
+      "side": 1,
+      "message": "LGTM with a few questions/nits",
+      "revId": "1e4ac949b036e1d0d77427069cc4f494ba9ea19b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1986a1ba_f763c323",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 77
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T18:36:05Z",
+      "side": 1,
+      "message": "Very minor nit:  I slightly prefer having \"Build\" before \"Local\" or \"RBE\".  Also, I think once the other jobs go away it\u0027d be nice to remove \"Bazel\" since that\u0027ll be a given.",
+      "range": {
+        "startLine": 76,
+        "startChar": 25,
+        "endLine": 76,
+        "endChar": 28
+      },
+      "revId": "1e4ac949b036e1d0d77427069cc4f494ba9ea19b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "24916585_3cf201cc",
+        "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
+        "patchSetId": 77
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T18:36:05Z",
+      "side": 1,
+      "message": "Just curious, why can\u0027t this be a single flag?  We can always set --rbe\u003dfalse / --rbe\u003dtrue",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 75
+      },
+      "revId": "1e4ac949b036e1d0d77427069cc4f494ba9ea19b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "fc231a58_6bdeac50",
+        "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
+        "patchSetId": 77
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T18:36:05Z",
+      "side": 1,
+      "message": "Are these still needed with Bazel?",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 24
+      },
+      "revId": "1e4ac949b036e1d0d77427069cc4f494ba9ea19b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
