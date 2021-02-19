@@ -41,8 +41,7 @@ import (
 func TestLoadKnownHashes(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -74,8 +73,7 @@ func TestLoadKnownHashes(t *testing.T) {
 func TestLoadBaseline(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -110,8 +108,7 @@ func TestLoadBaseline(t *testing.T) {
 func TestLoadBaselineMaster(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -155,8 +152,7 @@ func TestInit(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -198,8 +194,7 @@ func TestInit(t *testing.T) {
 func TestInitInvalidKeys(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, _, _, _ := makeMocks()
 
@@ -218,8 +213,7 @@ func TestInitUploadOnly(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -321,8 +315,7 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 func TestNewReportNormal(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
@@ -363,8 +356,7 @@ func TestNewReportNormal(t *testing.T) {
 func TestNewReportDigestAndImageSupplied(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// This is the digest the client has calculated
@@ -407,8 +399,7 @@ func TestNewReportDigestAndImageSupplied(t *testing.T) {
 func TestNewReportDigestSupplied(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	// This is the digest the client has calculated
 	const precalculatedDigest = "00000000000000111111111111111222"
@@ -446,8 +437,7 @@ func TestNewReportDigestSupplied(t *testing.T) {
 func TestNewReportNormalBadKeys(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
@@ -484,8 +474,7 @@ func TestFinalizeNormal(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, uploader, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -566,8 +555,7 @@ func TestInitAddFinalize(t *testing.T) {
 	// We read and write to disk a little
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	const firstHash = types.Digest("9d0568469d206c1aedf1b71f12f474bc")
@@ -665,8 +653,7 @@ func TestInitAddFinalize(t *testing.T) {
 func TestNewReportPassFail(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	imgHash := types.Digest("9d0568469d206c1aedf1b71f12f474bc")
@@ -741,8 +728,7 @@ func TestNewReportPassFail(t *testing.T) {
 func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -817,8 +803,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -895,8 +880,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	// The test name is defined in mockBaselineJSON. The image hashes below are not.
 	testName := types.TestName("ThisIsTheOnlyTest")
@@ -1032,8 +1016,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 func TestNegativePassFail(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -1087,8 +1070,7 @@ https://testing-gold.skia.org/detail?test=ThisIsTheOnlyTest&digest=badbadbad1325
 func TestPositivePassFail(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -1137,8 +1119,7 @@ func TestPositivePassFail(t *testing.T) {
 func TestCheckSunnyDay(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -1182,8 +1163,7 @@ func TestCheckSunnyDay(t *testing.T) {
 func TestCheckIssue(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -1237,8 +1217,7 @@ func TestCheckIssue(t *testing.T) {
 func TestCheckSunnyDayNegative(t *testing.T) {
 	unittest.SmallTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// imgHash is not seen in expectations
@@ -1277,8 +1256,7 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 func TestCheckLoad(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
@@ -1327,8 +1305,7 @@ func TestCheckLoad(t *testing.T) {
 func TestCheckLoadFails(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	// This should not work
 	_, err := LoadCloudClient(wd)
@@ -1354,9 +1331,8 @@ func TestDiffSunnyDay(t *testing.T) {
 	// It is arbitrary.
 	const otherHash = "ccc2912653148661835084a809fee263"
 
-	wd, cleanup := testutils.TempDir(t)
+	wd := t.TempDir()
 	outDir := filepath.Join(wd, "out")
-	defer cleanup()
 
 	inputPath := filepath.Join(wd, "input.png")
 	input, err := os.Create(inputPath)
@@ -1409,9 +1385,8 @@ func TestDiffCaching(t *testing.T) {
 	const rightHash = types.Digest("bbb0dc56d0429ef3586629787666ce09")
 	const otherHash = types.Digest("ccc2912653148661835084a809fee263")
 
-	wd, cleanup := testutils.TempDir(t)
+	wd := t.TempDir()
 	outDir := filepath.Join(wd, "out")
-	defer cleanup()
 
 	inputPath := filepath.Join(wd, "input.png")
 	input, err := os.Create(inputPath)
@@ -1967,8 +1942,7 @@ func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *
 func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Success(t *testing.T) {
 	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, _, _, gcsDownloader := makeMocks()
 	gcsDownloader.AssertExpectations(t)
@@ -1994,8 +1968,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Su
 func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageFromGCS_Failure(t *testing.T) {
 	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, _, _, gcsDownloader := makeMocks()
 	gcsDownloader.AssertExpectations(t)
@@ -2019,8 +1992,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageF
 func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(t *testing.T) {
 	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, _, _, _ := makeMocks()
 
@@ -2051,8 +2023,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(
 func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk_Failure(t *testing.T) {
 	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, _, _, _ := makeMocks()
 
@@ -2082,8 +2053,7 @@ func TestCloudClient_Whoami_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -2108,8 +2078,7 @@ func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -2133,8 +2102,7 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
@@ -2182,8 +2150,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
@@ -2236,8 +2203,7 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
@@ -2266,8 +2232,7 @@ func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -2295,8 +2260,7 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -2323,8 +2287,7 @@ func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *tes
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 
 	ctx, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
