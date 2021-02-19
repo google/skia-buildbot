@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -31,8 +30,7 @@ func TestGSutil_UploadBytes_Success(t *testing.T) {
 func TestGSutil_UploadJSON_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	wd := t.TempDir()
 	tf := filepath.Join(wd, "foo.json")
 
 	cc := exec.CommandCollector{}

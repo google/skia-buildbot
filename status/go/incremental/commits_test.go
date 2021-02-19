@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -42,8 +41,7 @@ func TestIncrementalCommits(t *testing.T) {
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
 	c0 := gb.CommitGen(ctx, "file1")
-	wd, cleanupWd := testutils.TempDir(t)
-	defer cleanupWd()
+	wd := t.TempDir()
 	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), wd)
 	require.NoError(t, err)
 	repos := repograph.Map{

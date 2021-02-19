@@ -86,8 +86,7 @@ func TestParseConfigFile(t *testing.T) {
 
 func TestParseConfigFileDoesntExist(t *testing.T) {
 	unittest.MediumTest(t)
-	dir, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	dir := t.TempDir()
 	configFile := filepath.Join(dir, "nonexistent-file.json5")
 	parsed := TestConfig{}
 	err := ParseConfigFile(configFile, "--main-config", &parsed)
@@ -97,8 +96,7 @@ func TestParseConfigFileDoesntExist(t *testing.T) {
 
 func TestParseConfigFileInvalid(t *testing.T) {
 	unittest.MediumTest(t)
-	dir, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	dir := t.TempDir()
 	configFile := filepath.Join(dir, "invalid.json5")
 	require.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
 	parsed := TestConfig{}

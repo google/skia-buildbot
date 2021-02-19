@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vfs"
 )
@@ -40,9 +39,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 	ts, err := auth.NewDefaultTokenSource(true, auth.SCOPE_USERINFO_EMAIL)
 	require.NoError(t, err)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
+	wd := t.TempDir()
 	c, err := NewCIPD(ctx, &cfg, client, wd)
 	require.NoError(t, err)
 

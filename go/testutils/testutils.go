@@ -12,9 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
-	"testing"
 	"text/template"
 	"time"
 
@@ -139,13 +137,7 @@ func MarshalIndentJSON(t sktest.TestingT, i interface{}) string {
 	return string(b)
 }
 
-// AssertErrorContains asserts that the given error contains the given string.
-func AssertErrorContains(t sktest.TestingT, err error, substr string) {
-	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), substr))
-}
-
-// Return the path to the root of the checkout.
+// GetRepoRoot returns the path to the root of the checkout.
 func GetRepoRoot(t sktest.TestingT) string {
 	root, err := repo_root.Get()
 	require.NoError(t, err)
@@ -289,7 +281,7 @@ func ExecTemplate(t sktest.TestingT, tmpl string, data interface{}) string {
 // which do not depend on the specifics of the $HOME directory in the host system.
 //
 // See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
-func SetUpFakeHomeDir(t *testing.T, tempDirPattern string) {
+func SetUpFakeHomeDir(t sktest.TestingT, tempDirPattern string) {
 	fakeHome, err := ioutil.TempDir("", tempDirPattern)
 	require.NoError(t, err)
 	oldHome := os.Getenv("HOME")

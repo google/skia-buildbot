@@ -80,8 +80,7 @@ func TestTimeout(t *testing.T) {
 	// TODO(borenet): This test will not work on Windows.
 
 	// Write a script to generate steps.
-	tmp, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	tmp := t.TempDir()
 	slowSecondStep := filepath.Join(tmp, "script.sh")
 	testutils.WriteFile(t, slowSecondStep, `#!/bin/bash
 echo "Step1"
@@ -134,8 +133,7 @@ var numberedStepsTokenHandler = RegexpTokenHandler(numberedStepsRe)
 // a Task Driver which uses log_parser.Run with the given TokenHandler.
 func runPythonScript(t *testing.T, fn TokenHandler, script string) *td.StepReport {
 	// Write a script to generate steps.
-	tmp, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	tmp := t.TempDir()
 	scriptPath := filepath.Join(tmp, "script.py")
 	testutils.WriteFile(t, scriptPath, script)
 
