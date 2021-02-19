@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aeb8db03_b909216e",
+        "filename": "go/deepequal/assertdeep/assertdeep.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T16:29:33Z",
+      "side": 0,
+      "message": "Why is this being removed?  It seems useful to me.",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 61
+      },
+      "revId": "8b2682905492a201b4317528a1c44cba8aa60f27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "94d5a1d3_e9928cb5",
+        "filename": "task_scheduler/go/scheduling/task_candidate_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T16:29:33Z",
+      "side": 1,
+      "message": "This needs to use assertdeep.Equal, or just don\u0027t remove JSONRoundTripEqual.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 31
+      },
+      "revId": "b2b820a5ecf72bccb7c10d33515b988f426fdb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
