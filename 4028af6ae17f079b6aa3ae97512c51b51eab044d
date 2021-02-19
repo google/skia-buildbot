@@ -39,6 +39,30 @@
       },
       "revId": "4028af6ae17f079b6aa3ae97512c51b51eab044d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c41c1a81_0950cc61",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 11964
+      },
+      "writtenOn": "2021-02-19T20:15:18Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "d33e8929_b359dc44",
+      "range": {
+        "startLine": 471,
+        "startChar": 31,
+        "endLine": 471,
+        "endChar": 32
+      },
+      "revId": "4028af6ae17f079b6aa3ae97512c51b51eab044d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
