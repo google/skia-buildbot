@@ -137,6 +137,15 @@ skottie-sk {
       width: 20em;
     }
   }
+
+  #volume-slider {
+    display: block;
+    margin: 8px;
+
+    input {
+      width: 10em;
+    }
+  }
 }
 
 #json_editor button {
