@@ -294,7 +294,7 @@ func (c *Alert) QueriesFromParamset(paramset paramtools.ReadOnlyParamSet) ([]str
 	return ret, nil
 }
 
-// Validate returns true of the Alert is valid.
+// Validate returns true if the Alert is valid.
 func (c *Alert) Validate() error {
 	parsed, err := url.ParseQuery(c.Query)
 	if err != nil {
@@ -303,7 +303,7 @@ func (c *Alert) Validate() error {
 	if c.GroupBy != "" {
 		for _, groupParam := range c.GroupedBy() {
 			if _, ok := parsed[groupParam]; ok {
-				return fmt.Errorf("Invalid Config: GroupBy must not appear in Query: %q %q ", c.GroupBy, c.Query)
+				return fmt.Errorf("Invalid Config: Group By values %q must not appear in the Query: %q ", c.GroupBy, c.Query)
 			}
 		}
 	}

@@ -273,21 +273,8 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 							success = false
 							return
 						}
-						matchingConfigs := []*alerts.Alert{}
-						for _, config := range configs {
-							q, err := query.NewFromString(config.Query)
-							if err != nil {
-								sklog.Errorf("An alert %q has an invalid query %q: %s", config.IDAsString, config.Query, err)
-								continue
-							}
-							// If any traceID matches the query in the alert then it's an alert we should run.
-							for _, key := range ie.TraceIDs {
-								if q.Matches(key) {
-									matchingConfigs = append(matchingConfigs, config)
-									break
-								}
-							}
-						}
+
+						matchingConfigs := matchingConfigsFromTraceIDs(ie.TraceIDs, configs)
 
 						// If any configs match then emit the configsAndParamSet.
 						if len(matchingConfigs) > 0 {
@@ -336,6 +323,51 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 		}
 	}()
 	return ret
+}
+
+func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) []*alerts.Alert {
+	matchingConfigs := []*alerts.Alert{}
+	if len(traceIDs) == 0 {
+		return matchingConfigs
+	}
+	for _, config := range configs {
+
+		// ??? Do we properly restrict the config down to a Group By subset?
+		// Should we determine if the Alert is a GroupBy, and then see if those
+		// Group By params appear in the traceids, and then produce configs with
+		// sub-queries that match the traces and the GroupBy.
+
+		q, err := query.NewFromString(config.Query)
+		if err != nil {
+			sklog.Errorf("An alert %q has an invalid query %q: %s", config.IDAsString, config.Query, err)
+			continue
+		}
+		// If any traceID matches the query in the alert then it's an alert we should run.
+		for _, key := range traceIDs {
+			if q.Matches(key) {
+				parsed, err := query.ParseKey(key)
+				if err != nil {
+					continue
+				}
+				if config.GroupBy == "" {
+					matchingConfigs = append(matchingConfigs, config)
+				} else {
+					query := config.Query
+					for _, key := range config.GroupedBy() {
+						if value, ok := parsed[key]; ok {
+							query += fmt.Sprintf("&%s=%s", key, value)
+						}
+					}
+					config.Query = query
+					configCopy := *config
+					configCopy.Query = query
+					matchingConfigs = append(matchingConfigs, &configCopy)
+				}
+				break
+			}
+		}
+	}
+	return matchingConfigs
 }
 
 // Run starts the continuous running of clustering over the last numCommits
@@ -412,7 +444,8 @@ func (c *Continuous) Run(ctx context.Context) {
 			req.Alert = cfg
 			req.Domain = domain
 
-			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider()); err != nil {
+			expandBaseRequest := !c.flags.EventDrivenRegressionDetection
+			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest); err != nil {
 				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 			}
 
