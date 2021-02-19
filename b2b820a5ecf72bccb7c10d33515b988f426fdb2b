@@ -46,6 +46,30 @@
       },
       "revId": "b2b820a5ecf72bccb7c10d33515b988f426fdb2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d1786684_02a805bb",
+        "filename": "task_scheduler/go/scheduling/task_candidate_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-19T17:08:41Z",
+      "side": 1,
+      "message": "Ok, it looks like I was mistaken and assert.Equal does perform a deep equality check: https://github.com/stretchr/testify/blob/acba37e5db06f0093b465a7d47822bf13644b66c/assert/assertions.go#L65\n\nAND it formats the diff nicely: https://github.com/stretchr/testify/blob/acba37e5db06f0093b465a7d47822bf13644b66c/assert/assertions.go#L1574\n\nJust to nit-pick: the fact that this test still passes doesn\u0027t necessarily mean all is well; the concern would be that with a different equality test we may begin to have false negatives.  But assert.Equal is doing the same things under the hood that assertdeep.Equal is doing, so it doesn\u0027t make a difference.",
+      "parentUuid": "da52fea5_13718492",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 31
+      },
+      "revId": "b2b820a5ecf72bccb7c10d33515b988f426fdb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
