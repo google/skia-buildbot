@@ -34,7 +34,7 @@ type diffServerConfig struct {
 	// The GCS prefix (directory) that holds the images that have been uploaded to Gold.
 	GCSImageDir string `json:"gcs_image_dir"`
 
-	// The port on which to run the GRPC service. The skiacorrectness binary will connect to this
+	// The port on which to run the GRPC service. The frontend binary will connect to this
 	// server over this port, for example.
 	GRPCPort string `json:"grpc_port"`
 

@@ -752,7 +752,7 @@ func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []Deploya
 	//   app:gold-chrome-gpu-baselineserver  podName:gold-chrome-gpu-baselineserver-5dfd8b65cb-l4lt5  ready:True  readyLastTransitionTime:2019-10-04T01:59:40Z
 	//   app:gold-chrome-gpu-diffserver  podName:gold-chrome-gpu-diffserver-0  ready:True  readyLastTransitionTime:2019-10-09T18:43:08Z
 	//   app:gold-chrome-gpu-ingestion-bt  podName:gold-chrome-gpu-ingestion-bt-f8b66844f-4969w  ready:True  readyLastTransitionTime:2019-10-04T01:54:54Z
-	//   app:gold-chrome-gpu-skiacorrectness  podName:gold-chrome-gpu-skiacorrectness-67c547667d-cwt42  ready:True  readyLastTransitionTime:2019-10-04T02:01:11Z
+	//   app:gold-chrome-gpu-frontend  podName:gold-chrome-gpu-frontend-67c547667d-cwt42  ready:True  readyLastTransitionTime:2019-10-04T02:01:11Z
 	//
 	// The output format should be fairly self explanatory, but to see an example of where those
 	// are coming from, try running e.g. "kubectl get pod gold-skia-diffserver-0 -o json".

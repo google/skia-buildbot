@@ -1,4 +1,4 @@
-// skiacorrectness implements the process that exposes a RESTful API used by the JS frontend.
+// frontend implements the process that exposes a RESTful API used by the JS frontend.
 package main
 
 import (

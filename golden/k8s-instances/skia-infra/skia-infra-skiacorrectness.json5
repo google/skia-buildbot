@@ -18,7 +18,7 @@ View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   port: ":8000",
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",
-  resources_path: "/usr/local/share/skiacorrectness/dist",
+  resources_path: "/usr/local/share/frontend/dist",
   site_url: "https://skia-infra-gold.skia.org",
   tile_freshness: "1m",
   trace_bt_table: "gold-skia-infra",

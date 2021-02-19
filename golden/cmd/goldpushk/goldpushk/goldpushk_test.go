@@ -160,13 +160,13 @@ func TestGoldpushk_RegenerateConfigFiles_Success(t *testing.T) {
 		"kube-conf-gen " +
 			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public-skiacorrectness.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public-frontend.json5 " +
 			"-extra INSTANCE_ID:skia-public " +
 			"-extra NOW:2020-07-06T05_04_03Z_00 " +
-			"-t /path/to/buildbot/golden/k8s-config-templates/gold-skiacorrectness-template.yaml " +
+			"-t /path/to/buildbot/golden/k8s-config-templates/gold-frontend-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
-			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-public-skiacorrectness.yaml",
+			"-o " + g.k8sConfigCheckout.Dir() + "/skia-public/gold-skia-public-frontend.yaml",
 
 		// Skia IngestionBT
 		"kube-conf-gen " +

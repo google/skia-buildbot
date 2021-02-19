@@ -24,7 +24,7 @@ const (
 	DiffCalculator  Service = "diffcalculator"
 	DiffServer      Service = "diffserver"
 	IngestionBT     Service = "ingestion-bt"
-	SkiaCorrectness Service = "skiacorrectness"
+	SkiaCorrectness Service = "frontend"
 
 	// Testing Gold instances.
 	TestInstance1     Instance = "goldpushk-test1"
@@ -79,7 +79,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	// Add common services to all known instances.
 	for _, instance := range s.knownInstances {
 		if isPublicInstance(instance) {
-			// There is only one service for public view instances: - skiacorrectness.
+			// There is only one service for public view instances: - frontend.
 			s.add(instance, SkiaCorrectness)
 		} else {
 			// Add common services for regular instances.
