@@ -82,7 +82,7 @@ func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet())
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), true)
 	require.NoError(t, err)
 	assert.Equal(t, progress.Running, req.Progress.Status())
 	var b bytes.Buffer
@@ -103,7 +103,7 @@ func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
 		"config": []string{"8888", "565"},
 		"arch":   []string{"x86", "arm"},
 	}
-	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, true)
 	assert.Len(t, allRequests, 2)
 	assert.Contains(t, []string{"arch=x86&config=8888", "arch=x86&config=565"}, allRequests[0].Query())
 }
@@ -120,7 +120,7 @@ func TestAllRequestsFromBaseRequest_WithInvalidGroupBy_NoRequestsReturned(t *tes
 		"config": []string{"8888", "565"},
 		"arch":   []string{"x86", "arm"},
 	}
-	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, true)
 	assert.Empty(t, allRequests)
 }
 
@@ -136,7 +136,7 @@ func TestAllRequestsFromBaseRequest_WithoutGroupBy_BaseRequestReturnedUnchanged(
 		"config": []string{"8888", "565"},
 		"arch":   []string{"x86", "arm"},
 	}
-	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, true)
 	// With no GroupBy a slice with just the baseRequest is returned.
 	assert.Len(t, allRequests, 1)
 	// Intentionally comparing pointers.
