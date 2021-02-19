@@ -17,8 +17,8 @@ import (
 // InitTempRepo creates a temporary git repository from ./testdata/testrepo.zip.
 // It returns the path to the repo directory and a cleanup function that should
 // be called in a deferred.
-func InitTempRepo() (string, func()) {
-	tr := newTempRepo()
+func InitTempRepo(t sktest.TestingT) (string, func()) {
+	tr := newTempRepo(t)
 	sklog.Infof("YYY: %s", tr.Dir)
 	return tr.Dir, tr.Cleanup
 }

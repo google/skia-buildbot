@@ -35,16 +35,12 @@ var (
 
 // TestDataDir returns the path to the caller's testdata directory, which
 // is assumed to be "<path to caller dir>/testdata".
-func TestDataDir() (string, error) {
+func TestDataDir(t sktest.TestingT) string {
 	_, thisFile, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
-	}
+	require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
 	for skip := 0; ; skip++ {
 		_, file, _, ok := runtime.Caller(skip)
-		if !ok {
-			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
-		}
+		require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
 		if file != thisFile {
 			// Under Bazel, the path returned by runtime.Caller() is relative to the workspace's root
 			// directory (e.g. "go/testutils"). We prepend this with the absolute path to the runfiles
@@ -56,82 +52,43 @@ func TestDataDir() (string, error) {
 				file = filepath.Join(bazel.RunfilesDir(), file)
 			}
 
-			return filepath.Join(filepath.Dir(file), "testdata"), nil
+			return filepath.Join(filepath.Dir(file), "testdata")
 		}
 	}
 }
 
-func readFile(filename string) (io.ReadCloser, error) {
-	dir, err := TestDataDir()
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	f, err := os.Open(filepath.Join(dir, filename))
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	return f, nil
-}
-
 // ReadFileBytes reads a file from the caller's testdata directory and returns its contents as a
 // slice of bytes.
-func ReadFileBytes(filename string) ([]byte, error) {
-	f, err := readFile(filename)
-	if err != nil {
-		return nil, err
-	}
+func ReadFileBytes(t sktest.TestingT, filename string) []byte {
+	f := GetReader(t, filename)
 	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	return b, nil
+	require.NoError(t, err, "Could not read %s: %v", filename)
+	require.NoError(t, f.Close())
+	return b
 }
 
 // ReadFile reads a file from the caller's testdata directory.
-func ReadFile(filename string) (string, error) {
-	b, err := ReadFileBytes(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+func ReadFile(t sktest.TestingT, filename string) string {
+	b := ReadFileBytes(t, filename)
+	return string(b)
 }
 
-// MustGetReader reads a file from the caller's testdata directory and panics on
+// GetReader reads a file from the caller's testdata directory and panics on
 // error.
-func MustGetReader(filename string) io.ReadCloser {
-	r, err := readFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	return r
+func GetReader(t sktest.TestingT, filename string) io.ReadCloser {
+	dir := TestDataDir(t)
+	f, err := os.Open(filepath.Join(dir, filename))
+	require.NoError(t, err, "Reading %s from testdir", filename)
+	return f
 }
 
-// MustReadFile returns  from the caller's testdata directory and panics on
-// error.
-func MustReadFile(filename string) string {
-	s, err := ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	return s
-}
-
-// ReadJsonFile reads a JSON file from the caller's testdata directory into the
+// ReadJSONFile reads a JSON file from the caller's testdata directory into the
 // given interface.
-func ReadJsonFile(filename string, dest interface{}) error {
-	f, err := readFile(filename)
-	if err != nil {
-		return err
-	}
-	return json.NewDecoder(f).Decode(dest)
-}
-
-// MustReadJsonFile reads a JSON file from the caller's testdata directory into
-// the given interface and panics on error.
-func MustReadJsonFile(filename string, dest interface{}) {
-	if err := ReadJsonFile(filename, dest); err != nil {
-		panic(err)
-	}
+func ReadJSONFile(t sktest.TestingT, filename string, dest interface{}) {
+	f := GetReader(t, filename)
+	err := json.NewDecoder(f).Decode(dest)
+	require.NoError(t, err, "Decoding JSON in %s", filename)
+	require.NoError(t, f.Close())
 }
 
 // WriteFile writes the given contents to the given file path, reporting any
@@ -159,6 +116,7 @@ func RemoveAll(t sktest.TestingT, fp string) {
 
 // TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
 // function to defer.
+// TODO(kjlubick) replace this with testing.TempDir()
 func TempDir(t sktest.TestingT) (string, func()) {
 	d, err := ioutil.TempDir("", "testutils")
 	require.NoError(t, err)

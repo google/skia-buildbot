@@ -23,8 +23,7 @@ func TestDiff_Success(t *testing.T) {
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
 
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := &mocks.HTTPClient{}
 	j, err := json.Marshal(frontend.DigestListResponse{Digests: []types.Digest{a05Digest, a09Digest}})

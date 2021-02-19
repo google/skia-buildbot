@@ -72,8 +72,7 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 
 func TestConvertCSVToBenchData(t *testing.T) {
 	unittest.SmallTest(t)
-	testDataDir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	testDataDir := testutils.TestDataDir(t)
 	pathToTestCSV := filepath.Join(testDataDir, "test.csv")
 
 	perfData, err := convertCSVToBenchData(TEST_HASH, TEST_GROUP_NAME, TEST_UNIQUE_ID, pathToTestCSV)

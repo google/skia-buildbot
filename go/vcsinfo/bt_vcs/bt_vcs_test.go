@@ -189,7 +189,7 @@ func TestDetailsMultiCaching(t *testing.T) {
 
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
 func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitStore, func()) {
-	repoDir, cleanup := vcs_testutils.InitTempRepo()
+	repoDir, cleanup := vcs_testutils.InitTempRepo(t)
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()

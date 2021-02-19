@@ -254,8 +254,7 @@ func BenchmarkDiffDifferentSize(b *testing.B) {
 
 // openNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
 func openNRGBAFromFile(t testing.TB, fileName string) *image.NRGBA {
-	b, err := testutils.ReadFileBytes(fileName)
-	require.NoError(t, err, "Failed to read test image %s", fileName)
+	b := testutils.ReadFileBytes(t, fileName)
 	im, err := png.Decode(bytes.NewReader(b))
 	require.NoError(t, err, "invalid png file %s", fileName)
 	return GetNRGBA(im)
