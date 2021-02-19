@@ -72,6 +72,7 @@ var (
 		"Infra-PerCommit-Puppeteer",
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-PerCommit-ValidateAutorollConfigs",
+		"Infra-PerCommit-BazelBuild",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -562,6 +563,43 @@ func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	caches := []*specs.Cache{
+		{
+			Name: "bazel",
+			Path: "cache/bazel",
+		},
+	}
+	caches = append(caches, CACHES_GO...)
+
+	t := &specs.TaskSpec{
+		Caches:       caches,
+		CasSpec:      CAS_WHOLE_REPO,
+		CipdPackages: cipd,
+		Command: []string{
+			"./bazel_build",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "bazel/bin"},
+		},
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -583,6 +621,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "BazelBuild") {
+		deps = append(deps, bazelBuild(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
