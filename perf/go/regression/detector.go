@@ -116,6 +116,19 @@ type regressionDetectionProcess struct {
 	shortcutStore             shortcut.Store
 }
 
+// BaseAlertHandling determines how Alerts should be handled by ProcessRegressions.
+type BaseAlertHandling int
+
+const (
+	// ExpandBaseAlertByGroupBy means that a single Alert should be turned into
+	// multiple Alerts based on the GroupBy settings in the Alert.
+	ExpandBaseAlertByGroupBy BaseAlertHandling = iota
+
+	// DoNotExpandBaseAlertByGroupBy means that the Alert should not be expanded
+	// into multiple Alerts even if it has a non-empty GroupBy value.
+	DoNotExpandBaseAlertByGroupBy
+)
+
 // ProcessRegressions detects regressions given the RegressionDetectionRequest.
 func ProcessRegressions(ctx context.Context,
 	req *RegressionDetectionRequest,
@@ -124,17 +137,26 @@ func ProcessRegressions(ctx context.Context,
 	shortcutStore shortcut.Store,
 	dfBuilder dataframe.DataFrameBuilder,
 	ps paramtools.ReadOnlyParamSet,
+	expandBaseRequest BaseAlertHandling,
 ) error {
-	allRequests := allRequestsFromBaseRequest(req, ps)
-	for _, req := range allRequests {
+	ctx, span := trace.StartSpan(ctx, "ProcessRegressions")
+	defer span.End()
+
+	allRequests := allRequestsFromBaseRequest(req, ps, expandBaseRequest)
+	span.AddAttributes(trace.Int64Attribute("num_requests", int64(len(allRequests))))
+	sklog.Infof("Single request expanded into %d requests.", len(allRequests))
+	for index, req := range allRequests {
+		req.Progress.Message("Requests", fmt.Sprintf("Processing request %d/%d", index, len(allRequests)))
 		req.Progress.Message("Stage", "Loading data to analyze")
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-		sklog.Infof("Building DataFrameIterator for %q", req.Query)
+		sklog.Infof("Building DataFrameIterator for %q", req.Query())
+		req.Progress.Message("Query", req.Query())
 		iter, err := dfiter.NewDataFrameIterator(ctx, req.Progress, dfBuilder, perfGit, nil, req.Query(), req.Domain, req.Alert)
 		if err != nil {
-			sklog.Warningf("Failed to create iterator for query: %q: %s", req.Query, err)
+			req.Progress.Message("Info", fmt.Sprintf("Failed to find enough data for query: %q", req.Query()))
 			continue
 		}
+		req.Progress.Message("Info", "Data loaded.")
 		detectionProcess := &regressionDetectionProcess{
 			request:                   req,
 			perfGit:                   perfGit,
@@ -157,10 +179,10 @@ func ProcessRegressions(ctx context.Context,
 // more refined queries.
 //
 // An empty slice will be returned on error.
-func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.ReadOnlyParamSet) []*RegressionDetectionRequest {
+func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.ReadOnlyParamSet, expandBaseRequest BaseAlertHandling) []*RegressionDetectionRequest {
 	ret := []*RegressionDetectionRequest{}
 
-	if req.Alert.GroupBy == "" {
+	if req.Alert.GroupBy == "" || expandBaseRequest == DoNotExpandBaseAlertByGroupBy {
 		ret = append(ret, req)
 	} else {
 		queries, err := req.Alert.QueriesFromParamset(ps)
@@ -182,6 +204,7 @@ func allRequestsFromBaseRequest(req *RegressionDetectionRequest, ps paramtools.R
 // reportError records the reason a RegressionDetectionProcess failed.
 func (p *regressionDetectionProcess) reportError(err error, message string) error {
 	sklog.Warningf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err)
+	p.request.Progress.Message("Warning", fmt.Sprintf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err))
 	return skerr.Wrapf(err, message)
 }
 
@@ -247,6 +270,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		if err != nil {
 			return p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
 		}
+		p.request.Progress.Message("Gathering", fmt.Sprintf("Next dataframe: %d traces", len(df.TraceSet)))
 		sklog.Infof("Next dataframe: %d traces", len(df.TraceSet))
 		before := len(df.TraceSet)
 		// Filter out Traces with insufficient data. I.e. we need 50% or more data
@@ -254,6 +278,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		df.FilterOut(tooMuchMissingData)
 		after := len(df.TraceSet)
 		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Delta: %d", before, after, before-after)
+		p.request.Progress.Message("Filtering", message)
 		sklog.Info(message)
 		if after == 0 {
 			continue
@@ -276,6 +301,7 @@ func (p *regressionDetectionProcess) run(ctx context.Context) error {
 		var summary *clustering2.ClusterSummaries
 		switch p.request.Alert.Algo {
 		case types.KMeansGrouping:
+			p.request.Progress.Message("K", fmt.Sprintf("%d", k))
 			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 		case types.StepFitGrouping:
 			summary, err = StepFit(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)

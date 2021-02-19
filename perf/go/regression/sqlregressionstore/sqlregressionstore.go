@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
@@ -58,7 +59,9 @@ var statements = map[statement]string{
 // SQLRegressionStore implements the regression.Store interface.
 type SQLRegressionStore struct {
 	// db is the underlying database.
-	db *pgxpool.Pool
+	db                         *pgxpool.Pool
+	regressionFoundCounterLow  metrics2.Counter
+	regressionFoundCounterHigh metrics2.Counter
 }
 
 // New returns a new *SQLRegressionStore.
@@ -67,7 +70,9 @@ type SQLRegressionStore struct {
 // called.
 func New(db *pgxpool.Pool) (*SQLRegressionStore, error) {
 	return &SQLRegressionStore{
-		db: db,
+		db:                         db,
+		regressionFoundCounterLow:  metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "low"}),
+		regressionFoundCounterHigh: metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "high"}),
 	}, nil
 }
 
@@ -113,6 +118,7 @@ func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.Com
 			r.HighStatus.Status = regression.Untriaged
 		}
 	})
+	s.regressionFoundCounterHigh.Inc(1)
 	return ret, err
 
 }
@@ -130,6 +136,7 @@ func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.Comm
 			r.LowStatus.Status = regression.Untriaged
 		}
 	})
+	s.regressionFoundCounterLow.Inc(1)
 	return ret, err
 }
 

@@ -82,13 +82,13 @@ func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet())
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), ExpandBaseAlertByGroupBy)
 	require.NoError(t, err)
 	assert.Equal(t, progress.Running, req.Progress.Status())
 	var b bytes.Buffer
 	err = req.Progress.JSON(&b)
 	require.NoError(t, err)
-	assert.Equal(t, "{\"status\":\"Running\",\"messages\":[{\"key\":\"Stage\",\"value\":\"Loading data to analyze\"}],\"url\":\"\"}\n", b.String())
+	assert.Contains(t, b.String(), "Failed to find enough data for query")
 }
 
 func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
@@ -103,7 +103,7 @@ func TestAllRequestsFromBaseRequest_WithValidGroupBy_Success(t *testing.T) {
 		"config": []string{"8888", "565"},
 		"arch":   []string{"x86", "arm"},
 	}
-	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, ExpandBaseAlertByGroupBy)
 	assert.Len(t, allRequests, 2)
 	assert.Contains(t, []string{"arch=x86&config=8888", "arch=x86&config=565"}, allRequests[0].Query())
 }
@@ -120,7 +120,7 @@ func TestAllRequestsFromBaseRequest_WithInvalidGroupBy_NoRequestsReturned(t *tes
 		"config": []string{"8888", "565"},
 		"arch":   []string{"x86", "arm"},
 	}
-	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, ExpandBaseAlertByGroupBy)
 	assert.Empty(t, allRequests)
 }
 
@@ -136,7 +136,26 @@ func TestAllRequestsFromBaseRequest_WithoutGroupBy_BaseRequestReturnedUnchanged(
 		"config": []string{"8888", "565"},
 		"arch":   []string{"x86", "arm"},
 	}
-	allRequests := allRequestsFromBaseRequest(baseRequest, ps)
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, ExpandBaseAlertByGroupBy)
+	// With no GroupBy a slice with just the baseRequest is returned.
+	assert.Len(t, allRequests, 1)
+	// Intentionally comparing pointers.
+	assert.Same(t, baseRequest, allRequests[0])
+}
+
+func TestAllRequestsFromBaseRequest_WithGroupBy_DoNoExpandBaseAlertByGroupBySuppressedGroupBy(t *testing.T) {
+	unittest.SmallTest(t)
+
+	baseRequest := NewRegressionDetectionRequest()
+	alert := alerts.NewConfig()
+	alert.GroupBy = "config"
+	alert.Query = "arch=x86"
+	baseRequest.Alert = alert
+	ps := paramtools.ReadOnlyParamSet{
+		"config": []string{"8888", "565"},
+		"arch":   []string{"x86", "arm"},
+	}
+	allRequests := allRequestsFromBaseRequest(baseRequest, ps, DoNotExpandBaseAlertByGroupBy)
 	// With no GroupBy a slice with just the baseRequest is returned.
 	assert.Len(t, allRequests, 1)
 	// Intentionally comparing pointers.

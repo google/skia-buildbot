@@ -273,21 +273,8 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 							success = false
 							return
 						}
-						matchingConfigs := []*alerts.Alert{}
-						for _, config := range configs {
-							q, err := query.NewFromString(config.Query)
-							if err != nil {
-								sklog.Errorf("An alert %q has an invalid query %q: %s", config.IDAsString, config.Query, err)
-								continue
-							}
-							// If any traceID matches the query in the alert then it's an alert we should run.
-							for _, key := range ie.TraceIDs {
-								if q.Matches(key) {
-									matchingConfigs = append(matchingConfigs, config)
-									break
-								}
-							}
-						}
+
+						matchingConfigs := matchingConfigsFromTraceIDs(ie.TraceIDs, configs)
 
 						// If any configs match then emit the configsAndParamSet.
 						if len(matchingConfigs) > 0 {
@@ -336,6 +323,53 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 		}
 	}()
 	return ret
+}
+
+// matchingConfigsFromTraceIDs returns a slice of Alerts that match at least one
+// trace from the given traceIDs slice.
+//
+// Note that the Alerts returned may contain more restrictive Query values if
+// the original Alert contains GroupBy parameters, while the original Alert
+// remains unchanged.
+func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) []*alerts.Alert {
+	matchingConfigs := []*alerts.Alert{}
+	if len(traceIDs) == 0 {
+		return matchingConfigs
+	}
+	for _, config := range configs {
+		q, err := query.NewFromString(config.Query)
+		if err != nil {
+			sklog.Errorf("An alert %q has an invalid query %q: %s", config.IDAsString, config.Query, err)
+			continue
+		}
+		// If any traceID matches the query in the alert then it's an alert we should run.
+		for _, key := range traceIDs {
+			if q.Matches(key) {
+				parsed, err := query.ParseKey(key)
+				if err != nil {
+					continue
+				}
+				if config.GroupBy == "" {
+					matchingConfigs = append(matchingConfigs, config)
+				} else {
+					// If we are in a GroupBy Alert then we should be able to
+					// restrict the number of traces we look at by making the
+					// Query more precise.
+					query := config.Query
+					for _, key := range config.GroupedBy() {
+						if value, ok := parsed[key]; ok {
+							query += fmt.Sprintf("&%s=%s", key, value)
+						}
+					}
+					configCopy := *config
+					configCopy.Query = query
+					matchingConfigs = append(matchingConfigs, &configCopy)
+				}
+				break
+			}
+		}
+	}
+	return matchingConfigs
 }
 
 // Run starts the continuous running of clustering over the last numCommits
@@ -412,7 +446,15 @@ func (c *Continuous) Run(ctx context.Context) {
 			req.Alert = cfg
 			req.Domain = domain
 
-			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider()); err != nil {
+			expandBaseRequest := regression.ExpandBaseAlertByGroupBy
+			if c.flags.EventDrivenRegressionDetection {
+				// Alert configs generated through
+				// EventDrivenRegressionDetection are already given more precise
+				// queries that take into account their GroupBy values and the
+				// traces they matched.
+				expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
+			}
+			if err := regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest); err != nil {
 				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 			}
 

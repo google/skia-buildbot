@@ -347,13 +347,13 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 				}
 			}
 		}
-		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d", total, steps, numStepsNoData)
+		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d Query: %v", total, steps, numStepsNoData, q.String())
 
 		if total == n {
 			break
 		}
 
-		progress.Message("Step", fmt.Sprintf("%d/%d", steps, steps+1))
+		progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", steps, total, n))
 		steps += 1
 
 		// Now step back a full tile.
@@ -488,7 +488,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 			break
 		}
 
-		progress.Message("Step", fmt.Sprintf("%d/%d", steps, steps+1))
+		progress.Message("Tiles", fmt.Sprintf("Tiles searched: %d. Found %d/%d points.", steps, total, n))
 		steps += 1
 
 		endIndex = endIndex.Add(-b.tileSize)

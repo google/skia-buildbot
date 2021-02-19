@@ -207,6 +207,24 @@ groups:
       '
 
 # Perf
+  - alert: AndroidIngestStalled
+    expr: rate(ack[30m]) < 0.01
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'The Android Perf instances that run using --event_driven_regression_detection have stopped receiving data. Confirm via https://android-metric-ingest.skia.org/ that data is arriving.'
+
+  - alert: AndroidRegressionDetectionTooSlow
+    expr: sum(rate(perf_regression_store_found{app=~"perf-clustering-android|skiaperf|skiaperf-android-x"}[1h])) by (app) < 0.01
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'Perf failed to find any regressions in an hour. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#regression_detection_slow'
+
   - alert: AndroidIngestFailures
     expr: rate(process_failures[1h]) > 0.01
     labels:
