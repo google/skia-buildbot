@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -15,8 +14,7 @@ import (
 func TestMain_DifferentFlags_ChangeOutput(t *testing.T) {
 	unittest.SmallTest(t)
 
-	testdataDir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	testdataDir := testutils.TestDataDir(t)
 	oldFile := filepath.Join(testdataDir, "nanobench_old.json")
 	newFile := filepath.Join(testdataDir, "nanobench_new.json")
 
@@ -38,8 +36,7 @@ func check(t *testing.T, name string, args ...string) {
 		var stdout bytes.Buffer
 		actualMain(&stdout)
 
-		golden, err := testutils.ReadFile(name + ".golden")
-		require.NoError(t, err)
+		golden := testutils.ReadFile(t, name+".golden")
 		assert.Equal(t, golden, stdout.String())
 	})
 }

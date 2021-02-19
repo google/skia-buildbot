@@ -89,8 +89,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 
@@ -166,8 +165,7 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-custom-gold-url.example.com").Build()
 
@@ -245,8 +243,7 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
@@ -314,8 +311,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
@@ -415,8 +411,7 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	keysFile := filepath.Join(workDir, "keys.json")
 	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
@@ -475,8 +470,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).Build()
 
@@ -569,8 +563,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
 
@@ -675,8 +668,7 @@ func TestImgTest_Check_CloseEnoughForFuzzyMatch_ExitCodeZero(t *testing.T) {
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", a01Digest).
 		LatestPositive(a01Digest, paramtools.Params{
@@ -715,8 +707,7 @@ func TestImgTest_Check_TooDifferentOnChangelist_ExitCodeOne(t *testing.T) {
 
 	workDir := t.TempDir()
 	setupAuthWithGSUtil(t, workDir)
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", a01Digest).
 		LatestPositive(a01Digest, paramtools.Params{
