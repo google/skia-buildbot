@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c55e42ab_2f2a67f3",
+        "filename": "perf/go/regression/detector.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-19T18:45:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "949b0bc9_967b5863",
+      "range": {
+        "startLine": 143,
+        "startChar": 58,
+        "endLine": 143,
+        "endChar": 61
+      },
+      "revId": "1be69b4decde5dd6cc36a1f4f98bfac1b1c48a3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "76370241_36110877",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-02-19T17:46:38Z",
       "side": 1,
       "message": "I remembered https://pkg.go.dev/github.com/stretchr/testify@v1.7.0/assert#Same is a thing for this case, if you prefer.",
+      "range": {
+        "startLine": 143,
+        "startChar": 17,
+        "endLine": 143,
+        "endChar": 28
+      },
+      "revId": "1be69b4decde5dd6cc36a1f4f98bfac1b1c48a3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "16d5e364_3d5f6024",
+        "filename": "perf/go/regression/detector_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-19T18:45:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "76370241_36110877",
       "range": {
         "startLine": 143,
         "startChar": 17,
