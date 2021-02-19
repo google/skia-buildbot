@@ -157,8 +157,15 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	}
 	rightDigests = append(rightDigests, addRight...)
 
-	sCtx, computeSpan := trace.StartSpan(ctx, "computeAndReportDiffsInParallel")
-	defer computeSpan.End()
+	if err := w.computeAndReportDiffsInParallel(ctx, grouping, leftDigests, rightDigests); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+func (w *WorkerImpl) computeAndReportDiffsInParallel(ctx context.Context, grouping paramtools.Params, leftDigests []types.Digest, rightDigests []types.Digest) error {
+	ctx, span := trace.StartSpan(ctx, "computeAndReportDiffsInParallel")
+	defer span.End()
 	// Compute diffs in parallel. To do this, we spin up an error group that uses a channel to
 	// distribute work and an error group that listens to the output channel and uploads in batches.
 	// This way, we have some way to stream results and the metrics will be smoother in case a lot
@@ -167,11 +174,23 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	// We expect pushing to SQL to be much faster than diffing, so we don't want the newMetrics
 	// chan to be blocking computation. As such, make the buffer size decently big.
 	newMetrics := make(chan schema.DiffMetricRow, 2*reportingBatchSize)
-	computeGroup, eCtx := errgroup.WithContext(sCtx)
+	computeGroup, eCtx := errgroup.WithContext(ctx)
 	for i := 0; i < diffingRoutines; i++ {
 		computeGroup.Go(func() error {
-			// Worker goroutines will run until the channel is empty and closed.
-			for pair := range availableWork {
+			// Worker goroutines will run until the channel is empty and closed or the errCtx
+			// is Done.
+			var pair digestPair
+			var ok bool
+			for { // We can't do a simple for range loop here because that won't respect the
+				// context (e.g. timeout).
+				select {
+				case <-eCtx.Done():
+					return eCtx.Err()
+				case pair, ok = <-availableWork:
+					if !ok {
+						return nil
+					}
+				}
 				// If either image is known to be bad, skip this work
 				_, bad1 := w.badDigestsCache.Get(string(pair.left))
 				_, bad2 := w.badDigestsCache.Get(string(pair.right))
@@ -191,14 +210,26 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 				}
 				newMetrics <- nm
 			}
-			return nil
 		})
 	}
-	reportGroup, eCtx2 := errgroup.WithContext(sCtx)
+	reportGroup, eCtx2 := errgroup.WithContext(ctx)
 	reportGroup.Go(func() error {
-		// This goroutine will run until the newMetrics channel is empty and closed.
+		// This goroutine will run until the newMetrics channel is empty and closed or the errCtx
+		// is Done.
 		buffer := make([]schema.DiffMetricRow, 0, reportingBatchSize)
-		for nm := range newMetrics {
+		var nm schema.DiffMetricRow
+		var ok bool
+	loop:
+		for { // We can't do a simple for range loop here because that won't respect the
+			// context (e.g. timeout).
+			select {
+			case <-eCtx2.Done():
+				return eCtx2.Err()
+			case nm, ok = <-newMetrics:
+				if !ok {
+					break loop
+				}
+			}
 			buffer = append(buffer, nm)
 			if len(buffer) >= reportingBatchSize {
 				if err := w.writeMetrics(eCtx2, buffer); err != nil {
@@ -217,6 +248,8 @@ func (w *WorkerImpl) CalculateDiffs(ctx context.Context, grouping paramtools.Par
 	// Now that the goroutines are started, fill up the availableWork channel and close it.
 	workAssigned, err := w.calculateWorkNeeded(ctx, availableWork, leftDigests, rightDigests)
 	if err != nil {
+		close(availableWork) // kill outstanding goroutines
+		close(newMetrics)
 		return skerr.Wrapf(err, "calculating work needed and using existing metrics")
 	}
 	close(availableWork)
