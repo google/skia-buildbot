@@ -58,16 +58,22 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditlog.Log(r, "dryrun", req)
+	d.tracker.Add(req.Progress)
+
 	if req.Alert.Query == "" {
-		httputils.ReportError(w, fmt.Errorf("Query was empty."), "A Query is required.", http.StatusInternalServerError)
+		req.Progress.Error("Query must not be empty.")
+		if err := req.Progress.JSON(w); err != nil {
+			sklog.Errorf("Failed to encode paramset: %s", err)
+		}
 		return
 	}
 	if err := req.Alert.Validate(); err != nil {
-		httputils.ReportError(w, err, "Invalid Alert config.", http.StatusInternalServerError)
+		req.Progress.Error(err.Error())
+		if err := req.Progress.JSON(w); err != nil {
+			sklog.Errorf("Failed to encode paramset: %s", err)
+		}
 		return
 	}
-
-	d.tracker.Add(req.Progress)
 
 	foundRegressions := map[types.CommitNumber]*regression.Regression{}
 
@@ -122,7 +128,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier())
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy)
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {
