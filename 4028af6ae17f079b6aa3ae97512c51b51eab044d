@@ -16,6 +16,29 @@
       "message": "Let me know if there are any HTML/CSS conventions I\u0027m breaking or if there is a better way of doing this.",
       "revId": "4028af6ae17f079b6aa3ae97512c51b51eab044d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d33e8929_b359dc44",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-19T19:29:52Z",
+      "side": 1,
+      "message": "need closing } ?",
+      "range": {
+        "startLine": 471,
+        "startChar": 31,
+        "endLine": 471,
+        "endChar": 32
+      },
+      "revId": "4028af6ae17f079b6aa3ae97512c51b51eab044d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
