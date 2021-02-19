@@ -18,7 +18,11 @@ import (
 // be enough for the average test.
 var superVerbose = false
 
-// Equal fails the test if the two objects do not pass reflect.DeepEqual.
+// Equal fails the test if the two objects do not pass a modified version of reflect.DeepEqual.
+// The modification (see infra/go/deepequal) will use the .Equal() method if defined on the type.
+// This is necessary for comparing structs that might differ on unexported fields, but be
+// practically the same. This concretely comes up often when deserialzing a time.Time, but applies
+// in a few other situations as well.
 func Equal(t sktest.TestingT, expected, actual interface{}) {
 	if !deepequal.DeepEqual(expected, actual) {
 		// The formatting is inspired by stretchr/testify's require.Equal() output.
