@@ -304,16 +304,16 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 type Calculator interface {
 	// CalculateDiffs recomputes all diffs for the current grouping, including any digests provided.
 	// Images (digests) will be sorted into two buckets, the left and right bucket. The left bucket
-	// is a superset of the right bucket. The right bucket consists of "triaged, not ignored" images
+	// is a superset of the right bucket. The right bucket consists of all triaged images
 	// for this grouping. The left bucket consists of *all* digests seen for this grouping.
 	// During search, a user will want to see the closest positive and negative image for a given
 	// image. By splitting the images into two different buckets, we do less precomputation. For
 	// example, if there are several flaky traces in a grouping, it can be that 10% of the overall
-	// images for a grouping are *not* ignored (and are mostly triaged) and 90% are ignored (because
-	// the trace produces something different during most commits). In such a case, computing a
-	// given digest from an ignored trace against a different digest from an ignored trace is a
-	// waste since it won't show up in the search results. By splitting the images into two buckets,
-	// we can dramatically reduce the computation done over a naive N x N comparison scheme.
+	// images for a grouping are triaged and 90% are *not* (these typically come from ignored traces
+	// because they produce something different during most commits). In such a case, computing a
+	// given untriaged digest from a trace against a different untriaged digest is a waste since it
+	// won't show up in the search results. By splitting the images into two buckets, we can
+	// dramatically reduce the computation done over a naive N x N comparison scheme.
 	CalculateDiffs(ctx context.Context, grouping paramtools.Params, additionalLeft, additionalRight []types.Digest) error
 }
 
@@ -335,6 +335,6 @@ type WorkerMessage struct {
 	// AdditionalRight are digests beyond those that have been seen on the primary branch that
 	// should be included in the "right bucket" of diff calculations. It expected that tryjob results
 	// should set these to be non-empty, as well as when running in compatibility mode with the
-	//previous system. The digests in this bucket should be from not-ignored traces.
+	//previous system. The digests in this bucket should be triaged on the primary branch.
 	AdditionalRight []types.Digest `json:"additional_right,omitempty"`
 }
