@@ -139,6 +139,13 @@ const displayLoaded = (ele) => html`
     <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
         @input=${ele._onScrub} @change=${ele._onScrubEnd}>
   </div>
+  <collapse-sk id=volume closed>
+    <p>
+      Volume:
+    </p>
+    <input id=volume-slider type=range min=0 max=1 step=.05 value=1
+      @input=${ele._onVolumeChange}>
+  </collapse-sk>
 </div>
 <collapse-sk id=embed closed>
   <p>
@@ -461,6 +468,10 @@ define('skottie-sk', class extends HTMLElement {
         }
       }
 
+      if (sounds.map.size > 0) {
+        this._toggleVolumeSlider();
+      }
+
       // check fonts
       fonts.forEach(font => {
         if (!assets[font.fName]) {
@@ -755,6 +766,10 @@ define('skottie-sk', class extends HTMLElement {
     this._scrubbing = false;
   }
 
+  _onVolumeChange(e) {
+    this._state.soundMap.setVolume(e.currentTarget.value);
+  }
+
   _rewind(e) {
     // Handle rewinding when paused.
     this._wasmTimePassed = 0;
@@ -803,6 +818,11 @@ define('skottie-sk', class extends HTMLElement {
     this._showLottie = !this._showLottie;
     this._stateChanged();
     this.render();
+  }
+
+  _toggleVolumeSlider() {
+    let collapse = $$('#volume', this);
+    collapse.closed = !collapse;
   }
 
   _upload() {
