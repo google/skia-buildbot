@@ -21,6 +21,11 @@ export function SoundMap() {
       player.seek(-1);
     }
   }
+  this.setVolume = function(v) {
+    for(const player of this.map.values()) {
+      player.volume(v);
+    }
+  }
 }
 
 /**
@@ -54,5 +59,8 @@ export function AudioPlayer(source) {
         }
       }
     }
+  };
+  this.volume = function(v) {
+    this.howl.volume(v);
   };
 }
