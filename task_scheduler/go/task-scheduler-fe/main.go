@@ -296,7 +296,15 @@ func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+
+	// The Twirp endpoint doesn't understand OPTIONS requests, which means it can't do CORS
+	// handling from httputils.CorsHandler. It needs a wrapper that can handle OPTIONS as well.
+	// "github.com/rs/cors" seems to be a convenient library that adds this.
+	
+
 	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).HandlerFunc(httputils.CorsHandler(srv.ServeHTTP))
+
+
 	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
 	r.HandleFunc("/job/{id}", httputils.OriginTrial(jobHandler, *local))
 	r.HandleFunc("/job/{id}/timeline", httputils.OriginTrial(jobTimelineHandler, *local))

@@ -20,6 +20,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/rs/cors"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/metrics2"
@@ -492,6 +493,17 @@ func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		h(w, r)
 	}
+}
+
+// CorsHandlerWithOptions wraps the specified HTTP handler with a handler that can handle
+// OPTIONS calls (needed for CORS). Eg: The twirp handler does not handle OPTIONS
+// calls (https://github.com/twitchtv/twirp/issues/210).
+func CorsHandlerWithOptions(handler http.Handler) http.Handler {
+	corsWrapper := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		Debug:          true,
+	})
+	return corsWrapper.Handler(handler)
 }
 
 // CorsCredentialsHandler is an HTTPS handler function which adds the necessary header
