@@ -21,8 +21,7 @@ func TestFS(t *testing.T) {
 	repoURL := "https://fake.repo.git"
 	urlMock := mockhttpclient.NewURLMock()
 	repo := gitiles.NewRepo(repoURL, urlMock.Client())
-	tmp, cleanup := shared_tests.MakeTestFiles(t)
-	defer cleanup()
+	tmp := shared_tests.MakeTestFiles(t)
 	gd := git.GitDir(tmp)
 	_, err := gd.Git(ctx, "init")
 	require.NoError(t, err)

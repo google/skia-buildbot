@@ -111,17 +111,6 @@ func RemoveAll(t sktest.TestingT, fp string) {
 	require.NoError(t, os.RemoveAll(fp))
 }
 
-// TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
-// function to defer.
-// TODO(kjlubick) replace this with testing.TempDir()
-func TempDir(t sktest.TestingT) (string, func()) {
-	d, err := ioutil.TempDir("", "testutils")
-	require.NoError(t, err)
-	return d, func() {
-		RemoveAll(t, d)
-	}
-}
-
 // MarshalJSON encodes the given interface to a JSON string.
 func MarshalJSON(t sktest.TestingT, i interface{}) string {
 	b, err := json.Marshal(i)

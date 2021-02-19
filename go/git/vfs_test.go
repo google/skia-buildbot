@@ -13,9 +13,7 @@ func TestFS(t *testing.T) {
 	unittest.MediumTest(t)
 
 	ctx := context.Background()
-	tmp, cleanup := shared_tests.MakeTestFiles(t)
-	defer cleanup()
-
+	tmp := shared_tests.MakeTestFiles(t)
 	gd := GitDir(tmp)
 	_, err := gd.Git(ctx, "init")
 	require.NoError(t, err)

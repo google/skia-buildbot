@@ -20,4 +20,5 @@ type TestingT interface {
 	SkipNow()
 	Skipf(string, ...interface{})
 	Skipped() bool
+	TempDir() string
 }

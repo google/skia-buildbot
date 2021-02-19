@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vfs"
 )
 
@@ -84,10 +83,10 @@ func TestFS(ctx context.Context, t sktest.TestingT, fs vfs.FS) {
 
 // MakeTestFiles creates a temporary directory containing the files and
 // directories expected by TestFS.
-func MakeTestFiles(t sktest.TestingT) (string, func()) {
-	tmp, cleanup := testutils.TempDir(t)
+func MakeTestFiles(t sktest.TestingT) string {
+	tmp := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(tmp, "subdir"), os.ModePerm))
 	require.NoError(t, ioutil.WriteFile(filepath.Join(tmp, "rootFile"), []byte("rootFile contents"), os.ModePerm))
 	require.NoError(t, ioutil.WriteFile(filepath.Join(tmp, "subdir", "subDirFile"), []byte("subDirFile contents"), os.ModePerm))
-	return tmp, cleanup
+	return tmp
 }
