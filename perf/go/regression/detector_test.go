@@ -82,7 +82,7 @@ func TestProcessRegressions_BadQueryValue_ReturnsNil(t *testing.T) {
 	}
 
 	dfb := &mocks.DataFrameBuilder{}
-	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet())
+	err := ProcessRegressions(context.Background(), req, nil, nil, nil, dfb, paramtools.NewReadOnlyParamSet(), true)
 	require.NoError(t, err)
 	assert.Equal(t, progress.Running, req.Progress.Status())
 	var b bytes.Buffer
