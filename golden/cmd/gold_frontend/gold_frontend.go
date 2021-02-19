@@ -1,4 +1,4 @@
-// skiacorrectness implements the process that exposes a RESTful API used by the JS frontend.
+// The goldfrontend executable is the process that exposes a RESTful API used by the JS frontend.
 package main
 
 import (
