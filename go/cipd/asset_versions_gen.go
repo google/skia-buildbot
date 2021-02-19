@@ -128,6 +128,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/vpython/${platform}",
 		Version: "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378",
 	},
+	"skia/bots/bazel": {
+		Path:    "bazel",
+		Name:    "skia/bots/bazel",
+		Version: "version:2",
+	},
 	"skia/bots/cockroachdb": {
 		Path:    "cockroachdb",
 		Name:    "skia/bots/cockroachdb",
