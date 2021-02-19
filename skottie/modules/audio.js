@@ -18,7 +18,7 @@ export function SoundMap() {
   };
   this.pause = function() {
     for(const player of this.map.values()) {
-      player.seek(-1);
+      player.pause();
     }
   }
   this.setVolume = function(v) {
@@ -41,6 +41,12 @@ export function AudioPlayer(source) {
     src: [source],
     preload: true
   });
+  this.pause = function() {
+    if(this.playing) {
+      this.howl.pause();
+      this.playing = false
+    }
+  }
   this.seek = function(t) {
     if (!this.playing && t >=0) {
       this.howl.play();
@@ -49,7 +55,7 @@ export function AudioPlayer(source) {
 
     if (this.playing) {
       if (t < 0) {
-        this.howl.pause();
+        this.howl.stop();
         this.playing = false;
       } else {
         const playerPos = this.howl.seek();
