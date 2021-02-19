@@ -20,6 +20,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/rs/cors"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/metrics2"
@@ -492,6 +493,18 @@ func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		h(w, r)
 	}
+}
+
+// AddCorsMiddleware wraps the specified HTTP handler with a handler that applies the
+// CORS specification on the request, and adds relevant CORS headers as necessary.
+// This is needed for some handlers that do not have this middleware. Eg: the twirp
+// handler (https://github.com/twitchtv/twirp/issues/210).
+func AddCorsMiddleware(handler http.Handler) http.Handler {
+	corsWrapper := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		Debug:          true,
+	})
+	return corsWrapper.Handler(handler)
 }
 
 // CorsCredentialsHandler is an HTTPS handler function which adds the necessary header

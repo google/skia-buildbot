@@ -296,7 +296,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).HandlerFunc(httputils.CorsHandler(srv.ServeHTTP))
+	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(httputils.AddCorsMiddleware(srv))
 	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
 	r.HandleFunc("/job/{id}", httputils.OriginTrial(jobHandler, *local))
 	r.HandleFunc("/job/{id}/timeline", httputils.OriginTrial(jobTimelineHandler, *local))
