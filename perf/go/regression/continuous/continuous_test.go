@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
@@ -59,4 +60,45 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 	// Confirm we continue to get items from the channel.
 	cnp = <-ch
 	assert.Equal(t, c.paramsProvider(), cnp.paramset)
+}
+
+func TestMatchingConfigsFromTraceIDs_OneConfigThatMatchesZeroTraces_ReturnsEmptySlice(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config := alerts.NewConfig()
+	config.Query = "arch=some-unknown-arch"
+	traceIDs := []string{
+		",arch=x86,config=8888,",
+		",arch=arm,config=8888,",
+	}
+	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config})
+	require.Empty(t, matchingConfigs)
+}
+
+func TestMatchingConfigsFromTraceIDs_OneConfigThatMatchesOneTrace_ReturnsTheOneConfig(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config := alerts.NewConfig()
+	config.Query = "arch=x86"
+	traceIDs := []string{
+		",arch=x86,config=8888,",
+		",arch=arm,config=8888,",
+	}
+	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config})
+	require.Len(t, matchingConfigs, 1)
+}
+
+func TestMatchingConfigsFromTraceIDs_TwoConfigsThatMatchesOneTrace_ReturnsBothConfigs(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config1 := alerts.NewConfig()
+	config1.Query = "arch=x86"
+	config2 := alerts.NewConfig()
+	config2.Query = "arch=arm"
+	traceIDs := []string{
+		",arch=x86,config=8888,",
+		",arch=arm,config=8888,",
+	}
+	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config1, config2})
+	require.Len(t, matchingConfigs, 2)
 }

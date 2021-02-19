@@ -922,6 +922,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	}
 
 	plan, err := q.QueryPlan(ps)
+	sklog.Infof("Query Plan: %v", plan)
 	if err != nil {
 		// Not an error, we just won't match anything in this tile.
 		//
