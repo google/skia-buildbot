@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3ccd6415_53bde1b7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 77
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-19T18:16:32Z",
+      "side": 1,
+      "message": "Please take another look. As discussed yesterday, I split this tryjob into two: local and RBE.\n\nI also added a \"go generate\" step that checks that there are no diffs (as per go/skia-infra-bazel), which I forgot to do before.",
+      "revId": "1e4ac949b036e1d0d77427069cc4f494ba9ea19b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}

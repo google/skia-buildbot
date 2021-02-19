@@ -26,6 +26,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "1640b38b_bd9bb5cc",
+        "filename": "go/cipd/asset_versions_gen.go",
+        "patchSetId": 46
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-19T18:16:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43d1f291_6db0d57c",
+      "range": {
+        "startLine": 134,
+        "startChar": 20,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "a8781ec8442e3d9c01a73813429f33674eeaf8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "4c99e3dc_8f6a5451",
         "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
         "patchSetId": 46
@@ -49,6 +73,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "6f86a089_287e39f5",
+        "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
+        "patchSetId": 46
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-19T18:16:32Z",
+      "side": 1,
+      "message": "Added a note, thanks!",
+      "parentUuid": "4c99e3dc_8f6a5451",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 3
+      },
+      "revId": "a8781ec8442e3d9c01a73813429f33674eeaf8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "bedc6d94_94e97da1",
         "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
         "patchSetId": 46
@@ -60,6 +108,30 @@
       "writtenOn": "2021-02-18T13:21:21Z",
       "side": 1,
       "message": "Would we get any benefit from using a named cache here?  It would also live under /mnt/pd0 and could persist between tasks and potentially speed things up.",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 83
+      },
+      "revId": "a8781ec8442e3d9c01a73813429f33674eeaf8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f60ac8cc_d3efc5d0",
+        "filename": "infra/bots/task_drivers/bazel_build/bazel_build.go",
+        "patchSetId": 46
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-19T18:16:32Z",
+      "side": 1,
+      "message": "I tried that, but for some reason the Swarming task dies with the following error:\n\n  61695 2021-02-19 06:08:32.712 E: internal failure: \u0027utf8\u0027 codec can\u0027t decode byte 0xc4 in \n  position 1: invalid continuation byte\n  Traceback (most recent call last):\n    File \"/b/s/swarming_bot.1.zip/client/run_isolated.py\", line 1099, in map_and_run\n      result[\u0027duration\u0027] \u003d max(time.time() - start, 0)\n    File \"/usr/lib/python2.7/contextlib.py\", line 24, in __exit__\n      self.gen.next()\n    File \"/b/s/swarming_bot.1.zip/client/run_isolated.py\", line 1829, in install_named_caches\n      named_cache.uninstall(path, name)\n    File \"/b/s/swarming_bot.1.zip/client/local_caching.py\", line 975, in uninstall\n      size \u003d _get_recursive_size(src)\n    File \"/b/s/swarming_bot.1.zip/client/local_caching.py\", line 153, in _get_recursive_size\n      st \u003d fs.lstat(os.path.join(root, f))\n    File \"/usr/lib/python2.7/posixpath.py\", line 73, in join\n      path +\u003d \u0027/\u0027 + b\n  UnicodeDecodeError: \u0027utf8\u0027 codec can\u0027t decode byte 0xc4 in position 1: invalid continuation \n  byte\n  \u0027utf8\u0027 codec can\u0027t decode byte 0xc4 in position 1: invalid continuation byte\n\nI haven\u0027t investigated the issue in any depth, but judging by the stack trace, my guess is that Bazel is populating the named cache directory with weird file names that make Python 2.7\u0027s os.path.join() function unhappy.\n\nI\u0027ll stick with a temporary directory for now. I don\u0027t anticipate the lack of a named cache to be a problem, especially after we enable RBE.",
+      "parentUuid": "bedc6d94_94e97da1",
       "range": {
         "startLine": 84,
         "startChar": 0,
