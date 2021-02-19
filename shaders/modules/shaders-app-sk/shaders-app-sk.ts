@@ -100,7 +100,7 @@ function words(str: string): {[key: string]: boolean} {
   const obj: any = {};
   str.split(/\s+/).forEach((word) => {
     if (!word) {
-      return
+      return;
     }
     obj[word] = true;
   });
@@ -158,9 +158,9 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
 const RAF_NOT_RUNNING = -1;
 
 export class ShadersAppSk extends ElementSk {
-  private width: number = 512;
+  private width: number = DEFAULT_SIZE;
 
-  private height: number = 512;
+  private height: number = DEFAULT_SIZE;
 
   private codeMirror: CodeMirror.Editor | null = null;
 
@@ -604,7 +604,6 @@ export class ShadersAppSk extends ElementSk {
     uniformsArray.forEach((val, index) => { uniformsFloat32Array[index] = val; });
 
     const shader = this.effect!.makeShaderWithChildren(uniformsFloat32Array, true, this.inputImageShaders);
-    this._render();
 
     // Allow uniform controls to update, such as uniform-timer-sk.
     this._render();
