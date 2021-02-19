@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae7b887b_7b07d1d2",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-19T20:13:11Z",
+      "side": 1,
+      "message": "Public structs and funcs need doc strings.",
+      "range": {
+        "startLine": 20,
+        "startChar": 5,
+        "endLine": 20,
+        "endChar": 11
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5a0ef795_27212d41",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-19T20:13:11Z",
+      "side": 1,
+      "message": "Make an interface for client that uses GetMulti, Ping and Set, then you could create a mock and use that mock to test healingClientImpl.\n\nSince Client also uses GetMulti, Ping, and Set you also just create a mock of Client and have client be of type \u0027Client\u0027 instead of *memcache.Client.",
+      "range": {
+        "startLine": 51,
+        "startChar": 1,
+        "endLine": 51,
+        "endChar": 7
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3d4a8ffd_a969ce55",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-19T20:13:11Z",
+      "side": 1,
+      "message": "maybeReload is called in Set and GetMulti, and if the connection dies and there are a lot of Set or Get calls, they will all be serialized on the h.clientMutex.Lock(). Not sure if that\u0027s an issue, but maybe just always spin up a background Go routine that checks for disconnects every 10s and tries to reconnect and avoid the serialization on the maybeReload() call.",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 39
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
