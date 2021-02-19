@@ -206,7 +206,15 @@ groups:
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
       '
 
-# Perf
+# 
+  - alert: AndroidIngestStalled
+    expr: rate(ack[10m]) < 0.01
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'The Android Perf instances that run using --event_driven_regression_detection have stopped receiving data. Confirm via https://android-metric-ingest.skia.org/ that data is arriving.'
   - alert: AndroidIngestFailures
     expr: rate(process_failures[1h]) > 0.01
     labels:
