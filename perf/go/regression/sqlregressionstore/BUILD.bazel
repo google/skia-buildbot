@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/regression/sqlregressionstore",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
         "//perf/go/alerts",

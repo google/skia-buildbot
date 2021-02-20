@@ -18,7 +18,6 @@ go_test(
     srcs = ["memory_test.go"],
     embed = [":memory"],
     deps = [
-        "//go/testutils",
         "//go/testutils/unittest",
         "//task_driver/go/db",
         "//task_driver/go/db/shared_tests",

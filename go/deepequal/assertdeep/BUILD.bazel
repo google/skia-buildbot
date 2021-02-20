@@ -15,14 +15,3 @@ go_library(
         "@com_github_stretchr_testify//require",
     ],
 )
-
-go_test(
-    name = "assertdeep_test",
-    srcs = ["assertdeep_test.go"],
-    embed = [":assertdeep"],
-    deps = [
-        "//go/sktest",
-        "//go/testutils",
-        "//go/testutils/unittest",
-    ],
-)

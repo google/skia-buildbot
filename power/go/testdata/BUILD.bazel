@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//go/sktest",
         "//go/testutils",
-        "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
