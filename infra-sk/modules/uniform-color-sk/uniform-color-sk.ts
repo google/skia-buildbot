@@ -29,6 +29,12 @@ export const slotToHex = (uniforms: number[], slot: number): string => {
   return s;
 };
 
+export const hexToSlot = (hexDigits: string, uniforms: number[], slot: number): void => {
+  let colorAsFloat = parseInt(hexDigits, 16) / 255;
+  colorAsFloat = Math.floor(colorAsFloat * 1000) / 1000;
+  uniforms[slot] = colorAsFloat;
+};
+
 export class UniformColorSk extends ElementSk implements UniformControl {
   private _uniform: Uniform = defaultUniform;
 
@@ -75,12 +81,9 @@ export class UniformColorSk extends ElementSk implements UniformControl {
   applyUniformValues(uniforms: number[]): void {
     // Set all three floats from the color.
     const hex = this.colorInput!.value;
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    uniforms[this.uniform.slot] = r;
-    uniforms[this.uniform.slot + 1] = g;
-    uniforms[this.uniform.slot + 2] = b;
+    hexToSlot(hex.slice(1, 3), uniforms, this.uniform.slot);
+    hexToSlot(hex.slice(3, 5), uniforms, this.uniform.slot + 1);
+    hexToSlot(hex.slice(5, 7), uniforms, this.uniform.slot + 2);
 
     // Set the alpha channel if present.
     if (this.hasAlphaChannel()) {
