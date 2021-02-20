@@ -83,7 +83,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 
 		// Parse the file.
 		params, values, gitHash, err := p.Parse(f)
-		sklog.Infof("Parse error: %s", err)
 		if err != nil {
 			if err == parser.ErrFileShouldBeSkipped {
 				skipped.Inc(1)

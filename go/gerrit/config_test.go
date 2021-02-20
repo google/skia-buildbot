@@ -77,7 +77,7 @@ func testCqSuccess(t *testing.T, cfg *Config) {
 	if cfg.CqLabelsUnsetOnCompletion {
 		UnsetLabels(ci, cfg.CqActiveLabels)
 	}
-	ci.Status = CHANGE_STATUS_MERGED
+	ci.Status = ChangeStatusMerged
 	if cfg.HasCq {
 		require.False(t, cfg.CqRunning(ci))
 		require.True(t, cfg.CqSuccess(ci))
@@ -107,7 +107,7 @@ func testCqSuccessWithHigherValues(t *testing.T, cfg *Config) {
 	if cfg.CqLabelsUnsetOnCompletion {
 		UnsetLabels(ci, cfg.CqActiveLabels)
 	}
-	ci.Status = CHANGE_STATUS_MERGED
+	ci.Status = ChangeStatusMerged
 	if cfg.HasCq {
 		require.False(t, cfg.CqRunning(ci))
 		require.True(t, cfg.CqSuccess(ci))
@@ -351,23 +351,23 @@ func testPartialCqSuccess(t *testing.T, cfg *Config) {
 }
 
 func TestConfigAndroid(t *testing.T) {
-	cfg := CONFIG_ANDROID
+	cfg := ConfigAndroid
 	testConfig(t, cfg)
 	testPartialCqSuccess(t, cfg)
 }
 
 func TestConfigANGLE(t *testing.T) {
-	testConfig(t, CONFIG_ANGLE)
+	testConfig(t, ConfigANGLE)
 }
 
 func TestConfigChromium(t *testing.T) {
-	testConfig(t, CONFIG_CHROMIUM)
+	testConfig(t, ConfigChromium)
 }
 
 func TestConfigChromiumNoCQ(t *testing.T) {
-	testConfig(t, CONFIG_CHROMIUM_NO_CQ)
+	testConfig(t, ConfigChromiumNoCQ)
 }
 
 func TestConfigLibassistant(t *testing.T) {
-	testConfig(t, CONFIG_LIBASSISTANT)
+	testConfig(t, ConfigLibAssistant)
 }

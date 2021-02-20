@@ -75,7 +75,7 @@ func (g *gerritSource) toTerms(q source.Query) []*gerrit.SearchTerm {
 		if g.st == Merged {
 			ret = append(ret,
 				gerrit.SearchOwner(q.Value),
-				gerrit.SearchStatus(gerrit.CHANGE_STATUS_MERGED))
+				gerrit.SearchStatus(gerrit.ChangeStatusMerged))
 		} else /* Reviewed */ {
 			// Omit roller generated CLs.
 			ret = append(ret, &gerrit.SearchTerm{

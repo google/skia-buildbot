@@ -27,6 +27,7 @@ const (
 	REPO_ANGLE              = "https://chromium.googlesource.com/angle/angle.git"
 	REPO_CHROMIUM           = "https://chromium.googlesource.com/chromium/src.git"
 	REPO_DEPOT_TOOLS        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
+	REPO_ESKIA              = "https://skia.googlesource.com/eskia.git"
 	REPO_LOTTIE_CI          = "https://skia.googlesource.com/lottie-ci.git"
 	REPO_PDFIUM             = "https://pdfium.googlesource.com/pdfium.git"
 	REPO_SKCMS              = "https://skia.googlesource.com/skcms.git"
@@ -41,16 +42,13 @@ const (
 )
 
 var (
-	PUBLIC_REPOS  = []string{REPO_SKIA, REPO_SKIA_INFRA, REPO_SKCMS, REPO_LOTTIE_CI}
-	PRIVATE_REPOS = []string{REPO_SKIA_INTERNAL, REPO_SKIA_INTERNAL_TEST}
-	ALL_REPOS     = append(PUBLIC_REPOS, PRIVATE_REPOS...)
-
 	// PROJECT_REPO_MAPPING is a mapping of project names to repo URLs. It
 	// is filled in during init().
 	PROJECT_REPO_MAPPING = map[string]string{}
 
 	// REPO_PROJECT_MAPPING is a mapping of repo URLs to project names.
 	REPO_PROJECT_MAPPING = map[string]string{
+		REPO_ESKIA:              "eskia",
 		REPO_LOTTIE_CI:          "lottie-ci",
 		REPO_SKCMS:              "skcms",
 		REPO_SKIA:               "skia",

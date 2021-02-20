@@ -1,4 +1,3 @@
-load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
@@ -13,16 +12,5 @@ go_library(
         "@com_github_davecgh_go_spew//spew",
         "@com_github_pmezard_go_difflib//difflib",
         "@com_github_stretchr_testify//require",
-    ],
-)
-
-go_test(
-    name = "assertdeep_test",
-    srcs = ["assertdeep_test.go"],
-    embed = [":assertdeep"],
-    deps = [
-        "//go/sktest",
-        "//go/testutils",
-        "//go/testutils/unittest",
     ],
 )

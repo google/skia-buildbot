@@ -3,7 +3,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "ref_differ",
-    srcs = ["ref_differ.go"],
+    srcs = [
+        "ref_differ.go",
+        "sql_differ.go",
+    ],
     importpath = "go.skia.org/infra/golden/go/search/ref_differ",
     visibility = ["//visibility:public"],
     deps = [
@@ -16,13 +19,19 @@ go_library(
         "//golden/go/search/common",
         "//golden/go/search/frontend",
         "//golden/go/search/query",
+        "//golden/go/sql",
         "//golden/go/types",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
     ],
 )
 
 go_test(
     name = "ref_differ_test",
-    srcs = ["ref_differ_test.go"],
+    srcs = [
+        "ref_differ_test.go",
+        "sql_differ_test.go",
+    ],
     embed = [":ref_differ"],
     deps = [
         "//go/paramtools",
@@ -36,6 +45,9 @@ go_test(
         "//golden/go/search/common",
         "//golden/go/search/frontend",
         "//golden/go/search/query",
+        "//golden/go/sql",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
         "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

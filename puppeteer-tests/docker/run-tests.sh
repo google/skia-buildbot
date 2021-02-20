@@ -140,6 +140,13 @@ cp -r /src/particles/tsconfig.json           /tests/particles
 cp -r /src/particles/modules                 /tests/particles
 cp    /src/particles/Makefile                /tests/particles
 
+mkdir /tests/shaders
+cp -r /src/shaders/package*                /tests/shaders
+cp -r /src/shaders/webpack.config.ts       /tests/shaders
+cp -r /src/shaders/tsconfig.json           /tests/shaders
+cp -r /src/shaders/modules                 /tests/shaders
+cp    /src/shaders/Makefile                /tests/shaders
+
 
 ################################################################################
 # Install node modules.                                                        #
@@ -188,6 +195,9 @@ cd /tests/particles
 npm ci
 make wasm_libs_fixed
 
+cd /tests/shaders
+npm ci
+make wasm_libs_fixed
 
 ################################################################################
 # Run tests.                                                                   #
@@ -239,4 +249,7 @@ cd /tests/scrap
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/particles
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/shaders
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts

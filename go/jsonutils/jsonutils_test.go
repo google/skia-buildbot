@@ -70,6 +70,7 @@ func TestNumber(t *testing.T) {
 		var got Number
 		err := json.Unmarshal([]byte(tc.in), &got)
 		if tc.err != "" {
+			require.Error(t, err)
 			require.Contains(t, err.Error(), tc.err)
 		} else {
 			require.NoError(t, err)
@@ -108,7 +109,7 @@ func TestTime(t *testing.T) {
 func TestMarshalStringMap_NonEmptyMap_MatchesBuiltInImpl(t *testing.T) {
 	unittest.MediumTest(t)
 	input := map[string]string{}
-	testutils.MustReadJsonFile("mediumparams.json", &input)
+	testutils.ReadJSONFile(t, "mediumparams.json", &input)
 	require.Len(t, input, 50)
 	actual := MarshalStringMap(input)
 	expected, err := json.Marshal(input)
@@ -116,7 +117,7 @@ func TestMarshalStringMap_NonEmptyMap_MatchesBuiltInImpl(t *testing.T) {
 	assert.Equal(t, expected, actual, "%s != %s", string(expected), string(actual))
 
 	input2 := map[string]string{}
-	testutils.MustReadJsonFile("smallparams.json", &input2)
+	testutils.ReadJSONFile(t, "smallparams.json", &input2)
 	require.Len(t, input2, 10)
 	actual = MarshalStringMap(input2)
 	expected, err = json.Marshal(input2)
@@ -144,7 +145,7 @@ func TestMarshalStringMap_NilMap_MatchesBuiltInImpl(t *testing.T) {
 
 func BenchmarkMarshalStringMap_10Items(b *testing.B) {
 	input := map[string]string{}
-	testutils.MustReadJsonFile("smallparams.json", &input)
+	testutils.ReadJSONFile(b, "smallparams.json", &input)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		b := MarshalStringMap(input)
@@ -156,7 +157,7 @@ func BenchmarkMarshalStringMap_10Items(b *testing.B) {
 
 func BenchmarkMarshalStringMap_50Items(b *testing.B) {
 	input := map[string]string{}
-	testutils.MustReadJsonFile("mediumparams.json", &input)
+	testutils.ReadJSONFile(b, "mediumparams.json", &input)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		b := MarshalStringMap(input)
@@ -168,7 +169,7 @@ func BenchmarkMarshalStringMap_50Items(b *testing.B) {
 
 func BenchmarkBuiltInJSONMarshal_10Items(b *testing.B) {
 	input := map[string]string{}
-	testutils.MustReadJsonFile("smallparams.json", &input)
+	testutils.ReadJSONFile(b, "smallparams.json", &input)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		b, _ := json.Marshal(input)
@@ -180,7 +181,7 @@ func BenchmarkBuiltInJSONMarshal_10Items(b *testing.B) {
 
 func BenchmarkBuiltInJSONMarshal_50Items(b *testing.B) {
 	input := map[string]string{}
-	testutils.MustReadJsonFile("mediumparams.json", &input)
+	testutils.ReadJSONFile(b, "mediumparams.json", &input)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		b, _ := json.Marshal(input)

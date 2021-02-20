@@ -31,15 +31,17 @@ type Requests struct {
 	shortcutStore shortcut.Store
 	dfBuilder     dataframe.DataFrameBuilder
 	tracker       progress.Tracker
+	paramsProvier regression.ParamsetProvider
 }
 
 // New create a new dryrun Request processor.
-func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder) *Requests {
+func New(perfGit *perfgit.Git, tracker progress.Tracker, shortcutStore shortcut.Store, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider) *Requests {
 	ret := &Requests{
 		perfGit:       perfGit,
 		shortcutStore: shortcutStore,
 		dfBuilder:     dfBuilder,
 		tracker:       tracker,
+		paramsProvier: paramsProvider,
 	}
 	return ret
 }
@@ -56,16 +58,22 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditlog.Log(r, "dryrun", req)
+	d.tracker.Add(req.Progress)
+
 	if req.Alert.Query == "" {
-		httputils.ReportError(w, fmt.Errorf("Query was empty."), "A Query is required.", http.StatusInternalServerError)
+		req.Progress.Error("Query must not be empty.")
+		if err := req.Progress.JSON(w); err != nil {
+			sklog.Errorf("Failed to encode paramset: %s", err)
+		}
 		return
 	}
 	if err := req.Alert.Validate(); err != nil {
-		httputils.ReportError(w, err, "Invalid Alert config.", http.StatusInternalServerError)
+		req.Progress.Error(err.Error())
+		if err := req.Progress.JSON(w); err != nil {
+			sklog.Errorf("Failed to encode paramset: %s", err)
+		}
 		return
 	}
-
-	d.tracker.Add(req.Progress)
 
 	foundRegressions := map[types.CommitNumber]*regression.Regression{}
 
@@ -80,7 +88,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			req.Progress.Message("Step", fmt.Sprintf("%d/%d", queryRequest.Step+1, queryRequest.TotalQueries))
-			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query))
+			req.Progress.Message("Query", fmt.Sprintf("%q", queryRequest.Query()))
 			req.Progress.Message("Stage", "Looking for regressions in query results.")
 			req.Progress.Message("Commit", fmt.Sprintf("%d", c.CommitNumber))
 			req.Progress.Message("Details", message)
@@ -120,7 +128,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder)
+		err := regression.ProcessRegressions(ctx, req, detectorResponseProcessor, d.perfGit, d.shortcutStore, d.dfBuilder, d.paramsProvier(), regression.ExpandBaseAlertByGroupBy)
 		if err != nil {
 			req.Progress.Error(err.Error())
 		} else {

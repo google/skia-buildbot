@@ -1,0 +1,17 @@
+@import '~elements-sk/themes/themes.scss';
+
+uniform-slider-sk {
+  display: block;
+  padding: 8px;
+  margin: 0;
+  border: 0;
+
+  input {
+    margin-right: 8px;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+  }
+}

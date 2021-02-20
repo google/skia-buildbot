@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"github.com/gorilla/mux"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"golang.org/x/time/rate"
@@ -552,6 +554,14 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
+	var span *trace.Span
+	if r.Form.Get("use_sql") != "" {
+		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+		ctx, span = trace.StartSpan(ctx, "SearchHandler_sql")
+	} else {
+		ctx, span = trace.StartSpan(ctx, "SearchHandler_old")
+	}
+	defer span.End()
 
 	searchResponse, err := wh.SearchAPI.Search(ctx, q)
 	if err != nil {
@@ -671,6 +681,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to parse form values", http.StatusInternalServerError)
 		return
 	}
+	// TODO(kjlubick) require corpus
 	test := r.Form.Get("test")
 	left := r.Form.Get("left")
 	right := r.Form.Get("right")
@@ -690,7 +701,11 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
+	ctx := r.Context()
+	if r.Form.Get("use_sql") != "" {
+		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+	}
+	ret, err := wh.SearchAPI.DiffDigests(ctx, types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to compare digests", http.StatusInternalServerError)
 		return
@@ -1048,9 +1063,18 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	testName := testNames[0]
+	ctx := r.Context()
+	var span *trace.Span
+	if r.Form.Get("use_sql") != "" {
+		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
+		ctx, span = trace.StartSpan(ctx, "ClusterDiff_sql")
+	} else {
+		ctx, span = trace.StartSpan(ctx, "ClusterDiff_old")
+	}
+	defer span.End()
 
 	idx := wh.Indexer.GetIndex()
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), &q)
+	searchResponse, err := wh.SearchAPI.Search(ctx, &q)
 	if err != nil {
 		httputils.ReportError(w, err, "Search for digests failed.", http.StatusInternalServerError)
 		return

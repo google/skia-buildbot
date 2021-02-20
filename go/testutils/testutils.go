@@ -12,9 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
-	"sync"
-	"testing"
 	"text/template"
 	"time"
 
@@ -35,16 +32,12 @@ var (
 
 // TestDataDir returns the path to the caller's testdata directory, which
 // is assumed to be "<path to caller dir>/testdata".
-func TestDataDir() (string, error) {
+func TestDataDir(t sktest.TestingT) string {
 	_, thisFile, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
-	}
+	require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
 	for skip := 0; ; skip++ {
 		_, file, _, ok := runtime.Caller(skip)
-		if !ok {
-			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
-		}
+		require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
 		if file != thisFile {
 			// Under Bazel, the path returned by runtime.Caller() is relative to the workspace's root
 			// directory (e.g. "go/testutils"). We prepend this with the absolute path to the runfiles
@@ -56,82 +49,43 @@ func TestDataDir() (string, error) {
 				file = filepath.Join(bazel.RunfilesDir(), file)
 			}
 
-			return filepath.Join(filepath.Dir(file), "testdata"), nil
+			return filepath.Join(filepath.Dir(file), "testdata")
 		}
 	}
 }
 
-func readFile(filename string) (io.ReadCloser, error) {
-	dir, err := TestDataDir()
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	f, err := os.Open(filepath.Join(dir, filename))
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	return f, nil
-}
-
 // ReadFileBytes reads a file from the caller's testdata directory and returns its contents as a
 // slice of bytes.
-func ReadFileBytes(filename string) ([]byte, error) {
-	f, err := readFile(filename)
-	if err != nil {
-		return nil, err
-	}
+func ReadFileBytes(t sktest.TestingT, filename string) []byte {
+	f := GetReader(t, filename)
 	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	return b, nil
+	require.NoError(t, err, "Could not read %s: %v", filename)
+	require.NoError(t, f.Close())
+	return b
 }
 
 // ReadFile reads a file from the caller's testdata directory.
-func ReadFile(filename string) (string, error) {
-	b, err := ReadFileBytes(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+func ReadFile(t sktest.TestingT, filename string) string {
+	b := ReadFileBytes(t, filename)
+	return string(b)
 }
 
-// MustGetReader reads a file from the caller's testdata directory and panics on
+// GetReader reads a file from the caller's testdata directory and panics on
 // error.
-func MustGetReader(filename string) io.ReadCloser {
-	r, err := readFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	return r
+func GetReader(t sktest.TestingT, filename string) io.ReadCloser {
+	dir := TestDataDir(t)
+	f, err := os.Open(filepath.Join(dir, filename))
+	require.NoError(t, err, "Reading %s from testdir", filename)
+	return f
 }
 
-// MustReadFile returns  from the caller's testdata directory and panics on
-// error.
-func MustReadFile(filename string) string {
-	s, err := ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	return s
-}
-
-// ReadJsonFile reads a JSON file from the caller's testdata directory into the
+// ReadJSONFile reads a JSON file from the caller's testdata directory into the
 // given interface.
-func ReadJsonFile(filename string, dest interface{}) error {
-	f, err := readFile(filename)
-	if err != nil {
-		return err
-	}
-	return json.NewDecoder(f).Decode(dest)
-}
-
-// MustReadJsonFile reads a JSON file from the caller's testdata directory into
-// the given interface and panics on error.
-func MustReadJsonFile(filename string, dest interface{}) {
-	if err := ReadJsonFile(filename, dest); err != nil {
-		panic(err)
-	}
+func ReadJSONFile(t sktest.TestingT, filename string, dest interface{}) {
+	f := GetReader(t, filename)
+	err := json.NewDecoder(f).Decode(dest)
+	require.NoError(t, err, "Decoding JSON in %s", filename)
+	require.NoError(t, f.Close())
 }
 
 // WriteFile writes the given contents to the given file path, reporting any
@@ -157,16 +111,6 @@ func RemoveAll(t sktest.TestingT, fp string) {
 	require.NoError(t, os.RemoveAll(fp))
 }
 
-// TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
-// function to defer.
-func TempDir(t sktest.TestingT) (string, func()) {
-	d, err := ioutil.TempDir("", "testutils")
-	require.NoError(t, err)
-	return d, func() {
-		RemoveAll(t, d)
-	}
-}
-
 // MarshalJSON encodes the given interface to a JSON string.
 func MarshalJSON(t sktest.TestingT, i interface{}) string {
 	b, err := json.Marshal(i)
@@ -181,13 +125,7 @@ func MarshalIndentJSON(t sktest.TestingT, i interface{}) string {
 	return string(b)
 }
 
-// AssertErrorContains asserts that the given error contains the given string.
-func AssertErrorContains(t sktest.TestingT, err error, substr string) {
-	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), substr))
-}
-
-// Return the path to the root of the checkout.
+// GetRepoRoot returns the path to the root of the checkout.
 func GetRepoRoot(t sktest.TestingT) string {
 	root, err := repo_root.Get()
 	require.NoError(t, err)
@@ -212,85 +150,6 @@ func EventuallyConsistent(duration time.Duration, f func() error) error {
 		}
 	}
 	return fmt.Errorf("Failed to pass test in allotted time.")
-}
-
-// MockTestingT implements sktest.TestingT by saving calls to Log and Fail. MockTestingT can
-// be used to test a test helper function. See also AssertFails.
-// The methods Helper, Name, Skip, SkipNow, Skipf, and Skipped are unimplemented.
-// This type is not safe for concurrent use.
-type MockTestingT struct {
-	LogMsgs  []string
-	IsFailed bool
-}
-
-func (m *MockTestingT) Error(args ...interface{}) {
-	m.Log(args...)
-	m.Fail()
-}
-func (m *MockTestingT) Errorf(format string, args ...interface{}) {
-	m.Logf(format, args...)
-	m.Fail()
-}
-func (m *MockTestingT) Fail() {
-	m.IsFailed = true
-}
-func (m *MockTestingT) FailNow() {
-	m.Fail()
-	runtime.Goexit()
-}
-func (m *MockTestingT) Failed() bool {
-	return m.IsFailed
-}
-func (m *MockTestingT) Fatal(args ...interface{}) {
-	m.Log(args...)
-	m.FailNow()
-}
-func (m *MockTestingT) Fatalf(format string, args ...interface{}) {
-	m.Logf(format, args...)
-	m.FailNow()
-}
-func (m *MockTestingT) Helper() {}
-func (m *MockTestingT) Log(args ...interface{}) {
-	m.LogMsgs = append(m.LogMsgs, fmt.Sprintln(args...))
-}
-func (m *MockTestingT) Logf(format string, args ...interface{}) {
-	m.LogMsgs = append(m.LogMsgs, fmt.Sprintf(format, args...))
-}
-func (m *MockTestingT) Name() string {
-	return ""
-}
-func (m *MockTestingT) Skip(args ...interface{}) {
-	m.Log(args...)
-	m.SkipNow()
-}
-func (m *MockTestingT) SkipNow() {
-	panic("SkipNow is not implemented.")
-}
-func (m *MockTestingT) Skipf(format string, args ...interface{}) {
-	m.Logf(format, args...)
-	m.SkipNow()
-}
-func (m *MockTestingT) Skipped() bool {
-	return false
-}
-
-// Assert that MockTestingT implements the sktest.TestingT interface:
-var _ sktest.TestingT = (*MockTestingT)(nil)
-
-// AssertFails runs testfn with a MockTestingT and asserts that the test fails and the first failure
-// logged matches the regexp. The sktest.TestingT passed to testfn is not safe for concurrent use.
-func AssertFails(parent sktest.TestingT, regexp string, testfn func(sktest.TestingT)) {
-	mock := MockTestingT{}
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		testfn(&mock)
-	}()
-	wg.Wait()
-	require.True(parent, mock.Failed(), "In AssertFails, the test function did not fail.")
-	require.True(parent, len(mock.LogMsgs) > 0, "In AssertFails, the test function did not produce any failure messages.")
-	require.Regexp(parent, regexp, mock.LogMsgs[0])
 }
 
 // AnyContext can be used to match any Context objects e.g.
@@ -328,7 +187,7 @@ func ExecTemplate(t sktest.TestingT, tmpl string, data interface{}) string {
 // which do not depend on the specifics of the $HOME directory in the host system.
 //
 // See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
-func SetUpFakeHomeDir(t *testing.T, tempDirPattern string) {
+func SetUpFakeHomeDir(t sktest.TestingT, tempDirPattern string) {
 	fakeHome, err := ioutil.TempDir("", tempDirPattern)
 	require.NoError(t, err)
 	oldHome := os.Getenv("HOME")

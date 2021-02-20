@@ -9,7 +9,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	perfsql "go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/go/emulators"
+	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 )
@@ -29,14 +30,17 @@ type Cleanup func()
 //
 // If migrations to are be applied then set applyMigrations to true.
 func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, Cleanup) {
+	unittest.RequiresCockroachDB(t)
+
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
 	// CockroachDB golang driver, and the suggested SQL drive for CockroachDB is
 	// the Postgres driver since that's the underlying communication protocol it
 	// uses.
-	migrationsConnection := fmt.Sprintf("cockroach://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
-	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
+	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)
+	migrationsConnection := fmt.Sprintf("cockroach://root@%s/%s?sslmode=disable", host, databaseName)
+	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", host, databaseName)
 	db, err := sql.Open("postgres", connectionString)
 	require.NoError(t, err)
 

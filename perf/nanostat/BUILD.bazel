@@ -29,6 +29,5 @@ go_test(
         "//go/testutils",
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
     ],
 )

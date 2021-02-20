@@ -60,8 +60,7 @@ func TestParseSearchValidList(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Load the list of of live queries.
-	contents, err := testutils.ReadFile("valid_queries.txt")
-	require.NoError(t, err)
+	contents := testutils.ReadFile(t, "valid_queries.txt")
 
 	queries := strings.Split(contents, "\n")
 
@@ -76,8 +75,7 @@ func TestParseSearchInvalidList(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Load the list of of live queries.
-	contents, err := testutils.ReadFile("invalid_queries.txt")
-	require.NoError(t, err)
+	contents := testutils.ReadFile(t, "invalid_queries.txt")
 
 	queries := strings.Split(contents, "\n")
 

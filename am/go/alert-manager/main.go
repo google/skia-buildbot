@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/am/go/note"
 	"go.skia.org/infra/am/go/reminder"
 	"go.skia.org/infra/am/go/silence"
+	"go.skia.org/infra/am/go/types"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auditlog"
@@ -360,18 +361,7 @@ func (srv *server) takeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type StatsRequest struct {
-	Range string `json:"range"`
-}
-
-type Stat struct {
-	Num      int               `json:"num"`
-	Incident incident.Incident `json:"incident"`
-}
-
-type StatsResponse []*Stat
-
-type StatsResponseSlice StatsResponse
+type StatsResponseSlice types.StatsResponse
 
 func (p StatsResponseSlice) Len() int           { return len(p) }
 func (p StatsResponseSlice) Less(i, j int) bool { return p[i].Num > p[j].Num }
@@ -380,7 +370,7 @@ func (p StatsResponseSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (srv *server) statsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var req StatsRequest
+	var req types.StatsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode stats request.", http.StatusInternalServerError)
 		return
@@ -389,10 +379,10 @@ func (srv *server) statsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to query for Incidents.", http.StatusInternalServerError)
 	}
-	count := map[string]*Stat{}
+	count := map[string]*types.Stat{}
 	for _, in := range ins {
 		if stat, ok := count[in.ID]; !ok {
-			count[in.ID] = &Stat{
+			count[in.ID] = &types.Stat{
 				Num:      1,
 				Incident: in,
 			}
@@ -400,7 +390,7 @@ func (srv *server) statsHandler(w http.ResponseWriter, r *http.Request) {
 			stat.Num += 1
 		}
 	}
-	ret := StatsResponse{}
+	ret := types.StatsResponse{}
 	for _, v := range count {
 		ret = append(ret, v)
 	}
@@ -410,15 +400,10 @@ func (srv *server) statsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type IncidentsInRangeRequest struct {
-	Range    string            `json:"range"`
-	Incident incident.Incident `json:"incident"`
-}
-
 func (srv *server) incidentsInRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var req IncidentsInRangeRequest
+	var req types.IncidentsInRangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode incident range request.", http.StatusInternalServerError)
 		return
@@ -547,10 +532,7 @@ func (srv *server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 			idsToRecentlyExpiredSilences[i.ID] = i.IsSilenced(archivedSilences, false)
 		}
 	}
-	resp := struct {
-		Incidents                    []incident.Incident `json:"incidents"`
-		IdsToRecentlyExpiredSilences map[string]bool     `json:"ids_to_recently_expired_silences"`
-	}{
+	resp := types.IncidentsResponse{
 		Incidents:                    ins,
 		IdsToRecentlyExpiredSilences: idsToRecentlyExpiredSilences,
 	}
@@ -580,11 +562,7 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 		recentlyExpired = ins[0].IsSilenced(archivedSilences, false)
 	}
 
-	resp := struct {
-		Incidents              []incident.Incident `json:"incidents"`
-		Flaky                  bool                `json:"flaky"`
-		RecentlyExpiredSilence bool                `json:"recently_expired_silence"`
-	}{
+	resp := types.RecentIncidentsResponse{
 		Incidents:              ins,
 		Flaky:                  incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
 		RecentlyExpiredSilence: recentlyExpired,

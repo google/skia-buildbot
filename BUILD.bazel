@@ -3,6 +3,7 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
+load("//:elements-sk-scss.bzl", "generate_tilde_prefixed_elements_sk_scss_files")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
 #
@@ -67,6 +68,18 @@ buildifier(
 #
 # This container can be pushed to GCR via the container_push target defined below.
 #
+# To debug this image:
+#
+#     # Build the container image.
+#     $ bazel build //:rbe_container_skia_infra
+#
+#     # Load the container.
+#     $ docker load -i bazel-bin/rbe_container_skia_infra_commit.tar
+#     Loaded image: bazel/default:rbe_container_skia_infra
+#
+#     # Run the container.
+#     $ docker run -it bazel/default:rbe_container_skia_infra /bin/bash
+#
 # Notes:
 #
 #  - This target is tagged with "no-remote" because the container_run_and_commit rule calls the
@@ -87,9 +100,9 @@ container_run_and_commit(
         "rm /usr/bin/python3",
         "ln -s /usr/bin/python3.5 /usr/bin/python3",
 
-        # Install the add-apt-repository command.
+        # Install the add-apt-repository command, and other packages needed to fetch repositories.
         "apt-get update",
-        "yes | apt-get install software-properties-common",
+        "apt-get install -y software-properties-common apt-transport-https ca-certificates gnupg",
 
         # Add the Chrome repository.
         "curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -",
@@ -104,7 +117,7 @@ container_run_and_commit(
         #
         # Adapted from:
         # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
-        "yes | apt-get install " + " ".join([
+        "apt-get install -y " + " ".join([
             "google-chrome-stable",
             "fonts-ipafont-gothic",
             "fonts-wqy-zenhei",
@@ -115,9 +128,65 @@ container_run_and_commit(
             # See https://github.com/puppeteer/puppeteer/issues/6192.
             "libxss1",
         ]),
+
+        # Add the Google Cloud SDK repository as per the instructions here:
+        # https://cloud.google.com/sdk/docs/install#deb.
+        "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] " +
+        "      https://packages.cloud.google.com/apt cloud-sdk main'" +
+        " | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list",
+        "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg" +
+        " | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -",
+        "apt-get update",
+
+        # Install the Google Cloud SDK and emulators.
+        "apt-get install -y " + " ".join([
+            "google-cloud-sdk",
+            "google-cloud-sdk-bigtable-emulator",
+            "google-cloud-sdk-datastore-emulator",
+            "google-cloud-sdk-firestore-emulator",
+            "google-cloud-sdk-pubsub-emulator",
+        ]),
+
+        # Install CockroachDB as per the instructions here:
+        # https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux.
+        "wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.4.linux-amd64.tgz | tar xvz",
+        "cp -i cockroach-v20.2.4.linux-amd64/cockroach /usr/local/bin/",
+
+        # Install depot_tools, necessary to pull binaries via CIPD.
+        "git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git /depot_tools",
+
+        # Remove the Git distribution included in the base image. We'll install our own from CIPD.
+        # The Git CLI is invoked from some tests.
+        "apt-get remove git -y",
+
+        # Initialize the CIPD root directory.
+        "mkdir /cipd",
+        "/depot_tools/cipd init /cipd -force",
+
+        # Install CIPD packages needed by various tests. These should be kept in sync with
+        # //cipd.ensure.
+        "/depot_tools/cipd install infra/3pp/tools/git/linux-amd64 version:2.29.2.chromium.6 " +
+        "    -root /cipd",
+        "/depot_tools/cipd install infra/tools/luci/isolate/linux-amd64 " +
+        "    git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378 -root /cipd",
+        "/depot_tools/cipd install infra/tools/luci/isolated/linux-amd64 " +
+        "    git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378 -root /cipd",
+
+        # Include the CIPD-installed binaries in the PATH. Note that this does not persist after
+        # the container is created. Said binaries are included in the PATH during testing via a
+        # --test_env flag defined in //.bazelrc.
+        "export PATH=$PATH:/cipd:/cipd/bin",
+
+        # Create a default Git user. This is necessary for some Git tests to pass.
+        "mkdir /cipd/etc",  # The below commands fail unless this directory exists.
+        "git config --system user.name 'Bazel RBE Test User'",
+        "git config --system user.email 'bazel-rbe-test-user@example.com'",
     ],
     image = "@rbe_ubuntu1604//image",
-    tags = ["no-remote"],
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        "no-remote",
+    ],
 )
 
 # This target can be used to upload the custom RBE container toolchain to GCR. It will be available
@@ -131,63 +200,16 @@ container_push(
     registry = "gcr.io",
     repository = "skia-public/rbe-container-skia-infra",
     tag = "{STABLE_DOCKER_TAG}",
+    tags = [
+        "manual",  # Exclude it from wildcard queries, e.g. "bazel build //...".
+        "no-remote",  # We cannot build :rbe_container_skia_infra on RBE.
+    ],
 )
 
-####################################################################################################
-# Support for "~"-prefixed Sass imports of elements-sk styles, e.g.:                               #
-#                                                                                                  #
-#   @import '~elements-sk/themes/themes';                                                          #
-#                                                                                                  #
-# This hack is necessary to maintain compatibility with the Webpack build, which uses the          #
-# css-loader plugin to inline CSS imports. Said plugin adds all NPM packages to the Sass compiler  #
-# import path with the "~" prefix. See https://webpack.js.org/loaders/css-loader/#import for more. #
-####################################################################################################
-
-ELEMENTS_SK_SCSS = [
-    # To regenerate this list, please run the following Bash command:
-    #
-    #   $ find infra-sk/node_modules/elements-sk -name "*.scss" \
-    #       | sed -E "s/infra-sk\//\/\/infra-sk:/" | sort
-    "//infra-sk:node_modules/elements-sk/checkbox-sk/checkbox-sk.scss",
-    "//infra-sk:node_modules/elements-sk/collapse-sk/collapse-sk.scss",
-    "//infra-sk:node_modules/elements-sk/colors.scss",
-    "//infra-sk:node_modules/elements-sk/icon/icon-sk.scss",
-    "//infra-sk:node_modules/elements-sk/multi-select-sk/multi-select-sk.scss",
-    "//infra-sk:node_modules/elements-sk/nav-links-sk/nav-links-sk.scss",
-    "//infra-sk:node_modules/elements-sk/radio-sk/radio-sk.scss",
-    "//infra-sk:node_modules/elements-sk/select-sk/select-sk.scss",
-    "//infra-sk:node_modules/elements-sk/spinner-sk/spinner-sk.scss",
-    "//infra-sk:node_modules/elements-sk/styles/buttons/buttons.scss",
-    "//infra-sk:node_modules/elements-sk/styles/select/select.scss",
-    "//infra-sk:node_modules/elements-sk/styles/table/table.scss",
-    "//infra-sk:node_modules/elements-sk/tabs-panel-sk/tabs-panel-sk.scss",
-    "//infra-sk:node_modules/elements-sk/tabs-sk/tabs-sk.scss",
-    "//infra-sk:node_modules/elements-sk/themes/color-palette.scss",
-    "//infra-sk:node_modules/elements-sk/themes/themes.scss",
-    "//infra-sk:node_modules/elements-sk/toast-sk/toast-sk.scss",
-]
-
-TILDE_ELEMENTS_SK_SCSS = [f.replace("//infra-sk:node_modules/", "~") for f in ELEMENTS_SK_SCSS]
-
-# Recursively copies all *.scss files from //infra-sk/node_modules/elements-sk to //~elements-sk.
-genrule(
-    name = "~elements-sk_generator",
-    srcs = ELEMENTS_SK_SCSS,
-    outs = TILDE_ELEMENTS_SK_SCSS,
-    cmd =
-        "for FILENAME in $(SRCS); do " +
-        "  TILDE_FILENAME=`echo $$FILENAME | sed -E 's/infra-sk\\/node_modules\\/(.*)/~\\1/'`; " +
-        "  TILDE_DIR=$$(dirname $$TILDE_FILENAME); " +
-        "  mkdir -p $(RULEDIR)/$$TILDE_DIR; " +
-        "  cp $$FILENAME $(RULEDIR)/$$TILDE_FILENAME; " +
-        "done",
-)
-
-# Do not use directly. Use //infra-sk:elements-sk_scss instead, which includes these files as well.
-filegroup(
+# Generate a copy of the elements-sk SCSS stylesheets under //bazel-bin/~elements-sk for
+# compatibility with Webpack-style tilde-prefixed SCSS imports. See the macro docstring for details.
+generate_tilde_prefixed_elements_sk_scss_files(
     name = "~elements-sk",
-    srcs = TILDE_ELEMENTS_SK_SCSS,
-    visibility = ["//infra-sk:__pkg__"],
 )
 
 go_library(

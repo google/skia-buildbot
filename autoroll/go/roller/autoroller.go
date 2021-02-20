@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/skerr"
@@ -174,10 +175,15 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 
 	// Throttling counters.
 	sklog.Info("Creating throttlers")
-	if c.SafetyThrottle == nil {
-		c.SafetyThrottle = config.DefaultSafetyThrottleConfig
+	safetyThrottleCfg := config.DefaultSafetyThrottleConfig
+	if c.SafetyThrottle != nil {
+		safetyThrottleCfg = c.SafetyThrottle
 	}
-	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow.AsDuration(), int64(c.SafetyThrottle.AttemptCount))
+	safetyThrottleDuration, err := human.ParseDuration(safetyThrottleCfg.TimeWindow)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse safety throttle time window")
+	}
+	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", safetyThrottleDuration, int64(safetyThrottleCfg.AttemptCount))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create safety throttler")
 	}
@@ -188,8 +194,8 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer *email.GMail, 
 	}
 
 	var rollCooldown time.Duration
-	if c.RollCooldown != nil {
-		rollCooldown = c.RollCooldown.AsDuration()
+	if c.RollCooldown != "" {
+		rollCooldown, err = human.ParseDuration(c.RollCooldown)
 	}
 	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", rollCooldown, 1)
 	if err != nil {

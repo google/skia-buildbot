@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "GerritInterface.go",
         "generate.go",
-        "simple_mock_gerrit.go",
     ],
     importpath = "go.skia.org/infra/go/gerrit/mocks",
     visibility = ["//visibility:public"],

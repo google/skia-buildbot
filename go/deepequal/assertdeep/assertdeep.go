@@ -1,8 +1,6 @@
 package assertdeep
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -20,7 +18,11 @@ import (
 // be enough for the average test.
 var superVerbose = false
 
-// Equal fails the test if the two objects do not pass reflect.DeepEqual.
+// Equal fails the test if the two objects do not pass a modified version of reflect.DeepEqual.
+// The modification (see infra/go/deepequal) will use the .Equal() method if defined on the type.
+// This is necessary for comparing structs that might differ on unexported fields, but be
+// practically the same. This concretely comes up often when deserialzing a time.Time, but applies
+// in a few other situations as well.
 func Equal(t sktest.TestingT, expected, actual interface{}) {
 	if !deepequal.DeepEqual(expected, actual) {
 		// The formatting is inspired by stretchr/testify's require.Equal() output.
@@ -121,17 +123,4 @@ func Copy(t sktest.TestingT, a, b interface{}) {
 			require.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
 		}
 	}
-}
-
-// JSONRoundTripEqual encodes and decodes an object to/from JSON and asserts
-// that the result is deep equal to the original. obj must be a pointer.
-func JSONRoundTripEqual(t sktest.TestingT, obj interface{}) {
-	val := reflect.ValueOf(obj)
-	require.Equal(t, reflect.Ptr, val.Kind(), "JSONRoundTripEqual must be passed a pointer.")
-	cpyval := reflect.New(val.Elem().Type())
-	cpy := cpyval.Interface()
-	buf := bytes.Buffer{}
-	require.NoError(t, json.NewEncoder(&buf).Encode(obj))
-	require.NoError(t, json.NewDecoder(&buf).Decode(cpy))
-	Equal(t, obj, cpy)
 }

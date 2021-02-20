@@ -37,8 +37,8 @@ import {
 } from '../ctfe_utils';
 
 // Chromium analysis doesn't support 1M pageset, and only Linux supports 100k.
-const unsupportedPageSetStrings = ['All', '100k'];
-const unsupportedPageSetStringsLinux = ['All'];
+const unsupportedPageSets = ['All', '100k', 'Mobile100k'];
+const unsupportedPageSetsLinux = ['All'];
 
 export class ChromiumAnalysisSk extends ElementSk {
   _platforms: [string, unknown][] = [];
@@ -49,7 +49,7 @@ export class ChromiumAnalysisSk extends ElementSk {
 
   private _triggeringTask: boolean = false;
 
-  private _unsupportedPageSets: string[] = unsupportedPageSetStringsLinux;
+  private _unsupportedPageSets: string[] = unsupportedPageSetsLinux;
 
   private _moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
 
@@ -333,14 +333,14 @@ export class ChromiumAnalysisSk extends ElementSk {
   _updatePageSets(): void {
     const platform = this._platform();
     const runInParallel = this._runInParallel();
-    const unsupportedPageSets = (platform === 'Linux' && runInParallel)
-      ? unsupportedPageSetStringsLinux
-      : unsupportedPageSetStrings;
+    const unsupportedPS = (platform === 'Linux' && runInParallel)
+      ? unsupportedPageSetsLinux
+      : unsupportedPageSets;
     const pageSetDefault = (platform === 'Android')
       ? 'Mobile10k'
       : '10k';
     const pagesetSelector = $$('pageset-selector-sk', this) as PagesetSelectorSk;
-    pagesetSelector.hideIfKeyContains = unsupportedPageSets;
+    pagesetSelector.hideKeys = unsupportedPS;
     pagesetSelector.selected = pageSetDefault;
   }
 

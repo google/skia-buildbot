@@ -43,7 +43,7 @@ func NewGitCheckoutGithubFile(ctx context.Context, c *config.GitCheckoutGitHubFi
 		// Run the pre-upload steps.
 		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
 		for _, s := range preUploadSteps {
-			if err := s(ctx, nil, client, co.Dir()); err != nil {
+			if err := s(ctx, nil, client, co.Dir(), from, to); err != nil {
 				return "", skerr.Wrapf(err, "failed pre-upload step")
 			}
 		}

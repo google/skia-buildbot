@@ -32,14 +32,16 @@ const (
 	MAX_URI_GET_TRIES = 4
 
 	// Pageset types supported by CT.
-	PAGESET_TYPE_ALL             = "All"
-	PAGESET_TYPE_100k            = "100k"
-	PAGESET_TYPE_MOBILE_100k     = "Mobile100k"
-	PAGESET_TYPE_10k             = "10k"
-	PAGESET_TYPE_MOBILE_10k      = "Mobile10k"
-	PAGESET_TYPE_MOBILE_VOLT_10k = "VoltMobile10k"
-	PAGESET_TYPE_DUMMY_1k        = "Dummy1k"       // Used for testing.
-	PAGESET_TYPE_MOBILE_DUMMY_1k = "DummyMobile1k" // Used for testing.
+	PAGESET_TYPE_ALL              = "All"
+	PAGESET_TYPE_100k             = "100k"
+	PAGESET_TYPE_MOBILE_100k      = "Mobile100k"
+	PAGESET_TYPE_LAYOUTSHIFT_100k = "LayoutShift100k"
+	PAGESET_TYPE_10k              = "10k"
+	PAGESET_TYPE_MOBILE_10k       = "Mobile10k"
+	PAGESET_TYPE_MOBILE_VOLT_10k  = "VoltMobile10k"
+	PAGESET_TYPE_LAYOUTSHIFT_10k  = "LayoutShift10k"
+	PAGESET_TYPE_DUMMY_1k         = "Dummy1k"       // Used for testing.
+	PAGESET_TYPE_MOBILE_DUMMY_1k  = "DummyMobile1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME          = "chrome"
@@ -51,8 +53,6 @@ const (
 	BINARY_NINJA           = "ninja"
 	BINARY_ADB             = "adb"
 	BINARY_MAIL            = "mail"
-	BINARY_PYTHON          = "python3"
-	BINARY_VPYTHON         = "vpython"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -72,6 +72,7 @@ const (
 	BENCHMARK_V8_LOADING_RUNTIME_STATS = "v8.loading_runtime_stats.cluster_telemetry"
 	BENCHMARK_GENERIC_TRACE            = "generic_trace_ct"
 	BENCHMARK_AD_TAGGING               = "ad_tagging.cluster_telemetry"
+	BENCHMARK_LAYOUT_SHIFT             = "layout_shift.cluster_telemetry"
 
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = ""
@@ -82,6 +83,8 @@ const (
 	USE_LIVE_SITES_FLAGS = "--use-live-sites"
 	// Pageset repeat flag.
 	PAGESET_REPEAT_FLAG = "--pageset-repeat"
+	// User agent flag.
+	USER_AGENT_FLAG = "--user-agent"
 	// Run Benchmark timeout flag.
 	RUN_BENCHMARK_TIMEOUT_FLAG = "--run-benchmark-timeout"
 	// Max pages per bot flag.
@@ -183,8 +186,6 @@ const (
 	ADB_CIPD_PACKAGE             = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
 	LUCI_AUTH_CIPD_PACKAGE_LINUX = "cipd_bin_packages:infra/tools/luci-auth/linux-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
 	LUCI_AUTH_CIPD_PACKAGE_WIN   = "cipd_bin_packages:infra/tools/luci-auth/windows-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
-	PYTHON3_CIPD_PACKAGE_LINUX   = "infra/3pp/tools/cpython3/linux-amd64"
-	PYTHON3_CIPD_PACKAGE_WIN     = "infra/3pp/tools/cpython3/windows-amd64"
 )
 
 type PagesetTypeInfo struct {
@@ -266,6 +267,15 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 100K (with mobile user-agent)",
 		},
+		PAGESET_TYPE_LAYOUTSHIFT_100k: {
+			NumPages:                   100000,
+			CSVSource:                  "csv/layout-shift-100k.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Layout Shift 100K (with desktop user-agent)",
+		},
 		PAGESET_TYPE_10k: {
 			NumPages:                   10000,
 			CSVSource:                  "csv/top-1m.csv",
@@ -292,6 +302,15 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Volt 10K (with mobile user-agent)",
+		},
+		PAGESET_TYPE_LAYOUTSHIFT_10k: {
+			NumPages:                   10000,
+			CSVSource:                  "csv/layout-shift-10k.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Layout Shift 10K (with desktop user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: {
 			NumPages:                   1000,
@@ -326,6 +345,7 @@ var (
 		BENCHMARK_V8_LOADING_RUNTIME_STATS: "https://cs.chromium.org/chromium/src/tools/perf/contrib/cluster_telemetry/v8_loading_runtime_stats_ct.py",
 		BENCHMARK_GENERIC_TRACE:            "https://docs.google.com/document/d/1vGd7dnrxayMYHPO72wWkwTvjMnIRrel4yxzCr1bMiis/",
 		BENCHMARK_AD_TAGGING:               "https://docs.google.com/document/d/1zlWQoLjGuYOWDR_vkVRYoVbU89JetNDOlcDuOaNAzDc/",
+		BENCHMARK_LAYOUT_SHIFT:             "https://docs.google.com/document/d/1bYffpPHWFVaaAve2OZCFuv5xentVlFZF4GxZTaDLoXc/",
 	}
 
 	SupportedPlatformsToDesc = map[string]string{

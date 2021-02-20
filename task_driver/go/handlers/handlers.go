@@ -155,7 +155,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 		}
 		stepId, ok := mux.Vars(r)["stepId"]
 		if !ok {
-			stepId = td.STEP_ID_ROOT
+			stepId = td.StepIDRoot
 		}
 		errIdx, err := strconv.Atoi(errId)
 		if err != nil || errIdx < 0 {

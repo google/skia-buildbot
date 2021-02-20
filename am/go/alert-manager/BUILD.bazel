@@ -10,6 +10,7 @@ go_library(
         "//am/go/note",
         "//am/go/reminder",
         "//am/go/silence",
+        "//am/go/types",
         "//go/alerts",
         "//go/allowed",
         "//go/auditlog",

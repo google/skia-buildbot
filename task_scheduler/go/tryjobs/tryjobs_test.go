@@ -387,7 +387,7 @@ func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, id int, proje
 	issueBytes, err := json.Marshal(ci)
 	require.NoError(t, err)
 	issueBytes = append([]byte("XSS\n"), issueBytes...)
-	mock.Mock(fmt.Sprintf("%s/a%s", fakeGerritUrl, fmt.Sprintf(gerrit.URL_TMPL_CHANGE, ci.Id)), mockhttpclient.MockGetDialogue(issueBytes))
+	mock.Mock(fmt.Sprintf("%s/a%s", fakeGerritUrl, fmt.Sprintf(gerrit.URLTmplChange, ci.Id)), mockhttpclient.MockGetDialogue(issueBytes))
 }
 
 func TestRetry(t *testing.T) {

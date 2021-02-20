@@ -12,9 +12,7 @@ func TestLocal(t *testing.T) {
 	unittest.MediumTest(t)
 
 	ctx := context.Background()
-	tmp, cleanup := MakeTestFiles(t)
-	defer cleanup()
-
+	tmp := MakeTestFiles(t)
 	fs := vfs.Local(tmp)
 	TestFS(ctx, t, fs)
 }

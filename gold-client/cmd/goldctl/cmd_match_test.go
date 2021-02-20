@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/imgmatching"
@@ -15,8 +13,7 @@ import (
 func TestMatch_Fuzzy_ImagesAreWithinTolerance_ExitCodeZero(t *testing.T) {
 	unittest.MediumTest(t)
 
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	// Call imgtest match using the fuzzy match algorithm
 	ctx, output, exit := testContext(nil, nil, nil, nil)
@@ -43,8 +40,7 @@ func TestMatch_Fuzzy_ImagesAreWithinTolerance_ExitCodeZero(t *testing.T) {
 func TestMatch_Sobel_ImagesAreVeryDifferent_ExitCodeZero(t *testing.T) {
 	unittest.MediumTest(t)
 
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 
 	// Call imgtest match using the fuzzy match algorithm
 	ctx, output, exit := testContext(nil, nil, nil, nil)

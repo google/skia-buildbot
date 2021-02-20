@@ -9,6 +9,12 @@ import (
 	"go.skia.org/infra/go/paramtools"
 )
 
+// TileWidth is the number of sparse commits whose data is grouped together when creating
+// the PrimaryBranchParams and TiledTraceDigests tables. This should speed up queries that would
+// otherwise have to look at potentially 100x as much data. For data that is very dense, this
+// might not help as much, so we might need to have instance-dependent widths.
+const TileWidth = 100
+
 // MD5Hash is a specialized type for an array of bytes representing an MD5Hash. We use MD5 hashes
 // a lot because they are a deterministic way to generate primary keys, which allows us to more
 // easily cache and deduplicate data when ingesting. Additionally, these hashes are somewhat
@@ -84,6 +90,7 @@ type Tables struct {
 	Options                     []OptionsRow                    `sql_backup:"monthly"`
 	Patchsets                   []PatchsetRow                   `sql_backup:"weekly"`
 	PrimaryBranchParams         []PrimaryBranchParamRow         `sql_backup:"monthly"`
+	ProblemImages               []ProblemImageRow               `sql_backup:"none"`
 	SecondaryBranchExpectations []SecondaryBranchExpectationRow `sql_backup:"daily"`
 	SecondaryBranchParams       []SecondaryBranchParamRow       `sql_backup:"monthly"`
 	SecondaryBranchValues       []SecondaryBranchValueRow       `sql_backup:"monthly"`
@@ -178,6 +185,10 @@ type TraceRow struct {
 	// changed. There is a background process that computes this field for any traces with this
 	// unset (i.e. NULL).
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
+
+	// This index speeds up fetching traces by grouping, e.g. when enumerating the work needed for
+	// creating diffs.
+	groupingIgnoredIndex struct{} `sql:"INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -642,4 +653,22 @@ type SecondaryBranchExpectationRow struct {
 func (r SecondaryBranchExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"branch_name", "grouping_id", "digest", "label", "expectation_record_id"},
 		[]interface{}{r.BranchName, r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
+}
+
+type ProblemImageRow struct {
+	// Digest is the identifier of an image we had a hard time downloading or decoding while
+	// computing the diffs. This is a string because it may be a malformed digest.
+	Digest string `sql:"digest STRING PRIMARY KEY"`
+	// NumErrors counts the number of times this digest has been the cause of an error.
+	NumErrors int `sql:"num_errors INT2 NOT NULL"`
+	// LatestError is the string content of the last error associated with this digest.
+	LatestError string `sql:"latest_error STRING NOT NULL"`
+	// ErrorTS is the last time we had an error on this digest.
+	ErrorTS time.Time `sql:"error_ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r ProblemImageRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"digest", "num_errors", "latest_error", "error_ts"},
+		[]interface{}{r.Digest, r.NumErrors, r.Digest, r.ErrorTS}
 }

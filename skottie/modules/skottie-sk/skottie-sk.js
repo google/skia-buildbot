@@ -23,6 +23,7 @@ import { stateReflector } from 'common-sk/modules/stateReflector'
 import '../skottie-text-editor'
 import { replaceTexts } from '../skottie-text-editor/text-replace'
 import '../skottie-library-sk'
+import { SoundMap, AudioPlayer } from '../audio'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -39,7 +40,7 @@ const SCRUBBER_RANGE = 1000;
 
 const displayDialog = (ele) => html`
 <skottie-config-sk .state=${ele._state} .width=${ele._width}
-    .height=${ele._height} .fps=${ele._fps}></skottie-config-sk>
+    .height=${ele._height} .fps=${ele._fps} .backgroundColor=${ele._backgroundColor}></skottie-config-sk>
 `;
 
 const skottiePlayer = (ele) => html`
@@ -57,7 +58,7 @@ const lottiePlayer = (ele) => {
   return html`
 <figure>
   <div id=container title=lottie-web
-       style='width: ${ele._width}px; height: ${ele._height}px'></div>
+       style='width: ${ele._width}px; height: ${ele._height}px; background-color: ${ele._backgroundColor}'></div>
   <figcaption>lottie-web (${bodymovin.version})</figcaption>
 </figure>`;
 }
@@ -157,6 +158,13 @@ const displayLoaded = (ele) => html`
     <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
         @input=${ele._onScrub} @change=${ele._onScrubEnd}>
   </div>
+  <collapse-sk id=volume closed>
+    <p>
+      Volume:
+    </p>
+    <input id=volume-slider type=range min=0 max=1 step=.05 value=1
+      @input=${ele._onVolumeChange}>
+  </collapse-sk>
 </div>
 <collapse-sk id=embed closed>
   <p>
@@ -262,6 +270,7 @@ define('skottie-sk', class extends HTMLElement {
     this._width = 0;
     this._height = 0;
     this._fps = 0;
+    this._backgroundColor = 'rgba(0,0,0,0)';
 
     this._stateChanged = stateReflector(
       /*getState*/() => {
@@ -274,6 +283,7 @@ define('skottie-sk', class extends HTMLElement {
           'w' : this._width,
           'h' : this._height,
           'f' : this._fps,
+          'bg': this._backgroundColor,
         }
     }, /*setState*/(newState) => {
       this._showLottie = newState.l;
@@ -283,6 +293,7 @@ define('skottie-sk', class extends HTMLElement {
       this._width = newState.w;
       this._height = newState.h;
       this._fps = newState.f;
+      this._backgroundColor = newState.bg;
       this._applyTextEdits = this._applyTextEdits.bind(this);
       this.render();
     });
@@ -399,6 +410,7 @@ define('skottie-sk', class extends HTMLElement {
       this._width = e.detail.width;
       this._height = e.detail.height;
       this._fps = e.detail.fps;
+      this._backgroundColor = e.detail.backgroundColor;
       this._autoSize();
       this._stateChanged();
       if (e.detail.fileChanged) {
@@ -421,11 +433,12 @@ define('skottie-sk', class extends HTMLElement {
 
   _initializePlayer() {
     this._skottiePlayer.initialize({
-      width:  this._width,
-      height: this._height,
-      lottie: this._state.lottie,
-      assets: this._state.assets,
-      fps:    this._fps,
+      width:    this._width,
+      height:   this._height,
+      lottie:   this._state.lottie,
+      assets:   this._state.assets,
+      soundMap: this._state.soundMap,
+      fps:      this._fps,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
       // If the user has specified a value for FPS, we want to lock the
@@ -459,10 +472,17 @@ define('skottie-sk', class extends HTMLElement {
 
     Promise.all(toLoad).then((externalAssets) => {
       const assets = {};
+      const sounds = new SoundMap();
       for (const asset of externalAssets) {
-        if (asset) {
+        if (asset && asset.bytes) {
           assets[asset.name] = asset.bytes;
+        } else if (asset && asset.player) {
+          sounds.setPlayer(asset.name, asset.player);
         }
+      }
+
+      if (sounds.map.size > 0) {
+        this._toggleVolumeSlider();
       }
 
       // check fonts
@@ -473,6 +493,7 @@ define('skottie-sk', class extends HTMLElement {
       });
 
       this._state.assets = assets;
+      this._state.soundMap = sounds;
       this.render();
       this._initializePlayer();
       // Re-sync all players
@@ -530,25 +551,43 @@ define('skottie-sk', class extends HTMLElement {
   _loadAssets(assets) {
     const promises = [];
     for (const asset of assets) {
-      // asset.p is the filename, if it's an image.
-      // Don't try to load inline/dataURI images.
-      const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
-      if (should_load) {
-        promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
-          .then((resp) => {
-            // fetch does not reject on 404
-            if (!resp.ok) {
-              console.error(`Could not load ${asset.p}: status ${resp.status}`)
-              return null;
-            }
-            return resp.arrayBuffer().then((buffer) => {
-              return {
-                'name': asset.p,
-                'bytes': buffer
-              };
-            });
-          })
-        );
+      if (asset.id.startsWith('audio_')) {
+        // Howler handles our audio assets, they don't provide a promise when making a new Howl.
+        // We push the audio asset as is and hope that it loads before playback starts.
+        const inline = asset.p && asset.p.startsWith && asset.p.startsWith('data:');
+        if (inline) {
+          promises.push({
+            'name': asset.id,
+            'player': new AudioPlayer(asset.p)
+          });
+        } else {
+          promises.push({
+            'name': asset.id,
+            'player': new AudioPlayer(`${this._assetsPath}/${this._hash}/${asset.p}`)
+          });
+        }
+      }
+      else {
+        // asset.p is the filename, if it's an image.
+        // Don't try to load inline/dataURI images.
+        const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
+        if (should_load) {
+          promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
+            .then((resp) => {
+              // fetch does not reject on 404
+              if (!resp.ok) {
+                console.error(`Could not load ${asset.p}: status ${resp.status}`)
+                return null;
+              }
+              return resp.arrayBuffer().then((buffer) => {
+                return {
+                  'name': asset.p,
+                  'bytes': buffer
+                };
+              });
+            })
+          );
+        }
       }
     }
     return promises;
@@ -559,11 +598,14 @@ define('skottie-sk', class extends HTMLElement {
       this._wasmTimePassed = Date.now() - this._firstFrameTime;
       this._lottie && this._lottie.pause();
       this._live && this._live.pause();
+      this._state.soundMap && this._state.soundMap.pause();
       $$('#playpause').textContent = 'Play';
     } else {
       this._lottie && this._lottie.play();
       this._live && this._live.play();
       this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
+      // There is no need call a soundMap.play() function here.
+      // Skottie invokes the play by calling seek on the needed audio track.
       $$('#playpause').textContent = 'Pause';
     }
     this._playing = !this._playing;
@@ -749,6 +791,10 @@ define('skottie-sk', class extends HTMLElement {
     this._scrubbing = false;
   }
 
+  _onVolumeChange(e) {
+    this._state.soundMap.setVolume(e.currentTarget.value);
+  }
+
   _rewind(e) {
     // Handle rewinding when paused.
     this._wasmTimePassed = 0;
@@ -805,6 +851,11 @@ define('skottie-sk', class extends HTMLElement {
     this._showLottie = !this._showLottie;
     this._stateChanged();
     this.render();
+  }
+
+  _toggleVolumeSlider() {
+    let collapse = $$('#volume', this);
+    collapse.closed = !collapse;
   }
 
   _upload() {

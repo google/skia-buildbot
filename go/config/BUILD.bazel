@@ -8,7 +8,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "//go/sklog",
         "@com_github_flynn_json5//:json5",
     ],
 )

@@ -45,10 +45,11 @@ var (
 // androidRepoManager is a struct used by Android AutoRoller for managing
 // checkouts.
 type androidRepoManager struct {
-	androidRemoteName string
-	childRepoURL      string
-	parentRepoURL     string
-	repoToolPath      string
+	androidRemoteName         string
+	childRepoURL              string
+	parentRepoURL             string
+	repoToolPath              string
+	includeAuthorsAsReviewers bool
 
 	projectMetadataFileConfig *config.AndroidRepoManagerConfig_ProjectMetadataFileConfig
 
@@ -92,18 +93,14 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		}
 	}
 
-	wd := path.Join(workdir, "android_repo")
-	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childDir := path.Join(wd, c.ChildPath)
+	childDir := path.Join(workdir, c.ChildPath)
 	if c.ChildSubdir != "" {
-		childDir = path.Join(wd, c.ChildSubdir, c.ChildPath)
+		childDir = path.Join(workdir, c.ChildSubdir, c.ChildPath)
 	}
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
-	if _, err := os.Stat(wd); err == nil {
-		if err := git.DeleteLockFiles(ctx, wd); err != nil {
+	if _, err := os.Stat(workdir); err == nil {
+		if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 	}
@@ -140,6 +137,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.Metadata,
 		childRepoURL:              c.ChildRepoUrl,
+		includeAuthorsAsReviewers: c.IncludeAuthorsAsReviewers,
 
 		childBranch:      childBranch,
 		childDir:         childDir,
@@ -150,7 +148,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 		httpClient:       client,
 		parentBranch:     parentBranch,
 		preUploadSteps:   preUploadSteps,
-		workdir:          wd,
+		workdir:          workdir,
 	}
 	return r, nil
 }
@@ -304,11 +302,9 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
-
-	parentBranch := r.parentBranch.String()
 
 	// Update the upstream remote.
 	if _, err := r.childRepo.Git(ctx, "fetch", androidUpstreamRemoteName); err != nil {
@@ -319,7 +315,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Start the merge.
 	mergeTarget := to.Id
-	if strings.HasPrefix(to.Id, gerrit.CHANGE_REF_PREFIX) {
+	if strings.HasPrefix(to.Id, gerrit.ChangeRefPrefix) {
 		if err := r.childRepo.FetchRefFromRepo(ctx, r.childRepoURL, to.Id); err != nil {
 			return 0, fmt.Errorf("Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
 		}
@@ -390,7 +386,7 @@ third_party {
 
 	// Run the pre-upload steps.
 	for _, s := range r.preUploadSteps {
-		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {
+		if err := s(ctx, nil, r.httpClient, r.workdir, from, to); err != nil {
 			util.LogErr(r.abortMerge(ctx))
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
@@ -402,14 +398,13 @@ third_party {
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
-	// If the parent branch is not the main branch then:
-	// Add all authors of merged changes to the email list. We do not do this
-	// for the main branch because developers would get spammed due to multiple
-	// rolls a day. Release branch rolls run rarely and developers should be
-	// aware that their changes are being rolled there.
 	rollEmails := []string{}
 	rollEmails = append(rollEmails, emails...)
-	if parentBranch != "sc-dev" {
+	if r.includeAuthorsAsReviewers {
+		// Add all authors of merged changes to the email list. We do this only
+		// for some rollers because developers would get spammed due to multiple
+		// rolls a day. Release branch rolls run rarely and developers should be
+		// aware that their changes are being rolled there.
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
@@ -480,15 +475,7 @@ third_party {
 	}
 	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
 	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails); err != nil {
-		// Only throw exception here if parentBranch is the main branch. This is
-		// because other branches will not have permissions setup for the
-		// bot to run CR+2.
-		if parentBranch != "sc-dev" {
-			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
-			sklog.Warningf("Not throwing error because branch %q is not %q", parentBranch, "sc-dev")
-		} else {
-			return 0, err
-		}
+		return 0, err
 	}
 
 	// Mark the change as ready for review, if necessary.

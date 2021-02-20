@@ -4,6 +4,7 @@ package sktest
 // used so that we don't have to import the "testing" package except in _test.go
 // files.
 type TestingT interface {
+	Cleanup(func())
 	Error(...interface{})
 	Errorf(string, ...interface{})
 	Fail()
@@ -19,4 +20,5 @@ type TestingT interface {
 	SkipNow()
 	Skipf(string, ...interface{})
 	Skipped() bool
+	TempDir() string
 }

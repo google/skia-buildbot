@@ -50,8 +50,7 @@ func TestDuration(t *testing.T) {
 
 func TestParseConfigFile(t *testing.T) {
 	unittest.MediumTest(t)
-	dir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	dir := testutils.TestDataDir(t)
 	configFile := filepath.Join(dir, "TestParseConfigFile.json5")
 	parsed := TestConfig{}
 	require.NoError(t, ParseConfigFile(configFile, "", &parsed))
@@ -87,21 +86,21 @@ func TestParseConfigFile(t *testing.T) {
 
 func TestParseConfigFileDoesntExist(t *testing.T) {
 	unittest.MediumTest(t)
-	dir, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	dir := t.TempDir()
 	configFile := filepath.Join(dir, "nonexistent-file.json5")
 	parsed := TestConfig{}
 	err := ParseConfigFile(configFile, "--main-config", &parsed)
+	require.Error(t, err)
 	require.Regexp(t, `Unable to read --main-config file ".*/nonexistent-file.json5":.* no such file or directory`, err.Error())
 }
 
 func TestParseConfigFileInvalid(t *testing.T) {
 	unittest.MediumTest(t)
-	dir, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	dir := t.TempDir()
 	configFile := filepath.Join(dir, "invalid.json5")
 	require.NoError(t, ioutil.WriteFile(configFile, []byte("Hi Mom!"), os.ModePerm))
 	parsed := TestConfig{}
 	err := ParseConfigFile(configFile, "", &parsed)
+	require.Error(t, err)
 	require.Regexp(t, `Unable to parse file ".*/invalid.json5": invalid character 'H' looking for beginning of value`, err.Error())
 }

@@ -209,7 +209,7 @@ func inc(a, limits []int) []int {
 }
 
 // toCombination converts the slice of offsets into a Combination.
-func toCombination(offsets []int, keys []string, ps paramtools.ParamSet) (Combination, error) {
+func toCombination(offsets []int, keys []string, ps paramtools.ReadOnlyParamSet) (Combination, error) {
 	ret := Combination{}
 	for i, offset := range offsets {
 		key := keys[i]
@@ -246,7 +246,7 @@ func toCombination(offsets []int, keys []string, ps paramtools.ParamSet) (Combin
 //		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "nvpr"}},
 //	}
 //
-func (c *Alert) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error) {
+func (c *Alert) GroupCombinations(ps paramtools.ReadOnlyParamSet) ([]Combination, error) {
 	limits := []int{}
 	keys := c.GroupedBy()
 	for _, key := range keys {
@@ -271,7 +271,7 @@ func (c *Alert) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error)
 
 // QueriesFromParamset uses GroupCombinations to produce the full set of
 // queries that this Config represents.
-func (c *Alert) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, error) {
+func (c *Alert) QueriesFromParamset(paramset paramtools.ReadOnlyParamSet) ([]string, error) {
 	ret := []string{}
 	if len(c.GroupBy) != 0 {
 		allCombinations, err := c.GroupCombinations(paramset)
@@ -294,7 +294,7 @@ func (c *Alert) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, err
 	return ret, nil
 }
 
-// Validate returns true of the Alert is valid.
+// Validate returns true if the Alert is valid.
 func (c *Alert) Validate() error {
 	parsed, err := url.ParseQuery(c.Query)
 	if err != nil {
@@ -303,7 +303,7 @@ func (c *Alert) Validate() error {
 	if c.GroupBy != "" {
 		for _, groupParam := range c.GroupedBy() {
 			if _, ok := parsed[groupParam]; ok {
-				return fmt.Errorf("Invalid Config: GroupBy must not appear in Query: %q %q ", c.GroupBy, c.Query)
+				return fmt.Errorf("Invalid Config: Group By values %q must not appear in the Query: %q ", c.GroupBy, c.Query)
 			}
 		}
 	}

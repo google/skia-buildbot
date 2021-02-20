@@ -62,7 +62,7 @@ spec:
             - name: TMPDIR
               value: {{if .kubernetes.disk}}/data{{end}}/tmp
           resources:
-            limits:
+            requests:
               memory: "{{.kubernetes.memory}}"
               cpu: {{.kubernetes.cpu}}
           readinessProbe:

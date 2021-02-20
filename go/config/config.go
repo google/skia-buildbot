@@ -8,7 +8,6 @@ import (
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 // Duration is a simple struct wrapper to allow us to parse strings as durations from the incoming
@@ -48,12 +47,4 @@ func ParseConfigFile(path, flagName string, out interface{}) error {
 		return fmt.Errorf("Unable to parse %sfile %q: %s", flagName, path, err)
 	}
 	return nil
-}
-
-// MustParseConfigFile reads path as JSON5 into out. If an error occurs, logs a fatal error
-// referencing the given flagName.
-func MustParseConfigFile(path, flagName string, out interface{}) {
-	if err := ParseConfigFile(path, flagName, out); err != nil {
-		sklog.Fatal(err)
-	}
 }

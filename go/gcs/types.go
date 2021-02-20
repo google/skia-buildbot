@@ -67,4 +67,5 @@ type FileWriteOptions struct {
 	Metadata           map[string]string
 }
 
-var FILE_WRITE_OPTS_TEXT = FileWriteOptions{ContentEncoding: "text/plain"}
+// FILE_WRITE_OPTS_TEXT are default options for writing a text file.
+var FILE_WRITE_OPTS_TEXT = FileWriteOptions{ContentType: "text/plain"}

@@ -434,7 +434,6 @@ export class ClusterLastNPageSk extends ElementSk {
         end: new Date(this.domain.end * 1000).toISOString(),
       },
       alert: this.state!,
-      query: this.state!.query,
       step: 0,
       total_queries: 1,
     };

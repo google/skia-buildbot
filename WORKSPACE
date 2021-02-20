@@ -27,9 +27,9 @@ http_archive(
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    sha256 = "1dbb1f39c17b1cbc011cc22394e6e88b0de13ad101eb40047c603297286c8398",
-    strip_prefix = "buildtools-master",
-    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+    sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
+    strip_prefix = "buildtools-4.0.0",
+    url = "https://github.com/bazelbuild/buildtools/archive/4.0.0.zip",
 )
 
 ##############################
@@ -222,7 +222,7 @@ rbe_autoconfig(
     #
     # Must be updated manually after a new container image is uploaded to the container registry
     # via "bazel run //:push_rbe_container_skia_infra".
-    digest = "sha256:94b610705da22f96e51e94ee729402f455a64d857b11edecf8f9f68d22617df1",
+    digest = "sha256:78c203c69ccc6e2f78cd389b64d5302dd6b224f13c4fcb176bc9a16fb3c37910",
     # Enable networking. Without this, tests that require network access will fail. Examples include
     # go_test targets that try to clone the Skia Git repo from https://skia.googlesource.com/skia,
     # tests that hit GCS, etc.

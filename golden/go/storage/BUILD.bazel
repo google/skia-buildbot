@@ -20,7 +20,7 @@ go_library(
 
 go_test(
     name = "storage_test",
-    srcs = ["gcsclient_test.go"],
+    srcs = ["gcsclient_manual_test.go"],
     embed = [":storage"],
     deps = [
         "//go/testutils/unittest",

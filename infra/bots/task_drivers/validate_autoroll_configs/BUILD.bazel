@@ -7,13 +7,11 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//autoroll/go/config",
-        "//autoroll/go/roller",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//task_driver/go/lib/os_steps",
         "//task_driver/go/td",
-        "@com_github_pmezard_go_difflib//difflib",
         "@org_golang_google_protobuf//encoding/prototext",
     ],
 )

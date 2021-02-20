@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -125,8 +124,8 @@ func makeCommand(cfg *config.CommandRepoManagerConfig_CommandConfig, baseDir str
 	if cfg.Dir != "" {
 		c.Dir = filepath.Join(c.Dir, cfg.Dir)
 	}
-	for k, v := range cfg.Env {
-		c.Env = append(c.Env, fmt.Sprintf("%s=%s", k, v))
+	for _, envVar := range cfg.Env {
+		c.Env = append(c.Env, envVar)
 	}
 	c.InheritEnv = true
 	return c, nil

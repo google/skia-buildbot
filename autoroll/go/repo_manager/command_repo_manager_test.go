@@ -77,8 +77,8 @@ func TestCommandRepoManager(t *testing.T) {
 	getTipRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"echo", tipRev0},
 		Dir:     ".",
-		Env: map[string]string{
-			"key": "val",
+		Env: []string{
+			"key=val",
 		},
 	}
 	getTipRevCmd, err := makeCommand(getTipRev, baseDir, vars)
@@ -88,8 +88,8 @@ func TestCommandRepoManager(t *testing.T) {
 	getPinnedRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"cat", "version"},
 		Dir:     ".",
-		Env: map[string]string{
-			"key2": "val2",
+		Env: []string{
+			"key2=val2",
 		},
 	}
 	getPinnedRevCmd, err := makeCommand(getPinnedRev, baseDir, vars)
@@ -99,8 +99,8 @@ func TestCommandRepoManager(t *testing.T) {
 	setPinnedRev := &config.CommandRepoManagerConfig_CommandConfig{
 		Command: []string{"bash", "-c", "echo \"{{.RollingTo}}\" > version"},
 		Dir:     ".",
-		Env: map[string]string{
-			"key3": "val3",
+		Env: []string{
+			"key3=val3",
 		},
 	}
 	setPinnedRevCmd, err := makeCommand(setPinnedRev, baseDir, vars)

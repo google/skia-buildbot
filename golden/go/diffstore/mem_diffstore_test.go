@@ -53,8 +53,7 @@ const (
 
 func TestMD5Hash16BitImageIsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
-	b, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
-	require.NoError(t, err)
+	b := testutils.ReadFileBytes(t, fmt.Sprintf("%s.png", digest16BitImage))
 	require.Equal(t, md5Hash16BitImage, bytesToMD5HashString(b))
 }
 
@@ -375,8 +374,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	mockBucketClient.On("GetFileObjectAttrs", testutils.AnyContext, digest16BitImageGsPath).Return(oa3, nil)
 
 	// digest16BitImage is read.
-	bytes16BitImage, err := testutils.ReadFileBytes(fmt.Sprintf("%s.png", digest16BitImage))
-	require.NoError(t, err)
+	bytes16BitImage := testutils.ReadFileBytes(t, fmt.Sprintf("%s.png", digest16BitImage))
 	reader3 := ioutil.NopCloser(bytes.NewReader(bytes16BitImage))
 	mockBucketClient.On("FileReader", testutils.AnyContext, digest16BitImageGsPath).Return(reader3, nil)
 

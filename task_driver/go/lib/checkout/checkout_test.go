@@ -40,8 +40,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 		require.True(t, rs.Valid())
 
 		// Create temp dir.
-		wd, cleanup := testutils.TempDir(t)
-		defer cleanup()
+		wd := t.TempDir()
 		dest := filepath.Join(wd, "repo")
 
 		// Let the caller manipulate the dir.

@@ -11,6 +11,8 @@ import (
 func TestMigrateData(t *testing.T) {
 	// disabled: https://bugs.chromium.org/p/skia/issues/detail?id=9061
 	unittest.ManualTest(t)
+	unittest.RequiresDatastoreEmulator(t)
+
 	ctx := context.TODO()
 
 	// Create the source project.
