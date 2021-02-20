@@ -72,6 +72,8 @@ var (
 		"Infra-PerCommit-Puppeteer",
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-PerCommit-ValidateAutorollConfigs",
+		"Infra-PerCommit-Build-Bazel-Local",
+		"Infra-PerCommit-Build-Bazel-RBE",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -562,6 +564,37 @@ func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
+	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+
+	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
+		CasSpec:      CAS_WHOLE_REPO,
+		CipdPackages: cipd,
+		Command: []string{
+			"./bazel_build",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			fmt.Sprintf("--rbe=%t", rbe),
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazel/bin"},
+		},
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
@@ -583,6 +616,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "Build-Bazel-Local") {
+		deps = append(deps, bazelBuild(b, name, false /* =rbe */))
+	} else if strings.Contains(name, "Build-Bazel-RBE") {
+		deps = append(deps, bazelBuild(b, name, true /* =rbe */))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
