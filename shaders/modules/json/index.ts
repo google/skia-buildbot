@@ -3,9 +3,14 @@
 export interface SVGMetaData {
 }
 
+export interface ChildShader {
+	UniformName: string;
+	ScrapHashOrName: string;
+}
+
 export interface SKSLMetaData {
 	Uniforms: number[] | null;
-	Children: string[] | null;
+	Children: ChildShader[] | null;
 }
 
 export interface ParticlesMetaData {
