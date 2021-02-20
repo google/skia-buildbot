@@ -22,6 +22,7 @@ import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 import '../skottie-text-editor'
 import { SoundMap, AudioPlayer } from '../audio'
+import { supportedDomains, isDomain } from '../helpers/domains'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -191,7 +192,7 @@ const pick = (ele) => {
 };
 
 const redir = (ele) => {
-  if (window.location.hostname !== 'skottie-internal.skia.org') {
+  if (!isDomain(supportedDomains.SKOTTIE_INTERNAL)) {
     return html`
 <div>
   Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
