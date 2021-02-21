@@ -74,6 +74,8 @@ var (
 		"Infra-PerCommit-ValidateAutorollConfigs",
 		"Infra-PerCommit-Build-Bazel-Local",
 		"Infra-PerCommit-Build-Bazel-RBE",
+		"Infra-PerCommit-Test-Bazel-Local",
+		"Infra-PerCommit-Test-Bazel-RBE",
 		"Infra-Experimental-Small-Linux",
 		"Infra-Experimental-Small-Win",
 	}
@@ -576,7 +578,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		CasSpec:      CAS_WHOLE_REPO,
 		CipdPackages: cipd,
 		Command: []string{
-			"./bazel_build",
+			"./bazel_build_all",
 			"--project_id", "skia-swarming-bots",
 			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
@@ -588,6 +590,39 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
 		EnvPrefixes: map[string][]string{
 			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin", "mockery", "bazel/bin"},
+		},
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
+func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
+	cipd := []*specs.CipdPackage{}
+	cipd = append(cipd, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	cipd = append(cipd, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
+	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("cockroachdb"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("gcloud_linux"))
+
+	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
+		CasSpec:      CAS_WHOLE_REPO,
+		CipdPackages: cipd,
+		Command: []string{
+			"./bazel_test_all",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", ".",
+			fmt.Sprintf("--rbe=%t", rbe),
+			"--alsologtostderr",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   linuxGceDimensions(MACHINE_TYPE_LARGE),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "bazel/bin", "cockroachdb", "gcloud_linux/bin"},
 		},
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
@@ -620,6 +655,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, bazelBuild(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Build-Bazel-RBE") {
 		deps = append(deps, bazelBuild(b, name, true /* =rbe */))
+	} else if strings.Contains(name, "Test-Bazel-Local") {
+		deps = append(deps, bazelTest(b, name, false /* =rbe */))
+	} else if strings.Contains(name, "Test-Bazel-RBE") {
+		deps = append(deps, bazelTest(b, name, true /* =rbe */))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
