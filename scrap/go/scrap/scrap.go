@@ -125,14 +125,21 @@ type Uniform struct {
 	Value float64
 }
 
+// ChildShader is the scrap id of a single child shader along with the name that
+// the uniform should have to access it.
+type ChildShader struct {
+	UniformName     string
+	ScrapHashOrName string
+}
+
 // SKSLMetaData is metadata for SKSL scraps.
 type SKSLMetaData struct {
 	// Uniforms are all the inputs to the shader.
 	Uniforms []float32
 
-	// Child shaders. These values are the hashes of shaders, or, if the value
-	// begins with an "@", they are the name of a named shader.
-	Children []string
+	// Child shaders. A slice because order is important when mapping uniform
+	// names in code to child shaders passed to makeShaderWithChildren.
+	Children []ChildShader
 }
 
 // ParticlesMetaData is metadata for Particle scraps.
