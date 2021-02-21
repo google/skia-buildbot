@@ -1,0 +1,157 @@
+package main
+
+import (
+	"context"
+	"flag"
+	"path/filepath"
+
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_driver/go/lib/golang"
+	"go.skia.org/infra/task_driver/go/lib/os_steps"
+	"go.skia.org/infra/task_driver/go/td"
+)
+
+var (
+	// Required properties for this task.
+	projectID = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskID    = flag.String("task_id", "", "ID of this task.")
+	taskName  = flag.String("task_name", "", "Name of the task.")
+	workdir   = flag.String("workdir", ".", "Working directory.")
+	rbe       = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+
+	// Optional flags.
+	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
+	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
+
+	// Various directory paths.
+	wd            string
+	repoDir       string
+	bazelCacheDir string
+)
+
+func main() {
+	// Setup.
+	ctx := td.StartRun(projectID, taskID, taskName, output, local)
+	defer td.EndRun(ctx)
+
+	// Compute various directory paths.
+	wd, err := os_steps.Abs(ctx, *workdir)
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+	repoDir = filepath.Join(wd, "buildbot") // Repository checkout.
+
+	// Temporary directory for the Bazel cache.
+	//
+	// We cannot use the default Bazel cache location ($HOME/.cache/bazel) because:
+	//
+	//  - The cache can be large (>10G).
+	//  - Swarming bots have limited storage space on the root partition (15G).
+	//  - Because the above, the Bazel build fails with a "no space left on device" error.
+	//  - The Bazel cache under $HOME/.cache/bazel lingers after the tryjob completes, causing the
+	//    Swarming bot to be quarantined due to low disk space.
+	//  - Generally, it's considered poor hygiene to leave a bot in a different state.
+	//
+	// The temporary directory created by the below function call lives under /mnt/pd0, which has
+	// significantly more storage space, and will be wiped after the tryjob completes.
+	//
+	// Reference: https://docs.bazel.build/versions/master/output_directories.html#current-layout.
+	bazelCacheDir, err = os_steps.TempDir(ctx, "", "bazel-user-cache-*")
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Clean up the temporary Bazel cache directory when running locally, because during development,
+	// we do not want to leave behind a ~10GB Bazel cache directory under /tmp after each run.
+	//
+	// This is not necessary under Swarming because the temporary directory will be cleaned up
+	// automatically.
+	if *local {
+		defer os_steps.ReadFile(ctx, bazelCacheDir)
+	}
+
+	// Print out the Bazel version for debugging purposes.
+	bazel(ctx, "version")
+
+	// Run the tests.
+	if *rbe {
+		// TODO(lovisolo): Uncomment once we figure out how to authenticate against RBE.
+		// testOnRBE(ctx)
+		testLocally(ctx) // TODO(lovisolo): Remove.
+	} else {
+		testLocally(ctx)
+	}
+}
+
+// By invoking Bazel via this function, we ensure that we will always use the temporary cache.
+func bazel(ctx context.Context, args ...string) {
+	command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
+	command = append(command, args...)
+	if _, err := exec.RunCwd(ctx, repoDir, command...); err != nil {
+		td.Fatal(ctx, err)
+	}
+}
+
+func testOnRBE(ctx context.Context) {
+	// Run all tests in the repository. The tryjob will fail upon any failing tests.
+	bazel(ctx, "test", "--config=remote", "//...")
+}
+
+func testLocally(ctx context.Context) {
+	// Initialize a fake Git repository. Some tests require this.
+	//
+	// We receive the code via Isolate, but it doesn't include the .git dir.
+	gitDir := git.GitDir(repoDir)
+	err := td.Do(ctx, td.Props("Initialize fake Git repository"), func(ctx context.Context) error {
+		if gitVer, err := gitDir.Git(ctx, "version"); err != nil {
+			td.Fatal(ctx, err)
+		} else {
+			sklog.Infof("Git version %s", gitVer)
+		}
+		if _, err := gitDir.Git(ctx, "init"); err != nil {
+			td.Fatal(ctx, err)
+		}
+		if _, err := gitDir.Git(ctx, "config", "--local", "user.name", "Skia bots"); err != nil {
+			td.Fatal(ctx, err)
+		}
+		if _, err := gitDir.Git(ctx, "config", "--local", "user.email", "fake@skia.bots"); err != nil {
+			td.Fatal(ctx, err)
+		}
+		if _, err := gitDir.Git(ctx, "add", "."); err != nil {
+			td.Fatal(ctx, err)
+		}
+		if _, err := gitDir.Git(ctx, "commit", "--no-verify", "-m", "Fake commit to detect diffs"); err != nil {
+			td.Fatal(ctx, err)
+		}
+		return nil
+	})
+	if err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Set up go.
+	ctx = golang.WithEnv(ctx, wd)
+
+	// Start the emulators.
+	runEmulators := filepath.Join(repoDir, "scripts", "run_emulators", "run_emulators")
+	if _, err := exec.RunCwd(ctx, repoDir, runEmulators, "start"); err != nil {
+		td.Fatal(ctx, err)
+	}
+	ctx = td.WithEnv(ctx, []string{
+		"DATASTORE_EMULATOR_HOST=localhost:8891",
+		"BIGTABLE_EMULATOR_HOST=localhost:8892",
+		"PUBSUB_EMULATOR_HOST=localhost:8893",
+		"FIRESTORE_EMULATOR_HOST=localhost:8894",
+		"COCKROACHDB_EMULATOR_HOST=localhost:8895",
+	})
+	defer func() {
+		if _, err := exec.RunCwd(ctx, repoDir, runEmulators, "stop"); err != nil {
+			td.Fatal(ctx, err)
+		}
+	}()
+
+	// Run all tests in the repository. The tryjob will fail upon any failing tests.
+	bazel(ctx, "test", "//...")
+}
