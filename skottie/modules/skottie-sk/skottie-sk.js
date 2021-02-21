@@ -24,7 +24,8 @@ import '../skottie-text-editor'
 import { replaceTexts } from '../skottie-text-editor/text-replace'
 import '../skottie-library-sk'
 import { SoundMap, AudioPlayer } from '../audio'
-import { supportedDomains, isDomain } from '../helpers/domains'
+import { supportedDomains } from '../helpers/domains'
+import { renderByDomain } from '../helpers/templates'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -38,6 +39,12 @@ const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-we
 // SCRUBBER_RANGE is the input range for the scrubbing control.
 // This is an arbitrary value, and is treated as a re-scaled duration.
 const SCRUBBER_RANGE = 1000;
+
+const LIBRARY_SUPPORTED_DOMAINS = [
+  supportedDomains.SKOTTIE_INTERNAL,
+  supportedDomains.SKOTTIE_TENOR,
+  supportedDomains.LOCALHOST,
+];
 
 const displayDialog = (ele) => html`
 <skottie-config-sk .state=${ele._state} .width=${ele._width}
@@ -115,14 +122,25 @@ const library = (ele) => {
   if (!ele._showLibrary) {
     return '';
   }
-  return html`
-<section class=library>
-  <skottie-library-sk
-    @select=${ele._updateAnimation}
-  >
-  </skottie-library-sk>
-</section>`;
+  return renderByDomain(
+    html`
+    <section class=library>
+      <skottie-library-sk
+        @select=${ele._updateAnimation}
+      >
+      </skottie-library-sk>
+    </section>`,
+    LIBRARY_SUPPORTED_DOMAINS,
+  );
 };
+
+const libraryButton = (ele) => renderByDomain(
+  html`<checkbox-sk label="Show library"
+     ?checked=${ele._showLibrary}
+     @click=${ele._toggleLibrary}>
+  </checkbox-sk>`,
+  LIBRARY_SUPPORTED_DOMAINS,
+);
 
 const displayLoaded = (ele) => html`
 <button class=edit-config @click=${ ele._startEdit}>
@@ -150,10 +168,7 @@ const displayLoaded = (ele) => html`
                ?checked=${ele._showTextEditor}
                @click=${ele._toggleTextEditor}>
   </checkbox-sk>
-  <checkbox-sk label="Show library"
-               ?checked=${ele._showLibrary}
-               @click=${ele._toggleLibrary}>
-  </checkbox-sk>
+  ${libraryButton(ele)}
   <button @click=${ele._toggleEmbed}>Embed</button>
   <div class=scrub>
     <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
@@ -211,16 +226,13 @@ const pick = (ele) => {
   }
 };
 
-const redir = (ele) => {
-  if (!isDomain(supportedDomains.SKOTTIE_INTERNAL)) {
-    return html`
-<div>
-  Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
-</div>`;
-  } else {
-    return html``;
-  }
-};
+const redir = () => renderByDomain(
+  html`
+  <div>
+    Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
+  </div>`,
+  Object.values(supportedDomains).filter((domain) => domain !== supportedDomains.SKOTTIE_INTERNAL),
+);
 
 const template = (ele) => html`
 <header>
