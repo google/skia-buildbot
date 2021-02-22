@@ -1,4 +1,4 @@
-// skiacorrectness implements the process that exposes a RESTful API used by the JS frontend.
+// The goldfrontend executable is the process that exposes a RESTful API used by the JS frontend.
 package main
 
 import (
@@ -227,7 +227,7 @@ func main() {
 
 	diffStore := mustMakeDiffStore(ctx, fsc)
 
-	gitStore := mustMakeGitStore(ctx, fsc, appName)
+	gitStore := mustMakeGitStore(ctx, fsc, "gold-skiacorrectness") // Historical name
 
 	vcs := mustMakeVCS(ctx, fsc, gitStore)
 

@@ -39,7 +39,7 @@ General Logs
 ============
 Logs for Gold instances in skia-public/skia-corp are in the usual
 GKE container grouping, for example:
-<https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container&logName=projects%2Fskia-public%2Flogs%2Fgold-flutter-skiacorrectness>
+<https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container&logName=projects%2Fskia-public%2Flogs%2Fgold-flutter-frontend>
 
 Opencensus Tracing
 ==================
@@ -270,7 +270,7 @@ GoldCommentingStalled
 Gold hasn't been able to go through all the open CLs that have produced data and decide whether
 to comment on them or not in a while. The presence of this alert might mean we are seeing errors
  when talking to Firestore or to the Code Review System (CRS). Check the logs on that pod's
-frontend server (skiacorrectness) to see what's up.
+frontend server to see what's up.
 
 This might mean we are doing too much and running out of quota to talk to the CRS.  Usually
 out of quota messages will be in the error messages or the bodies of the failing requests.

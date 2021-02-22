@@ -51,7 +51,7 @@ func TestProductionDeployableUnitsAllInstancesHaveCommonServices(t *testing.T) {
 	}
 
 	for _, instance := range deployableUnitSet.knownInstances {
-		assertHasService(instance, SkiaCorrectness)
+		assertHasService(instance, Frontend)
 		if !isPublicInstance(instance) {
 			assertHasService(instance, DiffServer)
 			assertHasService(instance, IngestionBT)

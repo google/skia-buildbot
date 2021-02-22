@@ -1,26 +1,25 @@
 {
   authorized_users: [
-    "google.com",
+    "google.com", "chromium.org", "skia.org",
   ],
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchsetOrder}}.\n\
 View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   client_secret_file: "/etc/skia.org/login.json",
-  diff_server_grpc: "gold-fuchsia-public-diffserver:8000",
-  diff_server_http: "gold-fuchsia-public-diffserver:8001",
-  flaky_trace_threshold: 10000, // no trace is flaky
-  force_login: true, // This instance requires authentication.
+  diff_server_grpc: "gold-lottie-diffserver:8000",
+  diff_server_http: "gold-lottie-diffserver:8001",
+  flaky_trace_threshold: 10000, // no flaky traces
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
-    defaultCorpus: "test",
-    title: "Fuchsia Gold",
+    defaultCorpus: "lottie",
+    title: "Lottie Gold",
   },
-  num_commits: 200,
+  num_commits: 500,
   port: ":8000",
   prom_port: ":20000",
-  resources_path: "/usr/local/share/skiacorrectness/dist",
-  site_url: "https://fuchsia-public-gold.skia.org",
+  resources_path: "/usr/local/share/frontend/dist",
+  site_url: "https://lottie-gold.skia.org",
   tile_freshness: "1m",
-  trace_bt_table: "gold-fuchsia-public",
+  trace_bt_table: "gold-lottie",
 
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_CPU: 4,

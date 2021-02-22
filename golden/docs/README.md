@@ -34,6 +34,8 @@ get back to you.
 Otherwise, you'll need approximately the following steps. We use Google Cloud and Kubernetes (k8s)
 and the following assumes you do too.
 
+TODO(kjlubick) update this to handle diffcalculator
+
  1. Create a Google Cloud Project - this will house the data, credentials, configuration, and
     k8s pods that make up Gold.
  2. Make a Google Cloud Storage (GCS) bucket in the project. This specifically will be the source
@@ -46,7 +48,7 @@ and the following assumes you do too.
     and the templates we use for deployments are in ../k8s-config-templates.
  5. Create a k8s deployment of diffserver. This will compute the differences between images
     and output things like the diff metrics and images visualizing the differences.
- 6. Create a k8s deployment of skiacorrectness. This is the main frontend server.
+ 6. Create a k8s deployment of frontend.
  7. Create a k8s deployment of baselineserver. This is a lighter-weight and more highly-available
     subset of the frontend, which will be queried by goldctl.
 

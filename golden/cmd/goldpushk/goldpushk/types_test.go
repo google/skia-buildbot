@@ -169,9 +169,9 @@ func TestDeployableUnitSetKnownInstances(t *testing.T) {
 func TestDeployableUnitSetKnownServices(t *testing.T) {
 	unittest.SmallTest(t)
 	s := DeployableUnitSet{
-		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
+		knownServices: []Service{BaselineServer, DiffServer, Frontend},
 	}
-	require.Equal(t, []Service{BaselineServer, DiffServer, SkiaCorrectness}, s.KnownServices())
+	require.Equal(t, []Service{BaselineServer, DiffServer, Frontend}, s.KnownServices())
 }
 
 func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
@@ -188,11 +188,11 @@ func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
 func TestDeployableUnitSetIsKnownService(t *testing.T) {
 	unittest.SmallTest(t)
 	s := DeployableUnitSet{
-		knownServices: []Service{BaselineServer, DiffServer, SkiaCorrectness},
+		knownServices: []Service{BaselineServer, DiffServer, Frontend},
 	}
 	require.True(t, s.IsKnownService(BaselineServer))
 	require.True(t, s.IsKnownService(DiffServer))
-	require.True(t, s.IsKnownService(SkiaCorrectness))
+	require.True(t, s.IsKnownService(Frontend))
 	require.False(t, s.IsKnownService(Service("foo")))
 }
 
