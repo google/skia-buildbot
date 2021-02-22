@@ -147,16 +147,17 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
-# Directories with Go code for which we generate Bazel build targets with Gazelle.
-GAZELLE_DIRS=./
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle -- update $(GAZELLE_DIRS)
+	bazel run //:gazelle -- update ./
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
 	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=go_repositories.bzl%go_repositories
+
+.PHONY: gazelle
+gazelle: update-go-bazel-deps update-go-bazel-files
 
 # Known good Bazel build targets.
 #
