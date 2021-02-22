@@ -850,7 +850,7 @@
         }
       ],
       "command": [
-        "./bazel_build",
+        "./bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -934,7 +934,7 @@
         }
       ],
       "command": [
-        "./bazel_build",
+        "./bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
