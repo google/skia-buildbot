@@ -46,6 +46,30 @@
       },
       "revId": "3b92bc49a82f21e00dd9507f7770e0287c60dee4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "18d797e3_59a9d04f",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-22T16:30:35Z",
+      "side": 1,
+      "message": "Added footers support. PTAL.",
+      "parentUuid": "06c48516_8c02a5ef",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 72
+      },
+      "revId": "3b92bc49a82f21e00dd9507f7770e0287c60dee4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
