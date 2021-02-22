@@ -164,6 +164,30 @@
       },
       "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "25e6ad58_e1a0bf8b",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-22T13:52:02Z",
+      "side": 1,
+      "message": "Thanks for verifying. It wouldn\u0027t have been the first mutex-related error I\u0027ve ever made, so I appreciate double checking the scope of the contention. :)",
+      "parentUuid": "c5a767b4_b1eb8d5d",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 39
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
