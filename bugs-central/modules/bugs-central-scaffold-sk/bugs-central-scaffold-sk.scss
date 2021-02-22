@@ -62,6 +62,10 @@ bugs-central-scaffold-sk {
     padding: 32px 80px;
   }
 
+  svg.icon-sk-svg {
+    fill: var(--on-surface);
+  }
+
   login-sk {
     margin-left: auto;
     margin-right: 16px;
