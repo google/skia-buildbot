@@ -9,7 +9,6 @@
  *
  * @evt select - This event is triggered when an animation is selected from the list.
  *
- * @attr animation - the seek position
  *
  */
 import '../skottie-player-sk';
