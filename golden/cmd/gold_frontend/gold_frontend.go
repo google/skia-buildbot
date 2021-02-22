@@ -60,7 +60,6 @@ import (
 	"go.skia.org/infra/golden/go/expectations/cleanup"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/publicparams"
@@ -241,7 +240,7 @@ func main() {
 
 	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
 
-	ignoreStore := mustMakeIgnoreStore(ctx, fsc, fsClient, sqlDB)
+	ignoreStore := mustMakeIgnoreStore(ctx, fsc, sqlDB)
 
 	tjs := mustMakeTryJobStore(fsClient, sqlDB)
 
@@ -489,15 +488,8 @@ func mustMakePubliclyViewableParams(fsc *frontendServerConfig) publicparams.Matc
 
 // mustMakeIgnoreStore returns a new ignore.Store and starts a monitoring routine that counts the
 // the number of expired ignore rules and exposes this as a metric.
-func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, fsClient *firestore.Client, db *pgxpool.Pool) ignore.Store {
-	var ignoreStore ignore.Store
-	if db != nil {
-		ignoreStore = sqlignorestore.New(db)
-		sklog.Info("Using new SQL Ignore store")
-	} else {
-		ignoreStore = fs_ignorestore.New(ctx, fsClient)
-		sklog.Info("Using deprecated Firestore Ignore store")
-	}
+func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, db *pgxpool.Pool) ignore.Store {
+	ignoreStore := sqlignorestore.New(db)
 
 	if err := ignore.StartMetrics(ctx, ignoreStore, fsc.TileFreshness.Duration); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
