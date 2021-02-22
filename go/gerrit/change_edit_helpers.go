@@ -31,6 +31,10 @@ func EditChange(ctx context.Context, g GerritInterface, ci *ChangeInfo, fn func(
 // published as a new patch set, or in the case of failure, reverted. If an
 // error is encountered after the Change is created, the ChangeInfo is returned
 // so that the caller can decide whether to abandon the change or try again.
+//
+// Note: This function adds "\nChange-Id: ${change_id}" to the commitMsg.
+// Because of this, if the commitMsg has no footers in it then it should end
+// with "\n". If it has footers then there should be no "\n" at the end.
 func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, fn func(context.Context, GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
 	ci, err := g.CreateChange(ctx, project, branch, strings.Split(commitMsg, "\n")[0], baseCommit)
 	if err != nil {
