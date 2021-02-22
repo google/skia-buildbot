@@ -36,7 +36,7 @@ describe('uniform-color-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(
         uniforms,
-        [0, 128 / 255, 144 / 255, 160 / 255, 0],
+        [0, 0.501, 0.564, 0.627, 0],
       );
     });
 
@@ -55,7 +55,7 @@ describe('uniform-color-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(
         uniforms,
-        [0, 128 / 255, 144 / 255, 160 / 255, 0.5, 0],
+        [0, 0.501, 0.564, 0.627, 0.5, 0],
       );
     });
 
@@ -78,10 +78,9 @@ describe('uniform-color-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(
         uniforms,
-        [0, 128 / 255, 144 / 255, 160 / 255, 0.5, 0],
+        [0, 0.501, 0.564, 0.627, 0.5, 0],
       );
     });
-
 
     it('throws on invalid uniforms', () => {
       // Uniform is too small to be a color.
