@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ca07f54_d8c6be6c",
+        "filename": "go/git/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-22T22:00:16Z",
+      "side": 1,
+      "message": "I have seen this footer pattern used:\n\u0027^\\s*([\\w-]+): *(.*)$\u0027",
+      "revId": "04a767522195053054de61818628c6b29a5c238a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0e37ee1a_9bfaa9de",
+        "filename": "go/git/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-22T22:00:16Z",
+      "side": 1,
+      "message": "I expected to see footers used everywhere here instead of trailers. \"trailers footer\" is especially confusing.\nIIRC, \"trailers\" is used in git, but in the context of what is trailing in a commit message, it could be anything not just things that match that regex.\nGerrit almost exclusively uses the term \"footer\": https://gerrit.googlesource.com/gerrit/+/v2.11-rc0/Documentation/config-gerrit.txt#3343",
+      "range": {
+        "startLine": 204,
+        "startChar": 3,
+        "endLine": 204,
+        "endChar": 16
+      },
+      "revId": "04a767522195053054de61818628c6b29a5c238a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
