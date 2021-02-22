@@ -105,7 +105,7 @@ func getCurrentBuildbucketCfg(ctx context.Context, repo *gitiles.Repo) (string, 
 // updateBuildbucketCfg creates a Gerrit CL to update buildbucket.config. If submit flag is true then that CL
 // is automatically self-approved and submitted.
 func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.Repo, cfgContents string) error {
-	commitMsg := "Update buildbucket.config"
+	commitMsg := "Update buildbucket.config\n"
 	repoSplit := strings.Split(*repoUrl, "/")
 	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
 	baseCommitInfo, err := repo.Details(ctx, bbCfgBranch)
