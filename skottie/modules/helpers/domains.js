@@ -11,7 +11,10 @@ const supportedDomains = {
 
 const isDomain = (domain) => domain === currentDomaint;
 
+const isOneOfDomains = (domains) => domains.includes(currentDomaint);
+
 export {
   isDomain,
+  isOneOfDomains,
   supportedDomains,
 };
