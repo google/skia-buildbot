@@ -67,7 +67,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-skia-skiacorrectness",
+          "cluster_name": "gold-skia-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -75,7 +75,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-skia-skiacorrectness",
+                        "address": "gold-skia-frontend",
                         "port_value": 8000
                       }
                     }
@@ -85,7 +85,7 @@
             }
           ]
         },
-        "name": "gold-skia-skiacorrectness",
+        "name": "gold-skia-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -145,7 +145,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-skia-infra-skiacorrectness",
+          "cluster_name": "gold-skia-infra-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -153,7 +153,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-skia-infra-skiacorrectness",
+                        "address": "gold-skia-infra-frontend",
                         "port_value": 8000
                       }
                     }
@@ -163,7 +163,7 @@
             }
           ]
         },
-        "name": "gold-skia-infra-skiacorrectness",
+        "name": "gold-skia-infra-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -171,7 +171,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-skia-public-skiacorrectness",
+          "cluster_name": "gold-skia-public-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -179,7 +179,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-skia-public-skiacorrectness",
+                        "address": "gold-skia-public-frontend",
                         "port_value": 8000
                       }
                     }
@@ -189,7 +189,7 @@
             }
           ]
         },
-        "name": "gold-skia-public-skiacorrectness",
+        "name": "gold-skia-public-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -223,7 +223,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-lottie-skiacorrectness",
+          "cluster_name": "gold-lottie-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -231,7 +231,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-lottie-skiacorrectness",
+                        "address": "gold-lottie-frontend",
                         "port_value": 8000
                       }
                     }
@@ -241,7 +241,7 @@
             }
           ]
         },
-        "name": "gold-lottie-skiacorrectness",
+        "name": "gold-lottie-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -275,7 +275,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-pdfium-skiacorrectness",
+          "cluster_name": "gold-pdfium-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -283,7 +283,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-pdfium-skiacorrectness",
+                        "address": "gold-pdfium-frontend",
                         "port_value": 8000
                       }
                     }
@@ -293,7 +293,7 @@
             }
           ]
         },
-        "name": "gold-pdfium-skiacorrectness",
+        "name": "gold-pdfium-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -353,7 +353,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-flutter-skiacorrectness",
+          "cluster_name": "gold-flutter-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -361,7 +361,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-flutter-skiacorrectness",
+                        "address": "gold-flutter-frontend",
                         "port_value": 8000
                       }
                     }
@@ -371,7 +371,7 @@
             }
           ]
         },
-        "name": "gold-flutter-skiacorrectness",
+        "name": "gold-flutter-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -431,7 +431,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-angle-skiacorrectness",
+          "cluster_name": "gold-angle-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -439,7 +439,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-angle-skiacorrectness",
+                        "address": "gold-angle-frontend",
                         "port_value": 8000
                       }
                     }
@@ -449,7 +449,7 @@
             }
           ]
         },
-        "name": "gold-angle-skiacorrectness",
+        "name": "gold-angle-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -509,7 +509,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-chrome-skiacorrectness",
+          "cluster_name": "gold-chrome-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -517,7 +517,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-chrome-skiacorrectness",
+                        "address": "gold-chrome-frontend",
                         "port_value": 8000
                       }
                     }
@@ -527,7 +527,7 @@
             }
           ]
         },
-        "name": "gold-chrome-skiacorrectness",
+        "name": "gold-chrome-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -535,7 +535,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-chrome-public-skiacorrectness",
+          "cluster_name": "gold-chrome-public-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -543,7 +543,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-chrome-public-skiacorrectness",
+                        "address": "gold-chrome-public-frontend",
                         "port_value": 8000
                       }
                     }
@@ -553,7 +553,7 @@
             }
           ]
         },
-        "name": "gold-chrome-public-skiacorrectness",
+        "name": "gold-chrome-public-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -613,7 +613,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-cros-tast-dev-skiacorrectness",
+          "cluster_name": "gold-cros-tast-dev-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -621,7 +621,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-cros-tast-dev-skiacorrectness",
+                        "address": "gold-cros-tast-dev-frontend",
                         "port_value": 8000
                       }
                     }
@@ -631,7 +631,7 @@
             }
           ]
         },
-        "name": "gold-cros-tast-dev-skiacorrectness",
+        "name": "gold-cros-tast-dev-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -691,7 +691,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-flutter-engine-skiacorrectness",
+          "cluster_name": "gold-flutter-engine-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -699,7 +699,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-flutter-engine-skiacorrectness",
+                        "address": "gold-flutter-engine-frontend",
                         "port_value": 8000
                       }
                     }
@@ -709,7 +709,7 @@
             }
           ]
         },
-        "name": "gold-flutter-engine-skiacorrectness",
+        "name": "gold-flutter-engine-frontend",
         "type": "STRICT_DNS"
       },
       {
@@ -769,7 +769,7 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-fuchsia-public-skiacorrectness",
+          "cluster_name": "gold-fuchsia-public-frontend",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -777,7 +777,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "gold-fuchsia-public-skiacorrectness",
+                        "address": "gold-fuchsia-public-frontend",
                         "port_value": 8000
                       }
                     }
@@ -787,7 +787,7 @@
             }
           ]
         },
-        "name": "gold-fuchsia-public-skiacorrectness",
+        "name": "gold-fuchsia-public-frontend",
         "type": "STRICT_DNS"
       }
     ],
@@ -1594,7 +1594,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-skia-skiacorrectness",
+                            "cluster": "gold-skia-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1622,7 +1622,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-skia-public-skiacorrectness",
+                            "cluster": "gold-skia-public-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1650,7 +1650,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-lottie-skiacorrectness",
+                            "cluster": "gold-lottie-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1678,7 +1678,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-pdfium-skiacorrectness",
+                            "cluster": "gold-pdfium-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1756,7 +1756,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-skiacorrectness",
+                            "cluster": "gold-flutter-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1834,7 +1834,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-angle-skiacorrectness",
+                            "cluster": "gold-angle-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1912,7 +1912,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-skiacorrectness",
+                            "cluster": "gold-chrome-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1940,7 +1940,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-chrome-public-skiacorrectness",
+                            "cluster": "gold-chrome-public-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -2018,7 +2018,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-cros-tast-dev-skiacorrectness",
+                            "cluster": "gold-cros-tast-dev-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -2096,7 +2096,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-flutter-engine-skiacorrectness",
+                            "cluster": "gold-flutter-engine-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -2174,7 +2174,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-fuchsia-public-skiacorrectness",
+                            "cluster": "gold-fuchsia-public-frontend",
                             "timeout": {
                               "seconds": 600
                             }
@@ -2252,7 +2252,7 @@
                             "prefix": "/"
                           },
                           "route": {
-                            "cluster": "gold-skia-infra-skiacorrectness",
+                            "cluster": "gold-skia-infra-frontend",
                             "timeout": {
                               "seconds": 600
                             }

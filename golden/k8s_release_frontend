@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -x -e
+
+# Create and upload a container image the Gold frontend.
+APPNAME=gold-frontend
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+
+# Add the dockerfile and binary.
+${INSTALL} --mode=644 -T ./dockerfiles/Dockerfile_frontend  ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ./build/frontend_k8s               ${ROOT}/usr/local/bin/${APPNAME}
+
+# Add the frontend assets.
+${INSTALL_DIR} --mode=755                                   ${ROOT}/usr/local/share/frontend/dist
+${INSTALL} --mode=644 ./dist/*                              ${ROOT}/usr/local/share/frontend/dist
+}
+
+source ../bash/docker_build.sh
