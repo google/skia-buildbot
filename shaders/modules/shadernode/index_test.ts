@@ -47,7 +47,7 @@ describe('ShaderNode', async () => {
     assert.equal(node.compileErrorMessage, '');
   });
 
-  it('updates all values when a new shader is compiled.', async () => {
+  it('updates all valus when a new shader is compiled.', async () => {
     const node = await createShaderNode();
     node.compile();
     assert.isNotNull(node.getShader([]));
@@ -136,6 +136,10 @@ describe('ShaderNode', async () => {
   it('reports compiler errors', async () => {
     const node = await createShaderNode();
     node.compile();
+
+    // Set code that has a user uniform, in this case with 4 floats, because
+    // saving is not only indicated when the code changes, but when the user
+    // uniforms change.
     node.setScrap({
       Type: 'sksl',
       Body: `uniform float4 iColorWithAlpha;

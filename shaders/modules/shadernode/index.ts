@@ -48,14 +48,14 @@ export const defaultShader = `half4 main(float2 fragCoord) {
   return vec4(1, 0, 0, 1);
 }`;
 
-const defaultBody: ScrapBody = {
-  Type: 'sksl',
+const defaultBody : ScrapBody =  {
+  Type: "sksl",
   Body: defaultShader,
   SKSLMetaData: {
     Uniforms: [],
     Children: [],
-  },
-};
+  }
+}
 
 /**
  * Called ShaderNode because once we support child shaders this will be just one
@@ -125,7 +125,7 @@ export class ShaderNode {
         credentials: 'include',
       });
       const scrapBody = (await jsonOrThrow(resp)) as ScrapBody;
-      this.setScrap(scrapBody);
+      this.setScrap(scrapBody)
     }
 
     /** Sets the code and uniforms of a shader to run. */
@@ -275,10 +275,11 @@ export class ShaderNode {
       // Copy in our local edited uniform values to the right spots.
       this.currentUserUniformValues.forEach((val, index) => { uniformsFloat32Array[index + this._numPredefinedUniformValues] = val; });
 
-      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, this.inputImageShaders);
+      const shader = this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, this.inputImageShaders);
+      return shader;
     }
 
-    get numPredefinedUniformValues(): number {
+    get numPredefinedUniformValues():number {
       return this._numPredefinedUniformValues;
     }
 
@@ -301,11 +302,10 @@ export class ShaderNode {
     private buildUniformsFromEffect() {
       this.uniforms = [];
       if (!this.effect) {
-        return;
+        return
       }
-      const count = this.effect.getUniformCount();
+      const count = this.effect.getUniformCount()
       for (let i = 0; i < count; i++) {
-        // Use object spread operator to clone the SkSLUniform and add a name to make a Uniform.
         this.uniforms.push({ ...this.effect.getUniform(i), name: this.effect.getUniformName(i) });
       }
     }
