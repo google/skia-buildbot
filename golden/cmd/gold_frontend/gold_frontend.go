@@ -45,8 +45,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/clstore/dualclstore"
-	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/commenter"
@@ -244,7 +242,7 @@ func main() {
 
 	tjs := mustMakeTryJobStore(fsClient, sqlDB)
 
-	reviewSystems := mustInitializeReviewSystems(fsc, fsClient, client, sqlDB)
+	reviewSystems := mustInitializeReviewSystems(fsc, client, sqlDB)
 
 	tileSource := mustMakeTileSource(ctx, fsc, expStore, ignoreStore, traceStore, vcs, publiclyViewableParams, reviewSystems)
 
@@ -506,7 +504,7 @@ func mustMakeTryJobStore(client *firestore.Client, db *pgxpool.Pool) tjstore.Sto
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
 // specified via the JSON configuration files.
-func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client, hc *http.Client, sqlDB *pgxpool.Pool) []clstore.ReviewSystem {
+func mustInitializeReviewSystems(fsc *frontendServerConfig, hc *http.Client, sqlDB *pgxpool.Pool) []clstore.ReviewSystem {
 	rs := make([]clstore.ReviewSystem, 0, len(fsc.CodeReviewSystems))
 	for _, cfg := range fsc.CodeReviewSystems {
 		var crs code_review.Client
@@ -539,12 +537,11 @@ func mustInitializeReviewSystems(fsc *frontendServerConfig, fc *firestore.Client
 			sklog.Fatalf("CRS flavor %s not supported.", cfg.Flavor)
 			return nil
 		}
-		fireCS := fs_clstore.New(fc, cfg.ID)
 		sqlCS := sqlclstore.New(sqlDB, cfg.ID)
 		rs = append(rs, clstore.ReviewSystem{
 			ID:          cfg.ID,
 			Client:      crs,
-			Store:       dualclstore.New(sqlCS, fireCS),
+			Store:       sqlCS,
 			URLTemplate: cfg.URLTemplate,
 		})
 	}
