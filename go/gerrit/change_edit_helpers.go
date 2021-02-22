@@ -25,6 +25,24 @@ func EditChange(ctx context.Context, g GerritInterface, ci *ChangeInfo, fn func(
 	return fn(ctx, g, ci)
 }
 
+// AddChangeId adds the specified changeId to the commitMsg's footers.
+func AddChangeId(commitMsg, changeId string) string {
+	commitMsg = strings.TrimSpace(commitMsg)
+	// Footers are always separated from the msg by two newlines.
+	footersDelimiter := "\n\n"
+
+	commitMsgNoFooters := commitMsg
+	footers := ""
+	msgTokens := strings.Split(commitMsg, footersDelimiter)
+	if len(msgTokens) > 1 {
+		commitMsgNoFooters = strings.Join(msgTokens[:len(msgTokens)-1], footersDelimiter)
+		footers = strings.TrimSpace(msgTokens[len(msgTokens)-1]) + "\n"
+	}
+	footers += "Change-Id: " + changeId
+
+	return commitMsgNoFooters + footersDelimiter + footers
+}
+
 // CreateAndEditChange is a helper which creates a new Change in the given
 // project based on the given branch with the given commit message. Pass in a
 // function which modifies a ChangeEdit, and the result will be automatically
@@ -36,7 +54,7 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create change")
 	}
-	commitMsg = strings.TrimSpace(commitMsg) + "\n" + "Change-Id: " + ci.ChangeId
+	commitMsg = AddChangeId(commitMsg, ci.ChangeId)
 	if err := EditChange(ctx, g, ci, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
 		if err := g.SetCommitMessage(ctx, ci, commitMsg); err != nil {
 			return skerr.Wrapf(err, "failed to set commit message to:\n\n%s\n\n", commitMsg)
