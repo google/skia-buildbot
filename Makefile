@@ -147,7 +147,6 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
-
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
 	bazel run //:gazelle -- update ./
@@ -159,38 +158,26 @@ update-go-bazel-deps:
 .PHONY: gazelle
 gazelle: update-go-bazel-deps update-go-bazel-files
 
-# Known good Bazel build targets.
-#
-# Targets can be excluded by prefixing them with a dash, e.g. -//perf, -//gold, etc.
-BAZEL_BUILD_TARGETS=//...
-
-# Known good Bazel test targets. Eventually this should be replaced with "bazel test //...".
-BAZEL_TEST_TARGETS=\
-	//bazel/... \
-	//infra-sk/... \
-	//machine/modules/...\
-	//puppeteer-tests/... \
-
 .PHONY: bazel-build
 bazel-build:
-	bazel build -- $(BAZEL_BUILD_TARGETS)
+	bazel build //...
 
 .PHONY: bazel-test
 bazel-test:
-	bazel test -- $(BAZEL_TEST_TARGETS)
+	bazel test //...
 
 .PHONY: bazel-test-nocache
 bazel-test-nocache:
-	bazel test --cache_test_results=no -- $(BAZEL_TEST_TARGETS)
+	bazel test --cache_test_results=no //...
 
 .PHONY: bazel-build-rbe
 bazel-build-rbe:
-	bazel build --config=remote -- $(BAZEL_BUILD_TARGETS)
+	bazel build --config=remote //...
 
 .PHONY: bazel-test-rbe
 bazel-test-rbe:
-	bazel test --config=remote -- $(BAZEL_TEST_TARGETS)
+	bazel test --config=remote //...
 
 .PHONY: bazel-test-rbe-nocache
 bazel-test-rbe-nocache:
-	bazel test --config=remote --cache_test_results=no -- $(BAZEL_TEST_TARGETS)
+	bazel test --config=remote --cache_test_results=no //...
