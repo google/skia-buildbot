@@ -98,9 +98,10 @@ export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
 export const launchBrowser = () => puppeteer.launch(
   // See
   // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
-  exports.inDocker()
-    ? { args: ['--disable-dev-shm-usage', '--no-sandbox'] }
-    : {},
+    { args: ['--disable-dev-shm-usage', '--no-sandbox'] },
+  // exports.inDocker() || true
+  //   ? { args: ['--disable-dev-shm-usage', '--no-sandbox'] }
+  //   : {},
 );
 
 /**
