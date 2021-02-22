@@ -245,10 +245,6 @@ export class ShadersAppSk extends ElementSk {
               <img id=iImage1 loading="eager" src="/dist/mandrill.png">
               <figcaption>iImage1</figcaption>
             </figure>
-            <figure>
-              <img id=iImage2 loading="eager" src="/dist/soccer.png">
-              <figcaption>iImage2</figcaption>
-            </figure>
         </div>
         </details>
         <div id="codeEditor"></div>
@@ -314,7 +310,7 @@ export class ShadersAppSk extends ElementSk {
         this.inputImageShaders = [];
         // Wait until all the images are loaded.
         // Note: All shader images MUST be 512 x 512 to agree with iImageResolution.
-        const elements = await Promise.all<HTMLImageElement>([this.promiseOnImageLoaded('#iImage1'), this.promiseOnImageLoaded('#iImage2')]);
+        const elements = await Promise.all<HTMLImageElement>([this.promiseOnImageLoaded('#iImage1')]);
         // Convert them into shaders.
         elements.forEach((ele) => {
           const image = this.kit!.MakeImageFromCanvasImageSource(ele);

@@ -17,9 +17,8 @@ import { ScrapBody, ScrapID } from '../json';
 export const predefinedUniforms = `uniform float3 iResolution;      // Viewport resolution (pixels)
 uniform float  iTime;            // Shader playback time (s)
 uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
-uniform float3 iImageResolution; // iImage1 and iImage2 resolution (pixels)
-uniform shader iImage1;          // An input image (Mandrill).
-uniform shader iImage2;          // An input image (Soccer ball).`;
+uniform float3 iImageResolution; // iImage1 resolution (pixels)
+uniform shader iImage1;          // An input image (Mandrill).`;
 
 /** How many of the uniforms listed in predefinedUniforms are of type 'shader'? */
 export const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
@@ -119,7 +118,7 @@ export class ShaderNode {
     constructor(canvasKit: CanvasKit, inputImageShaders: Shader[]) {
       this.canvasKit = canvasKit;
       if (inputImageShaders.length !== numPredefinedShaderUniforms) {
-        throw new Error(`ShaderNode requires exactly two predefined image shaders, got ${inputImageShaders.length}`);
+        throw new Error(`ShaderNode requires exactly one predefined image shader, got ${inputImageShaders.length}`);
       }
       this.inputImageShaders = inputImageShaders;
       this.body = defaultBody;

@@ -21,9 +21,7 @@ const createShaderNode = async (): Promise<ShaderNode> => {
   const ck = await getCanvasKit();
   const image = ck.MakeImageFromCanvasImageSource(new Image(512, 512));
   const shader1 = image.makeShaderOptions(ck.TileMode.Clamp, ck.TileMode.Clamp, ck.FilterMode.Linear, ck.MipmapMode.None);
-  const shader2 = image.makeShaderOptions(ck.TileMode.Clamp, ck.TileMode.Clamp, ck.FilterMode.Linear, ck.MipmapMode.None);
-
-  return new ShaderNode(ck, [shader1, shader2]);
+  return new ShaderNode(ck, [shader1]);
 };
 
 describe('ShaderNode', async () => {
