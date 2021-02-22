@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "99b7c9f0_7ffe5bed",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 11
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T17:56:40Z",
+      "side": 1,
+      "message": "POST LGTM update, it was a couple more lines to fold the event driven updating into this CL.",
+      "revId": "79e9168c5dbd9c7a281832e67d41be6944e18643",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
