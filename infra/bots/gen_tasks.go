@@ -576,7 +576,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		CasSpec:      CAS_WHOLE_REPO,
 		CipdPackages: cipd,
 		Command: []string{
-			"./bazel_build",
+			"./bazel_build_all",
 			"--project_id", "skia-swarming-bots",
 			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,

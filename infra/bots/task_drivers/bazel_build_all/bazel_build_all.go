@@ -15,11 +15,11 @@ import (
 
 var (
 	// Required properties for this task.
-	projectID = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskID    = flag.String("task_id", "", "ID of this task.")
-	taskName  = flag.String("task_name", "", "Name of the task.")
-	workdir   = flag.String("workdir", ".", "Working directory.")
-	rbe       = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
+	projectID   = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskID      = flag.String("task_id", "", "ID of this task.")
+	taskName    = flag.String("task_name", "", "Name of the task.")
+	workDirFlag = flag.String("workdir", ".", "Working directory.")
+	rbe         = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
 
 	// Optional flags.
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
@@ -34,11 +34,11 @@ func main() {
 	defer td.EndRun(ctx)
 
 	// Compute various directory paths.
-	wd, err := os_steps.Abs(ctx, *workdir)
+	workDir, err := os_steps.Abs(ctx, *workDirFlag)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	repoDir := filepath.Join(wd, "buildbot") // Repository checkout.
+	repoDir := filepath.Join(workDir, "buildbot") // Repository checkout.
 
 	// Initialize a fake Git repository. We will use it to detect diffs.
 	//
@@ -79,7 +79,7 @@ func main() {
 	}
 
 	// Set up go.
-	ctx = golang.WithEnv(ctx, wd)
+	ctx = golang.WithEnv(ctx, workDir)
 	if err := golang.InstallCommonDeps(ctx, repoDir); err != nil {
 		td.Fatal(ctx, err)
 	}
