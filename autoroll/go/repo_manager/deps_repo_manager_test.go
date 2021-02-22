@@ -41,7 +41,7 @@ const (
 
 blah blah blah
 `
-	fakeCommitMsgMock = fakeCommitMsg + "Change-Id: 123"
+	fakeCommitMsgMock = fakeCommitMsg + "\nChange-Id: 123"
 )
 
 var (
