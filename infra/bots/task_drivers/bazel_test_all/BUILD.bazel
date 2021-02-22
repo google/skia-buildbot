@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bazel_test_all_lib",
+    srcs = ["bazel_test_all.go"],
+    importpath = "go.skia.org/infra/infra/bots/task_drivers/bazel_test_all",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/depot_tools",
+        "//go/emulators",
+        "//go/exec",
+        "//go/git",
+        "//go/recipe_cfg",
+        "//go/sklog",
+        "//task_driver/go/lib/golang",
+        "//task_driver/go/lib/os_steps",
+        "//task_driver/go/td",
+    ],
+)
+
+go_binary(
+    name = "bazel_test_all",
+    embed = [":bazel_test_all_lib"],
+    visibility = ["//visibility:public"],
+)

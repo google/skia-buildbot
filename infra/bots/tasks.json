@@ -79,6 +79,16 @@
         "Infra-PerCommit-Small"
       ]
     },
+    "Infra-PerCommit-Test-Bazel-Local": {
+      "tasks": [
+        "Infra-PerCommit-Test-Bazel-Local"
+      ]
+    },
+    "Infra-PerCommit-Test-Bazel-RBE": {
+      "tasks": [
+        "Infra-PerCommit-Test-Bazel-RBE"
+      ]
+    },
     "Infra-PerCommit-ValidateAutorollConfigs": {
       "tasks": [
         "Infra-PerCommit-ValidateAutorollConfigs"
@@ -1725,6 +1735,226 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "max_attempts": 2,
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-Test-Bazel-Local": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        }
+      ],
+      "casSpec": "whole-repo",
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.18.chromium.30"
+        },
+        {
+          "name": "infra/3pp/tools/git/linux-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.29.2.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/isolate/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/isolated/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "skia/bots/bazel",
+          "path": "bazel",
+          "version": "version:2"
+        },
+        {
+          "name": "skia/bots/cockroachdb",
+          "path": "cockroachdb",
+          "version": "version:3"
+        },
+        {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:14"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:9"
+        }
+      ],
+      "command": [
+        "./bazel_test_all",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-Test-Bazel-Local",
+        "--workdir",
+        ".",
+        "--rbe=false",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin",
+          "bazel/bin",
+          "cockroachdb",
+          "gcloud_linux/bin"
+        ]
+      },
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-Test-Bazel-RBE": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        },
+        {
+          "name": "gopath",
+          "path": "cache/gopath"
+        }
+      ],
+      "casSpec": "whole-repo",
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython/linux-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.7.18.chromium.30"
+        },
+        {
+          "name": "infra/3pp/tools/git/linux-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.29.2.chromium.6"
+        },
+        {
+          "name": "infra/gsutil",
+          "path": "cipd_bin_packages",
+          "version": "version:4.46"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/isolate/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/isolated/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "infra/tools/luci/vpython/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:14be8b751c0fb567535f520f8a7bc60c3f40b378"
+        },
+        {
+          "name": "skia/bots/bazel",
+          "path": "bazel",
+          "version": "version:2"
+        },
+        {
+          "name": "skia/bots/cockroachdb",
+          "path": "cockroachdb",
+          "version": "version:3"
+        },
+        {
+          "name": "skia/bots/gcloud_linux",
+          "path": "gcloud_linux",
+          "version": "version:14"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:9"
+        }
+      ],
+      "command": [
+        "./bazel_test_all",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-Test-Bazel-RBE",
+        "--workdir",
+        ".",
+        "--rbe=true",
+        "--alsologtostderr"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin",
+          "bazel/bin",
+          "cockroachdb",
+          "gcloud_linux/bin"
+        ]
+      },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-ValidateAutorollConfigs": {
