@@ -14,16 +14,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
-
 	"cloud.google.com/go/pubsub"
 	gstorage "cloud.google.com/go/storage"
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/reconnectingmemcached"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -189,10 +189,7 @@ func (g *gcsImageDownloader) GetImage(ctx context.Context, digest types.Digest) 
 const failureReconnectLimit = 100
 
 type memcachedDiffCache struct {
-	serverAddress string
-	client        *memcache.Client
-	clientMutex   sync.RWMutex
-	numFailures   int
+	client reconnectingmemcached.Client
 
 	// namespace is the string to add to each key to avoid conflicts with more than one
 	// gold instance.
@@ -200,11 +197,16 @@ type memcachedDiffCache struct {
 }
 
 func newMemcacheDiffCache(server, namespace string) (*memcachedDiffCache, error) {
-	m := &memcachedDiffCache{serverAddress: server, namespace: namespace}
-	c := memcache.New(server)
-	c.Timeout = time.Second
-	m.client = c
-	return m, c.Ping()
+	m := &memcachedDiffCache{
+		client: reconnectingmemcached.NewClient(reconnectingmemcached.Options{
+			Servers:                      []string{server},
+			Timeout:                      time.Second,
+			MaxIdleConnections:           4,
+			AllowedFailuresBeforeHealing: failureReconnectLimit,
+		}),
+		namespace: namespace,
+	}
+	return m, m.client.Ping()
 }
 
 func key(namespace string, left, right types.Digest) string {
@@ -222,16 +224,8 @@ func (m *memcachedDiffCache) RemoveAlreadyComputedDiffs(ctx context.Context, lef
 		}
 		keys = append(keys, key(m.namespace, left, right))
 	}
-	m.clientMutex.RLock()
-	if m.client == nil { // memcached client unavailable
-		m.clientMutex.RUnlock()
-		return rightDigests
-	}
-	alreadyCalculated, err := m.client.GetMulti(keys)
-	m.clientMutex.RUnlock()
-	if err != nil {
-		sklog.Warningf("Could not read from memcached: %s", err)
-		m.maybeReload()
+	alreadyCalculated, ok := m.client.GetMulti(keys)
+	if !ok {
 		return rightDigests // on an error, assume all need to be queried from DB.
 	}
 	if len(alreadyCalculated) == len(keys) {
@@ -253,51 +247,10 @@ func (m *memcachedDiffCache) RemoveAlreadyComputedDiffs(ctx context.Context, lef
 
 // StoreDiffComputed implements the DiffCache interface.
 func (m *memcachedDiffCache) StoreDiffComputed(_ context.Context, left, right types.Digest) {
-	m.clientMutex.RLock()
-	if m.client == nil { // memcached client unavailable
-		m.clientMutex.RUnlock()
-		return
-	}
-	err := m.client.Set(&memcache.Item{
+	m.client.Set(&memcache.Item{
 		Key:   key(m.namespace, left, right),
 		Value: []byte{0x01},
 	})
-	m.clientMutex.RUnlock()
-	if err != nil {
-		sklog.Warningf("Could not set in memcached: %s", err)
-		m.maybeReload()
-	}
-}
-
-func (m *memcachedDiffCache) maybeReload() {
-	m.clientMutex.Lock()
-	m.numFailures++
-	// We add the m.client == nil check to make it so there's only one goroutine in charge of
-	// reconnecting
-	if m.numFailures < failureReconnectLimit || m.client == nil {
-		m.clientMutex.Unlock()
-		return
-	}
-	m.client = nil
-	m.clientMutex.Unlock()
-	go func() { // spin up a background goroutine to heal the connection.
-		for {
-			// wait 10 seconds + some jitter to re-connect
-			time.Sleep(10*time.Second + time.Duration(float32(10*time.Second)*rand.Float32()))
-			c := memcache.New(m.serverAddress)
-			c.Timeout = time.Second
-			if err := c.Ping(); err != nil {
-				sklog.Warningf("Cannot reconnect to memcached: %s", err)
-				continue // go back to sleep, try again later
-			}
-			m.clientMutex.Lock()
-			m.client = c
-			m.numFailures = 0
-			sklog.Infof("Reconnected to memcached")
-			m.clientMutex.Unlock()
-			return
-		}
-	}()
 }
 
 // noopDiffCache pretends the memcached instance always does not have what we are looking up.
