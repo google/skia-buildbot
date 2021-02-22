@@ -38,6 +38,9 @@ func main() {
 		time.Sleep(5 * time.Second)
 		fmt.Println("Emulators started. Set environment variables as follows:")
 		for _, e := range emulators.AllEmulators {
+			// We need to set the *_EMULATOR_HOST environment variable before we can read its value via
+			// emulators.GetEmulatorHostEnvVar().p
+			emulators.SetEmulatorHostEnvVar(e)
 			fmt.Println(fmt.Sprintf("export %s=%s", emulators.GetEmulatorHostEnvVarName(e), emulators.GetEmulatorHostEnvVar(e)))
 		}
 	} else {
