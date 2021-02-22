@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ff605e64_40e10cd5",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "Then I will have to change multiple things if I change predefinedUniforms, and also have to do the math in my head.",
+      "parentUuid": "7e279b81_9d6571c4",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 40
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "73ef7368_01123de1",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-02-22T15:37:51Z",
       "side": 1,
       "message": "ubernit: single quotes",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 9
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e7d2afcf_34fca715",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73ef7368_01123de1",
       "range": {
         "startLine": 52,
         "startChar": 8,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d13a2ab6_45f5929c",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc34326f_63193423",
+      "range": {
+        "startLine": 278,
+        "startChar": 7,
+        "endLine": 278,
+        "endChar": 21
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "897efc9f_d4ba8e55",
@@ -87,6 +159,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "53ae9a51_abeaef9c",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "897efc9f_d4ba8e55",
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "199f54d0_9afe86f3",
@@ -100,6 +190,30 @@
       "writtenOn": "2021-02-22T15:37:51Z",
       "side": 1,
       "message": "nit: values",
+      "range": {
+        "startLine": 50,
+        "startChar": 18,
+        "endLine": 50,
+        "endChar": 23
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa72cfb5_73b5649d",
+        "filename": "shaders/modules/shadernode/index_test.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "199f54d0_9afe86f3",
       "range": {
         "startLine": 50,
         "startChar": 18,
@@ -133,6 +247,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d0516f98_cfcd5551",
+        "filename": "shaders/modules/shadernode/index_test.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af13e836_70987af9",
+      "range": {
+        "startLine": 140,
+        "startChar": 7,
+        "endLine": 140,
+        "endChar": 10
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3b250f5d_6905a342",
@@ -146,6 +284,30 @@
       "writtenOn": "2021-02-22T15:37:51Z",
       "side": 1,
       "message": "Maybe I\u0027m missing it, but is it documented somewhere that uniforms is twice the length so we have predefined values stored in the first half and the actual values in the second half?",
+      "range": {
+        "startLine": 471,
+        "startChar": 22,
+        "endLine": 471,
+        "endChar": 27
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "afdd10c1_9ab60a46",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T16:44:27Z",
+      "side": 1,
+      "message": "That\u0027s not quite correct, the uniforms is always getUniformFloatCount long, we just differentiate between the predefined uniforms we prepend to every shader and the uniforms defined in the provided shader code.\n\nThis differentiation makes more sense once child shaders show up in a future CL, as all shaders will share the same set of predefined uniforms, but every child shader will possibly have a different set of local uniforms.",
+      "parentUuid": "3b250f5d_6905a342",
       "range": {
         "startLine": 471,
         "startChar": 22,
