@@ -22,6 +22,30 @@
       },
       "revId": "3b92bc49a82f21e00dd9507f7770e0287c60dee4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "06c48516_8c02a5ef",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-22T15:07:47Z",
+      "side": 1,
+      "message": "Oh yea that\u0027s true, I didn\u0027t notice that",
+      "parentUuid": "7681186e_3ee856f4",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 72
+      },
+      "revId": "3b92bc49a82f21e00dd9507f7770e0287c60dee4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
