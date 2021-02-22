@@ -3,13 +3,12 @@
  * @description <h2><code>shaders-app-sk</code></h2>
  *
  */
-import { $ } from 'common-sk/modules/dom';
+import { $, $$ } from 'common-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import CodeMirror from 'codemirror';
-import { $$ } from 'common-sk/modules/dom';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
@@ -27,6 +26,7 @@ import 'elements-sk/styles/select';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
+import '../../../infra-sk/modules/uniform-fps-sk';
 import '../../../infra-sk/modules/uniform-time-sk';
 import '../../../infra-sk/modules/uniform-generic-sk';
 import '../../../infra-sk/modules/uniform-dimensions-sk';
@@ -35,10 +35,9 @@ import '../../../infra-sk/modules/uniform-mouse-sk';
 import '../../../infra-sk/modules/uniform-color-sk';
 import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
-import { FPS } from '../fps/fps';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import {
-  defaultShader, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
+  defaultShader, numPredefinedUniformControls, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
 } from '../shadernode';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -163,14 +162,16 @@ export class ShadersAppSk extends ElementSk {
   // stateReflector update function.
   private stateChanged: stateChangedCallback | null = null;
 
-  private fps: FPS = new FPS();
+  private uniformControlsNeedingRAF: UniformControl[] = [];
 
   constructor() {
     super(ShadersAppSk.template);
   }
 
   private static uniformControls = (ele: ShadersAppSk): TemplateResult[] => {
-    const ret: TemplateResult[] = [];
+    const ret: TemplateResult[] = [
+      html`<uniform-fps-sk></uniform-fps-sk>`, // Always start with the fps control.
+    ];
     const node = ele.shaderNode;
     if (!node) {
       return ret;
@@ -257,10 +258,7 @@ export class ShadersAppSk extends ElementSk {
         </div>
       </div>
       <div id=shaderControls>
-        <div id=fps>
-          ${ele.fps.fps.toFixed(0)} fps
-        </div>
-        <div id=uniformControls>
+        <div id=uniformControls @input=${ele.uniformControlsChange} @change=${ele.uniformControlsChange}>
           ${ShadersAppSk.uniformControls(ele)}
         </div>
         <button
@@ -387,6 +385,7 @@ export class ShadersAppSk extends ElementSk {
 
       const predefinedUniformValues = new Array(this.shaderNode!.numPredefinedUniformValues).fill(0);
       this.setUniformValuesToControls(predefinedUniformValues.concat(this.shaderNode!.currentUserUniformValues));
+      this.findAllUniformControlsThatNeedRAF();
 
       this.run();
     } catch (error) {
@@ -451,9 +450,17 @@ export class ShadersAppSk extends ElementSk {
   }
 
   /** Populate the uniforms values from the controls. */
-  private getUniformValuesFromControls(): number[] {
+  private getUserUniformValuesFromControls(): number[] {
     const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
-    $('#uniformControls > *').forEach((control) => {
+    $('#uniformControls > *').slice(numPredefinedUniformControls).forEach((control) => {
+      (control as unknown as UniformControl).applyUniformValues(uniforms);
+    });
+    return uniforms.slice(this.shaderNode?.numPredefinedUniformValues || 0);
+  }
+
+  private getPredefinedUniformValuesFromControls(): number[] {
+    const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
+    $('#uniformControls > *').slice(0, numPredefinedUniformControls).forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
     return uniforms;
@@ -466,38 +473,33 @@ export class ShadersAppSk extends ElementSk {
     });
   }
 
-  private getCurrentUserUniformValues(uniforms: number[]): number[] {
-    if (this.shaderNode) {
-      return uniforms.slice(this.shaderNode.numPredefinedUniformValues);
-    }
-    return [];
+  private findAllUniformControlsThatNeedRAF(): void {
+    this.uniformControlsNeedingRAF = [];
+    $('#uniformControls > *').forEach((control) => {
+      const uniformControl = (control as unknown as UniformControl);
+      if (uniformControl.needsRAF()) {
+        this.uniformControlsNeedingRAF.push(uniformControl);
+      }
+    });
   }
 
-  private getPredefinedUniformValues(uniforms: number[]): number[] {
-    if (this.shaderNode) {
-      return uniforms.slice(0, this.shaderNode.numPredefinedUniformValues);
-    }
-    return [];
+  private uniformControlsChange() {
+    this.shaderNode!.currentUserUniformValues = this.getUserUniformValuesFromControls();
+    this._render();
   }
 
   private drawFrame() {
-    this.fps.raf();
     this.kit!.setCurrentContext(this.canvasKitContext);
-    const uniformsArray = this.getUniformValuesFromControls();
-
-    // TODO(jcgregorio) Change this to be event driven.
-    this.shaderNode!.currentUserUniformValues = this.getCurrentUserUniformValues(uniformsArray);
-
-    const shader = this.shaderNode!.getShader(this.getPredefinedUniformValues(uniformsArray));
+    const shader = this.shaderNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader) {
       errorMessage('Failed to get shader.', 0);
       return;
     }
 
     // Allow uniform controls to update, such as uniform-timer-sk.
-    // TODO(jcgregorio) This is overkill, allow controls to register for a 'raf'
-    //   event if they need to update frequently.
-    this._render();
+    this.uniformControlsNeedingRAF.forEach((element) => {
+      element.onRAF();
+    });
 
     // Draw the shader.
     this.canvas!.clear(this.kit!.BLACK);

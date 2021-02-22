@@ -32,6 +32,13 @@ export const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform sh
 export const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length - numPredefinedShaderUniforms;
 
 /**
+ * Counts the number of controls that handle pre-defined uniforms.
+ *
+ * Takes into account the uniform-fps-sk which doesn't correspond to a uniform.
+ */
+export const numPredefinedUniformControls = numPredefinedUniforms + 1;
+
+/**
  * The number of lines prefixed to every shader for predefined uniforms. Needed
  * to properly adjust error line numbers.
  */

@@ -100,6 +100,14 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
       }
     }
   }
+
+  onRAF(): void {
+    // noop.
+  }
+
+  needsRAF(): boolean {
+    return false;
+  }
 }
 
 define('uniform-generic-sk', UniformGenericSk);
