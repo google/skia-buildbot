@@ -22,6 +22,30 @@
       },
       "revId": "fd374f8ecfab130f726987151c69a023d0b72b90",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6a210a6_37a20394",
+        "filename": "golden/cmd/gold_frontend/gold_frontend.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-22T20:52:26Z",
+      "side": 1,
+      "message": "Ack. Will handle that in a followup.",
+      "parentUuid": "cb52acbe_4d06eca5",
+      "range": {
+        "startLine": 1,
+        "startChar": 7,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "fd374f8ecfab130f726987151c69a023d0b72b90",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
