@@ -55,6 +55,12 @@ testjs:
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+.PHONY: testjs-watch
+testjs-watch:
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --no-single-run
+
+
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
 
