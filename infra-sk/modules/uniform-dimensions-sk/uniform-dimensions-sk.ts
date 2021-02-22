@@ -61,6 +61,7 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
     super(UniformDimensionsSk.template);
   }
 
+
   private static template = (ele: UniformDimensionsSk) => html`
     <select @change=${ele.selectionChanged} size="1">
       ${choices.map((choice, index) => html`
@@ -81,6 +82,14 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   restoreUniformValues(uniforms: number[]): void {
     // This is a noop, we don't restore predefined uniform values.
+  }
+
+  onRAF(): void {
+    // noop.
+  }
+
+  needsRAF(): boolean {
+    return false;
   }
 
   connectedCallback(): void {
