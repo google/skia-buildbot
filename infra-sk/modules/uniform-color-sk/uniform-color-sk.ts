@@ -104,6 +104,14 @@ export class UniformColorSk extends ElementSk implements UniformControl {
     }
   }
 
+  onRAF(): void {
+    // noop.
+  }
+
+  needsRAF(): boolean {
+    return false;
+  }
+
   private hasAlphaChannel(): boolean {
     return this._uniform.columns === 4;
   }

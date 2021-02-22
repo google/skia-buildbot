@@ -56,5 +56,9 @@ describe('uniform-slider-sk', () => {
         };
       });
     });
+
+    it('does not need raf updates', () => {
+      assert.isFalse(element.needsRAF());
+    });
   });
 });

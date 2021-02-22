@@ -84,5 +84,16 @@ describe('uniform-time-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(uniforms, [0, 10, 0]);
     });
+
+    it('needs raf updates', () => {
+      assert.isTrue(element.needsRAF());
+    });
+
+    it('updates on a call to onRAF', () => {
+      element.dateNow = () => 0; // ms
+      element.time = 10; // s
+      element.onRAF();
+      assert.equal('10.000', $$('#ms', element)?.textContent);
+    });
   });
 });

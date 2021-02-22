@@ -73,5 +73,9 @@ describe('uniform-generic-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(uniforms, [0, 1, 0.5, 0.3, 1, 0]);
     });
+
+    it('does not need raf updates', () => {
+      assert.isFalse(element.needsRAF());
+    });
   });
 });
