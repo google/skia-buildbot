@@ -11,16 +11,13 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import CodeMirror from 'codemirror';
 import { $$ } from 'common-sk/modules/dom';
 import { stateReflector } from 'common-sk/modules/stateReflector';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import type {
   CanvasKit,
   Surface,
   Canvas,
-  RuntimeEffect,
   Paint,
-  MallocObj,
   Shader,
 } from '../../build/canvaskit/canvaskit.js';
 
@@ -30,7 +27,6 @@ import 'elements-sk/styles/select';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
-import { ScrapBody, ScrapID } from '../json';
 import '../../../infra-sk/modules/uniform-time-sk';
 import '../../../infra-sk/modules/uniform-generic-sk';
 import '../../../infra-sk/modules/uniform-dimensions-sk';
@@ -38,9 +34,12 @@ import '../../../infra-sk/modules/uniform-slider-sk';
 import '../../../infra-sk/modules/uniform-mouse-sk';
 import '../../../infra-sk/modules/uniform-color-sk';
 import '../../../infra-sk/modules/uniform-imageresolution-sk';
-import { Uniform, UniformControl } from '../../../infra-sk/modules/uniform/uniform';
+import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { FPS } from '../fps/fps';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
+import {
+  defaultShader, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
+} from '../shadernode';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
@@ -48,40 +47,12 @@ const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
 // Start by recording the script origin.
-const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src)
-  .origin;
+const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src).origin;
 const kitReady = CanvasKitInit({
   locateFile: (file: any) => `${scriptOrigin}/dist/${file}`,
 });
 
 const DEFAULT_SIZE = 512;
-
-const predefinedUniforms = `uniform float3 iResolution;      // Viewport resolution (pixels)
-uniform float  iTime;            // Shader playback time (s)
-uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
-uniform float3 iImageResolution; // iImage1 and iImage2 resolution (pixels)
-uniform shader iImage1;          // An input image (Mandrill).
-uniform shader iImage2;          // An input image (Soccer ball).`;
-
-// How many of the uniforms listed in predefinedUniforms are of type 'shader'?
-const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
-
-// Counts the number of uniforms defined in 'predefinedUniforms'. All the
-// remaining uniforms that start with 'i' will be referred to as "user
-// uniforms".
-const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.length - numPredefinedShaderUniforms;
-
-// The number of lines prefixed to every shader for predefined uniforms. Needed
-// to properly adjust error line numbers.
-const numPredefinedUniformLines = predefinedUniforms.split('\n').length;
-
-const defaultShader = `half4 main(float2 fragCoord) {
-  return vec4(1, 0, 0, 1);
-}`;
-
-// Regex that finds lines in shader compiler error messages that mention a line number
-// and makes that line number available as a capture.
-const shaderCompilerErrorRegex = /^error: (\d+)/i;
 
 type stateChangedCallback = ()=> void;
 
@@ -158,9 +129,9 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
 const RAF_NOT_RUNNING = -1;
 
 export class ShadersAppSk extends ElementSk {
-  private width: number = 512;
+  private width: number = DEFAULT_SIZE;
 
-  private height: number = 512;
+  private height: number = DEFAULT_SIZE;
 
   private codeMirror: CodeMirror.Editor | null = null;
 
@@ -178,41 +149,16 @@ export class ShadersAppSk extends ElementSk {
 
   private inputImageShaders: Shader[] = [];
 
-  private effect: RuntimeEffect | null = null;
-
-  private state: State = defaultState;
-
-  // If not the empty string, this contains the full last shader compiler error
-  // message.
-  private compileErrorMessage: string = '';
+  private shaderNode: ShaderNode | null = null;
 
   // Records the lines that have been marked as having errors. We keep these
   // around so we can clear the error annotations efficiently.
   private compileErrorLines: CodeMirror.TextMarker[] = [];
 
-  // Keep a MallocObj around to pass uniforms to the shader to avoid the need to
-  // make copies.
-  private uniformsMallocObj: MallocObj | null = null;
+  private state: State = defaultState;
 
   // The requestAnimationFrame id if we are running, otherwise we are not running.
   private rafID: number = RAF_NOT_RUNNING;
-
-  // Records the code that we started with, either at startup, or after we've saved.
-  private lastSavedCode = defaultShader;
-
-  // Records the code that is currently running.
-  private runningCode = defaultShader;
-
-  // The current code in the editor.
-  private editedCode = defaultShader;
-
-  // These are the uniform values for all the user defined uniforms. They
-  // exclude the predefined uniform values.
-  private lastSavedUserUniformValues: number[] = [];
-
-  // These are the uniform values for all the user defined uniforms. They
-  // exclude the predefined uniform values.
-  private currentUserUniformValues: number[] = [];
 
   // stateReflector update function.
   private stateChanged: stateChangedCallback | null = null;
@@ -225,13 +171,12 @@ export class ShadersAppSk extends ElementSk {
 
   private static uniformControls = (ele: ShadersAppSk): TemplateResult[] => {
     const ret: TemplateResult[] = [];
-    const effect = ele.effect;
-    if (!effect) {
+    const node = ele.shaderNode;
+    if (!node) {
       return ret;
     }
-    for (let i = 0; i < effect.getUniformCount(); i++) {
-      // Use object spread operator to clone the SkSLUniform and add a name to make a Uniform.
-      const uniform: Uniform = { ...effect.getUniform(i), name: effect.getUniformName(i) };
+    for (let i = 0; i < node.getUniformCount(); i++) {
+      const uniform = node.getUniform(i);
       if (!uniform.name.startsWith('i')) {
         continue;
       }
@@ -281,7 +226,7 @@ export class ShadersAppSk extends ElementSk {
     </header>
     <main>
       <div>
-        <p @click=${ele.fastLoad}>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a> <a href="/?id=@iImage">iImage</a></p>
+        <p id=examples @click=${ele.fastLoad}>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a> <a href="/?id=@iImage">iImage</a></p>
         <canvas
           id="player"
           width=${ele.width}
@@ -306,9 +251,9 @@ export class ShadersAppSk extends ElementSk {
         </div>
         </details>
         <div id="codeEditor"></div>
-        <div ?hidden=${!ele.compileErrorMessage} id="compileErrors">
+        <div ?hidden=${!ele.shaderNode?.compileErrorMessage} id="compileErrors">
           <h3>Errors</h3>
-          <pre>${ele.compileErrorMessage}</pre>
+          <pre>${ele.shaderNode?.compileErrorMessage}</pre>
         </div>
       </div>
       <div id=shaderControls>
@@ -319,14 +264,14 @@ export class ShadersAppSk extends ElementSk {
           ${ShadersAppSk.uniformControls(ele)}
         </div>
         <button
-          ?hidden=${ele.editedCode === ele.runningCode}
+          ?hidden=${!ele.shaderNode?.needsCompile()}
           @click=${ele.runClick}
           class=action
         >
           Run
         </button>
         <button
-          ?hidden=${ele.editedCode === ele.lastSavedCode && !ele.userUniformValuesHaveBeenEdited()}
+          ?hidden=${!ele.shaderNode?.needsSave()}
           @click=${ele.saveClick}
           class=action
         >
@@ -388,8 +333,9 @@ export class ShadersAppSk extends ElementSk {
           /* getState */ () => (this.state as unknown) as HintableObject,
           /* setState */ (newState: HintableObject) => {
             this.state = (newState as unknown) as State;
+            this.shaderNode = new ShaderNode(this.kit!, this.inputImageShaders);
             if (!this.state.id) {
-              this.startShader(defaultShader);
+              this.run();
             } else {
               this.loadShaderIfNecessary();
             }
@@ -421,14 +367,14 @@ export class ShadersAppSk extends ElementSk {
     const newDims = (e as CustomEvent<DimensionsChangedEventDetail>).detail;
     this.width = newDims.width;
     this.height = newDims.height;
-    this.startShader(this.runningCode);
+    this.run();
   }
 
   private monitorIfDevicePixelRatioChanges() {
     // Use matchMedia to detect if the screen resolution changes from the current value.
     // See https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
     const mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
-    matchMedia(mqString).addEventListener('change', () => this.startShader(this.runningCode));
+    matchMedia(mqString).addEventListener('change', () => this.run());
   }
 
   private async loadShaderIfNecessary() {
@@ -436,17 +382,13 @@ export class ShadersAppSk extends ElementSk {
       return;
     }
     try {
-      const resp = await fetch(`/_/load/${this.state.id}`, {
-        credentials: 'include',
-      });
-      const json = (await jsonOrThrow(resp)) as ScrapBody;
-      this.lastSavedCode = json.Body;
-      this.startShader(json.Body);
-      if (json.SKSLMetaData && json.SKSLMetaData.Uniforms !== null) {
-        this.setCurrentUserUniformValues(json.SKSLMetaData.Uniforms);
-        // We round trip the uniforms through the controls so we are sure to get an exact match.
-        this.lastSavedUserUniformValues = this.getCurrentUserUniformValues(this.getUniformValuesFromControls());
-      }
+      await this.shaderNode!.loadScrap(this.state.id);
+      this._render();
+
+      const predefinedUniformValues = new Array(this.shaderNode!.numPredefinedUniformValues).fill(0);
+      this.setUniformValuesToControls(predefinedUniformValues.concat(this.shaderNode!.currentUserUniformValues));
+
+      this.run();
     } catch (error) {
       errorMessage(error, 0);
       // Return to the default view.
@@ -455,7 +397,7 @@ export class ShadersAppSk extends ElementSk {
     }
   }
 
-  private startShader(shaderCode: string) {
+  private run() {
     this.monitorIfDevicePixelRatioChanges();
     // Cancel any pending drawFrames.
     if (this.rafID !== RAF_NOT_RUNNING) {
@@ -463,9 +405,7 @@ export class ShadersAppSk extends ElementSk {
       this.rafID = RAF_NOT_RUNNING;
     }
 
-    this.runningCode = shaderCode;
-    this.editedCode = shaderCode;
-    this.codeMirror!.setValue(shaderCode);
+    this.codeMirror!.setValue(this.shaderNode?.shaderCode || defaultShader);
 
     // eslint-disable-next-line no-unused-expressions
     this.surface?.delete();
@@ -478,30 +418,17 @@ export class ShadersAppSk extends ElementSk {
     // the parent surface will do that for us.
     this.canvas = this.surface.getCanvas();
     this.canvasKitContext = this.kit!.currentContext();
-    // eslint-disable-next-line no-unused-expressions
-    this.effect?.delete();
     this.clearAllEditorErrorAnnotations();
-    this.compileErrorMessage = '';
-    this.effect = this.kit!.RuntimeEffect.Make(`${predefinedUniforms}\n${shaderCode}`, (err) => {
-      // Fix up the line numbers on the error messages, because they are off by
-      // the number of lines we prefixed with the predefined uniforms. The regex
-      // captures the line number so we can replace it with the correct value.
-      // While doing the fix up of the error message we also annotate the
-      // corresponding lines in the CodeMirror editor.
-      err = err.replace(shaderCompilerErrorRegex, (_match, firstRegexCaptureValue): string => {
-        const lineNumber = (+firstRegexCaptureValue - (numPredefinedUniformLines + 1));
-        this.setEditorErrorLineAnnotation(lineNumber);
-        return `error: ${lineNumber.toFixed(0)}`;
-      });
-      this.compileErrorMessage = err;
+
+    this.shaderNode!.compile();
+
+    // Set CodeMirror errors if the run failed.
+    this.shaderNode!.compileErrorLineNumbers.forEach((lineNumber: number) => {
+      this.setEditorErrorLineAnnotation(lineNumber);
     });
+
     // Render so the uniform controls get displayed.
     this._render();
-
-    if (!this.effect) {
-      return;
-    }
-
     this.drawFrame();
   }
 
@@ -523,90 +450,53 @@ export class ShadersAppSk extends ElementSk {
     ));
   }
 
+  /** Populate the uniforms values from the controls. */
   private getUniformValuesFromControls(): number[] {
-    // Populate the uniforms values from the controls.
-    const uniforms: number[] = new Array(this.effect!.getUniformFloatCount());
+    const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
     $('#uniformControls > *').forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
     return uniforms;
   }
 
+  /** Populate the control values from the uniforms. */
   private setUniformValuesToControls(uniforms: number[]): void {
-    // Populate the control values from the uniforms.
     $('#uniformControls > *').forEach((control) => {
       (control as unknown as UniformControl).restoreUniformValues(uniforms);
     });
   }
 
-  private userUniformValuesHaveBeenEdited(): boolean {
-    if (this.currentUserUniformValues.length !== this.lastSavedUserUniformValues.length) {
-      return true;
-    }
-    for (let i = 0; i < this.currentUserUniformValues.length; i++) {
-      if (this.currentUserUniformValues[i] !== this.lastSavedUserUniformValues[i]) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private totalPredefinedUniformValues(): number {
-    let ret = 0;
-    if (!this.effect) {
-      return 0;
-    }
-    for (let i = 0; i < numPredefinedUniforms; i++) {
-      const u = this.effect.getUniform(i);
-      ret += u.rows * u.columns;
-    }
-    return ret;
-  }
-
-  private setCurrentUserUniformValues(userUniformValues: number[]): void {
-    if (this.effect) {
-      const uniforms = this.getUniformValuesFromControls();
-      // Update only the non-predefined uniform values.
-      const begin = this.totalPredefinedUniformValues();
-      for (let i = begin; i < this.effect.getUniformFloatCount(); i++) {
-        uniforms[i] = userUniformValues[i - begin];
-      }
-      this.setUniformValuesToControls(uniforms);
-    }
-  }
-
   private getCurrentUserUniformValues(uniforms: number[]): number[] {
-    const uniformsArray: number[] = [];
-    if (this.effect) {
-      // Return only the non-predefined uniform values.
-      for (let i = this.totalPredefinedUniformValues(); i < this.effect.getUniformFloatCount(); i++) {
-        uniformsArray.push(uniforms[i]);
-      }
+    if (this.shaderNode) {
+      return uniforms.slice(this.shaderNode.numPredefinedUniformValues);
     }
-    return uniformsArray;
+    return [];
+  }
+
+  private getPredefinedUniformValues(uniforms: number[]): number[] {
+    if (this.shaderNode) {
+      return uniforms.slice(0, this.shaderNode.numPredefinedUniformValues);
+    }
+    return [];
   }
 
   private drawFrame() {
     this.fps.raf();
     this.kit!.setCurrentContext(this.canvasKitContext);
     const uniformsArray = this.getUniformValuesFromControls();
-    this.currentUserUniformValues = this.getCurrentUserUniformValues(uniformsArray);
 
-    // Copy uniforms into this.uniformsMallocObj, which is kept around to avoid
-    // copying overhead in WASM.
-    if (!this.uniformsMallocObj) {
-      this.uniformsMallocObj = this.kit!.Malloc(Float32Array, uniformsArray.length);
-    } else if (this.uniformsMallocObj.length !== uniformsArray.length) {
-      this.kit!.Free(this.uniformsMallocObj);
-      this.uniformsMallocObj = this.kit!.Malloc(Float32Array, uniformsArray.length);
+    // TODO(jcgregorio) Change this to be event driven.
+    this.shaderNode!.currentUserUniformValues = this.getCurrentUserUniformValues(uniformsArray);
+
+    const shader = this.shaderNode!.getShader(this.getPredefinedUniformValues(uniformsArray));
+    if (!shader) {
+      errorMessage('Failed to get shader.', 0);
+      return;
     }
-    const uniformsFloat32Array: Float32Array = this.uniformsMallocObj.toTypedArray() as Float32Array;
-    uniformsArray.forEach((val, index) => { uniformsFloat32Array[index] = val; });
-
-    const shader = this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, this.inputImageShaders);
-    this._render();
 
     // Allow uniform controls to update, such as uniform-timer-sk.
+    // TODO(jcgregorio) This is overkill, allow controls to register for a 'raf'
+    //   event if they need to update frequently.
     this._render();
 
     // Draw the shader.
@@ -622,35 +512,13 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private async runClick() {
-    this.startShader(this.editedCode);
+    this.run();
     this.saveClick();
   }
 
   private async saveClick() {
-    const userUniformValues = this.getCurrentUserUniformValues(this.getUniformValuesFromControls());
-    const body: ScrapBody = {
-      Body: this.editedCode,
-      Type: 'sksl',
-      SKSLMetaData: {
-        Uniforms: userUniformValues,
-        Children: [],
-      },
-    };
     try {
-      // POST the JSON to /_/upload
-      const resp = await fetch('/_/save/', {
-        credentials: 'include',
-        body: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        method: 'POST',
-      });
-      const json = (await jsonOrThrow(resp)) as ScrapID;
-
-      this.state.id = json.Hash;
-      this.lastSavedCode = this.editedCode;
-      this.lastSavedUserUniformValues = userUniformValues;
+      this.state.id = await this.shaderNode!.saveScrap();
       this.stateChanged!();
       this._render();
     } catch (error) {
@@ -659,7 +527,7 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private codeChange() {
-    this.editedCode = this.codeMirror!.getValue();
+    this.shaderNode!.shaderCode = this.codeMirror!.getValue();
     this._render();
   }
 
