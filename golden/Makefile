@@ -64,9 +64,9 @@ serve:
 allgo:
 	go install -v ./cmd/...
 
-.PHONY: k8s-release-skiacorrectness
-k8s-release-skiacorrectness: build-static-skiacorrectness frontend
-	./k8s_release_skiacorrectness
+.PHONY: k8s-release-frontend
+k8s-release-frontend: build-static-frontend frontend
+	./k8s_release_frontend
 
 .PHONY: k8s-release-diff-server
 k8s-release-diff-server: build-static-diffserver
@@ -92,11 +92,11 @@ k8s-release-goldpushk-healthy-server: build-static-goldpushk-healthy-server
 k8s-release-goldpushk-crashing-server: build-static-goldpushk-crashing-server
 	./k8s_release_goldpushk_crashing_server
 
-.PHONY: build-static-skiacorrectness
-build-static-skiacorrectness: frontend
+.PHONY: build-static-frontend
+build-static-frontend: frontend
 	mkdir -p ./build
-	rm -f ./build/skiacorrectness_k8s
-	$(KGO) -o build/skiacorrectness_k8s -a ./cmd/skiacorrectness/...
+	rm -f ./build/frontend_k8s
+	$(KGO) -o build/frontend_k8s -a ./cmd/gold_frontend/...
 
 .PHONY: build-static-baseline-server
 build-static-baseline-server:

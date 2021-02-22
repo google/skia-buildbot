@@ -5,7 +5,7 @@ set -x -e
 APPNAME=imobiledevice
 SERVICE_FILE="path-to-service-file.service"
 
-# Builds and uploads a debian package for skiacorrectness.
+# Builds and uploads a debian package for libimobiledevice.
 SYSTEMD="usbmuxd.service"
 DESCRIPTION="Latest versions of libimobiledevice and related tools."
 IN_DIR="$(pwd)/out"

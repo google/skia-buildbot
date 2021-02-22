@@ -93,8 +93,8 @@ func main() {
 	rootCmd.Flags().SortFlags = false
 	rootCmd.Flags().BoolVar(&flagList, "list", false, "List known Gold instances and services (tip: try combining this flag with --testing).")
 	rootCmd.Flags().StringSliceVarP(&flagInstances, "instances", "i", []string{}, "[REQUIRED] Comma-delimited list of Gold instances to target (e.g. \"skia,flutter\"), or \""+all+"\" to target all instances.")
-	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"skiacorrectness,diffserver\"), or \""+all+"\" to target all services.")
-	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:skiacorrectness\")")
+	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"frontend,diffserver\"), or \""+all+"\" to target all services.")
+	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:frontend\")")
 	rootCmd.Flags().BoolVar(&flagDryRun, "dryrun", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
 	rootCmd.Flags().BoolVar(&flagNoCommit, "no-commit", false, "Do not commit configuration changes to the k8s-config repository.")
 	rootCmd.Flags().IntVar(&flagMinUptimeSeconds, "min-uptime", 30, "Minimum uptime in seconds required for all services before exiting the monitoring step.")
