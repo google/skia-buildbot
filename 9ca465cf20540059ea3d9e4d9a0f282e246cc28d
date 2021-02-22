@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6e90fdcf_daae42a1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-22T13:35:47Z",
+      "side": 1,
+      "message": "I wish we could do this without adding a new dependency.",
+      "revId": "9ca465cf20540059ea3d9e4d9a0f282e246cc28d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
