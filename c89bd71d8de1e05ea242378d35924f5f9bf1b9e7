@@ -316,6 +316,30 @@
       },
       "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3b4fc8c6_0d5e25a0",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 27
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-22T17:47:21Z",
+      "side": 1,
+      "message": "Ah, ok. Thanks for that explanation.",
+      "parentUuid": "afdd10c1_9ab60a46",
+      "range": {
+        "startLine": 471,
+        "startChar": 22,
+        "endLine": 471,
+        "endChar": 27
+      },
+      "revId": "c89bd71d8de1e05ea242378d35924f5f9bf1b9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
