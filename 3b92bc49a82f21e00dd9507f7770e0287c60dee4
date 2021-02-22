@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7681186e_3ee856f4",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-22T15:03:42Z",
+      "side": 1,
+      "message": "Ugh, this is gross.  Also, I don\u0027t think it will work due to the use of TrimSpace.  I guess we need to automatically determine whether there are footers in the commit message already?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 72
+      },
+      "revId": "3b92bc49a82f21e00dd9507f7770e0287c60dee4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
