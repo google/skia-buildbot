@@ -18,5 +18,9 @@ describe('uniform-imageresolution-sk', () => {
       element.applyUniformValues(uniforms);
       assert.deepEqual(uniforms, [imageSize, imageSize, 0]);
     });
+
+    it('does not need raf updates', () => {
+      assert.isFalse(element.needsRAF());
+    });
   });
 });
