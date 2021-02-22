@@ -19,8 +19,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
-	"go.skia.org/infra/golden/go/clstore/dualclstore"
-	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
@@ -119,12 +117,11 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
 		}
-		fireCS := fs_clstore.New(fsClient, crsName)
 		sqlCS := sqlclstore.New(db, crsName)
 		reviewSystems = append(reviewSystems, clstore.ReviewSystem{
 			ID:     crsName,
 			Client: crsClient,
-			Store:  dualclstore.New(sqlCS, fireCS),
+			Store:  sqlCS,
 		})
 	}
 
