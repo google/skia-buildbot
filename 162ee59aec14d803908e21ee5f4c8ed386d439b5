@@ -140,6 +140,30 @@
       },
       "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c5a767b4_b1eb8d5d",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-22T13:49:55Z",
+      "side": 1,
+      "message": "Not missing anything, as I said, \"Not sure if that\u0027s an issue\", and it sounds like it\u0027s not.",
+      "parentUuid": "b3b23a36_97656266",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 39
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
