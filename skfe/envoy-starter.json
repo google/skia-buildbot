@@ -1580,17 +1580,6 @@
                       "routes": [
                         {
                           "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-skia-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "prefix": "/"
                           },
                           "route": {
@@ -1606,17 +1595,6 @@
                       "domains": "public-gold.skia.org",
                       "name": "public-gold.skia.org",
                       "routes": [
-                        {
-                          "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-skia-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
                         {
                           "match": {
                             "prefix": "/"
@@ -1636,17 +1614,6 @@
                       "routes": [
                         {
                           "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-lottie-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "prefix": "/"
                           },
                           "route": {
@@ -1662,17 +1629,6 @@
                       "domains": "pdfium-gold.skia.org",
                       "name": "pdfium-gold.skia.org",
                       "routes": [
-                        {
-                          "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-pdfium-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
                         {
                           "match": {
                             "prefix": "/"
@@ -1735,17 +1691,6 @@
                           },
                           "route": {
                             "cluster": "gold-flutter-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-flutter-diffserver",
                             "timeout": {
                               "seconds": 600
                             }
@@ -1820,17 +1765,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-angle-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "prefix": "/"
                           },
                           "route": {
@@ -1898,17 +1832,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-chrome-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "prefix": "/"
                           },
                           "route": {
@@ -1924,17 +1847,6 @@
                       "domains": "chrome-public-gold.skia.org",
                       "name": "chrome-public-gold.skia.org",
                       "routes": [
-                        {
-                          "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-chrome-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
                         {
                           "match": {
                             "prefix": "/"
@@ -1997,17 +1909,6 @@
                           },
                           "route": {
                             "cluster": "gold-cros-tast-dev-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-cros-tast-dev-diffserver",
                             "timeout": {
                               "seconds": 600
                             }
@@ -2082,17 +1983,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-flutter-engine-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "prefix": "/"
                           },
                           "route": {
@@ -2160,17 +2050,6 @@
                         },
                         {
                           "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-fuchsia-public-diffserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
                             "prefix": "/"
                           },
                           "route": {
@@ -2231,17 +2110,6 @@
                           },
                           "route": {
                             "cluster": "gold-skia-infra-baselineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        },
-                        {
-                          "match": {
-                            "prefix": "/img/"
-                          },
-                          "route": {
-                            "cluster": "gold-skia-infra-diffserver",
                             "timeout": {
                               "seconds": 600
                             }
