@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "9347cc3a_ce5f5e47",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-22T13:45:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae7b887b_7b07d1d2",
+      "range": {
+        "startLine": 20,
+        "startChar": 5,
+        "endLine": 20,
+        "endChar": 11
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5a0ef795_27212d41",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "dc9ab9a8_51934f90",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-22T13:45:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a0ef795_27212d41",
+      "range": {
+        "startLine": 51,
+        "startChar": 1,
+        "endLine": 51,
+        "endChar": 7
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3d4a8ffd_a969ce55",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-02-19T20:13:11Z",
       "side": 1,
       "message": "maybeReload is called in Set and GetMulti, and if the connection dies and there are a lot of Set or Get calls, they will all be serialized on the h.clientMutex.Lock(). Not sure if that\u0027s an issue, but maybe just always spin up a background Go routine that checks for disconnects every 10s and tries to reconnect and avoid the serialization on the maybeReload() call.",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 39
+      },
+      "revId": "162ee59aec14d803908e21ee5f4c8ed386d439b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b3b23a36_97656266",
+        "filename": "go/reconnectingmemcached/client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-22T13:45:58Z",
+      "side": 1,
+      "message": "I don\u0027t see how that\u0027s much of a problem. Those extra calls to maybeReload() should only block briefly (i.e. not until the connection is fixed.\n\n This function locks the mutex, starts fixing in a go routine, and then unlocks the mutex and returns. Those slightly late calls to maybeReload will then lock the mutex, and unlock it after seeing h.client is nil.\n\nAm I missing something?",
+      "parentUuid": "3d4a8ffd_a969ce55",
       "range": {
         "startLine": 131,
         "startChar": 28,
