@@ -61,6 +61,14 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
   restoreUniformValues(uniforms: number[]): void {
       this.input!.valueAsNumber = uniforms[this.uniform.slot];
   }
+
+  onRAF(): void {
+    // noop.
+  }
+
+  needsRAF(): boolean {
+    return false;
+  }
 }
 
 define('uniform-slider-sk', UniformSliderSk);
