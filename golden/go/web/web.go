@@ -555,7 +555,7 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
 	var span *trace.Span
-	if r.Form.Get("use_sql") != "" {
+	if r.Form.Get("use_sql") != "false" {
 		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
 		ctx, span = trace.StartSpan(ctx, "SearchHandler_sql")
 	} else {
@@ -702,7 +702,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if r.Form.Get("use_sql") != "" {
+	if r.Form.Get("use_sql") != "false" {
 		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
 	}
 	ret, err := wh.SearchAPI.DiffDigests(ctx, types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
@@ -1065,7 +1065,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	testName := testNames[0]
 	ctx := r.Context()
 	var span *trace.Span
-	if r.Form.Get("use_sql") != "" {
+	if r.Form.Get("use_sql") != "false" {
 		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
 		ctx, span = trace.StartSpan(ctx, "ClusterDiff_sql")
 	} else {
