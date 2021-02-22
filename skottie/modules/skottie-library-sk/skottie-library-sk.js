@@ -18,14 +18,9 @@ import { define } from 'elements-sk/define';
 import { html, render } from 'lit-html';
 import JSZip from 'jszip';
 import { replaceTextsByLayerName } from '../skottie-text-editor/text-replace';
-import { bmAnim } from './bm';
-import { rondaAnim } from './ronda';
 
 const THUMBNAIL_SIZE = 200;
-const defaultAnimations = [
-  bmAnim,
-  rondaAnim,
-];
+const defaultAnimations = []; // TODO: preload provided animations
 
 const animationTemplate = (ele, item, index) => html`
   <li
