@@ -13,6 +13,7 @@ go_library(
         "//go/util",
         "@com_github_cenkalti_backoff//:backoff",
         "@com_github_fiorix_go_web//autogzip",
+        "@com_github_rs_cors//:cors",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

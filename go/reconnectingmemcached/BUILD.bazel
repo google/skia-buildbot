@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "reconnectingmemcached",
+    srcs = ["client.go"],
+    importpath = "go.skia.org/infra/go/reconnectingmemcached",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_bradfitz_gomemcache//memcache",
+    ],
+)
+
+go_test(
+    name = "reconnectingmemcached_test",
+    srcs = ["client_test.go"],
+    embed = [":reconnectingmemcached"],
+    deps = [
+        "//go/testutils/unittest",
+        "@com_github_bradfitz_gomemcache//memcache",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
