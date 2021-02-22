@@ -24,4 +24,10 @@ export interface UniformControl {
 
   /** Copies the values from the uniforms array into the control. */
   restoreUniformValues(uniforms: number[]): void;
+
+  /** Function to call on every requestAnimationFrame. Only called if needsRAF() returns true. */
+  onRAF(): void;
+
+  /** Returns true if this controls needs to update on every requestAnimationFrame, such as uniform-time-sk. */
+  needsRAF(): boolean;
 }
