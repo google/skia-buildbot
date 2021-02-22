@@ -45,6 +45,8 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
+	"go.skia.org/infra/golden/go/sql/datakitchensink"
+	"go.skia.org/infra/golden/go/sql/sqltest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
@@ -2836,6 +2838,51 @@ func loadAsPNGBytes(t *testing.T, textImage string) []byte {
 	var buf bytes.Buffer
 	require.NoError(t, common.EncodeImg(&buf, img))
 	return buf.Bytes()
+}
+
+func TestGetLinksBetween_SomeDiffMetricsExist_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	links, err := wh.getLinksBetween(ctx, datakitchensink.DigestA01Pos, []types.Digest{
+		datakitchensink.DigestA02Pos, datakitchensink.DigestA03Pos, datakitchensink.DigestA05Unt,
+		"0123456789abcdef0123456789abcdef", // not a real digest
+	})
+	require.NoError(t, err)
+	assert.Equal(t, map[types.Digest]float32{
+		datakitchensink.DigestA02Pos: 56.25,
+		datakitchensink.DigestA03Pos: 56.25,
+		datakitchensink.DigestA05Unt: 3.125,
+	}, links)
+}
+
+func TestGetLinksBetween_NoDiffMetricsExist_EmptyMapReturned(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, datakitchensink.Build()))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			DB: db,
+		},
+	}
+
+	links, err := wh.getLinksBetween(ctx, datakitchensink.DigestA01Pos, []types.Digest{
+		"0123456789abcdef0123456789abcdef", // not a real digest
+	})
+	require.NoError(t, err)
+	assert.Empty(t, links)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
