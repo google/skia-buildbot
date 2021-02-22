@@ -7,13 +7,8 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/firestore",
-        "//go/skerr",
         "//go/sklog",
-        "//golden/go/continuous_integration",
         "//golden/go/sql",
-        "//golden/go/tjstore",
-        "//golden/go/tjstore/fs_tjstore",
-        "//golden/go/tjstore/sqltjstore",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],
 )

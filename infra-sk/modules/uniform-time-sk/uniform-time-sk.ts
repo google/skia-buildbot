@@ -48,7 +48,7 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
     <play-arrow-icon-sk ?hidden=${ele.playing}></play-arrow-icon-sk>
     <pause-icon-sk ?hidden=${!ele.playing}></pause-icon-sk>
   </button>
-  <span>${ele.time.toFixed(3)}</span>
+  <span id=ms>${ele.time.toFixed(3)}</span>
   <span>${ele._uniform.name}</span>
 `;
 
@@ -72,6 +72,14 @@ export class UniformTimeSk extends ElementSk implements UniformControl {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   restoreUniformValues(uniforms: number[]): void {
     // This is a noop, we don't restore predefined uniform values.
+  }
+
+  onRAF(): void {
+    this.render();
+  }
+
+  needsRAF(): boolean {
+    return true;
   }
 
   /** Allows overriding the Date.now function for testing. */

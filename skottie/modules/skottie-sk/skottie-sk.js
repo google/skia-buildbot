@@ -24,8 +24,8 @@ import '../skottie-text-editor'
 import { replaceTexts } from '../skottie-text-editor/text-replace'
 import '../skottie-library-sk'
 import { SoundMap, AudioPlayer } from '../audio'
-import { supportedDomains } from '../helpers/domains'
 import { renderByDomain } from '../helpers/templates'
+import { supportedDomains } from '../helpers/domains'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');

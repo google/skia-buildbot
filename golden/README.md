@@ -34,9 +34,6 @@ although these won't be as interesting as there is no mock data and you may see 
 artifacts like `{{.Title}}` as that's where the golang templating on the server will insert
 data.
 
-As we transition off of Polymer-based pages, there is a "page" called transitional that
-houses a wide assortment of lit-html elements that are bundled into the Polymer pages.
-
 To run the tests for these lit-html pages, run:
 
 	make js-test
@@ -49,12 +46,12 @@ Tests tend to make sure that data processing and html structure is done correctl
 CSS and "how it looks" are presumed to be handled by a human during
 development and integration
 
-If you are running a skiacorrectness server locally, you can (in another terminal)
+If you are running the frontend server locally, you can (in another terminal)
 run
 
 	make frontend
 
-which will rebuild all the frontend pages. When in --local mode, the skiacorrectness
+which will rebuild all the frontend pages. When in --local mode, the frontend
 server will reload the templates/pages every time, so you don't have to restart it to
 see the re-built pages.
 

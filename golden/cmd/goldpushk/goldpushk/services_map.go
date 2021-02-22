@@ -20,11 +20,11 @@ const (
 	SkiaPublic        Instance = "skia-public"
 
 	// Gold services.
-	BaselineServer  Service = "baselineserver"
-	DiffCalculator  Service = "diffcalculator"
-	DiffServer      Service = "diffserver"
-	IngestionBT     Service = "ingestion-bt"
-	SkiaCorrectness Service = "skiacorrectness"
+	BaselineServer Service = "baselineserver"
+	DiffCalculator Service = "diffcalculator"
+	DiffServer     Service = "diffserver"
+	IngestionBT    Service = "ingestion-bt"
+	Frontend       Service = "frontend"
 
 	// Testing Gold instances.
 	TestInstance1     Instance = "goldpushk-test1"
@@ -71,7 +71,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			BaselineServer,
 			DiffServer,
 			IngestionBT,
-			SkiaCorrectness,
+			Frontend,
 			DiffCalculator,
 		},
 	}
@@ -79,13 +79,13 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	// Add common services to all known instances.
 	for _, instance := range s.knownInstances {
 		if isPublicInstance(instance) {
-			// There is only one service for public view instances: - skiacorrectness.
-			s.add(instance, SkiaCorrectness)
+			// There is only one service for public view instances: - frontend.
+			s.add(instance, Frontend)
 		} else {
 			// Add common services for regular instances.
 			s.add(instance, DiffServer)
 			s.add(instance, IngestionBT)
-			s.add(instance, SkiaCorrectness)
+			s.add(instance, Frontend)
 			s.add(instance, DiffCalculator)
 		}
 	}
@@ -107,7 +107,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		internal: true,
 	})
 	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, SkiaCorrectness, DeploymentOptions{internal: true})
+	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, DiffCalculator, DeploymentOptions{internal: true})
 	return s
 }

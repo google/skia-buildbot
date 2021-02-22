@@ -2,7 +2,7 @@
 
 set -x -e
 
-# Create and upload a container image for skiacorrectness the main Gold process.
+# Create and upload a container image for the (deprecated) Gold diff server.
 APPNAME=gold-diff-server
 
 # Copy files into the right locations in ${ROOT}.

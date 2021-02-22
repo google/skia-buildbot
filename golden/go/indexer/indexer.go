@@ -951,14 +951,14 @@ func groupDataFromTryJobs(ctx context.Context, xtjr []tjstore.TryJobResult) (map
 	return digestsPerGrouping, nil
 }
 
-// addDataFromPrimaryBranch adds the triaged, not ignored digests from the primary branch to
+// addDataFromPrimaryBranch adds the triaged digests from the primary branch to
 // the provided map and returns it as the first return value (the left digests). It adds those same
 // digests to a new map and returns it as the second return value (the right digests).
 func addDataFromPrimaryBranch(ctx context.Context, idx *SearchIndex, leftDigests map[hashableGrouping]types.DigestSet, exp expectations.Classifier) (map[hashableGrouping]types.DigestSet, map[hashableGrouping]types.DigestSet, error) {
 	ctx, span := trace.StartSpan(ctx, "addDataFromPrimaryBranch")
 	span.AddAttributes(trace.Int64Attribute("groupings", int64(len(leftDigests))))
 	defer span.End()
-	countByTest := idx.dCounters[types.ExcludeIgnoredTraces].ByTest()
+	countByTest := idx.dCounters[types.IncludeIgnoredTraces].ByTest()
 	rightDigests := make(map[hashableGrouping]types.DigestSet, len(leftDigests))
 	// Add the digests from the primary branch (using the index)
 	for grouping := range leftDigests {
@@ -1013,13 +1013,13 @@ func (ix *Indexer) sendWorkToDiffCalculators(ctx context.Context, state interfac
 	// For every digest on every trace within the sliding window (tile), compute the
 	// unique digests for each grouping (i.e. test). These will be the left digests.
 	leftDigestsPerGrouping := map[hashableGrouping]types.DigestSet{}
-	for _, trace := range tile.Traces {
-		grouping := getHashableGrouping(trace.Keys())
+	for _, tr := range tile.Traces {
+		grouping := getHashableGrouping(tr.Keys())
 		uniqueDigests := leftDigestsPerGrouping[grouping]
 		if len(uniqueDigests) == 0 {
 			uniqueDigests = types.DigestSet{}
 		}
-		for _, d := range trace.Digests {
+		for _, d := range tr.Digests {
 			if d != tiling.MissingDigest {
 				uniqueDigests[d] = true
 			}
@@ -1027,23 +1027,22 @@ func (ix *Indexer) sendWorkToDiffCalculators(ctx context.Context, state interfac
 		leftDigestsPerGrouping[grouping] = uniqueDigests
 	}
 
-	tile = idx.cpxTile.GetTile(types.ExcludeIgnoredTraces)
 	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 	// For every digest on every trace within the sliding window (tile), compute the
 	// unique digests for each grouping (i.e. test). These will be the right digests, i.e.
-	// all the "triaged" digests.
+	// all the "triaged" digests (including ignored, triaged digests).
 	rightDigestsPerGrouping := map[hashableGrouping]types.DigestSet{}
-	for _, trace := range tile.Traces {
-		grouping := getHashableGrouping(trace.Keys())
+	for _, tr := range tile.Traces {
+		grouping := getHashableGrouping(tr.Keys())
 		uniqueDigests := rightDigestsPerGrouping[grouping]
 		if len(uniqueDigests) == 0 {
 			uniqueDigests = types.DigestSet{}
 		}
-		for _, d := range trace.Digests {
-			if d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) != expectations.Untriaged {
+		for _, d := range tr.Digests {
+			if d != tiling.MissingDigest && exp.Classification(tr.TestName(), d) != expectations.Untriaged {
 				uniqueDigests[d] = true
 			}
 		}

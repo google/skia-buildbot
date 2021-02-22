@@ -32,6 +32,14 @@ export class UniformImageresolutionSk extends HTMLElement implements UniformCont
     // This is a noop, we don't restore predefined uniform values.
   }
 
+  onRAF(): void {
+    // noop
+  }
+
+  needsRAF(): boolean {
+    return false;
+  }
+
   get uniform(): Uniform {
     return this._uniform;
   }

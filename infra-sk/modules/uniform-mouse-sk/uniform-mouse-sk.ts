@@ -44,6 +44,14 @@ export class UniformMouseSk extends HTMLElement implements UniformControl {
     // This is a noop, we don't restore predefined uniform values.
   }
 
+  onRAF(): void {
+    // noop.
+  }
+
+  needsRAF(): boolean {
+    return false;
+  }
+
   get elementToMonitor(): HTMLElement {
     return this._elementToMonitor!;
   }

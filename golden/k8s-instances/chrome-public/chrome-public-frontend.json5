@@ -1,0 +1,87 @@
+{
+  authorized_users: [
+    "google.com",
+    "chromium.org",
+    "microsoft.com",
+  ],
+  cl_comment_template: "<ignored>",
+  client_secret_file: "/etc/skia.org/login.json",
+  diff_server_grpc: "gold-chrome-diffserver:8000",
+  diff_server_http: "gold-chrome-diffserver:8001",
+  flaky_trace_threshold: 10000, // no trace is flaky
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    defaultCorpus: "android-render-tests",
+    title: "Chrome Public Gold",
+  },
+  num_commits: 512,
+  port: ":8000",
+  prom_port: ":20000",
+  resources_path: "/usr/local/share/frontend/dist",
+  site_url: "https://chrome-public-gold.skia.org",
+  tile_freshness: "1m",
+  trace_bt_table: "gold-chrome",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 4,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "4Gi",
+
+  is_public_view: true,
+  publicly_allowed_params: {
+    "android-render-tests": {
+      model: [
+        "Android SDK built for x86",
+        "AOSP on IA Emulator",
+        "Nexus 5",
+        "Nexus 5X",
+        "Nexus 7",
+        "Pixel 2"
+      ],
+      sdk_version: [
+        "22",
+        "23",
+        "28"
+      ]
+    },
+    "android-vr-render-tests": {}, // Everything public for this corpus
+    "gtest-pixeltests": {}, // Everything public for this corpus
+    "chrome-gpu": {
+      device_id: [ // Set by desktop machines
+        "0x1050",
+        "0x1cb3",
+        "0x2184",
+        "0x3e92",
+        "0x5912",
+        "0x6613",
+        "0x679e",
+        "0x6821",
+        "0x699f",
+        "0xa2e",
+        "0xd26",
+        "0xfe9",
+        "None",
+      ],
+      device_string: [ // Set by mobile devices
+        "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 7.0.1) (0x0000C0DE)))",
+        "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)))",
+        "Adreno (TM) 330",
+        "Adreno (TM) 418",
+        "Adreno (TM) 420",
+        "Adreno (TM) 430",
+        "Adreno (TM) 540",
+        "Adreno (TM) 640",
+        "Mali-T860",
+        "NVIDIA Tegra",
+        "None"
+      ],
+      vendor_id: [
+        "0x1002",
+        "0x10de",
+        "0x1af4",
+        "0x8086",
+        "None",
+      ],
+    },
+  },
+}
