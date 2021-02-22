@@ -68,8 +68,6 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tjstore"
-	"go.skia.org/infra/golden/go/tjstore/dualtjstore"
-	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
 	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tracing"
@@ -240,7 +238,7 @@ func main() {
 
 	ignoreStore := mustMakeIgnoreStore(ctx, fsc, sqlDB)
 
-	tjs := mustMakeTryJobStore(fsClient, sqlDB)
+	tjs := mustMakeTryJobStore(sqlDB)
 
 	reviewSystems := mustInitializeReviewSystems(fsc, client, sqlDB)
 
@@ -496,10 +494,8 @@ func mustMakeIgnoreStore(ctx context.Context, fsc *frontendServerConfig, db *pgx
 }
 
 // mustMakeTryJobStore returns a new tjstore.Store
-func mustMakeTryJobStore(client *firestore.Client, db *pgxpool.Pool) tjstore.Store {
-	fireTS := fs_tjstore.New(client)
-	sqlTS := sqltjstore.New(db)
-	return dualtjstore.New(sqlTS, fireTS)
+func mustMakeTryJobStore(db *pgxpool.Pool) tjstore.Store {
+	return sqltjstore.New(db)
 }
 
 // mustInitializeReviewSystems validates and instantiates one clstore.ReviewSystem for each CRS
