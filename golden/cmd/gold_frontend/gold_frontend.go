@@ -263,7 +263,7 @@ func main() {
 
 	handlers := mustMakeWebHandlers(diffStore, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, statusWatcher, tileSource, tjs, vcs)
 
-	rootRouter := mustMakeRootRouter(fsc, handlers, diffStore)
+	rootRouter := mustMakeRootRouter(fsc, handlers)
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + fsc.Port)
@@ -429,6 +429,7 @@ func mustMakeTraceStore(ctx context.Context, fsc *frontendServerConfig, vcs *bt_
 // files.
 func mustMakeGCSClient(ctx context.Context, fsc *frontendServerConfig, client *http.Client) storage.GCSClient {
 	gsClientOpt := storage.GCSClientOptions{
+		Bucket:             fsc.GCSBucket,
 		KnownHashesGCSPath: fsc.KnownHashesGCSPath,
 		Dryrun:             !fsc.IsAuthoritative(),
 	}
@@ -739,19 +740,13 @@ func mustMakeWebHandlers(diffStore diff.DiffStore, expStore expectations.Store, 
 }
 
 // mustMakeRootRouter returns a mux.Router that can be used to serve Gold's web UI and JSON API.
-func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffStore diff.DiffStore) *mux.Router {
+func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers) *mux.Router {
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// loggedRouter contains all the endpoints that are logged. See the call below to
 	// LoggingGzipRequestResponse.
 	loggedRouter := mux.NewRouter()
-
-	// Set up the resource to serve the image files.
-	imgHandler, err := diffStore.ImageHandler(imgURLPrefix)
-	if err != nil {
-		sklog.Fatalf("Unable to get image handler: %s", err)
-	}
 
 	// Login endpoints.
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
@@ -767,10 +762,8 @@ func mustMakeRootRouter(fsc *frontendServerConfig, handlers *web.Handlers, diffS
 
 	// set up the app router that might be authenticated and logs almost everything.
 	appRouter := mux.NewRouter()
-	// Images should not be served gzipped, which can sometimes have issues
-	// when serving an image from a NetDiffstore with HTTP2. Additionally, is wasteful
-	// given PNGs typically have zlib compression anyway.
-	appRouter.PathPrefix(imgURLPrefix).Handler(imgHandler)
+	// Images should not be served gzipped as PNGs typically have zlib compression anyway.
+	appRouter.PathPrefix("/img/").HandlerFunc(handlers.ImageHandler).Methods("GET")
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(loggedRouter))
 
 	// Use the appRouter as a handler and wrap it into middleware that enforces authentication if

@@ -75,6 +75,7 @@ func TestWritingReadingHashes(t *testing.T) {
 func initGSClient(t *testing.T) (*ClientImpl, GCSClientOptions) {
 	timeStamp := fmt.Sprintf("%032d", time.Now().UnixNano())
 	opt := GCSClientOptions{
+		Bucket:             "skia-infra-testdata",
 		KnownHashesGCSPath: hashesGCSPath + "-" + timeStamp,
 	}
 	gsClient, err := NewGCSClient(context.Background(), nil, opt)

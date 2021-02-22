@@ -89,6 +89,7 @@ func main() {
 	baseliner := simple_baseliner.New(expStore)
 
 	gsClientOpt := storage.GCSClientOptions{
+		Bucket:             bsc.GCSBucket,
 		KnownHashesGCSPath: bsc.KnownHashesGCSPath,
 	}
 

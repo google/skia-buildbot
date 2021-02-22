@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"go.skia.org/infra/golden/go/diffstore/common"
+
+	"go.skia.org/infra/golden/go/image/text"
+	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -2699,6 +2705,119 @@ func TestDiffHandler_RequestSQLDiffMetrics_ContextValueAdded(t *testing.T) {
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 
+func TestImageHandler_SingleKnownImage_CorrectBytesReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgc := &mocks.GCSClient{}
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("0123456789abcdef0123456789abcdef")).Return([]byte("some png bytes"), nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			GCSClient: mgc,
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/img/images/0123456789abcdef0123456789abcdef.png", nil)
+	wh.ImageHandler(w, r)
+	assertImageResponseWas(t, []byte("some png bytes"), w)
+}
+
+func TestImageHandler_SingleUnknownImage_404Returned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgc := &mocks.GCSClient{}
+	mgc.On("GetImage", testutils.AnyContext, mock.Anything).Return(nil, errors.New("unknown"))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			GCSClient: mgc,
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/img/images/0123456789abcdef0123456789abcdef.png", nil)
+	wh.ImageHandler(w, r)
+	assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+}
+
+func TestImageHandler_TwoKnownImages_DiffReturned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	image1 := loadAsPNGBytes(t, one_by_five.ImageOne)
+	image2 := loadAsPNGBytes(t, one_by_five.ImageTwo)
+	mgc := &mocks.GCSClient{}
+	// These digests are arbitrary - they do not match the provided images.
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("11111111111111111111111111111111")).Return(image1, nil)
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("22222222222222222222222222222222")).Return(image2, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			GCSClient: mgc,
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/img/diffs/11111111111111111111111111111111-22222222222222222222222222222222.png", nil)
+	wh.ImageHandler(w, r)
+	// The images are different in 1 channel per pixel. The first 4 pixels (lines) are a light
+	// orange color, the last one is a light blue color (because it differs only in alpha).
+	assertDiffImageWas(t, w, `! SKTEXTSIMPLE
+1 5
+0xfdd0a2ff
+0xfdd0a2ff
+0xfdd0a2ff
+0xfdd0a2ff
+0xc6dbefff`)
+}
+
+func TestImageHandler_OneUnknownImage_404Returned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	image1 := loadAsPNGBytes(t, one_by_five.ImageOne)
+	mgc := &mocks.GCSClient{}
+	// These digests are arbitrary - they do not match the provided images.
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("11111111111111111111111111111111")).Return(image1, nil)
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("22222222222222222222222222222222")).Return(nil, errors.New("unknown"))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			GCSClient: mgc,
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/img/diffs/11111111111111111111111111111111-22222222222222222222222222222222.png", nil)
+	wh.ImageHandler(w, r)
+	assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+}
+
+func TestImageHandler_TwoUnknownImages_404Returned(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgc := &mocks.GCSClient{}
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("11111111111111111111111111111111")).Return(nil, errors.New("unknown"))
+	mgc.On("GetImage", testutils.AnyContext, types.Digest("22222222222222222222222222222222")).Return(nil, errors.New("unknown"))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			GCSClient: mgc,
+		},
+	}
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/img/diffs/11111111111111111111111111111111-22222222222222222222222222222222.png", nil)
+	wh.ImageHandler(w, r)
+	assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+}
+
+func loadAsPNGBytes(t *testing.T, textImage string) []byte {
+	img := text.MustToNRGBA(textImage)
+	var buf bytes.Buffer
+	require.NoError(t, common.EncodeImg(&buf, img))
+	return buf.Bytes()
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
@@ -2761,6 +2880,24 @@ func assertJSONResponseWas(t *testing.T, status int, body string, w *httptest.Re
 	// The JSON encoder includes a newline "\n" at the end of the body, which is awkward to include
 	// in the literals passed in above, so we add that here
 	assert.Equal(t, body+"\n", string(respBody))
+}
+
+func assertImageResponseWas(t *testing.T, expected []byte, w *httptest.ResponseRecorder) {
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, expected, respBody)
+}
+
+func assertDiffImageWas(t *testing.T, w *httptest.ResponseRecorder, expectedTextImage string) {
+	resp := w.Result()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	respImg, err := common.DecodeImg(resp.Body)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	require.NoError(t, text.Encode(&buf, respImg))
+	assert.Equal(t, expectedTextImage, buf.String())
 }
 
 // setID applies the ID mux.Var to a copy of the given request. In a normal server setting, mux will
