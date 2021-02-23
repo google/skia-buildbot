@@ -289,7 +289,7 @@ func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*director
 			children[dir.Name] = merged
 		} else {
 			dirsMap[dir.Name] = dir
-			children[dir.Name] = a.Children[dir.Name]
+			children[dir.Name] = b.Children[dir.Name]
 		}
 	}
 	dirs := make([]*remoteexecution.DirectoryNode, 0, len(dirsMap))

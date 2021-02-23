@@ -172,12 +172,16 @@ func TestMerge(t *testing.T) {
 		f(t, wd, "duplicated", "duplicatedcontents", true)
 		d(t, wd, "subdir")
 		f(t, wd, "subdir/subfile", "subfilecontents", false)
+		d(t, wd, "missing-from-tree2")
+		f(t, wd, "missing-from-tree2/somefile", "missing-from-tree2 contents", false)
 	})
 	digest2, tree2 := upload(func(wd string) {
 		f(t, wd, "otherfile", "blahblah", true)
 		f(t, wd, "duplicated", "duplicatedcontents", true)
 		d(t, wd, "subdir")
 		f(t, wd, "subdir/subfile2", "subfilecontents2", false)
+		d(t, wd, "missing-from-tree1")
+		f(t, wd, "missing-from-tree1/somefile", "missing-from-tree1 contents", false)
 	})
 
 	// Merge the digests.
