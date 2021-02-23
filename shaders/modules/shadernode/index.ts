@@ -177,6 +177,10 @@ export class ShaderNode {
       return JSON.parse(JSON.stringify(this.body));
     }
 
+    get inputImageURL(): string {
+      return this.body!.SKSLMetaData?.ImageURL || '';
+    }
+
     get inputImageElement(): HTMLImageElement {
       return this.inputImageShader!.image;
     }

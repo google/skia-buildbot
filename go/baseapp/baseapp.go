@@ -76,11 +76,17 @@ func cspString(allowedHosts []string, local bool, options []Option) string {
 		addScriptSrc = "'unsafe-eval'"
 	}
 
-	// This non-local, non-WASM CSP string passes the tests at https://csp-evaluator.withgoogle.com/.
+	imgSrc := "'self'"
+	if hasAllowAnyImageOption(options) {
+		// unsafe-eval allows us to get to the underlying bits of the image.
+		imgSrc = "* 'unsafe-eval' blob: data:"
+	}
+
+	// This non-local, CSP string without any options passes the tests at https://csp-evaluator.withgoogle.com/.
 	//
 	// See also: https://csp.withgoogle.com/docs/strict-csp.html
 	//
-	return fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", addScriptSrc)
+	return fmt.Sprintf("base-uri 'none';  img-src %s ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE %s 'unsafe-inline' https: http: ; report-uri /cspreport ;", imgSrc, addScriptSrc)
 }
 
 func securityMiddleware(allowedHosts []string, local bool, options []Option) mux.MiddlewareFunc {
@@ -109,6 +115,18 @@ type AllowWASM struct{}
 func hasWASMOption(options []Option) bool {
 	for _, opt := range options {
 		if _, ok := opt.(AllowWASM); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// AllowAnyImage allows images to be loaded from all sources, not just self.
+type AllowAnyImage struct{}
+
+func hasAllowAnyImageOption(options []Option) bool {
+	for _, opt := range options {
+		if _, ok := opt.(AllowAnyImage); ok {
 			return true
 		}
 	}
