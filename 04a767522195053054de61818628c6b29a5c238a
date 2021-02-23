@@ -54,6 +54,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e4799888_e44bb8d4",
+        "filename": "go/git/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-23T20:28:08Z",
+      "side": 1,
+      "message": "Ah, ok, I didn\u0027t see the space due to Gerrit\u0027s font.  Changed to use that regex and added a link to the source.",
+      "parentUuid": "b081fa5c_19ec85c7",
+      "revId": "04a767522195053054de61818628c6b29a5c238a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0e37ee1a_9bfaa9de",
