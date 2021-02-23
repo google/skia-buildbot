@@ -22,7 +22,6 @@ const (
 	// Gold services.
 	BaselineServer Service = "baselineserver"
 	DiffCalculator Service = "diffcalculator"
-	DiffServer     Service = "diffserver"
 	IngestionBT    Service = "ingestion-bt"
 	Frontend       Service = "frontend"
 
@@ -69,7 +68,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		},
 		knownServices: []Service{
 			BaselineServer,
-			DiffServer,
 			IngestionBT,
 			Frontend,
 			DiffCalculator,
@@ -83,7 +81,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			s.add(instance, Frontend)
 		} else {
 			// Add common services for regular instances.
-			s.add(instance, DiffServer)
 			s.add(instance, IngestionBT)
 			s.add(instance, Frontend)
 			s.add(instance, DiffCalculator)
@@ -103,9 +100,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	})
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
-	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{
-		internal: true,
-	})
 	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, DiffCalculator, DeploymentOptions{internal: true})

@@ -14,10 +14,10 @@ func TestDeployableUnitIDCanonicalName(t *testing.T) {
 	unit := DeployableUnit{
 		DeployableUnitID: DeployableUnitID{
 			Instance: Chrome,
-			Service:  DiffServer,
+			Service:  DiffCalculator,
 		},
 	}
-	require.Equal(t, "gold-chrome-diffserver", unit.CanonicalName())
+	require.Equal(t, "gold-chrome-diffcalculator", unit.CanonicalName())
 }
 
 func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
@@ -26,25 +26,25 @@ func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
 	unit := DeployableUnit{
 		DeployableUnitID: DeployableUnitID{
 			Instance: Skia,
-			Service:  DiffServer,
+			Service:  DiffCalculator,
 		},
 	}
 
-	require.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar/golden")))
+	require.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffcalculator-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar/golden")))
 }
 
 func TestDeployableUnitSetAdd(t *testing.T) {
 	unittest.SmallTest(t)
 
 	s := DeployableUnitSet{}
-	s.add(Chrome, DiffServer)
+	s.add(Chrome, DiffCalculator)
 
 	expected := DeployableUnitSet{
 		deployableUnits: []DeployableUnit{
 			{
 				DeployableUnitID: DeployableUnitID{
 					Instance: Chrome,
-					Service:  DiffServer,
+					Service:  DiffCalculator,
 				},
 			},
 		},
@@ -56,14 +56,14 @@ func TestDeployableUnitSetAddWithOptions(t *testing.T) {
 	unittest.SmallTest(t)
 
 	s := DeployableUnitSet{}
-	s.addWithOptions(Chrome, DiffServer, DeploymentOptions{internal: true})
+	s.addWithOptions(Chrome, DiffCalculator, DeploymentOptions{internal: true})
 
 	expected := DeployableUnitSet{
 		deployableUnits: []DeployableUnit{
 			{
 				DeployableUnitID: DeployableUnitID{
 					Instance: Chrome,
-					Service:  DiffServer,
+					Service:  DiffCalculator,
 				},
 				DeploymentOptions: DeploymentOptions{
 					internal: true,
@@ -80,13 +80,13 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 	s := DeployableUnitSet{}
 
 	// Add element with addWithOptions().
-	s.addWithOptions(Chrome, DiffServer, DeploymentOptions{internal: true})
+	s.addWithOptions(Chrome, DiffCalculator, DeploymentOptions{internal: true})
 	expected := DeployableUnitSet{
 		deployableUnits: []DeployableUnit{
 			{
 				DeployableUnitID: DeployableUnitID{
 					Instance: Chrome,
-					Service:  DiffServer,
+					Service:  DiffCalculator,
 				},
 				DeploymentOptions: DeploymentOptions{
 					internal: true,
@@ -97,13 +97,13 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 	require.Equal(t, expected, s)
 
 	// Overwrite with addWithOptions().
-	s.addWithOptions(Chrome, DiffServer, DeploymentOptions{internal: false})
+	s.addWithOptions(Chrome, DiffCalculator, DeploymentOptions{internal: false})
 	expected = DeployableUnitSet{
 		deployableUnits: []DeployableUnit{
 			{
 				DeployableUnitID: DeployableUnitID{
 					Instance: Chrome,
-					Service:  DiffServer,
+					Service:  DiffCalculator,
 				},
 				DeploymentOptions: DeploymentOptions{
 					internal: false,
@@ -114,13 +114,13 @@ func TestDeployableUnitSetOverwriteElements(t *testing.T) {
 	require.Equal(t, expected, s)
 
 	// Overwrite with add().
-	s.add(Chrome, DiffServer)
+	s.add(Chrome, DiffCalculator)
 	expected = DeployableUnitSet{
 		deployableUnits: []DeployableUnit{
 			{
 				DeployableUnitID: DeployableUnitID{
 					Instance: Chrome,
-					Service:  DiffServer,
+					Service:  DiffCalculator,
 				},
 			},
 		},
@@ -133,7 +133,7 @@ func TestDeployableUnitSetGet(t *testing.T) {
 
 	// Item not found.
 	s := DeployableUnitSet{}
-	_, ok := s.Get(DeployableUnitID{Instance: Chrome, Service: DiffServer})
+	_, ok := s.Get(DeployableUnitID{Instance: Chrome, Service: DiffCalculator})
 	require.False(t, ok)
 
 	// Item found.
@@ -142,16 +142,16 @@ func TestDeployableUnitSetGet(t *testing.T) {
 			{
 				DeployableUnitID: DeployableUnitID{
 					Instance: Chrome,
-					Service:  DiffServer,
+					Service:  DiffCalculator,
 				},
 			},
 		},
 	}
-	unit, ok := s.Get(DeployableUnitID{Instance: Chrome, Service: DiffServer})
+	unit, ok := s.Get(DeployableUnitID{Instance: Chrome, Service: DiffCalculator})
 	expectedUnit := DeployableUnit{
 		DeployableUnitID: DeployableUnitID{
 			Instance: Chrome,
-			Service:  DiffServer,
+			Service:  DiffCalculator,
 		},
 	}
 	require.True(t, ok)
@@ -169,9 +169,9 @@ func TestDeployableUnitSetKnownInstances(t *testing.T) {
 func TestDeployableUnitSetKnownServices(t *testing.T) {
 	unittest.SmallTest(t)
 	s := DeployableUnitSet{
-		knownServices: []Service{BaselineServer, DiffServer, Frontend},
+		knownServices: []Service{BaselineServer, DiffCalculator, Frontend},
 	}
-	require.Equal(t, []Service{BaselineServer, DiffServer, Frontend}, s.KnownServices())
+	require.Equal(t, []Service{BaselineServer, DiffCalculator, Frontend}, s.KnownServices())
 }
 
 func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
@@ -188,10 +188,10 @@ func TestDeployableUnitSetIsKnownInstance(t *testing.T) {
 func TestDeployableUnitSetIsKnownService(t *testing.T) {
 	unittest.SmallTest(t)
 	s := DeployableUnitSet{
-		knownServices: []Service{BaselineServer, DiffServer, Frontend},
+		knownServices: []Service{BaselineServer, DiffCalculator, Frontend},
 	}
 	require.True(t, s.IsKnownService(BaselineServer))
-	require.True(t, s.IsKnownService(DiffServer))
+	require.True(t, s.IsKnownService(DiffCalculator))
 	require.True(t, s.IsKnownService(Frontend))
 	require.False(t, s.IsKnownService(Service("foo")))
 }

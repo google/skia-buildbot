@@ -99,8 +99,8 @@ func TestParseAndValidateFlagsErrors(t *testing.T) {
 			message:       "Error: Canary doesn't match --instances / --services",
 			flagInstances: []string{"chrome"},
 			flagServices:  []string{"baselineserver"},
-			flagCanaries:  []string{"skia:diffserver"},
-			errorMsg:      "canary does not match any targeted services: \"skia:diffserver\"",
+			flagCanaries:  []string{"skia:diffcalculator"},
+			errorMsg:      "canary does not match any targeted services: \"skia:diffcalculator\"",
 		},
 
 		{
@@ -123,35 +123,31 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Deployments shared among test cases.
+	angleBaselineServer := makeID(goldpushk.Angle, goldpushk.BaselineServer)
 	angleFrontend := makeID(goldpushk.Angle, goldpushk.Frontend)
-	angleDiffServer := makeID(goldpushk.Angle, goldpushk.DiffServer)
 	chromeBaselineServer := makeID(goldpushk.Chrome, goldpushk.BaselineServer)
 	chromeDiffCalculator := makeID(goldpushk.Chrome, goldpushk.DiffCalculator)
-	chromeDiffServer := makeID(goldpushk.Chrome, goldpushk.DiffServer)
-	chromeIngestionBT := makeID(goldpushk.Chrome, goldpushk.IngestionBT)
 	chromeFrontend := makeID(goldpushk.Chrome, goldpushk.Frontend)
+	chromeIngestionBT := makeID(goldpushk.Chrome, goldpushk.IngestionBT)
 	chromePublicFrontend := makeID(goldpushk.ChromePublic, goldpushk.Frontend)
+	chromiumTastBaselineServer := makeID(goldpushk.ChromiumOSTastDev, goldpushk.BaselineServer)
 	chromiumTastFrontend := makeID(goldpushk.ChromiumOSTastDev, goldpushk.Frontend)
-	chromiumTastDiffServer := makeID(goldpushk.ChromiumOSTastDev, goldpushk.DiffServer)
-	flutterDiffServer := makeID(goldpushk.Flutter, goldpushk.DiffServer)
-	flutterEngineDiffServer := makeID(goldpushk.FlutterEngine, goldpushk.DiffServer)
+	flutterBaselineServer := makeID(goldpushk.Flutter, goldpushk.BaselineServer)
+	flutterEngineBaselineServer := makeID(goldpushk.FlutterEngine, goldpushk.BaselineServer)
 	flutterEngineFrontend := makeID(goldpushk.FlutterEngine, goldpushk.Frontend)
 	flutterFrontend := makeID(goldpushk.Flutter, goldpushk.Frontend)
-	fuchsiaDiffServer := makeID(goldpushk.Fuchsia, goldpushk.DiffServer)
-	fuchsiaPublicDiffServer := makeID(goldpushk.FuchsiaPublic, goldpushk.DiffServer)
-	fuchsiaPublicFrontend := makeID(goldpushk.FuchsiaPublic, goldpushk.Frontend)
+	fuchsiaBaselineServer := makeID(goldpushk.Fuchsia, goldpushk.BaselineServer)
 	fuchsiaFrontend := makeID(goldpushk.Fuchsia, goldpushk.Frontend)
-	lottieDiffServer := makeID(goldpushk.Lottie, goldpushk.DiffServer)
+	fuchsiaPublicBaselineServer := makeID(goldpushk.FuchsiaPublic, goldpushk.BaselineServer)
+	fuchsiaPublicFrontend := makeID(goldpushk.FuchsiaPublic, goldpushk.Frontend)
 	lottieFrontend := makeID(goldpushk.Lottie, goldpushk.Frontend)
-	pdfiumDiffServer := makeID(goldpushk.Pdfium, goldpushk.DiffServer)
 	pdfiumFrontend := makeID(goldpushk.Pdfium, goldpushk.Frontend)
 	skiaDiffCalculator := makeID(goldpushk.Skia, goldpushk.DiffCalculator)
-	skiaDiffServer := makeID(goldpushk.Skia, goldpushk.DiffServer)
-	skiaInfraDiffServer := makeID(goldpushk.SkiaInfra, goldpushk.DiffServer)
+	skiaFrontend := makeID(goldpushk.Skia, goldpushk.Frontend)
+	skiaInfraBaselineServer := makeID(goldpushk.SkiaInfra, goldpushk.BaselineServer)
 	skiaInfraFrontend := makeID(goldpushk.SkiaInfra, goldpushk.Frontend)
 	skiaIngestionBT := makeID(goldpushk.Skia, goldpushk.IngestionBT)
 	skiaPublicFrontend := makeID(goldpushk.SkiaPublic, goldpushk.Frontend)
-	skiaFrontend := makeID(goldpushk.Skia, goldpushk.Frontend)
 
 	test := func(name string, flagInstances, flagServices, flagCanaries []string, expectedDeployableUnitIDs, expectedCanariedDeployableUnitIDs []goldpushk.DeployableUnitID) {
 		t.Run(name, func(t *testing.T) {
@@ -171,17 +167,17 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		[]goldpushk.DeployableUnitID{chromeBaselineServer},
 		nil)
 	test("Single instance, multiple services, no canary",
-		[]string{"chrome"}, []string{"baselineserver", "diffserver"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
+		[]string{"chrome"}, []string{"baselineserver", "frontend"}, nil,
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeFrontend},
 		nil)
 	test("Single instance, multiple services, one canary",
-		[]string{"chrome"}, []string{"baselineserver", "diffserver", "frontend"}, []string{"chrome:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffServer},
+		[]string{"chrome"}, []string{"baselineserver", "frontend"}, []string{"chrome:frontend"},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer},
 		[]goldpushk.DeployableUnitID{chromeFrontend})
 	test("Single instance, multiple services, multiple canaries",
-		[]string{"chrome"}, []string{"baselineserver", "diffserver", "frontend"}, []string{"chrome:diffserver", "chrome:frontend"},
+		[]string{"chrome"}, []string{"baselineserver", "diffcalculator", "frontend"}, []string{"chrome:diffcalculator", "chrome:frontend"},
 		[]goldpushk.DeployableUnitID{chromeBaselineServer},
-		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeFrontend})
+		[]goldpushk.DeployableUnitID{chromeDiffCalculator, chromeFrontend})
 	test("Multiple instances, single service, no canary",
 		[]string{"chrome", "skia", "skia-public"}, []string{"frontend"}, nil,
 		[]goldpushk.DeployableUnitID{chromeFrontend, skiaFrontend, skiaPublicFrontend},
@@ -195,16 +191,16 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		[]goldpushk.DeployableUnitID{chromeFrontend},
 		[]goldpushk.DeployableUnitID{skiaFrontend, skiaPublicFrontend})
 	test("Multiple instances, multiple services, no canary",
-		[]string{"chrome", "skia", "skia-public"}, []string{"diffserver", "frontend"}, nil,
-		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeFrontend, skiaDiffServer, skiaFrontend, skiaPublicFrontend},
+		[]string{"chrome", "skia", "skia-public"}, []string{"diffcalculator", "frontend"}, nil,
+		[]goldpushk.DeployableUnitID{chromeDiffCalculator, chromeFrontend, skiaDiffCalculator, skiaFrontend, skiaPublicFrontend},
 		nil)
 	test("Multiple instances, multiple services, one canary",
-		[]string{"chrome", "skia", "skia-public"}, []string{"diffserver", "frontend"}, []string{"skia-public:frontend"},
-		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeFrontend, skiaDiffServer, skiaFrontend},
+		[]string{"chrome", "skia", "skia-public"}, []string{"diffcalculator", "frontend"}, []string{"skia-public:frontend"},
+		[]goldpushk.DeployableUnitID{chromeDiffCalculator, chromeFrontend, skiaDiffCalculator, skiaFrontend},
 		[]goldpushk.DeployableUnitID{skiaPublicFrontend})
 	test("Multiple instances, multiple services, multiple canaries",
-		[]string{"chrome", "skia", "skia-public"}, []string{"diffserver", "frontend"}, []string{"skia:frontend", "skia-public:frontend"},
-		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeFrontend, skiaDiffServer},
+		[]string{"chrome", "skia", "skia-public"}, []string{"diffcalculator", "frontend"}, []string{"skia:frontend", "skia-public:frontend"},
+		[]goldpushk.DeployableUnitID{chromeDiffCalculator, chromeFrontend, skiaDiffCalculator},
 		[]goldpushk.DeployableUnitID{skiaFrontend, skiaPublicFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,27 +208,27 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	test("Single instance, all services, no canary",
 		[]string{"chrome"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeFrontend},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend},
 		nil)
 	test("Single instance, all services, one canary",
 		[]string{"chrome"}, []string{"all"}, []string{"chrome:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT},
 		[]goldpushk.DeployableUnitID{chromeFrontend})
 	test("Single instance, all services, multiple canaries",
 		[]string{"chrome"}, []string{"all"}, []string{"chrome:ingestion-bt", "chrome:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator},
 		[]goldpushk.DeployableUnitID{chromeIngestionBT, chromeFrontend})
 	test("Multiple instances, all services, no canary",
 		[]string{"chrome", "skia"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeFrontend, skiaDiffCalculator, skiaDiffServer, skiaIngestionBT, skiaFrontend},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, skiaDiffCalculator, skiaIngestionBT, skiaFrontend},
 		nil)
 	test("Multiple instances, all services, one canary",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeFrontend, skiaDiffCalculator, skiaDiffServer, skiaIngestionBT},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, skiaDiffCalculator, skiaIngestionBT},
 		[]goldpushk.DeployableUnitID{skiaFrontend})
 	test("Multiple instances, all services, multiple canaries",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:ingestion-bt", "skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeDiffServer, chromeIngestionBT, chromeFrontend, skiaDiffCalculator, skiaDiffServer},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, skiaDiffCalculator},
 		[]goldpushk.DeployableUnitID{skiaIngestionBT, skiaFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,12 +247,16 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		[]goldpushk.DeployableUnitID{angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend},
 		[]goldpushk.DeployableUnitID{skiaInfraFrontend, skiaPublicFrontend})
 	test("All instances, multiple services, no canary",
-		[]string{"all"}, []string{"diffserver", "frontend"}, nil,
-		[]goldpushk.DeployableUnitID{angleFrontend, angleDiffServer, chromeDiffServer, chromeFrontend, chromePublicFrontend, chromiumTastDiffServer, chromiumTastFrontend, flutterDiffServer, flutterFrontend, flutterEngineDiffServer, flutterEngineFrontend, fuchsiaDiffServer, fuchsiaFrontend, fuchsiaPublicDiffServer, fuchsiaPublicFrontend, lottieDiffServer, lottieFrontend, pdfiumDiffServer, pdfiumFrontend, skiaDiffServer, skiaFrontend, skiaInfraDiffServer, skiaInfraFrontend, skiaPublicFrontend},
+		[]string{"all"}, []string{"baselineserver", "frontend"}, nil,
+		[]goldpushk.DeployableUnitID{
+			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend, skiaPublicFrontend,
+			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, fuchsiaBaselineServer, fuchsiaPublicBaselineServer, skiaInfraBaselineServer},
 		nil)
 	test("All instances, multiple services, one canary",
-		[]string{"all"}, []string{"diffserver", "frontend"}, []string{"skia-public:frontend"},
-		[]goldpushk.DeployableUnitID{angleFrontend, angleDiffServer, chromeDiffServer, chromeFrontend, chromePublicFrontend, chromiumTastDiffServer, chromiumTastFrontend, flutterDiffServer, flutterFrontend, flutterEngineDiffServer, flutterEngineFrontend, fuchsiaDiffServer, fuchsiaFrontend, fuchsiaPublicDiffServer, fuchsiaPublicFrontend, lottieDiffServer, lottieFrontend, pdfiumDiffServer, pdfiumFrontend, skiaDiffServer, skiaFrontend, skiaInfraDiffServer, skiaInfraFrontend},
+		[]string{"all"}, []string{"baselineserver", "frontend"}, []string{"skia-public:frontend"},
+		[]goldpushk.DeployableUnitID{
+			angleFrontend, chromeFrontend, chromePublicFrontend, chromiumTastFrontend, flutterFrontend, flutterEngineFrontend, fuchsiaFrontend, fuchsiaPublicFrontend, lottieFrontend, pdfiumFrontend, skiaFrontend, skiaInfraFrontend,
+			angleBaselineServer, chromeBaselineServer, chromiumTastBaselineServer, flutterBaselineServer, flutterEngineBaselineServer, fuchsiaBaselineServer, fuchsiaPublicBaselineServer, skiaInfraBaselineServer},
 		[]goldpushk.DeployableUnitID{skiaPublicFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,13 +264,13 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	test("Repeated inputs are ignored",
-		[]string{"chrome", "chrome", "skia", "chrome", "skia", "skia-public", "skia-public"}, []string{"diffserver", "frontend", "diffserver", "frontend"}, []string{"skia:diffserver", "skia-public:frontend", "skia:diffserver", "skia-public:frontend"},
-		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeFrontend, skiaFrontend},
-		[]goldpushk.DeployableUnitID{skiaDiffServer, skiaPublicFrontend})
+		[]string{"chrome", "chrome", "skia", "chrome", "skia", "skia-public", "skia-public"}, []string{"diffcalculator", "frontend", "diffcalculator", "frontend"}, []string{"skia:diffcalculator", "skia-public:frontend", "skia:diffcalculator", "skia-public:frontend"},
+		[]goldpushk.DeployableUnitID{chromeDiffCalculator, chromeFrontend, skiaFrontend},
+		[]goldpushk.DeployableUnitID{skiaDiffCalculator, skiaPublicFrontend})
 	test("Outputs sorted by instance, then service",
-		[]string{"skia-public", "chrome", "skia"}, []string{"frontend", "diffserver"}, []string{"skia-public:frontend", "skia:diffserver"},
-		[]goldpushk.DeployableUnitID{chromeDiffServer, chromeFrontend, skiaFrontend},
-		[]goldpushk.DeployableUnitID{skiaDiffServer, skiaPublicFrontend})
+		[]string{"skia-public", "chrome", "skia"}, []string{"frontend", "diffcalculator"}, []string{"skia-public:frontend", "skia:diffcalculator"},
+		[]goldpushk.DeployableUnitID{chromeDiffCalculator, chromeFrontend, skiaFrontend},
+		[]goldpushk.DeployableUnitID{skiaDiffCalculator, skiaPublicFrontend})
 }
 
 func TestParseAndValidateFlagsTestingSuccess(t *testing.T) {
