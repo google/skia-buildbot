@@ -21,8 +21,11 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 import '../skottie-text-editor'
+import { replaceTexts } from '../skottie-text-editor/text-replace'
+import '../skottie-library-sk'
 import { SoundMap, AudioPlayer } from '../audio'
-import { supportedDomains, isDomain } from '../helpers/domains'
+import { renderByDomain } from '../helpers/templates'
+import { supportedDomains } from '../helpers/domains'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -36,6 +39,12 @@ const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-we
 // SCRUBBER_RANGE is the input range for the scrubbing control.
 // This is an arbitrary value, and is treated as a re-scaled duration.
 const SCRUBBER_RANGE = 1000;
+
+const LIBRARY_SUPPORTED_DOMAINS = [
+  supportedDomains.SKOTTIE_INTERNAL,
+  supportedDomains.SKOTTIE_TENOR,
+  supportedDomains.LOCALHOST,
+];
 
 const displayDialog = (ele) => html`
 <skottie-config-sk .state=${ele._state} .width=${ele._width}
@@ -107,7 +116,31 @@ const jsonTextEditor = (ele) => {
   >
   </skottie-text-editor>
 </section>`;
-}
+};
+
+const library = (ele) => {
+  if (!ele._showLibrary) {
+    return '';
+  }
+  return renderByDomain(
+    html`
+    <section class=library>
+      <skottie-library-sk
+        @select=${ele._updateAnimation}
+      >
+      </skottie-library-sk>
+    </section>`,
+    LIBRARY_SUPPORTED_DOMAINS,
+  );
+};
+
+const libraryButton = (ele) => renderByDomain(
+  html`<checkbox-sk label="Show library"
+     ?checked=${ele._showLibrary}
+     @click=${ele._toggleLibrary}>
+  </checkbox-sk>`,
+  LIBRARY_SUPPORTED_DOMAINS,
+);
 
 const displayLoaded = (ele) => html`
 <button class=edit-config @click=${ ele._startEdit}>
@@ -135,6 +168,7 @@ const displayLoaded = (ele) => html`
                ?checked=${ele._showTextEditor}
                @click=${ele._toggleTextEditor}>
   </checkbox-sk>
+  ${libraryButton(ele)}
   <button @click=${ele._toggleEmbed}>Embed</button>
   <div class=scrub>
     <input id=scrub type=range min=0 max=${SCRUBBER_RANGE+1} step=0.1
@@ -166,6 +200,7 @@ const displayLoaded = (ele) => html`
     ${skottiePlayer(ele)}
   </figure>
   ${lottiePlayer(ele)}
+  ${library(ele)}
   ${livePreview(ele)}
 </section>
 
@@ -191,16 +226,13 @@ const pick = (ele) => {
   }
 };
 
-const redir = (ele) => {
-  if (!isDomain(supportedDomains.SKOTTIE_INTERNAL)) {
-    return html`
-<div>
-  Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
-</div>`;
-  } else {
-    return html``;
-  }
-};
+const redir = () => renderByDomain(
+  html`
+  <div>
+    Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.
+  </div>`,
+  Object.values(supportedDomains).filter((domain) => domain !== supportedDomains.SKOTTIE_INTERNAL),
+);
 
 const template = (ele) => html`
 <header>
@@ -244,6 +276,7 @@ define('skottie-sk', class extends HTMLElement {
     this._showLottie = false;
     this._showEditor = false;
     this._showTextEditor = false;
+    this._showLibrary = false;
     this._scrubbing = false;
     this._playingOnStartOfScrub = false;
 
@@ -259,6 +292,7 @@ define('skottie-sk', class extends HTMLElement {
           'l' : this._showLottie,
           'e' : this._showEditor,
           't' : this._showTextEditor,
+          'i' : this._showLibrary,
           'w' : this._width,
           'h' : this._height,
           'f' : this._fps,
@@ -268,6 +302,7 @@ define('skottie-sk', class extends HTMLElement {
       this._showLottie = newState.l;
       this._showEditor = newState.e;
       this._showTextEditor = newState.t;
+      this._showLibrary = newState.i;
       this._width = newState.w;
       this._height = newState.h;
       this._fps = newState.f;
@@ -310,7 +345,9 @@ define('skottie-sk', class extends HTMLElement {
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
-        this._skottiePlayer && this._skottiePlayer.seek(progress / this._duration);
+        const normalizedProgress = progress / this._duration;
+        this._skottiePlayer && this._skottiePlayer.seek(normalizedProgress);
+        this._skottieLibrary && this._skottieLibrary.seek(normalizedProgress);
 
         // lottie player takes the milliseconds from the beginning of the animation.
         this._lottie && this._lottie.goToAndStop(progress);
@@ -335,31 +372,19 @@ define('skottie-sk', class extends HTMLElement {
     this.render();
   }
 
+  _updateAnimation(event) {
+    const animation = event.detail;
+    this._state.lottie = animation;
+
+    this._upload();
+  }
+
   _applyTextEdits(event) {
     const texts = event.detail.texts;
-    const currentAnimation = JSON.parse(JSON.stringify(this._state.lottie));
-    texts.forEach((textData) => {
-      textData.items.forEach((item) => {
-        let layers;
-        // Searches for a composition that contains this layer
-        if (!item.parentId) {
-          layers = currentAnimation.layers;
-        } else {
-          const asset = currentAnimation.assets.find((assetItem) => assetItem.id === item.parentId);
-          layers = asset ? asset.layers : [];
-        }
+    this._state.lottie = replaceTexts(texts, this._state.lottie);
 
-        // Replaces current animation layer with new layer value
-        layers.forEach((layer, index) => {
-          if (layer.ind === item.layer.ind
-            && layer.nm === item.layer.nm
-          ) {
-            layers[index] = item.layer;
-          }
-        });
-      });
-    });
-    this._state.lottie = currentAnimation;
+    this._skottieLibrary && this._skottieLibrary.replaceTexts(texts);
+
     this._upload();
   }
 
@@ -646,15 +671,26 @@ define('skottie-sk', class extends HTMLElement {
     render(template(this), this, {eventContext: this});
 
     this._skottiePlayer = $$('skottie-player-sk', this);
+    this._skottieLibrary = $$('skottie-library-sk', this);
 
     if (this._ui === LOADED_MODE) {
       try {
         this._renderLottieWeb();
         this._renderJSONEditor();
+        this._renderTextEditor();
       } catch(e) {
         console.warn('caught error while rendering third party code', e);
       }
 
+    }
+  }
+
+  _renderTextEditor() {
+    if (this._showTextEditor) {
+      const textEditor = $$('skottie-text-editor', this);
+      if (textEditor) {
+        textEditor.animation = this._state.lottie;
+      }
     }
   }
 
@@ -757,6 +793,7 @@ define('skottie-sk', class extends HTMLElement {
     this._live && this._live.goToAndStop(seek);
     this._lottie && this._lottie.goToAndStop(seek * this._duration);
     this._skottiePlayer && this._skottiePlayer.seek(seek);
+    this._skottieLibrary && this._skottieLibrary.seek(seek);
   }
 
   // This fires when the user releases the scrub slider.
@@ -776,6 +813,7 @@ define('skottie-sk', class extends HTMLElement {
     this._wasmTimePassed = 0;
     if (!this._playing) {
       this._skottiePlayer.seek(0);
+      this._skottieLibrary && this._skottieLibrary.seek(0);
       this._firstFrameTime = null;
       this._live && this._live.goToAndStop(0);
       this._lottie && this._lottie.goToAndStop(0);
@@ -804,6 +842,13 @@ define('skottie-sk', class extends HTMLElement {
     e.preventDefault();
     this._showEditor = false;
     this._showTextEditor = !this._showTextEditor;
+    this._stateChanged();
+    this.render();
+  }
+
+  _toggleLibrary(e) {
+    e.preventDefault();
+    this._showLibrary = !this._showLibrary;
     this._stateChanged();
     this.render();
   }
