@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de57444b_a15ac607",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6025
+      },
+      "writtenOn": "2021-02-23T15:27:40Z",
+      "side": 1,
+      "message": "First time I\u0027m doing this. I based it on recent https://skia-review.googlesource.com/c/buildbot/+/365316 . If it lgty and it goes in, please also push the magic button that makes this take effect 😊\n\nrnk: I volunteered you as co-contact for these rolls. While things go well, you only need to archive the roll emails.",
+      "revId": "7351406f22c3672fceb5a938cbe2c9baf1d1a89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
