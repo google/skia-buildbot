@@ -88,6 +88,8 @@ class SkottieTextEditorSk extends HTMLElement {
       texts: [],
       areTextsCollapsed: true,
     };
+    this._animation = null
+    this._originalAnimation = null
   }
 
   findPrecompName(animation, precompId) {
@@ -191,11 +193,23 @@ class SkottieTextEditorSk extends HTMLElement {
     });
   }
 
+  _updateAnimation(animation) {
+    if (animation && this._originalAnimation !== animation) {
+      const clonedAnimation = JSON.parse(JSON.stringify(animation));
+      this._buildTexts(clonedAnimation);
+      this._animation = clonedAnimation;
+      this._originalAnimation = animation;
+      this._render();
+    }
+  }
+
+  /** @prop animation {Object} new animation to traverse. */
+  set animation(val) {
+    this._updateAnimation(val);
+  }
+
   connectedCallback() {
-    const animation = JSON.parse(JSON.stringify(this.animation));
-    this._buildTexts(animation);
-    this._animation = animation;
-    this._render();
+    this._updateAnimation(this.animation);
     this.addEventListener('input', this._inputEvent);
   }
 

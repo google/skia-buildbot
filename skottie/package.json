@@ -11,6 +11,7 @@
     "elements-sk": "^4.0.0",
     "howler": "^2.2.1",
     "jsoneditor": "~5.24.3",
+    "jszip": "^3.5.0",
     "lit-html": "~1.0.0",
     "lottie-web": "^5.4.3"
   },
