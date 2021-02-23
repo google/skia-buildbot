@@ -794,7 +794,7 @@ define('skottie-sk', class extends HTMLElement {
     this._lottie && this._lottie.goToAndStop(seek * this._duration);
     this._skottiePlayer && this._skottiePlayer.seek(seek);
     this._skottieLibrary && this._skottieLibrary.seek(seek);
-  }  
+  }
 
   // This fires when the user releases the scrub slider.
   _onScrubEnd(e) {
