@@ -2,10 +2,14 @@ package web
 
 import (
 	"encoding/json"
+	"image"
+	"image/png"
+	"io"
 	"net/http"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 )
 
 const (
@@ -66,4 +70,23 @@ func parseJSON(r *http.Request, v interface{}) error {
 	defer util.Close(r.Body)
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(v)
+}
+
+// encodeImg encodes the given image as a PNG and writes the result to the
+// given writer.
+func encodeImg(w io.Writer, img *image.NRGBA) error {
+	encoder := png.Encoder{CompressionLevel: png.BestSpeed}
+	if err := encoder.Encode(w, img); err != nil {
+		return err
+	}
+	return nil
+}
+
+// decodeImg decodes an image from the given reader and returns it as a NRGBA image.
+func decodeImg(reader io.Reader) (*image.NRGBA, error) {
+	im, err := png.Decode(reader)
+	if err != nil {
+		return nil, err
+	}
+	return diff.GetNRGBA(im), nil
 }
