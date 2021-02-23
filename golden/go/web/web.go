@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
@@ -42,6 +43,7 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/search/export"
 	"go.skia.org/infra/golden/go/search/query"
+	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tilesource"
@@ -88,7 +90,7 @@ const (
 // HandlersConfig holds the environment needed by the various http handler functions.
 type HandlersConfig struct {
 	Baseliner         baseline.BaselineFetcher
-	DiffStore         diff.DiffStore
+	DB                *pgxpool.Pool
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
 	IgnoreStore       ignore.Store
@@ -129,8 +131,8 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 	}
 
 	if val == FullFrontEnd {
-		if conf.DiffStore == nil {
-			return nil, skerr.Fmt("DiffStore cannot be nil")
+		if conf.DB == nil {
+			return nil, skerr.Fmt("DB cannot be nil")
 		}
 		if conf.ExpectationsStore == nil {
 			return nil, skerr.Fmt("ExpectationsStore cannot be nil")
@@ -1113,16 +1115,16 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 			Status: d.Status,
 		})
 		remaining := digests[i:]
-		diffs, err := wh.DiffStore.Get(r.Context(), d.Digest, remaining)
+		links, err := wh.getLinksBetween(r.Context(), d.Digest, remaining)
 		if err != nil {
-			sklog.Errorf("Failed to calculate differences: %s", err)
-			continue
+			httputils.ReportError(w, err, "could not compute diff metrics", http.StatusInternalServerError)
+			return
 		}
-		for otherDigest, dm := range diffs {
+		for otherDigest, distance := range links {
 			d3.Links = append(d3.Links, Link{
 				Source: digestIndex[d.Digest],
 				Target: digestIndex[otherDigest],
-				Value:  dm.PixelDiffPercent,
+				Value:  distance,
 			})
 		}
 		d3.ParamsetByDigest[d.Digest] = idx.GetParamsetSummary(d.Test, d.Digest, types.ExcludeIgnoredTraces)
@@ -1137,6 +1139,47 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJSONResponse(w, d3)
+}
+
+// getLinksBetween queries the SQL DB for the PercentPixelsDiff between the left digest and
+// the right digests. It returns them in a map.
+func (wh *Handlers) getLinksBetween(ctx context.Context, left types.Digest, right types.DigestSlice) (map[types.Digest]float32, error) {
+	ctx, span := trace.StartSpan(ctx, "getLinksBetween")
+	span.AddAttributes(trace.Int64Attribute("num_right", int64(len(right))))
+	defer span.End()
+	const statement = `
+SELECT encode(right_digest, 'hex'), percent_pixels_diff FROM DiffMetrics
+AS OF SYSTEM TIME '-0.1s'
+WHERE left_digest = $1 AND right_digest IN `
+	arguments := make([]interface{}, 0, len(right)+1)
+	lb, err := sql.DigestToBytes(left)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	arguments = append(arguments, lb)
+	for _, r := range right {
+		rb, err := sql.DigestToBytes(r)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		arguments = append(arguments, rb)
+	}
+	vp := sql.ValuesPlaceholders(len(arguments), 1)
+	rows, err := wh.DB.Query(ctx, statement+vp, arguments...)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	rv := map[types.Digest]float32{}
+	for rows.Next() {
+		var rightD types.Digest
+		var linkDistance float32
+		if err := rows.Scan(&rightD, &linkDistance); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv[rightD] = linkDistance
+	}
+	return rv, nil
 }
 
 // Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
