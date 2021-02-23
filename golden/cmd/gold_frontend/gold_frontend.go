@@ -71,7 +71,6 @@ import (
 	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tracing"
-	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 )
 
@@ -217,8 +216,6 @@ func main() {
 
 	sqlDB := mustInitSQLDatabase(ctx, fsc)
 
-	diffStore := mustMakeDiffStore(ctx, fsc)
-
 	gitStore := mustMakeGitStore(ctx, fsc, "gold-skiacorrectness") // Historical name
 
 	vcs := mustMakeVCS(ctx, fsc, gitStore)
@@ -241,10 +238,10 @@ func main() {
 
 	tileSource := mustMakeTileSource(ctx, fsc, expStore, ignoreStore, traceStore, vcs, publiclyViewableParams, reviewSystems)
 
-	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, diffStore, gsClient, reviewSystems, tileSource, tjs)
+	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, gsClient, reviewSystems, tileSource, tjs)
 
 	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
+	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
 	sklog.Infof("Search API created")
 
 	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
@@ -569,7 +566,7 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 }
 
 // mustMakeIndexer makes a new indexer.Indexer.
-func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, diffStore diff.DiffStore, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
+func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
 	psc, err := pubsub.NewClient(ctx, fsc.PubsubProjectID)
 	if err != nil {
 		sklog.Fatalf("initializing pubsub client for project %s: %s", fsc.PubsubProjectID, err)
@@ -581,14 +578,12 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 	}
 	ic := indexer.IndexerConfig{
 		DiffWorkPublisher: dwp,
-		DiffStore:         diffStore,
 		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
 		ReviewSystems:     reviewSystems,
 		TileSource:        tileSource,
 		TryJobStore:       tjs,
-		Warmer:            warmer.New(),
 	}
 
 	// Rebuild the index every few minutes.
