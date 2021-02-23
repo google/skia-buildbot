@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +31,10 @@ const (
 	// remote repository, for most repos.
 	DefaultRemoteBranch = git_common.DefaultRemoteBranch
 )
+
+// This regex is taken from:
+// https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/common/git/footer/footer.go?q=%22%5E%5Cs*(%5B%5Cw-%5D%2B):%20*(.*)$%22&ss=chromium
+var trailerRegex = regexp.MustCompile(`^\s*([\w-]+): *(.*)$`)
 
 // Types of git objects.
 const (
@@ -196,4 +201,71 @@ func MakeFileInfo(name, mode string, typ ObjectType, size int) (os.FileInfo, err
 		IsDir:   isDir,
 		Sys:     nil,
 	}.Get(), nil
+}
+
+// SplitTrailers splits a commit message into a main commit message body and
+// trailers footer.  Assumes that the commit message is already well-formed with
+// respect to trailers, ie. there is an empty line between the last body
+// paragraph and the single trailers paragraph, which contains only lines in
+// "key: value" format.
+func SplitTrailers(commitMsg string) ([]string, []string) {
+	// Split the commit message into paragraphs.
+	if commitMsg == "" {
+		return []string{}, []string{}
+	}
+	lines := strings.Split(strings.TrimSpace(commitMsg), "\n")
+	paragraphs := [][]string{}
+	var paragraph []string
+	for _, line := range lines {
+		paragraph = append(paragraph, line)
+		if line == "" {
+			if len(paragraph) > 0 {
+				paragraphs = append(paragraphs, paragraph)
+			}
+			paragraph = []string{}
+		}
+	}
+	if len(paragraph) > 0 {
+		paragraphs = append(paragraphs, paragraph)
+	}
+
+	// If the last paragraph consists of valid trailers, split off those lines,
+	// otherwise include them as part of the main commit message body.
+	if len(paragraphs) < 1 {
+		return lines, []string{}
+	}
+	trailerLines := paragraphs[len(paragraphs)-1]
+	for _, line := range trailerLines {
+		if !trailerRegex.MatchString(line) {
+			// At least one line in the last paragraph does not fit the trailer
+			// format; assume there are no trailers.
+			return lines, []string{}
+		}
+	}
+	bodyLines := make([]string, 0, len(paragraphs[0]))
+	for _, paragraph := range paragraphs[:len(paragraphs)-1] {
+		bodyLines = append(bodyLines, paragraph...)
+	}
+	return bodyLines, trailerLines
+}
+
+// JoinTrailers joins a main commit message body with a trailers footer.
+func JoinTrailers(bodyLines, trailers []string) string {
+	commitMsg := make([]string, 0, len(bodyLines)+len(trailers)+1)
+	commitMsg = append(commitMsg, bodyLines...)
+	if len(commitMsg) > 0 && commitMsg[len(commitMsg)-1] != "" {
+		commitMsg = append(commitMsg, "")
+	}
+	commitMsg = append(commitMsg, trailers...)
+	return strings.Join(commitMsg, "\n")
+}
+
+// AddTrailer adds a trailer to the given commit message.
+func AddTrailer(commitMsg, trailer string) (string, error) {
+	if !trailerRegex.MatchString(trailer) {
+		return "", skerr.Fmt("%q is not a valid git trailer", trailer)
+	}
+	body, trailers := SplitTrailers(commitMsg)
+	trailers = append(trailers, trailer)
+	return JoinTrailers(body, trailers), nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -36,7 +37,10 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create change")
 	}
-	commitMsg = strings.TrimSpace(commitMsg) + "\n" + "Change-Id: " + ci.ChangeId
+	commitMsg, err = git.AddTrailer(commitMsg, "Change-Id: "+ci.ChangeId)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	if err := EditChange(ctx, g, ci, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
 		if err := g.SetCommitMessage(ctx, ci, commitMsg); err != nil {
 			return skerr.Wrapf(err, "failed to set commit message to:\n\n%s\n\n", commitMsg)
