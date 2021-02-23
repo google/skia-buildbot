@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "a97e9834_e4676496",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-23T14:39:46Z",
+      "side": 1,
+      "message": "Simplified the code to remove the else clause.",
+      "parentUuid": "6026f190_586d77ce",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 27
+      },
+      "revId": "cddf05cb5d4c9c7abc10f97d8c2c7098bda18ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "c1bb2776_6cbdf99a",
@@ -47,6 +71,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "fe6cbfa8_c1b38546",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-23T14:39:46Z",
+      "side": 1,
+      "message": "Clarified as a TODO.",
+      "parentUuid": "c1bb2776_6cbdf99a",
+      "range": {
+        "startLine": 195,
+        "startChar": 27,
+        "endLine": 195,
+        "endChar": 35
+      },
+      "revId": "cddf05cb5d4c9c7abc10f97d8c2c7098bda18ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "5bf9230f_2223d6ff",
@@ -60,6 +108,30 @@
       "writtenOn": "2021-02-23T14:04:11Z",
       "side": 1,
       "message": "I\u0027m not quite sure where these are used, but one will want to call image.delete() and shader.delete() when done with them, so as not to leak memory.",
+      "range": {
+        "startLine": 416,
+        "startChar": 8,
+        "endLine": 416,
+        "endChar": 13
+      },
+      "revId": "cddf05cb5d4c9c7abc10f97d8c2c7098bda18ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a3de23c8_1dd99356",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-23T14:39:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bf9230f_2223d6ff",
       "range": {
         "startLine": 416,
         "startChar": 8,
