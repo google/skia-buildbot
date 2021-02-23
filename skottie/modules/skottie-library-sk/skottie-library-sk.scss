@@ -1,0 +1,54 @@
+skottie-library-sk {
+
+  .header {
+    align-items: center;
+    display: flex;
+    font-size: 18px;
+
+    &-title {
+      font-size: 18px;
+      flex: 0 0 auto;
+    }
+
+    &-separator {
+      flex: 1 1 auto;
+    }
+
+    &-save-button {
+      cursor: pointer;
+      flex: 0 0 auto;
+      margin: 0 6px;
+    }
+  }
+
+  .thumbnails {
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0;
+
+    .thumbnail {
+      border: 1px solid black;
+      cursor: pointer;
+      display: inline-block;
+      list-style-type:none;
+      margin: 5px;
+      padding: 5px;
+
+      &:hover {
+        border: 1px solid rgba(0,0,0,0);
+        outline: 2px solid var(--blue);
+      }
+    }
+  }
+
+  .options {
+    padding: 10px;
+  }
+
+  label.size {
+    display: block;
+    margin: 0.6em;
+  }
+}
