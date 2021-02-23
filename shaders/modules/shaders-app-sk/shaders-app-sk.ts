@@ -17,7 +17,6 @@ import type {
   Surface,
   Canvas,
   Paint,
-  Shader,
 } from '../../build/canvaskit/canvaskit.js';
 
 import 'elements-sk/error-toast-sk';
@@ -244,6 +243,7 @@ export class ShadersAppSk extends ElementSk {
             <figure>
               ${ele.shaderNode?.inputImageElement}
               <figcaption>iImage1</figcaption>
+              <input @change=${ele.imageUploaded} type="file" id="image_upload" accept=".jpg, .jpeg, .png">
             </figure>
         </div>
         </details>
@@ -492,6 +492,22 @@ export class ShadersAppSk extends ElementSk {
     } catch (error) {
       errorMessage(`${error}`, 0);
     }
+  }
+
+  private imageUploaded(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files?.length) {
+      return;
+    }
+    const file = input.files.item(0)!;
+    const scrap = this.shaderNode!.getScrap();
+    const oldURL = scrap.SKSLMetaData?.ImageURL || '';
+    if (oldURL.startsWith('blob:')) {
+      URL.revokeObjectURL(oldURL);
+    }
+    scrap.SKSLMetaData!.ImageURL = URL.createObjectURL(file);
+    this.shaderNode!.setScrap(scrap);
+    this._render();
   }
 
   private codeChange() {
