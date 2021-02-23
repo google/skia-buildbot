@@ -1770,10 +1770,12 @@ func (wh *Handlers) ImageHandler(w http.ResponseWriter, r *http.Request) {
 // serveImageWithDigest downloads the image from GCS and returns it. If there is an error, a 404
 // or 500 error is returned, as appropriate.
 func (wh *Handlers) serveImageWithDigest(w http.ResponseWriter, r *http.Request, digest types.Digest) {
+	ctx, span := trace.StartSpan(r.Context(), "frontend_serveImageWithDigest")
+	defer span.End()
 	// Go's image package has no color profile support and we convert to 8-bit NRGBA to diff,
 	// but our source images may have embedded color profiles and be up to 16-bit. So we must
 	// at least take care to serve the original .pngs unaltered.
-	b, err := wh.GCSClient.GetImage(r.Context(), digest)
+	b, err := wh.GCSClient.GetImage(ctx, digest)
 	if err != nil {
 		sklog.Warningf("Could not get image with digest %s: %s", digest, err)
 		noCacheNotFound(w, r)
@@ -1789,10 +1791,12 @@ func (wh *Handlers) serveImageWithDigest(w http.ResponseWriter, r *http.Request,
 // the diff as a PNG image and writes it to the provided ResponseWriter. If there is an error, it
 // returns a 404 or 500 error as appropriate.
 func (wh *Handlers) serveImageDiff(w http.ResponseWriter, r *http.Request, left types.Digest, right types.Digest) {
+	ctx, span := trace.StartSpan(r.Context(), "frontend_serveImageDiff")
+	defer span.End()
 	// TODO(lovisolo): Diff in NRGBA64?
 	// TODO(lovisolo): Make sure each pair of images is in the same color space before diffing?
 	//                 (They probably are today but it'd be a good correctness check to make sure.)
-	eg, eCtx := errgroup.WithContext(r.Context())
+	eg, eCtx := errgroup.WithContext(ctx)
 	var leftImg *image.NRGBA
 	var rightImg *image.NRGBA
 	eg.Go(func() error {
