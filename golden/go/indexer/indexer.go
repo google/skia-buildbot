@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
-	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/pdag"
@@ -31,7 +30,6 @@ import (
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/warmer"
 )
 
 const (
@@ -73,10 +71,8 @@ type preSliceGroup struct {
 type countsAndBlames []*summary.TriageStatus
 
 type searchIndexConfig struct {
-	diffStore         diff.DiffStore
 	expectationsStore expectations.Store
 	gcsClient         storage.GCSClient
-	warmer            warmer.DiffWarmer
 }
 
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
@@ -276,13 +272,11 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 type IndexerConfig struct {
 	ExpChangeListener expectations.ChangeEventRegisterer
 	DiffWorkPublisher diff.Calculator
-	DiffStore         diff.DiffStore
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
 	ReviewSystems     []clstore.ReviewSystem
 	TileSource        tilesource.TileSource
 	TryJobStore       tjstore.Store
-	Warmer            warmer.DiffWarmer
 }
 
 // Indexer is the type that continuously processes data as the underlying
@@ -348,9 +342,6 @@ func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexe
 
 	// Summaries depend on DigestCounter and Blamer.
 	summariesNode := pdag.NewNodeWithParents(calcSummaries, countsNodeInclude, countsNodeExclude, blamerNode, preSliceNode)
-
-	// The Warmer depends on summaries.
-	pdag.NewNodeWithParents(runWarmer, summariesNode)
 
 	// Set the result on the Indexer instance, once summaries, parameters and writing
 	// the hash files is done.
@@ -462,10 +453,8 @@ func (ix *Indexer) executePipeline(ctx context.Context, cpxTile tiling.ComplexTi
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
 	sic := searchIndexConfig{
-		diffStore:         ix.DiffStore,
 		expectationsStore: ix.ExpectationsStore,
 		gcsClient:         ix.GCSClient,
-		warmer:            ix.Warmer,
 	}
 	return ix.pipeline.Trigger(ctx, newSearchIndex(sic, cpxTile))
 }
@@ -496,10 +485,8 @@ func (ix *Indexer) indexTests(ctx context.Context, testChanges []expectations.ID
 func (ix *Indexer) cloneLastIndex() *SearchIndex {
 	lastIdx := ix.getIndex()
 	sic := searchIndexConfig{
-		diffStore:         ix.DiffStore,
 		expectationsStore: ix.ExpectationsStore,
 		gcsClient:         ix.GCSClient,
-		warmer:            ix.Warmer,
 	}
 	return &SearchIndex{
 		searchIndexConfig: sic,
@@ -686,41 +673,6 @@ func writeKnownHashesList(ctx context.Context, state interface{}) error {
 		}
 		sklog.Infof("Finished writing %d known hashes", len(hashes))
 	}()
-	return nil
-}
-
-// runWarmer is the pipeline function to run the warmer. It runs
-// asynchronously since its results are not relevant for the searchIndex.
-func runWarmer(ctx context.Context, state interface{}) error {
-	idx := state.(*SearchIndex)
-
-	is := types.IncludeIgnoredTraces
-	exp, err := idx.expectationsStore.Get(ctx)
-	if err != nil {
-		return skerr.Wrapf(err, "preparing to run warmer - expectations failure")
-	}
-	d := digesttools.NewClosestDiffFinder(exp, idx.dCounters[is], idx.diffStore)
-
-	// We don't want to pass the whole digestCounters because the byTrace map actually takes
-	// quite a lot of memory, with potentially millions of entries.
-	wd := warmer.Data{
-		TestSummaries: idx.summaries[is],
-		DigestsByTest: idx.dCounters[is].ByTest(),
-		SubsetOfTests: idx.testNames,
-	}
-	// Pass these in so as to allow the rest of the items in the index to be GC'd if needed.
-	go func(warmer warmer.DiffWarmer, wd warmer.Data, d digesttools.ClosestDiffFinder) {
-		// If there are somehow lots and lots of diffs or the warmer gets stuck, we should bail out
-		// at some point to prevent amount of work being done on the diffstore (e.g. a remote
-		// diffserver) from growing in an unbounded fashion.
-		// 15 minutes was chosen based on the 90th percentile time looking at the metrics.
-		ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
-		defer cancel()
-
-		if err := warmer.PrecomputeDiffs(ctx, wd, d); err != nil {
-			sklog.Warningf("Could not precompute diffs for %d summaries and %d test names: %s", len(wd.TestSummaries), len(wd.SubsetOfTests), err)
-		}
-	}(idx.warmer, wd, d)
 	return nil
 }
 

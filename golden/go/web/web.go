@@ -557,13 +557,7 @@ func (wh *Handlers) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Minute)
 	defer cancel()
-	var span *trace.Span
-	if r.Form.Get("use_sql") != "false" {
-		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
-		ctx, span = trace.StartSpan(ctx, "SearchHandler_sql")
-	} else {
-		ctx, span = trace.StartSpan(ctx, "SearchHandler_old")
-	}
+	ctx, span := trace.StartSpan(ctx, "SearchHandler_sql")
 	defer span.End()
 
 	searchResponse, err := wh.SearchAPI.Search(ctx, q)
@@ -704,11 +698,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		crs = ""
 	}
 
-	ctx := r.Context()
-	if r.Form.Get("use_sql") != "false" {
-		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
-	}
-	ret, err := wh.SearchAPI.DiffDigests(ctx, types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
+	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to compare digests", http.StatusInternalServerError)
 		return
@@ -808,7 +798,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 			if err := ctx.Err(); err != nil {
 				return skerr.Wrap(err)
 			}
-			id, trace := tp.ID, tp.Trace
+			id, tr := tp.ID, tp.Trace
 			if _, ok := nonIgnoredTraces[id]; ok {
 				// This wasn't ignored, so we can skip having to count it
 				continue
@@ -818,13 +808,13 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 			numMatched := 0
 			untMatched := 0
 			for i, r := range rules {
-				if trace.Matches(r.ParsedQuery) {
+				if tr.Matches(r.ParsedQuery) {
 					numMatched++
 					ruleCounts[i].Count++
 					idxMatched = i
 
 					// Check to see if the digest is untriaged at head
-					if d := trace.AtHead(); d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) == expectations.Untriaged {
+					if d := tr.AtHead(); d != tiling.MissingDigest && exp.Classification(tr.TestName(), d) == expectations.Untriaged {
 						ruleCounts[i].UntriagedCount++
 						untMatched++
 						untIdxMatched = i
@@ -1037,7 +1027,7 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 }
 
 // StatusHandler returns the current status of with respect to HEAD.
-func (wh *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *Handlers) StatusHandler(w http.ResponseWriter, _ *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 
 	// This should be an incredibly cheap call and therefore does not count against any quota.
@@ -1067,13 +1057,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	testName := testNames[0]
 	ctx := r.Context()
-	var span *trace.Span
-	if r.Form.Get("use_sql") != "false" {
-		ctx = context.WithValue(ctx, search.UseSQLDiffMetricsKey, true)
-		ctx, span = trace.StartSpan(ctx, "ClusterDiff_sql")
-	} else {
-		ctx, span = trace.StartSpan(ctx, "ClusterDiff_old")
-	}
+	ctx, span := trace.StartSpan(ctx, "ClusterDiff_sql")
 	defer span.End()
 
 	idx := wh.Indexer.GetIndex()

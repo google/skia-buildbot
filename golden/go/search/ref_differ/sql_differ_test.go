@@ -445,3 +445,9 @@ func mustDigestToBytes(d types.Digest) schema.DigestBytes {
 func waitForSystemTime() {
 	time.Sleep(150 * time.Millisecond)
 }
+
+var matchAll = paramtools.ParamSet{}
+
+const (
+	testName = types.TestName("some_test")
+)

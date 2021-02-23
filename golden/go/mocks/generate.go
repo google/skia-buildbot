@@ -1,7 +1,6 @@
 package mocks
 
 //go:generate mockery --name BaselineFetcher --dir ../baseline/ --output .
-//go:generate mockery --name ClosestDiffFinder --dir ../digesttools --output .
 //go:generate mockery --name ComplexTile --dir ../tiling --output .
 //go:generate mockery --name DigestCounter --dir ../digest_counter --output .
 //go:generate mockery --name GCSClient --dir ../storage --output .

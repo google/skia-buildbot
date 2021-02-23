@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/diff"
 	diff_mocks "go.skia.org/infra/golden/go/diff/mocks"
-	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
@@ -34,8 +33,6 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/warmer"
-	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
 
 // TestIndexer_ExecutePipeline_NoChangelistsToIndex_Success tests a full indexing run, assuming
@@ -43,14 +40,10 @@ import (
 func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mds := &mock_diffstore.DiffStore{}
-	mdw := &mock_warmer.DiffWarmer{}
 	mes := &mock_expectations.Store{}
 	mgc := &mocks.GCSClient{}
 	mdp := &diff_mocks.Calculator{}
 
-	defer mds.AssertExpectations(t)
-	defer mdw.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
 	defer mdp.AssertExpectations(t)
@@ -58,11 +51,9 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	ic := IndexerConfig{
-		DiffStore:         mds,
 		DiffWorkPublisher: mdp,
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
-		Warmer:            mdw,
 	}
 	wg, async, _ := gtestutils.AsyncHelpers()
 
@@ -80,29 +71,6 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	})
 
 	async(mgc.On("WriteKnownDigests", testutils.AnyContext, dMatcher).Return(nil))
-	// The summary and counter are computed in indexer, so we should spot check their data.
-	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
-		// There's only one untriaged digest for each test (and they are alphabetical)
-		assert.Equal(t, types.DigestSlice{data.AlphaUntriagedDigest}, wd.TestSummaries[0].UntHashes)
-		assert.Equal(t, types.DigestSlice{data.BetaUntriagedDigest}, wd.TestSummaries[1].UntHashes)
-		// These counts should include the ignored crosshatch traces
-		assert.Equal(t, map[types.TestName]digest_counter.DigestCount{
-			data.AlphaTest: {
-				data.AlphaPositiveDigest:  2,
-				data.AlphaNegativeDigest:  6,
-				data.AlphaUntriagedDigest: 1,
-			},
-			data.BetaTest: {
-				data.BetaPositiveDigest:  6,
-				data.BetaUntriagedDigest: 1,
-			},
-		}, wd.DigestsByTest)
-		assert.Nil(t, wd.SubsetOfTests)
-		return true
-	})
-
-	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
-
 	mdp.On("CalculateDiffs", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		grouping := args.Get(1).(paramtools.Params)
 		leftDigests := args.Get(2).([]types.Digest)
@@ -146,32 +114,17 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 func TestIndexerPartialUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mdw := &mock_warmer.DiffWarmer{}
 	mes := &mock_expectations.Store{}
 
-	defer mdw.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 
 	ct, fullTile, partialTile := makeComplexTileWithCrosshatchIgnores()
 	require.NotEqual(t, fullTile, partialTile)
 
-	wg, async, _ := gtestutils.AsyncHelpers()
-
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	// The summary and counter are computed in indexer, so we should spot check their data.
-	dataMatcher := mock.MatchedBy(func(wd warmer.Data) bool {
-		// Make sure PrecomputeDiffs is only told to recompute BetaTest.
-		assert.Equal(t, wd.SubsetOfTests, types.TestNameSet{data.BetaTest: true})
-		assert.Len(t, wd.TestSummaries, 2)
-		return true
-	})
-
-	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
 
 	ic := IndexerConfig{
 		ExpectationsStore: mes,
-		Warmer:            mdw,
 	}
 
 	ixr, err := New(context.Background(), ic, 0)
@@ -188,7 +141,6 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	ixr.lastMasterIndex = &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
 			expectationsStore: mes,
-			warmer:            mdw,
 		},
 		summaries: [2]countsAndBlames{alphaOnly, alphaOnly},
 		dCounters: [2]digest_counter.DigestCounter{
@@ -230,9 +182,6 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		Corpus:    "gm",
 		Blame:     []blame.WeightedBlame{},
 	}, sm[1])
-	// Block until all async calls are finished so the assertExpectations calls
-	// can properly check that their functions were called.
-	wg.Wait()
 }
 
 func TestIndexer_CalcChangelistIndices_NoPreviousIndices_Success(t *testing.T) {

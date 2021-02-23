@@ -1,8 +1,12 @@
+// Package ref_differ contains routines to calculate reference diffs for digests.
 package ref_differ
 
 import (
 	"context"
 	"math"
+	"sort"
+
+	"go.skia.org/infra/go/util"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -24,6 +28,8 @@ type SQLImpl struct {
 	idx   indexer.IndexSearcher
 }
 
+// NewSQLImpl returns an implementation of FillRefDiffs that pulls diff metrics from
+// FillRefDiffs
 func NewSQLImpl(sqlDB *pgxpool.Pool, exp expectations.Classifier, idx indexer.IndexSearcher) *SQLImpl {
 	return &SQLImpl{
 		sqlDB: sqlDB,
@@ -32,7 +38,10 @@ func NewSQLImpl(sqlDB *pgxpool.Pool, exp expectations.Classifier, idx indexer.In
 	}
 }
 
-// FillRefDiffs implements the RefDiffer interface by querying a SQL database.
+// FillRefDiffs fills in d with the closest negative and positive images (digests) to it.
+// It uses "metric" to determine "closeness". If match is non-nil, it only returns those
+// digests that match d's params for the keys in match. If rhsQuery is not empty, it only
+// compares against digests that match rhsQuery.
 func (s *SQLImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, iState types.IgnoreState) error {
 	paramsByDigest := s.idx.GetParamsetSummaryByTest(iState)[d.Test]
 
@@ -124,4 +133,51 @@ WHERE left_digest = $1 AND right_digest IN `
 		rv.QueryMetric = float32(rv.NumDiffPixels)
 	}
 	return &rv, nil
+}
+
+// getDigestsWithLabel return all digests within the given test that
+// have the given label assigned to them and where the parameters
+// listed in 'match' match.
+func getDigestsWithLabel(exp expectations.Classifier, s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
+	ret := types.DigestSlice{}
+	for d, digestParams := range paramsByDigest {
+		// Accept all digests that are:  in the set of allowed digests
+		//                              match the target label and where the required
+		//                              parameter fields match.
+		if (len(rhsQuery) == 0 || rhsQuery.Matches(digestParams)) &&
+			(exp.Classification(s.Test, d) == targetLabel) &&
+			paramSetsMatch(match, s.ParamSet, digestParams) {
+			ret = append(ret, d)
+		}
+	}
+	// Sort for determinism
+	sort.Sort(ret)
+	return ret
+}
+
+// paramSetsMatch returns true if the two param sets have matching values for the parameters listed
+// in 'match'. If one of them is nil or completely empty there is always a match.
+func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
+	if len(p1) == 0 || len(p2) == 0 {
+		return true
+	}
+
+	for _, paramKey := range match {
+		vals1, ok1 := p1[paramKey]
+		vals2, ok2 := p2[paramKey]
+		if !ok1 || !ok2 {
+			return false
+		}
+		found := false
+		for _, v := range vals1 {
+			if util.In(v, vals2) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }

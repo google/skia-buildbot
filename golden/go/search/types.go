@@ -32,9 +32,3 @@ type SearchAPI interface {
 	// in the last N commits).
 	UntriagedUnignoredTryJobExclusiveDigests(context.Context, tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error)
 }
-
-// UseSQLDiffMetricsKey suggests to the implementation to use the SQL diff metrics instead of
-// the older Firestore ones.
-const UseSQLDiffMetricsKey = contextKey("use_sql_diffmetrics")
-
-type contextKey string

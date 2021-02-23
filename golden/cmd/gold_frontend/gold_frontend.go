@@ -52,7 +52,6 @@ import (
 	"go.skia.org/infra/golden/go/code_review/updater"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expectations/cleanup"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
@@ -70,7 +69,6 @@ import (
 	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 	"go.skia.org/infra/golden/go/tracing"
-	"go.skia.org/infra/golden/go/warmer"
 	"go.skia.org/infra/golden/go/web"
 )
 
@@ -216,8 +214,6 @@ func main() {
 
 	sqlDB := mustInitSQLDatabase(ctx, fsc)
 
-	diffStore := mustMakeDiffStore(ctx, fsc)
-
 	gitStore := mustMakeGitStore(ctx, fsc, "gold-skiacorrectness") // Historical name
 
 	vcs := mustMakeVCS(ctx, fsc, gitStore)
@@ -240,10 +236,10 @@ func main() {
 
 	tileSource := mustMakeTileSource(ctx, fsc, expStore, ignoreStore, traceStore, vcs, publiclyViewableParams, reviewSystems)
 
-	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, diffStore, gsClient, reviewSystems, tileSource, tjs)
+	ixr := mustMakeIndexer(ctx, fsc, expStore, expChangeHandler, gsClient, reviewSystems, tileSource, tjs)
 
 	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
+	searchAPI := search.New(expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold, sqlDB)
 	sklog.Infof("Search API created")
 
 	mustStartCommenters(ctx, fsc, reviewSystems, searchAPI)
@@ -338,27 +334,6 @@ func mustInitSQLDatabase(ctx context.Context, fsc *frontendServerConfig) *pgxpoo
 	}
 	sklog.Infof("Connected to SQL database %s", fsc.SQLDatabaseName)
 	return db
-}
-
-// mustMakeDiffStore returns a diff.DiffStore that speaks to a remote diff server via gRPC.
-func mustMakeDiffStore(ctx context.Context, fsc *frontendServerConfig) diff.DiffStore {
-	// Create the client connection and connect to the server.
-	conn, err := grpc.Dial(fsc.DiffServerGRPC,
-		grpc.WithInsecure(),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallSendMsgSize(diffstore.MAX_MESSAGE_SIZE),
-			grpc.MaxCallRecvMsgSize(diffstore.MAX_MESSAGE_SIZE)))
-	if err != nil {
-		sklog.Fatalf("Unable to connect to grpc service: %s", err)
-	}
-
-	diffStore, err := diffstore.NewNetDiffStore(ctx, conn, fsc.DiffServerHTTP)
-	if err != nil {
-		sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
-	}
-	sklog.Infof("DiffStore: NetDiffStore initiated.")
-
-	return diffStore
 }
 
 // mustMakeGitStore instantiates a BigTable-backed gitstore.GitStore using the BigTable specified
@@ -565,7 +540,7 @@ func mustMakeTileSource(ctx context.Context, fsc *frontendServerConfig, expStore
 }
 
 // mustMakeIndexer makes a new indexer.Indexer.
-func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, diffStore diff.DiffStore, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
+func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore expectations.Store, expChangeHandler expectations.ChangeEventRegisterer, gsClient storage.GCSClient, reviewSystems []clstore.ReviewSystem, tileSource tilesource.TileSource, tjs tjstore.Store) *indexer.Indexer {
 	psc, err := pubsub.NewClient(ctx, fsc.PubsubProjectID)
 	if err != nil {
 		sklog.Fatalf("initializing pubsub client for project %s: %s", fsc.PubsubProjectID, err)
@@ -577,14 +552,12 @@ func mustMakeIndexer(ctx context.Context, fsc *frontendServerConfig, expStore ex
 	}
 	ic := indexer.IndexerConfig{
 		DiffWorkPublisher: dwp,
-		DiffStore:         diffStore,
 		ExpChangeListener: expChangeHandler,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
 		ReviewSystems:     reviewSystems,
 		TileSource:        tileSource,
 		TryJobStore:       tjs,
-		Warmer:            warmer.New(),
 	}
 
 	// Rebuild the index every few minutes.
