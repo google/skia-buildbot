@@ -178,4 +178,31 @@
       font-size: 13px;
     }
   }
+
+  /* Now set the non-standard styles. Unfortunately the way webpack/cssmin is
+   configured currently it will strip the following rules from the output so we
+   turn the autoprefixer off.
+  */
+
+  /* autoprefixer: off */
+
+  #image_upload {
+    border: none;
+  }
+
+  #image_upload::-webkit-file-upload-button {
+    background-color: var(--surface-1dp);
+    color: var(--on-surface);
+    fill: var(--on-surface);
+    outline: none;
+    border: solid var(--on-surface) 1px;
+  }
+
+  #image_upload::file-selector-button {
+    background-color: var(--surface-1dp);
+    color: var(--on-surface);
+    fill: var(--on-surface);
+    outline: none;
+    border: solid var(--on-surface) 1px;
+  }
 }
