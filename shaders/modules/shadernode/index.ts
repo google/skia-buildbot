@@ -7,19 +7,22 @@
  *    const shader = node.getShader(predefinedUniformValues);
  */
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { Uniform } from '../../../infra-sk/modules/uniform/uniform';
 import {
   CanvasKit,
+  Image,
   MallocObj, RuntimeEffect, Shader,
 } from '../../build/canvaskit/canvaskit';
 import { ScrapBody, ScrapID } from '../json';
 
+const DEFAULT_SIZE = 512;
+
 export const predefinedUniforms = `uniform float3 iResolution;      // Viewport resolution (pixels)
 uniform float  iTime;            // Shader playback time (s)
 uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
-uniform float3 iImageResolution; // iImage1 and iImage2 resolution (pixels)
-uniform shader iImage1;          // An input image (Mandrill).
-uniform shader iImage2;          // An input image (Soccer ball).`;
+uniform float3 iImageResolution; // iImage1 resolution (pixels)
+uniform shader iImage1;          // An input image (Mandrill).`;
 
 /** How many of the uniforms listed in predefinedUniforms are of type 'shader'? */
 export const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
@@ -55,14 +58,27 @@ export const defaultShader = `half4 main(float2 fragCoord) {
   return vec4(1, 0, 0, 1);
 }`;
 
+export type callback = ()=> void;
+
+const defaultImageURL = '/dist/mandrill.png';
+
 const defaultBody: ScrapBody = {
   Type: 'sksl',
   Body: defaultShader,
   SKSLMetaData: {
     Uniforms: [],
+    ImageURL: '',
     Children: [],
   },
 };
+
+/** Describes an image used as a shader. */
+interface InputImage {
+  width: number;
+  height: number;
+  image: HTMLImageElement;
+  shader: Shader;
+}
 
 /**
  * Called ShaderNode because once we support child shaders this will be just one
@@ -78,7 +94,7 @@ export class ShaderNode {
     /** The shader code compiled. */
     private effect: RuntimeEffect | null = null;
 
-    private inputImageShaders: Shader[] = [];
+    private inputImageShader: InputImage | null = null;
 
     private canvasKit: CanvasKit;
 
@@ -116,31 +132,53 @@ export class ShaderNode {
 
     private _numPredefinedUniformValues: number = 0;
 
-    constructor(canvasKit: CanvasKit, inputImageShaders: Shader[]) {
+    constructor(canvasKit: CanvasKit) {
       this.canvasKit = canvasKit;
-      if (inputImageShaders.length !== numPredefinedShaderUniforms) {
-        throw new Error(`ShaderNode requires exactly two predefined image shaders, got ${inputImageShaders.length}`);
-      }
-      this.inputImageShaders = inputImageShaders;
-      this.body = defaultBody;
+      this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+      this.setScrap(defaultBody);
     }
 
-    /** Loads a scrap from the backend for the given scrap id. */
-    async loadScrap(scrapID: string): Promise<void> {
+    /**
+     * Loads a scrap from the backend for the given scrap id.
+     *
+     * The imageLoadedCallback is called once the image has fully loaded.
+     */
+    async loadScrap(scrapID: string, imageLoadedCallback: callback | null = null): Promise<void> {
       this.scrapID = scrapID;
       const resp = await fetch(`/_/load/${scrapID}`, {
         credentials: 'include',
       });
       const scrapBody = (await jsonOrThrow(resp)) as ScrapBody;
-      this.setScrap(scrapBody);
+      this.setScrap(scrapBody, imageLoadedCallback);
     }
 
-    /** Sets the code and uniforms of a shader to run. */
-    setScrap(scrapBody: ScrapBody): void {
+    /**
+     * Sets the code and uniforms of a shader to run.
+     *
+     * The imageLoadedCallback is called once the image has fully loaded.
+     */
+    setScrap(scrapBody: ScrapBody, imageLoadedCallback: callback | null = null): void {
       this.body = scrapBody;
       this._shaderCode = this.body.Body;
       this.currentUserUniformValues = this.body.SKSLMetaData?.Uniforms || [];
+
+      const imageURL = this.body.SKSLMetaData?.ImageURL || defaultImageURL;
+      this.promiseOnImageLoaded(imageURL).then((imageElement) => {
+        this.inputImageShaderFromCanvasImageSource(imageElement);
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+      }).catch(errorMessage);
       this.compile();
+    }
+
+    /** Returns a copy of the current ScrapBody for the shader. */
+    getScrap(): ScrapBody {
+      return JSON.parse(JSON.stringify(this.body));
+    }
+
+    get inputImageElement(): HTMLImageElement {
+      return this.inputImageShader!.image;
     }
 
     /**
@@ -153,6 +191,10 @@ export class ShaderNode {
         Type: 'sksl',
         SKSLMetaData: {
           Uniforms: this._currentUserUniformValues,
+          // TODO(jcgregorio) Remember once we start saving ImageURLs that we
+          // need to to remove ImageURLs that aren't relative or that don't
+          // start with http[s]://, e.g. don't store blob:// or file:// urls.
+          ImageURL: '',
           Children: [],
         },
       };
@@ -282,7 +324,14 @@ export class ShaderNode {
       // Copy in our local edited uniform values to the right spots.
       this.currentUserUniformValues.forEach((val, index) => { uniformsFloat32Array[index + this._numPredefinedUniformValues] = val; });
 
-      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, this.inputImageShaders);
+      // Write in the iImageResolution uniform values.
+      const imageResolution = this.findUniform('iImageResolution');
+      if (imageResolution) {
+        uniformsFloat32Array[imageResolution.slot] = this.inputImageShader!.width;
+        uniformsFloat32Array[imageResolution.slot + 1] = this.inputImageShader!.height;
+      }
+
+      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, [this.inputImageShader!.shader]);
     }
 
     get numPredefinedUniformValues(): number {
@@ -337,5 +386,41 @@ export class ShaderNode {
         }
       }
       return false;
+    }
+
+    private findUniform(name: string): Uniform | null {
+      for (let i = 0; i < this.uniforms.length; i++) {
+        if (name === this.uniforms[i].name) {
+          return this.uniforms[i];
+        }
+      }
+      return null;
+    }
+
+    private promiseOnImageLoaded(url: string): Promise<HTMLImageElement> {
+      return new Promise<HTMLImageElement>((resolve, reject) => {
+        const ele = new Image();
+        ele.src = url;
+        if (ele.complete) {
+          resolve(ele);
+        } else {
+          ele.addEventListener('load', () => resolve(ele));
+          ele.addEventListener('error', (e) => reject(e));
+        }
+      });
+    }
+
+    private inputImageShaderFromCanvasImageSource(imageElement: HTMLImageElement): void {
+      if (this.inputImageShader) {
+        this.inputImageShader.shader.delete();
+      }
+      const image = this.canvasKit!.MakeImageFromCanvasImageSource(imageElement);
+      this.inputImageShader = {
+        width: imageElement.naturalWidth,
+        height: imageElement.naturalHeight,
+        image: imageElement,
+        shader: image.makeShaderOptions(this.canvasKit!.TileMode.Clamp, this.canvasKit!.TileMode.Clamp, this.canvasKit!.FilterMode.Linear, this.canvasKit!.MipmapMode.None),
+      };
+      image.delete();
     }
 }

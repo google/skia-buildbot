@@ -19,20 +19,10 @@ const getCanvasKit = async (): Promise<CanvasKit> => {
 
 const createShaderNode = async (): Promise<ShaderNode> => {
   const ck = await getCanvasKit();
-  const image = ck.MakeImageFromCanvasImageSource(new Image(512, 512));
-  const shader1 = image.makeShaderOptions(ck.TileMode.Clamp, ck.TileMode.Clamp, ck.FilterMode.Linear, ck.MipmapMode.None);
-  const shader2 = image.makeShaderOptions(ck.TileMode.Clamp, ck.TileMode.Clamp, ck.FilterMode.Linear, ck.MipmapMode.None);
-
-  return new ShaderNode(ck, [shader1, shader2]);
+  return new ShaderNode(ck);
 };
 
 describe('ShaderNode', async () => {
-  it('constructor throws when not passed in the correct number of image shaders', async () => {
-    const ck = await getCanvasKit();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    assert.throws(() => { const node = new ShaderNode(ck, []); });
-  });
-
   it('constructor builds with a default shader', async () => {
     const node = await createShaderNode();
     node.compile();
@@ -68,6 +58,7 @@ describe('ShaderNode', async () => {
       `,
       SKSLMetaData: {
         Children: [],
+        ImageURL: '',
         Uniforms: [1, 0, 1, 0],
       },
     });
@@ -113,6 +104,7 @@ describe('ShaderNode', async () => {
       `,
       SKSLMetaData: {
         Children: [],
+        ImageURL: '',
         Uniforms: startingUniformValues,
       },
     });
@@ -146,6 +138,7 @@ describe('ShaderNode', async () => {
       `,
       SKSLMetaData: {
         Children: [],
+        ImageURL: '',
         Uniforms: [1, 0, 1, 0],
       },
     });
@@ -153,5 +146,19 @@ describe('ShaderNode', async () => {
 
     assert.deepEqual(node.compileErrorLineNumbers, [4]);
     node.compileErrorMessage.startsWith('error: 4:');
+  });
+
+  it('makes a copy of the ScrapBody', async () => {
+    const node = await createShaderNode();
+    const startScrap = node.getScrap();
+    assert.isNotEmpty(startScrap.Body);
+    startScrap.Body = '';
+    // Confirm we haven't changed the original scrap.
+    assert.isNotEmpty(node['body']!.Body);
+  });
+
+  it('always starts with non-null input image', async () => {
+    const node = await createShaderNode();
+    assert.isNotNull(node.inputImageElement);
   });
 });

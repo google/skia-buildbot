@@ -10,6 +10,7 @@ export interface ChildShader {
 
 export interface SKSLMetaData {
 	Uniforms: number[] | null;
+	ImageURL: string;
 	Children: ChildShader[] | null;
 }
 
