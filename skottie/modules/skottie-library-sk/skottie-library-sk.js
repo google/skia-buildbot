@@ -3,7 +3,11 @@
  * @description <h2><code>skottie-library-sk</code></h2>
  *
  * <p>
- *   A skottie library selector
+ *   A skottie library selector.
+     It allows users to upload a zip file of animations (containing a collection of lottie jsons).
+     For each animation, it makes an animation player.
+     This can be useful for quickly comparing animations, viewing them in sync
+     or test new texts on all the same time.
  * </p>
  *
  *
@@ -55,7 +59,7 @@ const template = (ele) => html`
           @change=${ele._onFileChange}
         />
       </label>
-      <checkbox-sk 
+      <checkbox-sk
         label="Sync thumbnails"
         ?checked=${ele._syncAnimations}
         @click=${ele._toggleSync}>
@@ -111,6 +115,7 @@ class SkottieLibrarySk extends HTMLElement {
         try {
           return JSON.parse(animation);
         } catch (error) {
+          console.log(error); // eslint-disable-line no-console
           return '';
         }
       })
