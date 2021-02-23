@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "b081fa5c_19ec85c7",
+        "filename": "go/git/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-23T15:38:10Z",
+      "side": 1,
+      "message": "https://source.chromium.org/search?q\u003d%22%5E%5Cs*(%5B%5Cw-%5D%2B):%20*(.*)$%22\u0026ss\u003dchromium\n\nTools that interact with Gerrit deal with footers that I thought were a subset of git trailers, so I expected something in the go/gerrit library vs something in the go/git library, because we wanted this for our communications with Gerrit. But calling trailers from go/git in a way that is supported by Gerrit makes sense as well.\n\n(might be useful to post a comment for where you got `(.+): (.+)` from)",
+      "parentUuid": "c9f9805a_410ffc80",
+      "revId": "04a767522195053054de61818628c6b29a5c238a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "0e37ee1a_9bfaa9de",
         "filename": "go/git/util.go",
         "patchSetId": 2
