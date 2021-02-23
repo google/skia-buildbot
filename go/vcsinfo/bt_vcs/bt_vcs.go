@@ -249,20 +249,6 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, idx int) (*vcsinfo.LongCommit
 	return b.detailsCache[b.indexCommits[idx].Hash], nil
 }
 
-// GetFile implements the vcsinfo.VCS interface
-func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	contents, err := b.gitiles.ReadFileAtRef(ctx, fileName, commitHash)
-	if err != nil {
-		return "", skerr.Wrapf(err, "reading file %s @ %s via gitiles", fileName, commitHash)
-	}
-	return string(contents), nil
-}
-
-// GetGitStore implements the gitstore.GitStoreBased interface
-func (b *BigTableVCS) GetGitStore() gitstore.GitStore {
-	return b.gitStore
-}
-
 // timeRange retrieves IndexCommits from the given time range. Assumes that the
 // caller holds b.mutex.
 func (b *BigTableVCS) timeRange(start time.Time, end time.Time) []*vcsinfo.IndexCommit {

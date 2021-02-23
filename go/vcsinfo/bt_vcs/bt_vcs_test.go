@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	gs_testutils "go.skia.org/infra/go/gitstore/bt_gitstore/testutils"
 	"go.skia.org/infra/go/gitstore/mocks"
@@ -19,11 +18,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 	"golang.org/x/sync/errgroup"
-)
-
-const (
-	skiaRepoURL  = "https://skia.googlesource.com/skia.git"
-	localRepoURL = "https://example.com/local.git"
 )
 
 func TestVCSSuite(t *testing.T) {
@@ -98,19 +92,6 @@ func TestConcurrentUpdate(t *testing.T) {
 		})
 	}
 	require.NoError(t, egroup.Wait())
-}
-
-// TestGetFile makes sure that we can use gittiles to fetch an
-// arbitrary file (DEPS) from the Skia repo at a chosen commit.
-func TestGetFile(t *testing.T) {
-	unittest.LargeTest(t)
-	gtRepo := gitiles.NewRepo(skiaRepoURL, nil)
-	hash := "9be246ed747fd1b900013dd0596aed0b1a63a1fa"
-	vcs := &BigTableVCS{
-		gitiles: gtRepo,
-	}
-	_, err := vcs.GetFile(context.Background(), "DEPS", hash)
-	require.NoError(t, err)
 }
 
 // TestDetailsCaching makes sure that multiple calls to Details do
@@ -271,15 +252,6 @@ func makeTestIndexCommits() []*vcsinfo.IndexCommit {
 			Hash:      thirdHash,
 			Index:     2,
 			Timestamp: thirdTime,
-		},
-	}
-}
-
-func makeTestBranchPointerMap() map[string]*gitstore.BranchPointer {
-	return map[string]*gitstore.BranchPointer{
-		git.DefaultBranch: {
-			Head:  git.DefaultBranch,
-			Index: 3,
 		},
 	}
 }
