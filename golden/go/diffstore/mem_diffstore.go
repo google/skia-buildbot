@@ -350,6 +350,14 @@ func (m *MemDiffStore) decodedImageWorker(ctx context.Context, ids []string) ([]
 	return rv, nil
 }
 
+func asDigests(xs []string) types.DigestSlice {
+	d := make(types.DigestSlice, 0, len(xs))
+	for _, s := range xs {
+		d = append(d, types.Digest(s))
+	}
+	return d
+}
+
 // getCacheCounts returns the number of images and diff metrics to cache
 // based on the number of GiB provided. We assume that we want to store N images
 // and 100 * N diffmetrics and solve the corresponding equation.
