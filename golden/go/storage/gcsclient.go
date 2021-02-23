@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"time"
 
 	gstorage "cloud.google.com/go/storage"
@@ -20,6 +21,8 @@ import (
 
 // GCSClientOptions is used to define input parameters to the GCSClient.
 type GCSClientOptions struct {
+	// Bucket is the name of the GCS bucket we store to.
+	Bucket string
 	// KnownHashesGCSPath is the bucket and path for storing the list of known digests.
 	KnownHashesGCSPath string
 
@@ -37,6 +40,9 @@ type GCSClient interface {
 	// provided writer 'w'.
 	LoadKnownDigests(ctx context.Context, w io.Writer) error
 
+	// GetImage returns the raw bytes of an image with the corresponding Digest.
+	GetImage(ctx context.Context, digest types.Digest) ([]byte, error)
+
 	// Options returns the options that were used to initialize the client
 	Options() GCSClientOptions
 }
@@ -48,6 +54,9 @@ const (
 	// We re-index the tile (and thus re-compute the known digests) no
 	// faster than once per minute.
 	digestsCacheFreshness = time.Minute
+
+	// The GCS folder that contains the images, named by their digests.
+	imgFolder = "dm-images-v1"
 )
 
 // ClientImpl implements the GCSClient interface.
@@ -170,6 +179,21 @@ func (g *ClientImpl) writeToPath(ctx context.Context, targetPath, contentType st
 	}
 
 	return nil
+}
+
+// GetImage downloads the bytes and returns them for the given image. It returns an error if
+// the image is not found.
+func (g *ClientImpl) GetImage(ctx context.Context, digest types.Digest) ([]byte, error) {
+	// intentionally using path because gcs is forward slashes
+	imgPath := path.Join(imgFolder, string(digest)+".png")
+	r, err := g.storageClient.Bucket(g.options.Bucket).Object(imgPath).NewReader(ctx)
+	if err != nil {
+		// If not image not found, this error path will be taken.
+		return nil, skerr.Wrap(err)
+	}
+	defer util.Close(r)
+	b, err := ioutil.ReadAll(r)
+	return b, skerr.Wrap(err)
 }
 
 // Ensure ClientImpl fulfills the GCSClient interface.
