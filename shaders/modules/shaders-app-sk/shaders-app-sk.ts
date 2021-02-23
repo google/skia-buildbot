@@ -244,6 +244,7 @@ export class ShadersAppSk extends ElementSk {
               ${ele.shaderNode?.inputImageElement}
               <figcaption>iImage1</figcaption>
               <input @change=${ele.imageUploaded} type="file" id=image_upload accept="image/*">
+              <input @change=${ele.imageURLChanged} type="url" id=image_url placeholder="URL of image to use.">
             </figure>
         </div>
         </details>
@@ -535,6 +536,25 @@ export class ShadersAppSk extends ElementSk {
     this.state.id = id;
     this.stateChanged!();
     this.loadShaderIfNecessary();
+  }
+
+  private imageURLChanged(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    if (!input.value) {
+      return;
+    }
+    // Update the current scrap to set the ImageURL to the uploaded file.
+    const scrap = this.shaderNode!.getScrap();
+    const oldURL = scrap.SKSLMetaData?.ImageURL || '';
+
+    // Release unused memory.
+    if (oldURL.startsWith('blob:')) {
+      URL.revokeObjectURL(oldURL);
+    }
+
+    // Display new image.
+    scrap.SKSLMetaData!.ImageURL = input.value;
+    this.shaderNode!.setScrap(scrap, () => this._render());
   }
 }
 

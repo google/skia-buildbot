@@ -400,6 +400,7 @@ export class ShaderNode {
     private promiseOnImageLoaded(url: string): Promise<HTMLImageElement> {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const ele = new Image();
+        ele.crossOrigin = 'anonymous';
         ele.src = url;
         if (ele.complete) {
           resolve(ele);
