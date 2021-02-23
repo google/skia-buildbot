@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e75569aa_dbb60c63",
+        "filename": "scripts/run_emulators/run_emulators.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-23T13:22:55Z",
+      "side": 1,
+      "message": "This seems error prone.  We can\u0027t make GetEmulatorHostEnvVar* work without this?",
+      "range": {
+        "startLine": 41,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 4
+      },
+      "revId": "fc64aff1ed372dbd4c49748ffbdac60401f9ff47",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
