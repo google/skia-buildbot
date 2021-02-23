@@ -146,8 +146,6 @@ export class ShadersAppSk extends ElementSk {
 
   private paint: Paint | null = null;
 
-  private inputImageShaders: Shader[] = [];
-
   private shaderNode: ShaderNode | null = null;
 
   // Records the lines that have been marked as having errors. We keep these
@@ -196,7 +194,9 @@ export class ShadersAppSk extends ElementSk {
             ></uniform-dimensions-sk>`);
           break;
         case 'iImageResolution':
-          ret.push(html`<uniform-imageresolution-sk .uniform=${uniform}></uniform-imageresolution-sk>`);
+          // No-op. This is no longer handled via uniform control, the
+          // dimensions are handed directly into the ShaderNode from the image
+          // measurements.
           break;
         default:
           if (uniform.name.toLowerCase().indexOf('color') !== -1) {
@@ -242,12 +242,8 @@ export class ShadersAppSk extends ElementSk {
           <textarea rows=${numPredefinedUniformLines} cols=75 readonly id="predefinedShaderInputs">${predefinedUniforms}</textarea>
           <div id=imageSources>
             <figure>
-              <img id=iImage1 loading="eager" src="/dist/mandrill.png">
+              ${ele.shaderNode?.inputImageElement}
               <figcaption>iImage1</figcaption>
-            </figure>
-            <figure>
-              <img id=iImage2 loading="eager" src="/dist/soccer.png">
-              <figcaption>iImage2</figcaption>
             </figure>
         </div>
         </details>
@@ -309,29 +305,13 @@ export class ShadersAppSk extends ElementSk {
     // Continue the setup once CanvasKit WASM has loaded.
     kitReady.then(async (ck: CanvasKit) => {
       this.kit = ck;
-
-      try {
-        this.inputImageShaders = [];
-        // Wait until all the images are loaded.
-        // Note: All shader images MUST be 512 x 512 to agree with iImageResolution.
-        const elements = await Promise.all<HTMLImageElement>([this.promiseOnImageLoaded('#iImage1'), this.promiseOnImageLoaded('#iImage2')]);
-        // Convert them into shaders.
-        elements.forEach((ele) => {
-          const image = this.kit!.MakeImageFromCanvasImageSource(ele);
-          const shader = image.makeShaderOptions(this.kit!.TileMode.Clamp, this.kit!.TileMode.Clamp, this.kit!.FilterMode.Linear, this.kit!.MipmapMode.None);
-          this.inputImageShaders.push(shader);
-        });
-      } catch (error) {
-        errorMessage(error);
-      }
-
       this.paint = new this.kit.Paint();
       try {
         this.stateChanged = stateReflector(
           /* getState */ () => (this.state as unknown) as HintableObject,
           /* setState */ (newState: HintableObject) => {
             this.state = (newState as unknown) as State;
-            this.shaderNode = new ShaderNode(this.kit!, this.inputImageShaders);
+            this.shaderNode = new ShaderNode(this.kit!);
             if (!this.state.id) {
               this.run();
             } else {
@@ -341,22 +321,6 @@ export class ShadersAppSk extends ElementSk {
         );
       } catch (error) {
         errorMessage(error, 0);
-      }
-    });
-  }
-
-  /**
-   * Returns a Promise that resolves when in image loads in an <img> element
-   * with the given id.
-   */
-  private promiseOnImageLoaded(id: string): Promise<HTMLImageElement> {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-      const ele = $$<HTMLImageElement>(id, this)!;
-      if (ele.complete) {
-        resolve(ele);
-      } else {
-        ele.addEventListener('load', () => resolve(ele));
-        ele.addEventListener('error', (e) => reject(e));
       }
     });
   }
@@ -380,7 +344,10 @@ export class ShadersAppSk extends ElementSk {
       return;
     }
     try {
-      await this.shaderNode!.loadScrap(this.state.id);
+      await this.shaderNode!.loadScrap(this.state.id, () => {
+        // Re-render once the input image has loaded.
+        this._render();
+      });
       this._render();
 
       const predefinedUniformValues = new Array(this.shaderNode!.numPredefinedUniformValues).fill(0);
@@ -492,7 +459,6 @@ export class ShadersAppSk extends ElementSk {
     this.kit!.setCurrentContext(this.canvasKitContext);
     const shader = this.shaderNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader) {
-      errorMessage('Failed to get shader.', 0);
       return;
     }
 
