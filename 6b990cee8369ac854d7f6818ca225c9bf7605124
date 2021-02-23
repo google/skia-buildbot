@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "548fea85_89e5d64c",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-23T19:04:31Z",
+      "side": 1,
+      "message": "This image doesn\u0027t actually go to the backend server, right? It\u0027s just displayed to the user who uploaded it?",
+      "range": {
+        "startLine": 515,
+        "startChar": 21,
+        "endLine": 515,
+        "endChar": 29
+      },
+      "revId": "6b990cee8369ac854d7f6818ca225c9bf7605124",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
