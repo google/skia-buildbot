@@ -137,6 +137,9 @@ type SKSLMetaData struct {
 	// Uniforms are all the inputs to the shader.
 	Uniforms []float32
 
+	// ImageURL is the URL of an image to load as an input shader.
+	ImageURL string
+
 	// Child shaders. A slice because order is important when mapping uniform
 	// names in code to child shaders passed to makeShaderWithChildren.
 	Children []ChildShader
