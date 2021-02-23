@@ -1607,6 +1607,7 @@ func TestDiffDigests_UseSQLDiffMetrics_DiffExists_Success(t *testing.T) {
 		Timestamp:         time.Date(2021, time.February, 4, 3, 2, 1, 0, time.UTC),
 	}}}
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
 
 	s := New(nil, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky, db)
 
@@ -1641,6 +1642,12 @@ func TestDiffDigests_UseSQLDiffMetrics_DiffExists_Success(t *testing.T) {
 			},
 		},
 	}, cd)
+}
+
+// waitForSystemTime waits for a time greater than the duration mentioned in "AS OF SYSTEM TIME"
+// clauses in queries. This way, the queries will be accurate.
+func waitForSystemTime() {
+	time.Sleep(150 * time.Millisecond)
 }
 
 func d(t *testing.T, digest types.Digest) schema.DigestBytes {
