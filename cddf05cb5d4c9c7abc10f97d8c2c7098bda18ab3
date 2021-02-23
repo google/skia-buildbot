@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6026f190_586d77ce",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-23T14:04:11Z",
+      "side": 1,
+      "message": "I\u0027m a little confused on why the callback would be called if there\u0027s no imageURL. Maybe make that explicit in the JSDoc?",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 27
+      },
+      "revId": "cddf05cb5d4c9c7abc10f97d8c2c7098bda18ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c1bb2776_6cbdf99a",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-23T14:04:11Z",
+      "side": 1,
+      "message": "I don\u0027t quite follow this comment. Is this a TODO? A note for something on the server side?\n\nAs written, the code appears to never save the ImageURL - is that intentional or just the behavior for now?",
+      "range": {
+        "startLine": 195,
+        "startChar": 27,
+        "endLine": 195,
+        "endChar": 35
+      },
+      "revId": "cddf05cb5d4c9c7abc10f97d8c2c7098bda18ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5bf9230f_2223d6ff",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-23T14:04:11Z",
+      "side": 1,
+      "message": "I\u0027m not quite sure where these are used, but one will want to call image.delete() and shader.delete() when done with them, so as not to leak memory.",
+      "range": {
+        "startLine": 416,
+        "startChar": 8,
+        "endLine": 416,
+        "endChar": 13
+      },
+      "revId": "cddf05cb5d4c9c7abc10f97d8c2c7098bda18ab3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
