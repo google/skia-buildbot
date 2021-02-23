@@ -54,7 +54,6 @@ const (
 // SearchImpl holds onto various objects needed to search the latest
 // tile for digests. It implements the SearchAPI interface.
 type SearchImpl struct {
-	diffStore         diff.DiffStore
 	expectationsStore expectations.Store
 	indexSource       indexer.IndexSource
 	reviewSystems     []clstore.ReviewSystem
@@ -84,7 +83,7 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int, sqlDB *pgxpool.Pool) *SearchImpl {
+func New(es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.ReviewSystem, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int, sqlDB *pgxpool.Pool) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -95,7 +94,6 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 	}
 
 	return &SearchImpl{
-		diffStore:              ds,
 		expectationsStore:      es,
 		indexSource:            is,
 		reviewSystems:          reviewSystems,
@@ -271,16 +269,16 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		// We know a digest is somewhere in at least one trace. Iterate through all of them
 		// to find which ones.
 		byTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
-		for traceID, trace := range tile.Traces {
-			if trace.TestName() != test {
+		for traceID, tr := range tile.Traces {
+			if tr.TestName() != test {
 				continue
 			}
 			if _, ok := byTrace[traceID][digest]; ok {
-				ko := trace.KeysAndOptions()
+				ko := tr.KeysAndOptions()
 				result.ParamSet.AddParams(ko)
 				result.TraceGroup.Traces = append(result.TraceGroup.Traces, frontend.Trace{
 					ID:       traceID,
-					RawTrace: trace,
+					RawTrace: tr,
 					Params:   ko,
 				})
 			}
@@ -666,46 +664,29 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 // it cannot be found. It will use either the Firestore backend or the SQL backend, depending on
 // if UseSQLDiffMetricsKey has a value in the provided context.
 func (s *SearchImpl) getDiffMetric(ctx context.Context, left, right types.Digest) (diff.DiffMetrics, error) {
-	if useSQLDiffMetrics(ctx) {
-		ctx, span := trace.StartSpan(ctx, "search.getSQLDiffMetric")
-		defer span.End()
-		const statement = `
+	ctx, span := trace.StartSpan(ctx, "search.getSQLDiffMetric")
+	defer span.End()
+	const statement = `
 SELECT num_pixels_diff, percent_pixels_diff, max_rgba_diffs, combined_metric, dimensions_differ
 FROM DiffMetrics WHERE left_digest = $1 AND right_digest = $2`
-		lBytes, err := sql.DigestToBytes(left)
-		if err != nil {
-			return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", left)
-		}
-		rBytes, err := sql.DigestToBytes(right)
-		if err != nil {
-			return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", right)
-		}
-		var m diff.DiffMetrics
-		row := s.sqlDB.QueryRow(ctx, statement, lBytes, rBytes)
-		err = row.Scan(&m.NumDiffPixels, &m.PixelDiffPercent, &m.MaxRGBADiffs,
-			&m.CombinedMetric, &m.DimDiffer)
-		if err == pgx.ErrNoRows {
-			return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
-		} else if err != nil {
-			return diff.DiffMetrics{}, skerr.Wrap(err)
-		}
-		return m, nil
-	}
-	ctx, span := trace.StartSpan(ctx, "search.getFirestoreDiffMetric")
-	defer span.End()
-	res, err := s.diffStore.Get(ctx, left, types.DigestSlice{right})
+	lBytes, err := sql.DigestToBytes(left)
 	if err != nil {
+		return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", left)
+	}
+	rBytes, err := sql.DigestToBytes(right)
+	if err != nil {
+		return diff.DiffMetrics{}, skerr.Wrapf(err, "invalid digest %s", right)
+	}
+	var m diff.DiffMetrics
+	row := s.sqlDB.QueryRow(ctx, statement, lBytes, rBytes)
+	err = row.Scan(&m.NumDiffPixels, &m.PixelDiffPercent, &m.MaxRGBADiffs,
+		&m.CombinedMetric, &m.DimDiffer)
+	if err == pgx.ErrNoRows {
+		return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
+	} else if err != nil {
 		return diff.DiffMetrics{}, skerr.Wrap(err)
 	}
-	if len(res) != 1 {
-		return diff.DiffMetrics{}, skerr.Fmt("diff not found for %s-%s", left, right)
-	}
-	return *res[right], nil
-}
-
-// useSQLDiffMetrics returns true if there is a non-nil value associated with UseSQLDiffMetricsKey.
-func useSQLDiffMetrics(ctx context.Context) bool {
-	return ctx.Value(UseSQLDiffMetricsKey) != nil
+	return m, nil
 }
 
 // filterTile iterates over the tile and accumulates the traces
@@ -789,12 +770,7 @@ func addExpectations(results []*frontend.SearchResult, exp expectations.Classifi
 func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp expectations.Classifier, idx indexer.IndexSearcher) error {
 	ctx, span := trace.StartSpan(ctx, "search.getReferenceDiffs")
 	defer span.End()
-	var refDiffer ref_differ.RefDiffer
-	if useSQLDiffMetrics(ctx) {
-		refDiffer = ref_differ.NewSQLImpl(s.sqlDB, exp, idx)
-	} else {
-		refDiffer = ref_differ.NewFirestoreImpl(exp, s.diffStore, idx)
-	}
+	refDiffer := ref_differ.NewSQLImpl(s.sqlDB, exp, idx)
 
 	errGroup, gCtx := errgroup.WithContext(ctx)
 	sklog.Infof("Going to spawn %d goroutines to get reference diffs", len(resultDigests))
@@ -1026,8 +1002,8 @@ func computeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest)
 	// By construction, all traces in the TraceGroup will have the same length.
 	traceLength := len(traceGroup.Traces[0].RawTrace.Digests)
 	for idx := 0; idx < traceLength; idx++ {
-		for _, trace := range traceGroup.Traces {
-			digest := trace.RawTrace.Digests[idx]
+		for _, tr := range traceGroup.Traces {
+			digest := tr.RawTrace.Digests[idx]
 			// Don't bother counting up data for missing digests.
 			if digest == tiling.MissingDigest {
 				continue
