@@ -17,7 +17,6 @@ import type {
   Surface,
   Canvas,
   Paint,
-  Shader,
 } from '../../build/canvaskit/canvaskit.js';
 
 import 'elements-sk/error-toast-sk';
@@ -244,6 +243,7 @@ export class ShadersAppSk extends ElementSk {
             <figure>
               ${ele.shaderNode?.inputImageElement}
               <figcaption>iImage1</figcaption>
+              <input @change=${ele.imageUploaded} type="file" id=image_upload accept="image/*">
             </figure>
         </div>
         </details>
@@ -494,6 +494,27 @@ export class ShadersAppSk extends ElementSk {
     }
   }
 
+  private imageUploaded(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files?.length) {
+      return;
+    }
+    const file = input.files.item(0)!;
+
+    // Update the current scrap to set the ImageURL to the uploaded file.
+    const scrap = this.shaderNode!.getScrap();
+    const oldURL = scrap.SKSLMetaData?.ImageURL || '';
+
+    // Release unused memory.
+    if (oldURL.startsWith('blob:')) {
+      URL.revokeObjectURL(oldURL);
+    }
+
+    // Display new image.
+    scrap.SKSLMetaData!.ImageURL = URL.createObjectURL(file);
+    this.shaderNode!.setScrap(scrap, () => this._render());
+  }
+
   private codeChange() {
     this.shaderNode!.shaderCode = this.codeMirror!.getValue();
     this._render();
@@ -502,12 +523,14 @@ export class ShadersAppSk extends ElementSk {
   /**
    * Load example by changing state rather than actually following the links.
    */
-  private fastLoad(e: Event): void{
+  private fastLoad(e: Event): void {
     const ele = (e.target as HTMLLinkElement);
     if (ele.tagName !== 'A') {
       return;
     }
     e.preventDefault();
+    // When switching shaders clear the file upload.
+    $$<HTMLInputElement>('#image_upload')!.value = '';
     const id = new URL(ele.href).searchParams.get('id') || '';
     this.state.id = id;
     this.stateChanged!();
