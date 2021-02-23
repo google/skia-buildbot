@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "623d1b62_c78ae089",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-23T17:47:31Z",
+      "side": 1,
+      "message": "LGTM, but keep in mind that we are moving to a single, global tsconfig.json file as part of the Bazel migration.",
+      "revId": "10fa5a034f1eab2bbba39092401ceca715b89cf9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
