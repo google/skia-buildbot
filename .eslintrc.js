@@ -48,10 +48,6 @@ module.exports = {
     {
       files: ['*.ts', '*.tsx'],
       parser: '@typescript-eslint/parser',
-      parserOptions: {
-        tsconfigRootDir: __dirname,
-        project: ['./tsconfig.json'],
-      },
 
       // Start with the recommended rules, but turn some of them off in the
       // 'rules' section below.
