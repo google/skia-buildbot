@@ -253,7 +253,7 @@ func main() {
 
 	mustStartExpectationsCleanupProcess(ctx, fsc, expStore, ixr)
 
-	handlers := mustMakeWebHandlers(diffStore, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, statusWatcher, tileSource, tjs, vcs)
+	handlers := mustMakeWebHandlers(sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, statusWatcher, tileSource, tjs, vcs)
 
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
@@ -700,10 +700,10 @@ func mustStartExpectationsCleanupProcess(ctx context.Context, fsc *frontendServe
 }
 
 // mustMakeWebHandlers returns a new web.Handlers.
-func mustMakeWebHandlers(diffStore diff.DiffStore, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store, vcs vcsinfo.VCS) *web.Handlers {
+func mustMakeWebHandlers(db *pgxpool.Pool, expStore expectations.Store, gsClient storage.GCSClient, ignoreStore ignore.Store, ixr *indexer.Indexer, reviewSystems []clstore.ReviewSystem, searchAPI search.SearchAPI, statusWatcher *status.StatusWatcher, tileSource tilesource.TileSource, tjs tjstore.Store, vcs vcsinfo.VCS) *web.Handlers {
 	handlers, err := web.NewHandlers(web.HandlersConfig{
 		Baseliner:         simple_baseliner.New(expStore),
-		DiffStore:         diffStore,
+		DB:                db,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
 		IgnoreStore:       ignoreStore,
