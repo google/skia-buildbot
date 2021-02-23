@@ -167,6 +167,7 @@ func mustMakeGCSImageSource(ctx context.Context, dcc diffCalculatorConfig) worke
 	}
 }
 
+// TODO(kjlubick) maybe deduplicate with storage.GCSClient
 type gcsImageDownloader struct {
 	client *gstorage.Client
 	bucket string

@@ -1,21 +1,27 @@
 package web
 
 import (
+	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
 	"net/http"
 	"net/url"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"go.opencensus.io/trace"
-
 	"github.com/gorilla/mux"
+	"go.opencensus.io/trace"
+	"go.skia.org/infra/golden/go/diffstore/common"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
@@ -1722,4 +1728,126 @@ func (wh *Handlers) getCodeReviewSystem(crs string) (clstore.ReviewSystem, bool)
 		}
 	}
 	return system, found
+}
+
+const (
+	validDigestLength = 2 * md5.Size
+	dotPNG            = ".png"
+)
+
+// ImageHandler returns either a single image or a diff between two images identified by their
+// respective digests.
+func (wh *Handlers) ImageHandler(w http.ResponseWriter, r *http.Request) {
+	// No rate limit, as this should be quite fast.
+	_, imgFile := path.Split(r.URL.Path)
+	// Get the file that was requested and verify that it's a valid PNG file.
+	if !strings.HasSuffix(imgFile, dotPNG) {
+		noCacheNotFound(w, r)
+		return
+	}
+
+	// Trim the image extension to get the image or diff ID.
+	imgID := imgFile[:len(imgFile)-len(dotPNG)]
+	// Cache images for 12 hours.
+	w.Header().Set("Cache-Control", "public, max-age=43200")
+	if len(imgID) == validDigestLength {
+		// Example request:
+		// https://skia-infra-gold.skia.org/img/images/8588cad6f3821b948468df35b67778ef.png
+		wh.serveImageWithDigest(w, r, types.Digest(imgID))
+	} else if len(imgID) == validDigestLength*2+1 {
+		// Example request:
+		// https://skia-infra-gold.skia.org/img/diffs/81c4d3a64cf32143ff6c1fbf4cbbec2d-d20731492287002a3f046eae4bd4ce7d.png
+		left := types.Digest(imgID[:validDigestLength])
+		// + 1 for the dash
+		right := types.Digest(imgID[validDigestLength+1:])
+		wh.serveImageDiff(w, r, left, right)
+	} else {
+		noCacheNotFound(w, r)
+		return
+	}
+}
+
+// serveImageWithDigest downloads the image from GCS and returns it. If there is an error, a 404
+// or 500 error is returned, as appropriate.
+func (wh *Handlers) serveImageWithDigest(w http.ResponseWriter, r *http.Request, digest types.Digest) {
+	ctx, span := trace.StartSpan(r.Context(), "frontend_serveImageWithDigest")
+	defer span.End()
+	// Go's image package has no color profile support and we convert to 8-bit NRGBA to diff,
+	// but our source images may have embedded color profiles and be up to 16-bit. So we must
+	// at least take care to serve the original .pngs unaltered.
+	b, err := wh.GCSClient.GetImage(ctx, digest)
+	if err != nil {
+		sklog.Warningf("Could not get image with digest %s: %s", digest, err)
+		noCacheNotFound(w, r)
+		return
+	}
+	if _, err := w.Write(b); err != nil {
+		httputils.ReportError(w, err, "Could not load image. Try again later.", http.StatusInternalServerError)
+		return
+	}
+}
+
+// serveImageDiff downloads the left and right images, computes the diff between them, encodes
+// the diff as a PNG image and writes it to the provided ResponseWriter. If there is an error, it
+// returns a 404 or 500 error as appropriate.
+func (wh *Handlers) serveImageDiff(w http.ResponseWriter, r *http.Request, left types.Digest, right types.Digest) {
+	ctx, span := trace.StartSpan(r.Context(), "frontend_serveImageDiff")
+	defer span.End()
+	// TODO(lovisolo): Diff in NRGBA64?
+	// TODO(lovisolo): Make sure each pair of images is in the same color space before diffing?
+	//                 (They probably are today but it'd be a good correctness check to make sure.)
+	eg, eCtx := errgroup.WithContext(ctx)
+	var leftImg *image.NRGBA
+	var rightImg *image.NRGBA
+	eg.Go(func() error {
+		b, err := wh.GCSClient.GetImage(eCtx, left)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		leftImg, err = decode(b)
+		return skerr.Wrap(err)
+	})
+	eg.Go(func() error {
+		b, err := wh.GCSClient.GetImage(eCtx, right)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		rightImg, err = decode(b)
+		return skerr.Wrap(err)
+	})
+	if err := eg.Wait(); err != nil {
+		sklog.Warningf("Could not get diff for images %q and %q: %s", left, right, err)
+		noCacheNotFound(w, r)
+		return
+	}
+	// Compute the diff image.
+	_, diffImg := diff.PixelDiff(leftImg, rightImg)
+
+	// Write output image to the http.ResponseWriter. Content-Type is set automatically
+	// based on the first 512 bytes of written data. See docs for ResponseWriter.Write()
+	// for details.
+	//
+	// The encoding step below does not take color profiles into account. This is fine since
+	// both the left and right images used to compute the diff are in the same color space,
+	// and also because the resulting diff image is just a visual approximation of the
+	// differences between the left and right images.
+	if err := common.EncodeImg(w, diffImg); err != nil {
+		httputils.ReportError(w, err, "could not serve diff image", http.StatusInternalServerError)
+		return
+	}
+}
+
+// decode decodes the provided bytes as a PNG and returns them as an *image.NRGBA.
+func decode(b []byte) (*image.NRGBA, error) {
+	im, err := png.Decode(bytes.NewReader(b))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return diff.GetNRGBA(im), nil
+}
+
+// noCacheNotFound disables caching and returns a 404.
+func noCacheNotFound(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	http.NotFound(w, r)
 }
