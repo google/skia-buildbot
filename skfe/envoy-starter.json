@@ -41,32 +41,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-skia-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-skia-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-skia-diffserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-skia-frontend",
           "endpoints": [
             {
@@ -112,32 +86,6 @@
           ]
         },
         "name": "gold-skia-infra-baselineserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "gold-skia-infra-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-skia-infra-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-skia-infra-diffserver",
         "type": "STRICT_DNS"
       },
       {
@@ -197,32 +145,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-lottie-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-lottie-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-lottie-diffserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-lottie-frontend",
           "endpoints": [
             {
@@ -242,32 +164,6 @@
           ]
         },
         "name": "gold-lottie-frontend",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "gold-pdfium-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-pdfium-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-pdfium-diffserver",
         "type": "STRICT_DNS"
       },
       {
@@ -327,32 +223,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-flutter-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-flutter-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-flutter-diffserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-flutter-frontend",
           "endpoints": [
             {
@@ -405,32 +275,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-angle-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-angle-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-angle-diffserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-angle-frontend",
           "endpoints": [
             {
@@ -476,32 +320,6 @@
           ]
         },
         "name": "gold-chrome-baselineserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "gold-chrome-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-chrome-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-chrome-diffserver",
         "type": "STRICT_DNS"
       },
       {
@@ -587,32 +405,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-cros-tast-dev-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-cros-tast-dev-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-cros-tast-dev-diffserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-cros-tast-dev-frontend",
           "endpoints": [
             {
@@ -665,32 +457,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "gold-flutter-engine-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-flutter-engine-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-flutter-engine-diffserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "gold-flutter-engine-frontend",
           "endpoints": [
             {
@@ -736,32 +502,6 @@
           ]
         },
         "name": "gold-fuchsia-public-baselineserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "gold-fuchsia-public-diffserver",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "gold-fuchsia-public-diffserver",
-                        "port_value": 8001
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "gold-fuchsia-public-diffserver",
         "type": "STRICT_DNS"
       },
       {
