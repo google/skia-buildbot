@@ -63,12 +63,12 @@ func TestJobSearch(t *testing.T) {
 	}
 
 	checkMatches := func(p *JobSearchParams) {
-		jobs := matchJobs([]*types.Job{j}, p)
+		jobs := FilterJobs([]*types.Job{j}, p)
 		assert.Equal(t, 1, len(jobs))
 		assertdeep.Equal(t, j, jobs[0])
 	}
 	checkNoMatch := func(p *JobSearchParams) {
-		jobs := matchJobs([]*types.Job{j}, p)
+		jobs := FilterJobs([]*types.Job{j}, p)
 		assert.Equal(t, 0, len(jobs))
 	}
 
