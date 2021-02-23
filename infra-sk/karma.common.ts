@@ -6,7 +6,7 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
   // Work-around for karma-webpack issues:
   // https://github.com/webpack-contrib/karma-webpack/issues/322#issuecomment-417862717
   webpackConfig.output = {
-      filename: '[name]',
+    filename: '[name]',
   };
 
   karmaConfig.set({
@@ -14,7 +14,7 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
     basePath: '',
 
     // frameworks to use (loaded in reverse order, so chai-dom loads after chai)
-    frameworks: ['mocha', 'chai-dom', 'chai', 'sinon'],
+    frameworks: ['mocha', 'chai-dom', 'chai', 'sinon', 'karma-typescript'],
 
     plugins: [
       'karma-chrome-launcher',
@@ -24,6 +24,7 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
       'karma-mocha',
       'karma-chai',
       'karma-chai-dom',
+      'karma-typescript',
     ],
 
     // list of files / patterns to load in the browser
@@ -41,6 +42,9 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
       'modules/**/*_test.ts': ['webpack'],
       'modules/*_test.js': ['webpack'],
       'modules/**/*_test.js': ['webpack'],
+      // add coverage preprocessing
+      'modules/*.ts': ['karma-typescript'],
+      'modules/**/*.ts': ['karma-typescript'],
     },
 
     // list of files to exclude
@@ -53,7 +57,7 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-    reporters: ['dots'],
+    reporters: ['dots', 'karma-typescript'],
 
     // Get the port from KARMA_PORT if it is set.
     port: parseInt(process.env.KARMA_PORT || '9876'),
@@ -95,4 +99,4 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
 
     webpackMiddleware: {},
   } as karma.ConfigOptions);
-};
+}
