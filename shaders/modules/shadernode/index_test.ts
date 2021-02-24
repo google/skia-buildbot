@@ -161,4 +161,18 @@ describe('ShaderNode', async () => {
     const node = await createShaderNode();
     assert.isNotNull(node.inputImageElement);
   });
+
+  it('protects against unsafe URLs', async () => {
+    const node = await createShaderNode();
+    node['currentImageURL'] = 'data:foo';
+    assert.equal(node.getCurrentImageURL(), 'data:foo');
+    assert.equal(node.getSafeImageURL(), '/dist/mandrill.png');
+  });
+
+  it('reverts to empty image URL if image fails to load.', async () => {
+    const node = await createShaderNode();
+    node.setCurrentImageURL('/dist/some-unknown-image.png', () => {
+      assert.equal(node.getCurrentImageURL(), '');
+    });
+  });
 });
