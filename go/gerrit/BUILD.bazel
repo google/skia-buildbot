@@ -13,6 +13,7 @@ go_library(
     deps = [
         "//go/auth",
         "//go/buildbucket",
+        "//go/git",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
