@@ -192,6 +192,19 @@ func (d *InMemoryTaskDB) watchModifiedData(mod <-chan []*types.Task) {
 	}
 }
 
+// SearchTasks implements db.TaskReader.
+func (d *InMemoryTaskDB) SearchTasks(ctx context.Context, params *db.TaskSearchParams) ([]*types.Task, error) {
+	d.tasksMtx.RLock()
+	defer d.tasksMtx.RUnlock()
+	rv := []*types.Task{}
+	for _, task := range d.tasks {
+		if db.MatchTask(task, params) {
+			rv = append(rv, task.Copy())
+		}
+	}
+	return rv, nil
+}
+
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
 func NewInMemoryTaskDB() *InMemoryTaskDB {
@@ -378,6 +391,19 @@ func (d *InMemoryJobDB) watchModifiedData(mod <-chan []*types.Job) {
 		d.modClientsMtx.Unlock()
 		d.modClientsWg.Done()
 	}
+}
+
+// SearchJobs implements db.JobReader.
+func (d *InMemoryJobDB) SearchJobs(ctx context.Context, params *db.JobSearchParams) ([]*types.Job, error) {
+	d.jobsMtx.RLock()
+	defer d.jobsMtx.RUnlock()
+	rv := []*types.Job{}
+	for _, job := range d.jobs {
+		if db.MatchJob(job, params) {
+			rv = append(rv, job.Copy())
+		}
+	}
+	return rv, nil
 }
 
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
