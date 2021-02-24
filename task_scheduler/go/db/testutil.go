@@ -8,10 +8,12 @@ import (
 	"sort"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
@@ -714,6 +716,119 @@ func TestUpdateTasksWithRetries(t sktest.TestingT, db TaskDB) {
 	testUpdateTaskWithRetriesTaskNotFound(t, db)
 }
 
+// TestTaskDBSearch tests TaskReader.SearchTasks.
+func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
+	tStart := time.Unix(1614172856, 0)
+	tCurrent := tStart
+	makeTask := func() *types.Task {
+		task := types.MakeTestTask(tCurrent, []string{"abc123"})
+		task.Id = uuid.New().String()
+		task.Name = "my-task"
+		task.Repo = "repo1"
+		task.ForcedJobId = ""
+		task.Issue = ""
+		task.Patchset = ""
+		tCurrent = tCurrent.Add(2 * time.Second)
+		return task
+	}
+
+	t1 := makeTask()
+	t1.ForcedJobId = "123456789"
+	t1.Issue = "12345"
+	t1.Patchset = "1"
+	t1.Status = types.TASK_STATUS_FAILURE
+
+	t2 := makeTask()
+	t2.ForcedJobId = "987654321"
+	t2.Issue = "12345"
+	t2.Patchset = "2"
+	t2.Revision = "def456"
+	t2.Status = types.TASK_STATUS_RUNNING
+
+	t3 := makeTask()
+	t3.Revision = "def456"
+	t3.Status = types.TASK_STATUS_SUCCESS
+
+	t4 := makeTask()
+	t4.Status = types.TASK_STATUS_MISHAP
+
+	t5 := makeTask()
+	t5.Name = "my-other-task"
+	t5.Repo = "repo2"
+	t5.Revision = "bbad"
+	t5.Status = types.TASK_STATUS_FAILURE
+
+	t6 := makeTask()
+	t6.Attempt = 2
+
+	require.NoError(t, db.PutTasks([]*types.Task{t1, t2, t3, t4, t5, t6}))
+
+	test := func(params *TaskSearchParams, expect ...*types.Task) {
+		actual, err := SearchTasks(db, params)
+		require.NoError(t, err)
+		sort.Sort(types.TaskSlice(expect))
+		sort.Sort(types.TaskSlice(actual))
+		require.Equal(t, expect, actual)
+	}
+	i := func(v int64) *int64 {
+		return &v
+	}
+	s := func(v string) *string {
+		return &v
+	}
+	ts := func(v time.Time) *time.Time {
+		return &v
+	}
+
+	test(&TaskSearchParams{
+		ForcedJobId: s("123456789"),
+	}, t1)
+	test(&TaskSearchParams{
+		Issue: s("12345"),
+	}, t1, t2)
+	test(&TaskSearchParams{
+		Patchset: s("2"),
+	}, t2)
+	st := types.TASK_STATUS_FAILURE
+	test(&TaskSearchParams{
+		Status: &st,
+	}, t1, t5)
+	test(&TaskSearchParams{
+		Revision: s("def456"),
+	}, t2, t3)
+	test(&TaskSearchParams{
+		Repo: s("repo2"),
+	}, t5)
+	test(&TaskSearchParams{
+		Repo:  s(t1.Repo),
+		Issue: s("12345"),
+	}, t1, t2)
+	test(&TaskSearchParams{
+		Repo:      s(t1.Repo),
+		Issue:     s("12345"),
+		TimeStart: ts(tStart),
+		TimeEnd:   ts(tCurrent.Add(time.Second)),
+	}, t1, t2)
+	test(&TaskSearchParams{
+		Repo:      s(t1.Repo),
+		Issue:     s("12345"),
+		TimeStart: ts(t1.Created.Add(firestore.TS_RESOLUTION)),
+		TimeEnd:   ts(tCurrent.Add(time.Second)),
+	}, t2)
+	test(&TaskSearchParams{
+		Repo:      s(t1.Repo),
+		Issue:     s("12345"),
+		TimeStart: ts(tStart),
+		TimeEnd:   ts(t2.Created.Add(-firestore.TS_RESOLUTION)),
+	}, t1)
+	test(&TaskSearchParams{
+		Attempt: i(2),
+	}, t6)
+	test(&TaskSearchParams{
+		Name: s("my-task"),
+	}, t1, t2, t3, t4, t6)
+}
+
 // TestJobDB performs basic tests on an implementation of JobDB.
 func TestJobDB(t sktest.TestingT, db JobDB) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -904,6 +1019,115 @@ func TestJobDBConcurrentUpdate(t sktest.TestingT, db JobDB) {
 		require.NoError(t, err)
 		AssertDeepEqual(t, j2Before, j2Again)
 	}
+}
+
+// TestJobDBSearch tests JobReader.SearchJobs.
+func TestJobDBSearch(t sktest.TestingT, db JobDB) {
+	tStart := time.Unix(1614172856, 0)
+	tCurrent := tStart
+	makeJob := func() *types.Job {
+		job := types.MakeTestJob(tCurrent)
+		job.Id = uuid.New().String()
+		job.Name = "my-job"
+		job.Repo = "repo1"
+		job.BuildbucketBuildId = 0
+		job.Issue = ""
+		job.Patchset = ""
+		tCurrent = tCurrent.Add(2 * time.Second)
+		return job
+	}
+
+	j1 := makeJob()
+	j1.BuildbucketBuildId = 123456789
+	j1.Issue = "12345"
+	j1.Patchset = "1"
+	j1.Revision = "abc123"
+	j1.Status = types.JOB_STATUS_FAILURE
+
+	j2 := makeJob()
+	j2.BuildbucketBuildId = 987654321
+	j2.Issue = "12345"
+	j2.Patchset = "2"
+	j2.Revision = "def456"
+	j2.Status = types.JOB_STATUS_IN_PROGRESS
+
+	j3 := makeJob()
+	j3.Revision = "def456"
+	j3.Status = types.JOB_STATUS_SUCCESS
+
+	j4 := makeJob()
+	j4.Revision = "abc123"
+	j4.Status = types.JOB_STATUS_MISHAP
+
+	j5 := makeJob()
+	j5.Name = "my-other-job"
+	j5.Repo = "repo2"
+	j5.Revision = "bbad"
+	j5.Status = types.JOB_STATUS_FAILURE
+
+	require.NoError(t, db.PutJobs([]*types.Job{j1, j2, j3, j4, j5}))
+
+	test := func(params *JobSearchParams, expect ...*types.Job) {
+		actual, err := SearchJobs(db, params)
+		require.NoError(t, err)
+		sort.Sort(types.JobSlice(expect))
+		sort.Sort(types.JobSlice(actual))
+		require.Equal(t, expect, actual)
+	}
+	i := func(v int64) *int64 {
+		return &v
+	}
+	s := func(v string) *string {
+		return &v
+	}
+	ts := func(v time.Time) *time.Time {
+		return &v
+	}
+
+	test(&JobSearchParams{
+		BuildbucketBuildID: i(123456789),
+	}, j1)
+	test(&JobSearchParams{
+		Issue: s("12345"),
+	}, j1, j2)
+	test(&JobSearchParams{
+		Patchset: s("2"),
+	}, j2)
+	st := types.JOB_STATUS_FAILURE
+	test(&JobSearchParams{
+		Status: &st,
+	}, j1, j5)
+	test(&JobSearchParams{
+		Revision: s("def456"),
+	}, j2, j3)
+	test(&JobSearchParams{
+		Repo: s("repo2"),
+	}, j5)
+	test(&JobSearchParams{
+		Repo:  s(j1.Repo),
+		Issue: s("12345"),
+	}, j1, j2)
+	test(&JobSearchParams{
+		Repo:      s(j1.Repo),
+		Issue:     s("12345"),
+		TimeStart: ts(tStart),
+		TimeEnd:   ts(tCurrent.Add(time.Second)),
+	}, j1, j2)
+	test(&JobSearchParams{
+		Repo:      s(j1.Repo),
+		Issue:     s("12345"),
+		TimeStart: ts(j1.Created.Add(firestore.TS_RESOLUTION)),
+		TimeEnd:   ts(tCurrent.Add(time.Second)),
+	}, j2)
+	test(&JobSearchParams{
+		Repo:      s(j1.Repo),
+		Issue:     s("12345"),
+		TimeStart: ts(tStart),
+		TimeEnd:   ts(j2.Created.Add(-firestore.TS_RESOLUTION)),
+	}, j1)
+	test(&JobSearchParams{
+		Name: s("my-job"),
+	}, j1, j2, j3, j4)
 }
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.

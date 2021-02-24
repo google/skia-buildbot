@@ -59,10 +59,22 @@ func TestFirestoreDBTaskDBGetTasksFromWindow(t *testing.T) {
 	db.TestTaskDBGetTasksFromWindow(t, d)
 }
 
+func TestFirestoreDBTaskReaderSearch(t *testing.T) {
+	d, cleanup := setup(t)
+	defer cleanup()
+	db.TestTaskDBSearch(t, d)
+}
+
 func TestFirestoreDBJobDB(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
 	db.TestJobDB(t, d)
+}
+
+func TestFirestoreDBJobReaderSearch(t *testing.T) {
+	d, cleanup := setup(t)
+	defer cleanup()
+	db.TestJobDBSearch(t, d)
 }
 
 func TestFirestoreDBJobDBConcurrentUpdate(t *testing.T) {
