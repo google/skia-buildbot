@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b45a594_08c14b5f",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-02-24T17:57:14Z",
+      "side": 1,
+      "message": "Does this mean that as long as I specify buildbucketBuildID then I no longer need to specify time_start/time_end ?",
+      "revId": "81a4b8f202d18a57b4c0f496f5bd754371a3d834",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
