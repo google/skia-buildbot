@@ -48,6 +48,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d5f49f96_eec8258d",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-02-24T17:13:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4e4177bb_81f79e34",
+      "range": {
+        "startLine": 248,
+        "startChar": 5,
+        "endLine": 248,
+        "endChar": 22
+      },
+      "revId": "19af95de662d1bfc69fe254cafe634011631b1c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f7349dcc_3a3a5c0a",
@@ -85,6 +109,30 @@
       "side": 1,
       "message": "Your interpretation is correct, and I think you\u0027re right about in-progress tasks.  I\u0027ll change that.  FTR, we can\u0027t do the same for jobs, since many of those remain \"in progress\" forever, since their tasks never get backfilled due to capacity.",
       "parentUuid": "f7349dcc_3a3a5c0a",
+      "range": {
+        "startLine": 261,
+        "startChar": 35,
+        "endLine": 261,
+        "endChar": 78
+      },
+      "revId": "19af95de662d1bfc69fe254cafe634011631b1c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "aa60f565_4655af23",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-02-24T17:13:59Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "88c3703a_8d6184db",
       "range": {
         "startLine": 261,
         "startChar": 35,
