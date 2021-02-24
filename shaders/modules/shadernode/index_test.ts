@@ -104,7 +104,7 @@ describe('ShaderNode', async () => {
       `,
       SKSLMetaData: {
         Children: [],
-        ImageURL: '',
+        ImageURL: '/dist/mandrill.png',
         Uniforms: startingUniformValues,
       },
     });
@@ -112,7 +112,7 @@ describe('ShaderNode', async () => {
 
     // Changing the code means we need to save.
     const originalCode = node.shaderCode;
-    assert.isFalse(node.needsSave());
+    assert.isFalse(node.needsSave(), 'No need to save at the start.');
     node.shaderCode += '\n';
     assert.isTrue(node.needsSave(), 'Needs save if code changed.');
     node.shaderCode = originalCode;
@@ -160,5 +160,19 @@ describe('ShaderNode', async () => {
   it('always starts with non-null input image', async () => {
     const node = await createShaderNode();
     assert.isNotNull(node.inputImageElement);
+  });
+
+  it('protects against unsafe URLs', async () => {
+    const node = await createShaderNode();
+    node['currentImageURL'] = 'data:foo';
+    assert.equal(node.getCurrentImageURL(), 'data:foo');
+    assert.equal(node.getSafeImageURL(), '/dist/mandrill.png');
+  });
+
+  it('reverts to empty image URL if image fails to load.', async () => {
+    const node = await createShaderNode();
+    node.setCurrentImageURL('/dist/some-unknown-image.png', () => {
+      assert.equal(node.getCurrentImageURL(), '');
+    });
   });
 });
