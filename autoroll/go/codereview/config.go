@@ -9,12 +9,13 @@ import (
 var (
 	// GerritConfigs maps Gerrit config names to gerrit.Configs.
 	GerritConfigs = map[config.GerritConfig_Config]*gerrit.Config{
-		config.GerritConfig_ANDROID:             gerrit.ConfigAndroid,
-		config.GerritConfig_ANGLE:               gerrit.ConfigANGLE,
-		config.GerritConfig_CHROMIUM:            gerrit.ConfigChromium,
-		config.GerritConfig_CHROMIUM_NO_CQ:      gerrit.ConfigChromiumNoCQ,
-		config.GerritConfig_CHROMIUM_BOT_COMMIT: gerrit.ConfigChromiumBotCommit,
-		config.GerritConfig_LIBASSISTANT:        gerrit.ConfigLibAssistant,
+		config.GerritConfig_ANDROID:                   gerrit.ConfigAndroid,
+		config.GerritConfig_ANGLE:                     gerrit.ConfigANGLE,
+		config.GerritConfig_CHROMIUM:                  gerrit.ConfigChromium,
+		config.GerritConfig_CHROMIUM_NO_CQ:            gerrit.ConfigChromiumNoCQ,
+		config.GerritConfig_CHROMIUM_BOT_COMMIT:       gerrit.ConfigChromiumBotCommit,
+		config.GerritConfig_CHROMIUM_BOT_COMMIT_NO_CQ: gerrit.ConfigChromiumBotCommitNoCQ,
+		config.GerritConfig_LIBASSISTANT:              gerrit.ConfigLibAssistant,
 	}
 )
 
