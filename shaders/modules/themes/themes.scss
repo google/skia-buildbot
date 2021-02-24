@@ -46,4 +46,32 @@
     color: var(--primary);
     background: var(--surface);
   }
+
+  details {
+    margin: 0px 8px 8px 0;
+
+    summary {
+      display: inline-block;
+      margin: 0 8px 8xp 0;
+      background: var(--surface);
+      color: var(--on-surface);
+      border: none;
+      cursor: pointer;
+      list-style: none;
+      outline: none;
+    }
+
+    summary:focus {
+      outline: dashed 1px var(--on-surface);
+      outline-offset: 3px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  details[open] {
+    background: var(--surface);
+  }
 }
