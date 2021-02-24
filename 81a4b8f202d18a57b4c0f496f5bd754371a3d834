@@ -16,6 +16,24 @@
       "message": "Does this mean that as long as I specify buildbucketBuildID then I no longer need to specify time_start/time_end ?",
       "revId": "81a4b8f202d18a57b4c0f496f5bd754371a3d834",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d02ab6c1_be46563c",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-24T18:12:45Z",
+      "side": 1,
+      "message": "The default time range will still be the last 24 hours, so if you want to look outside that range you\u0027ll need to specify those bounds.  The good news is that BuildbucketBuildId will narrow the results to a single job, so you could potentially just search between 1 Jan 1970 and today and still be fast, but I\u0027d much rather you search a smaller range just in case :)",
+      "parentUuid": "8b45a594_08c14b5f",
+      "revId": "81a4b8f202d18a57b4c0f496f5bd754371a3d834",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

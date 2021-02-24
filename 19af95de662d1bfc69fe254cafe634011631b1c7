@@ -141,6 +141,30 @@
       },
       "revId": "19af95de662d1bfc69fe254cafe634011631b1c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3684601b_9aacbeb5",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-02-24T18:12:45Z",
+      "side": 1,
+      "message": "I thought about this some more, and the decision is basically: is this search term going to retrieve fewer tasks/jobs from the DB (when considering all tasks/jobs we\u0027ve ever run) than loading all tasks from the last 24 hours and then filtering?  Given that, I\u0027ve backpedaled a bit, added back in the default time range of 24 hours and removed some search terms which aren\u0027t likely to narrow down the results that much.",
+      "parentUuid": "aa60f565_4655af23",
+      "range": {
+        "startLine": 261,
+        "startChar": 35,
+        "endLine": 261,
+        "endChar": 78
+      },
+      "revId": "19af95de662d1bfc69fe254cafe634011631b1c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
