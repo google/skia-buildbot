@@ -22,6 +22,7 @@ import type {
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
+import 'elements-sk/icon/edit-icon-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
@@ -226,7 +227,14 @@ export class ShadersAppSk extends ElementSk {
     </header>
     <main>
       <div>
-        <p id=examples @click=${ele.fastLoad}>Examples: <a href="/?id=@inputs">Uniforms</a> <a href="/?id=@iResolution">iResolution</a> <a href="/?id=@iTime">iTime</a> <a href="/?id=@iMouse">iMouse</a> <a href="/?id=@iImage">iImage</a></p>
+        <p id=examples @click=${ele.fastLoad}>
+        Examples:
+          <a href="/?id=@inputs">Uniforms</a>
+          <a href="/?id=@iResolution">iResolution</a>
+          <a href="/?id=@iTime">iTime</a>
+          <a href="/?id=@iMouse">iMouse</a>
+          <a href="/?id=@iImage">iImage</a>
+        </p>
         <canvas
           id="player"
           width=${ele.width}
@@ -243,9 +251,26 @@ export class ShadersAppSk extends ElementSk {
             <figure>
               ${ele.shaderNode?.inputImageElement}
               <figcaption>iImage1</figcaption>
-              <input @change=${ele.imageUploaded} type="file" id=image_upload accept="image/*">
             </figure>
-        </div>
+            <details id=image_edit>
+              <summary><edit-icon-sk></edit-icon-sk></summary>
+              <div id=image_edit_dialog>
+                <label for=image_url>
+                  Change the URL used for the source image.
+                </label>
+                <div>
+                  <input type=url id=image_url placeholder="URL of image to use." .value="${ele.shaderNode?.getSafeImageURL() || ''}">
+                  <button @click=${ele.imageURLChanged}>Use</button>
+                </div>
+                <label for=image_upload>
+                  Or upload an image to <em>temporarily</em> try as a source for the shader. Uploaded images are not saved.
+                </label>
+                <div>
+                  <input @change=${ele.imageUploaded} type=file id=image_upload accept="image/*">
+                </div>
+              </div>
+            </details>
+          </div>
         </details>
         <div id="codeEditor"></div>
         <div ?hidden=${!ele.shaderNode?.compileErrorMessage} id="compileErrors">
@@ -500,19 +525,15 @@ export class ShadersAppSk extends ElementSk {
       return;
     }
     const file = input.files.item(0)!;
+    this.setCurrentImageURL(URL.createObjectURL(file));
+  }
 
-    // Update the current scrap to set the ImageURL to the uploaded file.
-    const scrap = this.shaderNode!.getScrap();
-    const oldURL = scrap.SKSLMetaData?.ImageURL || '';
-
-    // Release unused memory.
-    if (oldURL.startsWith('blob:')) {
-      URL.revokeObjectURL(oldURL);
+  private imageURLChanged(): void {
+    const input = $$<HTMLInputElement>('#image_url', this)!;
+    if (!input.value) {
+      return;
     }
-
-    // Display new image.
-    scrap.SKSLMetaData!.ImageURL = URL.createObjectURL(file);
-    this.shaderNode!.setScrap(scrap, () => this._render());
+    this.setCurrentImageURL(input.value);
   }
 
   private codeChange() {
@@ -535,6 +556,17 @@ export class ShadersAppSk extends ElementSk {
     this.state.id = id;
     this.stateChanged!();
     this.loadShaderIfNecessary();
+  }
+
+  private setCurrentImageURL(url: string): void {
+    const oldURL = this.shaderNode!.getCurrentImageURL();
+
+    // Release unused memory.
+    if (oldURL.startsWith('blob:')) {
+      URL.revokeObjectURL(oldURL);
+    }
+
+    this.shaderNode!.setCurrentImageURL(url, () => this._render());
   }
 }
 
