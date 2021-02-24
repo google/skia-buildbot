@@ -49,6 +49,11 @@ func TestInMemoryUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
 	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB())
 }
 
+func TestInMemoryTaskDBSearch(t *testing.T) {
+	unittest.SmallTest(t)
+	db.TestTaskDBSearch(t, NewInMemoryTaskDB())
+}
+
 func TestInMemoryJobDB(t *testing.T) {
 	unittest.SmallTest(t)
 	db.TestJobDB(t, NewInMemoryJobDB())
@@ -57,4 +62,9 @@ func TestInMemoryJobDB(t *testing.T) {
 func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
+}
+
+func TestInMemoryJobDBSearch(t *testing.T) {
+	unittest.SmallTest(t)
+	db.TestJobDBSearch(t, NewInMemoryJobDB())
 }
