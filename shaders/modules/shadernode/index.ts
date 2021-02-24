@@ -130,6 +130,8 @@ export class ShaderNode {
      */
     private _currentUserUniformValues: number[] = [];
 
+    private currentImageURL: string = '';
+
     private _numPredefinedUniformValues: number = 0;
 
     constructor(canvasKit: CanvasKit) {
@@ -161,14 +163,7 @@ export class ShaderNode {
       this.body = scrapBody;
       this._shaderCode = this.body.Body;
       this.currentUserUniformValues = this.body.SKSLMetaData?.Uniforms || [];
-
-      const imageURL = this.body.SKSLMetaData?.ImageURL || defaultImageURL;
-      this.promiseOnImageLoaded(imageURL).then((imageElement) => {
-        this.inputImageShaderFromCanvasImageSource(imageElement);
-        if (imageLoadedCallback) {
-          imageLoadedCallback();
-        }
-      }).catch(errorMessage);
+      this.setCurrentImageURL(this.body?.SKSLMetaData?.ImageURL || defaultImageURL, imageLoadedCallback);
       this.compile();
     }
 
@@ -179,6 +174,32 @@ export class ShaderNode {
 
     get inputImageElement(): HTMLImageElement {
       return this.inputImageShader!.image;
+    }
+
+    getSavedImageURL(): string {
+      return this.body?.SKSLMetaData?.ImageURL || defaultImageURL;
+    }
+
+    getCurrentImageURL(): string {
+      return this.currentImageURL;
+    }
+
+    setCurrentImageURL(val: string, imageLoadedCallback: callback | null = null): void{
+      this.currentImageURL = val;
+
+      this.promiseOnImageLoaded(this.currentImageURL).then((imageElement) => {
+        this.inputImageShaderFromCanvasImageSource(imageElement);
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+      }).catch(() => {
+        errorMessage(`Failed to load image: ${this.currentImageURL}. Falling back to an empty image.`);
+        this.currentImageURL = '';
+        this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+      });
     }
 
     /**
@@ -400,6 +421,7 @@ export class ShaderNode {
     private promiseOnImageLoaded(url: string): Promise<HTMLImageElement> {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const ele = new Image();
+        ele.crossOrigin = 'anonymous';
         ele.src = url;
         if (ele.complete) {
           resolve(ele);
