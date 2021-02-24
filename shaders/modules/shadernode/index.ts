@@ -130,6 +130,8 @@ export class ShaderNode {
      */
     private _currentUserUniformValues: number[] = [];
 
+    private currentImageURL: string = '';
+
     private _numPredefinedUniformValues: number = 0;
 
     constructor(canvasKit: CanvasKit) {
@@ -161,14 +163,7 @@ export class ShaderNode {
       this.body = scrapBody;
       this._shaderCode = this.body.Body;
       this.currentUserUniformValues = this.body.SKSLMetaData?.Uniforms || [];
-
-      const imageURL = this.body.SKSLMetaData?.ImageURL || defaultImageURL;
-      this.promiseOnImageLoaded(imageURL).then((imageElement) => {
-        this.inputImageShaderFromCanvasImageSource(imageElement);
-        if (imageLoadedCallback) {
-          imageLoadedCallback();
-        }
-      }).catch(errorMessage);
+      this.setCurrentImageURL(this.body?.SKSLMetaData?.ImageURL || defaultImageURL, imageLoadedCallback);
       this.compile();
     }
 
@@ -182,6 +177,44 @@ export class ShaderNode {
     }
 
     /**
+     * Don't save or display image URLs that are blob:// or file:// urls.
+     */
+    getSafeImageURL(): string {
+      const ret = this.getCurrentImageURL();
+      if (ret.startsWith('blob:') || ret.startsWith('file:')) {
+        return this.body?.SKSLMetaData?.ImageURL || defaultImageURL;
+      }
+      return ret;
+    }
+
+    /** The current image being used. Note that this could be a blob: URL. */
+    getCurrentImageURL(): string {
+      return this.currentImageURL;
+    }
+
+    /**
+     * Sets the current image to use. Note that if the image fails to load then
+     * the current image URL will be set to the empty string.
+     */
+    setCurrentImageURL(val: string, imageLoadedCallback: callback | null = null): void{
+      this.currentImageURL = val;
+
+      this.promiseOnImageLoaded(this.currentImageURL).then((imageElement) => {
+        this.inputImageShaderFromCanvasImageSource(imageElement);
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+      }).catch(() => {
+        errorMessage(`Failed to load image: ${this.currentImageURL}. Falling back to an empty image.`);
+        this.currentImageURL = '';
+        this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+      });
+    }
+
+    /**
      * Saves the scrap to the backend returning a Promise that resolves to the
      * scrap id that it was stored at, or reject on an error.
      */
@@ -191,10 +224,7 @@ export class ShaderNode {
         Type: 'sksl',
         SKSLMetaData: {
           Uniforms: this._currentUserUniformValues,
-          // TODO(jcgregorio) Remember once we start saving ImageURLs that we
-          // need to to remove ImageURLs that aren't relative or that don't
-          // start with http[s]://, e.g. don't store blob:// or file:// urls.
-          ImageURL: '',
+          ImageURL: this.getSafeImageURL(),
           Children: [],
         },
       };
@@ -258,7 +288,7 @@ export class ShaderNode {
       this.effect?.delete();
       this.effect = this.canvasKit!.RuntimeEffect.Make(`${predefinedUniforms}\n${this.runningCode}`, (err) => {
       // Fix up the line numbers on the error messages, because they are off by
-      // the number of lines we prefixed with the predefined uniforms. The regex
+      // the number of lines we prefixed with the prede fined uniforms. The regex
       // captures the line number so we can replace it with the correct value.
       // While doing the fix up of the error message we also annotate the
       // corresponding lines in the CodeMirror editor.
@@ -290,7 +320,7 @@ export class ShaderNode {
 
     /** Returns true if this node or any child node needs to be saved. */
     needsSave(): boolean {
-      return (this._shaderCode !== this.body!.Body) || this.userUniformValuesHaveBeenEdited();
+      return (this._shaderCode !== this.body!.Body) || this.userUniformValuesHaveBeenEdited() || this.imageURLHasChanged();
     }
 
     /** Returns the number of uniforms in the effect. */
@@ -388,6 +418,16 @@ export class ShaderNode {
       return false;
     }
 
+    private imageURLHasChanged(): boolean {
+      if (this.currentImageURL.startsWith('blob:')) {
+        return false;
+      }
+      if (this.currentImageURL !== this.body?.SKSLMetaData?.ImageURL) {
+        return true;
+      }
+      return false;
+    }
+
     private findUniform(name: string): Uniform | null {
       for (let i = 0; i < this.uniforms.length; i++) {
         if (name === this.uniforms[i].name) {
@@ -400,6 +440,7 @@ export class ShaderNode {
     private promiseOnImageLoaded(url: string): Promise<HTMLImageElement> {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const ele = new Image();
+        ele.crossOrigin = 'anonymous';
         ele.src = url;
         if (ele.complete) {
           resolve(ele);
