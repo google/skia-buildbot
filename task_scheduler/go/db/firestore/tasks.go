@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -228,4 +229,76 @@ func (d *firestoreDB) PutTasksInChunks(tasks []*types.Task) error {
 	return util.ChunkIter(len(tasks), MAX_TRANSACTION_DOCS, func(i, j int) error {
 		return d.PutTasks(tasks[i:j])
 	})
+}
+
+// SearchTasks implements db.JobReader.
+func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchParams) ([]*types.Task, error) {
+	// Firestore requires all multi-column indexes to be created in advance.
+	// Because we can't predict which search parameters will be given (and
+	// because we don't want to create indexes for every combination of
+	// parameters), we search by the parameter we think will limit the results
+	// the most, then filter those results by the other parameters.
+	q := d.tasks().Query
+	term := "none"
+	if params.ForcedJobId != nil && *params.ForcedJobId != "" {
+		q = q.Where("ForcedJobId", "==", *params.ForcedJobId)
+		term = fmt.Sprintf("ForcedJobId == %s", *params.ForcedJobId)
+	} else if params.Issue != nil && *params.Issue != "" {
+		q = q.Where("Issue", "==", *params.Issue)
+		term = fmt.Sprintf("Issue == %s", *params.Issue)
+	} else if params.Patchset != nil && *params.Patchset != "0" {
+		q = q.Where("Patchset", "==", *params.Patchset)
+		term = fmt.Sprintf("Patchset == %s", *params.Patchset)
+	} else if params.Name != nil {
+		q = q.Where("Name", "==", *params.Name)
+		term = fmt.Sprintf("Name == %s", *params.Name)
+	} else if params.Revision != nil {
+		q = q.Where("Revision", "==", *params.Revision)
+		term = fmt.Sprintf("Revision == %s", *params.Revision)
+	} else if params.Attempt != nil && *params.Attempt > 0 {
+		q = q.Where("Attempt", "==", *params.Attempt)
+		term = fmt.Sprintf("Attempt == %d", *params.Attempt)
+	} else if params.Status != nil && *params.Status != types.TASK_STATUS_SUCCESS {
+		q = q.Where("Status", "==", *params.Status)
+		term = fmt.Sprintf("Status == %s", *params.Status)
+	} else {
+		terms := []string{}
+		if params.TimeEnd != nil && !util.TimeIsZero(*params.TimeEnd) {
+			q = q.Where(KEY_CREATED, "<", *params.TimeEnd)
+			terms = append(terms, fmt.Sprintf("Created before %s", *params.TimeEnd))
+		}
+
+		if params.TimeStart != nil && !util.TimeIsZero(*params.TimeStart) {
+			q = q.Where(KEY_CREATED, ">=", *params.TimeStart)
+			terms = append(terms, fmt.Sprintf("Created after %s", *params.TimeStart))
+		}
+
+		// Repo is compatible with TimeStart and TimeEnd because we have an
+		// index for it.
+		if params.Repo != nil {
+			q = q.Where("Repo", "==", *params.Repo)
+			terms = append(terms, fmt.Sprintf("Repo == %s", *params.Repo))
+		}
+		if len(terms) > 0 {
+			term = strings.Join(terms, ", ")
+		}
+	}
+	results := []*types.Task{}
+	err := d.client.IterDocs(ctx, "SearchTasks", term, q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+		var task types.Task
+		if err := doc.DataTo(&task); err != nil {
+			return err
+		}
+		if db.MatchTask(&task, params) {
+			results = append(results, &task)
+		}
+		if len(results) >= db.SearchResultLimit {
+			return db.ErrDoneSearching
+		}
+		return nil
+	})
+	if err == db.ErrDoneSearching {
+		err = nil
+	}
+	return results, err
 }

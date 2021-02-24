@@ -234,3 +234,75 @@ func (d *firestoreDB) PutJobsInChunks(jobs []*types.Job) error {
 		return d.PutJobs(jobs[i:j])
 	})
 }
+
+// SearchJobs implements db.JobReader.
+func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams) ([]*types.Job, error) {
+	// Firestore requires all multi-column indexes to be created in advance.
+	// Because we can't predict which search parameters will be given (and
+	// because we don't want to create indexes for every combination of
+	// parameters), we search by the parameter we think will limit the results
+	// the most, then filter those results by the other parameters.
+	q := d.jobs().Query
+	term := "none"
+	if params.BuildbucketBuildID != nil && *params.BuildbucketBuildID != 0 {
+		q = q.Where("BuildbucketBuildId", "==", *params.BuildbucketBuildID)
+		term = fmt.Sprintf("BuildBucketBuildId == %d", *params.BuildbucketBuildID)
+	} else if params.Issue != nil && *params.Issue != "" {
+		q = q.Where("Issue", "==", *params.Issue)
+		term = fmt.Sprintf("Issue == %s", *params.Issue)
+	} else if params.IsForce != nil && *params.IsForce {
+		q = q.Where("IsForce", "==", *params.IsForce)
+		term = fmt.Sprintf("IsForce == %v", *params.IsForce)
+	} else if params.Patchset != nil && *params.Patchset != "0" {
+		q = q.Where("Patchset", "==", *params.Patchset)
+		term = fmt.Sprintf("Patchset == %s", *params.Patchset)
+	} else if params.Name != nil {
+		q = q.Where("Name", "==", *params.Name)
+		term = fmt.Sprintf("Name == %s", *params.Name)
+	} else if params.Revision != nil {
+		q = q.Where("Revision", "==", *params.Revision)
+		term = fmt.Sprintf("Revision == %s", *params.Revision)
+	} else if params.Status != nil && *params.Status != types.JOB_STATUS_IN_PROGRESS && *params.Status != types.JOB_STATUS_SUCCESS {
+		q = q.Where("Status", "==", *params.Status)
+		term = fmt.Sprintf("Status == %s", *params.Status)
+	} else {
+		terms := []string{}
+		if params.TimeEnd != nil && !util.TimeIsZero(*params.TimeEnd) {
+			q = q.Where(KEY_CREATED, "<", *params.TimeEnd)
+			terms = append(terms, fmt.Sprintf("Created before %s", *params.TimeEnd))
+		}
+
+		if params.TimeStart != nil && !util.TimeIsZero(*params.TimeStart) {
+			q = q.Where(KEY_CREATED, ">=", *params.TimeStart)
+			terms = append(terms, fmt.Sprintf("Created after %s", *params.TimeStart))
+		}
+
+		// Repo is compatible with TimeStart and TimeEnd because we have an
+		// index for it.
+		if params.Repo != nil {
+			q = q.Where("Repo", "==", *params.Repo)
+			terms = append(terms, fmt.Sprintf("Repo == %s", *params.Repo))
+		}
+		if len(terms) > 0 {
+			term = strings.Join(terms, ", ")
+		}
+	}
+	results := []*types.Job{}
+	err := d.client.IterDocs(ctx, "SearchJobs", term, q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+		var job types.Job
+		if err := doc.DataTo(&job); err != nil {
+			return err
+		}
+		if db.MatchJob(&job, params) {
+			results = append(results, &job)
+		}
+		if len(results) >= db.SearchResultLimit {
+			return db.ErrDoneSearching
+		}
+		return nil
+	})
+	if err == db.ErrDoneSearching {
+		err = nil
+	}
+	return results, err
+}
