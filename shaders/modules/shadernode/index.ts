@@ -168,7 +168,13 @@ export class ShaderNode {
         if (imageLoadedCallback) {
           imageLoadedCallback();
         }
-      }).catch(errorMessage);
+      }).catch(() => {
+        errorMessage(`Failed to load image: ${imageURL}. Falling back to an empty image.`);
+        this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+      });
       this.compile();
     }
 
@@ -179,6 +185,10 @@ export class ShaderNode {
 
     get inputImageElement(): HTMLImageElement {
       return this.inputImageShader!.image;
+    }
+
+    get inputImageURL(): string {
+      return this.body?.SKSLMetaData?.ImageURL || defaultImageURL;
     }
 
     /**
@@ -400,6 +410,7 @@ export class ShaderNode {
     private promiseOnImageLoaded(url: string): Promise<HTMLImageElement> {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const ele = new Image();
+        ele.crossOrigin = 'anonymous';
         ele.src = url;
         if (ele.complete) {
           resolve(ele);
