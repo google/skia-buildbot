@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "63be0909_5e84241a",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-02-24T16:41:56Z",
+      "side": 1,
+      "message": "So this no longer supports regex? why?",
+      "range": {
+        "startLine": 248,
+        "startChar": 5,
+        "endLine": 248,
+        "endChar": 22
+      },
+      "revId": "19af95de662d1bfc69fe254cafe634011631b1c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f7349dcc_3a3a5c0a",
+        "filename": "task_scheduler/go/db/firestore/tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-02-24T16:41:56Z",
+      "side": 1,
+      "message": "Can you add a comment explaining the choice in this elseif block, my read is that your saying status other than RUNNING and SUCCESS are \u0027rare\u0027 enough that they should be used preferred in the query compared to start/end time. I\u0027m surprised, I\u0027d expect \u0027running\u0027 to be pretty small, relative to a timeframe (unless its super short).\n\n\u003cjoke\u003e\nClearly you should calculate the duration, and choose between preferring the timeframe vs the status based on the historical number of concurrently running tasks and average tasks run per unit time. \u003c/joke\u003e",
+      "range": {
+        "startLine": 261,
+        "startChar": 35,
+        "endLine": 261,
+        "endChar": 78
+      },
+      "revId": "19af95de662d1bfc69fe254cafe634011631b1c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
