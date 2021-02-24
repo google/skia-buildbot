@@ -132,7 +132,7 @@
 
     #imageSources {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       margin: 8px;
 
       figure {
@@ -170,6 +170,55 @@
     }
   }
 
+  details#image_edit {
+    margin: 0 8px 8px 0;
+
+    summary {
+      list-style: none;
+
+      edit-icon-sk {
+        display: inline-block;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  details#image_edit > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details#image_edit[open] {
+    summary {
+      margin: 0 8px 8px 0;
+    }
+
+    #image_edit_dialog {
+      border: solid var(--surface-2dp) 1px;
+      padding: 8px;
+
+      > * {
+        margin: 0 8px 8px 0;
+      }
+    }
+
+    label {
+      display: block;
+      margin: 0 8px 8px 0;
+    }
+
+    button {
+      margin: 0 0 0 4px;
+    }
+
+    input[type='url'] {
+      padding: 4px;
+    }
+  }
+
   .CodeMirror {
     height: auto;
 
@@ -177,32 +226,5 @@
       font-family: monospace;
       font-size: 13px;
     }
-  }
-
-  /* Now set the non-standard styles. Unfortunately the way webpack/cssmin is
-   configured currently it will strip the following rules from the output so we
-   turn the autoprefixer off.
-  */
-
-  /* autoprefixer: off */
-
-  #image_upload {
-    border: none;
-  }
-
-  #image_upload::-webkit-file-upload-button {
-    background-color: var(--surface-1dp);
-    color: var(--on-surface);
-    fill: var(--on-surface);
-    outline: none;
-    border: solid var(--on-surface) 1px;
-  }
-
-  #image_upload::file-selector-button {
-    background-color: var(--surface-1dp);
-    color: var(--on-surface);
-    fill: var(--on-surface);
-    outline: none;
-    border: solid var(--on-surface) 1px;
   }
 }
