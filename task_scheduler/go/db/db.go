@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"regexp"
 	"sort"
 	"time"
 
@@ -20,6 +19,10 @@ import (
 const (
 	// Retries attempted by UpdateTasksWithRetries.
 	NUM_RETRIES = 5
+
+	// SearchResultLimit is the maximum number of results returned by SearchJobs
+	// or SearchTasks.
+	SearchResultLimit = 500
 )
 
 var (
@@ -28,6 +31,7 @@ var (
 	ErrNotFound         = errors.New("Task/Job with given ID does not exist")
 	ErrTooManyUsers     = errors.New("Too many users")
 	ErrUnknownId        = types.ErrUnknownId
+	ErrDoneSearching    = errors.New("Done searching")
 )
 
 func IsAlreadyExists(e error) bool {
@@ -67,6 +71,11 @@ type TaskReader interface {
 	// canceled. The channel will immediately produce a slice of Tasks which
 	// may or may not be empty.
 	ModifiedTasksCh(context.Context) <-chan []*types.Task
+
+	// SearchTasks retrieves all matching Tasks from the DB. Users should not
+	// call this directly and should instead use the SearchJobs function from
+	// this package.
+	SearchTasks(context.Context, *TaskSearchParams) ([]*types.Task, error)
 }
 
 // TaskDB is used by the task scheduler to store Tasks.
@@ -174,6 +183,11 @@ type JobReader interface {
 	// canceled. The channel will immediately produce a slice of Jobs which
 	// may or may not be empty.
 	ModifiedJobsCh(context.Context) <-chan []*types.Job
+
+	// SearchJobs retrieves all matching Jobs from the DB. Users should not call
+	// this directly and should instead use the SearchJobs function from this
+	// package.
+	SearchJobs(context.Context, *JobSearchParams) ([]*types.Job, error)
 }
 
 // JobDB is used by the task scheduler to store Jobs.
@@ -216,66 +230,65 @@ type JobSearchParams struct {
 	TimeEnd            *time.Time       `json:"time_end"`
 }
 
-// searchBoolEqual compares the two bools and returns true if the first is
+// SearchBoolEqual compares the two bools and returns true if the first is
 // nil or equal to the second.
-func searchBoolEqual(search *bool, test bool) bool {
+func SearchBoolEqual(search *bool, test bool) bool {
 	if search == nil {
 		return true
 	}
 	return *search == test
 }
 
-// searchInt64Equal compares the two int64s and returns true if the first is
+// SearchInt64Equal compares the two int64s and returns true if the first is
 // either nil or equal to the second.
-func searchInt64Equal(search *int64, test int64) bool {
+func SearchInt64Equal(search *int64, test int64) bool {
 	if search == nil {
 		return true
 	}
 	return *search == test
 }
 
-// searchStringEqual compares the two strings and returns true if the first is
-// either not provided, equal to the second, or a regular expression which
-// matches the second.
-func searchStringEqual(search *string, test string) bool {
-	if search == nil {
-		return true
-	}
-	if *search == test {
-		return true
-	}
-	re, err := regexp.Compile(*search)
-	if err == nil && re.MatchString(test) {
-		return true
-	}
-	return false
-}
-
-// searchStatusEqual compares the two strings and returns true if the first is
+// SearchStringEqual compares the two strings and returns true if the first is
 // either not provided or equal to the second.
-func searchStatusEqual(search *string, test string) bool {
+func SearchStringEqual(search *string, test string) bool {
 	if search == nil {
 		return true
 	}
 	return *search == test
 }
 
-// matchJobs returns Jobs which match the given search parameters.
-func matchJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
+// SearchStatusEqual compares the two strings and returns true if the first is
+// either not provided or equal to the second.
+func SearchStatusEqual(search *string, test string) bool {
+	if search == nil {
+		return true
+	}
+	return *search == test
+}
+
+// MatchJob returns true if the given Job matches the given search parameters.
+func MatchJob(j *types.Job, p *JobSearchParams) bool {
+	// Compare all attributes which are provided.
+	return true &&
+		(p.TimeStart == nil || !(*p.TimeStart).After(j.Created)) &&
+		(p.TimeEnd == nil || j.Created.Before(*p.TimeEnd)) &&
+		SearchStringEqual(p.Issue, j.Issue) &&
+		SearchStringEqual(p.Name, j.Name) &&
+		SearchStringEqual(p.Patchset, j.Patchset) &&
+		SearchStringEqual(p.Repo, j.Repo) &&
+		SearchStringEqual(p.Revision, j.Revision) &&
+		SearchStatusEqual((*string)(p.Status), string(j.Status)) &&
+		SearchBoolEqual(p.IsForce, j.IsForce) &&
+		SearchInt64Equal(p.BuildbucketBuildID, j.BuildbucketBuildId)
+}
+
+// FilterJobs filters the given slice of Jobs to those which match the given
+// search parameters. Provided for use by implementations of
+// JobReader.SearchJobs.
+func FilterJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 	rv := []*types.Job{}
 	for _, j := range jobs {
-		// Compare all attributes which are provided.
-		if true &&
-			(p.TimeStart == nil || !(*p.TimeStart).After(j.Created)) &&
-			(p.TimeEnd == nil || j.Created.Before(*p.TimeEnd)) &&
-			searchStringEqual(p.Issue, j.Issue) &&
-			searchStringEqual(p.Name, j.Name) &&
-			searchStringEqual(p.Patchset, j.Patchset) &&
-			searchStringEqual(p.Repo, j.Repo) &&
-			searchStringEqual(p.Revision, j.Revision) &&
-			searchStatusEqual((*string)(p.Status), string(j.Status)) &&
-			searchBoolEqual(p.IsForce, j.IsForce) &&
-			searchInt64Equal(p.BuildbucketBuildID, j.BuildbucketBuildId) {
+		if MatchJob(j, p) {
 			rv = append(rv, j)
 		}
 	}
@@ -293,33 +306,32 @@ func SearchJobs(db JobReader, p *JobSearchParams) ([]*types.Job, error) {
 		start := (*p.TimeEnd).Add(-24 * time.Hour)
 		p.TimeStart = &start
 	}
-	repo := ""
-	if p.Repo != nil {
-		repo = *p.Repo
-	}
-	jobs, err := db.GetJobsFromDateRange(*p.TimeStart, *p.TimeEnd, repo)
-	if err != nil {
-		return nil, err
-	}
-	return matchJobs(jobs, p), nil
+	return db.SearchJobs(context.TODO(), p)
 }
 
-// matchTasks returns Tasks which match the given search parameters.
-func matchTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
+// MatchTask returns true if the given Task matches the given search parameters.
+func MatchTask(t *types.Task, p *TaskSearchParams) bool {
+	// Compare all attributes which are provided.
+	return true &&
+		(p.TimeStart == nil || !(*p.TimeStart).After(t.Created)) &&
+		(p.TimeEnd == nil || t.Created.Before(*p.TimeEnd)) &&
+		SearchInt64Equal(p.Attempt, int64(t.Attempt)) &&
+		SearchStringEqual(p.Issue, t.Issue) &&
+		SearchStringEqual(p.Patchset, t.Patchset) &&
+		SearchStringEqual(p.Repo, t.Repo) &&
+		SearchStringEqual(p.Revision, t.Revision) &&
+		SearchStringEqual(p.Name, t.Name) &&
+		SearchStatusEqual((*string)(p.Status), string(t.Status)) &&
+		SearchStringEqual(p.ForcedJobId, t.ForcedJobId)
+}
+
+// FilterTasks filters the given slice of Tasks to those which match the given
+// search parameters. Provided for use by implementations of
+// TaskReader.SearchTasks.
+func FilterTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
 	rv := []*types.Task{}
 	for _, t := range tasks {
-		// Compare all attributes which are provided.
-		if true &&
-			!p.TimeStart.After(t.Created) &&
-			t.Created.Before(*p.TimeEnd) &&
-			searchInt64Equal(p.Attempt, int64(t.Attempt)) &&
-			searchStringEqual(p.Issue, t.Issue) &&
-			searchStringEqual(p.Patchset, t.Patchset) &&
-			searchStringEqual(p.Repo, t.Repo) &&
-			searchStringEqual(p.Revision, t.Revision) &&
-			searchStringEqual(p.Name, t.Name) &&
-			searchStatusEqual((*string)(p.Status), string(t.Status)) &&
-			searchStringEqual(p.ForcedJobId, t.ForcedJobId) {
+		if MatchTask(t, p) {
 			rv = append(rv, t)
 		}
 	}
@@ -354,15 +366,7 @@ func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
 		start := (*p.TimeEnd).Add(-24 * time.Hour)
 		p.TimeStart = &start
 	}
-	repo := ""
-	if p.Repo != nil {
-		repo = *p.Repo
-	}
-	tasks, err := db.GetTasksFromDateRange(*p.TimeStart, *p.TimeEnd, repo)
-	if err != nil {
-		return nil, err
-	}
-	return matchTasks(tasks, p), nil
+	return db.SearchTasks(context.TODO(), p)
 }
 
 // RemoteDB allows retrieving tasks and jobs and full access to comments.

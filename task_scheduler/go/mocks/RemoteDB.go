@@ -6,6 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	db "go.skia.org/infra/task_scheduler/go/db"
 
 	time "time"
 
@@ -294,4 +295,50 @@ func (_m *RemoteDB) PutTaskSpecComment(_a0 *types.TaskSpecComment) error {
 	}
 
 	return r0
+}
+
+// SearchJobs provides a mock function with given fields: _a0, _a1
+func (_m *RemoteDB) SearchJobs(_a0 context.Context, _a1 *db.JobSearchParams) ([]*types.Job, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 []*types.Job
+	if rf, ok := ret.Get(0).(func(context.Context, *db.JobSearchParams) []*types.Job); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*types.Job)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *db.JobSearchParams) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchTasks provides a mock function with given fields: _a0, _a1
+func (_m *RemoteDB) SearchTasks(_a0 context.Context, _a1 *db.TaskSearchParams) ([]*types.Task, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 []*types.Task
+	if rf, ok := ret.Get(0).(func(context.Context, *db.TaskSearchParams) []*types.Task); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*types.Task)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *db.TaskSearchParams) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
