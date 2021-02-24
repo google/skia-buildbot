@@ -155,6 +155,28 @@ var (
 		DryRunUsesTryjobResults:   false,
 	}
 
+	// ConfigChromiumBotCommitNoCQ is the configuration for Chromium Gerrit
+	// hosts which have no commit queue.
+	ConfigChromiumBotCommitNoCQ = &Config{
+		SelfApproveLabels: map[string]int{
+			LabelCodeReview: LabelBotCommitApproved,
+		},
+		HasCq:           false,
+		SetCqLabels:     map[string]int{},
+		SetDryRunLabels: map[string]int{},
+		NoCqLabels: map[string]int{
+			LabelCommitQueue: LabelCommitQueueNone,
+		},
+		CqActiveLabels:            map[string]int{},
+		CqSuccessLabels:           map[string]int{},
+		CqFailureLabels:           map[string]int{},
+		CqLabelsUnsetOnCompletion: true,
+		DryRunActiveLabels:        map[string]int{},
+		DryRunSuccessLabels:       map[string]int{},
+		DryRunFailureLabels:       map[string]int{},
+		DryRunUsesTryjobResults:   false,
+	}
+
 	// ConfigLibAssistant is the configuration for LibAssistant Gerrit hosts.
 	ConfigLibAssistant = &Config{
 		SelfApproveLabels: map[string]int{
