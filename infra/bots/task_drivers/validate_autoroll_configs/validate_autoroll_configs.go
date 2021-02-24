@@ -67,7 +67,7 @@ func validateConfig(ctx context.Context, f string) (string, error) {
 		}
 		if util.In(cfg.ServiceAccount, chromiumServiceAccounts) {
 			gerrit := cfg.GetGerrit()
-			if gerrit != nil && gerrit.Config == config.GerritConfig_CHROMIUM {
+			if gerrit != nil && gerrit.Config == config.GerritConfig_CHROMIUM || gerrit.Config == config.GerritConfig_CHROMIUM_NO_CQ {
 				return skerr.Fmt("Chromium rollers must use Gerrit config CHROMIUM_BOT_COMMIT")
 			}
 		}
