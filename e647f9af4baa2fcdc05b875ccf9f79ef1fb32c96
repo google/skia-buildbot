@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2e783d69_37c5a602",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6026
+      },
+      "writtenOn": "2021-02-24T17:48:39Z",
+      "side": 1,
+      "message": "This might fix the error message on https://autoroll.skia.org/r/libunwind-chromium\n\nSorry about overlooking this when adapting the re2 config.",
+      "revId": "e647f9af4baa2fcdc05b875ccf9f79ef1fb32c96",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
