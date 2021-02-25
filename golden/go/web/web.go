@@ -33,7 +33,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
@@ -100,7 +99,6 @@ type HandlersConfig struct {
 	StatusWatcher     *status.StatusWatcher
 	TileSource        tilesource.TileSource
 	TryJobStore       tjstore.Store
-	VCS               vcsinfo.VCS
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -151,9 +149,6 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 		}
 		if conf.TryJobStore == nil {
 			return nil, skerr.Fmt("TryJobStore cannot be nil")
-		}
-		if conf.VCS == nil {
-			return nil, skerr.Fmt("VCS cannot be nil")
 		}
 	}
 	return &Handlers{
