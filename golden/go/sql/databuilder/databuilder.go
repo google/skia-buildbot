@@ -36,6 +36,7 @@ type TablesBuilder struct {
 
 	changelistBuilders  []*ChangelistBuilder
 	commitsWithData     *CommitBuilder
+	commitsWithNoData   *GitCommitBuilder
 	diffMetrics         []schema.DiffMetricRow
 	expectationBuilders []*ExpectationsBuilder
 	groupingKeys        []string
@@ -48,10 +49,19 @@ type TablesBuilder struct {
 // It panics if called more than once.
 func (b *TablesBuilder) CommitsWithData() *CommitBuilder {
 	if b.commitsWithData != nil {
-		logAndPanic("Cannot call Commits() more than once.")
+		logAndPanic("Cannot call CommitsWithData() more than once.")
 	}
 	b.commitsWithData = &CommitBuilder{}
 	return b.commitsWithData
+}
+
+// CommitsWithNoData returns a new CommitBuilder that will fill in the GitCommits table.
+func (b *TablesBuilder) CommitsWithNoData() *GitCommitBuilder {
+	if b.commitsWithNoData != nil {
+		logAndPanic("Cannot call CommitsWithNoData() more than once.")
+	}
+	b.commitsWithNoData = &GitCommitBuilder{}
+	return b.commitsWithNoData
 }
 
 // SetDigests loads a mapping of runes to the digest that they represent. This allows
@@ -91,7 +101,7 @@ func (b *TablesBuilder) AddTracesWithCommonKeys(params paramtools.Params) *Trace
 	if b.commitsWithData == nil {
 		logAndPanic("Must add commits before traces")
 	}
-	if len(b.commitsWithData.commits) == 0 {
+	if len(b.commitsWithData.commitRows) == 0 {
 		logAndPanic("Must specify at least one commit")
 	}
 	if len(b.groupingKeys) == 0 {
@@ -101,7 +111,7 @@ func (b *TablesBuilder) AddTracesWithCommonKeys(params paramtools.Params) *Trace
 		logAndPanic("Must add digests before traces")
 	}
 	tb := &TraceBuilder{
-		commits:         b.commitsWithData.commits,
+		commits:         b.commitsWithData.commitRows,
 		commonKeys:      params,
 		symbolsToDigest: b.runeToDigest,
 		groupingKeys:    b.groupingKeys,
@@ -378,10 +388,10 @@ func (b *TablesBuilder) Build() schema.Tables {
 	}
 	var tables schema.Tables
 
-	tables.Commits = b.commitsWithData.commits
-	applyTilingToCommits(tables.Commits, b.TileWidth)
+	tables.CommitsWithData = b.commitsWithData.commitRows
+	applyTilingToCommits(tables.CommitsWithData, b.TileWidth)
+	tables.GitCommits = assembleGitCommits(b.commitsWithData, b.commitsWithNoData)
 
-	commitsWithData := map[schema.CommitID]bool{}
 	valuesAtHead := map[schema.MD5Hash]*schema.ValueAtHeadRow{}
 	for _, traceBuilder := range b.traceBuilders {
 		// Add unique rows from the tables gathered by tracebuilders.
@@ -421,7 +431,6 @@ func (b *TablesBuilder) Build() schema.Tables {
 						panic("Incomplete data - you must call IngestedFrom()")
 					}
 					tables.TraceValues = append(tables.TraceValues, *tv)
-					commitsWithData[tv.CommitID] = true
 					vHead := valuesAtHead[sql.AsMD5Hash(tv.TraceID)]
 					vHead.Digest = tv.Digest
 					vHead.MostRecentCommitID = tv.CommitID
@@ -430,15 +439,9 @@ func (b *TablesBuilder) Build() schema.Tables {
 			}
 		}
 	}
-	for i := range tables.Commits {
-		cid := tables.Commits[i].CommitID
-		if commitsWithData[cid] {
-			tables.Commits[i].HasData = true
-		}
-	}
 
-	tables.TiledTraceDigests = b.computeTiledTraceDigests(tables.Commits)
-	tables.PrimaryBranchParams = b.computePrimaryBranchParams(tables.Commits)
+	tables.TiledTraceDigests = b.computeTiledTraceDigests(tables.CommitsWithData)
+	tables.PrimaryBranchParams = b.computePrimaryBranchParams(tables.CommitsWithData)
 	exp := b.finalizeExpectations()
 	for _, e := range exp {
 		tables.Expectations = append(tables.Expectations, *e)
@@ -529,7 +532,18 @@ func (b *TablesBuilder) Build() schema.Tables {
 	return tables
 }
 
-func applyTilingToCommits(commits []schema.CommitRow, tileWidth int) {
+func assembleGitCommits(withData *CommitBuilder, withNoData *GitCommitBuilder) []schema.GitCommitRow {
+	gitCommits := withData.gitRows
+	if withNoData != nil {
+		gitCommits = append(gitCommits, withNoData.gitRows...)
+	}
+	sort.Slice(gitCommits, func(i, j int) bool {
+		return gitCommits[i].CommitTime.Before(gitCommits[j].CommitTime)
+	})
+	return gitCommits
+}
+
+func applyTilingToCommits(commits []schema.CommitWithDataRow, tileWidth int) {
 	// We sort the commits by CommitID in lexicographical order. By definition of CommitID, this is
 	// the order they happen in.
 	sort.Slice(commits, func(i, j int) bool {
@@ -613,7 +627,7 @@ type tiledTraceDigest struct {
 	digest  schema.MD5Hash
 }
 
-func (b *TablesBuilder) computeTiledTraceDigests(commits []schema.CommitRow) []schema.TiledTraceDigestRow {
+func (b *TablesBuilder) computeTiledTraceDigests(commits []schema.CommitWithDataRow) []schema.TiledTraceDigestRow {
 	seenRows := map[tiledTraceDigest]bool{}
 	for _, builder := range b.traceBuilders {
 		for _, xtv := range builder.traceValues {
@@ -645,7 +659,7 @@ func (b *TablesBuilder) computeTiledTraceDigests(commits []schema.CommitRow) []s
 	return rv
 }
 
-func getTileID(id schema.CommitID, commits []schema.CommitRow) schema.TileID {
+func getTileID(id schema.CommitID, commits []schema.CommitWithDataRow) schema.TileID {
 	for _, c := range commits {
 		if c.CommitID == id {
 			return c.TileID
@@ -656,7 +670,7 @@ func getTileID(id schema.CommitID, commits []schema.CommitRow) schema.TileID {
 
 // computePrimaryBranchParams goes through all trace data and returns the PrimaryBranchParamRow
 // with the appropriately tiled key/value pairs that showed up in the trace keys and params.
-func (b *TablesBuilder) computePrimaryBranchParams(commits []schema.CommitRow) []schema.PrimaryBranchParamRow {
+func (b *TablesBuilder) computePrimaryBranchParams(commits []schema.CommitWithDataRow) []schema.PrimaryBranchParamRow {
 	seenRows := map[schema.PrimaryBranchParamRow]bool{}
 	for _, builder := range b.traceBuilders {
 		findTraceKeys := func(traceID schema.TraceID) paramtools.Params {
@@ -748,11 +762,12 @@ func (b *TablesBuilder) computeSecondaryBranchParams() []schema.SecondaryBranchP
 
 // CommitBuilder has methods for easily building commit history. All methods are chainable.
 type CommitBuilder struct {
-	commits []schema.CommitRow
+	commitRows []schema.CommitWithDataRow
+	gitRows    []schema.GitCommitRow
 }
 
 // Insert adds a commit with the given data. It panics if the commitTime is not formatted to
-// RFC3339 or if the commitID is not monotonically increasing from the last one.
+// RFC3339.
 func (b *CommitBuilder) Insert(commitID schema.CommitID, author, subject, commitTime string) *CommitBuilder {
 	h := sha1.Sum([]byte(commitID))
 	gitHash := hex.EncodeToString(h[:])
@@ -760,13 +775,40 @@ func (b *CommitBuilder) Insert(commitID schema.CommitID, author, subject, commit
 	if err != nil {
 		logAndPanic("Invalid time %q: %s", commitTime, err)
 	}
-	b.commits = append(b.commits, schema.CommitRow{
-		CommitID:    commitID,
+	b.commitRows = append(b.commitRows, schema.CommitWithDataRow{
+		CommitID: commitID,
+		// tiling will be computed in Build.
+	})
+	b.gitRows = append(b.gitRows, schema.GitCommitRow{
+		GitHash:     gitHash,
+		CommitID:    &commitID,
+		CommitTime:  ct,
+		AuthorEmail: author,
+		Subject:     subject,
+	})
+	return b
+}
+
+// GitCommitBuilder has methods for building rows in the GitCommits table.
+type GitCommitBuilder struct {
+	gitRows []schema.GitCommitRow
+}
+
+// Insert adds a commit with the given data. It panics if the commitTime is not formatted to
+// RFC3339 or if the gitHash is invalid.
+func (b *GitCommitBuilder) Insert(gitHash string, author, subject, commitTime string) *GitCommitBuilder {
+	if len(gitHash) != 40 {
+		panic("invalid git hash length; must be 40 chars")
+	}
+	ct, err := time.Parse(time.RFC3339, commitTime)
+	if err != nil {
+		logAndPanic("Invalid time %q: %s", commitTime, err)
+	}
+	b.gitRows = append(b.gitRows, schema.GitCommitRow{
 		GitHash:     gitHash,
 		CommitTime:  ct,
 		AuthorEmail: author,
 		Subject:     subject,
-		HasData:     false,
 	})
 	return b
 }
@@ -774,7 +816,7 @@ func (b *CommitBuilder) Insert(commitID schema.CommitID, author, subject, commit
 // TraceBuilder has methods for easily building trace data. All methods are chainable.
 type TraceBuilder struct {
 	// inputs needed upon creation
-	commits         []schema.CommitRow
+	commits         []schema.CommitWithDataRow
 	commonKeys      paramtools.Params
 	groupingKeys    []string
 	symbolsToDigest map[rune]schema.DigestBytes

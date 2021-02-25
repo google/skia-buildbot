@@ -32,8 +32,9 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		Insert("001", "author_one", "subject_one", "2020-12-05T16:00:00Z").
 		Insert("002", "author_two", "subject_two", "2020-12-06T17:00:00Z").
 		Insert("003", "author_three", "subject_three", "2020-12-07T18:00:00Z").
-		Insert("004", "author_four", "subject_four", "2020-12-08T19:00:00Z").
-		Insert("005", "author_five", "no data yet", "2020-12-08T20:00:00Z")
+		Insert("004", "author_four", "subject_four", "2020-12-08T19:00:00Z")
+	b.CommitsWithNoData().
+		Insert("5555555555555555555555555555555555555555", "author_five", "no data yet", "2020-12-08T20:00:00Z")
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
 		// are untriaged, numbers are negative, symbols are special.
@@ -49,15 +50,15 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		"color_mode":      "rgb",
 		types.CorpusField: "corpus_one",
 	}).History(
-		"AAbb-",
-		"D--D-",
+		"AAbb",
+		"D--D",
 	).Keys([]paramtools.Params{{
 		types.PrimaryKeyField: "test_one",
 	}, {
 		types.PrimaryKeyField: "test_two",
 	}}).OptionsAll(paramtools.Params{"ext": "png"}).
-		IngestedFrom([]string{"crosshatch_file1", "crosshatch_file2", "crosshatch_file3", "crosshatch_file4", ""},
-			[]string{"2020-12-11T10:09:00Z", "2020-12-11T10:10:00Z", "2020-12-11T10:11:00Z", "2020-12-11T10:12:13Z", ""})
+		IngestedFrom([]string{"crosshatch_file1", "crosshatch_file2", "crosshatch_file3", "crosshatch_file4"},
+			[]string{"2020-12-11T10:09:00Z", "2020-12-11T10:10:00Z", "2020-12-11T10:11:00Z", "2020-12-11T10:12:13Z"})
 
 	b.AddTracesWithCommonKeys(paramtools.Params{
 		"os":                  "Windows10.7",
@@ -65,11 +66,11 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		"color_mode":          "rgb",
 		types.CorpusField:     "corpus_one",
 		types.PrimaryKeyField: "test_two",
-	}).History("11D--").
+	}).History("11D-").
 		Keys([]paramtools.Params{{types.PrimaryKeyField: "test_one"}}).
 		OptionsPerTrace([]paramtools.Params{{"ext": "png"}}).
-		IngestedFrom([]string{"windows_file1", "windows_file2", "windows_file3", "", ""},
-			[]string{"2020-12-11T14:15:00Z", "2020-12-11T15:16:00Z", "2020-12-11T16:17:00Z", "", ""})
+		IngestedFrom([]string{"windows_file1", "windows_file2", "windows_file3", ""},
+			[]string{"2020-12-11T14:15:00Z", "2020-12-11T15:16:00Z", "2020-12-11T16:17:00Z", ""})
 
 	b.AddTriageEvent("user_one", "2020-12-12T12:12:12Z").
 		ExpectationsForGrouping(map[string]string{
@@ -156,47 +157,50 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "NUC1234", "name": "test_two", "os": "Windows10.7", "source_type": "corpus_one"},
 		MatchesAnyIgnoreRule: schema.NBTrue,
 	}}, tables.Traces)
-	assert.Equal(t, []schema.CommitRow{{
-		CommitID:    "001",
-		TileID:      0,
+	assert.Equal(t, []schema.CommitWithDataRow{{
+		CommitID: "001",
+		TileID:   0,
+	}, {
+		CommitID: "002",
+		TileID:   0,
+	}, {
+		CommitID: "003",
+		TileID:   0,
+	}, {
+		CommitID: "004",
+		TileID:   1,
+	}}, tables.CommitsWithData)
+	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     gitHash("001"),
+		CommitID:    cID("001"),
 		CommitTime:  time.Date(2020, time.December, 5, 16, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_one",
 		Subject:     "subject_one",
-		HasData:     true,
 	}, {
-		CommitID:    "002",
-		TileID:      0,
 		GitHash:     gitHash("002"),
+		CommitID:    cID("002"),
 		CommitTime:  time.Date(2020, time.December, 6, 17, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_two",
 		Subject:     "subject_two",
-		HasData:     true,
 	}, {
-		CommitID:    "003",
-		TileID:      0,
 		GitHash:     gitHash("003"),
+		CommitID:    cID("003"),
 		CommitTime:  time.Date(2020, time.December, 7, 18, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_three",
 		Subject:     "subject_three",
-		HasData:     true,
 	}, {
-		CommitID:    "004",
-		TileID:      1,
 		GitHash:     gitHash("004"),
+		CommitID:    cID("004"),
 		CommitTime:  time.Date(2020, time.December, 8, 19, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_four",
 		Subject:     "subject_four",
-		HasData:     true,
 	}, {
-		CommitID:    "005",
-		TileID:      1,
-		GitHash:     gitHash("005"),
+		GitHash:     "5555555555555555555555555555555555555555",
+		CommitID:    nil,
 		CommitTime:  time.Date(2020, time.December, 8, 20, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_five",
 		Subject:     "no data yet",
-		HasData:     false,
-	}}, tables.Commits)
+	}}, tables.GitCommits)
 
 	pngOptionsID := h(`{"ext":"png"}`)
 	testOneGroupingID := h(`{"name":"test_one","source_type":"corpus_one"}`)
@@ -470,6 +474,10 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		Note:         "note 2",
 		Query:        paramtools.ReadOnlyParamSet{"device": []string{"NUC1234"}, "os": []string{"Windows10.7", "Windows10.8"}},
 	}}, tables.IgnoreRules)
+}
+
+func cID(s schema.CommitID) *schema.CommitID {
+	return &s
 }
 
 func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
@@ -897,40 +905,61 @@ func TestCommits_InsertInAnyOrder_Success(t *testing.T) {
 		Insert("0098", "author_two", "subject_98", "2020-12-05T14:00:00Z").
 		Insert("2000", "author_2k", "subject_2k", "2022-02-02T02:02:00Z")
 
+	b.CommitsWithNoData().
+		Insert("4444444444444444444444444444444444444444", "somebody", "no data 1900", "2021-02-03T04:05:06Z").
+		Insert("3333333333333333333333333333333333333333", "somebody", "no data 1850", "2021-02-03T04:05:00Z")
+
 	tables := b.Build()
-	assert.Equal(t, []schema.CommitRow{{
-		CommitID:    "0098",
-		TileID:      0,
+	assert.Equal(t, []schema.CommitWithDataRow{{
+		CommitID: "0098",
+		TileID:   0,
+	}, {
+		CommitID: "0099",
+		TileID:   0,
+	}, {
+		CommitID: "0100",
+		TileID:   1,
+	}, {
+		CommitID: "2000",
+		TileID:   1,
+	}}, tables.CommitsWithData)
+	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     gitHash("0098"),
+		CommitID:    cID("0098"),
 		CommitTime:  time.Date(2020, time.December, 5, 14, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_two",
 		Subject:     "subject_98",
-		HasData:     false,
 	}, {
-		CommitID:    "0099",
-		TileID:      0,
 		GitHash:     gitHash("0099"),
+		CommitID:    cID("0099"),
 		CommitTime:  time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_one",
 		Subject:     "subject_99",
-		HasData:     false,
 	}, {
-		CommitID:    "0100",
-		TileID:      1,
 		GitHash:     gitHash("0100"),
+		CommitID:    cID("0100"),
 		CommitTime:  time.Date(2021, time.January, 1, 1, 1, 0, 0, time.UTC),
 		AuthorEmail: "author_100",
 		Subject:     "subject_100",
-		HasData:     false,
 	}, {
-		CommitID:    "2000",
-		TileID:      1,
+		GitHash:     "3333333333333333333333333333333333333333",
+		CommitID:    nil,
+		CommitTime:  time.Date(2021, time.February, 3, 4, 5, 0, 0, time.UTC),
+		AuthorEmail: "somebody",
+		Subject:     "no data 1850",
+	}, {
+		GitHash:     "4444444444444444444444444444444444444444",
+		CommitID:    nil,
+		CommitTime:  time.Date(2021, time.February, 3, 4, 5, 6, 0, time.UTC),
+		AuthorEmail: "somebody",
+		Subject:     "no data 1900",
+	}, {
 		GitHash:     gitHash("2000"),
+		CommitID:    cID("2000"),
 		CommitTime:  time.Date(2022, time.February, 2, 2, 2, 0, 0, time.UTC),
 		AuthorEmail: "author_2k",
 		Subject:     "subject_2k",
-		HasData:     false,
-	}}, tables.Commits)
+	}}, tables.GitCommits)
 }
 
 func TestSetDigests_CalledMultipleTimes_Panics(t *testing.T) {
