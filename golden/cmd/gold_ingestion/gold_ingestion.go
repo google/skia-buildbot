@@ -18,7 +18,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -156,9 +155,8 @@ func main() {
 		sklog.Fatalf("could not instantiate gitstore for %s: %s", isc.GitRepoURL, err)
 	}
 
-	// Set up VCS instance to track master.
-	gitilesRepo := gitiles.NewRepo(isc.GitRepoURL, client)
-	vcs, err := bt_vcs.New(ctx, gitStore, isc.GitRepoBranch, gitilesRepo)
+	// Set up VCS instance to track primary branch.
+	vcs, err := bt_vcs.New(ctx, gitStore, isc.GitRepoBranch)
 	if err != nil {
 		sklog.Fatalf("could not instantiate BT VCS for %s", isc.GitRepoURL)
 	}

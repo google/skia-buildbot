@@ -10,7 +10,6 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/bt"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
@@ -44,8 +43,7 @@ func main() {
 		sklog.Fatalf("Error instantiating gitstore: %s", err)
 	}
 
-	gitilesRepo := gitiles.NewRepo("", nil)
-	vcs, err := bt_vcs.New(ctx, gitStore, branch, gitilesRepo)
+	vcs, err := bt_vcs.New(ctx, gitStore, branch)
 	if err != nil {
 		sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 	}

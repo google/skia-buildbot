@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -18,7 +17,6 @@ import (
 // BigTableVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
 type BigTableVCS struct {
 	gitStore gitstore.GitStore
-	gitiles  *gitiles.Repo
 	branch   string
 
 	// This mutex protects detailsCache and indexCommits
@@ -35,13 +33,12 @@ type BigTableVCS struct {
 // New returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // The instance of gitiles.Repo is only used to fetch files.
-func New(ctx context.Context, gitStore gitstore.GitStore, branch string, repo *gitiles.Repo) (*BigTableVCS, error) {
+func New(ctx context.Context, gitStore gitstore.GitStore, branch string) (*BigTableVCS, error) {
 	if gitStore == nil {
 		return nil, errors.New("Cannot have nil gitStore")
 	}
 	ret := &BigTableVCS{
 		gitStore:     gitStore,
-		gitiles:      repo,
 		branch:       branch,
 		detailsCache: map[string]*vcsinfo.LongCommit{},
 	}
@@ -247,20 +244,6 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, idx int) (*vcsinfo.LongCommit
 		return nil, skerr.Fmt("Hash index not found: %d", idx)
 	}
 	return b.detailsCache[b.indexCommits[idx].Hash], nil
-}
-
-// GetFile implements the vcsinfo.VCS interface
-func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	contents, err := b.gitiles.ReadFileAtRef(ctx, fileName, commitHash)
-	if err != nil {
-		return "", skerr.Wrapf(err, "reading file %s @ %s via gitiles", fileName, commitHash)
-	}
-	return string(contents), nil
-}
-
-// GetGitStore implements the gitstore.GitStoreBased interface
-func (b *BigTableVCS) GetGitStore() gitstore.GitStore {
-	return b.gitStore
 }
 
 // timeRange retrieves IndexCommits from the given time range. Assumes that the
