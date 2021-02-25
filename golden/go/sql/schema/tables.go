@@ -80,11 +80,12 @@ const (
 //go:generate go run ../exporter/tosql --output_file sql.go --logtostderr --output_pkg schema
 type Tables struct {
 	Changelists                 []ChangelistRow                 `sql_backup:"weekly"`
-	Commits                     []CommitRow                     `sql_backup:"daily"`
+	CommitsWithData             []CommitWithDataRow             `sql_backup:"daily"`
 	DiffMetrics                 []DiffMetricRow                 `sql_backup:"monthly"`
 	ExpectationDeltas           []ExpectationDeltaRow           `sql_backup:"daily"`
 	ExpectationRecords          []ExpectationRecordRow          `sql_backup:"daily"`
 	Expectations                []ExpectationRow                `sql_backup:"daily"`
+	GitCommits                  []GitCommitRow                  `sql_backup:"daily"`
 	Groupings                   []GroupingRow                   `sql_backup:"monthly"`
 	IgnoreRules                 []IgnoreRuleRow                 `sql_backup:"daily"`
 	Options                     []OptionsRow                    `sql_backup:"monthly"`
@@ -142,7 +143,9 @@ func (r TraceValueRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.Shard, r.TraceID, r.CommitID, r.Digest, r.GroupingID, r.OptionsID, r.SourceFileID}
 }
 
-type CommitRow struct {
+// CommitWithDataRow represents a commit that has produced some data on the primary branch.
+// It is expected to be created during ingestion.
+type CommitWithDataRow struct {
 	// CommitID is a potentially arbitrary string. commit_ids will be treated as occurring in
 	// lexicographical order.
 	CommitID CommitID `sql:"commit_id STRING PRIMARY KEY"`
@@ -152,28 +155,35 @@ type CommitRow struct {
 	// It is expected that tile_id be set the first time we see data from a given commit on the
 	// primary branch and not changed after, even if the tile size used for an instance changes.
 	TileID TileID `sql:"tile_id INT4 NOT NULL"`
+}
 
-	// TODO(kjlubick) split the git stuff into a GitCommits table.
+// ToSQLRow implements the sqltest.SQLExporter interface.
+func (r CommitWithDataRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"commit_id", "tile_id"},
+		[]interface{}{r.CommitID, r.TileID}
+}
 
+// GitCommitRow represents a git commit that we may or may not have seen data for.
+type GitCommitRow struct {
 	// GitHash is the git hash of the commit.
-	GitHash string `sql:"git_hash STRING NOT NULL"`
+	GitHash string `sql:"git_hash STRING PRIMARY KEY"`
+	// CommitID is a potentially arbitrary string. If non-null, it is a foreign key in the
+	// CommitsWithData table.
+	CommitID *CommitID `sql:"commit_id STRING"`
 	// CommitTime is the timestamp associated with the commit.
 	CommitTime time.Time `sql:"commit_time TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// AuthorEmail is the email address associated with the author.
 	AuthorEmail string `sql:"author_email STRING NOT NULL"`
 	// Subject is the subject line of the commit.
 	Subject string `sql:"subject STRING NOT NULL"`
-	// HasData is set the first time data lands on the primary branch for this commit number. We
-	// use this to determine the dense tile of data. Previously, we had tried to determine this
-	// with a DISTINCT search over TraceValues, but that takes several minutes when there are
-	// 1M+ traces per commit.
-	HasData bool `sql:"has_data BOOL NOT NULL"`
+
+	commitIDIndex struct{} `sql:"INDEX commit_idx (commit_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
-func (r CommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
-	return []string{"commit_id", "tile_id", "git_hash", "commit_time", "author_email", "subject", "has_data"},
-		[]interface{}{r.CommitID, r.TileID, r.GitHash, r.CommitTime, r.AuthorEmail, r.Subject, r.HasData}
+func (r GitCommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
+	return []string{"git_hash", "commit_id", "commit_time", "author_email", "subject"},
+		[]interface{}{r.GitHash, r.CommitID, r.CommitTime, r.AuthorEmail, r.Subject}
 }
 
 type TraceRow struct {
