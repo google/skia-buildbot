@@ -60,7 +60,7 @@ export const defaultShader = `half4 main(float2 fragCoord) {
 
 export type callback = ()=> void;
 
-const defaultImageURL = '/dist/mandrill.png';
+const defaultImageURL = '';
 
 const defaultBody: ScrapBody = {
   Type: 'sksl',
@@ -137,7 +137,7 @@ export class ShaderNode {
 
     constructor(canvasKit: CanvasKit) {
       this.canvasKit = canvasKit;
-      this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+      this.setInputImageShaderToEmptyImage();
       this.setScrap(defaultBody);
     }
 
@@ -199,6 +199,14 @@ export class ShaderNode {
     setCurrentImageURL(val: string, imageLoadedCallback: callback | null = null): void {
       this.currentImageURL = val;
 
+      if (this.currentImageURL === '') {
+        this.setInputImageShaderToEmptyImage();
+        if (imageLoadedCallback) {
+          imageLoadedCallback();
+        }
+        return;
+      }
+
       this.promiseOnImageLoaded(this.currentImageURL).then((imageElement) => {
         this.inputImageShaderFromCanvasImageSource(imageElement);
         if (imageLoadedCallback) {
@@ -207,7 +215,7 @@ export class ShaderNode {
       }).catch(() => {
         errorMessage(`Failed to load image: ${this.currentImageURL}. Falling back to an empty image.`);
         this.currentImageURL = '';
-        this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+        this.setInputImageShaderToEmptyImage();
         if (imageLoadedCallback) {
           imageLoadedCallback();
         }
@@ -366,6 +374,10 @@ export class ShaderNode {
 
     get numPredefinedUniformValues(): number {
       return this._numPredefinedUniformValues;
+    }
+
+    private setInputImageShaderToEmptyImage() {
+      this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
     }
 
     /** The number of floats that are defined by predefined uniforms. */

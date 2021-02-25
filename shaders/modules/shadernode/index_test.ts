@@ -104,7 +104,7 @@ describe('ShaderNode', async () => {
       `,
       SKSLMetaData: {
         Children: [],
-        ImageURL: '/dist/mandrill.png',
+        ImageURL: '',
         Uniforms: startingUniformValues,
       },
     });
@@ -166,7 +166,7 @@ describe('ShaderNode', async () => {
     const node = await createShaderNode();
     node['currentImageURL'] = 'data:foo';
     assert.equal(node.getCurrentImageURL(), 'data:foo');
-    assert.equal(node.getSafeImageURL(), '/dist/mandrill.png');
+    assert.equal(node.getSafeImageURL(), '');
   });
 
   it('reverts to empty image URL if image fails to load.', async () => {
