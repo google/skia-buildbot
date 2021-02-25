@@ -782,26 +782,40 @@ func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
 
 	test(&TaskSearchParams{
 		ForcedJobId: s("123456789"),
+		TimeStart:   &tStart,
+		TimeEnd:     &tCurrent,
 	}, t1)
 	test(&TaskSearchParams{
-		Issue: s("12345"),
+		Issue:     s("12345"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t1, t2)
 	test(&TaskSearchParams{
-		Patchset: s("2"),
+		Patchset:  s("2"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t2)
 	st := types.TASK_STATUS_FAILURE
 	test(&TaskSearchParams{
-		Status: &st,
+		Status:    &st,
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t1, t5)
 	test(&TaskSearchParams{
-		Revision: s("def456"),
+		Revision:  s("def456"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t2, t3)
 	test(&TaskSearchParams{
-		Repo: s("repo2"),
+		Repo:      s("repo2"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t5)
 	test(&TaskSearchParams{
-		Repo:  s(t1.Repo),
-		Issue: s("12345"),
+		Repo:      s(t1.Repo),
+		Issue:     s("12345"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t1, t2)
 	test(&TaskSearchParams{
 		Repo:      s(t1.Repo),
@@ -822,10 +836,14 @@ func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
 		TimeEnd:   ts(t2.Created.Add(-firestore.TS_RESOLUTION)),
 	}, t1)
 	test(&TaskSearchParams{
-		Attempt: i(2),
+		Attempt:   i(2),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t6)
 	test(&TaskSearchParams{
-		Name: s("my-task"),
+		Name:      s("my-task"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, t1, t2, t3, t4, t6)
 }
 
@@ -1086,26 +1104,40 @@ func TestJobDBSearch(t sktest.TestingT, db JobDB) {
 
 	test(&JobSearchParams{
 		BuildbucketBuildID: i(123456789),
+		TimeStart:          &tStart,
+		TimeEnd:            &tCurrent,
 	}, j1)
 	test(&JobSearchParams{
-		Issue: s("12345"),
+		Issue:     s("12345"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j1, j2)
 	test(&JobSearchParams{
-		Patchset: s("2"),
+		Patchset:  s("2"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j2)
 	st := types.JOB_STATUS_FAILURE
 	test(&JobSearchParams{
-		Status: &st,
+		Status:    &st,
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j1, j5)
 	test(&JobSearchParams{
-		Revision: s("def456"),
+		Revision:  s("def456"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j2, j3)
 	test(&JobSearchParams{
-		Repo: s("repo2"),
+		Repo:      s("repo2"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j5)
 	test(&JobSearchParams{
-		Repo:  s(j1.Repo),
-		Issue: s("12345"),
+		Repo:      s(j1.Repo),
+		Issue:     s("12345"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j1, j2)
 	test(&JobSearchParams{
 		Repo:      s(j1.Repo),
@@ -1126,7 +1158,9 @@ func TestJobDBSearch(t sktest.TestingT, db JobDB) {
 		TimeEnd:   ts(j2.Created.Add(-firestore.TS_RESOLUTION)),
 	}, j1)
 	test(&JobSearchParams{
-		Name: s("my-job"),
+		Name:      s("my-job"),
+		TimeStart: &tStart,
+		TimeEnd:   &tCurrent,
 	}, j1, j2, j3, j4)
 }
 
