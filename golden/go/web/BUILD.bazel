@@ -18,7 +18,6 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
-        "//go/vcsinfo",
         "//golden/go/baseline",
         "//golden/go/clstore",
         "//golden/go/diff",
