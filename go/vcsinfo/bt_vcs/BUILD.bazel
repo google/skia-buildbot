@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/go/vcsinfo/bt_vcs",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/gitiles",
         "//go/gitstore",
         "//go/skerr",
         "//go/sklog",
@@ -21,7 +20,6 @@ go_test(
     embed = [":bt_vcs"],
     deps = [
         "//go/git",
-        "//go/gitiles",
         "//go/gitstore",
         "//go/gitstore/bt_gitstore/testutils",
         "//go/gitstore/mocks",

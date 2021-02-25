@@ -9,6 +9,7 @@ go_library(
     importpath = "go.skia.org/infra/task_scheduler/go/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//task_scheduler/go/db",
         "//task_scheduler/go/types",
         "@com_github_stretchr_testify//mock",
     ],

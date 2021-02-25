@@ -12,7 +12,6 @@ go_library(
         "//go/common",
         "//go/firestore",
         "//go/gerrit",
-        "//go/gitiles",
         "//go/gitstore/bt_gitstore",
         "//go/httputils",
         "//go/login",

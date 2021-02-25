@@ -14,6 +14,7 @@ go_library(
     deps = [
         "//go/common",
         "//go/deepequal/assertdeep",
+        "//go/firestore",
         "//go/git/repograph",
         "//go/git/testutils",
         "//go/metrics2",
@@ -24,6 +25,7 @@ go_library(
         "//go/util",
         "//task_scheduler/go/types",
         "//task_scheduler/go/window",
+        "@com_github_google_uuid//:uuid",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
