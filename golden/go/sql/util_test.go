@@ -75,18 +75,6 @@ func TestComputeTraceValueShard_Success(t *testing.T) {
 	assert.Equal(t, byte(0x03), ComputeTraceValueShard(schema.TraceID{0x13, 0x14}))
 }
 
-func TestComputeTileStartID_Success(t *testing.T) {
-	unittest.SmallTest(t)
-
-	assert.Equal(t, schema.CommitID(0), ComputeTileStartID(87, 100))
-	assert.Equal(t, schema.CommitID(100), ComputeTileStartID(127, 100))
-	assert.Equal(t, schema.CommitID(1200), ComputeTileStartID(1234, 100))
-
-	assert.Equal(t, schema.CommitID(0), ComputeTileStartID(87, 500))
-	assert.Equal(t, schema.CommitID(0), ComputeTileStartID(127, 500))
-	assert.Equal(t, schema.CommitID(1000), ComputeTileStartID(1234, 500))
-}
-
 func TestAsMD5Hash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 

@@ -9,12 +9,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 )
 
-// TileWidth is the number of sparse commits whose data is grouped together when creating
-// the PrimaryBranchParams and TiledTraceDigests tables. This should speed up queries that would
-// otherwise have to look at potentially 100x as much data. For data that is very dense, this
-// might not help as much, so we might need to have instance-dependent widths.
-const TileWidth = 100
-
 // MD5Hash is a specialized type for an array of bytes representing an MD5Hash. We use MD5 hashes
 // a lot because they are a deterministic way to generate primary keys, which allows us to more
 // easily cache and deduplicate data when ingesting. Additionally, these hashes are somewhat
@@ -33,7 +27,13 @@ type OptionsID []byte
 type DigestBytes []byte
 type SourceFileID []byte
 
-type CommitID int32
+// CommitID is responsible for indicating when a commit happens in time. CommitIDs should be
+// treated as ordered lexicographically, but need not be densely populated.
+type CommitID string
+
+// TileID is a mechanism for batching together data to speed up queries. A tile will consist of a
+// configurable number of commits with data.
+type TileID int
 
 type NullableBool int
 
@@ -115,7 +115,7 @@ type TraceValueRow struct {
 	TraceID TraceID `sql:"trace_id BYTES"`
 	// CommitID represents when in time this data was drawn. This is a foreign key into the
 	// CommitIDs table.
-	CommitID CommitID `sql:"commit_id INT4"`
+	CommitID CommitID `sql:"commit_id STRING"`
 	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at this point in time
 	// (specified by CommitID) and by the machine (specified by TraceID).
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
@@ -143,8 +143,18 @@ func (r TraceValueRow) ToSQLRow() (colNames []string, colData []interface{}) {
 }
 
 type CommitRow struct {
-	// CommitID is a monotonically increasing number as we follow the primary repo through time.
-	CommitID CommitID `sql:"commit_id INT4 PRIMARY KEY"`
+	// CommitID is a potentially arbitrary string. commit_ids will be treated as occurring in
+	// lexicographical order.
+	CommitID CommitID `sql:"commit_id STRING PRIMARY KEY"`
+	// TileID is an integer that corresponds to the tile for which this commit belongs. Tiles are
+	// intended to be about 100 commits wide, but this could vary slightly if commits are ingested
+	// in not quite sequential order. Additionally, tile widths could change over time if necessary.
+	// It is expected that tile_id be set the first time we see data from a given commit on the
+	// primary branch and not changed after, even if the tile size used for an instance changes.
+	TileID TileID `sql:"tile_id INT4 NOT NULL"`
+
+	// TODO(kjlubick) split the git stuff into a GitCommits table.
+
 	// GitHash is the git hash of the commit.
 	GitHash string `sql:"git_hash STRING NOT NULL"`
 	// CommitTime is the timestamp associated with the commit.
@@ -162,8 +172,8 @@ type CommitRow struct {
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r CommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
-	return []string{"commit_id", "git_hash", "commit_time", "author_email", "subject", "has_data"},
-		[]interface{}{r.CommitID, r.GitHash, r.CommitTime, r.AuthorEmail, r.Subject, r.HasData}
+	return []string{"commit_id", "tile_id", "git_hash", "commit_time", "author_email", "subject", "has_data"},
+		[]interface{}{r.CommitID, r.TileID, r.GitHash, r.CommitTime, r.AuthorEmail, r.Subject, r.HasData}
 }
 
 type TraceRow struct {
@@ -377,7 +387,7 @@ type ValueAtHeadRow struct {
 	TraceID TraceID `sql:"trace_id BYTES PRIMARY KEY"`
 	// MostRecentCommitID represents when in time this data was drawn. This is a foreign key into
 	// the CommitIDs table.
-	MostRecentCommitID CommitID `sql:"most_recent_commit_id INT4 NOT NULL"`
+	MostRecentCommitID CommitID `sql:"most_recent_commit_id STRING NOT NULL"`
 	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at this point in time
 	// (specified by MostRecentCommitID) and by the machine (specified by TraceID).
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
@@ -418,23 +428,21 @@ func (r ValueAtHeadRow) ToSQLRow() (colNames []string, colData []interface{}) {
 // contains Keys *and* Options because users can search/filter/query by both of those and this table
 // is used to fill in the UI widgets with the available search options.
 type PrimaryBranchParamRow struct {
-	// StartCommitID is the commit id that is the beginning of the tile for which this row
-	// corresponds. For example, with a tile width of 100, data from commit 73 would correspond to
-	// StartCommitID == 0; data from commit 1234 would correspond with StartCommitID == 1200 and
-	// so on. This is a foreign key into the CommitIDs table.
-	StartCommitID CommitID `sql:"start_commit_id INT4"`
+	// TileID indicates which tile the given Key and Value were seen on in the primary branch.
+	// This is a foreign key into the Commits table.
+	TileID TileID `sql:"tile_id INT4"`
 	// Key is the key of a trace key or option.
 	Key string `sql:"key STRING"`
 	// Value is the value associated with the key.
 	Value string `sql:"value STRING"`
 	// We generally want locality by tile, so that goes first in the primary key.
-	primaryKey struct{} `sql:"PRIMARY KEY (start_commit_id, key, value)"`
+	primaryKey struct{} `sql:"PRIMARY KEY (tile_id, key, value)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r PrimaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
-	return []string{"start_commit_id", "key", "value"},
-		[]interface{}{r.StartCommitID, r.Key, r.Value}
+	return []string{"tile_id", "key", "value"},
+		[]interface{}{r.TileID, r.Key, r.Value}
 }
 
 // TiledTraceDigestRow corresponds to a given trace producing a given digest within a range (tile)
@@ -446,18 +454,18 @@ type TiledTraceDigestRow struct {
 	TraceID TraceID `sql:"trace_id BYTES"`
 	// StartCommitID is the commit id that is the beginning of the tile for which this row
 	// corresponds.
-	StartCommitID CommitID `sql:"start_commit_id INT4"`
+	TileID TileID `sql:"tile_id INT4"`
 	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at least once in the tile
 	// specified by StartCommitID and by the machine (specified by TraceID).
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
 	// We generally want locality by TraceID, so that goes first in the primary key.
-	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, start_commit_id, digest)"`
+	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, tile_id, digest)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r TiledTraceDigestRow) ToSQLRow() (colNames []string, colData []interface{}) {
-	return []string{"trace_id", "start_commit_id", "digest"},
-		[]interface{}{r.TraceID, r.StartCommitID, r.Digest}
+	return []string{"trace_id", "tile_id", "digest"},
+		[]interface{}{r.TraceID, r.TileID, r.Digest}
 }
 
 type IgnoreRuleRow struct {

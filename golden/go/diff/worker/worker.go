@@ -15,6 +15,7 @@ import (
 
 	"github.com/dgraph-io/ristretto"
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	ttlcache "github.com/patrickmn/go-cache"
 	"go.opencensus.io/trace"
@@ -79,22 +80,22 @@ type DiffCache interface {
 
 // WorkerImpl is a basic implementation that reads and writes to the SQL backend.
 type WorkerImpl struct {
-	db                *pgxpool.Pool
-	diffCache         DiffCache // should be faster to query than db for a "yes/no" answer.
-	imageSource       ImageSource
-	badDigestsCache   *ttlcache.Cache
-	decodedImageCache *ristretto.Cache
-	// TODO(kjlubick) this might not be the best parameter for "digests to compute against" as we
-	//   might just want to query for the last N commits with data and start at that tile to better
-	//   handle the sparse data case.
-	tilesToProcess           int
+	db                       *pgxpool.Pool
+	diffCache                DiffCache // should be faster to query than db for a "yes/no" answer.
+	imageSource              ImageSource
+	badDigestsCache          *ttlcache.Cache
+	decodedImageCache        *ristretto.Cache
+	commitsWithDataToSearch  int
 	metricsCalculatedCounter metrics2.Counter
 	decodedImageBytesSummary metrics2.Float64SummaryMetric
 	encodedImageBytesSummary metrics2.Float64SummaryMetric
 }
 
 // New returns a WorkerImpl that is ready to compute diffs.
-func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, tilesToProcess int) *WorkerImpl {
+func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, commitsWithDataToSearch int) *WorkerImpl {
+	if commitsWithDataToSearch <= 0 {
+		panic("Invalid value for commitsWithDataToSearch")
+	}
 	imgCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: 20_000, // we expect a few thousand decoded images to fit.
 		MaxCost:     decodedImageCacheSizeGB * 1024 * 1024 * 1024,
@@ -109,7 +110,7 @@ func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, tilesToProcess int) *W
 		imageSource:              src,
 		badDigestsCache:          ttlcache.New(badImageCooldown, 2*badImageCooldown),
 		decodedImageCache:        imgCache,
-		tilesToProcess:           tilesToProcess,
+		commitsWithDataToSearch:  commitsWithDataToSearch,
 		metricsCalculatedCounter: metrics2.GetCounter("diffcalculator_metricscalculated"),
 		decodedImageBytesSummary: metrics2.GetFloat64SummaryMetric("diffcalculator_decodedimagebytes"),
 		encodedImageBytesSummary: metrics2.GetFloat64SummaryMetric("diffcalculator_encodedimagebytes"),
@@ -281,27 +282,29 @@ func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount, 
 
 // getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
 // get enough data to do our comparisons).
-func (w *WorkerImpl) getStartingTile(ctx context.Context) (schema.CommitID, error) {
-	row := w.db.QueryRow(ctx, `SELECT max(commit_id) FROM Commits
+func (w *WorkerImpl) getStartingTile(ctx context.Context) (schema.TileID, error) {
+	row := w.db.QueryRow(ctx, `SELECT tile_id FROM Commits
 AS OF SYSTEM TIME '-0.1s'
-WHERE has_data = TRUE`)
+WHERE has_data = TRUE
+ORDER BY commit_id DESC
+LIMIT 1 OFFSET $1`, w.commitsWithDataToSearch-1)
 	var lc pgtype.Int4
 	if err := row.Scan(&lc); err != nil {
+		if err == pgx.ErrNoRows {
+			return 0, nil // not enough commits seen, so start at tile 0.
+		}
 		return 0, skerr.Wrapf(err, "getting latest commit")
 	}
 	if lc.Status == pgtype.Null {
-		// There are no commits with data
+		// There are no commits with data, so start at tile 0.
 		return 0, nil
 	}
-	latestCommit := schema.CommitID(lc.Int)
-	currentTileStart := sql.ComputeTileStartID(latestCommit, schema.TileWidth)
-	// Go backwards so we can use the current tile plus the previous n-1 tiles.
-	return currentTileStart - schema.CommitID(schema.TileWidth*(w.tilesToProcess-1)), nil
+	return schema.TileID(lc.Int), nil
 }
 
 // getAllExisting returns the unique digests that were seen on the primary branch for a given
 // grouping starting at the given commit.
-func (w *WorkerImpl) getAllExisting(ctx context.Context, beginTileStart schema.CommitID, grouping paramtools.Params) ([]types.Digest, error) {
+func (w *WorkerImpl) getAllExisting(ctx context.Context, beginTileStart schema.TileID, grouping paramtools.Params) ([]types.Digest, error) {
 	ctx, span := trace.StartSpan(ctx, "getAllExisting")
 	defer span.End()
 	const statement = `
@@ -311,7 +314,7 @@ TracesMatchingGrouping AS (
 )
 SELECT DISTINCT digest FROM TiledTraceDigests
 JOIN TracesMatchingGrouping on TiledTraceDigests.trace_id = TracesMatchingGrouping.trace_id
-WHERE TiledTraceDigests.start_commit_id >= $2`
+WHERE TiledTraceDigests.tile_id >= $2`
 
 	_, groupingID := sql.SerializeMap(grouping)
 	rows, err := w.db.Query(ctx, statement, groupingID, beginTileStart)
@@ -330,7 +333,7 @@ WHERE TiledTraceDigests.start_commit_id >= $2`
 	return rv, nil
 }
 
-func (w *WorkerImpl) getNonIgnoredExisting(ctx context.Context, beginTileStart schema.CommitID, grouping paramtools.Params) ([]types.Digest, error) {
+func (w *WorkerImpl) getNonIgnoredExisting(ctx context.Context, beginTileStart schema.TileID, grouping paramtools.Params) ([]types.Digest, error) {
 	ctx, span := trace.StartSpan(ctx, "getNonIgnoredExisting")
 	defer span.End()
 	const statement = `
@@ -340,7 +343,7 @@ NotIgnoredTracesMatchingGrouping AS (
 )
 SELECT DISTINCT digest FROM TiledTraceDigests
 JOIN NotIgnoredTracesMatchingGrouping on TiledTraceDigests.trace_id = NotIgnoredTracesMatchingGrouping.trace_id
-WHERE TiledTraceDigests.start_commit_id >= $2`
+WHERE TiledTraceDigests.tile_id >= $2`
 
 	_, groupingID := sql.SerializeMap(grouping)
 	rows, err := w.db.Query(ctx, statement, groupingID, beginTileStart)

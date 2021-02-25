@@ -13,7 +13,8 @@ const Schema = `CREATE TABLE IF NOT EXISTS Changelists (
   INDEX system_status_ingested_idx (system, status, last_ingested_data)
 );
 CREATE TABLE IF NOT EXISTS Commits (
-  commit_id INT4 PRIMARY KEY,
+  commit_id STRING PRIMARY KEY,
+  tile_id INT4 NOT NULL,
   git_hash STRING NOT NULL,
   commit_time TIMESTAMP WITH TIME ZONE NOT NULL,
   author_email STRING NOT NULL,
@@ -81,10 +82,10 @@ CREATE TABLE IF NOT EXISTS Patchsets (
   INDEX cl_order_idx (changelist_id, ps_order)
 );
 CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
-  start_commit_id INT4,
+  tile_id INT4,
   key STRING,
   value STRING,
-  PRIMARY KEY (start_commit_id, key, value)
+  PRIMARY KEY (tile_id, key, value)
 );
 CREATE TABLE IF NOT EXISTS ProblemImages (
   digest STRING PRIMARY KEY,
@@ -125,14 +126,14 @@ CREATE TABLE IF NOT EXISTS SourceFiles (
 );
 CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   trace_id BYTES,
-  start_commit_id INT4,
+  tile_id INT4,
   digest BYTES NOT NULL,
-  PRIMARY KEY (trace_id, start_commit_id, digest)
+  PRIMARY KEY (trace_id, tile_id, digest)
 );
 CREATE TABLE IF NOT EXISTS TraceValues (
   shard INT2,
   trace_id BYTES,
-  commit_id INT4,
+  commit_id STRING,
   digest BYTES NOT NULL,
   grouping_id BYTES NOT NULL,
   options_id BYTES NOT NULL,
@@ -157,7 +158,7 @@ CREATE TABLE IF NOT EXISTS Tryjobs (
 );
 CREATE TABLE IF NOT EXISTS ValuesAtHead (
   trace_id BYTES PRIMARY KEY,
-  most_recent_commit_id INT4 NOT NULL,
+  most_recent_commit_id STRING NOT NULL,
   digest BYTES NOT NULL,
   options_id BYTES NOT NULL,
   grouping_id BYTES NOT NULL,

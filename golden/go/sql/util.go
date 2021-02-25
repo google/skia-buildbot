@@ -50,11 +50,6 @@ func ComputeTraceValueShard(traceID schema.TraceID) byte {
 	return traceID[0] % TraceValuesShards
 }
 
-// ComputeTileStartID returns the commit id is the beginning of the tile that the commit is in.
-func ComputeTileStartID(cid schema.CommitID, tileWidth int) schema.CommitID {
-	return (cid / schema.CommitID(tileWidth)) * schema.CommitID(tileWidth)
-}
-
 // AsMD5Hash returns the given byte slice as an MD5Hash (for easier use with maps)
 func AsMD5Hash(b []byte) schema.MD5Hash {
 	var m schema.MD5Hash

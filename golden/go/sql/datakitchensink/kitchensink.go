@@ -13,25 +13,25 @@ import (
 
 // Build creates a set of data that covers many common testing scenarios.
 func Build() schema.Tables {
-	b := databuilder.TablesBuilder{}
+	b := databuilder.TablesBuilder{TileWidth: 5}
 	// This data set has data on 10 commits and no data on 3 commits in the middle.
-	// Intentionally put these commits such that they straddle a tile (100 commits).
+	// Intentionally put these commits such that they straddle a tile.
 	// Commits with ids 103-105 have no data to help test sparse data.
 	b.CommitsWithData().
-		Insert(98, UserOne, "commit 98", "2020-12-01T00:00:00Z").
-		Append(UserTwo, "commit 99", "2020-12-02T00:00:00Z").
-		Append(UserThree, "commit 100", "2020-12-03T00:00:00Z").
-		Append(UserTwo, "Update Windows 10.2 to 10.3", "2020-12-04T00:00:00Z").
-		Append(UserOne, "commit 102", "2020-12-05T00:00:00Z").
-		Insert(106, UserTwo, "Add walleye device", "2020-12-07T00:00:00Z").
-		Append(UserThree, "Add taimen device [flaky]", "2020-12-08T00:00:00Z").
-		Append(UserTwo, "Fix iOS Triangle tests [accidental break of circle tests]", "2020-12-09T00:00:00Z").
-		Append(UserOne, "Enable autotriage of walleye", "2020-12-10T00:00:00Z").
-		Append(UserTwo, "commit 110", "2020-12-11T00:00:00Z")
-	b.CommitsWithNoData().
-		Insert(103, UserFour, "no data 103", "2020-12-06T01:00:00Z").
-		Append(UserFour, "no data 104", "2020-12-06T02:00:00Z").
-		Append(UserFour, "no data 105", "2020-12-06T03:00:00Z")
+		Insert("0000000098", UserOne, "commit 98", "2020-12-01T00:00:00Z").
+		Insert("0000000099", UserTwo, "commit 99", "2020-12-02T00:00:00Z").
+		Insert("0000000100", UserThree, "commit 100", "2020-12-03T00:00:00Z").
+		Insert("0000000101", UserTwo, "Update Windows 10.2 to 10.3", "2020-12-04T00:00:00Z").
+		Insert("0000000102", UserOne, "commit 102", "2020-12-05T00:00:00Z").
+		// TODO(kjlubick) bring this back with GitCommits table.
+		//Insert("0000000103", UserFour, "no data 103", "2020-12-06T01:00:00Z").
+		//Insert("0000000104", UserFour, "no data 104", "2020-12-06T02:00:00Z").
+		//Insert("0000000105", UserFour, "no data 105", "2020-12-06T03:00:00Z").
+		Insert("0000000106", UserTwo, "Add walleye device", "2020-12-07T00:00:00Z").
+		Insert("0000000107", UserThree, "Add taimen device [flaky]", "2020-12-08T00:00:00Z").
+		Insert("0000000108", UserTwo, "Fix iOS Triangle tests [accidental break of circle tests]", "2020-12-09T00:00:00Z").
+		Insert("0000000109", UserOne, "Enable autotriage of walleye", "2020-12-10T00:00:00Z").
+		Insert("0000000110", UserTwo, "commit 110", "2020-12-11T00:00:00Z")
 
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase

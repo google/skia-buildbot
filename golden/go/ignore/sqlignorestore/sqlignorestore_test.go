@@ -167,7 +167,7 @@ func TestCreate_AllTracesUpdated(t *testing.T) {
 // a single ignore rule.
 func loadTestData(t *testing.T, ctx context.Context, db *pgxpool.Pool) {
 	data := databuilder.TablesBuilder{}
-	data.CommitsWithData().Append("whoever@example.com", "initial commit", "2021-01-11T16:00:00Z")
+	data.CommitsWithData().Insert("123", "whoever@example.com", "initial commit", "2021-01-11T16:00:00Z")
 	data.SetDigests(map[rune]types.Digest{
 		'a': datakitchensink.DigestA04Unt,
 	})
