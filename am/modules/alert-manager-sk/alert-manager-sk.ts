@@ -935,7 +935,7 @@ export class AlertManagerSk extends HTMLElement {
   private sendDesktopNotification(unNotifiedIncidents: Incident[]): void {
     if (unNotifiedIncidents.length === 0) {
       // Do nothing.
-      return;
+      // return;
     }
     let text = '';
     if (unNotifiedIncidents.length === 1) {
@@ -950,6 +950,8 @@ export class AlertManagerSk extends HTMLElement {
       // only one notification is sent for the same alert.
       tag: `alertManagerNotification${text}`,
     });
+    console.log('THIS IS THE MSG');
+    console.log(text);
     // onclick move focus to the am.skia.org tab and close the notification.
     notification.onclick = () => {
       window.parent.focus();

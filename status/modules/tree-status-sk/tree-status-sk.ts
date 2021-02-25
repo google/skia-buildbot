@@ -108,11 +108,48 @@ export class TreeStatusSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
+
+    this.requestDesktopNotificationPermission();
     this._render();
     this.refresh();
   }
 
+  private requestDesktopNotificationPermission(): void {
+    if (Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  private sendDesktopNotification(treeStatus: TreeStatusResp): void {
+    // Do not notify if status window is already in focus.
+    console.log('FOCUS???');
+    console.log(window.parent.document.hasFocus());
+    console.log(window.document.hasFocus());
+    if (window.parent.document.hasFocus()) {
+      console.log('DOCUMENT HAS FOCUS!!! NOT NOTIFYING!');
+      return;
+    }
+
+    const msg = `${treeStatus.message} [${shortName(treeStatus.username)} ${treeStatus.date ? diffDate(`${treeStatus.date}UTC`) : 'eons'} ago]`;
+    const notification = new Notification('status notification', {
+      body: msg,
+      // 'tag' handles multi-tab scenarios. When multiple tabs are open then
+      // only one notification is sent for the same alert.
+      tag: `statusNotification${treeStatus}`,
+    });
+    console.log('THIS IS THE MESG');
+    console.log(msg);
+    // onclick move focus to the status tab and close the notification.
+    notification.onclick = () => {
+      window.parent.focus();
+      window.focus(); // Supports older browsers.
+      notification.close();
+    };
+    setTimeout(notification.close.bind(notification), 10000);
+  }
+
   private refresh() {
+    console.log('IN REFRESH!!!');
     const fetches = (this.treeStatus.rotations.map((role) => fetch(role.currentUrl, { method: 'GET' })
       .then(jsonOrThrow)
       .then((json: RoleResp) => {
@@ -122,7 +159,21 @@ export class TreeStatusSk extends ElementSk {
       .catch(errorMessage)) as Array<Promise<any>>).concat(
       fetch(`${treeStatusUrl}current`, { method: 'GET' })
         .then(jsonOrThrow)
-        .then((json: TreeStatusResp) => (this.treeStatus.status = json))
+        .then((json: TreeStatusResp) => {
+          console.log('GOT THIS:');
+          console.log(json);
+          if (json.message !== this.treeStatus.status.message) {
+            console.log('IT IS DIFFERENT THAN');
+            console.log(this.treeStatus.status.message);
+            // If the received message is different send a chrome notification.
+            this.sendDesktopNotification(this.treeStatus.status);
+          } else {
+            console.log('NOT NOTIFYING BECAUSE');
+            console.log(json.message);
+            console.log(this.treeStatus.status.message);
+          }
+          this.treeStatus.status = json;
+        })
         .catch(errorMessage),
     );
 
@@ -134,7 +185,7 @@ export class TreeStatusSk extends ElementSk {
           detail: this.treeStatus,
         }),
       );
-      window.setTimeout(() => this.refresh(), 60 * 1000);
+      window.setTimeout(() => this.refresh(), 10 * 1000); // this was 60
     });
   }
 }
