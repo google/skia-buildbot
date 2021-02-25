@@ -11,12 +11,12 @@
 # that is complete it should be the canconical way to create named scraps.
 
 # Create a name for each scrap.
-curl --silent -X PUT -d "{\"Hash\": \"26a447d730ba7afe4df7709b9079fbe2d592136dca60b8ddab7e1b56ea302791\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@inputs
-curl --silent -X PUT -d "{\"Hash\": \"f9ae5d2b4d9b4f5f60ae47b46c034bee16290739831f490ad014c3ba93d13e46\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iResolution
-curl --silent -X PUT -d "{\"Hash\": \"c56c6550edb52aff98320153ab05a2bcfa1f300e62a5401e37d16814aaabd618\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iTime
-curl --silent -X PUT -d "{\"Hash\": \"4bca396ca53e90795bda2920a1002a7733149bfe6543eddfa1b803d187581a61\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iMouse
-curl --silent -X PUT -d "{\"Hash\": \"bff9e3fba6621e7ad09b736968d048ac1b0ef4a19f33cbf236bdec189acf57cb\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@default
-curl --silent -X PUT -d "{\"Hash\": \"ce6356effbe0586323b1d673861f36454ef67c51507c7b0678e9eba274531cd2\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iImage
+curl --silent -X PUT -d "{\"Hash\": \"e281d732554e8d64ac628d300d180efb41af6081772b15cc21623fd47af1ecb2\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@inputs
+curl --silent -X PUT -d "{\"Hash\": \"3124d06f75fa4a5138784e80592909d094a50dfd7a53aed82f660c1c021fa628\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iResolution
+curl --silent -X PUT -d "{\"Hash\": \"12f6c3ecf3f26b1b734d0f254b5bb97cb7d395a9e4829fbab9cda3fef9e3ad9e\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iTime
+curl --silent -X PUT -d "{\"Hash\": \"229312432fbd5c54b471d766a0da29cd7d22f53b7a9a90f3b014a87114d02dd1\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iMouse
+curl --silent -X PUT -d "{\"Hash\": \"76819961bb22c1982492ed57a3972f855a01026b0686d636bd23773f4855d218\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@default
+curl --silent -X PUT -d "{\"Hash\": \"90620bbe06e6a6c7ca57b171727acd00825af73351f9848353037b72b3d1e3f1\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iImage
 
 # List all named sksl scraps.
 curl --silent http://localhost:9000/_/names/sksl/
