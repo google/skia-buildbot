@@ -440,15 +440,6 @@ func (g *GitInfo) FullHash(ctx context.Context, ref string) (string, error) {
 	return strings.Trim(output, "\n"), nil
 }
 
-// GetFile returns the contents of the given file at the given commit.
-func (g *GitInfo) GetFile(ctx context.Context, fileName, commit string) (string, error) {
-	output, err := g.dir.Git(ctx, "show", commit+":"+fileName)
-	if err != nil {
-		return "", err
-	}
-	return output, nil
-}
-
 // InitialCommit returns the hash of the initial commit.
 func (g *GitInfo) InitialCommit(ctx context.Context) (string, error) {
 	output, err := g.dir.Git(ctx, "rev-list", "--max-parents=0", "--first-parent", "HEAD")

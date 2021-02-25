@@ -65,19 +65,6 @@ type GitStore interface {
 	RangeByTime(ctx context.Context, start, end time.Time, branch string) ([]*vcsinfo.IndexCommit, error)
 }
 
-// GitStoreBased is an interface that tags an object as being based on GitStore and the
-// underlying GitStore instance can be retrieved. e.g.
-//
-// if gsb, ok := someInstance.(GitStoreBased); ok {
-//   gitStore := gsb.GetGitStore()
-//   ...  do something with gitStore
-// }
-//
-type GitStoreBased interface {
-	// GetGitStore returns the underlying GitStore instances.
-	GetGitStore() GitStore
-}
-
 // BranchPointer captures the HEAD of a branch and the index of that commit.
 type BranchPointer struct {
 	Head  string
