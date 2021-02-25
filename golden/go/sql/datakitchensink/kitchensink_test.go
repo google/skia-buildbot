@@ -71,4 +71,19 @@ func TestBuild_DataIsValidAndMatchesSchema(t *testing.T) {
 	count = 0
 	assert.NoError(t, row.Scan(&count))
 	assert.Equal(t, 6, count)
+
+	row = db.QueryRow(ctx, "SELECT count(*) from GitCommits")
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 13, count)
+
+	row = db.QueryRow(ctx, "SELECT count(*) from GitCommits WHERE commit_id IS NULL")
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 3, count)
+
+	row = db.QueryRow(ctx, "SELECT count(*) from CommitsWithData")
+	count = 0
+	assert.NoError(t, row.Scan(&count))
+	assert.Equal(t, 10, count)
 }
