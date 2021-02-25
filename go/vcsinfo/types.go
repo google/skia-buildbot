@@ -113,7 +113,4 @@ type VCS interface {
 	// ByIndex returns a LongCommit describing the commit
 	// at position N, as ordered in the current branch.
 	ByIndex(ctx context.Context, N int) (*LongCommit, error)
-
-	// GetFile returns the content of the given file at the given commit.
-	GetFile(ctx context.Context, fileName, commitHash string) (string, error)
 }

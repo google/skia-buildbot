@@ -101,27 +101,6 @@ func (_m *VCS) From(start time.Time) []string {
 	return r0
 }
 
-// GetFile provides a mock function with given fields: ctx, fileName, commitHash
-func (_m *VCS) GetFile(ctx context.Context, fileName string, commitHash string) (string, error) {
-	ret := _m.Called(ctx, fileName, commitHash)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = rf(ctx, fileName, commitHash)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, fileName, commitHash)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // IndexOf provides a mock function with given fields: ctx, hash
 func (_m *VCS) IndexOf(ctx context.Context, hash string) (int, error) {
 	ret := _m.Called(ctx, hash)

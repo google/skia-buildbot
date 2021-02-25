@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	gs_testutils "go.skia.org/infra/go/gitstore/bt_gitstore/testutils"
 	"go.skia.org/infra/go/gitstore/mocks"
@@ -19,11 +18,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	vcs_testutils "go.skia.org/infra/go/vcsinfo/testutils"
 	"golang.org/x/sync/errgroup"
-)
-
-const (
-	skiaRepoURL  = "https://skia.googlesource.com/skia.git"
-	localRepoURL = "https://example.com/local.git"
 )
 
 func TestVCSSuite(t *testing.T) {
@@ -78,7 +72,7 @@ func TestConcurrentUpdate(t *testing.T) {
 	mg.On("Get", testutils.AnyContext, hashes[:1]).Return(lcs[:1], nil).Once()
 
 	ctx := context.Background()
-	vcs, err := New(ctx, mg, git.DefaultBranch, nil)
+	vcs, err := New(ctx, mg, git.DefaultBranch)
 	require.NoError(t, err)
 
 	// Now, pretend that the other two commits have landed, and run Update
@@ -100,19 +94,6 @@ func TestConcurrentUpdate(t *testing.T) {
 	require.NoError(t, egroup.Wait())
 }
 
-// TestGetFile makes sure that we can use gittiles to fetch an
-// arbitrary file (DEPS) from the Skia repo at a chosen commit.
-func TestGetFile(t *testing.T) {
-	unittest.LargeTest(t)
-	gtRepo := gitiles.NewRepo(skiaRepoURL, nil)
-	hash := "9be246ed747fd1b900013dd0596aed0b1a63a1fa"
-	vcs := &BigTableVCS{
-		gitiles: gtRepo,
-	}
-	_, err := vcs.GetFile(context.Background(), "DEPS", hash)
-	require.NoError(t, err)
-}
-
 // TestDetailsCaching makes sure that multiple calls to Details do
 // not result in multiple calls to the underlying gitstore, that is,
 // the details per commit hash are cached.
@@ -127,7 +108,7 @@ func TestDetailsCaching(t *testing.T) {
 	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.DefaultBranch).Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
 
-	vcs, err := New(context.Background(), mg, git.DefaultBranch, nil)
+	vcs, err := New(context.Background(), mg, git.DefaultBranch)
 	require.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
@@ -160,7 +141,7 @@ func TestDetailsMultiCaching(t *testing.T) {
 	mg.On("RangeN", testutils.AnyContext, 0, math.MaxInt32, git.DefaultBranch).Return(makeTestIndexCommits(), nil)
 	mg.On("Get", testutils.AnyContext, []string{firstHash, secondHash, thirdHash}).Return(commits, nil).Once()
 
-	vcs, err := New(context.Background(), mg, git.DefaultBranch, nil)
+	vcs, err := New(context.Background(), mg, git.DefaultBranch)
 	require.NoError(t, err)
 
 	// query details 3 times, and make sure it uses the cache after the
@@ -194,7 +175,7 @@ func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, gitstore.GitSt
 	require.NoError(t, err)
 	ctx := context.Background()
 	_, _, btgs := gs_testutils.SetupAndLoadBTGitStore(t, ctx, wd, "file://"+repoDir, true)
-	vcs, err := New(ctx, btgs, branch, nil)
+	vcs, err := New(ctx, btgs, branch)
 	require.NoError(t, err)
 	return vcs, btgs, func() {
 		util.RemoveAll(wd)
@@ -271,15 +252,6 @@ func makeTestIndexCommits() []*vcsinfo.IndexCommit {
 			Hash:      thirdHash,
 			Index:     2,
 			Timestamp: thirdTime,
-		},
-	}
-}
-
-func makeTestBranchPointerMap() map[string]*gitstore.BranchPointer {
-	return map[string]*gitstore.BranchPointer{
-		git.DefaultBranch: {
-			Head:  git.DefaultBranch,
-			Index: 3,
 		},
 	}
 }

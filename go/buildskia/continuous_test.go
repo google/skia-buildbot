@@ -79,9 +79,6 @@ func (m *mockVcs) From(start time.Time) []string                                
 func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit               { return nil }
 func (m *mockVcs) IndexOf(ctx context.Context, hash string) (int, error)           { return 0, nil }
 func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) { return nil, nil }
-func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	return "", nil
-}
 
 // Details returns the full commit information for the given hash.
 // If includeBranchInfo is true the Branches field of the returned
