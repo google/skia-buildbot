@@ -22,6 +22,30 @@
       },
       "revId": "4038a79db28fb1290da10d8b17d8535efe0670fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6a4205e_fa15a79b",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 14
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-02-25T14:21:00Z",
+      "side": 1,
+      "message": "No, the scrap exchange server doesn\u0027t do any checks on the SKSLMetaData.",
+      "parentUuid": "be85af29_e3838025",
+      "range": {
+        "startLine": 227,
+        "startChar": 10,
+        "endLine": 227,
+        "endChar": 18
+      },
+      "revId": "4038a79db28fb1290da10d8b17d8535efe0670fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
