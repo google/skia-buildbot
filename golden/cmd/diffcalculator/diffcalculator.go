@@ -46,6 +46,10 @@ const (
 type diffCalculatorConfig struct {
 	config.Common
 
+	// CommitsWithDataToSearch is how many commits we should go back in time through to find
+	// images to diff against.
+	CommitsWithDataToSearch int `json:"commits_with_data_to_search"`
+
 	// DiffCacheNamespace is a namespace for differentiating the DiffCache entities. The instance
 	// name is fine here.
 	DiffCacheNamespace string `json:"diff_cache_namespace" optional:"true"`
@@ -71,10 +75,6 @@ type diffCalculatorConfig struct {
 
 	// The port to provide a web handler for /healthz
 	ReadyPort string `json:"ready_port"`
-
-	// TileToProcess is how many tiles of commits we should use as the number of available digests
-	// to diff.
-	TilesToProcess int `json:"tiles_to_process"`
 }
 
 func main() {
@@ -118,7 +118,7 @@ func main() {
 	gis := mustMakeGCSImageSource(ctx, dcc)
 	diffcache := mustMakeDiffCache(ctx, dcc)
 	sqlProcessor := &processor{
-		calculator:  worker.New(db, gis, diffcache, dcc.TilesToProcess),
+		calculator:  worker.New(db, gis, diffcache, dcc.CommitsWithDataToSearch),
 		ackCounter:  metrics2.GetCounter("diffcalculator_ack"),
 		nackCounter: metrics2.GetCounter("diffcalculator_nack"),
 	}
