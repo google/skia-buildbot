@@ -37,6 +37,7 @@ import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import {
+  defaultScrapBody,
   defaultShader, numPredefinedUniformControls, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
 } from '../shadernode';
 
@@ -334,10 +335,11 @@ export class ShadersAppSk extends ElementSk {
       try {
         this.stateChanged = stateReflector(
           /* getState */ () => (this.state as unknown) as HintableObject,
-          /* setState */ (newState: HintableObject) => {
+          /* setState */ async (newState: HintableObject) => {
             this.state = (newState as unknown) as State;
             this.shaderNode = new ShaderNode(this.kit!);
             if (!this.state.id) {
+              await this.shaderNode.setScrap(defaultScrapBody);
               this.run();
             } else {
               this.loadShaderIfNecessary();
@@ -369,10 +371,7 @@ export class ShadersAppSk extends ElementSk {
       return;
     }
     try {
-      await this.shaderNode!.loadScrap(this.state.id, () => {
-        // Re-render once the input image has loaded.
-        this._render();
-      });
+      await this.shaderNode!.loadScrap(this.state.id);
       this._render();
 
       const predefinedUniformValues = new Array(this.shaderNode!.numPredefinedUniformValues).fill(0);
@@ -566,7 +565,7 @@ export class ShadersAppSk extends ElementSk {
       URL.revokeObjectURL(oldURL);
     }
 
-    this.shaderNode!.setCurrentImageURL(url, () => this._render());
+    this.shaderNode!.setCurrentImageURL(url).then(() => this._render());
   }
 }
 
