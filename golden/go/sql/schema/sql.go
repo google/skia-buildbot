@@ -12,14 +12,9 @@ const Schema = `CREATE TABLE IF NOT EXISTS Changelists (
   last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL,
   INDEX system_status_ingested_idx (system, status, last_ingested_data)
 );
-CREATE TABLE IF NOT EXISTS Commits (
+CREATE TABLE IF NOT EXISTS CommitsWithData (
   commit_id STRING PRIMARY KEY,
-  tile_id INT4 NOT NULL,
-  git_hash STRING NOT NULL,
-  commit_time TIMESTAMP WITH TIME ZONE NOT NULL,
-  author_email STRING NOT NULL,
-  subject STRING NOT NULL,
-  has_data BOOL NOT NULL
+  tile_id INT4 NOT NULL
 );
 CREATE TABLE IF NOT EXISTS DiffMetrics (
   left_digest BYTES,
@@ -54,6 +49,14 @@ CREATE TABLE IF NOT EXISTS Expectations (
   label CHAR NOT NULL,
   expectation_record_id UUID,
   PRIMARY KEY (grouping_id, digest)
+);
+CREATE TABLE IF NOT EXISTS GitCommits (
+  git_hash STRING PRIMARY KEY,
+  commit_id STRING,
+  commit_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  author_email STRING NOT NULL,
+  subject STRING NOT NULL,
+  INDEX commit_idx (commit_id)
 );
 CREATE TABLE IF NOT EXISTS Groupings (
   grouping_id BYTES PRIMARY KEY,

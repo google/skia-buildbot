@@ -283,9 +283,8 @@ func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount, 
 // getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
 // get enough data to do our comparisons).
 func (w *WorkerImpl) getStartingTile(ctx context.Context) (schema.TileID, error) {
-	row := w.db.QueryRow(ctx, `SELECT tile_id FROM Commits
+	row := w.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
 AS OF SYSTEM TIME '-0.1s'
-WHERE has_data = TRUE
 ORDER BY commit_id DESC
 LIMIT 1 OFFSET $1`, w.commitsWithDataToSearch-1)
 	var lc pgtype.Int4

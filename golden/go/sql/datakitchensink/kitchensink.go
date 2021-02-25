@@ -23,15 +23,16 @@ func Build() schema.Tables {
 		Insert("0000000100", UserThree, "commit 100", "2020-12-03T00:00:00Z").
 		Insert("0000000101", UserTwo, "Update Windows 10.2 to 10.3", "2020-12-04T00:00:00Z").
 		Insert("0000000102", UserOne, "commit 102", "2020-12-05T00:00:00Z").
-		// TODO(kjlubick) bring this back with GitCommits table.
-		//Insert("0000000103", UserFour, "no data 103", "2020-12-06T01:00:00Z").
-		//Insert("0000000104", UserFour, "no data 104", "2020-12-06T02:00:00Z").
-		//Insert("0000000105", UserFour, "no data 105", "2020-12-06T03:00:00Z").
 		Insert("0000000106", UserTwo, "Add walleye device", "2020-12-07T00:00:00Z").
 		Insert("0000000107", UserThree, "Add taimen device [flaky]", "2020-12-08T00:00:00Z").
 		Insert("0000000108", UserTwo, "Fix iOS Triangle tests [accidental break of circle tests]", "2020-12-09T00:00:00Z").
 		Insert("0000000109", UserOne, "Enable autotriage of walleye", "2020-12-10T00:00:00Z").
 		Insert("0000000110", UserTwo, "commit 110", "2020-12-11T00:00:00Z")
+
+	b.CommitsWithNoData().
+		Insert("0103010301030103010301030103010301030103", UserFour, "no data 103", "2020-12-06T01:00:00Z").
+		Insert("0104010401040104010401040104010401040104", UserFour, "no data 104", "2020-12-06T02:00:00Z").
+		Insert("0105010501050105010501050105010501050105", UserFour, "no data 105", "2020-12-06T03:00:00Z")
 
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
