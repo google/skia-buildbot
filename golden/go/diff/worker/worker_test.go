@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -240,11 +239,11 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
 	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	// Only C03, C04, C05 will be in the last two tiles for this data.
+	// Only C03, C04, C05 will be in the last 3 commits for this data.
 	sparseData := makeSparseData()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, sparseData))
 	waitForSystemTime()
-	w := newWorkerUsingImagesFromKitchenSink(t, db)
+	w := New(db, &fsImageSource{root: kitchenSinkRoot(t)}, &memDiffCache{}, 3)
 
 	grouping := paramtools.Params{
 		types.CorpusField:     dks.RoundCorpus,
@@ -432,8 +431,8 @@ func TestCalculateDiffs_IgnoredTracesNotComparedToEachOther_Success(t *testing.T
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	// C04 and C05 appear only on ignored traces. C01, C02 appear only on non-ignored traces.
 	// C03 appears on both an ignored trace and an ignored trace.
-	sparseData := makeDataWithIgnoredTraces()
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, sparseData))
+	data := makeDataWithIgnoredTraces()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, data))
 	waitForSystemTime()
 	w := newWorkerUsingImagesFromKitchenSink(t, db)
 
@@ -506,20 +505,14 @@ func getAllProblemImageRows(t *testing.T, db *pgxpool.Pool) []schema.ProblemImag
 }
 
 func makeSparseData() schema.Tables {
-	b := databuilder.TablesBuilder{}
-	// Make a few commits with data across several tiles (tile width == 100)
+	b := databuilder.TablesBuilder{TileWidth: 1}
+	// Make a few commits, each on their own tile
 	b.CommitsWithData().
-		Insert(337, "whomever", "commit 337", "2020-12-01T00:00:01Z").
-		Insert(437, "whomever", "commit 437", "2020-12-01T00:00:02Z").
-		Insert(537, "whomever", "commit 537", "2020-12-01T00:00:03Z").
-		Insert(637, "whomever", "commit 637", "2020-12-01T00:00:04Z").
-		Insert(687, "whomever", "commit 687", "2020-12-01T00:00:05Z")
-	// Then add a bunch of empty commits after. These should not impact the latest commit/tile
-	// with data.
-	nd := b.CommitsWithNoData()
-	for i := 688; i < 710; i++ {
-		nd.Insert(i, "no data author", "no data "+strconv.Itoa(i), "2020-12-01T00:00:06Z")
-	}
+		Insert("337", "whomever", "commit 337", "2020-12-01T00:00:01Z").
+		Insert("437", "whomever", "commit 437", "2020-12-01T00:00:02Z").
+		Insert("537", "whomever", "commit 537", "2020-12-01T00:00:03Z").
+		Insert("637", "whomever", "commit 637", "2020-12-01T00:00:04Z").
+		Insert("687", "whomever", "commit 687", "2020-12-01T00:00:05Z")
 
 	b.SetDigests(map[rune]types.Digest{
 		// All of these will be untriaged because diffs don't care about triage status
@@ -549,8 +542,8 @@ func makeSparseData() schema.Tables {
 func makeDataWithIgnoredTraces() schema.Tables {
 	b := databuilder.TablesBuilder{}
 	b.CommitsWithData().
-		Insert(8, "whomever", "commit 8", "2020-12-01T00:00:01Z").
-		Append("whomever", "commit 9", "2020-12-01T00:00:02Z")
+		Insert("008", "whomever", "commit 8", "2020-12-01T00:00:01Z").
+		Insert("009", "whomever", "commit 9", "2020-12-01T00:00:02Z")
 
 	b.SetDigests(map[rune]types.Digest{
 		// All of these will be untriaged because diffs don't care about triage status
@@ -621,14 +614,14 @@ func kitchenSinkRoot(t *testing.T) string {
 }
 
 func newWorkerUsingImagesFromKitchenSink(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
-	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, &memDiffCache{}, 2)
+	return New(db, &fsImageSource{root: kitchenSinkRoot(t)}, &memDiffCache{}, 200)
 }
 
 func newWorkerUsingBlankImages(t *testing.T, db *pgxpool.Pool) *WorkerImpl {
 	infraRoot, err := repo_root.Get()
 	require.NoError(t, err)
 	blankImagePath := filepath.Join(infraRoot, "golden", "go", "sql", "datakitchensink", "img", string(dks.DigestBlank+".png"))
-	return New(db, &fixedImageSource{img: blankImagePath}, &memDiffCache{}, 2)
+	return New(db, &fixedImageSource{img: blankImagePath}, &memDiffCache{}, 200)
 }
 
 var kitchenSinkData = dks.Build()
