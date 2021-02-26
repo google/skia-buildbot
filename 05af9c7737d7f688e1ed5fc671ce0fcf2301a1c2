@@ -22,6 +22,30 @@
       },
       "revId": "05af9c7737d7f688e1ed5fc671ce0fcf2301a1c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3dc5e40c_f34749ed",
+        "filename": "golden/cmd/gitilesfollower/gitilesfollower.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-26T18:42:21Z",
+      "side": 1,
+      "message": "\"The provided key must be comparable and should not be of type string or any other built-in type to avoid collisions between packages using context. Users of WithValue should define their own types for keys.\"\n\nhttps://golang.org/pkg/context/#WithValue",
+      "parentUuid": "3307e0bd_c9917603",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 22
+      },
+      "revId": "05af9c7737d7f688e1ed5fc671ce0fcf2301a1c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
