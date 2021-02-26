@@ -23,6 +23,7 @@ import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
 import 'elements-sk/icon/edit-icon-sk';
+import 'elements-sk/icon/add-icon-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
@@ -37,6 +38,7 @@ import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import {
+  defaultScrapBody,
   defaultShader, numPredefinedUniformControls, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
 } from '../shadernode';
 
@@ -272,7 +274,11 @@ export class ShadersAppSk extends ElementSk {
             </details>
           </div>
         </details>
+        <textarea style="display: ${ele.shaderNode?.children.length ? 'block' : 'none'}" rows=${ele.shaderNode?.children.length || 0} cols=75>${ele.shaderNode?.getChildShaderUniforms() || ''}</textarea>
         <div id="codeEditor"></div>
+        <div>
+          <button @click=${ele.appendChildShader}><add-icon-sk></add-icon-sk></button>
+        </div>
         <div ?hidden=${!ele.shaderNode?.compileErrorMessage} id="compileErrors">
           <h3>Errors</h3>
           <pre>${ele.shaderNode?.compileErrorMessage}</pre>
@@ -334,10 +340,11 @@ export class ShadersAppSk extends ElementSk {
       try {
         this.stateChanged = stateReflector(
           /* getState */ () => (this.state as unknown) as HintableObject,
-          /* setState */ (newState: HintableObject) => {
+          /* setState */ async (newState: HintableObject) => {
             this.state = (newState as unknown) as State;
             this.shaderNode = new ShaderNode(this.kit!);
             if (!this.state.id) {
+              await this.shaderNode.setScrap(defaultScrapBody);
               this.run();
             } else {
               this.loadShaderIfNecessary();
@@ -369,10 +376,7 @@ export class ShadersAppSk extends ElementSk {
       return;
     }
     try {
-      await this.shaderNode!.loadScrap(this.state.id, () => {
-        // Re-render once the input image has loaded.
-        this._render();
-      });
+      await this.shaderNode!.loadScrap(this.state.id);
       this._render();
 
       const predefinedUniformValues = new Array(this.shaderNode!.numPredefinedUniformValues).fill(0);
@@ -541,6 +545,16 @@ export class ShadersAppSk extends ElementSk {
     this._render();
   }
 
+  private async appendChildShader() {
+    try {
+      await this.shaderNode?.appendNewChildShader();
+      // eslint-disable-next-line no-unused-expressions
+      this._render();
+    } catch (error) {
+      errorMessage(error);
+    }
+  }
+
   /**
    * Load example by changing state rather than actually following the links.
    */
@@ -566,7 +580,7 @@ export class ShadersAppSk extends ElementSk {
       URL.revokeObjectURL(oldURL);
     }
 
-    this.shaderNode!.setCurrentImageURL(url, () => this._render());
+    this.shaderNode!.setCurrentImageURL(url).then(() => this._render());
   }
 }
 
