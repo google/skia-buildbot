@@ -606,6 +606,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("cockroachdb"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("gcloud_linux"))
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("skia_infra_rbe_key"))
 
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,

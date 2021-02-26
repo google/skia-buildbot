@@ -168,6 +168,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/bots/protoc",
 		Version: "version:0",
 	},
+	"skia/bots/skia_infra_rbe_key": {
+		Path:    "skia_infra_rbe_key",
+		Name:    "skia/bots/skia_infra_rbe_key",
+		Version: "version:0",
+	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
