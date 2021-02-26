@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/sql"
@@ -107,10 +108,11 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	gitilesClient := gitiles.NewRepo(rfc.GitRepoURL, client)
-	go pollRepo(ctx, db, gitilesClient, rfc)
-
-	// Wait at least 5 seconds for polling to start before signaling all is well.
-	time.Sleep(5 * time.Second)
+	// This starts a goroutine in the background
+	if err := pollRepo(ctx, db, gitilesClient, rfc); err != nil {
+		sklog.Fatalf("Could not do initial update: %s", err)
+	}
+	sklog.Infof("Initial update complete")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	sklog.Fatal(http.ListenAndServe(rfc.ReadyPort, nil))
 }
@@ -134,22 +136,31 @@ func mustInitSQLDatabase(ctx context.Context, fcc repoFollowerConfig) *pgxpool.P
 	return db
 }
 
-// pollRepo polls the gitiles repo according to the provided duration for as long as the
-// context remains ok.
-func pollRepo(ctx context.Context, db *pgxpool.Pool, client *gitiles.Repo, rfc repoFollowerConfig) {
-	ct := time.Tick(rfc.PollPeriod.Duration)
-	for {
-		select {
-		case <-ctx.Done():
-			sklog.Errorf("Stopping polling due to context error: %s", ctx.Err())
-			return
-		case <-ct:
-			err := updateCycle(ctx, db, client, rfc)
-			if err != nil {
-				sklog.Errorf("Error on this cycle for talking to %s: %s", rfc.GitRepoURL, rfc)
+// pollRepo does an initial updateCycle and starts a goroutine to continue updating according
+// to the provided duration for as long as the context remains ok.
+func pollRepo(ctx context.Context, db *pgxpool.Pool, client *gitiles.Repo, rfc repoFollowerConfig) error {
+	sklog.Infof("Doing initial update")
+	err := updateCycle(ctx, db, client, rfc)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	go func() {
+		ct := time.Tick(rfc.PollPeriod.Duration)
+		sklog.Infof("Polling every %s", rfc.PollPeriod.Duration)
+		for {
+			select {
+			case <-ctx.Done():
+				sklog.Errorf("Stopping polling due to context error: %s", ctx.Err())
+				return
+			case <-ct:
+				err := updateCycle(ctx, db, client, rfc)
+				if err != nil {
+					sklog.Errorf("Error on this cycle for talking to %s: %s", rfc.GitRepoURL, rfc)
+				}
 			}
 		}
-	}
+	}()
+	return nil
 }
 
 // GitilesLogger is a subset of the gitiles client library that we need. This allows us to mock
@@ -190,11 +201,20 @@ func updateCycle(ctx context.Context, db *pgxpool.Pool, client GitilesLogger, rf
 		return skerr.Wrapf(err, "getting backlog of commits from %s..%s", previousHash, latestHash)
 	}
 	// commits is backwards and LogFirstParent does not respect gitiles.LogReverse()
+	reverse(commits)
 	sklog.Infof("Got %d commits to store", len(commits))
 	if err := storeCommits(ctx, db, previousID, commits); err != nil {
 		return skerr.Wrapf(err, "storing %d commits to GitCommits table", len(commits))
 	}
 	return nil
+}
+
+// reverses the order of the slice.
+func reverse(commits []*vcsinfo.LongCommit) {
+	total := len(commits)
+	for i := 0; i < total/2; i++ {
+		commits[i], commits[total-i-1] = commits[total-i-1], commits[i]
+	}
 }
 
 // getLatestCommitFromRepo returns the git hash of the latest git commit known on the configured
@@ -212,7 +232,6 @@ func getLatestCommitFromRepo(ctx context.Context, client GitilesLogger, rfc repo
 	if len(latestCommit) < 1 {
 		return "", skerr.Fmt("No commits returned")
 	}
-	sklog.Debugf("latest commit: %#v", latestCommit[0])
 	return latestCommit[0].Hash, nil
 }
 
@@ -245,26 +264,31 @@ ORDER BY commit_id DESC LIMIT 1`)
 }
 
 // storeCommits writes the given commits to the SQL database, assigning them commitIDs in
-// monotonically increasing order. The commits slice is expected to be sorted with the most recent
-// commit first (as is returned by gitiles).
+// monotonically increasing order. The commits slice is expected to be sorted with the oldest
+// commit first (the opposite of how gitiles returns it).
 func storeCommits(ctx context.Context, db *pgxpool.Pool, lastCommitID int64, commits []*vcsinfo.LongCommit) error {
 	ctx, span := trace.StartSpan(ctx, "gitilesfollower_storeCommits")
 	defer span.End()
+	commitID := lastCommitID + 1
+	// batchSize is only really relevant in the initial load. But we need it to avoid going over
+	// the 65k limit of placeholder indexes.
+	const batchSize = 1000
 	const statement = `UPSERT INTO GitCommits (git_hash, commit_id, commit_time, author_email, subject) VALUES `
 	const valuesPerRow = 5
-	arguments := make([]interface{}, 0, len(commits)*valuesPerRow)
-	commitID := lastCommitID + 1
-	for i := range commits {
-		// commits is in backwards order. This reverses things.
-		c := commits[len(commits)-i-1]
-		cid := fmt.Sprintf("%012d", commitID)
-		arguments = append(arguments, c.Hash, cid, c.Timestamp, c.Author, c.Subject)
-		commitID++
-	}
-	vp := sql.ValuesPlaceholders(valuesPerRow, len(commits))
-	if _, err := db.Exec(ctx, statement+vp, arguments...); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
+	err := util.ChunkIter(len(commits), batchSize, func(startIdx int, endIdx int) error {
+		chunk := commits[startIdx:endIdx]
+		arguments := make([]interface{}, 0, len(chunk)*valuesPerRow)
+		for _, c := range chunk {
+			cid := fmt.Sprintf("%012d", commitID)
+			arguments = append(arguments, c.Hash, cid, c.Timestamp, c.Author, c.Subject)
+			commitID++
+		}
+		vp := sql.ValuesPlaceholders(valuesPerRow, len(chunk))
+		if _, err := db.Exec(ctx, statement+vp, arguments...); err != nil {
+			return skerr.Wrap(err)
+		}
+		return nil
+	})
+	return skerr.Wrap(err)
 
 }
