@@ -781,7 +781,7 @@ func (b *CommitBuilder) Insert(commitID schema.CommitID, author, subject, commit
 	})
 	b.gitRows = append(b.gitRows, schema.GitCommitRow{
 		GitHash:     gitHash,
-		CommitID:    &commitID,
+		CommitID:    commitID,
 		CommitTime:  ct,
 		AuthorEmail: author,
 		Subject:     subject,
@@ -796,7 +796,7 @@ type GitCommitBuilder struct {
 
 // Insert adds a commit with the given data. It panics if the commitTime is not formatted to
 // RFC3339 or if the gitHash is invalid.
-func (b *GitCommitBuilder) Insert(gitHash string, author, subject, commitTime string) *GitCommitBuilder {
+func (b *GitCommitBuilder) Insert(commitID, gitHash, author, subject, commitTime string) *GitCommitBuilder {
 	if len(gitHash) != 40 {
 		panic("invalid git hash length; must be 40 chars")
 	}
@@ -806,6 +806,7 @@ func (b *GitCommitBuilder) Insert(gitHash string, author, subject, commitTime st
 	}
 	b.gitRows = append(b.gitRows, schema.GitCommitRow{
 		GitHash:     gitHash,
+		CommitID:    schema.CommitID(commitID),
 		CommitTime:  ct,
 		AuthorEmail: author,
 		Subject:     subject,
