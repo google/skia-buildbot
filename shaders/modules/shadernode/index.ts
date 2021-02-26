@@ -38,8 +38,12 @@ export const numPredefinedUniforms = predefinedUniforms.match(/^uniform/gm)!.len
  * Counts the number of controls that handle pre-defined uniforms.
  *
  * Takes into account the uniform-fps-sk which doesn't correspond to a uniform.
+ *
+ * And that iImageResolution is no longer handled by a uniform control.
+ *
+ * TODO(jcgregorio) Rationalize this so we don't have to manually track the +1 and -1.
  */
-export const numPredefinedUniformControls = numPredefinedUniforms + 1;
+export const numPredefinedUniformControls = numPredefinedUniforms + 1 - 1;
 
 /**
  * The number of lines prefixed to every shader for predefined uniforms. Needed
