@@ -7,6 +7,7 @@ import { $, $$ } from 'common-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from 'elements-sk/define';
 import { html, TemplateResult } from 'lit-html';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { errorMessage } from 'elements-sk/errorMessage';
 import CodeMirror from 'codemirror';
 import { stateReflector } from 'common-sk/modules/stateReflector';
@@ -23,6 +24,7 @@ import 'elements-sk/error-toast-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/styles/select';
 import 'elements-sk/icon/edit-icon-sk';
+import 'elements-sk/icon/add-icon-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { SKIA_VERSION } from '../../build/version';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
@@ -37,6 +39,7 @@ import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import {
+  defaultScrapBody,
   defaultShader, numPredefinedUniformControls, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
 } from '../shadernode';
 
@@ -124,7 +127,7 @@ CodeMirror.defineMIME('x-shader/x-sksl', {
 });
 
 
-// requestAnimationFrame id if requestAnimationFrame is not running.
+/** requestAnimationFrame id if requestAnimationFrame is not running. */
 const RAF_NOT_RUNNING = -1;
 
 export class ShadersAppSk extends ElementSk {
@@ -146,18 +149,31 @@ export class ShadersAppSk extends ElementSk {
 
   private paint: Paint | null = null;
 
-  private shaderNode: ShaderNode | null = null;
+  private rootShaderNode: ShaderNode | null = null;
 
-  // Records the lines that have been marked as having errors. We keep these
-  // around so we can clear the error annotations efficiently.
+  private currentNode: ShaderNode | null = null;
+
+  /**
+   * The address of the currentShaderNode is the tree of all child shaders. Each
+   * index is an offset into the list of children of a node starting with the
+   * rootShaderNode.
+    */
+  private selectedShaderNodeAddress: number[] = [];
+
+  /**
+   * Records the lines that have been marked as having errors. We keep these
+   * around so we can clear the error annotations efficiently.
+   */
+
+  // TODO Does this need to be changed when we change the node focus?
   private compileErrorLines: CodeMirror.TextMarker[] = [];
 
   private state: State = defaultState;
 
-  // The requestAnimationFrame id if we are running, otherwise we are not running.
+  /** The requestAnimationFrame id if we are running, otherwise we are not running. */
   private rafID: number = RAF_NOT_RUNNING;
 
-  // stateReflector update function.
+  /** stateReflector update function. */
   private stateChanged: stateChangedCallback | null = null;
 
   private uniformControlsNeedingRAF: UniformControl[] = [];
@@ -166,11 +182,28 @@ export class ShadersAppSk extends ElementSk {
     super(ShadersAppSk.template);
   }
 
+  private static displayShaderTreeImpl = (ele: ShadersAppSk, node: ShaderNode, depth: number = 0, name: string = '/'): TemplateResult[] => {
+    let ret: TemplateResult[] = [];
+    const prefix = new Array(depth).fill('&numsp;&numsp;').join('');
+    ret.push(html`<p @click=${() => ele.childShaderClick(node)}>${unsafeHTML(prefix)}${name}</p>`);
+    node.children.forEach((childNode, index) => {
+      ret = ret.concat(ShadersAppSk.displayShaderTreeImpl(ele, childNode, depth + 1, node.getChildShaderUniformName(index)));
+    });
+    return ret;
+  }
+
+  private static displayShaderTree = (ele: ShadersAppSk): TemplateResult[] => {
+    if (!ele.rootShaderNode?.children.length) {
+      return [];
+    }
+    return ShadersAppSk.displayShaderTreeImpl(ele, ele.rootShaderNode);
+  }
+
   private static uniformControls = (ele: ShadersAppSk): TemplateResult[] => {
     const ret: TemplateResult[] = [
       html`<uniform-fps-sk></uniform-fps-sk>`, // Always start with the fps control.
     ];
-    const node = ele.shaderNode;
+    const node = ele.currentNode;
     if (!node) {
       return ret;
     }
@@ -249,7 +282,7 @@ export class ShadersAppSk extends ElementSk {
           <textarea rows=${numPredefinedUniformLines} cols=75 readonly id="predefinedShaderInputs">${predefinedUniforms}</textarea>
           <div id=imageSources>
             <figure>
-              ${ele.shaderNode?.inputImageElement}
+              ${ele.currentNode?.inputImageElement}
               <figcaption>iImage1</figcaption>
             </figure>
             <details id=image_edit>
@@ -259,7 +292,7 @@ export class ShadersAppSk extends ElementSk {
                   Change the URL used for the source image.
                 </label>
                 <div>
-                  <input type=url id=image_url placeholder="URL of image to use." .value="${ele.shaderNode?.getSafeImageURL() || ''}">
+                  <input type=url id=image_url placeholder="URL of image to use." .value="${ele.currentNode?.getSafeImageURL() || ''}">
                   <button @click=${ele.imageURLChanged}>Use</button>
                 </div>
                 <label for=image_upload>
@@ -272,10 +305,17 @@ export class ShadersAppSk extends ElementSk {
             </details>
           </div>
         </details>
+        <textarea style="display: ${ele.currentNode?.children.length ? 'block' : 'none'}" rows=${ele.currentNode?.children.length || 0} cols=75>${ele.currentNode?.getChildShaderUniforms() || ''}</textarea>
         <div id="codeEditor"></div>
-        <div ?hidden=${!ele.shaderNode?.compileErrorMessage} id="compileErrors">
+        <div>
+          <button @click=${ele.appendChildShader}><add-icon-sk></add-icon-sk></button>
+        </div>
+        <div>
+          ${ShadersAppSk.displayShaderTree(ele)}
+        </div>
+        <div ?hidden=${!ele.currentNode?.compileErrorMessage} id="compileErrors">
           <h3>Errors</h3>
-          <pre>${ele.shaderNode?.compileErrorMessage}</pre>
+          <pre>${ele.currentNode?.compileErrorMessage}</pre>
         </div>
       </div>
       <div id=shaderControls>
@@ -283,14 +323,14 @@ export class ShadersAppSk extends ElementSk {
           ${ShadersAppSk.uniformControls(ele)}
         </div>
         <button
-          ?hidden=${!ele.shaderNode?.needsCompile()}
+          ?hidden=${!ele.rootShaderNode?.needsCompile()}
           @click=${ele.runClick}
           class=action
         >
           Run
         </button>
         <button
-          ?hidden=${!ele.shaderNode?.needsSave()}
+          ?hidden=${!ele.rootShaderNode?.needsSave()}
           @click=${ele.saveClick}
           class=action
         >
@@ -334,10 +374,12 @@ export class ShadersAppSk extends ElementSk {
       try {
         this.stateChanged = stateReflector(
           /* getState */ () => (this.state as unknown) as HintableObject,
-          /* setState */ (newState: HintableObject) => {
+          /* setState */ async (newState: HintableObject) => {
             this.state = (newState as unknown) as State;
-            this.shaderNode = new ShaderNode(this.kit!);
+            this.rootShaderNode = new ShaderNode(this.kit!);
+            this.currentNode = this.rootShaderNode;
             if (!this.state.id) {
+              await this.rootShaderNode.setScrap(defaultScrapBody);
               this.run();
             } else {
               this.loadShaderIfNecessary();
@@ -369,14 +411,11 @@ export class ShadersAppSk extends ElementSk {
       return;
     }
     try {
-      await this.shaderNode!.loadScrap(this.state.id, () => {
-        // Re-render once the input image has loaded.
-        this._render();
-      });
+      await this.rootShaderNode!.loadScrap(this.state.id);
       this._render();
 
-      const predefinedUniformValues = new Array(this.shaderNode!.numPredefinedUniformValues).fill(0);
-      this.setUniformValuesToControls(predefinedUniformValues.concat(this.shaderNode!.currentUserUniformValues));
+      const predefinedUniformValues = new Array(this.rootShaderNode!.numPredefinedUniformValues).fill(0);
+      this.setUniformValuesToControls(predefinedUniformValues.concat(this.rootShaderNode!.currentUserUniformValues));
       this.findAllUniformControlsThatNeedRAF();
 
       this.run();
@@ -396,7 +435,7 @@ export class ShadersAppSk extends ElementSk {
       this.rafID = RAF_NOT_RUNNING;
     }
 
-    this.codeMirror!.setValue(this.shaderNode?.shaderCode || defaultShader);
+    this.codeMirror!.setValue(this.currentNode?.shaderCode || defaultShader);
 
     // eslint-disable-next-line no-unused-expressions
     this.surface?.delete();
@@ -411,10 +450,12 @@ export class ShadersAppSk extends ElementSk {
     this.canvasKitContext = this.kit!.currentContext();
     this.clearAllEditorErrorAnnotations();
 
-    this.shaderNode!.compile();
+    this.rootShaderNode!.compile();
+
+    // TODO(jcgregorio) !!! We need a way to know which shader in the tree has failed.
 
     // Set CodeMirror errors if the run failed.
-    this.shaderNode!.compileErrorLineNumbers.forEach((lineNumber: number) => {
+    this.currentNode!.compileErrorLineNumbers.forEach((lineNumber: number) => {
       this.setEditorErrorLineAnnotation(lineNumber);
     });
 
@@ -443,15 +484,15 @@ export class ShadersAppSk extends ElementSk {
 
   /** Populate the uniforms values from the controls. */
   private getUserUniformValuesFromControls(): number[] {
-    const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
+    const uniforms: number[] = new Array(this.currentNode!.getUniformFloatCount()).fill(0);
     $('#uniformControls > *').slice(numPredefinedUniformControls).forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
-    return uniforms.slice(this.shaderNode?.numPredefinedUniformValues || 0);
+    return uniforms.slice(this.currentNode?.numPredefinedUniformValues || 0);
   }
 
   private getPredefinedUniformValuesFromControls(): number[] {
-    const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
+    const uniforms: number[] = new Array(this.currentNode!.getUniformFloatCount()).fill(0);
     $('#uniformControls > *').slice(0, numPredefinedUniformControls).forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
@@ -476,13 +517,13 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private uniformControlsChange() {
-    this.shaderNode!.currentUserUniformValues = this.getUserUniformValuesFromControls();
+    this.currentNode!.currentUserUniformValues = this.getUserUniformValuesFromControls();
     this._render();
   }
 
   private drawFrame() {
     this.kit!.setCurrentContext(this.canvasKitContext);
-    const shader = this.shaderNode!.getShader(this.getPredefinedUniformValuesFromControls());
+    const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader) {
       return;
     }
@@ -511,7 +552,7 @@ export class ShadersAppSk extends ElementSk {
 
   private async saveClick() {
     try {
-      this.state.id = await this.shaderNode!.saveScrap();
+      this.state.id = await this.rootShaderNode!.saveScrap();
       this.stateChanged!();
       this._render();
     } catch (error) {
@@ -537,8 +578,30 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private codeChange() {
-    this.shaderNode!.shaderCode = this.codeMirror!.getValue();
+    if (!this.currentNode) {
+      return;
+    }
+    this.currentNode.shaderCode = this.codeMirror!.getValue();
     this._render();
+  }
+
+  private async appendChildShader() {
+    try {
+      await this.currentNode?.appendNewChildShader();
+      // eslint-disable-next-line no-unused-expressions
+      this._render();
+    } catch (error) {
+      errorMessage(error);
+    }
+  }
+
+  private childShaderClick(node: ShaderNode) {
+    this.currentNode = node;
+    this.codeMirror!.setValue(this.currentNode?.shaderCode || defaultShader);
+    this._render();
+    const predefinedUniformValues = new Array(this.currentNode!.numPredefinedUniformValues).fill(0);
+    this.setUniformValuesToControls(predefinedUniformValues.concat(this.currentNode!.currentUserUniformValues));
+    this.findAllUniformControlsThatNeedRAF();
   }
 
   /**
@@ -559,14 +622,14 @@ export class ShadersAppSk extends ElementSk {
   }
 
   private setCurrentImageURL(url: string): void {
-    const oldURL = this.shaderNode!.getCurrentImageURL();
+    const oldURL = this.currentNode!.getCurrentImageURL();
 
     // Release unused memory.
     if (oldURL.startsWith('blob:')) {
       URL.revokeObjectURL(oldURL);
     }
 
-    this.shaderNode!.setCurrentImageURL(url, () => this._render());
+    this.currentNode!.setCurrentImageURL(url).then(() => this._render());
   }
 }
 
