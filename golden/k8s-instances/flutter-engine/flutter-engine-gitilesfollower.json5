@@ -1,0 +1,9 @@
+{
+  // Arbitrary commit from 24 Dec 2020
+  initial_commit: "6c576ba3e15f0eb2437124aa2f8e0222fc62b756",
+  // Need to use a gitiles mirror
+  git_repo_url: "https://chromium.googlesource.com/external/github.com/flutter/engine",
+  poll_period: "1m",
+  prom_port: ":20000",
+  ready_port: ":8000"
+}
