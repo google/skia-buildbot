@@ -167,9 +167,8 @@ func (r CommitWithDataRow) ToSQLRow() (colNames []string, colData []interface{})
 type GitCommitRow struct {
 	// GitHash is the git hash of the commit.
 	GitHash string `sql:"git_hash STRING PRIMARY KEY"`
-	// CommitID is a potentially arbitrary string. If non-null, it is a foreign key in the
-	// CommitsWithData table.
-	CommitID *CommitID `sql:"commit_id STRING"`
+	// CommitID is a potentially arbitrary string. It is a foreign key in the CommitsWithData table.
+	CommitID CommitID `sql:"commit_id STRING NOT NULL"`
 	// CommitTime is the timestamp associated with the commit.
 	CommitTime time.Time `sql:"commit_time TIMESTAMP WITH TIME ZONE NOT NULL"`
 	// AuthorEmail is the email address associated with the author.

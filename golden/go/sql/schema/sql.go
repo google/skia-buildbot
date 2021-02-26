@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS Expectations (
 );
 CREATE TABLE IF NOT EXISTS GitCommits (
   git_hash STRING PRIMARY KEY,
-  commit_id STRING,
+  commit_id STRING NOT NULL,
   commit_time TIMESTAMP WITH TIME ZONE NOT NULL,
   author_email STRING NOT NULL,
   subject STRING NOT NULL,
