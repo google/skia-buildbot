@@ -34,7 +34,7 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		Insert("003", "author_three", "subject_three", "2020-12-07T18:00:00Z").
 		Insert("004", "author_four", "subject_four", "2020-12-08T19:00:00Z")
 	b.CommitsWithNoData().
-		Insert("5555555555555555555555555555555555555555", "author_five", "no data yet", "2020-12-08T20:00:00Z")
+		Insert("005", "5555555555555555555555555555555555555555", "author_five", "no data yet", "2020-12-08T20:00:00Z")
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
 		// are untriaged, numbers are negative, symbols are special.
@@ -172,31 +172,31 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 	}}, tables.CommitsWithData)
 	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     gitHash("001"),
-		CommitID:    cID("001"),
+		CommitID:    "001",
 		CommitTime:  time.Date(2020, time.December, 5, 16, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_one",
 		Subject:     "subject_one",
 	}, {
 		GitHash:     gitHash("002"),
-		CommitID:    cID("002"),
+		CommitID:    "002",
 		CommitTime:  time.Date(2020, time.December, 6, 17, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_two",
 		Subject:     "subject_two",
 	}, {
 		GitHash:     gitHash("003"),
-		CommitID:    cID("003"),
+		CommitID:    "003",
 		CommitTime:  time.Date(2020, time.December, 7, 18, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_three",
 		Subject:     "subject_three",
 	}, {
 		GitHash:     gitHash("004"),
-		CommitID:    cID("004"),
+		CommitID:    "004",
 		CommitTime:  time.Date(2020, time.December, 8, 19, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_four",
 		Subject:     "subject_four",
 	}, {
 		GitHash:     "5555555555555555555555555555555555555555",
-		CommitID:    nil,
+		CommitID:    "005",
 		CommitTime:  time.Date(2020, time.December, 8, 20, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_five",
 		Subject:     "no data yet",
@@ -474,10 +474,6 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		Note:         "note 2",
 		Query:        paramtools.ReadOnlyParamSet{"device": []string{"NUC1234"}, "os": []string{"Windows10.7", "Windows10.8"}},
 	}}, tables.IgnoreRules)
-}
-
-func cID(s schema.CommitID) *schema.CommitID {
-	return &s
 }
 
 func TestBuild_CalledWithChangelistData_ProducesCorrectData(t *testing.T) {
@@ -906,8 +902,8 @@ func TestCommits_InsertInAnyOrder_Success(t *testing.T) {
 		Insert("2000", "author_2k", "subject_2k", "2022-02-02T02:02:00Z")
 
 	b.CommitsWithNoData().
-		Insert("4444444444444444444444444444444444444444", "somebody", "no data 1900", "2021-02-03T04:05:06Z").
-		Insert("3333333333333333333333333333333333333333", "somebody", "no data 1850", "2021-02-03T04:05:00Z")
+		Insert("1900", "4444444444444444444444444444444444444444", "somebody", "no data 1900", "2021-02-03T04:05:06Z").
+		Insert("1850", "3333333333333333333333333333333333333333", "somebody", "no data 1850", "2021-02-03T04:05:00Z")
 
 	tables := b.Build()
 	assert.Equal(t, []schema.CommitWithDataRow{{
@@ -925,37 +921,37 @@ func TestCommits_InsertInAnyOrder_Success(t *testing.T) {
 	}}, tables.CommitsWithData)
 	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     gitHash("0098"),
-		CommitID:    cID("0098"),
+		CommitID:    "0098",
 		CommitTime:  time.Date(2020, time.December, 5, 14, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_two",
 		Subject:     "subject_98",
 	}, {
 		GitHash:     gitHash("0099"),
-		CommitID:    cID("0099"),
+		CommitID:    "0099",
 		CommitTime:  time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
 		AuthorEmail: "author_one",
 		Subject:     "subject_99",
 	}, {
 		GitHash:     gitHash("0100"),
-		CommitID:    cID("0100"),
+		CommitID:    "0100",
 		CommitTime:  time.Date(2021, time.January, 1, 1, 1, 0, 0, time.UTC),
 		AuthorEmail: "author_100",
 		Subject:     "subject_100",
 	}, {
 		GitHash:     "3333333333333333333333333333333333333333",
-		CommitID:    nil,
+		CommitID:    "1850",
 		CommitTime:  time.Date(2021, time.February, 3, 4, 5, 0, 0, time.UTC),
 		AuthorEmail: "somebody",
 		Subject:     "no data 1850",
 	}, {
 		GitHash:     "4444444444444444444444444444444444444444",
-		CommitID:    nil,
+		CommitID:    "1900",
 		CommitTime:  time.Date(2021, time.February, 3, 4, 5, 6, 0, time.UTC),
 		AuthorEmail: "somebody",
 		Subject:     "no data 1900",
 	}, {
 		GitHash:     gitHash("2000"),
-		CommitID:    cID("2000"),
+		CommitID:    "2000",
 		CommitTime:  time.Date(2022, time.February, 2, 2, 2, 0, 0, time.UTC),
 		AuthorEmail: "author_2k",
 		Subject:     "subject_2k",
