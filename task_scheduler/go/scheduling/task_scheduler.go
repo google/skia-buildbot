@@ -16,7 +16,6 @@ import (
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cleanup"
@@ -28,7 +27,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
@@ -112,7 +110,7 @@ type TaskScheduler struct {
 	queueMtx     sync.RWMutex
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
-	swarming     swarming.ApiClient
+	taskExecutor types.TaskExecutor
 	taskCfgCache *task_cfg_cache.TaskCfgCache
 	tCache       cache.TaskCache
 	// testWaitGroup keeps track of any goroutines the TaskScheduler methods
@@ -124,7 +122,7 @@ type TaskScheduler struct {
 	window                *window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, rbeCas cas.CAS, rbeCasInstance string, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, rbeCas cas.CAS, rbeCasInstance string, taskExecutor types.TaskExecutor, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -167,7 +165,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		rbeCas:                rbeCas,
 		rbeCasInstance:        rbeCasInstance,
 		repos:                 repos,
-		swarming:              swarmingClient,
+		taskExecutor:          taskExecutor,
 		taskCfgCache:          taskCfgCache,
 		tCache:                tCache,
 		timeDecayAmt24Hr:      timeDecayAmt24Hr,
@@ -478,16 +476,16 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 }
 
 type taskSchedulerMainLoopDiagnostics struct {
-	StartTime  time.Time                           `json:"startTime"`
-	EndTime    time.Time                           `json:"endTime"`
-	Error      string                              `json:"error,omitEmpty"`
-	Candidates []*taskCandidate                    `json:"candidates"`
-	FreeBots   []*swarming_api.SwarmingRpcsBotInfo `json:"freeBots"`
+	StartTime  time.Time        `json:"startTime"`
+	EndTime    time.Time        `json:"endTime"`
+	Error      string           `json:"error,omitEmpty"`
+	Candidates []*taskCandidate `json:"candidates"`
+	FreeBots   []*types.Machine `json:"freeBots"`
 }
 
 // writeMainLoopDiagnosticsToGCS writes JSON containing allCandidates and
 // freeBots to GCS. If called in a goroutine, the arguments may not be modified.
-func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*taskCandidate, freeBots []*swarming_api.SwarmingRpcsBotInfo, scheduleErr error) error {
+func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*taskCandidate, freeBots []*types.Machine, scheduleErr error) error {
 	defer metrics2.FuncTimer().Stop()
 	candidateSlice := make([]*taskCandidate, 0, len(allCandidates))
 	for _, c := range allCandidates {
@@ -996,19 +994,16 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 // getCandidatesToSchedule matches the list of free Swarming bots to task
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
-func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) []*taskCandidate {
+func getCandidatesToSchedule(bots []*types.Machine, tasks []*taskCandidate) []*taskCandidate {
 	defer metrics2.FuncTimer().Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
 	for _, b := range bots {
 		for _, dim := range b.Dimensions {
-			for _, val := range dim.Value {
-				d := fmt.Sprintf("%s:%s", dim.Key, val)
-				if _, ok := botsByDim[d]; !ok {
-					botsByDim[d] = util.StringSet{}
-				}
-				botsByDim[d][b.BotId] = true
+			if _, ok := botsByDim[dim]; !ok {
+				botsByDim[dim] = util.StringSet{}
 			}
+			botsByDim[dim][b.ID] = true
 		}
 	}
 	// BotIds that have been used by previous candidates.
@@ -1194,12 +1189,8 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
-			var resp *swarming_api.SwarmingRpcsTaskRequestMetadata
-			if err := timeout.Run(func() error {
-				var err error
-				resp, err = s.swarming.TriggerTask(req)
-				return err
-			}, time.Minute); err != nil {
+			resp, err := s.taskExecutor.TriggerTask(context.TODO(), req)
+			if err != nil {
 				s.pendingInsertMtx.Lock()
 				delete(s.pendingInsert, t.Id)
 				s.pendingInsertMtx.Unlock()
@@ -1210,32 +1201,14 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				recordErr("Failed to trigger task", skerr.Wrapf(err, "%q needed for jobs: %+v", candidate.Name, jobIds))
 				return
 			}
-			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
-			if err != nil {
-				recordErr("Failed to parse Swarming timestamp", err)
-				return
-			}
-			t.Created = created
-			t.SwarmingTaskId = resp.TaskId
-			// The task may have been de-duplicated or rejected due
-			// to no matching bots being available.
-			if resp.TaskResult != nil {
-				if resp.TaskResult.State == swarming.TASK_STATE_COMPLETED {
-					if _, err := t.UpdateFromSwarming(resp.TaskResult); err != nil {
-						recordErr("Failed to update de-duplicated task", err)
-						return
-					}
-					// Override the timestamps. For de-duplicated
-					// tasks, the Started and Finished timestamps
-					// will be *before* the Created timestamp, which
-					// would be misleading. Setting them to equal
-					// the Created timestamp makes it appear that
-					// the task took no time, which is effectively
-					// the case.
-					t.Started = t.Created
-					t.Finished = t.Created
-				} else if resp.TaskResult.State == swarming.TASK_STATE_NO_RESOURCE {
-					recordErr("Failed to trigger task", skerr.Fmt("No bots available to run %s with dimensions: %s", candidate.Name, strings.Join(candidate.TaskSpec.Dimensions, ", ")))
+			t.Created = resp.Created
+			t.Started = resp.Started
+			t.Finished = resp.Finished
+			t.SwarmingTaskId = resp.ID
+			// The task may have been de-duplicated.
+			if resp.Status == types.TASK_STATUS_SUCCESS {
+				if _, err := t.UpdateFromTaskResult(resp); err != nil {
+					recordErr("Failed to update de-duplicated task", err)
 					return
 				}
 			}
@@ -1251,7 +1224,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
-func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
+func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*types.Machine, queue []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
 	// Match free bots with tasks.
 	candidates := getCandidatesToSchedule(bots, queue)
@@ -1376,13 +1349,13 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	var getSwarmingBotsErr error
 	var wg sync.WaitGroup
 
-	var bots []*swarming_api.SwarmingRpcsBotInfo
+	var bots []*types.Machine
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
 		var err error
-		bots, err = getFreeSwarmingBots(s.swarming, s.busyBots, s.pools)
+		bots, err = getFreeMachines(s.taskExecutor, s.busyBots, s.pools)
 		if err != nil {
 			getSwarmingBotsErr = err
 			return
@@ -1530,29 +1503,28 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 	}
 }
 
-// getFreeSwarmingBots returns a slice of free swarming bots.
-func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots, pools []string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+// getFreeMachines returns a slice of free machines.
+func getFreeMachines(taskExec types.TaskExecutor, busy *busyBots, pools []string) ([]*types.Machine, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Query for free Swarming bots and pending Swarming tasks in all pools.
+	// Query for free machines and pending tasks in all pools.
 	var wg sync.WaitGroup
-	bots := []*swarming_api.SwarmingRpcsBotInfo{}
-	pending := []*swarming_api.SwarmingRpcsTaskResult{}
+	machines := []*types.Machine{}
+	pending := []*types.TaskResult{}
 	errs := []error{}
 	var mtx sync.Mutex
-	t := time.Time{}
 	for _, pool := range pools {
 		// Free bots.
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			b, err := s.ListFreeBots(pool)
+			b, err := taskExec.GetFreeMachines(context.TODO(), pool)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
 				errs = append(errs, err)
 			} else {
-				bots = append(bots, b...)
+				machines = append(machines, b...)
 			}
 		}(pool)
 
@@ -1560,13 +1532,13 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots, pools []string) (
 		wg.Add(1)
 		go func(pool string) {
 			defer wg.Done()
-			t, err := s.ListTaskResults(t, t, []string{fmt.Sprintf("pool:%s", pool)}, "PENDING", false)
+			pendingTasks, err := taskExec.GetPendingTasks(context.TODO(), pool)
 			mtx.Lock()
 			defer mtx.Unlock()
 			if err != nil {
 				errs = append(errs, err)
 			} else {
-				pending = append(pending, t...)
+				pending = append(pending, pendingTasks...)
 			}
 		}(pool)
 	}
@@ -1576,18 +1548,18 @@ func getFreeSwarmingBots(s swarming.ApiClient, busy *busyBots, pools []string) (
 		return nil, fmt.Errorf("Got errors loading bots and tasks from Swarming: %v", errs)
 	}
 
-	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
-	for _, bot := range bots {
-		if bot.IsDead {
+	rv := make([]*types.Machine, 0, len(machines))
+	for _, machine := range machines {
+		if machine.IsDead {
 			continue
 		}
-		if bot.Quarantined {
+		if machine.IsQuarantined {
 			continue
 		}
-		if bot.TaskId != "" {
+		if machine.CurrentTaskID != "" {
 			continue
 		}
-		rv = append(rv, bot)
+		rv = append(rv, machine)
 	}
 	busy.RefreshTasks(pending)
 	return busy.Filter(rv), nil
@@ -1614,14 +1586,13 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	for _, t := range tasks {
 		ids = append(ids, t.SwarmingTaskId)
 	}
-	states, err := s.swarming.GetStates(ids)
+	finishedStates, err := s.taskExecutor.GetTaskCompletionStatuses(context.TODO(), ids)
 	if err != nil {
 		return err
 	}
-	finished := make([]*types.Task, 0, len(states))
+	finished := make([]*types.Task, 0, len(finishedStates))
 	for idx, task := range tasks {
-		state := states[idx]
-		if state != swarming.TASK_STATE_PENDING && state != swarming.TASK_STATE_RUNNING {
+		if finishedStates[idx] {
 			finished = append(finished, task)
 		}
 	}
@@ -1635,12 +1606,12 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 			wg.Add(1)
 			go func(idx int, t *types.Task) {
 				defer wg.Done()
-				swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId, false)
+				taskResult, err := s.taskExecutor.GetTaskResult(context.TODO(), t.SwarmingTaskId)
 				if err != nil {
 					errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
 					return
 				}
-				modified, err := db.UpdateDBFromSwarmingTask(s.db, swarmTask)
+				modified, err := db.UpdateDBFromTaskResult(s.db, taskResult)
 				if err != nil {
 					errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
 					return
@@ -1900,30 +1871,26 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	}
 
 	// Obtain the Swarming task data.
-	res, err := s.swarming.GetTask(msg.SwarmingTaskId, false)
+	res, err := s.taskExecutor.GetTaskResult(context.TODO(), msg.SwarmingTaskId)
 	if err != nil {
 		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 		return true
 	}
 	// Skip unfinished tasks.
-	if res.CompletedTs == "" {
+	if util.TimeIsZero(res.Finished) {
 		return true
 	}
 	// Update the task in the DB.
-	if _, err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
+	if _, err := db.UpdateDBFromTaskResult(s.db, res); err != nil {
 		// TODO(borenet): Some of these cases should never be hit, after all tasks
 		// start supplying the ID in msg.UserData. We should be able to remove the logic.
+		id := "<MISSING ID TAG>"
 		if err == db.ErrNotFound {
-			id, err := swarming.GetTagValue(res, types.SWARMING_TAG_ID)
-			if err != nil {
-				id = "<MISSING ID TAG>"
+			ids, ok := res.Tags[types.SWARMING_TAG_ID]
+			if ok {
+				id = ids[0]
 			}
-			created, err := swarming.ParseTimestamp(res.CreatedTs)
-			if err != nil {
-				sklog.Errorf("Failed to parse timestamp: %s; %s", res.CreatedTs, err)
-				return true
-			}
-			if time.Now().Sub(created) < 2*time.Minute {
+			if time.Now().Sub(res.Created) < 2*time.Minute {
 				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", msg.SwarmingTaskId, id)
 				return false
 			}
@@ -1931,10 +1898,9 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			return true
 		} else if err == db.ErrUnknownId {
 			expectedSwarmingTaskId := "<unknown>"
-			id, err := swarming.GetTagValue(res, types.SWARMING_TAG_ID)
-			if err != nil {
-				id = "<MISSING ID TAG>"
-			} else {
+			ids, ok := res.Tags[types.SWARMING_TAG_ID]
+			if ok {
+				id = ids[0]
 				t, err := s.db.GetTaskById(id)
 				if err != nil {
 					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", msg.SwarmingTaskId, err)

@@ -7,9 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -26,9 +24,9 @@ func TestCopyTaskKey(t *testing.T) {
 	assertdeep.Copy(t, v, v.Copy())
 }
 
-// Test that Task.UpdateFromSwarming returns an error when the input data is
+// Test that Task.UpdateFromTaskResult returns an error when the input data is
 // invalid.
-func TestUpdateFromSwarmingInvalid(t *testing.T) {
+func TestUpdateFromTaskResultInvalid(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
@@ -46,8 +44,8 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 	}
 	copy := task.Copy()
 
-	testError := func(s *swarming_api.SwarmingRpcsTaskResult, msg string) {
-		changed, err := task.UpdateFromSwarming(s)
+	testError := func(s *TaskResult, msg string) {
+		changed, err := task.UpdateFromTaskResult(s)
 		require.False(t, changed)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), msg)
@@ -55,42 +53,21 @@ func TestUpdateFromSwarmingInvalid(t *testing.T) {
 
 	testError(nil, "Missing TaskResult")
 
-	testError(&swarming_api.SwarmingRpcsTaskResult{
-		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_COMPLETED,
-		Tags:      []string{"invalid"},
-	}, "key/value pairs must take the form \"key:value\"; \"invalid\" is invalid")
-
-	testError(&swarming_api.SwarmingRpcsTaskResult{
-		CreatedTs: "20160817T142302.543490",
-		State:     swarming.TASK_STATE_COMPLETED,
-	}, "Unable to parse task creation time")
-
-	testError(&swarming_api.SwarmingRpcsTaskResult{
-		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_COMPLETED,
-		StartedTs: "20160817T142302.543490",
-	}, "Unable to parse StartedTs")
-
-	testError(&swarming_api.SwarmingRpcsTaskResult{
-		CreatedTs:   now.Format(swarming.TIMESTAMP_FORMAT),
-		State:       swarming.TASK_STATE_COMPLETED,
-		CompletedTs: "20160817T142302.543490",
-	}, "Unable to parse CompletedTs")
-
-	testError(&swarming_api.SwarmingRpcsTaskResult{
-		CreatedTs:   now.Format(swarming.TIMESTAMP_FORMAT),
-		State:       swarming.TASK_STATE_EXPIRED,
-		AbandonedTs: "20160817T142302.543490",
-	}, "Unable to parse AbandonedTs")
+	testError(&TaskResult{
+		Created: now,
+		Status:  TASK_STATUS_SUCCESS,
+		Tags: map[string][]string{
+			SWARMING_TAG_NAME: {"too", "many", "values"},
+		},
+	}, fmt.Sprintf("Expected a single value for tag key %q", SWARMING_TAG_NAME))
 
 	// Unchanged.
 	assertdeep.Equal(t, task, copy)
 }
 
-// Test that Task.UpdateFromSwarming returns an error when the task "identity"
+// Test that Task.UpdateFromTaskResult returns an error when the task "identity"
 // fields do not match.
-func TestUpdateFromSwarmingMismatched(t *testing.T) {
+func TestUpdateFromTaskResultMismatched(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
@@ -109,83 +86,75 @@ func TestUpdateFromSwarmingMismatched(t *testing.T) {
 	}
 	copy := task.Copy()
 
-	testError := func(s *swarming_api.SwarmingRpcsTaskResult, msg string) {
-		changed, err := task.UpdateFromSwarming(s)
+	testError := func(s *TaskResult, msg string) {
+		changed, err := task.UpdateFromTaskResult(s)
 		require.False(t, changed)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), msg)
 	}
 
-	s := &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "A",
-		CreatedTs: now.Format(swarming.TIMESTAMP_FORMAT),
-		Failure:   false,
-		State:     swarming.TASK_STATE_COMPLETED,
-		Tags: []string{
-			fmt.Sprintf("%s:B", SWARMING_TAG_ID),
-			fmt.Sprintf("%s:A", SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:A", SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:A", SWARMING_TAG_REVISION),
+	s := &TaskResult{
+		ID:      "A",
+		Created: now,
+		Status:  TASK_STATUS_FAILURE,
+		Tags: map[string][]string{
+			SWARMING_TAG_ID:       {"B"},
+			SWARMING_TAG_NAME:     {"A"},
+			SWARMING_TAG_REPO:     {"A"},
+			SWARMING_TAG_REVISION: {"A"},
 		},
 	}
 	testError(s, "Id does not match")
 
-	s.Tags[0] = fmt.Sprintf("%s:A", SWARMING_TAG_ID)
-	s.Tags[1] = fmt.Sprintf("%s:B", SWARMING_TAG_NAME)
+	s.Tags[SWARMING_TAG_ID] = []string{"A"}
+	s.Tags[SWARMING_TAG_NAME] = []string{"B"}
 	testError(s, "Name does not match")
 
-	s.Tags[1] = fmt.Sprintf("%s:A", SWARMING_TAG_NAME)
-	s.Tags[2] = fmt.Sprintf("%s:B", SWARMING_TAG_REPO)
+	s.Tags[SWARMING_TAG_NAME] = []string{"A"}
+	s.Tags[SWARMING_TAG_REPO] = []string{"B"}
 	testError(s, "Repo does not match")
 
-	s.Tags[2] = fmt.Sprintf("%s:A", SWARMING_TAG_REPO)
-	s.Tags[3] = fmt.Sprintf("%s:B", SWARMING_TAG_REVISION)
+	s.Tags[SWARMING_TAG_REPO] = []string{"A"}
+	s.Tags[SWARMING_TAG_REVISION] = []string{"B"}
 	testError(s, "Revision does not match")
 
-	s.Tags[3] = fmt.Sprintf("%s:A", SWARMING_TAG_REVISION)
-	s.CreatedTs = now.Add(time.Hour).Format(swarming.TIMESTAMP_FORMAT)
+	s.Tags[SWARMING_TAG_REVISION] = []string{"A"}
+	s.Created = now.Add(time.Hour)
 	testError(s, "Creation time has changed")
 
-	s.CreatedTs = now.Format(swarming.TIMESTAMP_FORMAT)
-	s.TaskId = "D"
+	s.Created = now
+	s.ID = "D"
 	testError(s, ErrUnknownId.Error())
 
 	// Unchanged.
 	assertdeep.Equal(t, task, copy)
 }
 
-// Test that Task.UpdateFromSwarming sets the expected fields in an empty Task.
-func TestUpdateFromSwarmingInit(t *testing.T) {
+// Test that Task.UpdateFromTaskResult sets the expected fields in an empty Task.
+func TestUpdateFromTaskResultInit(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task1 := &Task{
 		SwarmingTaskId: "E",
 	}
-	casOutput, err := swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32", "fake-cas-instance")
-	require.NoError(t, err)
-	s := &swarming_api.SwarmingRpcsTaskResult{
-		TaskId: "E",
-		// Include both AbandonedTs and CompletedTs to test that CompletedTs takes
-		// precedence.
-		AbandonedTs: now.Add(-1 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
-		CreatedTs:   now.Add(-3 * time.Hour).Format(swarming.TIMESTAMP_FORMAT),
-		CompletedTs: now.Add(-2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
-		Failure:     false,
-		StartedTs:   now.Add(-time.Hour).Format(swarming.TIMESTAMP_FORMAT),
-		State:       swarming.TASK_STATE_COMPLETED,
-		Tags: []string{
-			fmt.Sprintf("%s:A", SWARMING_TAG_ID),
-			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+	s := &TaskResult{
+		ID:       "E",
+		Created:  now.Add(-3 * time.Hour),
+		Finished: now.Add(-2 * time.Minute),
+		Started:  now.Add(-time.Hour),
+		Status:   TASK_STATUS_SUCCESS,
+		Tags: map[string][]string{
+			SWARMING_TAG_ID:             {"A"},
+			SWARMING_TAG_NAME:           {"B"},
+			SWARMING_TAG_REPO:           {"C"},
+			SWARMING_TAG_REVISION:       {"D"},
+			SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			SWARMING_TAG_FORCED_JOB_ID:  {"G"},
 		},
-		CasOutputRoot: casOutput,
-		BotId:         "G",
+		CasOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
+		MachineID: "G",
 	}
-	changed1, err1 := task1.UpdateFromSwarming(s)
+	changed1, err1 := task1.UpdateFromTaskResult(s)
 	require.NoError(t, err1)
 	require.True(t, changed1)
 	assertdeep.Equal(t, task1, &Task{
@@ -208,41 +177,11 @@ func TestUpdateFromSwarmingInit(t *testing.T) {
 		SwarmingBotId:  "G",
 		ParentTaskIds:  []string{"E", "F"},
 	})
-
-	// Repeat to get Finished from AbandonedTs.
-	task2 := &Task{
-		SwarmingTaskId: "E",
-	}
-	s.CompletedTs = ""
-	s.State = swarming.TASK_STATE_EXPIRED
-	changed2, err2 := task2.UpdateFromSwarming(s)
-	require.NoError(t, err2)
-	require.True(t, changed2)
-	assertdeep.Equal(t, task2, &Task{
-		Id: "A",
-		TaskKey: TaskKey{
-			RepoState: RepoState{
-				Repo:     "C",
-				Revision: "D",
-			},
-			Name:        "B",
-			ForcedJobId: "G",
-		},
-		Created:        now.Add(-3 * time.Hour),
-		Commits:        nil,
-		Started:        now.Add(-time.Hour),
-		Finished:       now.Add(-time.Minute),
-		Status:         TASK_STATUS_MISHAP,
-		SwarmingTaskId: "E",
-		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
-		SwarmingBotId:  "G",
-		ParentTaskIds:  []string{"E", "F"},
-	})
 }
 
-// Test that Task.UpdateFromSwarming updates the expected fields in an existing
+// Test that Task.UpdateFromTaskResult updates the expected fields in an existing
 // Task.
-func TestUpdateFromSwarmingUpdate(t *testing.T) {
+func TestUpdateFromTaskResultUpdate(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 	task := &Task{
@@ -265,31 +204,26 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		SwarmingBotId:  "H",
 		ParentTaskIds:  []string{"E", "F"},
 	}
-	casOutput, err := swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32", "fake-cas-instance")
-	require.NoError(t, err)
-	s := &swarming_api.SwarmingRpcsTaskResult{
-		TaskId: "E",
+	s := &TaskResult{
+		ID: "E",
 		// Include both AbandonedTs and CompletedTs to test that CompletedTs takes
 		// precedence.
-		AbandonedTs: now.Add(-90 * time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		CreatedTs:   now.Add(-3 * time.Hour).Format(swarming.TIMESTAMP_FORMAT),
-		CompletedTs: now.Add(-1 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
-		Failure:     true,
-		StartedTs:   now.Add(-2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT),
-		State:       swarming.TASK_STATE_COMPLETED,
-		Tags: []string{
-			fmt.Sprintf("%s:A", SWARMING_TAG_ID),
-			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+		Created:  now.Add(-3 * time.Hour),
+		Finished: now.Add(-1 * time.Minute),
+		Started:  now.Add(-2 * time.Minute),
+		Status:   TASK_STATUS_FAILURE,
+		Tags: map[string][]string{
+			SWARMING_TAG_ID:             {"A"},
+			SWARMING_TAG_NAME:           {"B"},
+			SWARMING_TAG_REPO:           {"C"},
+			SWARMING_TAG_REVISION:       {"D"},
+			SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			SWARMING_TAG_FORCED_JOB_ID:  {"G"},
 		},
-		CasOutputRoot: casOutput,
-		BotId:         "I",
+		CasOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
+		MachineID: "I",
 	}
-	changed, err := task.UpdateFromSwarming(s)
+	changed, err := task.UpdateFromTaskResult(s)
 	require.NoError(t, err)
 	require.True(t, changed)
 	assertdeep.Equal(t, task, &Task{
@@ -307,59 +241,6 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 		Started:        now.Add(-2 * time.Minute),
 		Finished:       now.Add(-1 * time.Minute),
 		Status:         TASK_STATUS_FAILURE,
-		SwarmingTaskId: "E",
-		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
-		SwarmingBotId:  "I",
-		ParentTaskIds:  []string{"E", "F"},
-	})
-
-	// Make an unrelated change, no change to Task.
-	s.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
-	changed, err = task.UpdateFromSwarming(s)
-	require.NoError(t, err)
-	require.False(t, changed)
-	assertdeep.Equal(t, task, &Task{
-		Id: "A",
-		TaskKey: TaskKey{
-			RepoState: RepoState{
-				Repo:     "C",
-				Revision: "D",
-			},
-			Name:        "B",
-			ForcedJobId: "G",
-		},
-		Created:        now.Add(-3 * time.Hour),
-		Commits:        []string{"D", "Z"},
-		Started:        now.Add(-2 * time.Minute),
-		Finished:       now.Add(-1 * time.Minute),
-		Status:         TASK_STATUS_FAILURE,
-		SwarmingTaskId: "E",
-		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
-		SwarmingBotId:  "I",
-		ParentTaskIds:  []string{"E", "F"},
-	})
-
-	// Modify so that we get Finished from AbandonedTs.
-	s.CompletedTs = ""
-	s.State = swarming.TASK_STATE_EXPIRED
-	changed, err = task.UpdateFromSwarming(s)
-	require.NoError(t, err)
-	require.True(t, changed)
-	assertdeep.Equal(t, task, &Task{
-		Id: "A",
-		TaskKey: TaskKey{
-			RepoState: RepoState{
-				Repo:     "C",
-				Revision: "D",
-			},
-			Name:        "B",
-			ForcedJobId: "G",
-		},
-		Created:        now.Add(-3 * time.Hour),
-		Commits:        []string{"D", "Z"},
-		Started:        now.Add(-2 * time.Minute),
-		Finished:       now.Add(-90 * time.Second),
-		Status:         TASK_STATUS_MISHAP,
 		SwarmingTaskId: "E",
 		IsolatedOutput: "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32",
 		SwarmingBotId:  "I",
@@ -367,12 +248,12 @@ func TestUpdateFromSwarmingUpdate(t *testing.T) {
 	})
 }
 
-// Test that Task.UpdateFromSwarming updates the Status field correctly.
-func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
+// Test that Task.UpdateFromTaskResult updates the Status field correctly.
+func TestUpdateFromTaskResultUpdateStatus(t *testing.T) {
 	unittest.SmallTest(t)
 	now := time.Now().UTC().Round(time.Microsecond)
 
-	testUpdateStatus := func(s *swarming_api.SwarmingRpcsTaskResult, newStatus TaskStatus) {
+	testUpdateStatus := func(s *TaskResult, newStatus TaskStatus) {
 		task := &Task{
 			Id: "A",
 			TaskKey: TaskKey{
@@ -389,7 +270,7 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 			SwarmingTaskId: "E",
 			ParentTaskIds:  []string{"E", "F"},
 		}
-		changed, err := task.UpdateFromSwarming(s)
+		changed, err := task.UpdateFromTaskResult(s)
 		require.NoError(t, err)
 		require.True(t, changed)
 		assertdeep.Equal(t, task, &Task{
@@ -410,34 +291,29 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 		})
 	}
 
-	s := &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "E",
-		CreatedTs: now.Add(-3 * time.Hour).Format(swarming.TIMESTAMP_FORMAT),
-		Failure:   false,
-		State:     swarming.TASK_STATE_PENDING,
-		Tags: []string{
-			fmt.Sprintf("%s:A", SWARMING_TAG_ID),
-			fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", SWARMING_TAG_FORCED_JOB_ID),
+	s := &TaskResult{
+		ID:      "E",
+		Created: now.Add(-3 * time.Hour),
+		Status:  TASK_STATUS_PENDING,
+		Tags: map[string][]string{
+			SWARMING_TAG_ID:             {"A"},
+			SWARMING_TAG_NAME:           {"B"},
+			SWARMING_TAG_REPO:           {"C"},
+			SWARMING_TAG_REVISION:       {"D"},
+			SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			SWARMING_TAG_FORCED_JOB_ID:  {"G"},
 		},
 	}
 
 	testUpdateStatus(s, TASK_STATUS_PENDING)
 
-	s.State = swarming.TASK_STATE_RUNNING
+	s.Status = TASK_STATUS_RUNNING
 	testUpdateStatus(s, TASK_STATUS_RUNNING)
 
-	for _, state := range []string{swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_TIMED_OUT} {
-		s.State = state
-		testUpdateStatus(s, TASK_STATUS_MISHAP)
-	}
+	s.Status = TASK_STATUS_MISHAP
+	testUpdateStatus(s, TASK_STATUS_MISHAP)
 
-	s.State = swarming.TASK_STATE_COMPLETED
-	s.Failure = true
+	s.Status = TASK_STATUS_FAILURE
 	testUpdateStatus(s, TASK_STATUS_FAILURE)
 }
 

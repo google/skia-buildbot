@@ -38,6 +38,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -286,7 +287,8 @@ func main() {
 	}
 	cas, err := rbe.NewClient(ctx, *rbeInstance, ts)
 	assertNoError(err)
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, *rbeInstance, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, *rbeInstance, isolate.ISOLATE_SERVER_URL_FAKE, "")
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, *rbeInstance, taskExec, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
