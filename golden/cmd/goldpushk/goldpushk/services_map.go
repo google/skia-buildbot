@@ -88,8 +88,8 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			s.add(instance, DiffCalculator)
 			s.add(instance, DiffServer)
 			s.add(instance, Frontend)
-			// See skbug.com/11367
-			if instance != ChromiumOSTastDev {
+			// See skbug.com/11367 for ChromiumOSTastDev. For Fuchsia, see http://review.skia.org/376843
+			if instance != ChromiumOSTastDev && instance != Fuchsia{
 				s.add(instance, GitilesFollower)
 			}
 			s.add(instance, IngestionBT)
