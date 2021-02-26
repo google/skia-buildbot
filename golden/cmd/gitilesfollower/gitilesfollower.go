@@ -137,7 +137,13 @@ func mustInitSQLDatabase(ctx context.Context, fcc repoFollowerConfig) *pgxpool.P
 // pollRepo polls the gitiles repo according to the provided duration for as long as the
 // context remains ok.
 func pollRepo(ctx context.Context, db *pgxpool.Pool, client *gitiles.Repo, rfc repoFollowerConfig) {
+	sklog.Infof("Doing initial poll")
+	err := updateCycle(ctx, db, client, rfc)
+	if err != nil {
+		sklog.Fatalf("Could not do initial poll: %s", err)
+	}
 	ct := time.Tick(rfc.PollPeriod.Duration)
+	sklog.Infof("Polling every %s", rfc.PollPeriod.Duration)
 	for {
 		select {
 		case <-ctx.Done():

@@ -20,11 +20,12 @@ const (
 	SkiaPublic        Instance = "skia-public"
 
 	// Gold services.
-	BaselineServer Service = "baselineserver"
-	DiffCalculator Service = "diffcalculator"
-	DiffServer     Service = "diffserver"
-	IngestionBT    Service = "ingestion-bt"
-	Frontend       Service = "frontend"
+	BaselineServer  Service = "baselineserver"
+	DiffCalculator  Service = "diffcalculator"
+	DiffServer      Service = "diffserver"
+	IngestionBT     Service = "ingestion-bt"
+	Frontend        Service = "frontend"
+	GitilesFollower Service = "gitilesfollower"
 
 	// Testing Gold instances.
 	TestInstance1     Instance = "goldpushk-test1"
@@ -69,10 +70,11 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		},
 		knownServices: []Service{
 			BaselineServer,
-			DiffServer,
-			IngestionBT,
-			Frontend,
 			DiffCalculator,
+			DiffServer,
+			Frontend,
+			GitilesFollower,
+			IngestionBT,
 		},
 	}
 
@@ -97,6 +99,9 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	for _, instance := range publicInstancesNeedingBaselineServer {
 		s.add(instance, BaselineServer)
 	}
+	// FIXME(kjlubick)
+	s.add(SkiaInfra, GitilesFollower)
+
 	// Internal baseline options.
 	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{
 		internal: true,
