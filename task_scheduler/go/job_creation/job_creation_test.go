@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -294,7 +295,8 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
 	cas.On("Close").Return(nil)
-	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, isolateClient, cas, "fake-rbe-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", jc.taskCfgCache, jc.isolateCache, nil, mem_gcsclient.New("fake"), "testing")
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", isolate.ISOLATE_SERVER_URL_FAKE, "")
+	ts, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, jc.repos, isolateClient, cas, "fake-rbe-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", jc.taskCfgCache, jc.isolateCache, nil, mem_gcsclient.New("fake"), "testing")
 	require.NoError(t, err)
 
 	jc.Start(ctx, false)

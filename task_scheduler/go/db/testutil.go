@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
@@ -18,7 +17,6 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -1523,35 +1521,32 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 	}
 	require.NoError(t, db.AssignId(task))
 
-	s := &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "E", // This is the Swarming TaskId.
-		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_PENDING,
-		Tags: []string{
-			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
+	s := &types.TaskResult{
+		ID:      "E", // This is the Swarming TaskId.
+		Created: now.Add(time.Second),
+		Status:  types.TASK_STATUS_PENDING,
+		Tags: map[string][]string{
+			types.SWARMING_TAG_ID:             {task.Id},
+			types.SWARMING_TAG_NAME:           {"B"},
+			types.SWARMING_TAG_REPO:           {"C"},
+			types.SWARMING_TAG_REVISION:       {"D"},
+			types.SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			types.SWARMING_TAG_FORCED_JOB_ID:  {"G"},
 		},
 	}
-	modified, err := task.UpdateFromSwarming(s)
+	modified, err := task.UpdateFromTaskResult(s)
 	require.NoError(t, err)
 	require.True(t, modified)
 	require.NoError(t, db.PutTask(task))
 
 	// Get update from Swarming.
-	s.StartedTs = now.Add(time.Minute).Format(swarming.TIMESTAMP_FORMAT)
-	s.CompletedTs = now.Add(2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT)
-	s.State = swarming.TASK_STATE_COMPLETED
-	s.Failure = true
-	s.CasOutputRoot, err = swarming.MakeCASReference("aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32", "fake-cas-instance")
-	require.NoError(t, err)
-	s.BotId = "H"
+	s.Started = now.Add(time.Minute)
+	s.Finished = now.Add(2 * time.Minute)
+	s.Status = types.TASK_STATUS_FAILURE
+	s.CasOutput = "aaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccddddaaaabbbbccccdddd/32"
+	s.MachineID = "H"
 
-	modified, err = UpdateDBFromSwarmingTask(db, s)
+	modified, err = UpdateDBFromTaskResult(db, s)
 	require.NoError(t, err)
 	require.True(t, modified)
 
@@ -1580,21 +1575,9 @@ func TestUpdateDBFromSwarmingTask(t sktest.TestingT, db TaskDB) {
 		DbModified: updatedTask.DbModified,
 	})
 
-	modified, err = UpdateDBFromSwarmingTask(db, s)
+	modified, err = UpdateDBFromTaskResult(db, s)
 	require.NoError(t, err)
 	require.False(t, modified)
-
-	lastDbModified := updatedTask.DbModified
-
-	// Make an unrelated change; assert no change to Task.
-	s.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
-
-	modified, err = UpdateDBFromSwarmingTask(db, s)
-	require.NoError(t, err)
-	require.False(t, modified)
-	updatedTask, err = db.GetTaskById(task.Id)
-	require.NoError(t, err)
-	require.True(t, lastDbModified.Equal(updatedTask.DbModified))
 }
 
 func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
@@ -1621,90 +1604,86 @@ func TestUpdateDBFromSwarmingTaskTryJob(t sktest.TestingT, db TaskDB) {
 	}
 	require.NoError(t, db.AssignId(task))
 
-	s := &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "E", // This is the Swarming TaskId.
-		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_PENDING,
-		Tags: []string{
-			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
-			fmt.Sprintf("%s:A", types.SWARMING_TAG_SERVER),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_ISSUE),
-			fmt.Sprintf("%s:P", types.SWARMING_TAG_PATCHSET),
+	s := &types.TaskResult{
+		ID:      "E", // This is the Swarming TaskId.
+		Created: now.Add(time.Second),
+		Status:  types.TASK_STATUS_PENDING,
+		Tags: map[string][]string{
+			types.SWARMING_TAG_ID:             {task.Id},
+			types.SWARMING_TAG_NAME:           {"B"},
+			types.SWARMING_TAG_REPO:           {"C"},
+			types.SWARMING_TAG_REVISION:       {"D"},
+			types.SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			types.SWARMING_TAG_FORCED_JOB_ID:  {"G"},
+			types.SWARMING_TAG_SERVER:         {"A"},
+			types.SWARMING_TAG_ISSUE:          {"B"},
+			types.SWARMING_TAG_PATCHSET:       {"P"},
 		},
 	}
-	modified, err := task.UpdateFromSwarming(s)
+	modified, err := task.UpdateFromTaskResult(s)
 	require.NoError(t, err)
 	require.True(t, modified)
 
 	// Make sure we can't change the server, issue, or patchset.
-	s = &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "E", // This is the Swarming TaskId.
-		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_PENDING,
-		Tags: []string{
-			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
-			fmt.Sprintf("%s:BAD", types.SWARMING_TAG_SERVER),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_ISSUE),
-			fmt.Sprintf("%s:P", types.SWARMING_TAG_PATCHSET),
+	s = &types.TaskResult{
+		ID:      "E", // This is the Swarming TaskId.
+		Created: now.Add(time.Second),
+		Status:  types.TASK_STATUS_PENDING,
+		Tags: map[string][]string{
+			types.SWARMING_TAG_ID:             {task.Id},
+			types.SWARMING_TAG_NAME:           {"B"},
+			types.SWARMING_TAG_REPO:           {"C"},
+			types.SWARMING_TAG_REVISION:       {"D"},
+			types.SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			types.SWARMING_TAG_FORCED_JOB_ID:  {"G"},
+			types.SWARMING_TAG_SERVER:         {"BAD"},
+			types.SWARMING_TAG_ISSUE:          {"B"},
+			types.SWARMING_TAG_PATCHSET:       {"P"},
 		},
 	}
-	modified, err = task.UpdateFromSwarming(s)
+	modified, err = task.UpdateFromTaskResult(s)
 	require.NotNil(t, err)
 	require.False(t, modified)
 
 	// Make sure we can't change the server, issue, or patchset.
-	s = &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "E", // This is the Swarming TaskId.
-		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_PENDING,
-		Tags: []string{
-			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
-			fmt.Sprintf("%s:A", types.SWARMING_TAG_SERVER),
-			fmt.Sprintf("%s:BAD", types.SWARMING_TAG_ISSUE),
-			fmt.Sprintf("%s:P", types.SWARMING_TAG_PATCHSET),
+	s = &types.TaskResult{
+		ID:      "E", // This is the Swarming TaskId.
+		Created: now.Add(time.Second),
+		Status:  types.TASK_STATUS_PENDING,
+		Tags: map[string][]string{
+			types.SWARMING_TAG_ID:             {task.Id},
+			types.SWARMING_TAG_NAME:           {"B"},
+			types.SWARMING_TAG_REPO:           {"C"},
+			types.SWARMING_TAG_REVISION:       {"D"},
+			types.SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			types.SWARMING_TAG_FORCED_JOB_ID:  {"G"},
+			types.SWARMING_TAG_SERVER:         {"A"},
+			types.SWARMING_TAG_ISSUE:          {"BAD"},
+			types.SWARMING_TAG_PATCHSET:       {"P"},
 		},
 	}
-	modified, err = task.UpdateFromSwarming(s)
+	modified, err = task.UpdateFromTaskResult(s)
 	require.NotNil(t, err)
 	require.False(t, modified)
 
 	// Make sure we can't change the server, issue, or patchset.
-	s = &swarming_api.SwarmingRpcsTaskResult{
-		TaskId:    "E", // This is the Swarming TaskId.
-		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
-		State:     swarming.TASK_STATE_PENDING,
-		Tags: []string{
-			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
-			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
-			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
-			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
-			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
-			fmt.Sprintf("%s:A", types.SWARMING_TAG_SERVER),
-			fmt.Sprintf("%s:B", types.SWARMING_TAG_ISSUE),
-			fmt.Sprintf("%s:BAD", types.SWARMING_TAG_PATCHSET),
+	s = &types.TaskResult{
+		ID:      "E", // This is the Swarming TaskId.
+		Created: now.Add(time.Second),
+		Status:  types.TASK_STATUS_PENDING,
+		Tags: map[string][]string{
+			types.SWARMING_TAG_ID:             {task.Id},
+			types.SWARMING_TAG_NAME:           {"B"},
+			types.SWARMING_TAG_REPO:           {"C"},
+			types.SWARMING_TAG_REVISION:       {"D"},
+			types.SWARMING_TAG_PARENT_TASK_ID: {"E", "F"},
+			types.SWARMING_TAG_FORCED_JOB_ID:  {"G"},
+			types.SWARMING_TAG_SERVER:         {"A"},
+			types.SWARMING_TAG_ISSUE:          {"B"},
+			types.SWARMING_TAG_PATCHSET:       {"BAD"},
 		},
 	}
-	modified, err = task.UpdateFromSwarming(s)
+	modified, err = task.UpdateFromTaskResult(s)
 	require.NotNil(t, err)
 	require.False(t, modified)
 }
