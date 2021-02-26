@@ -1,41 +1,22 @@
-load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
 load("//infra-sk/karma_test:index.bzl", "karma_test")
+load("//infra-sk:index.bzl", "sk_element")
 
 package(default_visibility = ["//machine:__subpackages__"])
 
-##############################
-# machine-server-sk element. #
-##############################
-
-ts_library(
+sk_element(
     name = "machine-server-sk",
-    srcs = [
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["machine-server-sk.scss"],
+    sk_element_deps = ["//infra-sk/modules/theme-chooser-sk:theme-chooser-sk"],
+    ts_deps = [
+        "//machine/modules/json",
+        "@infra-sk_npm//common-sk",
+    ],
+    ts_srcs = [
         "index.ts",
         "machine-server-sk.ts",
     ],
-    deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
-        "//infra-sk/modules/theme-chooser-sk",
-        "//machine/modules/json",
-        "@infra-sk_npm//common-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
-    ],
 )
-
-sass_library(
-    name = "styles",
-    srcs = ["machine-server-sk.scss"],
-    deps = [
-        "//infra-sk:elements-sk_scss",
-        "//infra-sk/modules/theme-chooser-sk:styles",
-    ],
-)
-
-###########################
-# machine-server-sk test. #
-###########################
 
 karma_test(
     name = "test",
