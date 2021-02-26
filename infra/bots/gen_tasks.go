@@ -568,6 +568,11 @@ func validateAutorollConfigs(b *specs.TasksCfgBuilder, name string) string {
 
 func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	cipd = append(cipd, &specs.CipdPackage{
+		Path:    "skia_infra_rbe_key",
+		Name:    "skia/internal/skia_infra_rbe_key",
+		Version: "version:0",
+	})
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("mockery"))
@@ -602,6 +607,11 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	cipd = append(cipd, specs.CIPD_PKGS_PYTHON_LINUX_AMD64...)
 	cipd = append(cipd, specs.CIPD_PKGS_GSUTIL...)
 	cipd = append(cipd, specs.CIPD_PKGS_ISOLATE...)
+	cipd = append(cipd, &specs.CipdPackage{
+		Path:    "skia_infra_rbe_key",
+		Name:    "skia/internal/skia_infra_rbe_key",
+		Version: "version:0",
+	})
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("bazel"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("cockroachdb"))
