@@ -1,0 +1,7 @@
+{
+  // Arbitrary commit from 29 Dec 2020
+  initial_commit: "093250e09e0d01a0ce90cb3eaac6ee66f91e0cec",
+  poll_period: "1m",
+  prom_port: ":20000",
+  ready_port: ":8000"
+}
