@@ -80,6 +80,10 @@ k8s-release-baseline-server: build-static-baseline-server
 k8s-release-diffcalculator: build-static-diffcalculator
 	./k8s_release_diffcalculator
 
+.PHONY: k8s-release-gitilesfollower
+k8s-release-gitilesfollower: build-static-gitilesfollower
+	./k8s_release_gitilesfollower
+
 .PHONY: k8s-release-ingestion
 k8s-release-ingestion: build-static-ingestion
 	./k8s_release_ingestion
@@ -109,6 +113,12 @@ build-static-diffcalculator:
 	mkdir -p ./build
 	rm -f ./build/diffcalculator_k8s
 	$(KGO) -o build/diffcalculator_k8s -a ./cmd/diffcalculator/...
+
+.PHONY: build-static-gitilesfollower
+build-static-gitilesfollower:
+	mkdir -p ./build
+	rm -f ./build/gitilesfollower_k8s
+	$(KGO) -o build/gitilesfollower_k8s -a ./cmd/gitilesfollower/gitilesfollower.go
 
 .PHONY: build-static-diffserver
 build-static-diffserver:
