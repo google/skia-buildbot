@@ -3,6 +3,7 @@
     "DIFFCALCULATOR_IMAGE":  "gcr.io/skia-public/gold-diffcalculator:2021-02-22T12_23_04Z-kjlubick-d23f6c7-clean",
     "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2021-01-19T14_27_42Z-kjlubick-450bea3-clean",
     "FRONTEND_IMAGE":        "gcr.io/skia-public/gold-frontend:2021-02-23T13_50_54Z-kjlubick-6d6951a-clean",
+    "GITILESFOLLOWER_IMAGE": "gcr.io/skia-public/gold-gitilesfollower:2021-02-26T18_42_54Z-kjlubick-dacfd05-dirty",
     "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2021-02-15T14_17_39Z-kjlubick-b37d281-clean",
 
     // Services for testing goldpushk.
