@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3307e0bd_c9917603",
+        "filename": "golden/cmd/gitilesfollower/gitilesfollower.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-02-26T18:38:56Z",
+      "side": 1,
+      "message": "Nit: Is this type necessary? It doesn\u0027t appear to be used anywhere else.",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 22
+      },
+      "revId": "05af9c7737d7f688e1ed5fc671ce0fcf2301a1c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
