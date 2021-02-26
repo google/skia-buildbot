@@ -55,7 +55,7 @@ var (
 	badImageCooldown = time.Minute
 )
 
-type contextKey string
+type contextKey string // See advice in https://golang.org/pkg/context/#WithValue
 
 // NowSource is an abstraction around a clock.
 type NowSource interface {
