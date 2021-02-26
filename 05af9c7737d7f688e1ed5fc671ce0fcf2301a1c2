@@ -70,6 +70,30 @@
       },
       "revId": "05af9c7737d7f688e1ed5fc671ce0fcf2301a1c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8dea881d_a24d6b8a",
+        "filename": "golden/cmd/gitilesfollower/gitilesfollower.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-02-26T18:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "223b9eb6_ff75b875",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 22
+      },
+      "revId": "05af9c7737d7f688e1ed5fc671ce0fcf2301a1c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
