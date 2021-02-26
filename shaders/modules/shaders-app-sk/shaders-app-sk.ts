@@ -37,7 +37,7 @@ import '../../../infra-sk/modules/uniform-imageresolution-sk';
 import { UniformControl } from '../../../infra-sk/modules/uniform/uniform';
 import { DimensionsChangedEventDetail } from '../../../infra-sk/modules/uniform-dimensions-sk/uniform-dimensions-sk';
 import {
-  defaultShader, numPredefinedUniformControls, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
+  defaultShader, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
 } from '../shadernode';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -162,6 +162,12 @@ export class ShadersAppSk extends ElementSk {
 
   private uniformControlsNeedingRAF: UniformControl[] = [];
 
+  /**
+   * Calculated when we render, it count the number of controls that are for
+   * predefined uniforms, as opposed to user uniform controls.
+   */
+  private numPredefinedUniformControls: number = 0;
+
   constructor() {
     super(ShadersAppSk.template);
   }
@@ -170,6 +176,7 @@ export class ShadersAppSk extends ElementSk {
     const ret: TemplateResult[] = [
       html`<uniform-fps-sk></uniform-fps-sk>`, // Always start with the fps control.
     ];
+    ele.numPredefinedUniformControls = 1;
     const node = ele.shaderNode;
     if (!node) {
       return ret;
@@ -181,12 +188,15 @@ export class ShadersAppSk extends ElementSk {
       }
       switch (uniform.name) {
         case 'iTime':
+          ele.numPredefinedUniformControls++;
           ret.push(html`<uniform-time-sk .uniform=${uniform}></uniform-time-sk>`);
           break;
         case 'iMouse':
+          ele.numPredefinedUniformControls++;
           ret.push(html`<uniform-mouse-sk .uniform=${uniform} .elementToMonitor=${ele.canvasEle}></uniform-mouse-sk>`);
           break;
         case 'iResolution':
+          ele.numPredefinedUniformControls++;
           ret.push(html`
             <uniform-dimensions-sk
               .uniform=${uniform}
@@ -444,7 +454,7 @@ export class ShadersAppSk extends ElementSk {
   /** Populate the uniforms values from the controls. */
   private getUserUniformValuesFromControls(): number[] {
     const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
-    $('#uniformControls > *').slice(numPredefinedUniformControls).forEach((control) => {
+    $('#uniformControls > *').slice(this.numPredefinedUniformControls).forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
     return uniforms.slice(this.shaderNode?.numPredefinedUniformValues || 0);
@@ -452,7 +462,7 @@ export class ShadersAppSk extends ElementSk {
 
   private getPredefinedUniformValuesFromControls(): number[] {
     const uniforms: number[] = new Array(this.shaderNode!.getUniformFloatCount()).fill(0);
-    $('#uniformControls > *').slice(0, numPredefinedUniformControls).forEach((control) => {
+    $('#uniformControls > *').slice(0, this.numPredefinedUniformControls).forEach((control) => {
       (control as unknown as UniformControl).applyUniformValues(uniforms);
     });
     return uniforms;
