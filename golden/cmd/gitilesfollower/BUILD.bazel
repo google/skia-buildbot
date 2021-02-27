@@ -1,0 +1,55 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "gitilesfollower_lib",
+    srcs = ["gitilesfollower.go"],
+    importpath = "go.skia.org/infra/golden/cmd/gitilesfollower",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//go/vcsinfo",
+        "//golden/go/config",
+        "//golden/go/sql",
+        "//golden/go/tracing",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
+    ],
+)
+
+go_binary(
+    name = "gitilesfollower",
+    embed = [":gitilesfollower_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "gitilesfollower_test",
+    srcs = [
+        "gitilesfollower_manual_test.go",
+        "gitilesfollower_test.go",
+    ],
+    embed = [":gitilesfollower_lib"],
+    deps = [
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "//go/vcsinfo",
+        "//golden/cmd/gitilesfollower/mocks",
+        "//golden/go/config",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
