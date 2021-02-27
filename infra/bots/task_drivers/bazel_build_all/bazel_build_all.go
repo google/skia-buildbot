@@ -39,6 +39,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	repoDir := filepath.Join(workDir, "buildbot") // Repository checkout.
+	skiaInfraRbeKey := filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
 	// Initialize a fake Git repository. We will use it to detect diffs.
 	//
@@ -116,21 +117,27 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
-	// By invoking Bazel via this function, we ensure that we will always use the temporary cache.
-	bazel := func(args ...string) {
+	// By invoking Bazel via these functions, we ensure that we will always use the temporary cache.
+	bazelNoRemote := func(args ...string) {
 		command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
-		if *rbe {
-			// TODO(lovisolo): Uncomment once we figure out how to authenticate against RBE.
-			// command = append(command, "--config=remote")
-		}
 		command = append(command, args...)
 		if _, err := exec.RunCwd(ctx, repoDir, command...); err != nil {
 			td.Fatal(ctx, err)
 		}
 	}
+	bazel := func(args ...string) {
+		if *rbe {
+			var argsRemote []string
+			argsRemote = append(argsRemote, args...)
+			argsRemote = append(argsRemote, "--config=remote", "--google_credentials="+skiaInfraRbeKey)
+			bazelNoRemote(argsRemote...)
+		} else {
+			bazelNoRemote(args...)
+		}
+	}
 
 	// Print out the Bazel version for debugging purposes.
-	bazel("version")
+	bazelNoRemote("version") // No remote because "bazel version" does not recognize --config.
 
 	// Buildifier formats all BUILD.bazel and .bzl files. We enforce formatting by making the tryjob
 	// fail if this step produces any diffs.
