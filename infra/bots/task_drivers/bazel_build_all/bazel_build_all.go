@@ -39,6 +39,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	repoDir := filepath.Join(workDir, "buildbot") // Repository checkout.
+	skiaInfraRbeKey := filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
 	// Initialize a fake Git repository. We will use it to detect diffs.
 	//
@@ -121,7 +122,7 @@ func main() {
 		command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
 		if *rbe {
 			// TODO(lovisolo): Uncomment once we figure out how to authenticate against RBE.
-			// command = append(command, "--config=remote")
+			command = append(command, "--config=remote", "--google_credentials="+skiaInfraRbeKey)
 		}
 		command = append(command, args...)
 		if _, err := exec.RunCwd(ctx, repoDir, command...); err != nil {
