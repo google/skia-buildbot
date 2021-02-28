@@ -1,6 +1,11 @@
-load("//infra-sk/karma_test:index.bzl", "karma_test")
-load("//infra-sk:index.bzl", "sk_element", "sk_element_puppeteer_test", "sk_page")
-load("//infra-sk/sk_demo_page_server:index.bzl", "sk_demo_page_server")
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -8,7 +13,10 @@ sk_element(
     name = "theme-chooser-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["theme-chooser-sk.scss"],
-    ts_srcs = ["theme-chooser-sk.ts"],
+    ts_srcs = [
+        "index.ts",
+        "theme-chooser-sk.ts",
+    ],
 )
 
 karma_test(

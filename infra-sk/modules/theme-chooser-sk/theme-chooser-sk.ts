@@ -31,7 +31,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../ElementSk/ElementSk';
+import { ElementSk } from '../ElementSk';
 import 'elements-sk/icon/invert-colors-icon-sk';
 
 const DARKMODE_DEFAULT_ATTRIBUTE = 'dark';

@@ -57,6 +57,12 @@ build:remote --test_env=BAZEL_REMOTE=true
 # installed in our custom RBE container toolchain image.
 build:remote --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/go/bin:/cipd:/cipd/bin
 
+# Sass compilation errors are not correctly reported unless "bazel build" is invoked with this flag.
+# This is due to a known issue with sass_binary.
+#
+# For more details please see https://github.com/bazelbuild/rules_sass/issues/96.
+build --strategy=SassCompiler=sandboxed
+
 # Depending on how many machines are in the remote execution instance, setting
 # this higher can make builds faster by allowing more jobs to run in parallel.
 # Setting it too high can result in jobs that timeout, however, while waiting
