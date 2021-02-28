@@ -18,6 +18,15 @@ go_test(
     srcs = ["sqlalertstore_test.go"],
     data = ["//perf/migrations:cockroachdb"],
     embed = [":sqlalertstore"],
+    # Perf CockroachDB tests fail intermittently when running locally (i.e. not on RBE) due to tests
+    # running in parallel against the same CockroachDB instance:
+    #
+    #     pq: relation "schema_lock" already exists
+    #
+    # This is not an issue on RBE because each test target starts its own emulator instance.
+    #
+    # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
+    flaky = True,
     deps = [
         "//go/testutils/unittest",
         "//perf/go/alerts/alertstest",
