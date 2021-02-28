@@ -45,7 +45,6 @@ const LIBRARY_SUPPORTED_DOMAINS = [
   supportedDomains.SKOTTIE_TENOR,
   supportedDomains.LOCALHOST,
 ];
-
 const displayDialog = (ele) => html`
 <skottie-config-sk .state=${ele._state} .width=${ele._width}
     .height=${ele._height} .fps=${ele._fps} .backgroundColor=${ele._backgroundColor}></skottie-config-sk>
@@ -308,6 +307,10 @@ define('skottie-sk', class extends HTMLElement {
       this._fps = newState.f;
       this._backgroundColor = newState.bg;
       this._applyTextEdits = this._applyTextEdits.bind(this);
+      this._logger = {
+        onError: (error) => {errorMessage(error)},
+        onWarning: (warning) => {errorMessage(`Warning: ${warning}`)},
+      }
       this.render();
     });
 
@@ -452,6 +455,7 @@ define('skottie-sk', class extends HTMLElement {
       assets:   this._state.assets,
       soundMap: this._state.soundMap,
       fps:      this._fps,
+      logger:   this._logger,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
       // If the user has specified a value for FPS, we want to lock the

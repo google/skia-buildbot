@@ -182,8 +182,13 @@ define('skottie-player-sk', class extends HTMLElement {
       const CACHE_SIZE = 512 * 1024 * 1024;
       ck.setDecodeCacheLimitBytes(CACHE_SIZE);
 
+      const logger = config.logger || {
+        onError: this._onError,
+        onWarning: this._onWarning,
+      };
+
       this._engine.kit = ck;
-      this._initializeSkottie(config.lottie, config.assets, config.soundMap);
+      this._initializeSkottie(config.lottie, config.assets, config.soundMap, logger);
       this._render();
     });
   }
@@ -223,7 +228,15 @@ define('skottie-player-sk', class extends HTMLElement {
     }
   }
 
-  _initializeSkottie(lottieJSON, assets, soundMap) {
+  _onError(error) {
+    console.error(error);
+  }
+
+  _onWarning(warning) {
+    console.warn(warning);
+  }
+
+  _initializeSkottie(lottieJSON, assets, soundMap, logger) {
     this._state.loading = false;
 
     // Rebuild the surface only if needed.
@@ -252,7 +265,7 @@ define('skottie-player-sk', class extends HTMLElement {
     }
 
     this._engine.animation = this._engine.kit.MakeManagedAnimation(
-      JSON.stringify(lottieJSON), assets, null, soundMap
+      JSON.stringify(lottieJSON), assets, null, soundMap, logger
     );
     if (!this._engine.animation) {
       throw new Error('Could not parse Lottie JSON.');
