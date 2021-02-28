@@ -30,10 +30,11 @@ var (
 	local  = flag.Bool("local", false, "True if running locally (as opposed to on the bots)")
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 
-	// Various directory paths.
-	workDir       string
-	repoDir       string
-	bazelCacheDir string
+	// Various paths.
+	workDir             string
+	repoDir             string
+	skiaInfraRbeKeyFile string
+	bazelCacheDir       string
 )
 
 func main() {
@@ -48,6 +49,7 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 	repoDir = filepath.Join(workDir, "buildbot") // Repository checkout.
+	skiaInfraRbeKeyFile = filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
 	// Temporary directory for the Bazel cache.
 	//
@@ -85,9 +87,7 @@ func main() {
 
 	// Run the tests.
 	if *rbe {
-		// TODO(lovisolo): Uncomment once we figure out how to authenticate against RBE.
-		// testOnRBE(ctx)
-		testLocally(ctx) // TODO(lovisolo): Remove.
+		testOnRBE(ctx)
 	} else {
 		testLocally(ctx)
 	}
@@ -104,7 +104,7 @@ func bazel(ctx context.Context, args ...string) {
 
 func testOnRBE(ctx context.Context) {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	bazel(ctx, "test", "--config=remote", "//...")
+	bazel(ctx, "test", "//...", "--test_output=errors", "--config=remote", "--google_credentials="+skiaInfraRbeKeyFile)
 
 	// TODO(lovisolo): Upload Puppeteer test screenshots to Gold.
 }

@@ -33,12 +33,13 @@ func main() {
 	ctx := td.StartRun(projectID, taskID, taskName, output, local)
 	defer td.EndRun(ctx)
 
-	// Compute various directory paths.
+	// Compute various paths.
 	workDir, err := os_steps.Abs(ctx, *workDirFlag)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
 	repoDir := filepath.Join(workDir, "buildbot") // Repository checkout.
+	skiaInfraRbeKeyFile := filepath.Join(workDir, "skia_infra_rbe_key", "rbe-ci.json")
 
 	// Initialize a fake Git repository. We will use it to detect diffs.
 	//
@@ -119,10 +120,6 @@ func main() {
 	// By invoking Bazel via this function, we ensure that we will always use the temporary cache.
 	bazel := func(args ...string) {
 		command := []string{"bazel", "--output_user_root=" + bazelCacheDir}
-		if *rbe {
-			// TODO(lovisolo): Uncomment once we figure out how to authenticate against RBE.
-			// command = append(command, "--config=remote")
-		}
 		command = append(command, args...)
 		if _, err := exec.RunCwd(ctx, repoDir, command...); err != nil {
 			td.Fatal(ctx, err)
@@ -146,5 +143,9 @@ func main() {
 	failIfNonEmptyGitDiff()
 
 	// Build all code in the repository. The tryjob will fail upon any build errors.
-	bazel("build", "//...")
+	if *rbe {
+		bazel("build", "//...", "--config=remote", "--google_credentials="+skiaInfraRbeKeyFile)
+	} else {
+		bazel("build", "//...")
+	}
 }

@@ -941,6 +941,11 @@
           "name": "skia/bots/protoc",
           "path": "protoc",
           "version": "version:0"
+        },
+        {
+          "name": "skia/internal/skia_infra_rbe_key",
+          "path": "skia_infra_rbe_key",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -1919,6 +1924,11 @@
           "name": "skia/bots/go",
           "path": "go",
           "version": "version:9"
+        },
+        {
+          "name": "skia/internal/skia_infra_rbe_key",
+          "path": "skia_infra_rbe_key",
+          "version": "version:1"
         }
       ],
       "command": [
