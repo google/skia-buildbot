@@ -29,15 +29,15 @@ go_test(
     name = "codereview_test",
     srcs = ["roll_test.go"],
     embed = [":codereview"],
-    tags = [
-        # Ensure that no other tests are running at the same time.
-        #
-        # This prevents "too much contention on these datastore entities" errors due to concurrent
-        # Datastore queries from multiple tests running in parallel.
-        #
-        # Reference: https://docs.bazel.build/versions/master/test-encyclopedia.html#tag-conventions
-        "exclusive",
-    ],
+    # Datastore tests fail intermittently when running locally (i.e. not on RBE) due to tests
+    # running in parallel against the same Datastore emulator instance:
+    #
+    #     rpc error: code = Aborted desc = too much contention on these datastore entities.
+    #
+    # This is not an issue on RBE because each test target starts its own emulator instance.
+    #
+    # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
+    flaky = True,
     deps = [
         "//autoroll/go/config",
         "//autoroll/go/recent_rolls",
