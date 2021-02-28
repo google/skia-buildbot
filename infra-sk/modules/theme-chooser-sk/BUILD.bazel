@@ -1,34 +1,15 @@
-load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
-load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("//infra-sk/karma_test:index.bzl", "karma_test")
-load("//infra-sk:index.bzl", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "sk_element", "sk_element_puppeteer_test", "sk_page")
 load("//infra-sk/sk_demo_page_server:index.bzl", "sk_demo_page_server")
 
 package(default_visibility = ["//visibility:public"])
 
-#############################
-# theme-chooser-sk element. #
-#############################
-
-ts_library(
+sk_element(
     name = "theme-chooser-sk",
-    srcs = ["theme-chooser-sk.ts"],
-    deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
-        "@infra-sk_npm//elements-sk",
-        "@infra-sk_npm//lit-html",
-    ],
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["theme-chooser-sk.scss"],
+    ts_srcs = ["theme-chooser-sk.ts"],
 )
-
-sass_library(
-    name = "styles",
-    srcs = ["theme-chooser-sk.scss"],
-    deps = ["//infra-sk:elements-sk_scss"],
-)
-
-##########################
-# theme-chooser-sk test. #
-##########################
 
 karma_test(
     name = "test",
@@ -39,24 +20,15 @@ karma_test(
     ],
 )
 
-###############################
-# theme-chooser-sk demo page. #
-###############################
-
 sk_page(
     name = "theme-chooser-sk-demo",
-    sass_deps = [":styles"],
-    deps = [":theme-chooser-sk"],
+    sk_element_deps = [":theme-chooser-sk"],
 )
 
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":theme-chooser-sk-demo",
 )
-
-####################################
-# theme-chooser-sk Puppeteer test. #
-####################################
 
 sk_element_puppeteer_test(
     name = "puppeteer_test",
