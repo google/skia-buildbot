@@ -26,6 +26,15 @@ go_test(
         "ds_test.go",
     ],
     embed = [":ds"],
+    # Datastore tests fail intermittently when running locally (i.e. not on RBE) due to tests
+    # running in parallel against the same Datastore emulator instance:
+    #
+    #     rpc error: code = Aborted desc = too much contention on these datastore entities.
+    #
+    # This is not an issue on RBE because each test target starts its own emulator instance.
+    #
+    # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
+    flaky = True,
     deps = [
         "//go/testutils/unittest",
         "@com_github_stretchr_testify//require",
