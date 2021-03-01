@@ -9,9 +9,7 @@ go_library(
     deps = [
         "//go/metrics2",
         "//go/paramtools",
-        "//go/sklog",
         "//golden/go/blame",
-        "//golden/go/diff",
         "//golden/go/digest_counter",
         "//golden/go/expectations",
         "//golden/go/tiling",
