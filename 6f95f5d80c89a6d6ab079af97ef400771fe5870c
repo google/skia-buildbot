@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "013744a0_99562ac7",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T12:54:47Z",
+      "side": 1,
+      "message": "ubernit: I try to start my executable go docs with the name of the executable.\n\nextract_puppeteer_screenshots gathers Puppeteer screenshots from ...",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ac5497c4_973a7de9",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T12:54:47Z",
+      "side": 1,
+      "message": "This seems identical to util.Close",
+      "range": {
+        "startLine": 159,
+        "startChar": 7,
+        "endLine": 159,
+        "endChar": 11
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dda2db72_72c3c887",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T12:54:47Z",
+      "side": 1,
+      "message": "Does util.WithWriteFile work in this case? Or do the custom permissions really matter?",
+      "range": {
+        "startLine": 166,
+        "startChar": 23,
+        "endLine": 166,
+        "endChar": 31
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bbfb933d_df0f1cec",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T12:54:47Z",
+      "side": 1,
+      "message": "When writing to a file, don\u0027t ignore the error on Close. That can mask serious errors. It\u0027s another reason to use util.WithWriteFile if possible. Otherwise, just call Close() explicitly (and in the error case or a defer. Closing a file twice is usually not a big deal)\n\nhttps://www.joeshaw.org/dont-defer-close-on-writable-files/",
+      "range": {
+        "startLine": 171,
+        "startChar": 23,
+        "endLine": 171,
+        "endChar": 28
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
