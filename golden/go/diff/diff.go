@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"image/draw"
 	"math"
-	"net/http"
 	"unsafe"
 
 	"go.skia.org/infra/go/metrics2"
@@ -101,27 +100,6 @@ func CombinedDiffMetric(channelDiffs [4]int, pixelDiffPercent float32) float32 {
 	// the curve, i.e. think about what a plot of x^2 would look like in the
 	// range [0, 1].
 	return float32(math.Sqrt(float64(pixelDiffPercent) * normalizedRGBA))
-}
-
-// DiffStore defines an interface for a type that retrieves, stores and
-// diffs images. How it retrieves the images is up to the implementation.
-type DiffStore interface {
-	// Get returns the DiffMetrics of the provided dMain digest vs all digests
-	// specified in dRest. If one or more of the diffs is unable to be computed,
-	// an error will be returned.
-	Get(ctx context.Context, mainDigest types.Digest, rightDigests types.DigestSlice) (map[types.Digest]*DiffMetrics, error)
-
-	// ImageHandler returns a http.Handler for the given path prefix. The caller
-	// can then serve images of the format:
-	//        <urlPrefix>/images/<digests>.png
-	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
-	ImageHandler(urlPrefix string) (http.Handler, error)
-
-	// PurgeDigests removes all information related to the indicated digests
-	// (image, diffmetric) from local caches. If purgeGCS is true it will also
-	// purge the digests image from Google storage, forcing that the digest
-	// be re-uploaded by the build bots.
-	PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error
 }
 
 // getPixelDiffPercent returns the percentage of pixels that differ, as a float between 0 and 100
