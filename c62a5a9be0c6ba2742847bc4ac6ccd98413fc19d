@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4379a10c_c302b250",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T14:58:08Z",
+      "side": 1,
+      "message": "nit: wrap docs to 100 cols",
+      "range": {
+        "startLine": 155,
+        "startChar": 85,
+        "endLine": 155,
+        "endChar": 89
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ad6f8aea_cb57f89c",
+        "filename": "shaders/modules/shadernode/index_test.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T14:58:08Z",
+      "side": 1,
+      "message": "suggestion: name these tests so the whole thing makes a sentence with it.\n\ne.g. it(\u0027is created on loadScrap\u0027)\ne.g. it(\u0027can be created on loadScrap\u0027)  # this one works better when \u0027it\u0027 is substituted for \"child shaders\" in the test output.",
+      "range": {
+        "startLine": 227,
+        "startChar": 8,
+        "endLine": 227,
+        "endChar": 33
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "73938112_f69ba9b2",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T14:58:08Z",
+      "side": 1,
+      "message": "I think the .js is not necessary",
+      "range": {
+        "startLine": 10,
+        "startChar": 59,
+        "endLine": 10,
+        "endChar": 62
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a7c68c64_ac46b6cf",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T14:58:08Z",
+      "side": 1,
+      "message": "Nit: Add an explanation for the use of the many figure spaces and optionally a link to https://en.wikipedia.org/wiki/Figure_space",
+      "range": {
+        "startLine": 199,
+        "startChar": 43,
+        "endLine": 199,
+        "endChar": 48
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
