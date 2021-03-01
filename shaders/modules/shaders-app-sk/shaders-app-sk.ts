@@ -10,6 +10,7 @@ import { html, TemplateResult } from 'lit-html';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import CodeMirror from 'codemirror';
+import 'codemirror/addon/scroll/simplescrollbars';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
@@ -415,6 +416,7 @@ export class ShadersAppSk extends ElementSk {
       mode: 'x-shader/x-sksl',
       theme: ShadersAppSk.themeFromCurrentMode(),
       viewportMargin: Infinity,
+      scrollbarStyle: 'native',
     });
     this.codeMirror.on('change', () => this.codeChange());
     this.editChildShaderControl = $$('edit-child-shader-sk', this);
