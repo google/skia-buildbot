@@ -34,7 +34,7 @@ type Ingester struct {
 	runEvery       time.Duration
 	sources        []Source
 	processor      Processor
-	ingestionStore IngestionStore
+	ingestionStore Store
 	eventBus       eventbus.EventBus
 
 	// eventProcessMetrics contains all events we are interested in.
@@ -49,7 +49,7 @@ type Ingester struct {
 // (created via eventbus.New()). To drive ingestion from storage events use a PubSub-based
 // eventbus (created via the gevent.New(...) function).
 //
-func newIngester(ingesterID string, ingesterConf Config, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
+func newIngester(ingesterID string, ingesterConf Config, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore Store, eventBus eventbus.EventBus) (*Ingester, error) {
 	if eventBus == nil || ingestionStore == nil {
 		return nil, skerr.Fmt("eventBus and ingestionStore cannot be nil")
 	}
@@ -125,7 +125,7 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 			return nil, skerr.Wrapf(err, "setting event channel for source %v", source)
 		}
 
-		// Watch the source and feed anything not found in the IngestionStore
+		// Watch the source and feed anything not found in the Store
 		go i.watchSource(ctx, source)
 	}
 	return eventChan, nil
