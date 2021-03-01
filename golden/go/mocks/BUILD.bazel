@@ -4,7 +4,6 @@ go_library(
     name = "mocks",
     srcs = [
         "BaselineFetcher.go",
-        "ClosestDiffFinder.go",
         "ComplexTile.go",
         "DigestCounter.go",
         "GCSClient.go",
@@ -18,8 +17,6 @@ go_library(
         "//go/paramtools",
         "//golden/go/baseline",
         "//golden/go/digest_counter",
-        "//golden/go/digesttools",
-        "//golden/go/expectations",
         "//golden/go/storage",
         "//golden/go/tiling",
         "//golden/go/tracestore",

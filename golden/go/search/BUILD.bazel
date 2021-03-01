@@ -62,7 +62,6 @@ go_test(
         "//golden/go/comment/mocks",
         "//golden/go/comment/trace",
         "//golden/go/diff",
-        "//golden/go/diffstore/mocks",
         "//golden/go/digest_counter",
         "//golden/go/expectations",
         "//golden/go/expectations/mocks",
