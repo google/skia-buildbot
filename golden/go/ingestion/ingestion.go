@@ -150,7 +150,7 @@ func (i *Ingester) watchSource(ctx context.Context, source Source) {
 			return
 		}
 
-		rfCh := source.Poll(startTime.Unix(), time.Now().Unix())
+		rfCh := source.Poll(startTime, time.Now())
 		processed := int64(0)
 		ignored := int64(0)
 		sklog.Infof("Polling starting at %s [UTC]", startTime)

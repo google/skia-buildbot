@@ -150,8 +150,8 @@ func newGoogleStorageSource(ctx context.Context, baseName, bucket, rootDir strin
 }
 
 // Poll implements the ingestion.Source interface
-func (g *googleStorageSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
-	dirs := fileutil.GetHourlyDirs(g.rootDir, startTime, endTime)
+func (g *googleStorageSource) Poll(start, end time.Time) <-chan ResultFileLocation {
+	dirs := fileutil.GetHourlyDirs(g.rootDir, start, end)
 	ch := make(chan ResultFileLocation, maxConcurrentDirPollers)
 	concurrentPollers := make(chan bool, maxConcurrentDirPollers)
 
@@ -167,7 +167,7 @@ func (g *googleStorageSource) Poll(startTime, endTime int64) <-chan ResultFileLo
 					wg.Done()
 				}()
 				err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
-					if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
+					if validIngestionFile(item.Name) && item.Updated.After(start) {
 						ch <- newGCSResultFileLocation(item.Bucket,
 							item.Name,
 							item.Updated.Unix(),

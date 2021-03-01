@@ -78,7 +78,7 @@ func main() {
 
 	beginning := time.Date(*startYear, time.Month(*startMonth), *startDay, 0, 0, 0, 0, time.UTC)
 
-	dirs := fileutil.GetHourlyDirs(*srcRootDir, beginning.Unix(), time.Now().Unix())
+	dirs := fileutil.GetHourlyDirs(*srcRootDir, beginning, time.Now())
 	for _, dir := range dirs {
 		sklog.Infof("Directory: %q", dir)
 		err := gcs.AllFilesInDir(gcsClient, *srcBucket, dir, func(item *storage.ObjectAttrs) {
