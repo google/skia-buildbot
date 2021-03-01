@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "197a033b_1249ea1d",
+        "filename": "shaders/modules/shadernode/index.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-01T16:23:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4379a10c_c302b250",
+      "range": {
+        "startLine": 155,
+        "startChar": 85,
+        "endLine": 155,
+        "endChar": 89
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ad6f8aea_cb57f89c",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-01T14:58:08Z",
       "side": 1,
       "message": "suggestion: name these tests so the whole thing makes a sentence with it.\n\ne.g. it(\u0027is created on loadScrap\u0027)\ne.g. it(\u0027can be created on loadScrap\u0027)  # this one works better when \u0027it\u0027 is substituted for \"child shaders\" in the test output.",
+      "range": {
+        "startLine": 227,
+        "startChar": 8,
+        "endLine": 227,
+        "endChar": 33
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "cd28508f_9e7f0335",
+        "filename": "shaders/modules/shadernode/index_test.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-01T16:23:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad6f8aea_cb57f89c",
       "range": {
         "startLine": 227,
         "startChar": 8,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "06b58256_65a06de4",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-01T16:23:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73938112_f69ba9b2",
+      "range": {
+        "startLine": 10,
+        "startChar": 59,
+        "endLine": 10,
+        "endChar": 62
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a7c68c64_ac46b6cf",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-03-01T14:58:08Z",
       "side": 1,
       "message": "Nit: Add an explanation for the use of the many figure spaces and optionally a link to https://en.wikipedia.org/wiki/Figure_space",
+      "range": {
+        "startLine": 199,
+        "startChar": 43,
+        "endLine": 199,
+        "endChar": 48
+      },
+      "revId": "c62a5a9be0c6ba2742847bc4ac6ccd98413fc19d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1abbdd77_081439a6",
+        "filename": "shaders/modules/shaders-app-sk/shaders-app-sk.ts",
+        "patchSetId": 24
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-01T16:23:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7c68c64_ac46b6cf",
       "range": {
         "startLine": 199,
         "startChar": 43,
