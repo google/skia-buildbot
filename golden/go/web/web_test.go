@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/golden/go/code_review"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
-	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
@@ -2779,7 +2778,7 @@ func TestImageHandler_InvalidImageFormat_404Returned(t *testing.T) {
 func loadAsPNGBytes(t *testing.T, textImage string) []byte {
 	img := text.MustToNRGBA(textImage)
 	var buf bytes.Buffer
-	require.NoError(t, common.EncodeImg(&buf, img))
+	require.NoError(t, encodeImg(&buf, img))
 	return buf.Bytes()
 }
 
@@ -2903,7 +2902,7 @@ func assertImageResponseWas(t *testing.T, expected []byte, w *httptest.ResponseR
 func assertDiffImageWas(t *testing.T, w *httptest.ResponseRecorder, expectedTextImage string) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	respImg, err := common.DecodeImg(resp.Body)
+	respImg, err := decodeImg(resp.Body)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	require.NoError(t, text.Encode(&buf, respImg))

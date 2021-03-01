@@ -20,7 +20,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
-	"go.skia.org/infra/golden/go/diffstore/common"
 	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
@@ -1853,7 +1852,7 @@ func (wh *Handlers) serveImageDiff(w http.ResponseWriter, r *http.Request, left 
 	// both the left and right images used to compute the diff are in the same color space,
 	// and also because the resulting diff image is just a visual approximation of the
 	// differences between the left and right images.
-	if err := common.EncodeImg(w, diffImg); err != nil {
+	if err := encodeImg(w, diffImg); err != nil {
 		httputils.ReportError(w, err, "could not serve diff image", http.StatusInternalServerError)
 		return
 	}

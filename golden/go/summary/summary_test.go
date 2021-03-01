@@ -219,8 +219,6 @@ func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet,
 		Expectations: makeExpectations(),
 		ByTrace:      dc.ByTrace(),
 		Blamer:       blamer,
-
-		DiffStore: nil, // diameter is disabled, so this can be nil.
 	}
 
 	return d.Calculate(testNames, query, head)
@@ -342,8 +340,6 @@ func bugRevertHelper(t *testing.T, query paramtools.ParamSet, head bool) []*Tria
 		Expectations: bug_revert.MakeTestExpectations(),
 		ByTrace:      dc.ByTrace(),
 		Blamer:       blamer,
-
-		DiffStore: nil, // diameter is disabled, so this can be nil.
 	}
 
 	return d.Calculate(nil, query, head)
@@ -395,8 +391,6 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 		Expectations: &e,
 		ByTrace:      dc.ByTrace(),
 		Blamer:       blamer,
-
-		DiffStore: nil, // diameter is disabled, so this can be nil.
 	}
 
 	sum := d.Calculate(nil, nil, true)

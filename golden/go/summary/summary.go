@@ -2,15 +2,11 @@
 package summary
 
 import (
-	"context"
 	"sort"
-	"sync"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/blame"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/tiling"
@@ -63,10 +59,6 @@ func MergeSorted(existing, newOnes []*TriageStatus) []*TriageStatus {
 	return ret
 }
 
-// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
-//   metric better. Until then disable it.
-const computeDiameter = false
-
 // Data is a helper struct containing the data that goes into computing a summary.
 type Data struct {
 	Traces       []*tiling.TracePair
@@ -75,8 +67,6 @@ type Data struct {
 	// in those traces.
 	ByTrace map[tiling.TraceID]digest_counter.DigestCount
 	Blamer  blame.Blamer
-
-	DiffStore diff.DiffStore // only needed if computeDiameter = true
 }
 
 // Calculate calculates a slice of TriageStatus for the given data and query options. It will
@@ -84,7 +74,6 @@ type Data struct {
 // optionally be only for those digests at head. At head means just the non-empty digests that
 // appear in the most recent commit. The return value will have its entries sorted by TestName
 // first, then sorted by Corpus in the event of a tie.
-// TODO(kjlubick): make CalculateWithDiameter its own function (needs context.Context too)
 func (s *Data) Calculate(testNames types.TestNameSet, query paramtools.ParamSet, head bool) []*TriageStatus {
 	if len(s.Traces) == 0 {
 		return nil
@@ -173,13 +162,8 @@ func (s *Data) makeSummary(name types.TestName, corpus string, digests types.Dig
 	sort.Sort(diamDigests)
 	sort.Sort(untHashes)
 
-	d := 0
-	if computeDiameter {
-		d = diameter(diamDigests, s.DiffStore)
-	}
 	return &TriageStatus{
 		Name:      name,
-		Diameter:  d,
 		Pos:       pos,
 		Neg:       neg,
 		Untriaged: unt,
@@ -188,39 +172,4 @@ func (s *Data) makeSummary(name types.TestName, corpus string, digests types.Dig
 		Corpus:    corpus,
 		Blame:     s.Blamer.GetBlamesForTest(name),
 	}
-}
-
-func diameter(digests types.DigestSlice, diffStore diff.DiffStore) int {
-	// TODO Parallelize.
-	lock := sync.Mutex{}
-	max := 0
-	wg := sync.WaitGroup{}
-	for {
-		if len(digests) <= 2 {
-			break
-		}
-		wg.Add(1)
-		go func(d1 types.Digest, d2 types.DigestSlice) {
-			defer wg.Done()
-			dms, err := diffStore.Get(context.TODO(), d1, d2)
-			if err != nil {
-				sklog.Errorf("Unable to get diff: %s", err)
-				return
-			}
-			localMax := 0
-			for _, dm := range dms {
-				if dm.NumDiffPixels > localMax {
-					localMax = dm.NumDiffPixels
-				}
-			}
-			lock.Lock()
-			defer lock.Unlock()
-			if localMax > max {
-				max = localMax
-			}
-		}(digests[0], digests[1:2])
-		digests = digests[1:]
-	}
-	wg.Wait()
-	return max
 }
