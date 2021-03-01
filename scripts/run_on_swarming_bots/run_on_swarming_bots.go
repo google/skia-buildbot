@@ -15,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
@@ -38,6 +39,7 @@ var (
 	excludeBots = common.NewMultiStringFlag("exclude_bot", nil, "Exclude these bots, regardless of whether they match the requested dimensions. Calculated AFTER the dimensions are computed and after --include_bot is applied. Can be simple strings or regexes.")
 	internal    = flag.Bool("internal", false, "Run against internal swarming instance.")
 	pool        = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
+	rerun       = flag.String("rerun", "", "Label from a previous invocation of this script, used to re-run all non-successful tasks.")
 	script      = flag.String("script", "", "Path to a Python script to run.")
 	taskName    = flag.String("task_name", "", "Name of the task to run.")
 	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
@@ -97,6 +99,12 @@ func main() {
 	swarmApi, err := swarming.NewApiClient(httpClient, swarmingServer)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	// Are we re-running a previous set of tasks?
+	if *rerun != "" {
+		rerunPrevious(swarmingServer, swarmApi, *rerun)
+		return
 	}
 
 	// Obtain the list of bots.
@@ -305,4 +313,33 @@ func getPythonCIPDPackages(bot *swarming_api.SwarmingRpcsBotInfo) *swarming_api.
 		cipdInput = swarming.ConvertCIPDInput(cipd.PkgsPython[platform])
 	}
 	return cipdInput
+}
+
+func rerunPrevious(swarmingServer string, swarmApi swarming.ApiClient, rerun string) {
+	results, err := swarmApi.ListTaskResults(time.Time{}, time.Time{}, []string{rerun}, "", false)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	newTag := rerun + "_rerun"
+	var g errgroup.Group
+	for _, result := range results {
+		if result.State == swarming.TASK_STATE_COMPLETED && !result.Failure && !result.InternalFailure {
+			continue
+		}
+		id := result.TaskId
+		g.Go(func() error {
+			taskMeta, err := swarmApi.GetTaskMetadata(id)
+			if err != nil {
+				return err
+			}
+			taskMeta.Request.Tags = append(taskMeta.Request.Tags, newTag)
+			_, err = swarmApi.RetryTask(taskMeta)
+			return err
+		})
+	}
+	if err := g.Wait(); err != nil {
+		sklog.Fatal(err)
+	}
+	tasksLink := fmt.Sprintf("https://%s/tasklist?f=%s", swarmingServer, newTag)
+	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
 }
