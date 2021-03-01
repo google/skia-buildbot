@@ -34,22 +34,22 @@ get back to you.
 Otherwise, you'll need approximately the following steps. We use Google Cloud and Kubernetes (k8s)
 and the following assumes you do too.
 
-TODO(kjlubick) update this to handle diffcalculator
-
  1. Create a Google Cloud Project - this will house the data, credentials, configuration, and
     k8s pods that make up Gold.
  2. Make a Google Cloud Storage (GCS) bucket in the project. This specifically will be the source
     of truth for Gold. All data uploaded from tests will live here and be interpreted by Gold.
- 3. Make a BigTable Table - this will house some of the data after being processed by Gold.
- 4. Make a service account that can write to the GCS bucket. This will be how you authenticate to
+ 3. [deprecated] Make a BigTable Table - this will house some data being processed by Gold.
+ 4. Create a CockroachDB cluster. This is the new way to store all data in Gold.
+ 5. Make a service account that can write to the GCS bucket. This will be how you authenticate to
     goldctl (see below).
- 4. Create a k8s deployment of ingestion. This will read the data out of GCS and put it into
+ 6. Create a k8s deployment of ingestion. This will read the data out of GCS and put it into
     BigTable (or Firestore for TryJobs). All our Dockerfiles are in ../dockerfiles
     and the templates we use for deployments are in ../k8s-config-templates.
- 5. Create a k8s deployment of diffserver. This will compute the differences between images
-    and output things like the diff metrics and images visualizing the differences.
- 6. Create a k8s deployment of frontend.
- 7. Create a k8s deployment of baselineserver. This is a lighter-weight and more highly-available
+ 7. Create a k8s deployment of diffcalculator. This will compute the differences between images
+    and output things like the diff metrics and images visualizing the differences. This will
+    need a PubSub topic/subscription created (see cmd/pubsubtool).
+ 8. Create a k8s deployment of frontend.
+ 9. Create a k8s deployment of baselineserver. This is a lighter-weight and more highly-available
     subset of the frontend, which will be queried by goldctl.
 
 Integrating with your tests

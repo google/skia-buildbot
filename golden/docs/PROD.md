@@ -212,12 +212,6 @@ GoldIngestionErrorRate
 The recent rate of errors for ingestion is high, it is typically well below 0.1.
 See the error logs for the given instance for more.
 
-GoldDiffServerErrorRate
-----------------------
-The recent rate of errors for the diff server is high, it is typically well
-below 0.1.
-See the error logs for the given instance for more.
-
 GoldErrorRate
 ----------------------
 The recent rate of errors for the main gold instance is high, it is

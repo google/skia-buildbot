@@ -3,23 +3,23 @@
 // Sample usage:
 //
 //   Deployment of a specific service:
-//     $ goldpushk --service diffserver --instance chrome-gpu
-//     $ goldpushk -s diffserver -i chrome-gpu
+//     $ goldpushk --service diffcalculator --instance chrome-gpu
+//     $ goldpushk -s diffcalculator -i chrome-gpu
 //
 //   Deployment of a specific service across multiple instances:
-//     $ goldpushk --service diffserver --instance chrome-gpu,skia
-//     $ goldpushk -s diffserver -i chrome-gpu,skia
+//     $ goldpushk --service diffcalculator --instance chrome-gpu,skia
+//     $ goldpushk -s diffcalculator -i chrome-gpu,skia
 //
 //   Deployment of all instances of a given service across all Gold instances:
-//     $ goldpushk --service diffserver --instance all
-//     $ goldpushk -s diffserver -i all
+//     $ goldpushk --service diffcalculator --instance all
+//     $ goldpushk -s diffcalculator -i all
 //
 //   Deployment of all services corresponding to a specific Gold instance:
 //     $ goldpushk --service all --instance chrome-gpu
 //     $ goldpushk -s all -i chrome-gpu
 //
 //   Deployment of all instances of a given service, designating one of them as the canary:
-//     $ goldpushk --service diffserver --instance all --canary skia:diffserver
+//     $ goldpushk --service diffcalculator --instance all --canary skia:diffcalculator
 //
 //   Print out all Gold instances and services goldpushk is able to manage:
 //     $ goldpushk --list
@@ -93,8 +93,8 @@ func main() {
 	rootCmd.Flags().SortFlags = false
 	rootCmd.Flags().BoolVar(&flagList, "list", false, "List known Gold instances and services (tip: try combining this flag with --testing).")
 	rootCmd.Flags().StringSliceVarP(&flagInstances, "instances", "i", []string{}, "[REQUIRED] Comma-delimited list of Gold instances to target (e.g. \"skia,flutter\"), or \""+all+"\" to target all instances.")
-	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"frontend,diffserver\"), or \""+all+"\" to target all services.")
-	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffserver,flutter:frontend\")")
+	rootCmd.Flags().StringSliceVarP(&flagServices, "services", "s", []string{}, "[REQUIRED] Comma-delimited list of services to target (e.g. \"frontend,diffcalculator\"), or \""+all+"\" to target all services.")
+	rootCmd.Flags().StringSliceVarP(&flagCanaries, "canaries", "c", []string{}, "Comma-delimited subset of Gold services to use as canaries, written as instance:service pairs (e.g. \"skia:diffcalculator,flutter:frontend\")")
 	rootCmd.Flags().BoolVar(&flagDryRun, "dryrun", false, "Do everything except applying the new configuration to Kubernetes and committing changes to Git.")
 	rootCmd.Flags().BoolVar(&flagNoCommit, "no-commit", false, "Do not commit configuration changes to the k8s-config repository.")
 	rootCmd.Flags().IntVar(&flagMinUptimeSeconds, "min-uptime", 30, "Minimum uptime in seconds required for all services before exiting the monitoring step.")
