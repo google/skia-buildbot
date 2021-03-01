@@ -19,7 +19,7 @@ import { ChildShader, ScrapBody, ScrapID } from '../json';
 const DEFAULT_SIZE = 512;
 
 /** Child shader uniform names must conform to this regex. */
-const childShaderUniformNameRegex = /^[a-zA-Z_]\w+$/;
+export const childShaderUniformNameRegex = /^[a-zA-Z_]\w+$/;
 
 export const defaultChildShaderScrapHashOrName = '@defaultChildShader';
 
@@ -267,6 +267,14 @@ export class ShaderNode {
       this.currentChildShaders.push(childShader);
       const childNode = await this.shaderNodeFromChildShader(childShader);
       this.children.push(childNode);
+    }
+
+    getChildShader(index: number): ChildShader {
+      const length = this.currentChildShaders.length;
+      if (index > length - 1) {
+        throw new Error('Tried to remove a child shader that does not exist.');
+      }
+      return Object.assign({}, this.currentChildShaders[index]);
     }
 
     removeChildShader(index: number): void {
