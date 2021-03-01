@@ -1,7 +1,7 @@
 /* eslint-disable dot-notation */
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
-import { assert } from 'chai';
+import { assert, AssertionError } from 'chai';
 import {
   childShaderArraysDiffer,
   childShadersAreDifferent,
@@ -228,6 +228,7 @@ describe('ShaderNode', async () => {
       const node = await createShaderNodeWithChildShader();
       assert.equal(1, node.children.length);
       assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
+      assert.equal(node.getChildShader(0).UniformName, 'childShader');
     });
 
     it('can be removed', async () => {
@@ -240,6 +241,13 @@ describe('ShaderNode', async () => {
       const node = await createShaderNodeWithChildShader();
       assert.throws(() => {
         node.removeChildShader(2);
+      });
+    });
+
+    it('throws on out of bounds when accessing child shader', async () => {
+      const node = await createShaderNodeWithChildShader();
+      assert.throws(() => {
+        node.getChildShader(2);
       });
     });
 
