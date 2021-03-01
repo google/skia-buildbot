@@ -16,6 +16,52 @@
       "message": "This will be helpful for the scheduling improvements I\u0027m working on as well as for project Weber.",
       "revId": "1fb0545c5d7780b322b5ae9095d4a266d50f4f1f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1857fe5b_a5ab564c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2658,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-03-01T17:15:16Z",
+      "side": 1,
+      "message": "Looks like you can remove this.",
+      "range": {
+        "startLine": 2658,
+        "startChar": 2,
+        "endLine": 2658,
+        "endChar": 75
+      },
+      "revId": "1fb0545c5d7780b322b5ae9095d4a266d50f4f1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3c9076da_5e361e14",
+        "filename": "task_scheduler/go/task_execution/swarming/swarming.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-03-01T17:15:16Z",
+      "side": 1,
+      "message": "Shall we take this refactor as an opportunity to throw this up at the top of the file as a constant?",
+      "range": {
+        "startLine": 234,
+        "startChar": 8,
+        "endLine": 234,
+        "endChar": 28
+      },
+      "revId": "1fb0545c5d7780b322b5ae9095d4a266d50f4f1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
