@@ -59,6 +59,34 @@ buildifier(
     lint_mode = "warn",
 )
 
+#############################################################################
+# Utility tool to extract screenshots taken by Puppeteer tests under Bazel. #
+#############################################################################
+
+# Wrapper script so we can invoke the tool from the workspace root, instead of the directory where
+# the tool's go_binary target is located.
+genrule(
+    name = "extract_puppeteer_screenshots_wrapper_script",
+    srcs = ["//puppeteer-tests/bazel/extract_puppeteer_screenshots"],
+    outs = ["extract_puppeteer_screenshots.sh"],
+    cmd = " && ".join([
+        # The $@ variable holds the path to the genrule's only output file. The $$@ variable is the
+        # shell's $@ variable ($-escaped), which is used here to pipe through to the underlying Go
+        # program any command-line arguments passed to the wrapper shell script.
+        #
+        # See https://docs.bazel.build/versions/master/be/general.html#genrule.
+        "echo '#!/bin/bash' >> $@",
+        "echo '$(rootpath //puppeteer-tests/bazel/extract_puppeteer_screenshots) $$@' >> $@",
+    ]),
+)
+
+# Usage: "bazel run //:extract_puppeteer_screenshots -- --output_dir=<output directory>".
+sh_binary(
+    name = "extract_puppeteer_screenshots",
+    srcs = ["extract_puppeteer_screenshots.sh"],
+    data = ["//puppeteer-tests/bazel/extract_puppeteer_screenshots"],
+)
+
 ############################################
 # Custom Remote Build Execution toolchain. #
 ############################################
