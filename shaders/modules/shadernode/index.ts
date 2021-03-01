@@ -19,7 +19,7 @@ import { ChildShader, ScrapBody, ScrapID } from '../json';
 const DEFAULT_SIZE = 512;
 
 /** Child shader uniform names must conform to this regex. */
-const childShaderUniformNameRegex = /^[a-zA-Z_]\w+$/;
+export const childShaderUniformNameRegex = /^[a-zA-Z_]\w+$/;
 
 export const defaultChildShaderScrapHashOrName = '@defaultChildShader';
 
