@@ -1,5 +1,4 @@
-load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
-load("//infra-sk/karma_test:index.bzl", "karma_test")
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
