@@ -38,8 +38,56 @@
     flex-direction: row;
     flex-wrap: wrap;
 
+    textarea {
+      display: block;
+      background: var(--surface);
+      color: var(--secondary);
+      font-family: monospace;
+      resize: none;
+      font-size: 11px;
+      margin: 0 8px 0 0;
+    }
+
+    button {
+      margin: 0;
+    }
+
+    .deleteButton,
+    .addButton {
+      border: none;
+    }
+
+    .linkish {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    p.childShader {
+      display: flex;
+      justify-content: space-between;
+      margin: 0;
+      padding-right: 8px;
+
+      color: var(--primary);
+      fill: var(--primary);
+
+      span {
+        font-family: 'Courier New', Courier, monospace;
+      }
+    }
+
+    add-icon-sk {
+      display: inline-block;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
     #examples {
       margin: 0 8px 8px 0;
+      font-size: 12px;
     }
 
     canvas {
@@ -47,7 +95,7 @@
     }
 
     #codeEditor {
-      margin: 0 8px 8px 8px;
+      margin: 0 8px 8px 0;
     }
 
     #shaderControls {
@@ -120,15 +168,6 @@
     box-shadow: initial;
     margin: 0 8px 8px 0;
     font-size: 11px;
-
-    textarea {
-      display: block;
-      background: var(--surface);
-      color: var(--secondary);
-      font-family: monospace;
-      resize: none;
-      font-size: 11px;
-    }
 
     #imageSources {
       display: flex;

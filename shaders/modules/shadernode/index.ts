@@ -14,9 +14,14 @@ import {
   Image,
   MallocObj, RuntimeEffect, Shader,
 } from '../../build/canvaskit/canvaskit';
-import { ScrapBody, ScrapID } from '../json';
+import { ChildShader, ScrapBody, ScrapID } from '../json';
 
 const DEFAULT_SIZE = 512;
+
+/** Child shader uniform names must conform to this regex. */
+const childShaderUniformNameRegex = /^[a-zA-Z_]\w+$/;
+
+export const defaultChildShaderScrapHashOrName = '@defaultChildShader';
 
 export const predefinedUniforms = `uniform float3 iResolution;      // Viewport resolution (pixels)
 uniform float  iTime;            // Shader playback time (s)
@@ -53,9 +58,9 @@ export const defaultShader = `half4 main(float2 fragCoord) {
 
 export type callback = ()=> void;
 
-const defaultImageURL = '/dist/mandrill.png';
+export const defaultImageURL = '';
 
-const defaultBody: ScrapBody = {
+export const defaultScrapBody: ScrapBody = {
   Type: 'sksl',
   Body: defaultShader,
   SKSLMetaData: {
@@ -73,11 +78,32 @@ interface InputImage {
   shader: Shader;
 }
 
+export const childShadersAreDifferent = (a: ChildShader, b: ChildShader): boolean => {
+  if (a.UniformName !== b.UniformName || a.ScrapHashOrName !== b.ScrapHashOrName) {
+    return true;
+  }
+  return false;
+};
+
+export const childShaderArraysDiffer = (a: ChildShader[], b: ChildShader[]): boolean => {
+  if (a.length !== b.length) {
+    return true;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (childShadersAreDifferent(a[i], b[i])) {
+      return true;
+    }
+  }
+  return false;
+};
+
+
 /**
- * Called ShaderNode because once we support child shaders this will be just one
- * node in a tree of shaders.
+ * One node in a tree of shaders.
  */
 export class ShaderNode {
+    children: ShaderNode[] = [];
+
     /** The scrap ID this shader was last saved as. */
     private scrapID: string = '';
 
@@ -126,12 +152,19 @@ export class ShaderNode {
     /** The current image being displayed, even if a blob: url. */
     private currentImageURL: string = '';
 
+    /** The current child shaders, which may be different from what's saved and
+     * also from what's running. */
+    private currentChildShaders: ChildShader[] = [];
+
+    /** The current running child shaders, which may be different from what's
+     * saved and also from what's been edited. */
+    private runningChildShaders: ChildShader[] = [];
+
     private _numPredefinedUniformValues: number = 0;
 
     constructor(canvasKit: CanvasKit) {
       this.canvasKit = canvasKit;
-      this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
-      this.setScrap(defaultBody);
+      this.setInputImageShaderToEmptyImage();
     }
 
     /**
@@ -139,13 +172,13 @@ export class ShaderNode {
      *
      * The imageLoadedCallback is called once the image has fully loaded.
      */
-    async loadScrap(scrapID: string, imageLoadedCallback: callback | null = null): Promise<void> {
+    async loadScrap(scrapID: string): Promise<void> {
       this.scrapID = scrapID;
       const resp = await fetch(`/_/load/${scrapID}`, {
         credentials: 'include',
       });
       const scrapBody = (await jsonOrThrow(resp)) as ScrapBody;
-      this.setScrap(scrapBody, imageLoadedCallback);
+      await this.setScrap(scrapBody);
     }
 
     /**
@@ -153,11 +186,21 @@ export class ShaderNode {
      *
      * The imageLoadedCallback is called once the image has fully loaded.
      */
-    setScrap(scrapBody: ScrapBody, imageLoadedCallback: callback | null = null): void {
+    async setScrap(scrapBody: ScrapBody): Promise<void> {
       this.body = scrapBody;
       this._shaderCode = this.body.Body;
       this.currentUserUniformValues = this.body.SKSLMetaData?.Uniforms || [];
-      this.setCurrentImageURL(this.body?.SKSLMetaData?.ImageURL || defaultImageURL, imageLoadedCallback);
+      await this.setCurrentImageURL(this.body?.SKSLMetaData?.ImageURL || defaultImageURL);
+
+      // Now that we've set up this node, we build the rest of the tree of child nodes.
+      this.children = [];
+      this.currentChildShaders = [];
+      const allChildrenLoading = this.body.SKSLMetaData?.Children?.map<Promise<void>>(async (childShader) => {
+        this.currentChildShaders.push(childShader);
+        const childNode = await this.shaderNodeFromChildShader(childShader);
+        this.children.push(childNode);
+      }) || [];
+      await Promise.all(allChildrenLoading);
       this.compile();
     }
 
@@ -189,22 +232,70 @@ export class ShaderNode {
      * Sets the current image to use. Note that if the image fails to load then
      * the current image URL will be set to the empty string.
      */
-    setCurrentImageURL(val: string, imageLoadedCallback: callback | null = null): void {
+    async setCurrentImageURL(val: string): Promise<void> {
       this.currentImageURL = val;
 
-      this.promiseOnImageLoaded(this.currentImageURL).then((imageElement) => {
-        this.inputImageShaderFromCanvasImageSource(imageElement);
-        if (imageLoadedCallback) {
-          imageLoadedCallback();
-        }
-      }).catch(() => {
+      if (this.currentImageURL === '') {
+        this.setInputImageShaderToEmptyImage();
+        return;
+      }
+
+      try {
+        await this.promiseOnImageLoaded(this.currentImageURL).then((imageElement) => {
+          this.inputImageShaderFromCanvasImageSource(imageElement);
+        });
+      } catch (error) {
         errorMessage(`Failed to load image: ${this.currentImageURL}. Falling back to an empty image.`);
         this.currentImageURL = '';
-        this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
-        if (imageLoadedCallback) {
-          imageLoadedCallback();
-        }
-      });
+        this.setInputImageShaderToEmptyImage();
+      }
+    }
+
+    async appendNewChildShader(): Promise<void> {
+      // First pick a unique name for the new child shader.
+      let i = 1;
+      let childUniformName = 'childShader';
+      const hasSameName = (child: ChildShader): boolean => child.UniformName === childUniformName;
+      while (this.currentChildShaders.some(hasSameName)) {
+        i++;
+        childUniformName = `childShader${i}`;
+      }
+      const childShader: ChildShader = {
+        UniformName: childUniformName,
+        ScrapHashOrName: defaultChildShaderScrapHashOrName,
+      };
+      this.currentChildShaders.push(childShader);
+      const childNode = await this.shaderNodeFromChildShader(childShader);
+      this.children.push(childNode);
+    }
+
+    removeChildShader(index: number): void {
+      const length = this.currentChildShaders.length;
+      if (index > length - 1) {
+        throw new Error('Tried to remove a child shader that does not exist.');
+      }
+      this.currentChildShaders.splice(index, 1);
+      this.children.splice(index, 1);
+    }
+
+    async setChildShaderUniformName(index: number, name: string): Promise<void> {
+      const length = this.currentChildShaders.length;
+      if (index > length - 1) {
+        throw new Error('Tried to update a child shader that does not exist.');
+      }
+      if (name.match(childShaderUniformNameRegex) === null) {
+        throw new Error('Invalid uniform name');
+      }
+      this.currentChildShaders[index].UniformName = name;
+      this.children[index] = await this.shaderNodeFromChildShader(this.currentChildShaders[index]);
+    }
+
+    getChildShaderUniformName(index: number): string {
+      const length = this.currentChildShaders.length;
+      if (index > length - 1) {
+        throw new Error('Tried to access a child shader that does not exist.');
+      }
+      return this.currentChildShaders[index].UniformName;
     }
 
     /**
@@ -212,13 +303,21 @@ export class ShaderNode {
      * scrap id that it was stored at, or reject on an error.
      */
     async saveScrap(): Promise<string> {
+      // Saving needs to be done depth first.
+      const newChildIDs = await Promise.all(this.children.map((childNode) => childNode.saveScrap()));
+
+      // Now update currentChildShaders with the updated hashes.
+      newChildIDs.forEach((childScrapHashOrName, index) => {
+        this.currentChildShaders[index].ScrapHashOrName = childScrapHashOrName;
+      });
+
       const body: ScrapBody = {
         Body: this._shaderCode,
         Type: 'sksl',
         SKSLMetaData: {
           Uniforms: this._currentUserUniformValues,
           ImageURL: this.getSafeImageURL(),
-          Children: [],
+          Children: this.currentChildShaders,
         },
       };
 
@@ -272,21 +371,33 @@ export class ShaderNode {
       return this._compileErrorLineNumbers;
     }
 
+    /** A scrap of shader code with the child shader declarations. */
+    getChildShaderUniforms(): string {
+      return this.currentChildShaders.map((childNode) => `uniform shader ${childNode.UniformName};`).join('\n');
+    }
+
     /** Compiles the shader code for this node. */
     compile(): void {
+      // Compile depth first.
+      this.children.forEach((childNode) => childNode.compile());
+
+      const predefinedAndChildShaderUniformDeclarations = `${predefinedUniforms}\n${this.getChildShaderUniforms()}\n`;
+      const errorLineFixup = predefinedAndChildShaderUniformDeclarations.split('\n').length;
+
       this._compileErrorMessage = '';
       this._compileErrorLineNumbers = [];
       this.runningCode = this._shaderCode;
+      this.runningChildShaders = this.currentChildShaders.slice();
       // eslint-disable-next-line no-unused-expressions
       this.effect?.delete();
-      this.effect = this.canvasKit!.RuntimeEffect.Make(`${predefinedUniforms}\n${this.runningCode}`, (err) => {
+      this.effect = this.canvasKit!.RuntimeEffect.Make(`${predefinedAndChildShaderUniformDeclarations}${this.runningCode}`, (err) => {
       // Fix up the line numbers on the error messages, because they are off by
-      // the number of lines we prefixed with the predefined uniforms. The regex
-      // captures the line number so we can replace it with the correct value.
-      // While doing the fix up of the error message we also annotate the
-      // corresponding lines in the CodeMirror editor.
+      // the number of lines we prefixed with the predefined uniforms and child
+      // shaders. The regex captures the line number so we can replace it with
+      // the correct value. While doing the fix up of the error message we also
+      // annotate the corresponding lines in the CodeMirror editor.
         err = err.replace(shaderCompilerErrorRegex, (_match, firstRegexCaptureValue): string => {
-          const lineNumber = (+firstRegexCaptureValue - (numPredefinedUniformLines + 1));
+          const lineNumber = (+firstRegexCaptureValue - errorLineFixup);
           this._compileErrorLineNumbers.push(lineNumber);
           return `error: ${lineNumber.toFixed(0)}`;
         });
@@ -308,12 +419,18 @@ export class ShaderNode {
 
     /** Returns true if this node needs to have its code recompiled. */
     needsCompile(): boolean {
-      return (this._shaderCode !== this.runningCode);
+      return (this._shaderCode !== this.runningCode)
+       || this.children.some((childNode) => childNode.needsCompile())
+       || childShaderArraysDiffer(this.currentChildShaders, this.runningChildShaders);
     }
 
     /** Returns true if this node or any child node needs to be saved. */
     needsSave(): boolean {
-      return (this._shaderCode !== this.body!.Body) || this.userUniformValuesHaveBeenEdited() || this.imageURLHasChanged();
+      return (this._shaderCode !== this.body!.Body)
+       || this.userUniformValuesHaveBeenEdited()
+       || this.imageURLHasChanged()
+       || childShaderArraysDiffer(this.currentChildShaders, this.body?.SKSLMetaData?.Children || [])
+       || this.children.some((childNode) => childNode.needsSave());
     }
 
     /** Returns the number of uniforms in the effect. */
@@ -354,11 +471,23 @@ export class ShaderNode {
         uniformsFloat32Array[imageResolution.slot + 1] = this.inputImageShader!.height;
       }
 
-      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, [this.inputImageShader!.shader]);
+      let childShaders = [this.inputImageShader!.shader];
+      childShaders = childShaders.concat(this.children.map((childNode) => childNode.getShader(predefinedUniformsValues)!));
+      return this.effect!.makeShaderWithChildren(uniformsFloat32Array, false, childShaders);
     }
 
     get numPredefinedUniformValues(): number {
       return this._numPredefinedUniformValues;
+    }
+
+    private setInputImageShaderToEmptyImage() {
+      this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
+    }
+
+    private async shaderNodeFromChildShader(childShader: ChildShader): Promise<ShaderNode> {
+      const childNode = new ShaderNode(this.canvasKit);
+      await childNode.loadScrap(childShader.ScrapHashOrName);
+      return childNode;
     }
 
     /** The number of floats that are defined by predefined uniforms. */
