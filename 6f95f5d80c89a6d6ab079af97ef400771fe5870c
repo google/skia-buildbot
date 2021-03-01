@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "2c2e1951_20137998",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-01T20:31:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "013744a0_99562ac7",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 18
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "ac5497c4_973a7de9",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-01T12:54:47Z",
       "side": 1,
       "message": "This seems identical to util.Close",
+      "range": {
+        "startLine": 159,
+        "startChar": 7,
+        "endLine": 159,
+        "endChar": 11
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e69e7fac_831810dc",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-01T20:31:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac5497c4_973a7de9",
       "range": {
         "startLine": 159,
         "startChar": 7,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "759f9835_76d673d0",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-01T20:31:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dda2db72_72c3c887",
+      "range": {
+        "startLine": 166,
+        "startChar": 23,
+        "endLine": 166,
+        "endChar": 31
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "bbfb933d_df0f1cec",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-03-01T12:54:47Z",
       "side": 1,
       "message": "When writing to a file, don\u0027t ignore the error on Close. That can mask serious errors. It\u0027s another reason to use util.WithWriteFile if possible. Otherwise, just call Close() explicitly (and in the error case or a defer. Closing a file twice is usually not a big deal)\n\nhttps://www.joeshaw.org/dont-defer-close-on-writable-files/",
+      "range": {
+        "startLine": 171,
+        "startChar": 23,
+        "endLine": 171,
+        "endChar": 28
+      },
+      "revId": "6f95f5d80c89a6d6ab079af97ef400771fe5870c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e7195712_2fc492f2",
+        "filename": "puppeteer-tests/bazel/extract_puppeteer_screenshots/extract_puppeteer_screenshots.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-01T20:31:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bbfb933d_df0f1cec",
       "range": {
         "startLine": 171,
         "startChar": 23,
