@@ -106,9 +106,9 @@ func main() {
 	}
 
 	common.InitWithMust("diffcalculator", logOpts...)
-	// We expect there to be a lot of diff work, so we sample 1/10th of them to avoid incurring
+	// We expect there to be a lot of diff work, so we sample 1% of them to avoid incurring
 	// too much overhead.
-	if err := tracing.Initialize(0.1); err != nil {
+	if err := tracing.Initialize(0.01); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 
@@ -131,7 +131,7 @@ func main() {
 		sklog.Fatal(http.ListenAndServe(dcc.ReadyPort, nil))
 	}()
 
-	go startMetrics(ctx, sqlProcessor)
+	startMetrics(ctx, sqlProcessor)
 
 	sklog.Fatalf("Listening for work %s", listen(ctx, dcc, sqlProcessor))
 }
