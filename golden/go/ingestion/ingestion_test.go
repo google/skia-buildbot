@@ -373,7 +373,7 @@ func (s *fakeSource) ID() string {
 	return "fake-source"
 }
 
-func (s *fakeSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+func (s *fakeSource) Poll(_, _ time.Time) <-chan ResultFileLocation {
 	// Load a buffered channel with all the results, then return it.
 	c := make(chan ResultFileLocation, len(s.resultsToReturnWhenPolling))
 	for _, rf := range s.resultsToReturnWhenPolling {

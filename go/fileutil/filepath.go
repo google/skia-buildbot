@@ -11,15 +11,15 @@ import (
 // intended to enumerate the directories that should be polled when ingesting data.
 // startTS and endTS are seconds since the Unix epoch. Both time stamps are inclusive.
 // The generated directories are based on UTC being the locale.
-func GetHourlyDirs(prefixDir string, startTS int64, endTS int64) []string {
-	if endTS < startTS {
+func GetHourlyDirs(prefixDir string, start, end time.Time) []string {
+	if end.Before(start) {
 		return []string{}
 	}
 
 	// The result will be roughly the number of hours in the range.
-	ret := make([]string, 0, (endTS-startTS)/3600+1)
-	currTime := time.Unix(startTS, 0).UTC()
-	endTime := time.Unix(endTS, 0).UTC()
+	ret := make([]string, 0, end.Sub(start)/time.Hour+1)
+	currTime := start.UTC()
+	endTime := end.UTC()
 
 	// Change the timestamp of the last hour to the very last millisecond of the
 	// hour. This guarantees that we always include the last hour because
