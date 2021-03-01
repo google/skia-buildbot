@@ -261,6 +261,8 @@
 
   .CodeMirror {
     height: auto;
+    resize: both;
+    overflow: hidden;
 
     * {
       font-family: monospace;
