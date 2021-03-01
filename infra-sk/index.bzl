@@ -354,6 +354,7 @@ def sk_page(
         include_paths = ["//infra-sk/node_modules"],
         output_style = "expanded",
         sourcemap = True,
+        sourcemap_embed_sources = True,
     )
 
     # Generates file production/<name>.css.
@@ -434,6 +435,7 @@ def sk_page(
             "development/%s.html" % name,
             "development/%s.js" % name,
             "development/%s.css" % name,
+            "development/%s.css.map" % name,
         ],
     )
 
