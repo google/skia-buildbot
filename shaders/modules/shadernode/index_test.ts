@@ -1,8 +1,14 @@
 /* eslint-disable dot-notation */
 import './index';
+import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';
 import { assert } from 'chai';
-import { numPredefinedUniforms, ShaderNode } from './index';
+import {
+  childShaderArraysDiffer,
+  childShadersAreDifferent,
+  defaultChildShaderScrapHashOrName, defaultImageURL, defaultScrapBody, numPredefinedUniforms, ShaderNode,
+} from './index';
 import { CanvasKit } from '../../build/canvaskit/canvaskit';
+import { ChildShader, ScrapBody, ScrapID } from '../json';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
@@ -19,7 +25,48 @@ const getCanvasKit = async (): Promise<CanvasKit> => {
 
 const createShaderNode = async (): Promise<ShaderNode> => {
   const ck = await getCanvasKit();
-  return new ShaderNode(ck);
+  const node = new ShaderNode(ck);
+  await node.setScrap(defaultScrapBody);
+  return node;
+};
+
+const createShaderNodeWithChildShader = async (): Promise<ShaderNode> => {
+  const ck = await getCanvasKit();
+  const node = new ShaderNode(ck);
+
+  const childScrapBody: ScrapBody = {
+    Body: `half4 main(vec2 fragcoord) {
+      return half4(0, 1, 0, 1);
+    }`,
+    Type: 'sksl',
+    SKSLMetaData: {
+      Children: [],
+      ImageURL: '',
+      Uniforms: [],
+    },
+  };
+  fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
+
+  const scrapBodyWithChild: ScrapBody = {
+    Body: `half4 main(vec2 fragcoord) {
+      return half4(0, 1, 0, 1);
+    }`,
+    Type: 'sksl',
+    SKSLMetaData: {
+      Children: [{
+        UniformName: 'childShader',
+        ScrapHashOrName: defaultChildShaderScrapHashOrName,
+      },
+      ],
+      ImageURL: '',
+      Uniforms: [],
+    },
+  };
+  await node.setScrap(scrapBodyWithChild);
+  await fetchMock.flush();
+  fetchMock.restore();
+
+  return node;
 };
 
 describe('ShaderNode', async () => {
@@ -48,7 +95,7 @@ describe('ShaderNode', async () => {
     assert.equal(node.getUniformFloatCount(), node.numPredefinedUniformValues, 'These are equal because the default shader has 0 user uniforms.');
 
     // Set code that has a user uniform, in this case with 4 floats.
-    node.setScrap({
+    await node.setScrap({
       Type: 'sksl',
       Body: `uniform float4 iColorWithAlpha;
 
@@ -94,7 +141,7 @@ describe('ShaderNode', async () => {
     // Set code that has a user uniform, in this case with 4 floats, because
     // saving is not only indicated when the code changes, but when the user
     // uniforms change.
-    node.setScrap({
+    await node.setScrap({
       Type: 'sksl',
       Body: `uniform float4 iColorWithAlpha;
 
@@ -104,15 +151,16 @@ describe('ShaderNode', async () => {
       `,
       SKSLMetaData: {
         Children: [],
-        ImageURL: '/dist/mandrill.png',
+        ImageURL: '',
         Uniforms: startingUniformValues,
       },
     });
     node.compile();
 
-    // Changing the code means we need to save.
     const originalCode = node.shaderCode;
     assert.isFalse(node.needsSave(), 'No need to save at the start.');
+    // Changing the code means we need to save.
+
     node.shaderCode += '\n';
     assert.isTrue(node.needsSave(), 'Needs save if code changed.');
     node.shaderCode = originalCode;
@@ -128,7 +176,7 @@ describe('ShaderNode', async () => {
   it('reports compiler errors', async () => {
     const node = await createShaderNode();
     node.compile();
-    node.setScrap({
+    await node.setScrap({
       Type: 'sksl',
       Body: `uniform float4 iColorWithAlpha;
 
@@ -166,13 +214,180 @@ describe('ShaderNode', async () => {
     const node = await createShaderNode();
     node['currentImageURL'] = 'data:foo';
     assert.equal(node.getCurrentImageURL(), 'data:foo');
-    assert.equal(node.getSafeImageURL(), '/dist/mandrill.png');
+    assert.equal(node.getSafeImageURL(), defaultImageURL);
   });
 
   it('reverts to empty image URL if image fails to load.', async () => {
     const node = await createShaderNode();
-    node.setCurrentImageURL('/dist/some-unknown-image.png', () => {
-      assert.equal(node.getCurrentImageURL(), '');
+    await node.setCurrentImageURL('/dist/some-unknown-image.png');
+    assert.equal(node.getCurrentImageURL(), '');
+  });
+
+  describe('child shader', () => {
+    it('is created on loadScrap', async () => {
+      const node = await createShaderNodeWithChildShader();
+      assert.equal(1, node.children.length);
+      assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
+    });
+
+    it('can be removed', async () => {
+      const node = await createShaderNodeWithChildShader();
+      node.removeChildShader(0);
+      assert.equal(0, node.children.length);
+    });
+
+    it('throws on out of bounds when removing shader', async () => {
+      const node = await createShaderNodeWithChildShader();
+      assert.throws(() => {
+        node.removeChildShader(2);
+      });
+    });
+
+    it('can be appended', async () => {
+      const node = await createShaderNode();
+
+      const childScrapBody: ScrapBody = {
+        Body: `half4 main(vec2 fragcoord) {
+          return half4(0, 1, 0, 1);
+        }`,
+        Type: 'sksl',
+        SKSLMetaData: {
+          Children: [],
+          ImageURL: '',
+          Uniforms: [],
+        },
+      };
+      fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
+
+      await node.appendNewChildShader();
+      assert.equal(1, node.children.length);
+      assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
+      await fetchMock.flush();
+      assert.isTrue(fetchMock.done());
+      fetchMock.restore();
+    });
+
+    it('has a name', async () => {
+      const node = await createShaderNodeWithChildShader();
+      assert.equal(node.getChildShaderUniformName(0), 'childShader');
+    });
+
+    it('has uniform declarations', async () => {
+      const node = await createShaderNodeWithChildShader();
+      assert.equal(node.getChildShaderUniforms(), 'uniform shader childShader;');
+    });
+
+    it('has a name that can be changed', async () => {
+      const node = await createShaderNodeWithChildShader();
+      const newUniformName = 'someNewName';
+
+      const childScrapBody: ScrapBody = {
+        Body: `half4 main(vec2 fragcoord) {
+          return half4(0, 1, 0, 1);
+        }`,
+        Type: 'sksl',
+        SKSLMetaData: {
+          Children: [],
+          ImageURL: '',
+          Uniforms: [],
+        },
+      };
+      fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
+
+      await node.setChildShaderUniformName(0, newUniformName);
+      assert.equal(node.getChildShaderUniformName(0), newUniformName);
+
+      await fetchMock.flush();
+      assert.isTrue(fetchMock.done());
+      fetchMock.restore();
+    });
+
+    it('raises on invalid child shader names', async () => {
+      const node = await createShaderNodeWithChildShader();
+      await node.setChildShaderUniformName(0, 'this is an invalid uniform name because it contains spaces')
+        .then(() => assert.fail())
+        .catch((err: Error) => assert.match(err.message, /Invalid uniform name/));
+    });
+
+    it('raises on out of bounds', async () => {
+      const node = await createShaderNodeWithChildShader();
+      await node.setChildShaderUniformName(1, 'aNewName')
+        .then(() => assert.fail())
+        .catch((err: Error) => assert.match(err.message, /does not exist/));
+    });
+
+    it('saves depth first', async () => {
+      const parentNodeSavedID = 'parentNodeSavedID';
+      const childNodeSavedID = 'childNodeSavedID';
+      const node = await createShaderNodeWithChildShader();
+
+      // The save endpoint should be called twice, the first time from the child
+      // node, and the second time from the parent node.
+      const callOrder = [childNodeSavedID, parentNodeSavedID];
+      const bodiesSent = [
+        '{"Body":"half4 main(vec2 fragcoord) {\\n      return half4(0, 1, 0, 1);\\n    }","Type":"sksl","SKSLMetaData":{"Uniforms":[],"ImageURL":"","Children":[]}}',
+        '{"Body":"half4 main(vec2 fragcoord) {\\n      return half4(0, 1, 0, 1);\\n    }","Type":"sksl","SKSLMetaData":{"Uniforms":[],"ImageURL":"","Children":[{"UniformName":"childShader","ScrapHashOrName":"childNodeSavedID"}]}}',
+      ];
+      let call = 0;
+      fetchMock.post('/_/save/', (url: string, opts: MockRequest): MockResponse => {
+        const { body } = opts;
+        assert.equal(body, bodiesSent[call]);
+        const resp: ScrapID = {
+          Hash: callOrder[call],
+        };
+        call++;
+        return resp;
+      }, {
+        sendAsJson: true,
+      });
+
+      const newID = await node.saveScrap();
+
+      await fetchMock.flush();
+      assert.isTrue(fetchMock.done());
+      fetchMock.restore();
+
+      assert.equal(newID, parentNodeSavedID);
+    });
+  });
+
+  describe('childShadersAreDifferent', () => {
+    it('detects differences', () => {
+      const a: ChildShader = {
+        UniformName: 'foo',
+        ScrapHashOrName: '@someName',
+      };
+      const b: ChildShader = {
+        UniformName: 'bar',
+        ScrapHashOrName: '@someName',
+      };
+      const c: ChildShader = {
+        UniformName: 'foo',
+        ScrapHashOrName: '@someDifferentName',
+      };
+
+      assert.isTrue(childShadersAreDifferent(a, b));
+      assert.isTrue(childShadersAreDifferent(b, c));
+      assert.isTrue(childShadersAreDifferent(a, c));
+      assert.isFalse(childShadersAreDifferent(a, a));
+    });
+  });
+
+  describe('childShaderArraysDiffer', () => {
+    it('handles empty arrays', () => {
+      assert.isFalse(childShaderArraysDiffer([], []));
+    });
+
+    it('handles different sized arrays', () => {
+      const a: ChildShader = {
+        UniformName: 'foo',
+        ScrapHashOrName: '@someName',
+      };
+
+      assert.isTrue(childShaderArraysDiffer([], [a]));
+      assert.isTrue(childShaderArraysDiffer([a], []));
+      assert.isTrue(childShaderArraysDiffer([a], [a, a]));
+      assert.isFalse(childShaderArraysDiffer([a], [a]));
     });
   });
 });
