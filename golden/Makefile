@@ -68,10 +68,6 @@ allgo:
 k8s-release-frontend: build-static-frontend frontend
 	./k8s_release_frontend
 
-.PHONY: k8s-release-diff-server
-k8s-release-diff-server: build-static-diffserver
-	./k8s_release_diff_server
-
 .PHONY: k8s-release-baseline-server
 k8s-release-baseline-server: build-static-baseline-server
 	./k8s_release_baseline_server
@@ -119,12 +115,6 @@ build-static-gitilesfollower:
 	mkdir -p ./build
 	rm -f ./build/gitilesfollower_k8s
 	$(KGO) -o build/gitilesfollower_k8s -a ./cmd/gitilesfollower/gitilesfollower.go
-
-.PHONY: build-static-diffserver
-build-static-diffserver:
-	mkdir -p ./build
-	rm -f ./build/diff_server_k8s
-	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/...
 
 .PHONY: build-static-ingestion
 build-static-ingestion:

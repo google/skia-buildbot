@@ -8,7 +8,7 @@ import (
 // Instance represents the name of a Gold instance, e.g. "skia".
 type Instance string
 
-// Service represents the name of a Gold service, e.g. "diffserver".
+// Service represents the name of a Gold service, e.g. "diffcalculator".
 type Service string
 
 // DeployableUnitID identifies a Gold instance/service pair.
@@ -18,10 +18,10 @@ type DeployableUnitID struct {
 }
 
 // CanonicalName returns the canonical name of a Gold instance/service pair,
-// e.g. "gold-skia-diffserver".
+// e.g. "gold-skia-diffcalculator".
 //
 // Among other things, this is used to determine the configuration file
-// corresponding to a DeployableUnit, e.g. "gold-skia-diffserver.yaml".
+// corresponding to a DeployableUnit, e.g. "gold-skia-diffcalculator.yaml".
 func (d DeployableUnitID) CanonicalName() string {
 	return fmt.Sprintf("gold-%s-%s", d.Instance, d.Service)
 }

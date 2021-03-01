@@ -22,7 +22,6 @@ const (
 	// Gold services.
 	BaselineServer  Service = "baselineserver"
 	DiffCalculator  Service = "diffcalculator"
-	DiffServer      Service = "diffserver"
 	IngestionBT     Service = "ingestion-bt"
 	Frontend        Service = "frontend"
 	GitilesFollower Service = "gitilesfollower"
@@ -71,10 +70,9 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		knownServices: []Service{
 			BaselineServer,
 			DiffCalculator,
-			DiffServer,
+			IngestionBT,
 			Frontend,
 			GitilesFollower,
-			IngestionBT,
 		},
 	}
 
@@ -86,14 +84,13 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		} else {
 			// Add common services for regular instances.
 			s.add(instance, DiffCalculator)
-			s.add(instance, DiffServer)
+			s.add(instance, IngestionBT)
 			s.add(instance, Frontend)
 			// See skbug.com/11367 for ChromiumOSTastDev.
 			// See http://review.skia.org/376843 for Fuchsia
 			if instance != ChromiumOSTastDev && instance != Fuchsia {
 				s.add(instance, GitilesFollower)
 			}
-			s.add(instance, IngestionBT)
 		}
 	}
 
@@ -112,10 +109,8 @@ func ProductionDeployableUnits() DeployableUnitSet {
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
 	s.addWithOptions(Fuchsia, DiffCalculator, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
-	s.addWithOptions(Fuchsia, GitilesFollower, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
+	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
 	return s
 }
 
