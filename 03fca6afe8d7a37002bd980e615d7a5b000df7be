@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "56736c93_2b4b668d",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-01T13:10:51Z",
+      "side": 1,
+      "message": "I wish we could make this part of a script",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 81
+      },
+      "revId": "03fca6afe8d7a37002bd980e615d7a5b000df7be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
