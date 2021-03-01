@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
@@ -181,7 +182,8 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, isolateClient, cas, *rbeInstance, swarm, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, isolateServerUrl, *pubsubTopicName)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, isolateClient, cas, *rbeInstance, taskExec, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

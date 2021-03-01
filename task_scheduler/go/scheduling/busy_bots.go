@@ -5,10 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/trie"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -67,23 +65,28 @@ func newBusyBots() *busyBots {
 // Return a space-separated string of sorted dimensions and values, filtered by
 // includeDimensions.
 // Similar to flatten in task_scheduler.go. When there are multiple values for a
-// dimension, the longest is used. (The longest value is usually the most
-// interesting.)
-func dimensionsString(dims []*swarming_api.SwarmingRpcsStringListPair) string {
-	vals := make(map[string]string, len(includeDimensions))
+// dimension, the longest is used (the longest value is usually the most
+// interesting).  Therefore, this should only be used for things like metrics,
+// not any actual dimension mapping.
+func dimensionsString(dims []string) string {
+	dimsMap := make(map[string]string, len(includeDimensions))
 	for _, dim := range dims {
-		if util.In(dim.Key, includeDimensions) {
-			for _, val := range dim.Value {
-				if len(val) > len(vals[dim.Key]) {
-					vals[dim.Key] = val
-				}
+		split := strings.SplitN(dim, ":", 2)
+		if len(split) != 2 {
+			continue
+		}
+		key := split[0]
+		val := split[1]
+		if util.In(split[0], includeDimensions) {
+			if exist, ok := dimsMap[key]; !ok || len(exist) < len(val) {
+				dimsMap[key] = val
 			}
 		}
 	}
-	rv := make([]string, 0, 2*len(vals))
+	rv := make([]string, 0, 2*len(dimsMap))
 	for _, key := range includeDimensions {
-		if vals[key] != "" {
-			rv = append(rv, key, vals[key])
+		if dimsMap[key] != "" {
+			rv = append(rv, key, dimsMap[key])
 		}
 	}
 	return strings.Join(rv, " ")
@@ -91,7 +94,7 @@ func dimensionsString(dims []*swarming_api.SwarmingRpcsStringListPair) string {
 
 // recordBotMetrics updates MEASUREMENT_FREE_BOT_COUNT for the given filter based on bots. Assumes
 // b.mtx is locked.
-func (b *busyBots) recordBotMetrics(filter string, bots []*swarming_api.SwarmingRpcsBotInfo) {
+func (b *busyBots) recordBotMetrics(filter string, bots []*types.Machine) {
 	metrics, ok := b.freeBotMetrics[filter]
 	if !ok {
 		metrics = map[string]metrics2.Int64Metric{}
@@ -125,20 +128,20 @@ func (b *busyBots) recordBotMetrics(filter string, bots []*swarming_api.Swarming
 }
 
 // Filter returns a copy of the given slice of bots with the busy bots removed.
-func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_api.SwarmingRpcsBotInfo {
+func (b *busyBots) Filter(bots []*types.Machine) []*types.Machine {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	botNames := util.StringSet{}
 	for _, bot := range bots {
-		botNames[bot.BotId] = true
+		botNames[bot.ID] = true
 	}
 	sklog.Debugf("busyBots.Filter num bots %d; unique %d", len(bots), len(botNames))
 	b.recordBotMetrics(FILTER_ALL_FREE_BOTS, bots)
 	matched := make(map[string]bool, len(bots))
-	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
+	rv := make([]*types.Machine, 0, len(bots))
 	for _, bot := range bots {
 		// Find matching tasks.
-		matches := b.pendingTasks.SearchSubset(swarming.BotDimensionsToStringSlice(bot.Dimensions))
+		matches := b.pendingTasks.SearchSubset(bot.Dimensions)
 		// Choose the first non-empty entry and pretend that
 		// this bot is busy with that task.
 		var e string
@@ -160,18 +163,18 @@ func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_
 }
 
 // RefreshTasks updates the contents of busyBots based on the cached tasks.
-func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskResult) {
+func (b *busyBots) RefreshTasks(pending []*types.TaskResult) {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
 	b.pendingTasks = trie.New()
 	for _, t := range pending {
 		dims := types.DimensionsFromTags(t.Tags)
-		b.pendingTasks.Insert(dims, t.TaskId)
+		b.pendingTasks.Insert(dims, t.ID)
 	}
 
 	taskIds := util.StringSet{}
 	for _, task := range pending {
-		taskIds[task.TaskId] = true
+		taskIds[task.ID] = true
 	}
 	sklog.Debugf("busyBots.RefreshTasks num tasks %d; unique %d; trie len %d", len(pending), len(taskIds), b.pendingTasks.Len())
 

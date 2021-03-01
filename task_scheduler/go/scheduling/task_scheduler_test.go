@@ -44,6 +44,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -295,7 +296,8 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", isolate.ISOLATE_SERVER_URL_FAKE, "")
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -1760,36 +1762,28 @@ func makeTaskCandidate(name string, dims []string) *taskCandidate {
 	}
 }
 
-func makeSwarmingBot(id string, dims []string) *swarming_api.SwarmingRpcsBotInfo {
-	d := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(dims))
-	for _, s := range dims {
-		split := strings.SplitN(s, ":", 2)
-		d = append(d, &swarming_api.SwarmingRpcsStringListPair{
-			Key:   split[0],
-			Value: []string{split[1]},
-		})
-	}
-	return &swarming_api.SwarmingRpcsBotInfo{
-		BotId:      id,
-		Dimensions: d,
+func makeSwarmingBot(id string, dims []string) *types.Machine {
+	return &types.Machine{
+		ID:         id,
+		Dimensions: dims,
 	}
 }
 
 func TestGetCandidatesToSchedule(t *testing.T) {
 	unittest.MediumTest(t)
 	// Empty lists.
-	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
+	rv := getCandidatesToSchedule([]*types.Machine{}, []*taskCandidate{})
 	require.Equal(t, 0, len(rv))
 
 	// checkDiags takes a list of bots with the same dimensions and a list of
 	// ordered candidates that match those bots and checks the Diagnostics for
 	// candidates.
-	checkDiags := func(bots []*swarming_api.SwarmingRpcsBotInfo, candidates []*taskCandidate) {
+	checkDiags := func(bots []*types.Machine, candidates []*taskCandidate) {
 		var expectedBots []string
 		if len(bots) > 0 {
 			expectedBots = make([]string, len(bots), len(bots))
 			for i, b := range bots {
-				expectedBots[i] = b.BotId
+				expectedBots[i] = b.ID
 			}
 		}
 		for i, c := range candidates {
@@ -1816,50 +1810,50 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	}
 
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule([]*types.Machine{}, []*taskCandidate{t1})
 	require.Equal(t, 0, len(rv))
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
 
 	b1 := makeSwarmingBot("bot1", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{})
 	require.Equal(t, 0, len(rv))
 
 	// Single match.
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{t1})
 	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{b1}, []*taskCandidate{t1})
 
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{t1})
 	require.Equal(t, 0, len(rv))
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
 
 	// Add a task candidate to match b1.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{t1, t2})
 	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
+	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{b1}, []*taskCandidate{t2})
 
 	// Switch the task order.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{t2, t1})
 	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
+	checkDiags([]*types.Machine{}, []*taskCandidate{t1})
+	checkDiags([]*types.Machine{b1}, []*taskCandidate{t2})
 
 	// Make both tasks match the bot, ensure that we pick the first one.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{t1, t2})
 	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
+	checkDiags([]*types.Machine{b1}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*types.Machine{b1}, []*taskCandidate{t2, t1})
 	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
+	checkDiags([]*types.Machine{b1}, []*taskCandidate{t2, t1})
 
 	// Multiple dimensions. Ensure that different permutations of the bots
 	// and tasks lists give us the expected results.
@@ -1873,15 +1867,15 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// is first in sorted order. The second task does not get scheduled
 	// because there is no bot available which can run it.
 	// TODO(borenet): Use a more optimal solution to avoid this case.
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*types.Machine{b1, b2}, []*taskCandidate{t1, t2})
 	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
 	// Can't use checkDiags for these cases.
-	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.True(t, t1.Diagnostics.Scheduling.Selected)
 	t1.Diagnostics = nil
-	require.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID}, t2.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t1.TaskKey, t2.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.False(t, t2.Diagnostics.Scheduling.Selected)
@@ -1889,14 +1883,14 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*types.Machine{b2, b1}, []*taskCandidate{t1, t2})
 	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.True(t, t1.Diagnostics.Scheduling.Selected)
 	t1.Diagnostics = nil
-	require.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID}, t2.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t1.TaskKey, t2.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.False(t, t2.Diagnostics.Scheduling.Selected)
@@ -1906,14 +1900,14 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// priority. Both tasks get scheduled.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
+	rv = getCandidatesToSchedule([]*types.Machine{b1, b2}, []*taskCandidate{t2, t1})
 	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
-	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.True(t, t1.Diagnostics.Scheduling.Selected)
 	t1.Diagnostics = nil
-	require.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID}, t2.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t2.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.True(t, t2.Diagnostics.Scheduling.Selected)
@@ -1921,14 +1915,14 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
+	rv = getCandidatesToSchedule([]*types.Machine{b2, b1}, []*taskCandidate{t2, t1})
 	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
-	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID, b2.ID}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.True(t, t1.Diagnostics.Scheduling.Selected)
 	t1.Diagnostics = nil
-	require.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	require.Equal(t, []string{b1.ID}, t2.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t2.Diagnostics.Scheduling.LastSimilarCandidate)
 	require.True(t, t2.Diagnostics.Scheduling.Selected)
@@ -1940,31 +1934,41 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 := makeTaskCandidate("task3", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*types.Machine{b1, b2, b3}, []*taskCandidate{t1, t2})
 	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
+	checkDiags([]*types.Machine{b1, b2, b3}, []*taskCandidate{t1, t2})
 
 	// More tasks than bots.
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 = makeTaskCandidate("task3", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
+	rv = getCandidatesToSchedule([]*types.Machine{b1, b2}, []*taskCandidate{t1, t2, t3})
 	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
+	checkDiags([]*types.Machine{b1, b2}, []*taskCandidate{t1, t2, t3})
 }
 
-func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInfo {
-	dimensions := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(dims))
+func makeBot(id string, dims map[string]string) *types.Machine {
+	dimensions := make([]string, 0, len(dims))
 	for k, v := range dims {
-		dimensions = append(dimensions, &swarming_api.SwarmingRpcsStringListPair{
-			Key:   k,
-			Value: []string{v},
-		})
+		dimensions = append(dimensions, fmt.Sprintf("%s:%s", k, v))
 	}
-	return &swarming_api.SwarmingRpcsBotInfo{
-		BotId:      id,
+	return &types.Machine{
+		ID:         id,
 		Dimensions: dimensions,
 	}
+}
+
+func mockBots(t sktest.TestingT, swarmingClient *swarming_testutils.TestClient, bots ...*types.Machine) {
+	swarmBots := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
+	for _, bot := range bots {
+		dims, err := swarming.ParseDimensions(bot.Dimensions)
+		require.NoError(t, err)
+		swarmBots = append(swarmBots, &swarming_api.SwarmingRpcsBotInfo{
+			BotId:      bot.ID,
+			Dimensions: swarming.StringMapToBotDimensions(dims),
+		})
+	}
+	swarmingClient.MockBots(swarmBots)
 }
 
 func TestSchedulingE2E(t *testing.T) {
@@ -1988,7 +1992,7 @@ func TestSchedulingE2E(t *testing.T) {
 
 	// A bot is free but doesn't have all of the right dimensions to run a task.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
 	require.NoError(t, err)
@@ -2000,11 +2004,8 @@ func TestSchedulingE2E(t *testing.T) {
 	require.Equal(t, 2, len(s.queue)) // Still two compile tasks.
 
 	// One bot free, schedule a task, ensure it's not in the queue.
-	bot1.Dimensions = append(bot1.Dimensions, &swarming_api.SwarmingRpcsStringListPair{
-		Key:   "os",
-		Value: []string{"Ubuntu"},
-	})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	bot1.Dimensions = append(bot1.Dimensions, "os:Ubuntu")
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
@@ -2028,7 +2029,7 @@ func TestSchedulingE2E(t *testing.T) {
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest, t1.IsolatedOutput}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/56", nil)
 
 	// No bots free. Ensure that the queue is correct.
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	mockBots(t, swarmingClient)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
@@ -2044,7 +2045,7 @@ func TestSchedulingE2E(t *testing.T) {
 	bot2 := makeBot("bot2", androidTaskDims)
 	bot3 := makeBot("bot3", androidTaskDims)
 	bot4 := makeBot("bot4", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	mockBots(t, swarmingClient, bot1, bot2, bot3, bot4)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	_, err = s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
@@ -2101,7 +2102,7 @@ func TestSchedulingE2E(t *testing.T) {
 	require.NoError(t, s.putTask(t4))
 
 	// No new bots free; only the remaining test task should be in the queue.
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	mockBots(t, swarmingClient)
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{
 		makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims),
 		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
@@ -2122,7 +2123,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
 
 	// Ensure that we finalize all of the tasks and insert into the DB.
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	mockBots(t, swarmingClient, bot1, bot2, bot3, bot4)
 	mockTasks = []*swarming_api.SwarmingRpcsTaskRequestMetadata{
 		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
 	}
@@ -2152,7 +2153,7 @@ func TestSchedulingE2E(t *testing.T) {
 		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 	}
 	swarmingClient.MockTasks(mockTasks)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	mockBots(t, swarmingClient, bot1, bot2, bot3, bot4)
 	require.NoError(t, s.updateUnfinishedTasks())
 	runMainLoop(t, s, ctx)
 	require.Equal(t, 0, len(s.queue))
@@ -2168,7 +2169,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	mockBots(t, swarmingClient, bot1, bot2)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, []string{c1, c2})
@@ -2207,7 +2208,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 
 	// Run one task. Ensure that it's at tip-of-tree.
 	head := s.repos[rs1.Repo].Get(git.DefaultBranch).Hash
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, commits)
@@ -2231,7 +2232,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	// from previous builds, until all of the build task candidates have run.
 	for i := 0; i < 9; i++ {
 		// Now, run another task. The new task should bisect the old one.
-		swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+		mockBots(t, swarmingClient, bot1)
 		runMainLoop(t, s, ctx)
 		require.NoError(t, s.tCache.Update())
 		tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, commits)
@@ -2272,7 +2273,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	}
 
 	// Ensure that we're really done.
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(rs1.Repo, commits)
@@ -2375,7 +2376,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", isolate.ISOLATE_SERVER_URL_FAKE, "")
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", taskExec, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	for _, h := range hashes {
@@ -2389,7 +2391,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 
 	// Cycle once.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	require.Equal(t, 0, len(s.queue))
@@ -2427,7 +2429,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
 	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
 	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
+	mockBots(t, swarmingClient, bot1, bot2, bot3)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	require.Equal(t, 5, len(s.queue))
@@ -2518,7 +2520,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	// task twice.
 	bot4 := makeBot("bot4", map[string]string{"pool": "Skia"})
 	bot5 := makeBot("bot5", map[string]string{"pool": "Skia"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4, bot5})
+	mockBots(t, swarmingClient, bot1, bot2, bot3, bot4, bot5)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	require.Equal(t, 0, len(s.queue))
@@ -2546,7 +2548,7 @@ func TestSchedulingRetry(t *testing.T) {
 
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2607,7 +2609,7 @@ func TestParentTaskId(t *testing.T) {
 
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2623,7 +2625,7 @@ func TestParentTaskId(t *testing.T) {
 	// Run the dependent tasks. Ensure that their parent IDs are correct.
 	bot3 := makeBot("bot3", androidTaskDims)
 	bot4 := makeBot("bot4", androidTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4})
+	mockBots(t, swarmingClient, bot3, bot4)
 	cas.On("Merge", testutils.AnyContext, []string{"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/42", "abc123/45"}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/87", nil)
 	cas.On("Merge", testutils.AnyContext, []string{"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/42", "abc123/45"}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/87", nil)
 	runMainLoop(t, s, ctx)
@@ -2636,7 +2638,23 @@ func TestParentTaskId(t *testing.T) {
 		p := task.ParentTaskIds[0]
 		require.Equal(t, p, t1.Id)
 
-		updated, err := task.UpdateFromSwarming(makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims).TaskResult)
+		updated, err := task.UpdateFromTaskResult(&types.TaskResult{
+			ID:        task.SwarmingTaskId,
+			CasOutput: task.IsolatedOutput,
+			Created:   task.Created,
+			Finished:  task.Finished,
+			Started:   task.Started,
+			Status:    task.Status,
+			Tags: map[string][]string{
+				types.SWARMING_TAG_ID:             {task.Id},
+				types.SWARMING_TAG_NAME:           {task.Name},
+				types.SWARMING_TAG_REPO:           {task.Repo},
+				types.SWARMING_TAG_REVISION:       {task.Revision},
+				types.SWARMING_TAG_PARENT_TASK_ID: task.ParentTaskIds,
+				types.SWARMING_TAG_FORCED_JOB_ID:  {task.ForcedJobId},
+			},
+			MachineID: task.SwarmingBotId,
+		})
 		require.NoError(t, err)
 		require.False(t, updated)
 	}
@@ -2658,7 +2676,7 @@ func TestSkipTasks(t *testing.T) {
 	// Mock some bots, add one of the build tasks to the skip_tasks list.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	mockBots(t, swarmingClient, bot1, bot2)
 	require.NoError(t, s.GetSkipTasks().AddRule(&skip_tasks.Rule{
 		AddedBy:          "Tests",
 		TaskSpecPatterns: []string{".*"},
@@ -2734,7 +2752,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2786,7 +2804,7 @@ func TestGetTasksForJob(t *testing.T) {
 	// Cycle. Ensure that we schedule a retry of t1.
 	// Need two bots, since the retry will score lower than the Build task at c1.
 	bot2 := makeBot("bot2", linuxTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	mockBots(t, swarmingClient, bot1, bot2)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -2825,7 +2843,7 @@ func TestGetTasksForJob(t *testing.T) {
 	t3.Status = types.TASK_STATUS_FAILURE
 	t3.Finished = time.Now()
 	require.NoError(t, s.putTasks([]*types.Task{t2, t3}))
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	mockBots(t, swarmingClient)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
@@ -2843,7 +2861,7 @@ func TestGetTasksForJob(t *testing.T) {
 	bot3 := makeBot("bot3", androidTaskDims)
 	bot4 := makeBot("bot4", androidTaskDims)
 	bot5 := makeBot("bot5", androidTaskDims)
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4, bot5})
+	mockBots(t, swarmingClient, bot3, bot4, bot5)
 	cas.On("Merge", testutils.AnyContext, []string{"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/42", "abc123/45"}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/87", nil)
 	cas.On("Merge", testutils.AnyContext, []string{"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc/42", "abc123/45"}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/87", nil)
 	runMainLoop(t, s, ctx)
@@ -2877,7 +2895,7 @@ func TestTaskTimeouts(t *testing.T) {
 	// The test repo does not set any timeouts. Ensure that we get
 	// reasonable default values.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu", "gpu": "none"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	unfinished, err := s.tCache.UnfinishedTasks()
@@ -2937,7 +2955,7 @@ func TestTaskTimeouts(t *testing.T) {
 
 	// Cycle, ensure that we get the expected timeouts.
 	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Mac", "gpu": "my-gpu"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot2})
+	mockBots(t, swarmingClient, bot2)
 	runMainLoop(t, s, ctx)
 	require.NoError(t, s.tCache.Update())
 	unfinished, err = s.tCache.UnfinishedTasks()
@@ -3530,7 +3548,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 			"sk_name:faketask",
 		}
 	}
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
+	mockBots(t, swarmingClient, bot1, bot2, bot3)
 	swarmingClient.MockTriggerTaskFailure(makeTags(commits[4]))
 	err := s.MainLoop(ctx)
 	s.testWaitGroup.Wait()
@@ -3685,11 +3703,11 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 
 	test := func() {
 		// Pretend there are two bots available.
-		bots := []*swarming_api.SwarmingRpcsBotInfo{
+		bots := []*types.Machine{
 			makeBot("bot0", map[string]string{"pool": "Skia"}),
 			makeBot("bot1", map[string]string{"pool": badPool}),
 		}
-		swarmingClient.MockBots(bots)
+		mockBots(t, swarmingClient, bots...)
 
 		// Run MainLoop.
 		err := s.MainLoop(ctx)
@@ -3762,7 +3780,7 @@ func TestTriggerTaskDeduped(t *testing.T) {
 			"sk_name:faketask",
 		}
 	}
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
+	mockBots(t, swarmingClient, bot1, bot2, bot3)
 	swarmingClient.MockTriggerTaskDeduped(makeTags(commits[4]))
 	require.NoError(t, s.MainLoop(ctx))
 	s.testWaitGroup.Wait()
@@ -3819,7 +3837,7 @@ func TestTriggerTaskNoResource(t *testing.T) {
 			"sk_name:faketask",
 		}
 	}
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	mockBots(t, swarmingClient, bot1)
 	swarmingClient.MockTriggerTaskNoResource(makeTags(commits[0]))
 	err := s.MainLoop(ctx)
 	require.NotNil(t, err)
