@@ -22,6 +22,30 @@
       },
       "revId": "ac711fb0f11d0a31ee70a2418f2e7193707a0f62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "dfe2495a_77e06501",
+        "filename": "shaders/create-named-scraps.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-01T20:11:58Z",
+      "side": 1,
+      "message": "There are still two: mandrill.png and soccer.png.",
+      "parentUuid": "e5ecc219_cf1ca3ad",
+      "range": {
+        "startLine": 19,
+        "startChar": 215,
+        "endLine": 19,
+        "endChar": 221
+      },
+      "revId": "ac711fb0f11d0a31ee70a2418f2e7193707a0f62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
