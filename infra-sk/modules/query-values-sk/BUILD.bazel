@@ -1,0 +1,53 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_page",
+    "ts_library",
+)
+
+package(default_visibility = ["//visibility:public"])
+
+sk_element(
+    name = "query-values-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["query-values-sk.scss"],
+    ts_srcs = [
+        "index.ts",
+        "query-values-sk.ts",
+    ],
+)
+
+ts_library(
+    name = "query-values-sk_po",
+    srcs = ["query-values-sk_po.ts"],
+    deps = [
+        "//infra-sk/modules/page_object",
+        "@infra-sk_npm//elements-sk",
+    ],
+)
+
+karma_test(
+    name = "test",
+    srcs = ["query-values-sk_test.ts"],
+    entry_point = "query-values-sk_test.ts",
+    deps = [
+        ":query-values-sk",
+        ":query-values-sk_po",
+        "//infra-sk/modules:test_util",
+    ],
+)
+
+sk_page(
+    name = "query-values-sk-demo",
+    html_file = "query-values-sk-demo.html",
+    scss_entry_point = "query-values-sk-demo.scss",
+    sk_element_deps = [":query-values-sk"],
+    ts_entry_point = "query-values-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":query-values-sk-demo",
+)

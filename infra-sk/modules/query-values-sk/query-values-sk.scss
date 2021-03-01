@@ -1,3 +1,6 @@
+@import '~elements-sk/checkbox-sk/checkbox-sk';
+@import '~elements-sk/multi-select-sk/multi-select-sk';
+
 query-values-sk {
   #regex ~ #values,
   #regex[checked] + #regexValue {

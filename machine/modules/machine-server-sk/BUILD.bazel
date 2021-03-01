@@ -1,5 +1,4 @@
-load("//infra-sk/karma_test:index.bzl", "karma_test")
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "karma_test", "sk_element")
 
 package(default_visibility = ["//machine:__subpackages__"])
 

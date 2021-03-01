@@ -30,7 +30,6 @@ import {
 import '../query-values-sk';
 import 'elements-sk/select-sk';
 import 'elements-sk/styles/buttons';
-import { QuerySkPO } from './query-sk_po';
 
 // The delay in ms before sending a delayed query-change event.
 const DELAY_MS = 500;
