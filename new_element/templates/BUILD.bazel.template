@@ -1,0 +1,45 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_element(
+    name = "{{.ElementName}}",
+    sass_srcs = ["{{.ElementName}}.scss"],
+    ts_srcs = [
+        "index.ts",
+        "{{.ElementName}}.ts",
+    ],
+)
+
+karma_test(
+    name = "test",
+    srcs = ["{{.ElementName}}_test.ts"],
+    deps = [
+        ":{{.ElementName}}",
+        "//infra-sk/modules:test_util",
+    ],
+)
+
+sk_page(
+    name = "demo_page",
+    html_file = "{{.ElementName}}-demo.html",
+    scss_entry_point = "{{.ElementName}}-demo.scss",
+    sk_element_deps = [":{{.ElementName}}"],
+    ts_entry_point = "{{.ElementName}}-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = "demo_page",
+)
+
+sk_element_puppeteer_test(
+    name = "puppeteer_test",
+    srcs = [":{{.ElementName}}_puppeteer_test.ts"],
+    sk_demo_page_server = ":demo_page_server",
+)
