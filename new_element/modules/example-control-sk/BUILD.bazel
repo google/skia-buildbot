@@ -1,0 +1,45 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_element(
+    name = "example-control-sk",
+    sass_srcs = ["example-control-sk.scss"],
+    ts_srcs = [
+        "index.ts",
+        "example-control-sk.ts",
+    ],
+)
+
+karma_test(
+    name = "test",
+    srcs = ["example-control-sk_test.ts"],
+    deps = [
+        ":example-control-sk",
+        "//infra-sk/modules:test_util",
+    ],
+)
+
+sk_page(
+    name = "demo_page",
+    html_file = "example-control-sk-demo.html",
+    scss_entry_point = "example-control-sk-demo.scss",
+    sk_element_deps = [":example-control-sk"],
+    ts_entry_point = "example-control-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = "demo_page",
+)
+
+sk_element_puppeteer_test(
+    name = "puppeteer_test",
+    srcs = [":example-control-sk_puppeteer_test.ts"],
+    sk_demo_page_server = ":demo_page_server",
+)
