@@ -24,7 +24,7 @@ type Source interface {
 
 	// Poll returns a channel to read all the result files that originated between
 	// the given timestamps in seconds since the epoch.
-	Poll(startTime, endTime int64) <-chan ResultFileLocation
+	Poll(startTime, endTime time.Time) <-chan ResultFileLocation
 
 	// SetEventChannel configures storage events and sets up routines to send
 	// new results to the given channel.

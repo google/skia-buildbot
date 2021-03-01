@@ -21,10 +21,10 @@ const (
 )
 
 var (
-	beginningOfTime = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC).Unix()
-	endOfTime       = time.Date(2015, time.October, 30, 0, 0, 0, 0, time.UTC).Unix()
-	startTime       = time.Date(2015, time.October, 1, 0, 0, 0, 0, time.UTC).Unix()
-	endTime         = time.Date(2015, time.October, 1, 23, 59, 59, 0, time.UTC).Unix()
+	beginningOfTime = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC)
+	endOfTime       = time.Date(2015, time.October, 30, 0, 0, 0, 0, time.UTC)
+	startTime       = time.Date(2015, time.October, 1, 0, 0, 0, 0, time.UTC)
+	endTime         = time.Date(2015, time.October, 1, 23, 59, 59, 0, time.UTC)
 )
 
 func TestGoogleStorageSource(t *testing.T) {

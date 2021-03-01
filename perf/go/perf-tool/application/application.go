@@ -702,7 +702,7 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 			return skerr.Wrap(err)
 		}
 
-		dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime.Unix(), stopTime.Unix())
+		dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime, stopTime)
 		for _, dir := range dirs {
 			sklog.Infof("Directory: %q", dir)
 			err := gcs.AllFilesInDir(gcsClient, u.Host, dir, func(item *storage.ObjectAttrs) {
