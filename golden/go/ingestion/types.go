@@ -54,15 +54,17 @@ type ResultFileLocation interface {
 	Content() []byte
 }
 
-// Processor is the core of an Ingester. It takes instances of ResultFileLocation
-// and ingests them. It is responsible for the storage of ingested data.
+// Processor is the core of an Ingester. It reads in the files that are given to it and stores
+// the relevant data.
 type Processor interface {
+	// HandlesFile returns true if this processor is configured to handle this file.
+	HandlesFile(name string) bool
 	// Process ingests a single result file.
-	Process(ctx context.Context, resultsFile ResultFileLocation) error
+	Process(ctx context.Context, filename string) error
 }
 
-// IngestionStore keeps track of files being ingested based on their MD5 hashes.
-type IngestionStore interface {
+// Store keeps track of files being ingested based on their MD5 hashes.
+type Store interface {
 	// SetIngested indicates that we have ingested the given filename. Implementations may make use
 	// of the MD5 hash of the contents. Implementations may make use of the ingested timestamp.
 	SetIngested(ctx context.Context, fileName, md5 string, ts time.Time) error

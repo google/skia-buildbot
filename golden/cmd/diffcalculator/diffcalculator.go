@@ -131,7 +131,7 @@ func main() {
 		sklog.Fatal(http.ListenAndServe(dcc.ReadyPort, nil))
 	}()
 
-	go startMetrics(ctx, sqlProcessor)
+	startMetrics(ctx, sqlProcessor)
 
 	sklog.Fatalf("Listening for work %s", listen(ctx, dcc, sqlProcessor))
 }
