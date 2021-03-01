@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e5ecc219_cf1ca3ad",
+        "filename": "shaders/create-named-scraps.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-01T18:38:10Z",
+      "side": 1,
+      "message": "FYI: I think this named scrap still references a second image, but IIRC there\u0027s only the one sample image.",
+      "range": {
+        "startLine": 19,
+        "startChar": 215,
+        "endLine": 19,
+        "endChar": 221
+      },
+      "revId": "ac711fb0f11d0a31ee70a2418f2e7193707a0f62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
