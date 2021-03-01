@@ -1,0 +1,20 @@
+@import '../themes/themes.scss';
+
+edit-child-shader-sk {
+  dialog {
+    padding: 8px;
+    border: solid 1px var(--on-surface);
+    color: var(--on-background);
+    background: var(--background);
+  }
+
+  .controls {
+    display: flex;
+    justify-content: flex-end;
+    margin: 8px 0 0 0;
+  }
+
+  .error {
+    color: var(--error);
+  }
+}

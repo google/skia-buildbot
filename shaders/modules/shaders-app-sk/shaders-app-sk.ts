@@ -43,6 +43,8 @@ import {
   defaultScrapBody,
   defaultShader, numPredefinedUniformLines, predefinedUniforms, ShaderNode,
 } from '../shadernode';
+import { EditChildShaderSk } from '../edit-child-shader-sk/edit-child-shader-sk';
+import '../edit-child-shader-sk';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
@@ -176,6 +178,8 @@ export class ShadersAppSk extends ElementSk {
    */
   private numPredefinedUniformControls: number = 0;
 
+  private editChildShaderControl: EditChildShaderSk | null = null;
+
   constructor() {
     super(ShadersAppSk.template);
   }
@@ -194,6 +198,21 @@ export class ShadersAppSk extends ElementSk {
     `;
   }
 
+  private static editButton = (ele: ShadersAppSk, parentNode: ShaderNode | null, node: ShaderNode, index: number): TemplateResult => {
+    if (ele.rootShaderNode === node || parentNode === null) {
+      return html``;
+    }
+    return html`
+      <button
+        class=editButton
+        title="Edit child shader uniform name."
+        @click=${(e: Event) => ele.editChildShader(e, parentNode, index)}>
+        <edit-icon-sk></edit-icon-sk>
+      </button>
+    `;
+  }
+
+
   private static displayShaderTreeImpl = (ele: ShadersAppSk, parentNode: ShaderNode | null, node: ShaderNode, depth: number = 0, name: string = '/', childIndex: number = 0): TemplateResult[] => {
     let ret: TemplateResult[] = [];
     // Prepend some fixed width spaces based on the depth so we get a nested
@@ -210,6 +229,7 @@ export class ShadersAppSk extends ElementSk {
           </span>
           <span>
             ${ShadersAppSk.deleteButton(ele, parentNode, node, childIndex)}
+            ${ShadersAppSk.editButton(ele, parentNode, node, childIndex)}
             <button
               class=addButton
               title="Append a new child shader."
@@ -374,6 +394,7 @@ export class ShadersAppSk extends ElementSk {
       </div>
     </main>
     <footer>
+      <edit-child-shader-sk></edit-child-shader-sk>
       <error-toast-sk></error-toast-sk>
     </footer>
   `;
@@ -396,6 +417,7 @@ export class ShadersAppSk extends ElementSk {
       viewportMargin: Infinity,
     });
     this.codeMirror.on('change', () => this.codeChange());
+    this.editChildShaderControl = $$('edit-child-shader-sk', this);
 
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
@@ -637,6 +659,17 @@ export class ShadersAppSk extends ElementSk {
     this.childShaderClick(this.rootShaderNode!);
 
     parentNode.removeChildShader(index);
+    this._render();
+    this.runClick();
+  }
+
+  private async editChildShader(e: Event, parentNode: ShaderNode, index: number) {
+    e.stopPropagation();
+    const editedChildShader = await this.editChildShaderControl!.show(parentNode.getChildShader(index));
+    if (!editedChildShader) {
+      return;
+    }
+    parentNode.setChildShaderUniformName(index, editedChildShader.UniformName);
     this._render();
     this.runClick();
   }
