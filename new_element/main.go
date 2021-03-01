@@ -73,11 +73,13 @@ Will not overwrite existing files.
 	files := map[string]string{
 		"file-demo.html":         filepath.Join(modulesDirectory, elementName, elementName+"-demo.html"),
 		"file-demo.ts":           filepath.Join(modulesDirectory, elementName, elementName+"-demo.ts"),
+		"file-demo.scss":         filepath.Join(modulesDirectory, elementName, elementName+"-demo.scss"),
 		"file.ts":                filepath.Join(modulesDirectory, elementName, elementName+".ts"),
 		"file_test.ts":           filepath.Join(modulesDirectory, elementName, elementName+"_test.ts"),
 		"file_puppeteer_test.ts": filepath.Join(modulesDirectory, elementName, elementName+"_puppeteer_test.ts"),
 		"file.scss":              filepath.Join(modulesDirectory, elementName, elementName+".scss"),
 		"index.ts":               filepath.Join(modulesDirectory, elementName, "index.ts"),
+		"BUILD.bazel.template":   filepath.Join(modulesDirectory, elementName, "BUILD.bazel"),
 	}
 
 	// Convert the element name, "some-element-sk", into a class name, "SomeElementSk".
