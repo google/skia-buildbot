@@ -1,5 +1,7 @@
 import './index';
 
+
+import sinon from 'sinon';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import { $ } from 'common-sk/modules/dom';
@@ -18,11 +20,12 @@ describe('tree-status-sk', () => {
 
   let element: TreeStatusSk;
   const createElement = async () => {
-    fetchMock.getOnce('https://tree-status.skia.org/current', treeStatusResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
-    fetchMock.getOnce('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
+    sinon.stub(Notification, 'permission').value('denied');
+    fetchMock.get('https://tree-status.skia.org/current', treeStatusResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener', generalRoleResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gpu-gardener', gpuRoleResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-android-gardener', androidRoleResp);
+    fetchMock.get('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', infraRoleResp);
     Date.now = () => 1600883976659;
     element = newInstance();
     await fetchMock.flush(true);
@@ -31,6 +34,7 @@ describe('tree-status-sk', () => {
   afterEach(() => {
     expect(fetchMock.done()).to.be.true;
     fetchMock.reset();
+    sinon.restore();
   });
 
   describe('displays', () => {
