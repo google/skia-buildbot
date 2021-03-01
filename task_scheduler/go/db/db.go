@@ -7,10 +7,9 @@ import (
 	"sort"
 	"time"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -460,14 +459,14 @@ func GetJobsFromWindow(db JobReader, w *window.Window, now time.Time) ([]*types.
 
 var errNotModified = errors.New("Task not modified")
 
-// UpdateDBFromSwarmingTask updates a task in db from data in s.
-func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult) (bool, error) {
-	id, err := swarming.GetTagValue(s, types.SWARMING_TAG_ID)
-	if err != nil {
-		return false, err
+// UpdateDBFromTaskResult updates a task in db from data in s.
+func UpdateDBFromTaskResult(db TaskDB, res *types.TaskResult) (bool, error) {
+	id, ok := res.Tags[types.SWARMING_TAG_ID]
+	if !ok || len(id) == 0 {
+		return false, skerr.Fmt("missing %s tag", types.SWARMING_TAG_ID)
 	}
-	_, err = UpdateTaskWithRetries(db, id, func(task *types.Task) error {
-		modified, err := task.UpdateFromSwarming(s)
+	_, err := UpdateTaskWithRetries(db, id[0], func(task *types.Task) error {
+		modified, err := task.UpdateFromTaskResult(res)
 		if err != nil {
 			return err
 		}

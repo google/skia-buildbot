@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -14,21 +12,28 @@ import (
 func TestBusyBots(t *testing.T) {
 	unittest.SmallTest(t)
 
-	bot := func(id string, dims map[string][]string) *swarming_api.SwarmingRpcsBotInfo {
-		return &swarming_api.SwarmingRpcsBotInfo{
-			BotId:      id,
-			Dimensions: swarming.StringMapToBotDimensions(dims),
+	bot := func(id string, dims map[string][]string) *types.Machine {
+		dimsFlat := make([]string, 0, len(dims))
+		for key, values := range dims {
+			for _, val := range values {
+				dimsFlat = append(dimsFlat, fmt.Sprintf("%s:%s", key, val))
+			}
+		}
+		return &types.Machine{
+			ID:         id,
+			Dimensions: dimsFlat,
 		}
 	}
 
-	task := func(id string, dims map[string]string) *swarming_api.SwarmingRpcsTaskResult {
-		tags := make([]string, 0, len(dims))
+	task := func(id string, dims map[string]string) *types.TaskResult {
+		tags := make(map[string][]string, len(dims))
 		for k, v := range dims {
-			tags = append(tags, fmt.Sprintf("%s%s:%s", types.SWARMING_TAG_DIMENSION_PREFIX, k, v))
+			tagKey := fmt.Sprintf("%s%s", types.SWARMING_TAG_DIMENSION_PREFIX, k)
+			tags[tagKey] = []string{v}
 		}
-		return &swarming_api.SwarmingRpcsTaskResult{
-			Tags:   tags,
-			TaskId: id,
+		return &types.TaskResult{
+			ID:   id,
+			Tags: tags,
 		}
 	}
 
@@ -37,19 +42,19 @@ func TestBusyBots(t *testing.T) {
 	b1 := bot("b1", map[string][]string{
 		"pool": {"Skia"},
 	})
-	bots := []*swarming_api.SwarmingRpcsBotInfo{b1}
+	bots := []*types.Machine{b1}
 	assertdeep.Equal(t, bots, bb.Filter(bots))
 
 	// Reserve the bot for a task.
 	t1 := task("t1", map[string]string{"pool": "Skia"})
-	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1})
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
+	bb.RefreshTasks([]*types.TaskResult{t1})
+	assertdeep.Equal(t, []*types.Machine{}, bb.Filter(bots))
 
 	// Ensure that it's still busy.
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter(bots))
+	assertdeep.Equal(t, []*types.Machine{}, bb.Filter(bots))
 
 	// It's no longer busy.
-	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{})
+	bb.RefreshTasks([]*types.TaskResult{})
 	assertdeep.Equal(t, bots, bb.Filter(bots))
 
 	// There are two bots and one task.
@@ -57,13 +62,13 @@ func TestBusyBots(t *testing.T) {
 		"pool": {"Skia"},
 	})
 	bots = append(bots, b2)
-	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1})
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsBotInfo{b2}, bb.Filter(bots))
+	bb.RefreshTasks([]*types.TaskResult{t1})
+	assertdeep.Equal(t, []*types.Machine{b2}, bb.Filter(bots))
 
 	// Two tasks and one bot.
 	t2 := task("t2", map[string]string{"pool": "Skia"})
-	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1, t2})
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsBotInfo{}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1}))
+	bb.RefreshTasks([]*types.TaskResult{t1, t2})
+	assertdeep.Equal(t, []*types.Machine{}, bb.Filter([]*types.Machine{b1}))
 
 	// Differentiate between dimension sets.
 	// Since busyBots works in order, if we were arbitrarily picking any
@@ -72,10 +77,10 @@ func TestBusyBots(t *testing.T) {
 	b3 := bot("b3", linuxBotDims)
 	b4 := bot("b4", androidBotDims)
 	t3 := task("t3", androidTaskDims)
-	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t3})
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b3, b4}))
+	bb.RefreshTasks([]*types.TaskResult{t3})
+	assertdeep.Equal(t, []*types.Machine{b3}, bb.Filter([]*types.Machine{b3, b4}))
 
 	// Test supersets of dimensions.
-	bb.RefreshTasks([]*swarming_api.SwarmingRpcsTaskResult{t1, t2, t3})
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsBotInfo{b3}, bb.Filter([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3, b4}))
+	bb.RefreshTasks([]*types.TaskResult{t1, t2, t3})
+	assertdeep.Equal(t, []*types.Machine{b3}, bb.Filter([]*types.Machine{b1, b2, b3, b4}))
 }

@@ -9,12 +9,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 )
 
@@ -167,8 +164,8 @@ type Task struct {
 	TaskKey
 }
 
-// UpdateFromSwarming sets or initializes t from data in s. If any changes were
-// made to t, returns true.
+// UpdateFromTaskResult sets or initializes t from data in s. If any changes
+// were made to t, returns true.
 //
 // Returns ErrUnknownId if the SwarmingTaskId does not match.
 //
@@ -178,19 +175,14 @@ type Task struct {
 // are non-empty, returns an error if they do not match.
 //
 // Always sets t.Status, t.Started, t.Finished, and t.IsolatedOutput based on s.
-func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bool, error) {
-	if s == nil {
-		return false, fmt.Errorf("Missing TaskResult. %v", s)
+func (orig *Task) UpdateFromTaskResult(res *TaskResult) (bool, error) {
+	if res == nil {
+		return false, fmt.Errorf("Missing TaskResult. %v", res)
 	}
 
 	// Swarming TaskId.
-	if orig.SwarmingTaskId != s.TaskId {
+	if orig.SwarmingTaskId != res.ID {
 		return false, ErrUnknownId
-	}
-
-	tags, err := swarming.ParseTags(s.Tags)
-	if err != nil {
-		return false, err
 	}
 
 	copy := orig.Copy()
@@ -200,14 +192,14 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 
 	// "Identity" fields stored in tags.
 	checkOrSetFromTag := func(tagName string, field *string, fieldName string) error {
-		if tagValue, ok := tags[tagName]; ok {
+		if tagValue, ok := res.Tags[tagName]; ok {
 			if len(tagValue) != 1 {
 				return fmt.Errorf("Expected a single value for tag key %q", tagName)
 			}
 			if *field == "" {
 				*field = tagValue[0]
 			} else if *field != tagValue[0] {
-				return fmt.Errorf("%s does not match for task %s. Was %s, now %s. %v %v", fieldName, orig.Id, *field, tagValue, orig, s)
+				return fmt.Errorf("%s does not match for task %s. Was %s, now %s. %v %v", fieldName, orig.Id, *field, tagValue, orig, res)
 			}
 		}
 		return nil
@@ -240,7 +232,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	}
 	copy.Attempt = int(attemptInt)
 	if orig.Attempt != 0 && copy.Attempt != orig.Attempt {
-		return false, fmt.Errorf("Attempt does not match for task %s. Was %d now %d. %v %v", orig.Id, orig.Attempt, copy.Attempt, orig, s)
+		return false, fmt.Errorf("Attempt does not match for task %s. Was %d now %d. %v %v", orig.Id, orig.Attempt, copy.Attempt, orig, res)
 	}
 
 	// Optional try job tags.
@@ -255,74 +247,35 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	}
 
 	// Set ParentTaskIds.
-	parentTaskIds := tags[SWARMING_TAG_PARENT_TASK_ID]
+	parentTaskIds := res.Tags[SWARMING_TAG_PARENT_TASK_ID]
 	sort.Strings(parentTaskIds)
 	copy.ParentTaskIds = parentTaskIds
 
 	// CreatedTs should always be present.
-	if sCreated, err := swarming.ParseTimestamp(s.CreatedTs); err == nil {
-		if util.TimeIsZero(copy.Created) {
-			copy.Created = sCreated
-		} else if copy.Created != sCreated {
-			return false, fmt.Errorf("Creation time has changed for task %s. Was %s, now %s. %v", orig.Id, orig.Created, sCreated, orig)
-		}
-	} else {
-		return false, fmt.Errorf("Unable to parse task creation time for task %s. %v %v", orig.Id, err, orig)
+	if util.TimeIsZero(copy.Created) {
+		copy.Created = res.Created
+	} else if !copy.Created.Equal(res.Created) {
+		return false, fmt.Errorf("Creation time has changed for task %s. Was %s, now %s. %v", orig.Id, orig.Created, res.Created, orig)
 	}
 
 	// Status.
-	switch s.State {
-	case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
-		copy.Status = TASK_STATUS_MISHAP
-	case swarming.TASK_STATE_PENDING:
-		copy.Status = TASK_STATUS_PENDING
-	case swarming.TASK_STATE_RUNNING:
-		copy.Status = TASK_STATUS_RUNNING
-	case swarming.TASK_STATE_COMPLETED:
-		if s.Failure {
-			// TODO(benjaminwagner): Choose FAILURE or MISHAP depending on ExitCode?
-			copy.Status = TASK_STATUS_FAILURE
-		} else {
-			copy.Status = TASK_STATUS_SUCCESS
-		}
-	default:
-		return false, fmt.Errorf("Unknown Swarming State %v in %v", s.State, s)
-	}
+	copy.Status = res.Status
 
 	// Isolated output.
-	if s.OutputsRef != nil {
-		copy.IsolatedOutput = s.OutputsRef.Isolated
-	} else if s.CasOutputRoot != nil && s.CasOutputRoot.Digest.Hash != "" {
-		copy.IsolatedOutput = rbe.DigestToString(s.CasOutputRoot.Digest.Hash, s.CasOutputRoot.Digest.SizeBytes)
-	}
+	copy.IsolatedOutput = res.CasOutput
 
 	// Bot.
-	copy.SwarmingBotId = s.BotId
+	copy.SwarmingBotId = res.MachineID
 
 	// Timestamps.
-	maybeUpdateTime := func(newTimeStr string, field *time.Time, name string) error {
-		if newTimeStr == "" {
-			return nil
+	maybeUpdateTime := func(newTime time.Time, field *time.Time, name string) {
+		if !util.TimeIsZero(newTime) {
+			*field = newTime
 		}
-		newTime, err := swarming.ParseTimestamp(newTimeStr)
-		if err != nil {
-			return fmt.Errorf("Unable to parse %s for task %s. %v %v", name, orig.Id, err, s)
-		}
-		*field = newTime
-		return nil
 	}
 
-	if err := maybeUpdateTime(s.StartedTs, &copy.Started, "StartedTs"); err != nil {
-		return false, err
-	}
-	if err := maybeUpdateTime(s.CompletedTs, &copy.Finished, "CompletedTs"); err != nil {
-		return false, err
-	}
-	if s.CompletedTs == "" && copy.Status == TASK_STATUS_MISHAP {
-		if err := maybeUpdateTime(s.AbandonedTs, &copy.Finished, "AbandonedTs"); err != nil {
-			return false, err
-		}
-	}
+	maybeUpdateTime(res.Started, &copy.Started, "Started")
+	maybeUpdateTime(res.Finished, &copy.Finished, "Finished")
 	if copy.Done() && util.TimeIsZero(copy.Started) {
 		copy.Started = copy.Finished
 	}
@@ -498,11 +451,14 @@ func TagsForTask(name, id string, attempt int, rs RepoState, retryOf string, dim
 }
 
 // DimensionsFromTags returns a set of dimensions based on the given tags.
-func DimensionsFromTags(tags []string) []string {
+func DimensionsFromTags(tags map[string][]string) []string {
 	rv := make([]string, 0, len(tags))
-	for _, t := range tags {
-		if strings.HasPrefix(t, SWARMING_TAG_DIMENSION_PREFIX) {
-			rv = append(rv, t[len(SWARMING_TAG_DIMENSION_PREFIX):])
+	for key, values := range tags {
+		if strings.HasPrefix(key, SWARMING_TAG_DIMENSION_PREFIX) {
+			dimKey := key[len(SWARMING_TAG_DIMENSION_PREFIX):]
+			for _, dimVal := range values {
+				rv = append(rv, fmt.Sprintf("%s:%s", dimKey, dimVal))
+			}
 		}
 	}
 	return rv

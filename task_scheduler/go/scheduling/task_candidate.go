@@ -9,11 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/isolate"
-	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -205,64 +200,24 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTopic string) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
-	var caches []*swarming_api.SwarmingRpcsCacheEntry
+func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTopic string) (*types.TaskRequest, error) {
+	var caches []*types.CacheRequest
 	if len(c.TaskSpec.Caches) > 0 {
-		caches = make([]*swarming_api.SwarmingRpcsCacheEntry, 0, len(c.TaskSpec.Caches))
+		caches = make([]*types.CacheRequest, 0, len(c.TaskSpec.Caches))
 		for _, cache := range c.TaskSpec.Caches {
-			caches = append(caches, &swarming_api.SwarmingRpcsCacheEntry{
+			caches = append(caches, &types.CacheRequest{
 				Name: cache.Name,
 				Path: cache.Path,
 			})
 		}
 	}
-	var cipdInput *swarming_api.SwarmingRpcsCipdInput
-	if len(c.TaskSpec.CipdPackages) > 0 {
-		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
-			Packages: make([]*swarming_api.SwarmingRpcsCipdPackage, 0, len(c.TaskSpec.CipdPackages)),
-		}
-		for _, p := range c.TaskSpec.CipdPackages {
-			cipdInput.Packages = append(cipdInput.Packages, &swarming_api.SwarmingRpcsCipdPackage{
-				PackageName: p.Name,
-				Path:        p.Path,
-				Version:     p.Version,
-			})
-		}
-	}
 
-	dims := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(c.TaskSpec.Dimensions))
 	dimsMap := make(map[string]string, len(c.TaskSpec.Dimensions))
 	for _, d := range c.TaskSpec.Dimensions {
 		split := strings.SplitN(d, ":", 2)
 		key := split[0]
 		val := split[1]
-		dims = append(dims, &swarming_api.SwarmingRpcsStringPair{
-			Key:   key,
-			Value: val,
-		})
 		dimsMap[key] = val
-	}
-
-	var env []*swarming_api.SwarmingRpcsStringPair
-	if len(c.TaskSpec.Environment) > 0 {
-		env = make([]*swarming_api.SwarmingRpcsStringPair, 0, len(c.TaskSpec.Environment))
-		for k, v := range c.TaskSpec.Environment {
-			env = append(env, &swarming_api.SwarmingRpcsStringPair{
-				Key:   k,
-				Value: v,
-			})
-		}
-	}
-
-	var envPrefixes []*swarming_api.SwarmingRpcsStringListPair
-	if len(c.TaskSpec.EnvPrefixes) > 0 {
-		envPrefixes = make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(c.TaskSpec.EnvPrefixes))
-		for k, v := range c.TaskSpec.EnvPrefixes {
-			envPrefixes = append(envPrefixes, &swarming_api.SwarmingRpcsStringListPair{
-				Key:   k,
-				Value: util.CopyStringSlice(v),
-			})
-		}
 	}
 
 	cmd := make([]string, 0, len(c.TaskSpec.Command))
@@ -280,64 +235,31 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 		extraTags[k] = replaceVars(c, v, id)
 	}
 
-	expirationSecs := int64(c.TaskSpec.Expiration.Seconds())
-	if expirationSecs == int64(0) {
-		expirationSecs = int64(swarming.RECOMMENDED_EXPIRATION.Seconds())
-	}
-	executionTimeoutSecs := int64(c.TaskSpec.ExecutionTimeout.Seconds())
-	if executionTimeoutSecs == int64(0) {
-		executionTimeoutSecs = int64(swarming.RECOMMENDED_HARD_TIMEOUT.Seconds())
-	}
-	ioTimeoutSecs := int64(c.TaskSpec.IoTimeout.Seconds())
-	if ioTimeoutSecs == int64(0) {
-		ioTimeoutSecs = int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds())
-	}
 	outputs := util.CopyStringSlice(c.TaskSpec.Outputs)
 	idempotent := c.TaskSpec.Idempotent
 	if c.ForcedJobId != "" {
 		// Don't allow deduplication for forced jobs.
 		idempotent = false
 	}
-	req := &swarming_api.SwarmingRpcsNewTaskRequest{
-		Name:           c.Name,
-		Priority:       swarming.RECOMMENDED_PRIORITY,
-		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
-		PubsubUserdata: id,
-		ServiceAccount: c.TaskSpec.ServiceAccount,
-		Tags:           types.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
-		TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
-			{
-				ExpirationSecs: expirationSecs,
-				Properties: &swarming_api.SwarmingRpcsTaskProperties{
-					Caches:               caches,
-					CipdInput:            cipdInput,
-					Command:              cmd,
-					Dimensions:           dims,
-					Env:                  env,
-					EnvPrefixes:          envPrefixes,
-					ExecutionTimeoutSecs: executionTimeoutSecs,
-					ExtraArgs:            extraArgs,
-					Idempotent:           idempotent,
-					IoTimeoutSecs:        ioTimeoutSecs,
-					Outputs:              outputs,
-				},
-				WaitForCapacity: false,
-			},
-		},
-		User: "skiabot@google.com",
-	}
-	if c.CasUsesIsolate {
-		req.TaskSlices[0].Properties.InputsRef = &swarming_api.SwarmingRpcsFilesRef{
-			Isolated:       c.CasInput,
-			Isolatedserver: isolateServer,
-			Namespace:      isolate.DEFAULT_NAMESPACE,
-		}
-	} else {
-		casInput, err := swarming.MakeCASReference(c.CasInput, casInstance)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		req.TaskSlices[0].Properties.CasInputRoot = casInput
+	req := &types.TaskRequest{
+		Caches:              caches,
+		CasInput:            c.CasInput,
+		CasUsesIsolate:      c.CasUsesIsolate,
+		CipdPackages:        c.TaskSpec.CipdPackages,
+		Command:             cmd,
+		Dimensions:          util.CopyStringSlice(c.TaskSpec.Dimensions),
+		Env:                 c.TaskSpec.Environment,
+		EnvPrefixes:         c.TaskSpec.EnvPrefixes,
+		ExecutionTimeout:    c.TaskSpec.ExecutionTimeout,
+		Expiration:          c.TaskSpec.Expiration,
+		ExtraArgs:           extraArgs,
+		Idempotent:          idempotent,
+		IoTimeout:           c.TaskSpec.IoTimeout,
+		Name:                c.Name,
+		Outputs:             outputs,
+		ServiceAccount:      c.TaskSpec.ServiceAccount,
+		Tags:                types.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
+		TaskSchedulerTaskID: id,
 	}
 	return req, nil
 }
