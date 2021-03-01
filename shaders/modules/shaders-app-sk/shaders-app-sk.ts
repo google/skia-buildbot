@@ -415,6 +415,7 @@ export class ShadersAppSk extends ElementSk {
       mode: 'x-shader/x-sksl',
       theme: ShadersAppSk.themeFromCurrentMode(),
       viewportMargin: Infinity,
+      scrollbarStyle: 'native',
     });
     this.codeMirror.on('change', () => this.codeChange());
     this.editChildShaderControl = $$('edit-child-shader-sk', this);
