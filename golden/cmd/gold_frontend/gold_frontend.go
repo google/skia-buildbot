@@ -96,12 +96,6 @@ type frontendServerConfig struct {
 	// If true, Gold will only log comments, it won't actually comment on the CRSes.
 	DisableCLComments bool `json:"disable_cl_comments"`
 
-	// The grpc port of the diff server.
-	DiffServerGRPC string `json:"diff_server_grpc"`
-
-	// The images serving address of the diff server.
-	DiffServerHTTP string `json:"diff_server_http"`
-
 	// If the frontend shouldn't track any CLs. For example, if we are tracking a repo that doesn't
 	// have a CQ.
 	DisableCLTracking bool `json:"disable_changelist_tracking"`

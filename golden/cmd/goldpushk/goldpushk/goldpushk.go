@@ -598,7 +598,7 @@ func (g *Goldpushk) monitor(ctx context.Context, units []DeployableUnit, getUpti
 	// consists of three columns: UPTIME, READY and NAME. The first two are both 10 characters wide.
 	statusTableWidth := 20 // UPTIME + READY.
 	// We determine the width of column NAME by looking for the longest name among all DeployableUnits
-	// to monitor (e.g. "gold-skia-diffserver").
+	// to monitor (e.g. "gold-skia-diffcalculator").
 	longestName := 0
 	for _, unit := range units {
 		if len(unit.CanonicalName()) > longestName {
@@ -750,12 +750,12 @@ func (g *Goldpushk) getUptimesSingleCluster(ctx context.Context, units []Deploya
 	//   app:gold-chrome-gpu-baselineserver  podName:gold-chrome-gpu-baselineserver-5dfd8b65cb-9krrl  ready:True  readyLastTransitionTime:2019-10-03T16:45:48Z
 	//   app:gold-chrome-gpu-baselineserver  podName:gold-chrome-gpu-baselineserver-5dfd8b65cb-hr86n  ready:True  readyLastTransitionTime:2019-09-30T13:20:39Z
 	//   app:gold-chrome-gpu-baselineserver  podName:gold-chrome-gpu-baselineserver-5dfd8b65cb-l4lt5  ready:True  readyLastTransitionTime:2019-10-04T01:59:40Z
-	//   app:gold-chrome-gpu-diffserver  podName:gold-chrome-gpu-diffserver-0  ready:True  readyLastTransitionTime:2019-10-09T18:43:08Z
+	//   app:gold-chrome-gpu-diffcalculator  podName:gold-chrome-gpu-diffcalculator-0  ready:True  readyLastTransitionTime:2019-10-09T18:43:08Z
 	//   app:gold-chrome-gpu-ingestion-bt  podName:gold-chrome-gpu-ingestion-bt-f8b66844f-4969w  ready:True  readyLastTransitionTime:2019-10-04T01:54:54Z
 	//   app:gold-chrome-gpu-frontend  podName:gold-chrome-gpu-frontend-67c547667d-cwt42  ready:True  readyLastTransitionTime:2019-10-04T02:01:11Z
 	//
 	// The output format should be fairly self explanatory, but to see an example of where those
-	// are coming from, try running e.g. "kubectl get pod gold-skia-diffserver-0 -o json".
+	// are coming from, try running e.g. "kubectl get pod gold-skia-diffcalculator-0 -o json".
 	//
 	// Note: Field podName is not used, and is only included for debugging purposes. It will be
 	// printed out to stdout if flag --logtostderr is passed.

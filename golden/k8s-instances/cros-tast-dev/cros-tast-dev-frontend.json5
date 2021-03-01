@@ -7,8 +7,6 @@
 \n\
 Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}.\n",
   client_secret_file: "/etc/skia.org/login.json",
-  diff_server_grpc: "gold-cros-tast-dev-diffserver:8000",
-  diff_server_http: "gold-cros-tast-dev-diffserver:8001",
   flaky_trace_threshold: 10000, // no trace is flaky
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",

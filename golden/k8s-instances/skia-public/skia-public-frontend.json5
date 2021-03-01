@@ -8,8 +8,6 @@
   ],
   cl_comment_template: "<ignored>",
   client_secret_file: "/etc/skia.org/login.json",
-  diff_server_grpc: "gold-skia-diffserver:8000",
-  diff_server_http: "gold-skia-diffserver:8001",
   flaky_trace_threshold: 10,
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
