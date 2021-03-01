@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a6fd6839_40912e4b",
+        "filename": "go/swarming/apiclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-01T21:00:23Z",
+      "side": 1,
+      "message": "Swarming was complaining about providing both TaskSlices and (Properties + ExpirationSecs).  I don\u0027t know why the TaskRequest returned from GetTaskMetadata includes both, but we can\u0027t just supply it back as we received it from the API.",
+      "range": {
+        "startLine": 413,
+        "startChar": 0,
+        "endLine": 416,
+        "endChar": 2
+      },
+      "revId": "e60f8a10a098da18f37a9efc19500140091047fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
