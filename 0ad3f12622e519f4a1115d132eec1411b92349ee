@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b801aab0_d3c67f3b",
+        "filename": "new_element/modules/example-control-sk/example-control-sk_puppeteer_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-01T14:43:09Z",
+      "side": 1,
+      "message": "too much spacing here, and needs trailing semicolon.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 8
+      },
+      "revId": "0ad3f12622e519f4a1115d132eec1411b92349ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
