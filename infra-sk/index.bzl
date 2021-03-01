@@ -25,6 +25,16 @@ def sk_element(name, ts_srcs, sass_srcs, ts_deps = [], sass_deps = [], sk_elemen
     This is just a convenience macro that generates the ts_library and sass_library targets required
     to build a custom element.
 
+    By convention, a custom element built with this macro must include a <name>.scss file in its
+    sass_srcs, which we will refer to as the element's entry-point Sass stylesheet. This macro will
+    produce an error in the absence of such a file.
+
+    This macro generates a "ghost" Sass stylesheet with `@import` statements for the entry-point
+    Sass stylesheet of this custom element, and those of each sk_element dependency in
+    sk_element_deps. This ghost stylesheet will be included in the output CSS bundles of any sk_page
+    that depends on this sk_element (directly or indirectly). It is therefore *not* necessary to
+    explicitly import the Sass styles of the sk_element dependencies in sk_element_deps.
+
     Args:
       name: The name of the target.
       ts_srcs: TypeScript source files.
@@ -34,6 +44,29 @@ def sk_element(name, ts_srcs, sass_srcs, ts_deps = [], sass_deps = [], sk_elemen
       sk_element_deps: Any sk_element dependencies. Equivalent to adding the ts_library and
         sass_library of each sk_element to ts_deps and sass_deps, respectively.
     """
+
+    # Check that the Sass entry-point stylesheet exists.
+    scss_entry_point = name + ".scss"
+    if scss_entry_point not in sass_srcs:
+        fail(("sk_element target \"%s\" must include an entry-point \"%s.scss\" Sass stylesheet " +
+              "in its sass_srcs.") % (name, name))
+
+    # Generate a "ghost" Sass stylesheet with imports for the sk_element's entry-point stylesheet,
+    # and the stylesheets with generated imports of each sk_element in sk_element_deps.
+    #
+    # This stylesheet recursively imports the Sass stylesheets of all the direct and indirect
+    # sk_element dependencies (sk_element_deps argument).
+    #
+    # This stylesheet is not used by sk_elements directly. It is used in the sk_page macro to build
+    # CSS bundles containing the Sass styles of all sk_elements in the sk_page's dependency graph.
+    generate_sass_stylesheet_with_imports(
+        name = name + "_sk_element_deps_scss",
+        scss_files_to_import = [scss_entry_point] + [
+            dep + "_sk_element_deps_scss"
+            for dep in sk_element_deps
+        ],
+        scss_output_file = name + "__generated_entrypoint_and_sk_element_deps_imports.scss",
+    )
 
     # Extend ts_deps and sass_deps with the ts_library and sass_library targets produced by each
     # sk_element dependency in the sk_element_deps argument.
@@ -57,8 +90,30 @@ def sk_element(name, ts_srcs, sass_srcs, ts_deps = [], sass_deps = [], sk_elemen
 
     sass_library(
         name = name + "_styles",
-        srcs = sass_srcs,
+        srcs = sass_srcs + [name + "_sk_element_deps_scss"],
         deps = all_sass_deps,
+    )
+
+def generate_sass_stylesheet_with_imports(name, scss_files_to_import, scss_output_file):
+    """Generates a .scss file with one `@import` statement for each file in scss_files_to_import.
+
+    Args:
+      name: The name of the target.
+      scss_files_to_import: A list of .scss files.
+      scss_output_file: Name of the .scss file to generate.
+    """
+
+    # Build a list of shell commands to generate the output stylesheet.
+    cmds = ["touch $@"]
+    for scss_file in scss_files_to_import:
+        import_statement = "@import '$(rootpath %s)';" % scss_file
+        cmds.append("echo \"%s\" >> $@" % import_statement)
+
+    native.genrule(
+        name = name,
+        srcs = scss_files_to_import,
+        outs = [scss_output_file],
+        cmd = " && ".join(cmds),
     )
 
 def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibility = None):
@@ -260,6 +315,29 @@ def sk_page(
     # CSS Bundles. #
     ################
 
+    # Create a sass_library including the scss_entry_point file, and all the Sass dependencies.
+    sass_library(
+        name = name + "_styles",
+        srcs = [scss_entry_point],
+        deps = all_sass_deps,
+    )
+
+    # Generate a "ghost" Sass stylesheet with imports for the scss_entry_point, and the stylesheets
+    # with generated imports of each sk_element in sk_element_deps.
+    #
+    # This stylesheet recursively imports the Sass stylesheets of all the direct and indirect
+    # sk_element dependencies (sk_element_deps argument).
+    #
+    # We will use this generated stylesheet as the entry-points for the sass_binaries below.
+    generate_sass_stylesheet_with_imports(
+        name = name + "_sk_element_deps_scss",
+        scss_files_to_import = [scss_entry_point] + [
+            dep + "_sk_element_deps_scss"
+            for dep in sk_element_deps
+        ],
+        scss_output_file = name + "__generated_entrypoint_and_sk_element_deps_imports.scss",
+    )
+
     # Notes:
     #  - The source maps generated by the sass_binary rule are currently broken.
     #  - Sass compilation errors are not visible unless "bazel build" is invoked with flag
@@ -270,9 +348,9 @@ def sk_page(
     # Generates file development/<name>.css.
     sass_binary(
         name = "%s_css_dev" % name,
-        src = scss_entry_point,
+        src = name + "_sk_element_deps_scss",
         output_name = "%s/%s.css" % (DEV_OUT_DIR, name),
-        deps = all_sass_deps,
+        deps = [name + "_styles"],
         include_paths = ["//infra-sk/node_modules"],
         output_style = "expanded",
         sourcemap = True,
@@ -281,9 +359,9 @@ def sk_page(
     # Generates file production/<name>.css.
     sass_binary(
         name = "%s_css_prod" % name,
-        src = scss_entry_point,
+        src = name + "_sk_element_deps_scss",
         output_name = "%s/%s.css" % (PROD_OUT_DIR, name),
-        deps = all_sass_deps,
+        deps = [name + "_styles"],
         include_paths = ["//infra-sk/node_modules"],
         output_style = "compressed",
         sourcemap = False,
