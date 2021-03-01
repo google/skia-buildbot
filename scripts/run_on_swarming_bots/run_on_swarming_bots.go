@@ -160,58 +160,7 @@ func main() {
 			sklog.Info(bot.BotId)
 			continue
 		}
-		var os string
-		var arch string
-		var platform string
-		for _, dim := range bot.Dimensions {
-			if dim.Key == "os" {
-				for _, value := range dim.Value {
-					if strings.Contains(value, "Mac") {
-						os = "Mac"
-						break
-					} else if strings.Contains(value, "Linux") {
-						os = "Linux"
-						break
-					} else if strings.Contains(value, "Windows") {
-						os = "Windows"
-						break
-					}
-				}
-			} else if dim.Key == "cpu" {
-				for _, value := range dim.Value {
-					if strings.Contains(value, "arm") {
-						arch = "arm"
-						break
-					} else if strings.Contains(value, "x86-64") {
-						arch = "x86-64"
-						// Don't break, in case a bot has both "x86" and
-						// "x86-64" dimensions.
-					} else if strings.Contains(value, "x86-32") {
-						arch = "386"
-						// Don't break, in case a bot has both "x86" and
-						// "x86-64" dimensions.
-					}
-				}
-			}
-		}
-		if os == "Linux" {
-			if arch == "arm" {
-				platform = cipd.PlatformLinuxArm64
-			} else {
-				platform = cipd.PlatformLinuxAmd64
-			}
-		} else if os == "Windows" {
-			if arch == "386" {
-				platform = cipd.PlatformWindows386
-			} else {
-				platform = cipd.PlatformWindowsAmd64
-			}
-		} else if os == "Mac" {
-			platform = cipd.PlatformMacAmd64
-		}
-		if platform == "" {
-			sklog.Fatal("Unable to find platform for %s", bot.BotId)
-		}
+		cipdInput := getPythonCIPDPackages(bot)
 
 		wg.Add(1)
 		go func(id string) {
@@ -242,7 +191,7 @@ func main() {
 								},
 							},
 							CasInputRoot: casInput,
-							CipdInput:    swarming.ConvertCIPDInput(cipd.PkgsPython[platform]),
+							CipdInput:    cipdInput,
 							Command:      cmd,
 							Dimensions:   dims,
 							EnvPrefixes: []*swarming_api.SwarmingRpcsStringListPair{
@@ -294,4 +243,66 @@ func matchesAny(s string, xr []*regexp.Regexp) bool {
 		}
 	}
 	return false
+}
+
+func getPythonCIPDPackages(bot *swarming_api.SwarmingRpcsBotInfo) *swarming_api.SwarmingRpcsCipdInput {
+	var os string
+	var arch string
+	for _, dim := range bot.Dimensions {
+		if dim.Key == "os" {
+			for _, value := range dim.Value {
+				if strings.Contains(value, "iOS") || strings.Contains(value, "Android") || strings.Contains(value, "ChromeOS") || strings.Contains(value, "Raspbian") {
+					// iOS, Android, and ChromeOS devices are hosted on RPis. We
+					// don't have a 32-bit ARM binary for Python in CIPD, so
+					// just use what's installed on the machine.
+					return nil
+				} else if strings.Contains(value, "Mac") {
+					os = "Mac"
+					break
+				} else if strings.Contains(value, "Linux") {
+					os = "Linux"
+					break
+				} else if strings.Contains(value, "Windows") {
+					os = "Windows"
+					break
+				}
+			}
+		} else if dim.Key == "cpu" {
+			for _, value := range dim.Value {
+				if strings.Contains(value, "arm64") {
+					arch = "arm64"
+					break
+				} else if strings.Contains(value, "x86-64") {
+					arch = "x86-64"
+					// Don't break, in case a bot has both "x86" and
+					// "x86-64" dimensions.
+				} else if strings.Contains(value, "x86-32") {
+					arch = "386"
+					// Don't break, in case a bot has both "x86" and
+					// "x86-64" dimensions.
+				}
+			}
+		}
+	}
+	var platform string
+	if os == "Linux" {
+		if arch == "arm64" {
+			platform = cipd.PlatformLinuxArm64
+		} else if arch == "x86-64" {
+			platform = cipd.PlatformLinuxAmd64
+		}
+	} else if os == "Windows" {
+		if arch == "386" {
+			platform = cipd.PlatformWindows386
+		} else {
+			platform = cipd.PlatformWindowsAmd64
+		}
+	} else if os == "Mac" {
+		platform = cipd.PlatformMacAmd64
+	}
+	var cipdInput *swarming_api.SwarmingRpcsCipdInput
+	if platform != "" {
+		cipdInput = swarming.ConvertCIPDInput(cipd.PkgsPython[platform])
+	}
+	return cipdInput
 }
