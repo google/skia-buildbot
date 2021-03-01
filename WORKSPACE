@@ -235,3 +235,25 @@ rbe_autoconfig(
     repository = "skia-public/rbe-container-skia-infra",
     use_legacy_platform_definition = False,  # The exec_properties argument requires this.
 )
+
+##################
+# Miscellaneous. #
+##################
+
+# Pulls the gcr.io/skia-public/skia-wasm-release container with the Skia WASM build.
+container_pull(
+    name = "container_pull_skia_wasm",
+    registry = "gcr.io",
+    repository = "skia-public/skia-wasm-release",
+    # The container_pull documentation[1] recommends specifying a digest (via the "digest" argument)
+    # for reproducible builds.
+    #
+    # We specify the "prod" tag here instead of a digest for simplicity, but this might cause Bazel
+    # to fetch the "prod" image once, cache it, and use it for all subsequent builds, completely
+    # ignoring any new images uploaded to GCR with the "prod" tag.
+    #
+    # This caching problem could be solved by replacing the "tag" argument with a "digest" argument
+    # with the latest digest. But this requires setting up an autoroller to update the digest every
+    # time a new container image is uploaded to GCR.
+    tag = "prod",
+)

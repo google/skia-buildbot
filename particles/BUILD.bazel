@@ -1,0 +1,22 @@
+load("//infra-sk:index.bzl", "extract_files_from_skia_wasm_container")
+
+extract_files_from_skia_wasm_container(
+    name = "canvaskit_wasm",
+    outs = [
+        "build/VERSION",
+        "build/canvaskit/canvaskit.js",
+        "build/canvaskit/canvaskit.wasm",
+    ],
+    container_files = [
+        "/tmp/VERSION",
+        "/tmp/canvaskit/canvaskit.js",
+        "/tmp/canvaskit/canvaskit.wasm",
+    ],
+)
+
+genrule(
+    name = "canvaskit_wasm_version_js",
+    srcs = ["build/VERSION"],
+    outs = ["build/version.js"],
+    cmd = "echo \"export const SKIA_VERSION = '`cat $<`';\" > $@",
+)

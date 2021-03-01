@@ -5,6 +5,7 @@ load("@infra-sk_npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
 load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
+load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
@@ -366,4 +367,77 @@ def sk_page(
             "production/%s.js" % name,
             "production/%s.css" % name,
         ],
+    )
+
+def extract_files_from_skia_wasm_container(name, container_files, outs):
+    """Extracts files from the Skia WASM container image (gcr.io/skia-public/skia-wasm-release).
+
+    This macro takes as inputs a list of paths inside the Docker container (container_files
+    argument), and a list of the same length with the destination paths for each of the files to
+    extract (outs argument), relative to the directory where the macro is instantiated.
+
+    Args:
+      name: Name of the target.
+      container_files: List of absolute paths inside the Docker container to extract.
+      outs: Destination paths for each file to extract, relative to the target's directory.
+    """
+
+    if len(container_files) != len(outs):
+        fail("Arguments container_files and outs must have the same length.")
+
+    # Generates a .tar file with the contents of the image's filesystem (and a .json metadata file
+    # which we ignore).
+    #
+    # See the rule implementation here:
+    # https://github.com/bazelbuild/rules_docker/blob/02ad0a48fac9afb644908a634e8b2139c5e84670/container/flatten.bzl#L48
+    #
+    # Notes:
+    #  - It is unclear whether container_flatten is part of the public API because it is not
+    #    documented. But the fact that container_flatten is re-exported along with other, well
+    #    documented rules in rules_docker suggests that it might indeed be part of the public API
+    #    (see [1] and [2]).
+    #  - If they ever make breaking changes to container_flatten, then it is probably best to fork
+    #    it. The rule itself is relatively small; it is just a wrapper around a Go program that does
+    #    all the heavy lifting.
+    #  - This rule was chosen because most other rules in the rules_docker repository produce .tar
+    #    files with layered outputs, which means we would have to do the flattening ourselves.
+    #
+    # [1] https://github.com/bazelbuild/rules_docker/blob/6c29619903b6bc533ad91967f41f2a3448758e6f/container/container.bzl#L28
+    # [2] https://github.com/bazelbuild/rules_docker/blob/e290d0975ab19f9811933d2c93be275b6daf7427/container/BUILD#L158
+    container_flatten(
+        name = name + "_skia_wasm_container_filesystem",
+        image = "@container_pull_skia_wasm//image",
+    )
+
+    # Name of the .tar file produced by the container_flatten target.
+    skia_wasm_filesystem_tar = name + "_skia_wasm_container_filesystem.tar"
+
+    # Shell command that returns the directory of the BUILD file where this macro was instantiated.
+    #
+    # This works because:
+    #  - The $< variable[1] is expanded by the below genrule to the path of its only input file.
+    #  - The only input file to the genrule is the .tar file produced by the above container_flatten
+    #    target (see the genrule's srcs attribute).
+    #  - Said .tar file is produced in the directory of the BUILD file where this macro was
+    #    instantiated.
+    #
+    # [1] https://docs.bazel.build/versions/master/be/make-variables.html
+    output_dir = "$$(dirname $<)"
+
+    # Directory where we will untar the .tar file produced by the container_flatten target.
+    skia_wasm_filesystem_dir = output_dir + "/" + skia_wasm_filesystem_tar + "_untarred"
+
+    native.genrule(
+        name = name,
+        srcs = [skia_wasm_filesystem_tar],
+        outs = outs,
+        cmd = " && ".join([
+            # Untar the .tar file produced by the container_flatten rule.
+            "mkdir -p " + skia_wasm_filesystem_dir,
+            "tar xf $< -C " + skia_wasm_filesystem_dir,
+        ] + [
+            # Copy each requested file from the container filesystem to its desired destination.
+            "cp %s/%s %s/%s" % (skia_wasm_filesystem_dir, src, output_dir, dst)
+            for src, dst in zip(container_files, outs)
+        ]),
     )
