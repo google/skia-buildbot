@@ -16,8 +16,8 @@ curl --silent -X PUT -d "{\"Hash\": \"3124d06f75fa4a5138784e80592909d094a50dfd7a
 curl --silent -X PUT -d "{\"Hash\": \"12f6c3ecf3f26b1b734d0f254b5bb97cb7d395a9e4829fbab9cda3fef9e3ad9e\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iTime
 curl --silent -X PUT -d "{\"Hash\": \"229312432fbd5c54b471d766a0da29cd7d22f53b7a9a90f3b014a87114d02dd1\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iMouse
 curl --silent -X PUT -d "{\"Hash\": \"76819961bb22c1982492ed57a3972f855a01026b0686d636bd23773f4855d218\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@default
-curl --silent -X PUT -d "{\"Hash\": \"90620bbe06e6a6c7ca57b171727acd00825af73351f9848353037b72b3d1e3f1\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iImage
-curl --silent -X PUT -d "{\"Hash\": \"90620bbe06e6a6c7ca57b171727acd00825af73351f9848353037b72b3d1e3f1\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@defaultChildShader
+curl --silent -X PUT -d "{\"Hash\": \"1e5f970cc8c0262496543207f2172c198617acc293e8b5ba29343f49962d4544\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@iImage
+curl --silent -X PUT -d "{\"Hash\": \"1e5f970cc8c0262496543207f2172c198617acc293e8b5ba29343f49962d4544\", \"Description\": \"Shader Inputs\"}" -H 'Content-Type: application/json' http://localhost:9000/_/names/sksl/@defaultChildShader
 
 
 # List all named sksl scraps.

@@ -27,7 +27,7 @@ export const predefinedUniforms = `uniform float3 iResolution;      // Viewport 
 uniform float  iTime;            // Shader playback time (s)
 uniform float4 iMouse;           // Mouse drag pos=.xy Click pos=.zw (pixels)
 uniform float3 iImageResolution; // iImage1 resolution (pixels)
-uniform shader iImage1;          // An input image (Mandrill).`;
+uniform shader iImage1;          // An input image.`;
 
 /** How many of the uniforms listed in predefinedUniforms are of type 'shader'? */
 export const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
