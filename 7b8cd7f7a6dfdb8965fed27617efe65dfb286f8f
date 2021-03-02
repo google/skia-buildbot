@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e3bb0929_09f37e5a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-02T17:39:12Z",
+      "side": 1,
+      "message": "Sure, no problem.",
+      "parentUuid": "b0e1ff0e_32d2264f",
+      "revId": "7b8cd7f7a6dfdb8965fed27617efe65dfb286f8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "68b89c9f_5e058e17",
@@ -79,6 +97,30 @@
       "side": 1,
       "message": "Yes, it would need to be updated.",
       "parentUuid": "aedee035_901dfca6",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 51
+      },
+      "revId": "7b8cd7f7a6dfdb8965fed27617efe65dfb286f8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53418f1c_34b818e9",
+        "filename": "autoroll/config/pgo-linux-chromium-beta.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-02T17:39:12Z",
+      "side": 1,
+      "message": "We don\u0027t currently have support for placeholders in the tryjob names.  It might be something we could add, but it would take some work.",
+      "parentUuid": "bf90a194_1e5cc501",
       "range": {
         "startLine": 15,
         "startChar": 0,
