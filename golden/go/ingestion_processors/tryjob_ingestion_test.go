@@ -1,9 +1,12 @@
 package ingestion_processors
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	"io/ioutil"
 	"testing"
 	"time"
 
@@ -31,18 +34,15 @@ import (
 )
 
 const (
-	legacyGoldCtlFile = "testdata/legacy-tryjob-goldctl.json"
-	githubGoldCtlFile = "testdata/github-goldctl.json"
+	legacyGoldCtlFile = "legacy-tryjob-goldctl.json"
+	githubGoldCtlFile = "github-goldctl.json"
 )
 
-func TestGerritBuildbucketFactory(t *testing.T) {
-	unittest.LargeTest(t) // should use the emulator
-	unittest.RequiresFirestoreEmulator(t)
+func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
+	unittest.SmallTest(t)
 
 	config := ingestion.Config{
 		ExtraParams: map[string]string{
-			firestoreProjectIDParam: "should-use-emulator",
-			firestoreNamespaceParam: "testing",
 
 			codeReviewSystemsParam: "gerrit,gerrit-internal",
 			gerritURLParam:         "https://example-review.googlesource.com",
@@ -52,7 +52,7 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 		},
 	}
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient(), nil)
+	p, err := TryjobSQL(ctx, config, httputils.NewTimeoutClient(), nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -63,15 +63,11 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 	assert.Contains(t, gtp.cisClients, buildbucketCIS)
 }
 
-func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
-	unittest.LargeTest(t) // should use the emulator
-	unittest.RequiresFirestoreEmulator(t)
+func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
+	unittest.SmallTest(t)
 
 	config := ingestion.Config{
 		ExtraParams: map[string]string{
-			firestoreProjectIDParam: "should-use-emulator",
-			firestoreNamespaceParam: "testing",
-
 			codeReviewSystemsParam:     "github",
 			githubRepoParam:            "google/skia",
 			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
@@ -81,7 +77,7 @@ func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 	}
 
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := newModularTryjobProcessor(ctx, nil, config, httputils.NewTimeoutClient(), nil)
+	p, err := TryjobSQL(ctx, config, httputils.NewTimeoutClient(), nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -109,6 +105,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil).Once()
 
+	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
 	gtp := goldTryjobProcessor{
 		cisClients: makeBuildbucketCIS(),
 		reviewSystems: []clstore.ReviewSystem{
@@ -120,12 +117,10 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 			},
 		},
 		tryJobStore: mtjs,
+		source:      src,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	require.NoError(t, err)
-
-	err = gtp.Process(context.Background(), fsResult)
+	err := gtp.Process(context.Background(), legacyGoldCtlFile)
 	require.NoError(t, err)
 }
 
@@ -155,6 +150,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, makeGitHubCirrusTryJob()).Return(nil)
 	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubGoldCtlFile, makeGitHubTryJobResults(), anyTime).Return(nil)
 
+	src := fakeGCSSourceFromFile(t, githubGoldCtlFile)
 	gtp := goldTryjobProcessor{
 		cisClients: makeCirrusCIS(),
 		reviewSystems: []clstore.ReviewSystem{
@@ -166,12 +162,10 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 			},
 		},
 		tryJobStore: mtjs,
+		source:      src,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(githubGoldCtlFile)
-	require.NoError(t, err)
-
-	err = gtp.Process(context.Background(), fsResult)
+	err := gtp.Process(context.Background(), githubGoldCtlFile)
 	require.NoError(t, err)
 }
 
@@ -198,6 +192,12 @@ func TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs(t *testing.T) {
 		cirrusCIS:      cirrusClient,
 	}
 
+	threeFileSource := &ingestion_mocks.Source{}
+	threeFileSource.On("HandlesFile", mock.Anything).Return(true)
+	threeFileSource.On("GetReader", testutils.AnyContext, "buildbucket.json").Return(githubResultReaderWithCIS(t, buildbucketCIS), nil)
+	threeFileSource.On("GetReader", testutils.AnyContext, "cirrus.json").Return(githubResultReaderWithCIS(t, cirrusCIS), nil)
+	threeFileSource.On("GetReader", testutils.AnyContext, "unknown.json").Return(githubResultReaderWithCIS(t, "unknown"), nil)
+
 	gtp := goldTryjobProcessor{
 		cisClients: errorfulCISClients,
 		reviewSystems: []clstore.ReviewSystem{
@@ -208,22 +208,22 @@ func TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs(t *testing.T) {
 			},
 		},
 		tryJobStore: makeEmptyTJStore(),
+		source:      threeFileSource,
 	}
 
-	err := gtp.Process(context.Background(), githubIngestionResultFromCIS(t, buildbucketCIS))
+	err := gtp.Process(context.Background(), "buildbucket.json")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "buildbucket error")
+	assert.Equal(t, ingestion.ErrRetryable, err)
 
-	err = gtp.Process(context.Background(), githubIngestionResultFromCIS(t, cirrusCIS))
+	err = gtp.Process(context.Background(), "cirrus.json")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "cirrus error")
+	assert.Equal(t, ingestion.ErrRetryable, err)
 
-	err = gtp.Process(context.Background(), githubIngestionResultFromCIS(t, "unknown"))
-	require.Error(t, err)
-	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
+	err = gtp.Process(context.Background(), "unknown.json")
+	assert.Error(t, err)
 }
 
-func githubIngestionResultFromCIS(t *testing.T, cis string) ingestion.ResultFileLocation {
+func githubResultReaderWithCIS(t *testing.T, cis string) io.ReadCloser {
 	// We provide the bare minimum to be a valid result
 	gr := jsonio.GoldResults{
 		Key: map[string]string{
@@ -248,12 +248,7 @@ func githubIngestionResultFromCIS(t *testing.T, cis string) ingestion.ResultFile
 	}
 	b, err := json.Marshal(gr)
 	require.NoError(t, err)
-
-	// These two fields are arbitrary and don't affect the test.
-	const name = "does not matter"
-	ts := time.Date(2020, time.January, 2, 3, 4, 5, 0, time.UTC)
-
-	return ingestion_mocks.MockResultFileLocationWithContent(name, b, ts)
+	return ioutil.NopCloser(bytes.NewReader(b))
 }
 
 // TestTryJobProcessCLExistsSunnyDay tests that the ingestion works when the CL already exists.
@@ -276,6 +271,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
 		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
 
+	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
 	gtp := goldTryjobProcessor{
 		cisClients: makeBuildbucketCIS(),
 		reviewSystems: []clstore.ReviewSystem{
@@ -287,12 +283,10 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 			},
 		},
 		tryJobStore: mtjs,
+		source:      src,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	require.NoError(t, err)
-
-	err = gtp.Process(context.Background(), fsResult)
+	err := gtp.Process(context.Background(), legacyGoldCtlFile)
 	require.NoError(t, err)
 }
 
@@ -319,6 +313,7 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
 		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
 
+	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
 	gtp := goldTryjobProcessor{
 		cisClients: makeBuildbucketCIS(),
 		reviewSystems: []clstore.ReviewSystem{
@@ -330,12 +325,10 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 			},
 		},
 		tryJobStore: mtjs,
+		source:      src,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	require.NoError(t, err)
-
-	err = gtp.Process(context.Background(), fsResult)
+	err := gtp.Process(context.Background(), legacyGoldCtlFile)
 	require.NoError(t, err)
 }
 
@@ -359,6 +352,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
 		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
 
+	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
 	gtp := goldTryjobProcessor{
 		cisClients: makeBuildbucketCIS(),
 		reviewSystems: []clstore.ReviewSystem{
@@ -369,12 +363,10 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 			},
 		},
 		tryJobStore: mtjs,
+		source:      src,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
-	require.NoError(t, err)
-
-	err = gtp.Process(context.Background(), fsResult)
+	err := gtp.Process(context.Background(), legacyGoldCtlFile)
 	require.NoError(t, err)
 }
 
