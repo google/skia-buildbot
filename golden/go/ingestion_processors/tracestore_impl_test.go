@@ -1,18 +1,22 @@
 package ingestion_processors
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"io/ioutil"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
-	ingestion_mocks "go.skia.org/infra/golden/go/ingestion/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
@@ -83,17 +87,35 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 
 	mts.On("Put", testutils.AnyContext, testCommitHash, expectedEntries, mock.AnythingOfType("time.Time")).Return(nil)
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(dmJSONFile)
-	assert.NoError(t, err)
-
+	src := fakeGCSSourceFromFile(t, "dm.json")
 	p := &btProcessor{
-		ts:  mts,
-		vcs: mvs,
+		ts:     mts,
+		vcs:    mvs,
+		source: src,
 	}
-	err = p.Process(context.Background(), fsResult)
+	err := p.Process(context.Background(), "whatever")
 	assert.NoError(t, err)
 }
 
 const (
 	testCommitHash = "02cb37309c01506e2552e931efa9c04a569ed266"
 )
+
+type fakeGCSSource struct {
+	content []byte
+}
+
+func fakeGCSSourceFromFile(t *testing.T, file string) *fakeGCSSource {
+	fp := filepath.Join(testutils.TestDataDir(t), file)
+	b, err := ioutil.ReadFile(fp)
+	require.NoError(t, err)
+	return &fakeGCSSource{content: b}
+}
+
+func (f *fakeGCSSource) GetReader(_ context.Context, _ string) (io.ReadCloser, error) {
+	return ioutil.NopCloser(bytes.NewReader(f.content)), nil
+}
+
+func (f *fakeGCSSource) HandlesFile(_ string) bool {
+	return true
+}

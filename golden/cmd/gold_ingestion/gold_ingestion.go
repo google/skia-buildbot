@@ -5,58 +5,79 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
+	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
+	"sync/atomic"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"google.golang.org/api/option"
+	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/config"
-	"go.skia.org/infra/golden/go/eventbus"
-	"go.skia.org/infra/golden/go/gevent"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/ingestion/sqlingestionstore"
 	"go.skia.org/infra/golden/go/ingestion_processors"
 	"go.skia.org/infra/golden/go/sql"
+	"go.skia.org/infra/golden/go/tracing"
 )
 
 const (
-	// This subscription ID doesn't have to be unique instance by instance
-	// because the unique topic id it is listening to will suffice.
-	// By setting the subscriber ID to be the same on all instances of the ingester,
-	// only one of the ingesters will get each event (usually).
-	subscriptionID = "gold-ingestion"
+	// Arbitrarily picked.
+	maxSQLConnections = 20
 
 	// Arbitrarily picked.
-	maxSQLConnections = 10
+	simultaneousFilesProcessed = 4
 )
 
 type ingestionServerConfig struct {
 	config.Common
 
+	// As of 2019, the primary way to ingest data is event-driven. That is, when
+	// new files are put into a GCS bucket, PubSub fires an event and that is the
+	// primary way for an ingester to be notified about a file.
+	// The 2 parameters below configure the manual polling of the source, which
+	// is a backup way to ingest data in the unlikely case that a PubSub event is
+	// dropped (PubSub will try and re-try to send events for up to seven days by default).
+	// BackupPollInterval is how often to do a scan.
+	BackupPollInterval config.Duration
+	// BackupPollScope is how far back in time to scan. It should be longer than BackupPollInterval.
+	BackupPollScope config.Duration
+
 	// Configuration for one or more ingester (e.g. one for master branch and one for tryjobs).
 	Ingesters map[string]ingestion.Config `json:"ingestion_configs"`
 
-	// HTTP service address (e.g., ':9000')
-	Port string `json:"port"`
+	// IngestionFilesTopic is the PubSub topic on which messages will be placed that correspond
+	// to files to ingest.
+	IngestionFilesTopic string `json:"pubsub_event_topic"`
+
+	// IngestionSubscription is the subscription ID used by all replicas. By setting the
+	// subscriber ID to be the same on all replicas, only one of the replicas will get each
+	// event (usually). We like our subscription names to be unique and keyed to the instance,
+	// for easier following up on "Why are there so many backed up messages?"
+	IngestionSubscription string `json:"ingestion_subscription"`
 
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
 
-	// PubsubEventTopic the event topic used for ingestion
-	PubsubEventTopic string `json:"pubsub_event_topic" optional:"true"`
+	// PubSubFetchSize is how many worker messages to ask PubSub for. This defaults to 10, but for
+	// instances that have many small files ingested, this can be higher for better utilization
+	// and throughput.
+	PubSubFetchSize int `json:"pubsub_fetch_size" optional:"true"`
+
+	// The port to provide a web handler for /healthz
+	ReadyPort string `json:"port"`
 
 	// TODO(kjlubick) Restore this functionality. Without it, we cannot ingest from internal jobs.
 	// URL of the secondary repo that has GitRepoURL as a dependency.
@@ -87,17 +108,17 @@ func main() {
 	}
 	sklog.Infof("Loaded config %#v", isc)
 
-	_, appName := filepath.Split(os.Args[0])
-
 	// Set up the logging options.
 	logOpts := []common.Opt{
 		common.PrometheusOpt(&isc.PromPort),
 	}
 
-	common.InitWithMust(appName, logOpts...)
-
-	ingestion.Register(ingestion_processors.PrimaryBranchBigTable())
-	ingestion.Register(ingestion_processors.ChangelistFirestore())
+	common.InitWithMust("gold-ingestion", logOpts...)
+	// We expect there to be a lot of ingestion work, so we sample 10% of them to avoid incurring
+	// too much overhead.
+	if err := tracing.Initialize(0.1); err != nil {
+		sklog.Fatalf("Could not set up tracing: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -125,29 +146,12 @@ func main() {
 	ingestionStore := sqlingestionstore.New(sqlDB)
 	sklog.Infof("Using new SQL ingestion store")
 
-	// Set up the eventbus.
-	var eventBus eventbus.EventBus
-	if isc.PubsubEventTopic != "" {
-		sID := subscriptionID
-		if isc.Local {
-			// This allows us to have an independent ingester when running locally.
-			sID += "-local"
-		}
-		eventBus, err = gevent.New(isc.PubsubProjectID, isc.PubsubEventTopic, sID, option.WithTokenSource(tokenSrc))
-		if err != nil {
-			sklog.Fatalf("Error creating global eventbus: %s", err)
-		}
-		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", isc.PubsubEventTopic, sID)
-	} else {
-		eventBus = eventbus.New()
-	}
-
 	// Set up the gitstore
 	btConf := &bt_gitstore.BTConfig{
 		InstanceID: isc.BTInstance,
 		ProjectID:  isc.BTProjectID,
 		TableID:    isc.GitBTTable,
-		AppProfile: appName,
+		AppProfile: "gold-ingestion",
 	}
 
 	gitStore, err := bt_gitstore.New(ctx, btConf, isc.GitRepoURL)
@@ -160,33 +164,249 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("could not instantiate BT VCS for %s", isc.GitRepoURL)
 	}
-
 	sklog.Infof("Created vcs client based on BigTable.")
-
 	// Instantiate the secondary repo if one was specified.
-	// TODO(kjlubick): make this support bigtable git also. skbug.com/9553
+	// TODO(kjlubick): skbug.com/9553
 	if isc.SecondaryRepoURL != "" {
-		// TODO(kjlubick) Check up tracestore_impl's isOnMaster to make sure it works with what is
-		//  put here.
 		sklog.Fatalf("Not yet implemented to have a secondary repo url")
 	}
-	// Set up the ingesters in the background.
-	var ingesters []*ingestion.Ingester
-	go func() {
-		var err error
-		ingesters, err = ingestion.IngestersFromConfig(ctx, isc.Ingesters, client, eventBus, ingestionStore, vcs, sqlDB)
-		if err != nil {
-			sklog.Fatalf("Unable to instantiate ingesters: %s", err)
+
+	gcsClient, err := storage.NewClient(ctx)
+	if err != nil {
+		sklog.Fatalf("Could not create GCS Client")
+	}
+	var sourcesToScan []ingestion.FileSearcher
+
+	primaryConf, ok := isc.Ingesters[ingestion_processors.PrimaryBranchBigTableConfig]
+	if !ok {
+		sklog.Fatalf("Not configured for primary branch ingestion: %#v", isc.Ingesters)
+	}
+	src := &ingestion.GCSSource{
+		Client: gcsClient,
+		Bucket: primaryConf.Sources[0].Bucket,
+		Prefix: primaryConf.Sources[0].Prefix,
+	}
+	primaryBranchProcessor, err := ingestion_processors.PrimaryBranchBigTable(ctx, vcs, primaryConf, src)
+	if err != nil {
+		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
+	}
+	sourcesToScan = append(sourcesToScan, src)
+
+	var tryjobProcessor ingestion.Processor
+	tryjobConf, ok := isc.Ingesters[ingestion_processors.TryjobSQLConfig]
+	if ok {
+		src := &ingestion.GCSSource{
+			Client: gcsClient,
+			Bucket: primaryConf.Sources[0].Bucket,
+			Prefix: primaryConf.Sources[0].Prefix,
 		}
-		for _, oneIngester := range ingesters {
-			if err := oneIngester.Start(ctx); err != nil {
-				sklog.Fatalf("Unable to start ingester: %s", err)
+		var err error
+		tryjobProcessor, err = ingestion_processors.TryjobSQL(ctx, tryjobConf, client, sqlDB, src)
+		if err != nil {
+			sklog.Fatalf("Setting up tryjob ingestion: %s", err)
+		}
+		sourcesToScan = append(sourcesToScan, src)
+	}
+
+	pss := &pubSubSource{
+		IngestionStore:         ingestionStore,
+		PrimaryBranchProcessor: primaryBranchProcessor,
+		TryjobProcessor:        tryjobProcessor,
+	}
+
+	go func() {
+		// Wait at least 5 seconds for the pubsub connection to be initialized before saying
+		// we are healthy.
+		time.Sleep(5 * time.Second)
+		http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+		sklog.Fatal(http.ListenAndServe(isc.ReadyPort, nil))
+	}()
+
+	startBackupPolling(ctx, isc, sourcesToScan, pss)
+	startMetrics(ctx, pss)
+
+	sklog.Fatalf("Listening for files to ingest %s", listen(ctx, isc, pss))
+}
+
+// listen begins listening to the PubSub topic with the configured PubSub subscription. It will
+// fail if the topic or subscription have not been created or PubSub fails.
+func listen(ctx context.Context, isc ingestionServerConfig, p *pubSubSource) error {
+	psc, err := pubsub.NewClient(ctx, isc.PubsubProjectID)
+	if err != nil {
+		return skerr.Wrapf(err, "initializing pubsub client for project %s", isc.PubsubProjectID)
+	}
+
+	// Check that the topic exists. Fail if it does not.
+	t := psc.Topic(isc.IngestionFilesTopic)
+	if exists, err := t.Exists(ctx); err != nil {
+		return skerr.Wrapf(err, "checking for existing topic %s", isc.IngestionFilesTopic)
+	} else if !exists {
+		return skerr.Fmt("Diff work topic %s does not exist in project %s", isc.IngestionFilesTopic, isc.PubsubProjectID)
+	}
+
+	// Check that the subscription exists. Fail if it does not.
+	sub := psc.Subscription(isc.IngestionSubscription)
+	if exists, err := sub.Exists(ctx); err != nil {
+		return skerr.Wrapf(err, "checking for existing subscription %s", isc.IngestionSubscription)
+	} else if !exists {
+		return skerr.Fmt("subscription %s does not exist in project %s", isc.IngestionSubscription, isc.PubsubProjectID)
+	}
+
+	// This is a limit of how many messages to fetch when PubSub has no work. Waiting for PubSub
+	// to give us messages can take a second or two, so we choose a small, but not too small
+	// batch size.
+	if isc.PubSubFetchSize == 0 {
+		sub.ReceiveSettings.MaxOutstandingMessages = 10
+	} else {
+		sub.ReceiveSettings.MaxOutstandingMessages = isc.PubSubFetchSize
+	}
+
+	sub.ReceiveSettings.NumGoroutines = simultaneousFilesProcessed
+
+	// Blocks until context cancels or PubSub fails in a non retryable way.
+	return skerr.Wrap(sub.Receive(ctx, p.ingestFromPubSubMessage))
+}
+
+type pubSubSource struct {
+	IngestionStore         ingestion.Store
+	PrimaryBranchProcessor ingestion.Processor
+	TryjobProcessor        ingestion.Processor
+
+	// busy is either 0 or non-zero depending on if this ingestion is working or not. This
+	// allows us to gather data on wall-clock utilization.
+	busy int64
+}
+
+// ingestFromPubSubMessage takes in a PubSub message and looks for a fileName specified as
+// the "objectId" Attribute on the message. This is how file names are provided from GCS
+// on file changes. https://cloud.google.com/storage/docs/pubsub-notifications#attributes
+// It will either Nack or Ack the message depending on if there was a retryable error or not.
+func (p *pubSubSource) ingestFromPubSubMessage(ctx context.Context, msg *pubsub.Message) {
+	ctx, span := trace.StartSpan(ctx, "ingestion_ingestFromPubSubMessage")
+	defer span.End()
+	atomic.AddInt64(&p.busy, 1)
+	fileName := msg.Attributes["objectId"]
+	if shouldAck := p.ingestFile(ctx, fileName); shouldAck {
+		msg.Ack()
+	} else {
+		msg.Nack()
+	}
+	atomic.AddInt64(&p.busy, -1)
+}
+
+// ingestFile ingests the file and returns true if the ingestion was successful or it got
+// a non-retryable error. It returns false if it got a retryable error.
+func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
+	if p.PrimaryBranchProcessor.HandlesFile(name) {
+		err := p.PrimaryBranchProcessor.Process(ctx, name)
+		if skerr.Unwrap(err) == ingestion.ErrRetryable {
+			sklog.Warningf("Got retryable error for primary branch data")
+			return false
+		}
+		// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
+		if err := p.IngestionStore.SetIngested(ctx, name, now(ctx)); err != nil {
+			sklog.Errorf("Could not write to ingestion store: %s", err)
+			// We'll continue anyway. The IngestionStore is not a big deal.
+		}
+		if err != nil {
+			sklog.Errorf("Got non-retryable error for primary branch data %s", err)
+			return true
+		}
+		return true
+	}
+	if p.TryjobProcessor == nil || !p.TryjobProcessor.HandlesFile(name) {
+		sklog.Warningf("Got a file that no processor is configured for: %s", name)
+		return true
+	}
+	err := p.TryjobProcessor.Process(ctx, name)
+	if skerr.Unwrap(err) == ingestion.ErrRetryable {
+		sklog.Warningf("Got retryable error for tryjob data")
+		return false
+	}
+	// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
+	if err := p.IngestionStore.SetIngested(ctx, name, time.Now()); err != nil {
+		sklog.Errorf("Could not write to ingestion store: %s", err)
+		// We'll continue anyway. The IngestionStore is not a big deal.
+	}
+	if err != nil {
+		sklog.Errorf("Got non-retryable error for tryjob data %s", err)
+		return true
+	}
+	return true
+}
+
+func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesToScan []ingestion.FileSearcher, pss *pubSubSource) {
+	pollingLiveness := metrics2.NewLiveness("combined_polling", map[string]string{
+		"source": "poll",
+		"metric": "since-last-run",
+	})
+
+	go util.RepeatCtx(ctx, isc.BackupPollInterval.Duration, func(ctx context.Context) {
+		ctx, span := trace.StartSpan(ctx, "ingestion_backupPollingCycle")
+		defer span.End()
+		startTime, endTime := getTimesToPoll(ctx, isc.BackupPollScope.Duration)
+		processed := int64(0)
+		ignored := int64(0)
+
+		for _, src := range sourcesToScan {
+			// Failure to do this can cause a race condition in tests.
+			if stringer, ok := src.(fmt.Stringer); ok {
+				sklog.Infof("Performing backup scan of %s", stringer.String())
+			}
+			files := src.SearchForFiles(ctx, startTime, endTime)
+			for _, f := range files {
+				ok, err := pss.IngestionStore.WasIngested(ctx, f)
+				if err != nil {
+					sklog.Errorf("Could not check ingestion store: %s", err)
+				}
+				if ok {
+					ignored++
+					continue
+				}
+				processed++
+				pss.ingestFile(ctx, f)
+			}
+		}
+		pollingLiveness.Reset()
+		sklog.Infof("Backup polling received/processed/ignored: %d/%d/%d", ignored+processed, processed, ignored)
+	})
+}
+
+func getTimesToPoll(ctx context.Context, duration time.Duration) (time.Time, time.Time) {
+	now := now(ctx)
+	return now.Add(-duration), now
+}
+
+func startMetrics(ctx context.Context, pss *pubSubSource) {
+	// This metric will let us get a sense of how well-utilized this processor is. It reads the
+	// busy int of the processor (which is 0 when not busy) and increments the counter if the
+	// int is non-zero.
+	// Because we are updating the counter once per second, we can use rate() [which computes deltas
+	// per second] on this counter to get a number between 0 and 1 to indicate wall-clock
+	// utilization. Hopefully, this lets us know if we need to add more replicas.
+	go func() {
+		busy := metrics2.GetCounter("goldingestion_busy_pulses")
+		for range time.Tick(time.Second) {
+			if err := ctx.Err(); err != nil {
+				return
+			}
+			i := atomic.LoadInt64(&pss.busy)
+			if i > 0 {
+				busy.Inc(1)
 			}
 		}
 	}()
+}
 
-	// Set up the http handler to indicate readiness and start serving.
-	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+// overwriteNowKey is used by tests to make the time deterministic.
+const overwriteNowKey = contextKey("overwriteNow")
 
-	log.Fatal(http.ListenAndServe(isc.Port, nil))
+type contextKey string
+
+// now returns the current time or the time from the context.
+func now(ctx context.Context) time.Time {
+	if ts := ctx.Value(overwriteNowKey); ts != nil {
+		return ts.(time.Time)
+	}
+	return time.Now()
 }

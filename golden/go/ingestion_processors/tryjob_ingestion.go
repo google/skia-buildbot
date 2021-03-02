@@ -8,16 +8,14 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
@@ -26,7 +24,6 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
-	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
@@ -35,9 +32,7 @@ import (
 )
 
 const (
-	firestoreTryJobIngester = "gold_tryjob_fs"
-	firestoreProjectIDParam = "FirestoreProjectID"
-	firestoreNamespaceParam = "FirestoreNamespace"
+	TryjobSQLConfig = "gold_tryjob_fs" // TODO(kjlubick) update constant
 
 	codeReviewSystemsParam     = "CodeReviewSystems"
 	gerritURLParam             = "GerritURL"
@@ -54,23 +49,18 @@ const (
 	cirrusCIS         = "cirrus"
 )
 
-// ChangelistFirestore exposes the registration information for an ingester that writes data
-// to a Firestore implementation.
-func ChangelistFirestore() (id string, constructor ingestion.Constructor) {
-	return firestoreTryJobIngester, newModularTryjobProcessor
-}
-
 // goldTryjobProcessor implements the ingestion.Processor interface to ingest tryjob results.
 type goldTryjobProcessor struct {
 	cisClients    map[string]continuous_integration.Client
 	reviewSystems []clstore.ReviewSystem
 	tryJobStore   tjstore.Store
+	source        ingestion.Source
 }
 
-// newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
+// TryjobSQL returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
-// (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
-func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingestion.Config, client *http.Client, db *pgxpool.Pool) (ingestion.Processor, error) {
+// (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in SQL.
+func TryjobSQL(ctx context.Context, config ingestion.Config, client *http.Client, db *pgxpool.Pool, src ingestion.Source) (ingestion.Processor, error) {
 	cisNames := strings.Split(config.ExtraParams[continuousIntegrationSystemsParam], ",")
 	if len(cisNames) == 0 {
 		return nil, skerr.Fmt("missing CI system (e.g. 'buildbucket')")
@@ -82,26 +72,6 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 			return nil, skerr.Wrapf(err, "could not create client for CIS %q", cisName)
 		}
 		cisClients[cisName] = cis
-	}
-
-	fsProjectID := config.ExtraParams[firestoreProjectIDParam]
-	if strings.TrimSpace(fsProjectID) == "" {
-		return nil, skerr.Fmt("missing firestore project id")
-	}
-
-	fsNamespace := config.ExtraParams[firestoreNamespaceParam]
-	if strings.TrimSpace(fsNamespace) == "" {
-		return nil, skerr.Fmt("missing firestore namespace")
-	}
-
-	fsClient, err := firestore.NewClient(ctx, fsProjectID, "gold", fsNamespace, nil)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
-	}
-
-	expStore := fs_expectationstore.New(fsClient, nil, fs_expectationstore.ReadOnly)
-	if err := expStore.Initialize(ctx); err != nil {
-		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
 
 	crsNames := strings.Split(config.ExtraParams[codeReviewSystemsParam], ",")
@@ -128,7 +98,13 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		cisClients:    cisClients,
 		tryJobStore:   sqlTS,
 		reviewSystems: reviewSystems,
+		source:        src,
 	}, nil
+}
+
+// HandlesFile returns true if the configured source handles this file.
+func (g *goldTryjobProcessor) HandlesFile(name string) bool {
+	return g.source.HandlesFile(name)
 }
 
 func codeReviewSystemFactory(ctx context.Context, crsName string, config ingestion.Config, client *http.Client) (code_review.Client, error) {
@@ -199,12 +175,16 @@ func continuousIntegrationSystemFactory(cisName string, _ ingestion.Config, clie
 }
 
 // Process implements the Processor interface.
-func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFileLocation) error {
-	defer metrics2.FuncTimer().Stop()
-	gr, err := processGoldResults(ctx, rf)
+func (g *goldTryjobProcessor) Process(ctx context.Context, fileName string) error {
+	ctx, span := trace.StartSpan(ctx, "ingestion_SQLTryJobProcess")
+	defer span.End()
+	r, err := g.source.GetReader(ctx, fileName)
 	if err != nil {
-		sklog.Errorf("Error processing result: %s", err)
-		return ingestion.IgnoreResultsFileErr
+		return skerr.Wrap(err)
+	}
+	gr, err := processGoldResults(ctx, r)
+	if err != nil {
+		return skerr.Wrapf(err, "could not process file %s from source %s", fileName, g.source)
 	}
 
 	clID := ""
@@ -219,8 +199,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	system, ok := g.getCodeReviewSystem(crs)
 	if !ok {
-		sklog.Warningf("Result %s said it was for crs %q, which we aren't configured for", rf.Name(), crs)
-		return ingestion.IgnoreResultsFileErr
+		return skerr.Fmt("File %s said it was for crs %q, which we aren't configured for", fileName, crs)
 	}
 	clID = gr.ChangelistID
 	psOrder = gr.PatchsetOrder
@@ -238,10 +217,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		tjID = gr.TryJobID
 		cisClient = ci
 	} else {
-		sklog.Warningf("Result %s said it was for cis %q, but this ingester wasn't configured for it", rf.Name(), cisName)
-		// We only support one CRS and one CIS at the moment, but if needed, we can have
-		// multiple configured and pivot to the one we need.
-		return ingestion.IgnoreResultsFileErr
+		return skerr.Fmt("File %s said it was for cis %q, but this ingester wasn't configured for it", fileName, cisName)
 	}
 
 	// Fetch CL from clstore if we have seen it before, from CRS if we have not.
@@ -250,8 +226,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		cl, err = system.Client.GetChangelist(ctx, clID)
 		if err == code_review.ErrNotFound {
 			sklog.Warningf("Unknown %s CL with id %q", crs, clID)
-			// Try again later - maybe the input was created before the CL?
-			return ingestion.IgnoreResultsFileErr
+			// Try again later
+			return ingestion.ErrRetryable
 		} else if err != nil {
 			return skerr.Wrapf(err, "fetching CL from %s with id %q", crs, clID)
 		}
@@ -264,8 +240,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	ps, err := g.getPatchset(ctx, system, psOrder, psID, clID)
 	if err != nil {
-		// Do not wrap this error - this returns IgnoreResultsFileErr sometimes.
-		return err
+		return skerr.Wrap(err)
 	}
 
 	combinedID := tjstore.CombinedPSID{CL: clID, PS: ps.SystemID, CRS: crs}
@@ -281,9 +256,10 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		if err == tjstore.ErrNotFound {
 			sklog.Warningf("Unknown %s Tryjob with id %q", cisName, tjID)
 			// Try again later - maybe there's some lag with the Integration System?
-			return ingestion.IgnoreResultsFileErr
+			return ingestion.ErrRetryable
 		} else if err != nil {
-			return skerr.Wrapf(err, "fetching tryjob from %s with id %q", cisName, tjID)
+			sklog.Errorf("fetching tryjob from %s with id %q: %s", cisName, tjID, err)
+			return ingestion.ErrRetryable
 		}
 		writeTryJob = true
 		// If we are seeing that a CL was marked as Abandoned, it probably means the CL was
@@ -298,30 +274,35 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 			cl.Status = code_review.Open
 		}
 	} else if err != nil {
-		return skerr.Wrapf(err, "fetching TryJob with id %s", tjID)
+		sklog.Errorf("fetching TryJob from store with id %q: %s", tjID, err)
+		return ingestion.ErrRetryable
 	}
 	// In the SQL implementation, we need to create the CL first because of foreign key constraints.
 	if cl.Updated.IsZero() {
 		sklog.Debugf("First time seeing CL %s_%s", system.ID, cl.SystemID)
 		if err = system.Store.PutChangelist(ctx, cl); err != nil {
-			return skerr.Wrapf(err, "initially storing %s CL with id %q to clstore", system.ID, clID)
+			sklog.Errorf("Initially storing %s CL with id %q to clstore: %s", system.ID, clID, err)
+			return ingestion.ErrRetryable
 		}
 	}
 
 	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
 	// Store the results from the file.
 	if err := system.Store.PutPatchset(ctx, ps); err != nil {
-		return skerr.Wrapf(err, "could not store PS %s of %s CL %q to clstore", psID, system.ID, clID)
+		sklog.Errorf("Could not store PS %s of %s CL %q to clstore: %s", psID, system.ID, clID, err)
+		return ingestion.ErrRetryable
 	}
 	if writeTryJob {
 		if err := g.tryJobStore.PutTryJob(ctx, combinedID, tj); err != nil {
-			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
+			sklog.Errorf("Storing tryjob %q to tryjobstore: %s", tjID, err)
+			return ingestion.ErrRetryable
 		}
 	}
 	tjr := toTryJobResults(gr, tjID, cisName)
-	err = g.tryJobStore.PutResults(ctx, combinedID, rf.Name(), tjr, time.Now())
+	err = g.tryJobStore.PutResults(ctx, combinedID, fileName, tjr, time.Now())
 	if err != nil {
-		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
+		sklog.Errorf("Putting %d results for CL %s, PS %d (%s), TJ %s, file %s: %s", len(tjr), clID, psOrder, psID, tjID, fileName, err)
+		return ingestion.ErrRetryable
 	}
 
 	// Be sure to update this time now, so that other processes can use the cl.Update timestamp
@@ -329,7 +310,8 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	// period.
 	cl.Updated = time.Now()
 	if err = system.Store.PutChangelist(ctx, cl); err != nil {
-		return skerr.Wrapf(err, "updating %s CL with id %q to clstore", system.ID, clID)
+		sklog.Errorf("Updating %s CL with id %q to clstore: %s", system.ID, clID, err)
+		return ingestion.ErrRetryable
 	}
 	return nil
 }
@@ -345,8 +327,8 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 			ps, err := system.Client.GetPatchset(ctx, clID, psID, 0)
 			if err != nil {
 				sklog.Warningf("Unknown %s PS %s for CL %q: %s", system.ID, psID, clID, err)
-				// Try again later - maybe the input was created before the CL uploaded its PS?
-				return code_review.Patchset{}, ingestion.IgnoreResultsFileErr
+				// Try again later
+				return code_review.Patchset{}, ingestion.ErrRetryable
 			}
 			return ps, nil
 		} else if err != nil {
@@ -361,8 +343,8 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 		ps, err := system.Client.GetPatchset(ctx, clID, "", psOrder)
 		if err != nil {
 			sklog.Warningf("Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
-			// Try again later - maybe the input was created before the CL uploaded its PS?
-			return code_review.Patchset{}, ingestion.IgnoreResultsFileErr
+			// Try again later
+			return code_review.Patchset{}, ingestion.ErrRetryable
 		}
 		return ps, nil
 	} else if err != nil {
