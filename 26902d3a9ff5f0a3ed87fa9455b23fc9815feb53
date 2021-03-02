@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4f19bb31_360c6bdc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-03-02T15:19:03Z",
+      "side": 1,
+      "message": "May want to bazel build some things here or run a bazel tryjob, I expect isolate_cache/BUILD.bazel is not happy, and many dependents of that.\n\nAlso, is buildbot/go/isolate/ going to be on the chopping block as well? I see it referenced a bit in CT as well as other things, so maybe not.",
+      "revId": "26902d3a9ff5f0a3ed87fa9455b23fc9815feb53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
