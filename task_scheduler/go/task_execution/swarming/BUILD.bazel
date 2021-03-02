@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "swarming",
+    srcs = ["swarming.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/task_execution/swarming",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cas/rbe",
+        "//go/common",
+        "//go/isolate",
+        "//go/skerr",
+        "//go/swarming",
+        "//go/timeout",
+        "//go/util",
+        "//task_scheduler/go/types",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
