@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,17 +20,14 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-const (
-	// name of the input file containing test data.
-	dmJSONFile = "testdata/dm.json"
-)
-
 // Tests parsing and processing of a single file.
 // There don't need to be more of these here because we should
 // depend on jsonio.ParseGoldResults which has its own test suite.
 func TestDMResults(t *testing.T) {
 	unittest.SmallTest(t)
-	f, err := os.Open(dmJSONFile)
+
+	fp := filepath.Join(testutils.TestDataDir(t), "dm.json")
+	f, err := os.Open(fp)
 	require.NoError(t, err)
 
 	gr, err := parseGoldResultsFromReader(f)
