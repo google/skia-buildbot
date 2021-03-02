@@ -4,21 +4,16 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"flag"
 	"time"
 
-	"cloud.google.com/go/storage"
-	"google.golang.org/api/option"
+	"cloud.google.com/go/pubsub"
 
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/bt"
+	"cloud.google.com/go/storage"
+
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/golden/go/eventbus"
-	"go.skia.org/infra/golden/go/gevent"
-	"go.skia.org/infra/golden/go/tracestore/bt_tracestore"
 )
 
 func main() {
@@ -29,10 +24,6 @@ func main() {
 		srcBucket  = flag.String("src_bucket", "", "Source bucket to ingest files from.")
 		srcRootDir = flag.String("src_root_dir", "dm-json-v1", "Source root directory to ingest files in.")
 
-		// If these are set, the table will be made for this instance.
-		btInstance = flag.String("bt_instance", "production", "BigTable instance to use in the project identified by 'project_id'")
-		btTableID  = flag.String("bt_table_id", "", "BigTable table ID for the traces.")
-
 		// In the early days, there was several invalid entries, because they did not specify
 		// gitHash. Starting re-ingesting Skia on October 1, 2014 seems to be around when
 		// the data is correct.
@@ -42,36 +33,23 @@ func main() {
 	)
 	flag.Parse()
 
-	bt.EnsureNotEmulator()
-
-	btc := bt_tracestore.BTConfig{
-		ProjectID:  *projectID,
-		InstanceID: *btInstance,
-		TableID:    *btTableID,
-	}
-	// Create the table if set
-	if *btInstance != "" && *btTableID != "" {
-		err := bt_tracestore.InitBT(context.Background(), btc)
-		if err != nil {
-			sklog.Fatalf("could not create table: %s", err)
-		}
-		sklog.Infof("created table %s - terminating", *btTableID)
-		return
-	}
-
-	tokenSrc, err := auth.NewDefaultTokenSource(true, storage.ScopeReadOnly)
-	if err != nil {
-		sklog.Fatalf("Failed to auth: %s", err)
-	}
-
-	gb, err := gevent.New(*projectID, *ingesterTopic, "re-ingester")
-	if err != nil {
-		sklog.Fatalf("Unable to create global event bus: %s", err)
-	}
-
-	gcsClient, err := storage.NewClient(context.Background(), option.WithTokenSource(tokenSrc))
+	ctx := context.Background()
+	gcsClient, err := storage.NewClient(ctx)
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
+	}
+
+	psc, err := pubsub.NewClient(ctx, *projectID)
+	if err != nil {
+		sklog.Fatalf("Could not make pubsub client for project %q: %s", *projectID, err)
+	}
+
+	// Check that the topic exists. Fail if it does not.
+	topic := psc.Topic(*ingesterTopic)
+	if exists, err := topic.Exists(ctx); err != nil {
+		sklog.Fatalf("Error checking for existing topic %q: %s", *ingesterTopic, err)
+	} else if !exists {
+		sklog.Fatalf("Diff work topic %s does not exist in project %s", *ingesterTopic, *projectID)
 	}
 
 	sklog.Infof("starting")
@@ -82,17 +60,25 @@ func main() {
 	for _, dir := range dirs {
 		sklog.Infof("Directory: %q", dir)
 		err := gcs.AllFilesInDir(gcsClient, *srcBucket, dir, func(item *storage.ObjectAttrs) {
-			e := eventbus.NewStorageEvent(item.Bucket, item.Name, item.Updated.Unix(), hex.EncodeToString(item.MD5))
-			gb.PublishStorageEvent(e)
+			publishSyntheticStorageEvent(ctx, topic, item.Bucket, item.Name)
 		})
 		if err != nil {
 			sklog.Warningf("Error while processing dir %s: %s", dir, err)
 		}
 	}
 
+	sklog.Infof("waiting for messages to publish")
+	topic.Stop()
 	sklog.Infof("done")
-	// Let's be extra paranoid because gevent is working asynchronously, we don't want to
-	// terminate before it is done.
-	time.Sleep(1 * time.Minute)
-	sklog.Infof("done with wait time for any missed pubsub events")
+}
+
+func publishSyntheticStorageEvent(ctx context.Context, topic *pubsub.Topic, bucket, fileName string) {
+	topic.Publish(ctx, &pubsub.Message{
+		// These are the important attributes read for ingestion.
+		// https://cloud.google.com/storage/docs/pubsub-notifications#attributes
+		Attributes: map[string]string{
+			"bucketId": bucket,
+			"objectId": fileName,
+		},
+	})
 }
