@@ -59,7 +59,7 @@ var (
 	// Flags
 	host                       = flag.String("host", "leasing.skia.org", "HTTP service host")
 	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
-	isolatesDir                = flag.String("isolates_dir", "", "The directory to find leasing server's isolates files.")
+	artifactsDir               = flag.String("artifacts_dir", "", "The directory to find leasing server's artifacts.")
 	pollInterval               = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
 	emailClientSecretFile      = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
 	emailTokenCacheFile        = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
@@ -132,9 +132,9 @@ func New() (baseapp.App, error) {
 	}
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
-	// Initialize isolate and swarming.
+	// Initialize swarming.
 	if err := SwarmingInit(*serviceAccountFile); err != nil {
-		sklog.Fatalf("Failed to init isolate and swarming: %s", err)
+		sklog.Fatalf("Failed to init swarming: %s", err)
 	}
 
 	// Initialize cloud datastore.
@@ -496,7 +496,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Set to pending.
 	task.SwarmingTaskState = swarming.TASK_STATE_PENDING
 
-	// Isolate artifacts.
+	// Upload artifacts.
 	var swarmingProps *swarming_api.SwarmingRpcsTaskProperties
 	if task.TaskIdForIsolates != "" {
 		t, err := GetSwarmingTaskMetadata(task.SwarmingPool, task.TaskIdForIsolates)
@@ -514,20 +514,12 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, fmt.Sprintf("Error putting task in datastore: %v", err), http.StatusInternalServerError)
 		return
 	}
-	var casDigest string
-	if swarmingProps.InputsRef != nil && swarmingProps.InputsRef.Isolated != "" {
-		casDigest, err = IsolateLeasingArtifacts(ctx, task.SwarmingPool, swarmingProps.InputsRef)
-		if err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Error when getting isolate hash: %v", err), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		casDigest, err = AddLeasingArtifactsToCAS(ctx, task.SwarmingPool, swarmingProps.CasInputRoot)
-		if err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Error merging CAS inputs: %s", err), http.StatusInternalServerError)
-			return
-		}
+	casDigest, err := AddLeasingArtifactsToCAS(ctx, task.SwarmingPool, swarmingProps.CasInputRoot)
+	if err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Error merging CAS inputs: %s", err), http.StatusInternalServerError)
+		return
 	}
+
 	// Trigger the swarming task.
 	swarmingTaskID, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, casDigest, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)
 	if err != nil {
