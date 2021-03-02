@@ -1,4 +1,4 @@
-// The pubsubtool executable is a convenent way to create PubSub topics and subscriptions.
+// The pubsubtool executable is a convenient way to create PubSub topics and subscriptions.
 // It also allows for manual injection of messages to test systems end-to-end.
 package main
 
@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/storage"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
 func main() {
+	bucketName := flag.String("bucket_name", "", "The GCS bucket to listen to (see bucket_notifications)")
 	projectID := flag.String("project_id", "skia-public", "The project for PubSub events")
 	topicName := flag.String("topic_name", "", "The topic to create if it does not exist")
 	subscriptionName := flag.String("subscription_name", "", "The subscription to create if it does not exist")
@@ -27,7 +29,12 @@ func main() {
 	ctx := context.Background()
 	psc, err := pubsub.NewClient(ctx, *projectID)
 	if err != nil {
-		sklog.Fatalf("initializing pubsub client for project %s: %s", *projectID, err)
+		sklog.Fatalf("Initializing pubsub client for project %s: %s", *projectID, err)
+	}
+
+	gsc, err := storage.NewClient(ctx)
+	if err != nil {
+		sklog.Fatalf("Initializing GCS Client: %s", err)
 	}
 
 	if task == "create" {
@@ -37,6 +44,10 @@ func main() {
 	} else if task == "publish" {
 		if err := publishMessage(ctx, psc, *topicName, *jsonMessageFile); err != nil {
 			sklog.Fatalf("Sending contents of %s to topic %s: %S", *jsonMessageFile)
+		}
+	} else if task == "bucket_notifications" {
+		if err := listBucketNotifications(ctx, gsc, *bucketName); err != nil {
+			sklog.Fatalf("Listing bucket notifications on GCS bucket %s: %s", *bucketName, err)
 		}
 	} else {
 		sklog.Fatalf(`Invalid command: %q. Try "create".`, task)
@@ -96,5 +107,18 @@ func createTopicAndSubscription(ctx context.Context, psc *pubsub.Client, topic, 
 		}
 	}
 	sklog.Infof("Topic %s and Subscription %s exist if they didn't before", topic, sub)
+	return nil
+}
+
+func listBucketNotifications(ctx context.Context, gsc *storage.Client, bucketName string) error {
+	bucket := gsc.Bucket(bucketName)
+	notifications, err := bucket.Notifications(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	sklog.Infof("Retrieved: %d notifications", len(notifications))
+	for _, n := range notifications {
+		sklog.Infof("%s events under //%s are published to topic %s in project %s", n.EventTypes, n.ObjectNamePrefix, n.TopicID, n.TopicProjectID)
+	}
 	return nil
 }

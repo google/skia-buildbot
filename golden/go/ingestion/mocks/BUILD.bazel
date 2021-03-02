@@ -3,17 +3,13 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = [
-        "IngestionStore.go",
-        "ResultFileLocation.go",
+        "FileSearcher.go",
+        "Processor.go",
+        "Source.go",
+        "Store.go",
         "generate.go",
-        "helpers.go",
     ],
     importpath = "go.skia.org/infra/golden/go/ingestion/mocks",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/skerr",
-        "//go/testutils",
-        "//go/util",
-        "@com_github_stretchr_testify//mock",
-    ],
+    deps = ["@com_github_stretchr_testify//mock"],
 )
