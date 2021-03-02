@@ -9,14 +9,11 @@ go_library(
     deps = [
         "//go/cas",
         "//go/git",
-        "//go/isolate",
         "//go/skerr",
-        "//task_scheduler/go/isolate_cache",
         "//task_scheduler/go/specs",
         "//task_scheduler/go/syncer",
         "//task_scheduler/go/task_cfg_cache",
         "//task_scheduler/go/types",
-        "@org_chromium_go_luci//common/isolated",
     ],
 )
 
@@ -32,10 +29,8 @@ go_test(
         "//go/depot_tools/testutils",
         "//go/git/repograph",
         "//go/git/testutils",
-        "//go/isolate",
         "//go/testutils",
         "//go/testutils/unittest",
-        "//task_scheduler/go/isolate_cache",
         "//task_scheduler/go/specs",
         "//task_scheduler/go/syncer",
         "//task_scheduler/go/task_cfg_cache",
@@ -43,6 +38,5 @@ go_test(
         "//task_scheduler/go/types",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
-        "@org_chromium_go_luci//common/isolated",
     ],
 )

@@ -111,6 +111,12 @@ func main() {
 		cfgB = &specs.TasksCfg{
 			Jobs:  make(map[string]*specs.JobSpec, len(cfgA.Jobs)),
 			Tasks: make(map[string]*specs.TaskSpec, len(cfgA.Tasks)),
+			CasSpecs: map[string]*specs.CasSpec{
+				"infrabots": {
+					Paths: []string{"infra/bots"},
+					Root:  ".",
+				},
+			},
 		}
 		for name, jobSpec := range cfgA.Jobs {
 			// Leave the JobSpecs the same.
@@ -148,7 +154,7 @@ func main() {
 
 			taskSpec.EnvPrefixes = nil
 			taskSpec.ExtraTags = nil
-			taskSpec.Isolate = "infrabots.isolate"
+			taskSpec.CasSpec = "infrabots"
 			taskSpec.ServiceAccount = ""
 
 			cfgB.Tasks[name] = taskSpec

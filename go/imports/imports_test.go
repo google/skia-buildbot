@@ -44,10 +44,6 @@ var legacyTestImportExceptions = map[string][]string{
 		"go.skia.org/infra/go/git/testutils",
 		"go.skia.org/infra/go/testutils",
 	},
-	"go.skia.org/infra/task_scheduler/go/isolate_cache": {
-		"github.com/stretchr/testify/require",
-		"go.skia.org/infra/go/bt/testutil",
-	},
 	"go.skia.org/infra/task_scheduler/go/task_scheduler": {
 		"go.skia.org/infra/task_scheduler/go/testutils",
 	},

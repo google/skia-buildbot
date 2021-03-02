@@ -1,5 +1,5 @@
-load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "scheduling",
@@ -17,7 +17,6 @@ go_library(
         "//go/firestore",
         "//go/gcs",
         "//go/git/repograph",
-        "//go/isolate",
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
@@ -26,14 +25,12 @@ go_library(
         "//go/util",
         "//task_scheduler/go/db",
         "//task_scheduler/go/db/cache",
-        "//task_scheduler/go/isolate_cache",
         "//task_scheduler/go/skip_tasks",
         "//task_scheduler/go/specs",
         "//task_scheduler/go/task_cfg_cache",
         "//task_scheduler/go/types",
         "//task_scheduler/go/window",
         "@com_github_hashicorp_go_multierror//:go-multierror",
-        "@org_chromium_go_luci//common/isolated",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )
@@ -58,7 +55,6 @@ go_test(
         "//go/gitiles",
         "//go/gitstore",
         "//go/gitstore/mem_gitstore",
-        "//go/isolate",
         "//go/mockhttpclient",
         "//go/sktest",
         "//go/swarming",
@@ -69,7 +65,6 @@ go_test(
         "//task_scheduler/go/db",
         "//task_scheduler/go/db/cache",
         "//task_scheduler/go/db/memory",
-        "//task_scheduler/go/isolate_cache",
         "//task_scheduler/go/skip_tasks",
         "//task_scheduler/go/specs",
         "//task_scheduler/go/task_cfg_cache",
