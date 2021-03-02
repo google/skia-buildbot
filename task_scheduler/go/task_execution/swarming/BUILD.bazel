@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/cas/rbe",
         "//go/common",
-        "//go/isolate",
         "//go/skerr",
         "//go/swarming",
         "//go/timeout",

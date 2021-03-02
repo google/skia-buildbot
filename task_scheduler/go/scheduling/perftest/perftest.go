@@ -28,13 +28,11 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -272,8 +270,6 @@ func main() {
 	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	assertNoError(err)
 
-	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
-	assertNoError(err)
 	swarmingClient := testutils.NewTestClient()
 
 	repos := repograph.Map{repoName: repo}
@@ -281,14 +277,10 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
-	isolateCache, err := isolate_cache.New(ctx, "test-project", "test-instance", nil)
-	if err != nil {
-		sklog.Fatalf("Failed to create isolate cache: %s", err)
-	}
 	cas, err := rbe.NewClient(ctx, *rbeInstance, ts)
 	assertNoError(err)
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, *rbeInstance, isolate.ISOLATE_SERVER_URL_FAKE, "")
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, *rbeInstance, taskExec, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, *rbeInstance, "")
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, *rbeInstance, taskExec, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, nil, "")
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

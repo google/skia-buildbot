@@ -43,7 +43,6 @@ func fakeTaskSpec() *TaskSpec {
 		},
 		Idempotent:     true,
 		IoTimeout:      10 * time.Minute,
-		Isolate:        "abc123",
 		MaxAttempts:    5,
 		Outputs:        []string{"out"},
 		Priority:       19.0,

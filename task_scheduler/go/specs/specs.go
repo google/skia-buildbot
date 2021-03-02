@@ -144,12 +144,11 @@ var (
 // ErrorIsPermanent returns true if the given error cannot be recovered by
 // retrying. In this case, we will never be able to process the TasksCfg,
 // so we might as well cancel the jobs.
-// TODO(borenet): This should probably be split into three different
-// ErrorIsPermanent functions, in the syncer, isolate, and specs packages.
+// TODO(borenet): This should probably be split into two different
+// ErrorIsPermanent functions, in the syncer, and specs packages.
 func ErrorIsPermanent(err error) bool {
 	return (strings.Contains(err.Error(), "error: Failed to merge in the changes.") ||
 		strings.Contains(err.Error(), "Failed to apply patch") ||
-		strings.Contains(err.Error(), "failed to process isolate") ||
 		strings.Contains(err.Error(), "Failed to read tasks cfg: could not parse file:") ||
 		strings.Contains(err.Error(), "Invalid TasksCfg") ||
 		strings.Contains(err.Error(), "The \"gclient_gn_args_from\" value must be in recursedeps") ||
@@ -224,7 +223,7 @@ type TasksCfg struct {
 	Tasks map[string]*TaskSpec `json:"tasks"`
 
 	// CasSpecs is a map of named specifications for content-addressed inputs to
-	// tasks. If CasSpecs is not empty, RBE-CAS will be used instead of Isolate.
+	// tasks.
 	CasSpecs map[string]*CasSpec `json:"casSpecs,omitempty"`
 }
 
@@ -255,15 +254,12 @@ func (c *TasksCfg) Copy() *TasksCfg {
 // Validate returns an error if the TasksCfg is not valid.
 func (c *TasksCfg) Validate() error {
 	// Validate all tasks.
-	for name, t := range c.Tasks {
+	for _, t := range c.Tasks {
 		if err := t.Validate(c); err != nil {
 			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
 
 		// Ensure that any CAS inputs to the task exist.
-		if len(c.CasSpecs) > 0 && t.Isolate != "" {
-			return fmt.Errorf("Invalid TasksCfg: Task %q uses isolated input instead of CasSpec.", name)
-		}
 		if t.CasSpec != "" {
 			if name, ok := c.CasSpecs[t.CasSpec]; !ok {
 				return fmt.Errorf("Invalid TasksCfg: Task %q references non-existent CasSpec %q", name, t.CasSpec)
@@ -298,8 +294,7 @@ type TaskSpec struct {
 	// CipdPackages are CIPD packages which should be installed for the task.
 	CipdPackages []*CipdPackage `json:"cipd_packages,omitempty"`
 
-	// Command is the command to run in the Swarming task. If not specified
-	// here, it should be specified in the .isolate file.
+	// Command is the command to run in the Swarming task.
 	Command []string `json:"command,omitempty"`
 
 	// Dependencies are names of other TaskSpecs for tasks which need to run
@@ -341,9 +336,6 @@ type TaskSpec struct {
 	// communicate with the server.
 	IoTimeout time.Duration `json:"io_timeout_ns,omitempty"`
 
-	// Isolate is the name of the isolate file used by this task.
-	Isolate string `json:"isolate,omitempty"`
-
 	// MaxAttempts is the maximum number of attempts for this TaskSpec. If
 	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
 	MaxAttempts int `json:"max_attempts,omitempty"`
@@ -380,15 +372,6 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 		if len(split) != 2 {
 			return fmt.Errorf("Dimension %q does not contain a colon!", d)
 		}
-	}
-
-	// Isolate file is required.
-	if t.Isolate == "" && t.CasSpec == "" {
-		return fmt.Errorf("Isolate file or CasSpec is required.")
-	}
-	// Isolate and CasSpec are mutually exclusive.
-	if t.Isolate != "" && t.CasSpec != "" {
-		return fmt.Errorf("Only one of Isolate or CasSpec may be supplied.")
 	}
 
 	return nil
@@ -443,7 +426,6 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		ExtraTags:        extraTags,
 		Idempotent:       t.Idempotent,
 		IoTimeout:        t.IoTimeout,
-		Isolate:          t.Isolate,
 		MaxAttempts:      t.MaxAttempts,
 		Outputs:          outputs,
 		Priority:         t.Priority,

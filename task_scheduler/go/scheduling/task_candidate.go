@@ -25,7 +25,6 @@ type taskCandidate struct {
 	Commits            []string `json:"commits"`
 	CasInput           string   `json:"casInput"`
 	CasDigests         []string `json:"casDigests"`
-	CasUsesIsolate     bool     `json:"casUsesIsolate"`
 	// Jobs must be kept in sorted order; see AddJob.
 	Jobs           []*types.Job `json:"jobs"`
 	ParentTaskIds  []string     `json:"parentTaskIds"`
@@ -48,7 +47,6 @@ func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
 		Commits:            util.CopyStringSlice(c.Commits),
 		CasInput:           c.CasInput,
 		CasDigests:         util.CopyStringSlice(c.CasDigests),
-		CasUsesIsolate:     c.CasUsesIsolate,
 		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,
@@ -200,7 +198,7 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 }
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTopic string) (*types.TaskRequest, error) {
+func (c *taskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*types.TaskRequest, error) {
 	var caches []*types.CacheRequest
 	if len(c.TaskSpec.Caches) > 0 {
 		caches = make([]*types.CacheRequest, 0, len(c.TaskSpec.Caches))
@@ -244,7 +242,6 @@ func (c *taskCandidate) MakeTaskRequest(id, casInstance, isolateServer, pubSubTo
 	req := &types.TaskRequest{
 		Caches:              caches,
 		CasInput:            c.CasInput,
-		CasUsesIsolate:      c.CasUsesIsolate,
 		CipdPackages:        c.TaskSpec.CipdPackages,
 		Command:             cmd,
 		Dimensions:          util.CopyStringSlice(c.TaskSpec.Dimensions),

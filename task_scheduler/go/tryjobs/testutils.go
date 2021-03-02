@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
@@ -32,7 +31,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
@@ -42,6 +40,8 @@ import (
 
 const (
 	repoBaseName = "skia.git"
+	test         = `a"` + `b` + `c"`
+
 	testTasksCfg = `{
   "casSpecs": {
     "fake": {
@@ -140,13 +140,8 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DEFAULT_NUM_WORKERS)
-	isolateClient, err := isolate.NewClient(tmpDir, isolate.ISOLATE_SERVER_URL_FAKE)
-	require.NoError(t, err)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
-	require.NoError(t, err)
 	cas := &cas_mocks.CAS{}
-	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache, cas)
+	chr := cacher.New(s, taskCfgCache, cas)
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
@@ -155,7 +150,6 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutil
 		testutils.AssertCloses(t, taskCfgCache)
 		testutils.RemoveAll(t, tmpDir)
 		gb.Cleanup()
-		btCleanupIsolate()
 		btCleanup()
 		require.NoError(t, s.Close())
 	}

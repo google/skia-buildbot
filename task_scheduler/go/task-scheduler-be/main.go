@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
-	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -22,17 +20,14 @@ import (
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 )
@@ -55,7 +50,6 @@ var (
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
-	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	rbeInstance       = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
@@ -65,7 +59,6 @@ var (
 	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
 	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	diagnosticsBucket = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
-	workdir           = flag.String("workdir", "workdir", "Working directory to use.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
@@ -85,27 +78,11 @@ func main() {
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
 
-	// Get the absolute workdir.
-	wdAbs, err := filepath.Abs(*workdir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Set up token source and authenticated API clients.
-	isolateServerUrl := *isolateServer
-	if *local {
-		isolateServerUrl = isolate.ISOLATE_SERVER_URL_FAKE
-	}
-	var isolateClient *isolate.Client
-	var tokenSource oauth2.TokenSource
 	gitcookiesPath := "/tmp/.gitcookies"
-	tokenSource, err = auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, auth.SCOPE_READ_WRITE, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE, compute.CloudPlatformScope /* TODO(borenet): No! */)
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, auth.SCOPE_READ_WRITE, pubsub.ScopePubSub, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE, compute.CloudPlatformScope /* TODO(borenet): No! */)
 	if err != nil {
 		sklog.Fatalf("Failed to create token source: %s", err)
-	}
-	isolateClient, err = isolate.NewClientWithServiceAccount(wdAbs, isolateServerUrl, os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-	if err != nil {
-		sklog.Fatal(err)
 	}
 	if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
 		sklog.Fatalf("Failed to create git cookie updater: %s", err)
@@ -175,15 +152,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
-	isolateCache, err := isolate_cache.New(ctx, *btProject, *btInstance, tokenSource)
-	if err != nil {
-		sklog.Fatalf("Failed to create isolate cache: %s", err)
-	}
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, isolateServerUrl, *pubsubTopicName)
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, isolateClient, cas, *rbeInstance, taskExec, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExec, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

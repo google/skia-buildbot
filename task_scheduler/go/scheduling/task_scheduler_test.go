@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/swarming"
@@ -39,7 +38,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -261,8 +259,6 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	require.NoError(t, err)
 
 	d := memory.NewInMemoryDB()
-	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
-	require.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
 	gs := mem_gitstore.New()
@@ -279,10 +275,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 		rs1.Repo: repo,
 	}
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
-	require.NoError(t, err)
-	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
 	require.NoError(t, err)
 
 	// Cache the RepoStates. This is normally done by the JobCreator.
@@ -296,8 +289,8 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", isolate.ISOLATE_SERVER_URL_FAKE, "")
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -306,7 +299,6 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	return ctx, gb, d, swarmingClient, s, urlMock, cas, func() {
 		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, tmp)
-		btCleanupIsolate()
 		btCleanup()
 		cancel()
 	}
@@ -1275,8 +1267,6 @@ func TestComputeBlamelist(t *testing.T) {
 	require.NoError(t, repos.Update(ctx))
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	defer btCleanup()
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	defer btCleanupIsolate()
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
 
@@ -2315,8 +2305,6 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 
 	// Setup the scheduler.
 	d := memory.NewInMemoryDB()
-	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
-	require.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
 	gs := mem_gitstore.New()
 	gb := mem_git.New(t, gs)
@@ -2328,10 +2316,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 		rs1.Repo: repo,
 	}
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
-	require.NoError(t, err)
-	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
 	require.NoError(t, err)
 
 	// Create a single task in the config.
@@ -2376,8 +2361,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", isolate.ISOLATE_SERVER_URL_FAKE, "")
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, cas, "fake-cas-instance", taskExec, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExec, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
 	require.NoError(t, err)
 
 	for _, h := range hashes {
@@ -2415,7 +2400,6 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	return ctx, gb, d, s, swarmingClient, newHashes, mock, cfg, func() {
 		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, workdir)
-		btCleanupIsolate()
 		btCleanup()
 		cancel()
 	}
