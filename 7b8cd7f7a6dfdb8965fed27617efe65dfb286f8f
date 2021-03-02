@@ -16,6 +16,29 @@
       "message": "+borenet@ - could we get your help pushing these changes once landed? Thanks!",
       "revId": "7b8cd7f7a6dfdb8965fed27617efe65dfb286f8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "68b89c9f_5e058e17",
+        "filename": "autoroll/config/pgo-linux-chromium-beta.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 13959
+      },
+      "writtenOn": "2021-03-02T17:00:02Z",
+      "side": 1,
+      "message": "You should be running the luci.chrome-m90.try version of the builders for beta",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 51
+      },
+      "revId": "7b8cd7f7a6dfdb8965fed27617efe65dfb286f8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
