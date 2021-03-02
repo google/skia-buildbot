@@ -59,6 +59,7 @@ go_test(
         "//task_scheduler/go/specs",
         "//task_scheduler/go/task_cfg_cache",
         "//task_scheduler/go/task_cfg_cache/testutils",
+        "//task_scheduler/go/task_execution/swarming",
         "//task_scheduler/go/testutils",
         "//task_scheduler/go/tryjobs",
         "//task_scheduler/go/types",
