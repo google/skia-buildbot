@@ -3,13 +3,10 @@ package ingestion_processors
 import (
 	"context"
 	"errors"
-	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"go.opencensus.io/trace"
 
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -22,23 +19,16 @@ import (
 )
 
 const (
-	// Configuration option that identifies a tracestore backed by BigTable.
-	btGoldIngester = "gold_bt"
+	// PrimaryBranchBigTableConfig identifies a primary-branch ingester backed by BigTable.
+	PrimaryBranchBigTableConfig = "gold_bt"
 
 	btProjectConfig  = "BTProjectID"
 	btInstanceConfig = "BTInstance"
 	btTableConfig    = "BTTable"
 )
 
-// PrimaryBranchBigTable exposes the registration information for an ingester that writes data
-// to a BigTable implementation.
-func PrimaryBranchBigTable() (id string, constructor ingestion.Constructor) {
-	return btGoldIngester, newBTTraceStoreProcessor
-}
-
-// newTraceStoreProcessor implements the ingestion.Constructor signature and creates
-// a Processor that uses a BigTable-backed tracestore.
-func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config, _ *http.Client, _ *pgxpool.Pool) (ingestion.Processor, error) {
+// PrimaryBranchBigTable creates a Processor that uses a BigTable-backed tracestore.
+func PrimaryBranchBigTable(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config, src ingestion.Source) (ingestion.Processor, error) {
 	btc := bt_tracestore.BTConfig{
 		ProjectID:  config.ExtraParams[btProjectConfig],
 		InstanceID: config.ExtraParams[btInstanceConfig],
@@ -51,63 +41,74 @@ func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config inges
 		return nil, skerr.Fmt("could not instantiate BT tracestore: %s", err)
 	}
 	return &btProcessor{
-		ts:  bts,
-		vcs: btc.VCS,
+		ts:     bts,
+		vcs:    btc.VCS,
+		source: src,
 	}, nil
 }
 
 // btProcessor implements the ingestion.Processor interface for gold using
 // the BigTable TraceStore
 type btProcessor struct {
-	ts  tracestore.TraceStore
-	vcs vcsinfo.VCS
+	ts     tracestore.TraceStore
+	vcs    vcsinfo.VCS
+	source ingestion.Source
+}
+
+// HandlesFile returns true if the configured source handles this file.
+func (b *btProcessor) HandlesFile(name string) bool {
+	return b.source.HandlesFile(name)
 }
 
 // Process implements the ingestion.Processor interface.
-func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
-	defer metrics2.FuncTimer().Stop()
-	gr, err := processGoldResults(ctx, resultsFile)
+func (b *btProcessor) Process(ctx context.Context, fileName string) error {
+	ctx, span := trace.StartSpan(ctx, "ingestion_BigTableProcess")
+	defer span.End()
+	r, err := b.source.GetReader(ctx, fileName)
 	if err != nil {
-		return skerr.Wrapf(err, "could not process results file")
+
+		return skerr.Wrap(err)
+	}
+	gr, err := processGoldResults(ctx, r)
+	if err != nil {
+		return skerr.Wrapf(err, "could not process file %s from source %s", fileName, b.source)
 	}
 
 	if len(gr.Results) == 0 {
-		sklog.Infof("ignoring file %s because it has no results", resultsFile.Name())
-		return ingestion.IgnoreResultsFileErr
+		sklog.Infof("file %s had no results", fileName)
+		return nil
 	}
+	span.AddAttributes(trace.Int64Attribute("num_results", int64(len(gr.Results))))
 
 	// If the target commit is not in the primary repository we look it up
 	// in the secondary that has the primary as a dependency.
 	targetHash, err := getCanonicalCommitHash(ctx, b.vcs, gr.GitHash)
 	if err != nil {
-		if err == ingestion.IgnoreResultsFileErr {
-			return ingestion.IgnoreResultsFileErr
-		}
 		return skerr.Wrapf(err, "could not identify canonical commit from %q", gr.GitHash)
 	}
 
 	if ok, err := b.isOnMaster(ctx, targetHash); err != nil {
 		return skerr.Wrapf(err, "could not determine branch for %s", targetHash)
 	} else if !ok {
-		sklog.Warningf("Commit %s is not in master branch", targetHash)
-		return ingestion.IgnoreResultsFileErr
+		return skerr.Fmt("Commit %s is not in primary branch", targetHash)
 	}
 
 	// Get the entries that should be added to the tracestore.
-	entries, err := extractTraceStoreEntries(gr, resultsFile.Name())
+	entries, err := extractTraceStoreEntries(gr, fileName)
 	if err != nil {
+		// Probably invalid, don't retry
 		return skerr.Wrapf(err, "could not create entries")
 	}
 
-	t := time.Unix(resultsFile.TimeStamp(), 0)
-
+	t := time.Now()
 	defer shared.NewMetricsTimer("put_tracestore_entry").Stop()
 
 	sklog.Debugf("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), t)
 	// Write the result to the tracestore.
 	err = b.ts.Put(ctx, targetHash, entries, t)
 	if err != nil {
-		return skerr.Wrapf(err, "could not add entries to tracestore")
+		sklog.Errorf("Could not add entries to tracestore: %s", err)
+		return ingestion.ErrRetryable
 	}
 	return nil
 }
@@ -129,9 +130,6 @@ func (b *btProcessor) isOnMaster(ctx context.Context, hash string) (bool, error)
 	}
 	return false, nil
 }
-
-// BatchFinished implements the ingestion.Processor interface.
-func (b *btProcessor) BatchFinished() error { return nil }
 
 // extractTraceStoreEntries creates a slice of tracestore.Entry for the given
 // file. It will omit any entries that should be ignored. It returns an
@@ -193,7 +191,7 @@ func shouldIngest(params, options map[string]string) error {
 
 	// Make sure the test name does not exceed the allowed length.
 	if len(testName) > types.MaximumNameLength {
-		return fmt.Errorf("Received test name which is longer than the allowed %d bytes: %s", types.MaximumNameLength, testName)
+		return skerr.Fmt("received test name which is longer than the allowed %d bytes: %s", types.MaximumNameLength, testName)
 	}
 
 	return nil
