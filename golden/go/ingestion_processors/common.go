@@ -4,13 +4,13 @@ import (
 	"context"
 	"io"
 
+	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/shared"
 )
 
 // parseGoldResultsFromReader parses the JSON stream out of the io.ReadCloser
@@ -26,17 +26,14 @@ func parseGoldResultsFromReader(r io.ReadCloser) (*jsonio.GoldResults, error) {
 }
 
 // processGoldResults opens the given JSON input file and processes it, converting
-// it into a jsonio.GoldResults object and returning it.
-func processGoldResults(ctx context.Context, rf ingestion.ResultFileLocation) (*jsonio.GoldResults, error) {
-	defer shared.NewMetricsTimer("read_dm_results").Stop()
-	r, err := rf.Open(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "opening ResultFileLocation %s", rf.Name())
-	}
-
+// it into a jsonio.GoldResults object and returning it. It will close the file when done.
+func processGoldResults(ctx context.Context, r io.ReadCloser) (*jsonio.GoldResults, error) {
+	ctx, span := trace.StartSpan(ctx, "ingestion_processGoldResults")
+	defer span.End()
+	defer util.Close(r)
 	gr, err := parseGoldResultsFromReader(r)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "parsing ResultFileLocation %s", rf.Name())
+		return nil, skerr.Wrap(err)
 	}
 	return gr, nil
 }
@@ -59,7 +56,7 @@ func getCanonicalCommitHash(ctx context.Context, vcs vcsinfo.VCS, targetHash str
 	} else {
 		sklog.Debugf("Last commits: %v", c)
 	}
-	return "", ingestion.IgnoreResultsFileErr
+	return "", skerr.Fmt("Unknown commit: %s", targetHash)
 }
 
 // isCommit returns true if the given commit is in vcs.
