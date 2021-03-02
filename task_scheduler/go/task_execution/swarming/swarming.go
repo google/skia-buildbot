@@ -9,7 +9,6 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
@@ -27,18 +26,16 @@ const (
 type SwarmingTaskExecutor struct {
 	swarming swarming.ApiClient
 
-	casInstance   string
-	isolateServer string
-	pubSubTopic   string
+	casInstance string
+	pubSubTopic string
 }
 
 // NewSwarmingTaskExecutor returns a SwarmingTaskExecutor instance.
-func NewSwarmingTaskExecutor(s swarming.ApiClient, casInstance, isolateServer, pubSubTopic string) *SwarmingTaskExecutor {
+func NewSwarmingTaskExecutor(s swarming.ApiClient, casInstance, pubSubTopic string) *SwarmingTaskExecutor {
 	return &SwarmingTaskExecutor{
-		swarming:      s,
-		casInstance:   casInstance,
-		isolateServer: isolateServer,
-		pubSubTopic:   pubSubTopic,
+		swarming:    s,
+		casInstance: casInstance,
+		pubSubTopic: pubSubTopic,
 	}
 }
 
@@ -151,6 +148,10 @@ func (s *SwarmingTaskExecutor) convertTaskRequest(req *types.TaskRequest) (*swar
 			})
 		}
 	}
+	casInput, err := swarming.MakeCASReference(req.CasInput, s.casInstance)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(req.CipdPackages) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -223,6 +224,7 @@ func (s *SwarmingTaskExecutor) convertTaskRequest(req *types.TaskRequest) (*swar
 				ExpirationSecs: expirationSecs,
 				Properties: &swarming_api.SwarmingRpcsTaskProperties{
 					Caches:               caches,
+					CasInputRoot:         casInput,
 					CipdInput:            cipdInput,
 					Command:              req.Command,
 					Dimensions:           dims,
@@ -238,19 +240,6 @@ func (s *SwarmingTaskExecutor) convertTaskRequest(req *types.TaskRequest) (*swar
 			},
 		},
 		User: SwarmingUser,
-	}
-	if req.CasUsesIsolate {
-		rv.TaskSlices[0].Properties.InputsRef = &swarming_api.SwarmingRpcsFilesRef{
-			Isolated:       req.CasInput,
-			Isolatedserver: s.isolateServer,
-			Namespace:      isolate.DEFAULT_NAMESPACE,
-		}
-	} else {
-		casInput, err := swarming.MakeCASReference(req.CasInput, s.casInstance)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		rv.TaskSlices[0].Properties.CasInputRoot = casInput
 	}
 	return rv, nil
 }

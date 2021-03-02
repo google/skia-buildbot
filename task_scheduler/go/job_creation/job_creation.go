@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -20,7 +19,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -54,7 +52,6 @@ var (
 type JobCreator struct {
 	cacher        *cacher.Cacher
 	db            db.DB
-	isolateCache  *isolate_cache.Cache
 	jCache        cache.JobCache
 	lvUpdateRepos metrics2.Liveness
 	repos         repograph.Map
@@ -64,7 +61,8 @@ type JobCreator struct {
 	window        *window.Window
 }
 
-func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, rbe cas.CAS, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource) (*JobCreator, error) {
+// NewJobCreator returns a JobCreator instance.
+func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache *task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -84,7 +82,7 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	}
 
 	sc := syncer.New(ctx, repos, depotTools, workdir, syncer.DEFAULT_NUM_WORKERS)
-	chr := cacher.New(sc, taskCfgCache, isolateClient, isolateCache, rbe)
+	chr := cacher.New(sc, taskCfgCache, rbe)
 
 	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
 	if err != nil {
@@ -93,7 +91,6 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	jc := &JobCreator{
 		cacher:        chr,
 		db:            d,
-		isolateCache:  isolateCache,
 		jCache:        jCache,
 		lvUpdateRepos: metrics2.NewLiveness("last_successful_repo_update"),
 		repos:         repos,
@@ -116,7 +113,7 @@ func (jc *JobCreator) Close() error {
 	if err := jc.taskCfgCache.Close(); err != nil {
 		return err
 	}
-	return jc.isolateCache.Close()
+	return nil
 }
 
 // Start initeates the JobCreator's goroutines for creating jobs.

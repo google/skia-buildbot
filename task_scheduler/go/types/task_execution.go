@@ -18,7 +18,6 @@ type CacheRequest struct {
 type TaskRequest struct {
 	Caches              []*CacheRequest
 	CasInput            string
-	CasUsesIsolate      bool
 	CipdPackages        []*cipd.Package
 	Command             []string
 	Dimensions          []string
