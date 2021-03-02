@@ -4,10 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
-
-	"github.com/jackc/pgx/v4/pgxpool"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -22,23 +19,16 @@ import (
 )
 
 const (
-	// Configuration option that identifies a tracestore backed by BigTable.
-	btGoldIngester = "gold_bt"
+	// PrimaryBranchBigTableConfig identifies a primary-branch ingester backed by BigTable.
+	PrimaryBranchBigTableConfig = "gold_bt"
 
 	btProjectConfig  = "BTProjectID"
 	btInstanceConfig = "BTInstance"
 	btTableConfig    = "BTTable"
 )
 
-// PrimaryBranchBigTable exposes the registration information for an ingester that writes data
-// to a BigTable implementation.
-func PrimaryBranchBigTable() (id string, constructor ingestion.Constructor) {
-	return btGoldIngester, newBTTraceStoreProcessor
-}
-
-// newTraceStoreProcessor implements the ingestion.Constructor signature and creates
-// a Processor that uses a BigTable-backed tracestore.
-func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config, _ *http.Client, _ *pgxpool.Pool) (ingestion.Processor, error) {
+// PrimaryBranchBigTable creates a Processor that uses a BigTable-backed tracestore.
+func PrimaryBranchBigTable(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config) (ingestion.Processor, error) {
 	btc := bt_tracestore.BTConfig{
 		ProjectID:  config.ExtraParams[btProjectConfig],
 		InstanceID: config.ExtraParams[btInstanceConfig],
@@ -64,7 +54,7 @@ type btProcessor struct {
 }
 
 // Process implements the ingestion.Processor interface.
-func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
+func (b *btProcessor) Process(ctx context.Context, fileName string) error {
 	defer metrics2.FuncTimer().Stop()
 	gr, err := processGoldResults(ctx, resultsFile)
 	if err != nil {

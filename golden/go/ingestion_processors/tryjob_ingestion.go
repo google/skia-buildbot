@@ -11,13 +11,11 @@ import (
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/sqlclstore"
 	"go.skia.org/infra/golden/go/code_review"
@@ -26,7 +24,6 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
-	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
@@ -35,9 +32,7 @@ import (
 )
 
 const (
-	firestoreTryJobIngester = "gold_tryjob_fs"
-	firestoreProjectIDParam = "FirestoreProjectID"
-	firestoreNamespaceParam = "FirestoreNamespace"
+	TryjobSQLConfig = "gold_tryjob_fs" // TODO(kjlubick) update constant
 
 	codeReviewSystemsParam     = "CodeReviewSystems"
 	gerritURLParam             = "GerritURL"
@@ -54,12 +49,6 @@ const (
 	cirrusCIS         = "cirrus"
 )
 
-// ChangelistFirestore exposes the registration information for an ingester that writes data
-// to a Firestore implementation.
-func ChangelistFirestore() (id string, constructor ingestion.Constructor) {
-	return firestoreTryJobIngester, newModularTryjobProcessor
-}
-
 // goldTryjobProcessor implements the ingestion.Processor interface to ingest tryjob results.
 type goldTryjobProcessor struct {
 	cisClients    map[string]continuous_integration.Client
@@ -67,10 +56,10 @@ type goldTryjobProcessor struct {
 	tryJobStore   tjstore.Store
 }
 
-// newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
+// TryjobSQL returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
-// (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
-func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingestion.Config, client *http.Client, db *pgxpool.Pool) (ingestion.Processor, error) {
+// (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in SQL.
+func TryjobSQL(ctx context.Context, config ingestion.Config, client *http.Client, db *pgxpool.Pool) (ingestion.Processor, error) {
 	cisNames := strings.Split(config.ExtraParams[continuousIntegrationSystemsParam], ",")
 	if len(cisNames) == 0 {
 		return nil, skerr.Fmt("missing CI system (e.g. 'buildbucket')")
@@ -82,26 +71,6 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 			return nil, skerr.Wrapf(err, "could not create client for CIS %q", cisName)
 		}
 		cisClients[cisName] = cis
-	}
-
-	fsProjectID := config.ExtraParams[firestoreProjectIDParam]
-	if strings.TrimSpace(fsProjectID) == "" {
-		return nil, skerr.Fmt("missing firestore project id")
-	}
-
-	fsNamespace := config.ExtraParams[firestoreNamespaceParam]
-	if strings.TrimSpace(fsNamespace) == "" {
-		return nil, skerr.Fmt("missing firestore namespace")
-	}
-
-	fsClient, err := firestore.NewClient(ctx, fsProjectID, "gold", fsNamespace, nil)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
-	}
-
-	expStore := fs_expectationstore.New(fsClient, nil, fs_expectationstore.ReadOnly)
-	if err := expStore.Initialize(ctx); err != nil {
-		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
 
 	crsNames := strings.Split(config.ExtraParams[codeReviewSystemsParam], ",")

@@ -62,7 +62,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, configs map[string]Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, vcs vcsinfo.VCS, db *pgxpool.Pool) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, configs map[string]Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore Store, vcs vcsinfo.VCS, db *pgxpool.Pool) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
