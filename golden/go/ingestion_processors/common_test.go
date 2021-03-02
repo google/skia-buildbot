@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,14 +15,8 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
-	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
-)
-
-const (
-	// name of the input file containing test data.
-	dmJSONFile = "testdata/dm.json"
 )
 
 // Tests parsing and processing of a single file.
@@ -29,7 +24,9 @@ const (
 // depend on jsonio.ParseGoldResults which has its own test suite.
 func TestDMResults(t *testing.T) {
 	unittest.SmallTest(t)
-	f, err := os.Open(dmJSONFile)
+
+	fp := filepath.Join(testutils.TestDataDir(t), "dm.json")
+	f, err := os.Open(fp)
 	require.NoError(t, err)
 
 	gr, err := parseGoldResultsFromReader(f)
@@ -135,12 +132,10 @@ func TestGetCanonicalCommitHashInvalid(t *testing.T) {
 
 	_, err := getCanonicalCommitHash(context.Background(), mvs, alphaCommitHash)
 	require.Error(t, err)
-	assert.Equal(t, ingestion.IgnoreResultsFileErr, err)
 }
 
 const (
 	alphaCommitHash = "aaa96d8aff4cd689c2e49336d12928a8bd23cdec"
-	betaCommitHash  = "bbbcf37f5bd91f1a7b3f080bf038af8e8fa4cab2"
 )
 
 var (

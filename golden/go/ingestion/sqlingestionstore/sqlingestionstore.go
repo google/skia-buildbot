@@ -1,4 +1,4 @@
-// Package sqlingestionstore contains a SQL-backed implementation of IngestionStore, which
+// Package sqlingestionstore contains a SQL-backed implementation of Store, which
 // is meant as a quick "yes/no" to the question "Did we already ingest this file?" when polling
 // for files missed during Pub/Sub ingestion.
 package sqlingestionstore
@@ -33,10 +33,10 @@ func New(db *pgxpool.Pool) *sqlStore {
 	return &sqlStore{db: db, cache: cache}
 }
 
-// SetIngested implements the ingestion.IngestionStore interface.
+// SetIngested implements the ingestion.Store interface.
 // TODO(kjlubick) When the actual SQL ingestion works, change this to be a no-op (the ingesters
 //   themselves will write to this table) and WasIngested to target the SourceFiles table.
-func (s *sqlStore) SetIngested(ctx context.Context, fileName, _ string, ts time.Time) error {
+func (s *sqlStore) SetIngested(ctx context.Context, fileName string, ts time.Time) error {
 	sourceID := md5.Sum([]byte(fileName))
 	_, err := s.db.Exec(ctx, `
 UPSERT INTO DeprecatedIngestedFiles (source_file_id, source_file, last_ingested)
@@ -47,9 +47,9 @@ VALUES ($1, $2, $3)`, sourceID[:], fileName, ts)
 	return nil
 }
 
-// WasIngested implements the ingestion.IngestionStore interface. It has a RAM cache to remember
+// WasIngested implements the ingestion.Store interface. It has a RAM cache to remember
 // already ingested files (since an ingested file cannot become "uningested").
-func (s *sqlStore) WasIngested(ctx context.Context, fileName, _ string) (bool, error) {
+func (s *sqlStore) WasIngested(ctx context.Context, fileName string) (bool, error) {
 	if s.cache.Contains(fileName) {
 		return true, nil
 	}
@@ -67,5 +67,5 @@ func (s *sqlStore) WasIngested(ctx context.Context, fileName, _ string) (bool, e
 	return true, nil
 }
 
-// Verify sqlStore implements IngestionStore
-var _ ingestion.IngestionStore = (*sqlStore)(nil)
+// Verify sqlStore implements Store
+var _ ingestion.Store = (*sqlStore)(nil)
