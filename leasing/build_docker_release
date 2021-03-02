@@ -9,8 +9,8 @@ copy_release_files()
 {
 ${INSTALL}     --mode=644 -T Dockerfile               ${ROOT}/Dockerfile
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/${APPNAME}
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/isolates
-${INSTALL}     --mode=644 ./isolates/*                ${ROOT}/usr/local/share/${APPNAME}/isolates
+${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/artifacts
+${INSTALL}     --mode=644 ./artifacts/*               ${ROOT}/usr/local/share/${APPNAME}/artifacts
 ${INSTALL}     --mode=644 ./dist/*                    ${ROOT}/usr/local/share/${APPNAME}
 }
 

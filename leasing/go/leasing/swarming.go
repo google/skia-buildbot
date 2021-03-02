@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"path"
 	"strings"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -17,7 +16,6 @@ import (
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/leasing/go/types"
@@ -29,9 +27,6 @@ type SwarmingInstanceClients struct {
 	SwarmingServer string
 	SwarmingClient *swarming.ApiClient
 
-	IsolateServer string
-	IsolateClient **isolate.Client
-
 	CasClient   *cas.CAS
 	CasInstance string
 }
@@ -40,9 +35,6 @@ var (
 	casClientPublic  cas.CAS
 	casClientPrivate cas.CAS
 
-	isolateClientPublic  *isolate.Client
-	isolateClientPrivate *isolate.Client
-
 	swarmingClientPublic  swarming.ApiClient
 	swarmingClientPrivate swarming.ApiClient
 
@@ -50,9 +42,7 @@ var (
 	// instance.
 	PublicSwarming *SwarmingInstanceClients = &SwarmingInstanceClients{
 		SwarmingServer: swarming.SWARMING_SERVER,
-		IsolateServer:  isolate.ISOLATE_SERVER_URL,
 		SwarmingClient: &swarmingClientPublic,
-		IsolateClient:  &isolateClientPublic,
 		CasClient:      &casClientPublic,
 		CasInstance:    rbe.InstanceChromiumSwarm,
 	}
@@ -61,9 +51,7 @@ var (
 	// Swarming instance.
 	InternalSwarming *SwarmingInstanceClients = &SwarmingInstanceClients{
 		SwarmingServer: swarming.SWARMING_SERVER_PRIVATE,
-		IsolateServer:  isolate.ISOLATE_SERVER_URL_PRIVATE,
 		SwarmingClient: &swarmingClientPrivate,
-		IsolateClient:  &isolateClientPrivate,
 		CasClient:      &casClientPrivate,
 		CasInstance:    rbe.InstanceChromeSwarming,
 	}
@@ -92,21 +80,13 @@ func SwarmingInit(serviceAccountFile string) error {
 		return skerr.Wrapf(err, "Problem setting up default token source")
 	}
 
-	// Public Isolate and CAS client.
-	isolateClientPublic, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL, serviceAccountFile)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create public isolate client")
-	}
+	// Public CAS client.
 	casClientPublic, err = rbe.NewClient(context.TODO(), rbe.InstanceChromiumSwarm, ts)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create RBE client")
 	}
 
-	// Private Isolate and CAS client.
-	isolateClientPrivate, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountFile)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create private isolate client")
-	}
+	// Private CAS client.
 	casClientPrivate, err = rbe.NewClient(context.TODO(), rbe.InstanceChromeSwarming, ts)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create RBE client")
@@ -138,11 +118,6 @@ func GetSwarmingInstance(pool string) *SwarmingInstanceClients {
 // GetSwarmingClient returns the Swarming client for the given Swarming pool.
 func GetSwarmingClient(pool string) *swarming.ApiClient {
 	return GetSwarmingInstance(pool).SwarmingClient
-}
-
-// GetIsolateClient returns the isolate client for the given Swarming pool.
-func GetIsolateClient(pool string) **isolate.Client {
-	return GetSwarmingInstance(pool).IsolateClient
 }
 
 // GetCASClient returns the CAS client for the given Swarming pool.
@@ -209,28 +184,6 @@ func GetDetailsOfAllPools() (map[string]*types.PoolDetails, error) {
 	return poolToDetails, nil
 }
 
-// IsolateLeasingArtifacts uploads the leasing artifacts to the Isolate server
-// and merges them into the given Isolated input.
-func IsolateLeasingArtifacts(ctx context.Context, pool string, inputsRef *swarming_api.SwarmingRpcsFilesRef) (string, error) {
-	isolateClient := *GetIsolateClient(pool)
-	isolateTask := &isolate.Task{
-		BaseDir:     path.Join(*isolatesDir),
-		IsolateFile: path.Join(*isolatesDir, "leasing.isolate"),
-	}
-	if inputsRef != nil && inputsRef.Isolated != "" {
-		isolateTask.Deps = []string{inputsRef.Isolated}
-	}
-	isolateTasks := []*isolate.Task{isolateTask}
-	hashes, _, err := isolateClient.IsolateTasks(ctx, isolateTasks)
-	if err != nil {
-		return "", fmt.Errorf("Could not isolate leasing task: %s", err)
-	}
-	if len(hashes) != 1 {
-		return "", fmt.Errorf("IsolateTasks returned incorrect number of hashes %d (expected 1)", len(hashes))
-	}
-	return hashes[0], nil
-}
-
 // AddLeasingArtifactsToCAS uploads the leasing artifacts and merges them into
 // the given CAS input if it exists.
 func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *swarming_api.SwarmingRpcsCASReference) (string, error) {
@@ -239,7 +192,7 @@ func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *swarmi
 	// Upload the leasing artifacts.
 	// TODO(rmistry): After this has been done once, we should be able to just
 	// use the digest as a constant.
-	leasingScriptDigest, err := client.Upload(ctx, *isolatesDir, []string{"leasing.py"}, nil)
+	leasingScriptDigest, err := client.Upload(ctx, *artifactsDir, []string{"leasing.py"}, nil)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -359,15 +312,10 @@ func TriggerSwarmingTask(pool, requester, datastoreID, osType, deviceType, botID
 	}
 
 	casInput, err := swarming.MakeCASReference(casDigest, swarmingInstance.CasInstance)
-	if err == nil {
-		taskRequest.TaskSlices[0].Properties.CasInputRoot = casInput
-	} else {
-		taskRequest.TaskSlices[0].Properties.InputsRef = &swarming_api.SwarmingRpcsFilesRef{
-			Isolated:       casDigest,
-			Isolatedserver: swarmingInstance.IsolateServer,
-			Namespace:      isolate.DEFAULT_NAMESPACE,
-		}
+	if err != nil {
+		return "", skerr.Wrapf(err, "Invalid CAS input")
 	}
+	taskRequest.TaskSlices[0].Properties.CasInputRoot = casInput
 
 	swarmingClient := *GetSwarmingClient(pool)
 	resp, err := swarmingClient.TriggerTask(taskRequest)
