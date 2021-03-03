@@ -56,9 +56,6 @@ type ingestionServerConfig struct {
 	// BackupPollScope is how far back in time to scan. It should be longer than BackupPollInterval.
 	BackupPollScope config.Duration `json:"backup_poll_scope"`
 
-	// Configuration for one or more ingester (e.g. one for master branch and one for tryjobs).
-	Ingesters map[string]ingestion.Config `json:"ingestion_configs"`
-
 	// IngestionFilesTopic is the PubSub topic on which messages will be placed that correspond
 	// to files to ingest.
 	IngestionFilesTopic string `json:"ingestion_files_topic"`
@@ -68,6 +65,9 @@ type ingestionServerConfig struct {
 	// event (usually). We like our subscription names to be unique and keyed to the instance,
 	// for easier following up on "Why are there so many backed up messages?"
 	IngestionSubscription string `json:"ingestion_subscription"`
+
+	// PrimaryBranchConfig describes how the primary branch ingestion should be configured.
+	PrimaryBranchConfig ingesterConfig `json:"primary_branch_config"`
 
 	// Metrics service address (e.g., ':10110')
 	PromPort string `json:"prom_port"`
@@ -80,11 +80,30 @@ type ingestionServerConfig struct {
 	// The port to provide a web handler for /healthz
 	ReadyPort string `json:"port"`
 
+	// SecondaryBranchConfig is the optional config for ingestion on secondary branches (e.g. Tryjobs).
+	SecondaryBranchConfig *ingesterConfig `json:"secondary_branch_config" optional:"true"`
+
 	// TODO(kjlubick) Restore this functionality. Without it, we cannot ingest from internal jobs.
 	// URL of the secondary repo that has GitRepoURL as a dependency.
 	SecondaryRepoURL string `json:"secondary_repo_url" optional:"true"`
 	// Regular expression to extract the commit hash from the DEPS file.
 	SecondaryRepoRegEx string `json:"secondary_repo_regex" optional:"true"`
+}
+
+// ingesterConfig is the configuration for a single ingester.
+type ingesterConfig struct {
+	// Type describes the backend type of the ingester.
+	Type string `json:"type"`
+	// Source is where the ingester will read files from.
+	Source gcsSourceConfig `json:"gcs_source"`
+	// ExtraParams help configure the ingester and are specific to the backend type.
+	ExtraParams map[string]string `json:"extra_configuration"`
+}
+
+// gcsSourceConfig is the configuration needed to ingest from files in a GCS bucket.
+type gcsSourceConfig struct {
+	Bucket string `json:"bucket"`
+	Prefix string `json:"prefix"`
 }
 
 func main() {
@@ -176,42 +195,14 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create GCS Client")
 	}
-	var sourcesToScan []ingestion.FileSearcher
-
-	primaryConf, ok := isc.Ingesters[ingestion_processors.PrimaryBranchBigTableConfig]
-	if !ok {
-		sklog.Fatalf("Not configured for primary branch ingestion: %#v", isc.Ingesters)
-	}
-	src := &ingestion.GCSSource{
-		Client: gcsClient,
-		Bucket: primaryConf.Sources[0].Bucket,
-		Prefix: primaryConf.Sources[0].Prefix,
-	}
-	if ok := src.Validate(); !ok {
-		sklog.Fatalf("Invalid GCS Source %#v", src)
-	}
-	primaryBranchProcessor, err := ingestion_processors.PrimaryBranchBigTable(ctx, vcs, primaryConf, src)
+	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, vcs)
 	if err != nil {
 		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
 	}
-	sourcesToScan = append(sourcesToScan, src)
+	sourcesToScan := []ingestion.FileSearcher{src}
 
-	var tryjobProcessor ingestion.Processor
-	tryjobConf, ok := isc.Ingesters[ingestion_processors.TryjobSQLConfig]
-	if ok {
-		src := &ingestion.GCSSource{
-			Client: gcsClient,
-			Bucket: tryjobConf.Sources[0].Bucket,
-			Prefix: tryjobConf.Sources[0].Prefix,
-		}
-		if ok := src.Validate(); !ok {
-			sklog.Fatalf("Invalid GCS Source %#v", src)
-		}
-		var err error
-		tryjobProcessor, err = ingestion_processors.TryjobSQL(ctx, tryjobConf, client, sqlDB, src)
-		if err != nil {
-			sklog.Fatalf("Setting up tryjob ingestion: %s", err)
-		}
+	tryjobProcessor, src, err := getSecondaryBranchIngester(ctx, isc.SecondaryBranchConfig, gcsClient, client, sqlDB)
+	if src != nil {
 		sourcesToScan = append(sourcesToScan, src)
 	}
 
@@ -233,6 +224,56 @@ func main() {
 	startMetrics(ctx, pss)
 
 	sklog.Fatalf("Listening for files to ingest %s", listen(ctx, isc, pss))
+}
+
+func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, vcs *bt_vcs.BigTableVCS) (ingestion.Processor, ingestion.FileSearcher, error) {
+	src := &ingestion.GCSSource{
+		Client: gcsClient,
+		Bucket: conf.Source.Bucket,
+		Prefix: conf.Source.Prefix,
+	}
+	if ok := src.Validate(); !ok {
+		return nil, nil, skerr.Fmt("Invalid GCS Source %#v", src)
+	}
+
+	var primaryBranchProcessor ingestion.Processor
+	var err error
+	if conf.Type == ingestion_processors.BigTableTraceStore {
+		primaryBranchProcessor, err = ingestion_processors.PrimaryBranchBigTable(ctx, src, conf.ExtraParams, vcs)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		sklog.Infof("Configured BT-backed primary branch ingestion")
+	} else {
+		return nil, nil, skerr.Fmt("unknown ingestion backend: %q", conf.Type)
+	}
+	return primaryBranchProcessor, src, nil
+}
+
+func getSecondaryBranchIngester(ctx context.Context, conf *ingesterConfig, gcsClient *storage.Client, hClient *http.Client, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
+	if conf == nil { // not configured for secondary branch (e.g. tryjob) ingestion.
+		return nil, nil, nil
+	}
+	src := &ingestion.GCSSource{
+		Client: gcsClient,
+		Bucket: conf.Source.Bucket,
+		Prefix: conf.Source.Prefix,
+	}
+	if ok := src.Validate(); !ok {
+		return nil, nil, skerr.Fmt("Invalid GCS Source %#v", src)
+	}
+	var sbProcessor ingestion.Processor
+	var err error
+	if conf.Type == ingestion_processors.SQLSecondaryBranch {
+		sbProcessor, err = ingestion_processors.TryjobSQL(ctx, src, conf.ExtraParams, hClient, db)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		sklog.Infof("Configured SQL-backed secondary branch ingestion")
+	} else {
+		return nil, nil, skerr.Fmt("unknown ingestion backend: %q", conf.Type)
+	}
+	return sbProcessor, src, nil
 }
 
 // listen begins listening to the PubSub topic with the configured PubSub subscription. It will
