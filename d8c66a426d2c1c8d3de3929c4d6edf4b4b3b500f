@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a36cc303_6009cdcc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-03T20:05:48Z",
+      "side": 1,
+      "message": "Shouldn\u0027t there be a  modules/example-control-sk/BAZEL.build file added?",
+      "revId": "d8c66a426d2c1c8d3de3929c4d6edf4b4b3b500f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
