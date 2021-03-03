@@ -6,36 +6,30 @@
   port: ":9091",
   prom_port: ":20000",
 
-  ingestion_configs: {
-    // Primary Ingester
-    gold_bt: {
-      gcs_sources: [
-        {
-          bucket: "skia-gold-flutter-engine",
-          prefix: "dm-json-v1"
-        }
-      ],
-      extra_configuration: {
-        BTProjectID: "skia-public",
-        BTInstance: "production",
-        BTTable: "gold-flutter-engine"
-      }
+  primary_branch_config: {
+    type: "big_table_tracestore",
+    gcs_source: {
+      bucket: "skia-gold-flutter-engine",
+      prefix: "dm-json-v1"
     },
-    // Gold Tryjob Ingester
-    gold_tryjob_fs: {
-      gcs_sources: [
-        {
-          bucket: "skia-gold-flutter-engine",
-          prefix: "trybot/dm-json-v1"
-        },
-      ],
-      extra_configuration: {
-        CodeReviewSystems:     "github",
-        GitHubCredentialsPath: "/var/secrets/github/github_token",
-        GitHubRepo:            "flutter/engine",
+    extra_configuration: {
+      BTProjectID: "skia-public",
+      BTInstance: "production",
+      BTTable: "gold-flutter-engine"
+    }
+  },
+  secondary_branch_config: {
+    type: "sql_secondary",
+    gcs_source: {
+      bucket: "skia-gold-flutter-engine",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {
+      CodeReviewSystems:     "github",
+      GitHubCredentialsPath: "/var/secrets/github/github_token",
+      GitHubRepo:            "flutter/engine",
 
-        ContinuousIntegrationSystems: "cirrus,buildbucket",
-      }
+      ContinuousIntegrationSystems: "cirrus,buildbucket",
     }
   },
 

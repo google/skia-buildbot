@@ -30,19 +30,3 @@ type Store interface {
 	// WasIngested returns true if the provided file has been ingested previously.
 	WasIngested(ctx context.Context, fileName string) (bool, error)
 }
-
-// Config is the configuration for a single ingester.
-type Config struct {
-	// Input sources where the ingester reads from.
-	// TODO(kjlubick) we only really need one source.
-	Sources []GCSSourceConfig `json:"gcs_sources"`
-
-	// Any additional needed parameters (ingester specific)
-	ExtraParams map[string]string `json:"extra_configuration"`
-}
-
-// GCSSourceConfig is the configuration needed to ingest from files in a GCS bucket.
-type GCSSourceConfig struct {
-	Bucket string `json:"bucket"`
-	Prefix string `json:"prefix"`
-}

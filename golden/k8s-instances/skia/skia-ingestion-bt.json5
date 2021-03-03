@@ -6,37 +6,32 @@
   port: ":9091",
   prom_port: ":20000",
 
-  ingestion_configs: {
-    // Primary Ingester
-    gold_bt: {
-      gcs_sources: [
-        {
-          bucket: "skia-infra-gm",
-          prefix: "dm-json-v1"
-        }
-      ],
-      extra_configuration: {
-        BTProjectID: "skia-public",
-        BTInstance: "production",
-        BTTable: "gold-skia"
-      }
+  primary_branch_config: {
+    type: "big_table_tracestore",
+    gcs_source: {
+      bucket: "skia-infra-gm",
+      prefix: "dm-json-v1"
     },
-    // Gold Tryjob Ingester
-    gold_tryjob_fs: {
-      gcs_sources: [
-        {
-          bucket: "skia-infra-gm",
-          prefix: "trybot/dm-json-v1"
-        },
-      ],
-      extra_configuration: {
-        CodeReviewSystems: "gerrit",
-        GerritURL:         "https://skia-review.googlesource.com",
-
-        ContinuousIntegrationSystems: "buildbucket",
-      }
+    extra_configuration: {
+      BTProjectID: "skia-public",
+      BTInstance: "production",
+      BTTable: "gold-skia"
     }
   },
+  secondary_branch_config: {
+    type: "sql_secondary",
+    gcs_source: {
+      bucket: "skia-infra-gm",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {
+      CodeReviewSystems: "gerrit",
+      GerritURL:         "https://skia-review.googlesource.com",
+
+      ContinuousIntegrationSystems: "buildbucket",
+    }
+  },
+
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_NODE_SELECTOR_KEY: "beta.kubernetes.io/instance-type",
   K8S_NODE_SELECTOR_VALUE1: "n1-standard-16",

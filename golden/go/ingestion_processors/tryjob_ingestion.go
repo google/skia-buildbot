@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	TryjobSQLConfig = "gold_tryjob_fs" // TODO(kjlubick) update constant
+	SQLSecondaryBranch = "sql_secondary"
 
 	codeReviewSystemsParam     = "CodeReviewSystems"
 	gerritURLParam             = "GerritURL"
@@ -60,28 +60,28 @@ type goldTryjobProcessor struct {
 // TryjobSQL returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in SQL.
-func TryjobSQL(ctx context.Context, config ingestion.Config, client *http.Client, db *pgxpool.Pool, src ingestion.Source) (ingestion.Processor, error) {
-	cisNames := strings.Split(config.ExtraParams[continuousIntegrationSystemsParam], ",")
+func TryjobSQL(ctx context.Context, src ingestion.Source, configParams map[string]string, client *http.Client, db *pgxpool.Pool) (ingestion.Processor, error) {
+	cisNames := strings.Split(configParams[continuousIntegrationSystemsParam], ",")
 	if len(cisNames) == 0 {
 		return nil, skerr.Fmt("missing CI system (e.g. 'buildbucket')")
 	}
 	cisClients := make(map[string]continuous_integration.Client, len(cisNames))
 	for _, cisName := range cisNames {
-		cis, err := continuousIntegrationSystemFactory(cisName, config, client)
+		cis, err := continuousIntegrationSystemFactory(cisName, client)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create client for CIS %q", cisName)
 		}
 		cisClients[cisName] = cis
 	}
 
-	crsNames := strings.Split(config.ExtraParams[codeReviewSystemsParam], ",")
+	crsNames := strings.Split(configParams[codeReviewSystemsParam], ",")
 	if len(crsNames) == 0 {
 		return nil, skerr.Fmt("missing CRS (e.g. 'gerrit')")
 	}
 
 	var reviewSystems []clstore.ReviewSystem
 	for _, crsName := range crsNames {
-		crsClient, err := codeReviewSystemFactory(ctx, crsName, config, client)
+		crsClient, err := codeReviewSystemFactory(ctx, crsName, configParams, client)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
 		}
@@ -107,9 +107,9 @@ func (g *goldTryjobProcessor) HandlesFile(name string) bool {
 	return g.source.HandlesFile(name)
 }
 
-func codeReviewSystemFactory(ctx context.Context, crsName string, config ingestion.Config, client *http.Client) (code_review.Client, error) {
+func codeReviewSystemFactory(ctx context.Context, crsName string, configParams map[string]string, client *http.Client) (code_review.Client, error) {
 	if crsName == gerritCRS {
-		gerritURL := config.ExtraParams[gerritURLParam]
+		gerritURL := configParams[gerritURLParam]
 		if strings.TrimSpace(gerritURL) == "" {
 			return nil, skerr.Fmt("missing URL for the Gerrit code review system")
 		}
@@ -126,7 +126,7 @@ func codeReviewSystemFactory(ctx context.Context, crsName string, config ingesti
 		return g, nil
 	}
 	if crsName == gerritInternalCRS {
-		gerritURL := config.ExtraParams[gerritInternalURLParam]
+		gerritURL := configParams[gerritInternalURLParam]
 		if strings.TrimSpace(gerritURL) == "" {
 			return nil, skerr.Fmt("missing URL for the Gerrit internal code review system")
 		}
@@ -143,11 +143,11 @@ func codeReviewSystemFactory(ctx context.Context, crsName string, config ingesti
 		return g, nil
 	}
 	if crsName == githubCRS {
-		githubRepo := config.ExtraParams[githubRepoParam]
+		githubRepo := configParams[githubRepoParam]
 		if strings.TrimSpace(githubRepo) == "" {
 			return nil, skerr.Fmt("missing repo for the GitHub code review system")
 		}
-		githubCredPath := config.ExtraParams[githubCredentialsPathParam]
+		githubCredPath := configParams[githubCredentialsPathParam]
 		if strings.TrimSpace(githubCredPath) == "" {
 			return nil, skerr.Fmt("missing credentials path for the GitHub code review system")
 		}
@@ -163,7 +163,7 @@ func codeReviewSystemFactory(ctx context.Context, crsName string, config ingesti
 	return nil, skerr.Fmt("CodeReviewSystem %q not recognized", crsName)
 }
 
-func continuousIntegrationSystemFactory(cisName string, _ ingestion.Config, client *http.Client) (continuous_integration.Client, error) {
+func continuousIntegrationSystemFactory(cisName string, client *http.Client) (continuous_integration.Client, error) {
 	if cisName == buildbucketCIS {
 		bbClient := buildbucket.NewClient(client)
 		return buildbucket_cis.New(bbClient), nil
@@ -299,6 +299,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, fileName string) erro
 		}
 	}
 	tjr := toTryJobResults(gr, tjID, cisName)
+	sklog.Infof("Got %d results from file %s", len(tjr), fileName)
 	err = g.tryJobStore.PutResults(ctx, combinedID, fileName, tjr, time.Now())
 	if err != nil {
 		sklog.Errorf("Putting %d results for CL %s, PS %d (%s), TJ %s, file %s: %s", len(tjr), clID, psOrder, psID, tjID, fileName, err)

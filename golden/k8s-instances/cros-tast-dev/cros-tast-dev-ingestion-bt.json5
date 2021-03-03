@@ -6,35 +6,29 @@
   port: ":9091",
   prom_port: ":20000",
 
-  ingestion_configs: {
-    // Primary Ingester
-    gold_bt: {
-      gcs_sources: [
-        {
-          bucket: "skia-gold-cros-tast-dev",
-          prefix: "dm-json-v1"
-        }
-      ],
-      extra_configuration: {
-        BTProjectID: "skia-public",
-        BTInstance: "production",
-        BTTable: "gold-cros-tast-dev"
-      }
+  primary_branch_config: {
+    type: "big_table_tracestore",
+    gcs_source: {
+      bucket: "skia-gold-cros-tast-dev",
+      prefix: "dm-json-v1"
     },
-    // Gold Tryjob Ingester
-    gold_tryjob_fs: {
-      gcs_sources: [
-        {
-          bucket: "skia-gold-cros-tast-dev",
-          prefix: "trybot/dm-json-v1"
-        },
-      ],
-      extra_configuration: {
-        CodeReviewSystems: "gerrit",
-        GerritURL:         "https://chromium-review.googlesource.com",
+    extra_configuration: {
+      BTProjectID: "skia-public",
+      BTInstance: "production",
+      BTTable: "gold-cros-tast-dev"
+    }
+  },
+  secondary_branch_config: {
+    type: "sql_secondary",
+    gcs_source: {
+      bucket: "skia-gold-cros-tast-dev",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {
+      CodeReviewSystems: "gerrit",
+      GerritURL:         "https://chromium-review.googlesource.com",
 
-        ContinuousIntegrationSystems: "buildbucket",
-      }
+      ContinuousIntegrationSystems: "buildbucket",
     }
   },
 
