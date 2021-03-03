@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/swarming"
@@ -177,7 +178,7 @@ func (task ChromiumPerfDatastoreTask) Get(c context.Context, key *datastore.Key)
 	return t, nil
 }
 
-func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
+func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	cmd := []string{
@@ -209,7 +210,7 @@ func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Con
 		"--chromium_base_build_patch_gs_path=" + task.ChromiumPatchBaseBuildGSPath,
 		"--custom_webpages_csv_gs_path=" + task.CustomWebpagesGSPath,
 	}
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, cmd, swarmingClient)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", false, cmd, ctutil.CasChromiumPerfMaster(), swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with cmd %v: %s", cmd, err)
 	}

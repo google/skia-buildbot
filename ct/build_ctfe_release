@@ -21,9 +21,7 @@ ${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/sha
 ${INSTALL}     --mode=644    ./dist/*                      ${ROOT}/usr/local/share/${APPNAME}/dist
 ${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/dist/img/favicon.ico
 
-# Copy over the isolate files and python scripts.
-${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/isolates
-${INSTALL}     --mode=644 ./isolates/*               ${ROOT}/usr/local/share/${APPNAME}/isolates
+# Copy over the and python scripts.
 ${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/py
 ${INSTALL}     --mode=644 ./py/*.py                  ${ROOT}/usr/local/share/${APPNAME}/py
 ${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/py/html-templates

@@ -28,6 +28,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
@@ -36,6 +37,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
+	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 )
 
@@ -374,11 +376,19 @@ func main() {
 
 	swarm, err = swarming.NewApiClient(client, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {
-		sklog.Fatalf("Could not instantiate swarming client")
+		sklog.Fatalf("Could not instantiate swarming client: %s", err)
+	}
+	casTokenSource, err := auth.NewDefaultTokenSource(*local, compute.CloudPlatformScope)
+	if err != nil {
+		sklog.Fatalf("Failed to set up CAS token source: %s", err)
+	}
+	casClient, err := rbe.NewClient(ctx, rbe.InstanceChromeSwarming, casTokenSource)
+	if err != nil {
+		sklog.Fatalf("Failed to create CAS client: %s", err)
 	}
 
 	// Initialize the autoscaler and globals in task_common.
-	if err := task_common.Init(ctx, *local, *enableAutoscaler, *host, *serviceAccountFile, swarm, pending_tasks.GetGCEPendingTaskCount); err != nil {
+	if err := task_common.Init(ctx, *local, *enableAutoscaler, *host, *serviceAccountFile, swarm, casClient, pending_tasks.GetGCEPendingTaskCount); err != nil {
 		sklog.Fatalf("Could not init task_common: %s", err)
 	}
 
