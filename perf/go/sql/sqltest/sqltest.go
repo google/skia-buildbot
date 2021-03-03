@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
@@ -53,8 +54,10 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, C
 	cockroachdbMigrations, err := cockroachdb.New()
 	require.NoError(t, err)
 
-	err = migrations.Up(cockroachdbMigrations, migrationsConnection)
-	require.NoError(t, err)
+	require.Eventually(t, func() bool {
+		err = migrations.Up(cockroachdbMigrations, migrationsConnection)
+		return err == nil
+	}, 2*time.Second, 10*time.Millisecond)
 
 	ctx := context.Background()
 	conn, err := pgxpool.Connect(ctx, connectionString)
