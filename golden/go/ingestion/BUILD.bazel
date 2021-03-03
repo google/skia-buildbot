@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/ingestion",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/config",
         "//go/fileutil",
         "//go/gcs",
         "//go/sklog",
