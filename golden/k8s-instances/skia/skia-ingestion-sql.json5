@@ -1,25 +1,28 @@
 {
+  backup_poll_interval: "1h",
+  backup_poll_scope: "2h",
+  ingestion_files_topic: "gold-skia-ingestion-work-test1",
+  ingestion_subscription: "gold-skia-ingestion",
   port: ":9091",
   prom_port: ":20000",
-  pubsub_event_topic: "gold-skia-eventbus-sql-test-3",
 
-  ingestion_configs: {
-    // Primary Ingester
-    gold_sql: {
-      backup_poll_every: "1h",
-      backup_poll_last_n_commits: 5,
-      backup_poll_last_n_hours: 2,
-      gcs_sources: [
-        {
-          bucket: "skia-infra-gm",
-          prefix: "dm-json-v1"
-        }
-      ],
-      extra_configuration: {
-        SQLConnectionURL: "postgresql://root@gold-cockroachdb-public:26234/staging_db?sslmode=disable",
-      }
-    }
+  primary_branch_config: {
+    type: "sql_primary",
+    gcs_source: {
+      bucket: "skia-infra-gm",
+      prefix: "dm-json-v1"
+    },
+    extra_configuration: {}
   },
+  secondary_branch_config: {
+    type: "noop_secondary",
+    gcs_source: {
+      bucket: "skia-infra-gm",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {}
+  },
+
   // These values affect the k8s deployment; they are not read in by the binary.
   K8S_NODE_SELECTOR_KEY: "beta.kubernetes.io/instance-type",
   K8S_NODE_SELECTOR_VALUE1: "n1-standard-16",

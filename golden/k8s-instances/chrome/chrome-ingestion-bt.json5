@@ -5,38 +5,33 @@
   ingestion_subscription: "gold-ingestion+gold-chrome-eventbus-bt",
   port: ":9091",
   prom_port: ":20000",
+  pubsub_fetch_size: 50,
 
-  ingestion_configs: {
-    // Primary Ingester
-    gold_bt: {
-      gcs_sources: [
-        {
-          bucket: "skia-gold-chrome",
-          prefix: "dm-json-v1"
-        }
-      ],
-      extra_configuration: {
-        BTProjectID: "skia-public",
-        BTInstance: "production",
-        BTTable: "gold-chrome"
-      }
+  primary_branch_config: {
+    type: "big_table_tracestore",
+    gcs_source: {
+      bucket: "skia-gold-chrome",
+      prefix: "dm-json-v1"
     },
-    // Gold Tryjob Ingester
-    gold_tryjob_fs: {
-      gcs_sources: [
-        {
-          bucket: "skia-gold-chrome",
-          prefix: "trybot/dm-json-v1"
-        },
-      ],
-      extra_configuration: {
-        // TODO(kjlubick) this is clunky; it would be preferable to use CodeReviewSystems
-        CodeReviewSystems:  "gerrit,gerrit-internal",
-        GerritURL:          "https://chromium-review.googlesource.com",
-        GerritInternalURL:  "https://chrome-internal-review.googlesource.com",
+    extra_configuration: {
+      BTProjectID: "skia-public",
+      BTInstance: "production",
+      BTTable: "gold-chrome"
+    }
+  },
+  secondary_branch_config: {
+    type: "sql_secondary",
+    gcs_source: {
+      bucket: "skia-gold-chrome",
+      prefix: "trybot/dm-json-v1"
+    },
+    extra_configuration: {
+      // TODO(kjlubick) this is clunky; it would be preferable to use CodeReviewSystems
+      CodeReviewSystems:  "gerrit,gerrit-internal",
+      GerritURL:          "https://chromium-review.googlesource.com",
+      GerritInternalURL:  "https://chrome-internal-review.googlesource.com",
 
-        ContinuousIntegrationSystems: "buildbucket",
-      }
+      ContinuousIntegrationSystems: "buildbucket",
     }
   },
 
