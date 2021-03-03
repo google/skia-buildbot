@@ -41,18 +41,15 @@ const (
 func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	config := ingestion.Config{
-		ExtraParams: map[string]string{
+	configParams := map[string]string{
+		codeReviewSystemsParam: "gerrit,gerrit-internal",
+		gerritURLParam:         "https://example-review.googlesource.com",
+		gerritInternalURLParam: "https://example-internal-review.googlesource.com",
 
-			codeReviewSystemsParam: "gerrit,gerrit-internal",
-			gerritURLParam:         "https://example-review.googlesource.com",
-			gerritInternalURLParam: "https://example-internal-review.googlesource.com",
-
-			continuousIntegrationSystemsParam: "buildbucket",
-		},
+		continuousIntegrationSystemsParam: "buildbucket",
 	}
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := TryjobSQL(ctx, config, httputils.NewTimeoutClient(), nil, nil)
+	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 
@@ -66,18 +63,16 @@ func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
 func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	config := ingestion.Config{
-		ExtraParams: map[string]string{
-			codeReviewSystemsParam:     "github",
-			githubRepoParam:            "google/skia",
-			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
+	configParams := map[string]string{
+		codeReviewSystemsParam:     "github",
+		githubRepoParam:            "google/skia",
+		githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
 
-			continuousIntegrationSystemsParam: "cirrus,buildbucket",
-		},
+		continuousIntegrationSystemsParam: "cirrus,buildbucket",
 	}
 
 	ctx := gerrit_crs.TestContext(context.Background())
-	p, err := TryjobSQL(ctx, config, httputils.NewTimeoutClient(), nil, nil)
+	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil)
 	require.NoError(t, err)
 	require.NotNil(t, p)
 

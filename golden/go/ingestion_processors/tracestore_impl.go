@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	// PrimaryBranchBigTableConfig identifies a primary-branch ingester backed by BigTable.
-	PrimaryBranchBigTableConfig = "gold_bt"
+	// BigTableTraceStore identifies a primary-branch ingester backed by BigTable.
+	BigTableTraceStore = "big_table_tracestore"
 
 	btProjectConfig  = "BTProjectID"
 	btInstanceConfig = "BTInstance"
@@ -28,11 +28,11 @@ const (
 )
 
 // PrimaryBranchBigTable creates a Processor that uses a BigTable-backed tracestore.
-func PrimaryBranchBigTable(ctx context.Context, vcs vcsinfo.VCS, config ingestion.Config, src ingestion.Source) (ingestion.Processor, error) {
+func PrimaryBranchBigTable(ctx context.Context, src ingestion.Source, configParams map[string]string, vcs vcsinfo.VCS) (ingestion.Processor, error) {
 	btc := bt_tracestore.BTConfig{
-		ProjectID:  config.ExtraParams[btProjectConfig],
-		InstanceID: config.ExtraParams[btInstanceConfig],
-		TableID:    config.ExtraParams[btTableConfig],
+		ProjectID:  configParams[btProjectConfig],
+		InstanceID: configParams[btInstanceConfig],
+		TableID:    configParams[btTableConfig],
 		VCS:        vcs,
 	}
 
