@@ -51,16 +51,16 @@ type ingestionServerConfig struct {
 	// is a backup way to ingest data in the unlikely case that a PubSub event is
 	// dropped (PubSub will try and re-try to send events for up to seven days by default).
 	// BackupPollInterval is how often to do a scan.
-	BackupPollInterval config.Duration
+	BackupPollInterval config.Duration `json:"backup_poll_interval"`
 	// BackupPollScope is how far back in time to scan. It should be longer than BackupPollInterval.
-	BackupPollScope config.Duration
+	BackupPollScope config.Duration `json:"backup_poll_scope"`
 
 	// Configuration for one or more ingester (e.g. one for master branch and one for tryjobs).
 	Ingesters map[string]ingestion.Config `json:"ingestion_configs"`
 
 	// IngestionFilesTopic is the PubSub topic on which messages will be placed that correspond
 	// to files to ingest.
-	IngestionFilesTopic string `json:"pubsub_event_topic"`
+	IngestionFilesTopic string `json:"ingestion_files_topic"`
 
 	// IngestionSubscription is the subscription ID used by all replicas. By setting the
 	// subscriber ID to be the same on all replicas, only one of the replicas will get each
@@ -186,6 +186,9 @@ func main() {
 		Bucket: primaryConf.Sources[0].Bucket,
 		Prefix: primaryConf.Sources[0].Prefix,
 	}
+	if ok := src.Validate(); !ok {
+		sklog.Fatalf("Invalid GCS Source %#v", src)
+	}
 	primaryBranchProcessor, err := ingestion_processors.PrimaryBranchBigTable(ctx, vcs, primaryConf, src)
 	if err != nil {
 		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
@@ -197,8 +200,11 @@ func main() {
 	if ok {
 		src := &ingestion.GCSSource{
 			Client: gcsClient,
-			Bucket: primaryConf.Sources[0].Bucket,
-			Prefix: primaryConf.Sources[0].Prefix,
+			Bucket: tryjobConf.Sources[0].Bucket,
+			Prefix: tryjobConf.Sources[0].Prefix,
+		}
+		if ok := src.Validate(); !ok {
+			sklog.Fatalf("Invalid GCS Source %#v", src)
 		}
 		var err error
 		tryjobProcessor, err = ingestion_processors.TryjobSQL(ctx, tryjobConf, client, sqlDB, src)
@@ -300,7 +306,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 	if p.PrimaryBranchProcessor.HandlesFile(name) {
 		err := p.PrimaryBranchProcessor.Process(ctx, name)
 		if skerr.Unwrap(err) == ingestion.ErrRetryable {
-			sklog.Warningf("Got retryable error for primary branch data")
+			sklog.Warningf("Got retryable error for primary branch data for file %s", name)
 			return false
 		}
 		// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
@@ -309,7 +315,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 			// We'll continue anyway. The IngestionStore is not a big deal.
 		}
 		if err != nil {
-			sklog.Errorf("Got non-retryable error for primary branch data %s", err)
+			sklog.Errorf("Got non-retryable error for primary branch data for file %s: %s", name, err)
 			return true
 		}
 		return true
@@ -320,7 +326,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 	}
 	err := p.TryjobProcessor.Process(ctx, name)
 	if skerr.Unwrap(err) == ingestion.ErrRetryable {
-		sklog.Warningf("Got retryable error for tryjob data")
+		sklog.Warningf("Got retryable error for tryjob data for file %s", name)
 		return false
 	}
 	// TODO(kjlubick) Processors should mark the SourceFiles table as ingested, not here.
@@ -329,7 +335,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 		// We'll continue anyway. The IngestionStore is not a big deal.
 	}
 	if err != nil {
-		sklog.Errorf("Got non-retryable error for tryjob data %s", err)
+		sklog.Errorf("Got non-retryable error for tryjob data for file %s: %s", name, err)
 		return true
 	}
 	return true
