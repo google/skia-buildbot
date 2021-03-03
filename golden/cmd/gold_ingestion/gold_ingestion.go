@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -303,6 +304,9 @@ func (p *pubSubSource) ingestFromPubSubMessage(ctx context.Context, msg *pubsub.
 // ingestFile ingests the file and returns true if the ingestion was successful or it got
 // a non-retryable error. It returns false if it got a retryable error.
 func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
+	if !strings.HasSuffix(name, ".json") {
+		return true
+	}
 	if p.PrimaryBranchProcessor.HandlesFile(name) {
 		err := p.PrimaryBranchProcessor.Process(ctx, name)
 		if skerr.Unwrap(err) == ingestion.ErrRetryable {

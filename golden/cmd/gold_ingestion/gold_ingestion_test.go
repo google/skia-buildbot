@@ -160,6 +160,16 @@ func TestPubSubSource_IngestFile_InvalidFile_Ack(t *testing.T) {
 	assert.True(t, shouldAck)
 }
 
+func TestPubSubSource_IngestFile_InvalidFileType_Ack(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const logFile = "verbose.log"
+
+	ps := pubSubSource{}
+	shouldAck := ps.ingestFile(context.Background(), logFile)
+	assert.True(t, shouldAck)
+}
+
 func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
