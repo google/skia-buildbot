@@ -51,7 +51,7 @@ spec:
         fsGroup: 2000   # aka skia
       containers:
         - name: gold-{{.INSTANCE_ID}}-ingestion-bt
-          image: {{.INGESTION_BT_IMAGE}}
+          image: {{.INGESTION_IMAGE}}
           args:
             - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
             - "--config=/etc/gold-config/{{.INSTANCE_ID}}-ingestion-bt.json5"
