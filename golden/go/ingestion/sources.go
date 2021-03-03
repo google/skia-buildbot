@@ -71,5 +71,10 @@ func (s *GCSSource) String() string {
 	return "gs://" + s.Bucket + "/" + s.Prefix
 }
 
+// Validate returns true if all fields are filled in.
+func (s *GCSSource) Validate() bool {
+	return s.Client != nil && s.Bucket != "" && s.Prefix != ""
+}
+
 // Make sure GCSSource implements the Source interface.
 var _ Source = (*GCSSource)(nil)

@@ -1,14 +1,14 @@
 {
+  backup_poll_interval: "1h",
+  backup_poll_scope: "2h",
+  ingestion_files_topic: "gold-pdfium-eventbus-bt",
+  ingestion_subscription: "gold-ingestion+gold-pdfium-eventbus-bt",
   port: ":9091",
   prom_port: ":20000",
-  pubsub_event_topic: "gold-pdfium-eventbus-bt",
 
   ingestion_configs: {
     // Primary Ingester
     gold_bt: {
-      backup_poll_every: "1h",
-      backup_poll_last_n_commits: 5,
-      backup_poll_last_n_hours: 2,
       gcs_sources: [
         {
           bucket: "skia-pdfium-gm",
@@ -23,8 +23,6 @@
     },
     // Gold Tryjob Ingester
     gold_tryjob_fs: {
-      backup_poll_every: "1h",
-      backup_poll_last_n_hours: 2,
       gcs_sources: [
         {
           bucket: "skia-pdfium-gm",
@@ -32,9 +30,6 @@
         },
       ],
       extra_configuration: {
-        FirestoreProjectID: "skia-firestore",
-        FirestoreNamespace: "pdfium",
-
         CodeReviewSystems: "gerrit",
         GerritURL:         "https://pdfium-review.googlesource.com",
 

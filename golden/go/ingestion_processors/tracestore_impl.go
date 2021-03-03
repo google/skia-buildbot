@@ -100,14 +100,13 @@ func (b *btProcessor) Process(ctx context.Context, fileName string) error {
 		return skerr.Wrapf(err, "could not create entries")
 	}
 
-	t := time.Now()
 	defer shared.NewMetricsTimer("put_tracestore_entry").Stop()
 
-	sklog.Debugf("tracestore.Put(%s, %d entries, %s)", targetHash, len(entries), t)
+	sklog.Debugf("Ingested %d entries to commit %s from file %s", len(entries), targetHash, fileName)
 	// Write the result to the tracestore.
-	err = b.ts.Put(ctx, targetHash, entries, t)
+	err = b.ts.Put(ctx, targetHash, entries, time.Now())
 	if err != nil {
-		sklog.Errorf("Could not add entries to tracestore: %s", err)
+		sklog.Errorf("Could not add entries to tracestore for file %s: %s", fileName, err)
 		return ingestion.ErrRetryable
 	}
 	return nil
