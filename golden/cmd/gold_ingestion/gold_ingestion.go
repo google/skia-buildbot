@@ -176,42 +176,14 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create GCS Client")
 	}
-	var sourcesToScan []ingestion.FileSearcher
-
-	primaryConf, ok := isc.Ingesters[ingestion_processors.PrimaryBranchBigTableConfig]
-	if !ok {
-		sklog.Fatalf("Not configured for primary branch ingestion: %#v", isc.Ingesters)
-	}
-	src := &ingestion.GCSSource{
-		Client: gcsClient,
-		Bucket: primaryConf.Sources[0].Bucket,
-		Prefix: primaryConf.Sources[0].Prefix,
-	}
-	if ok := src.Validate(); !ok {
-		sklog.Fatalf("Invalid GCS Source %#v", src)
-	}
-	primaryBranchProcessor, err := ingestion_processors.PrimaryBranchBigTable(ctx, vcs, primaryConf, src)
+	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc, gcsClient, vcs)
 	if err != nil {
 		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
 	}
-	sourcesToScan = append(sourcesToScan, src)
+	sourcesToScan := []ingestion.FileSearcher{src}
 
-	var tryjobProcessor ingestion.Processor
-	tryjobConf, ok := isc.Ingesters[ingestion_processors.TryjobSQLConfig]
-	if ok {
-		src := &ingestion.GCSSource{
-			Client: gcsClient,
-			Bucket: tryjobConf.Sources[0].Bucket,
-			Prefix: tryjobConf.Sources[0].Prefix,
-		}
-		if ok := src.Validate(); !ok {
-			sklog.Fatalf("Invalid GCS Source %#v", src)
-		}
-		var err error
-		tryjobProcessor, err = ingestion_processors.TryjobSQL(ctx, tryjobConf, client, sqlDB, src)
-		if err != nil {
-			sklog.Fatalf("Setting up tryjob ingestion: %s", err)
-		}
+	tryjobProcessor, src, err := getTryjobIngester(ctx, isc, gcsClient, client, sqlDB)
+	if src != nil {
 		sourcesToScan = append(sourcesToScan, src)
 	}
 
@@ -233,6 +205,46 @@ func main() {
 	startMetrics(ctx, pss)
 
 	sklog.Fatalf("Listening for files to ingest %s", listen(ctx, isc, pss))
+}
+
+func getPrimaryBranchIngester(ctx context.Context, isc ingestionServerConfig, gcsClient *storage.Client, vcs *bt_vcs.BigTableVCS) (ingestion.Processor, ingestion.FileSearcher, error) {
+	primaryConf, ok := isc.Ingesters[ingestion_processors.PrimaryBranchBigTableConfig]
+	if !ok {
+		return nil, nil, skerr.Fmt("Not configured for primary branch ingestion: %#v", isc.Ingesters)
+	}
+	src := &ingestion.GCSSource{
+		Client: gcsClient,
+		Bucket: primaryConf.Source.Bucket,
+		Prefix: primaryConf.Source.Prefix,
+	}
+	if ok := src.Validate(); !ok {
+		return nil, nil, skerr.Fmt("Invalid GCS Source %#v", src)
+	}
+	primaryBranchProcessor, err := ingestion_processors.PrimaryBranchBigTable(ctx, vcs, primaryConf, src)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	return primaryBranchProcessor, src, nil
+}
+
+func getTryjobIngester(ctx context.Context, isc ingestionServerConfig, gcsClient *storage.Client, hClient *http.Client, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
+	tryjobConf, ok := isc.Ingesters[ingestion_processors.TryjobSQLConfig]
+	if !ok { // not configured for tryjob ingestion
+		return nil, nil, nil
+	}
+	src := &ingestion.GCSSource{
+		Client: gcsClient,
+		Bucket: tryjobConf.Source.Bucket,
+		Prefix: tryjobConf.Source.Prefix,
+	}
+	if ok := src.Validate(); !ok {
+		sklog.Fatalf("Invalid GCS Source %#v", src)
+	}
+	tryjobProcessor, err := ingestion_processors.TryjobSQL(ctx, tryjobConf, hClient, db, src)
+	if err != nil {
+		sklog.Fatalf("Setting up tryjob ingestion: %s", err)
+	}
+	return tryjobProcessor, src, nil
 }
 
 // listen begins listening to the PubSub topic with the configured PubSub subscription. It will

@@ -33,9 +33,8 @@ type Store interface {
 
 // Config is the configuration for a single ingester.
 type Config struct {
-	// Input sources where the ingester reads from.
-	// TODO(kjlubick) we only really need one source.
-	Sources []GCSSourceConfig `json:"gcs_sources"`
+	// Source is where the ingester will read files from.
+	Source GCSSourceConfig `json:"gcs_source"`
 
 	// Any additional needed parameters (ingester specific)
 	ExtraParams map[string]string `json:"extra_configuration"`
