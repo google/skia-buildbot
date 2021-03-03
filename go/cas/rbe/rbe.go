@@ -59,7 +59,8 @@ func DigestToString(hash string, size int64) string {
 
 // Client is a struct used to interact with RBE-CAS.
 type Client struct {
-	client *client.Client
+	client   *client.Client
+	instance string
 }
 
 // NewClient returns a Client instance.
@@ -419,6 +420,14 @@ func (c *Client) Merge(ctx context.Context, digests []string) (string, error) {
 // Close implements cas.CAS.
 func (c *Client) Close() error {
 	return c.client.Close()
+}
+
+func GetCASInstance(c cas.CAS) (string, error) {
+	client, ok := c.(*Client)
+	if !ok {
+		return "", skerr.Fmt("CAS is not an instance of rbe.Client")
+	}
+	return client.instance, nil
 }
 
 var _ cas.CAS = &Client{}
