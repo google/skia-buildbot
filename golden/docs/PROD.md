@@ -150,7 +150,8 @@ the repo isn't very busy.
 
 This has happened before because gitsync stopped, so check that out too.
 
-Key metrics: liveness_gold_bt_s{metric="last-successful-process"}, liveness_last_successful_git_sync_s
+Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_streaming_result"},
+    liveness_last_successful_git_sync_s
 
 
 GoldPollingIngestionStalled
@@ -162,7 +163,8 @@ this should happen every 5 minutes or so, even in not-busy repos.
 
 This has happened before because gitsync stopped, so check that out too.
 
-Key metrics: liveness_gold_bt_s{metric="since-last-run"}, liveness_last_successful_git_sync_s
+Key metrics: liveness_gold_ingestion_s{metric="since_last_successful_poll"},
+    liveness_last_successful_git_sync_s
 
 
 GoldIgnoreMonitoring
@@ -228,16 +230,6 @@ To fix, delete one baseliner pod of the affected instance at a time until all of
 have restarted and are healthy.
 
 If this alert fires, it probably means the related logic in fs_expstore needs to be rethought.
-
-GoldCorruptTryJobData
----------------------
-This section covers both GoldCorruptTryJobParamMaps and GoldTryJobResultsIncompleteData which are
-probably both active or both inactive. TryJobResults are stored in firestore in a separate
-document from the Param maps that store the keys so as to lower request data. However, if somehow
-data was only partially uploaded or corrupted, there might be TryJobResults that reference
-Params that don't exist.
-
-If this happens, we might need to re-ingest the TryJob data to re-construct the missing data.
 
 GoldNoDataAtHead
 ----------------

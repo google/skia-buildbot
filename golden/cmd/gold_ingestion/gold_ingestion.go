@@ -202,15 +202,25 @@ func main() {
 	}
 	sourcesToScan := []ingestion.FileSearcher{src}
 
+	var secondaryBranchLiveness metrics2.Liveness
 	tryjobProcessor, src, err := getSecondaryBranchIngester(ctx, isc.SecondaryBranchConfig, gcsClient, client, sqlDB)
 	if src != nil {
 		sourcesToScan = append(sourcesToScan, src)
+		secondaryBranchLiveness = metrics2.NewLiveness("gold_ingestion", map[string]string{
+			"metric": "since_last_successful_streaming_result",
+			"source": "secondary_branch",
+		})
 	}
 
 	pss := &pubSubSource{
 		IngestionStore:         ingestionStore,
 		PrimaryBranchProcessor: primaryBranchProcessor,
 		TryjobProcessor:        tryjobProcessor,
+		PrimaryBranchStreamingLiveness: metrics2.NewLiveness("gold_ingestion", map[string]string{
+			"metric": "since_last_successful_streaming_result",
+			"source": "primary_branch",
+		}),
+		SecondaryBranchStreamingLiveness: secondaryBranchLiveness,
 	}
 
 	go func() {
@@ -324,6 +334,14 @@ type pubSubSource struct {
 	IngestionStore         ingestion.Store
 	PrimaryBranchProcessor ingestion.Processor
 	TryjobProcessor        ingestion.Processor
+	// PrimaryBranchStreamingLiveness lets us have a metric to monitor the successful
+	// streaming of data. It will be reset after each successful ingestion of a file from
+	// the primary branch.
+	PrimaryBranchStreamingLiveness metrics2.Liveness
+	// SecondaryBranchStreamingLiveness lets us have a metric to monitor the successful
+	// streaming of data. It will be reset after each successful ingestion of a file from
+	// the secondary branch.
+	SecondaryBranchStreamingLiveness metrics2.Liveness
 
 	// busy is either 0 or non-zero depending on if this ingestion is working or not. This
 	// allows us to gather data on wall-clock utilization.
@@ -368,6 +386,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 			sklog.Errorf("Got non-retryable error for primary branch data for file %s: %s", name, err)
 			return true
 		}
+		p.PrimaryBranchStreamingLiveness.Reset()
 		return true
 	}
 	if p.TryjobProcessor == nil || !p.TryjobProcessor.HandlesFile(name) {
@@ -388,13 +407,13 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 		sklog.Errorf("Got non-retryable error for tryjob data for file %s: %s", name, err)
 		return true
 	}
+	p.SecondaryBranchStreamingLiveness.Reset()
 	return true
 }
 
 func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesToScan []ingestion.FileSearcher, pss *pubSubSource) {
-	pollingLiveness := metrics2.NewLiveness("combined_polling", map[string]string{
-		"source": "poll",
-		"metric": "since-last-run",
+	pollingLiveness := metrics2.NewLiveness("gold_ingestion", map[string]string{
+		"metric": "since_last_successful_poll",
 	})
 
 	go util.RepeatCtx(ctx, isc.BackupPollInterval.Duration, func(ctx context.Context) {
