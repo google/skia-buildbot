@@ -195,16 +195,6 @@ func NewCloudClient(config GoldClientConfig) (*CloudClient, error) {
 		resultState:      newResultState(jsonio.GoldResults{}, &config),
 	}
 
-	if config.FailureFile != "" {
-		if f, err := os.Create(config.FailureFile); err != nil {
-			return nil, skerr.Wrapf(err, "making failure file %s", config.FailureFile)
-		} else {
-			if err := f.Close(); err != nil {
-				return nil, skerr.Wrapf(err, "closing failure file %s", config.FailureFile)
-			}
-		}
-	}
-
 	// write it to disk
 	if err := saveJSONFile(ret.getResultStatePath(), ret.resultState); err != nil {
 		return nil, skerr.Wrapf(err, "writing the state to disk")
@@ -385,6 +375,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 						return skerr.Fmt("could not open failure file %s: %s", ff, err)
 					}
 					if _, err := f.WriteString(link); err != nil {
+						_ = f.Close() // Write error is more important.
 						return skerr.Fmt("could not write to failure file %s: %s", ff, err)
 					}
 					if err := f.Close(); err != nil {
