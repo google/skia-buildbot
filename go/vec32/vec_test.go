@@ -676,3 +676,49 @@ func TestToFloat64(t *testing.T) {
 	assert.Equal(t, []float64{}, ToFloat64([]float32{}))
 	assert.Equal(t, []float64{1.0, 2.0}, ToFloat64([]float32{1.0, 2.0}))
 }
+
+func TestIQRR(t *testing.T) {
+	unittest.SmallTest(t)
+	tests := []struct {
+		name     string
+		args     []float32
+		expected []float32
+	}{
+		{
+			name:     "Handles empty arrays.",
+			args:     []float32{},
+			expected: []float32{},
+		},
+		{
+			name:     "Handles arrays with NaN for quartile values.",
+			args:     []float32{1},
+			expected: []float32{1},
+		},
+		{
+			name:     "Handles missing data sentinels.",
+			args:     []float32{e},
+			expected: []float32{e},
+		},
+		{
+			name:     "Handles arrays with Inf values.",
+			args:     []float32{float32(math.Inf(0))},
+			expected: []float32{float32(math.Inf(0))},
+		},
+		{
+			name:     "Outliers are removed",
+			args:     []float32{5, 7, 10, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25},
+			expected: []float32{e, e, e, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25},
+		},
+		{
+			name:     "Outliers are removed even in the presence of missing data sentinels",
+			args:     []float32{5, 7, 10, 15, 19, 21, 21, 22, 22, e, 23, 23, 23, 23, 23, 24, 24, 24, 24, e, 25},
+			expected: []float32{e, e, e, 15, 19, 21, 21, 22, 22, e, 23, 23, 23, 23, 23, 24, 24, 24, 24, e, 25},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			IQRR(tt.args)
+			assert.Equal(t, tt.expected, tt.args)
+		})
+	}
+}

@@ -6,6 +6,7 @@ go_library(
     srcs = ["vec.go"],
     importpath = "go.skia.org/infra/go/vec32",
     visibility = ["//visibility:public"],
+    deps = ["@com_github_aclements_go_moremath//stats"],
 )
 
 go_test(

@@ -322,6 +322,12 @@ export class ExploreSk extends ElementSk {
           Scale By Avg
         </button>
         <button
+          @click=${ele.iqrr}
+          title='Apply iqrr() to all the traces.'>
+          Remove outliers
+        </button>
+
+        <button
           @click=${ele.csv}
           title='Download all displayed data as a CSV file.'>
           CSV
@@ -1102,6 +1108,28 @@ export class ExploreSk extends ElementSk {
     }
     promise.then(() => {
       const f = `norm(shortcut("${this.state.keys}"))`;
+      this.removeAll(true);
+      const body = this.requestFrameBodyFullFromState();
+      Object.assign(body, {
+        formulas: [f],
+      });
+      this.state.formulas.push(f);
+      this._stateHasChanged();
+      this.requestFrame(body, (json) => {
+        this.addTraces(json, false);
+      });
+    });
+  }
+
+  // Apply iqrr() to all the traces currently being displayed.
+  private iqrr() {
+    const promise = this.shortcutAll();
+    if (!promise) {
+      errorMessage('No traces to process.');
+      return;
+    }
+    promise.then(() => {
+      const f = `iqrr(shortcut("${this.state.keys}"))`;
       this.removeAll(true);
       const body = this.requestFrameBodyFullFromState();
       Object.assign(body, {
