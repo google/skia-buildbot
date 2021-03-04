@@ -13,5 +13,7 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAM
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf-tool  ${ROOT}/usr/local/bin/perf-tool
 ${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/skiaperf/configs
 ${INSTALL} --mode=644 ./configs/*                 ${ROOT}/usr/local/share/skiaperf/configs
+${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/skiaperf/dist
+${INSTALL} --mode=644 ./dist/*                    ${ROOT}/usr/local/share/skiaperf/dist
 }
 source ../bash/docker_build.sh
