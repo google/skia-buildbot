@@ -1,13 +1,6 @@
-default: ${GOPATH}/bin/rice rice-box.go
-	go install .
-
-rice-box.go: $(wildcard ./templates/*)
+default:
 	go generate .
-	rice embed-go
-
-# The command line tool that embeds plain files into Go code.
-${GOPATH}/bin/rice:
-	go get github.com/GeertJohan/go.rice/rice
+	go install .
 
 .PHONY: debug
 debug:
