@@ -14,18 +14,11 @@ ${GOPATH}/bin/rice:
 go/sql/migrations/cockroachdb/rice-box.go: $(wildcard ./migrations/cockroachdb/*) ${GOPATH}/bin/rice
 	cd go/sql/migrations/cockroachdb; rice embed-go
 
-go/dist/rice-box.go: ./dist ${GOPATH}/bin/rice
-	cd go/dist; rice embed-go
-
-# The webpack output in ./dist is embedded via Go files and linked into the executable.
-.PHONY: dist_source
-dist_source: go/dist/rice-box.go
-
 # The SQL migration files are embedded via Go files and linked into the executable.
 .PHONY: migration_source
 migration_source: go/sql/migrations/cockroachdb/rice-box.go
 
-build: migration_source dist_source
+build: migration_source ./dist
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver ./go/perf-tool
 	./images/perfserver/release
 
@@ -113,4 +106,13 @@ test-frontend-ci:
 #   kubectl port-forward perf-cockroachdb-0 25000:26257
 #
 run-local-instance:
-	perfserver frontend --local --do_clustering=true --port=:8001 --noemail --config_filename=./configs/cdb-nano.json --num_continuous_parallel=1 --display_group_by=true --connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable
+	perfserver frontend \
+	    --local \
+		--do_clustering=true \
+		--port=:8001 \
+		--noemail \
+	    --config_filename=./configs/cdb-nano.json \
+		--num_continuous_parallel=1 \
+		--display_group_by=true \
+		--resources_dir=./dist \
+		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable
