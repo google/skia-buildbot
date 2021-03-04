@@ -327,9 +327,7 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 		if err == clstore.ErrNotFound {
 			ps, err := system.Client.GetPatchset(ctx, clID, psID, 0)
 			if err != nil {
-				sklog.Warningf("Unknown %s PS %s for CL %q: %s", system.ID, psID, clID, err)
-				// Try again later
-				return code_review.Patchset{}, ingestion.ErrRetryable
+				return code_review.Patchset{}, skerr.Wrapf(err, "Unknown %s PS %s for CL %q", system.ID, psID, clID)
 			}
 			return ps, nil
 		} else if err != nil {
@@ -343,9 +341,7 @@ func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.Re
 	if err == clstore.ErrNotFound {
 		ps, err := system.Client.GetPatchset(ctx, clID, "", psOrder)
 		if err != nil {
-			sklog.Warningf("Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
-			// Try again later
-			return code_review.Patchset{}, ingestion.ErrRetryable
+			return code_review.Patchset{}, skerr.Wrapf(err, "Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
 		}
 		return ps, nil
 	} else if err != nil {
