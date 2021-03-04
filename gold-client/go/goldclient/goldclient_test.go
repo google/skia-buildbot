@@ -1107,11 +1107,6 @@ func TestPositivePassFail(t *testing.T) {
 	// Returns true because this test has been seen before and the digest was
 	// previously triaged positive.
 	assert.True(t, pass)
-
-	// Failure file exists, but is empty if no failures
-	b, err := ioutil.ReadFile(filepath.Join(wd, failureLog))
-	assert.NoError(t, err)
-	assert.Equal(t, "", string(b))
 }
 
 // TestCheckSunnyDay emulates running goldctl auth; goldctl imgtest check ... where the

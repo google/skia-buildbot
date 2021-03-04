@@ -300,10 +300,6 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 	logs := output.String()
 	exit.AssertWasCalledWithCode(t, 0, logs)
 	mg.AssertExpectations(t)
-
-	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
-	require.NoError(t, err)
-	assert.Empty(t, fb)
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t *testing.T) {
@@ -459,10 +455,6 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 	logs := output.String()
 	exit.AssertWasCalledWithCode(t, 0, logs)
 	mg.AssertExpectations(t)
-
-	fb, err := ioutil.ReadFile(filepath.Join(workDir, "failures.txt"))
-	require.NoError(t, err)
-	assert.Empty(t, fb)
 }
 
 func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(t *testing.T) {
