@@ -41,6 +41,7 @@ go_test(
     srcs = ["gold_ingestion_test.go"],
     embed = [":gold_ingestion_lib"],
     deps = [
+        "//go/metrics2",
         "//go/testutils",
         "//go/testutils/unittest",
         "//golden/go/config",
