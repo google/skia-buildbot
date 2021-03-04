@@ -9,9 +9,7 @@ go_library(
     importpath = "go.skia.org/infra/new_element",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/skerr",
         "//go/util",
-        "@com_github_geertjohan_go_rice//:go_rice",
         "@com_github_geertjohan_go_rice//embedded",
     ],
 )

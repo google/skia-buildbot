@@ -14,11 +14,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"text/template"
 
-	rice "github.com/GeertJohan/go.rice"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -43,14 +42,9 @@ func exists(filename string) bool {
 
 // new returns an http.FileSystem with all the templates.
 func new() (http.FileSystem, error) {
-	conf := rice.Config{
-		LocateOrder: []rice.LocateMethod{rice.LocateFS, rice.LocateEmbedded},
-	}
-	box, err := conf.FindBox("templates")
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return box.HTTPBox(), nil
+	_, filename, _, _ := runtime.Caller(1)
+
+	return http.Dir(filepath.Join(filepath.Dir(filename), "./templates")), nil
 }
 
 func main() {
