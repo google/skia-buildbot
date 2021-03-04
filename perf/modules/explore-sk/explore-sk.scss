@@ -42,6 +42,10 @@ explore-sk {
   query-values-sk {
     display: flex;
     flex-direction: column;
+
+    #values {
+      height: 20em;
+    }
   }
 
   #bottomButtons {
@@ -180,14 +184,15 @@ explore-sk {
 
   #query-dialog {
     overflow: auto;
-  }
+    width: 50%;
 
-  #query-dialog paramset-sk {
-    display: inline-block;
-  }
+    paramset-sk {
+      display: inline-block;
 
-  #query-dialog paramset-sk div {
-    display: block;
+      div {
+        display: block;
+      }
+    }
   }
 
   textarea {
