@@ -12,6 +12,7 @@ import (
 	"net/http/pprof"
 	"net/url"
 	"os"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
@@ -43,7 +44,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
-	"go.skia.org/infra/perf/go/dist"
 	"go.skia.org/infra/perf/go/dryrun"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/notify"
@@ -305,10 +305,14 @@ func (f *Frontend) initialize() {
 	cfg := config.Config
 
 	ctx := context.Background()
-	f.distFileSystem, err = dist.New()
-	if err != nil {
-		sklog.Fatal(err)
+
+	// Fix up resources dir values.
+	if f.flags.ResourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(1)
+		f.flags.ResourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
 	}
+
+	f.distFileSystem = http.Dir(f.flags.ResourcesDir)
 
 	scopes := []string{storage.ScopeReadOnly, auth.SCOPE_GERRIT}
 
