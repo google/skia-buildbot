@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"sort"
+
+	"github.com/aclements/go-moremath/stats"
 )
 
 const (
@@ -179,6 +181,39 @@ func ScaleBy(a []float32, b float32) {
 				a[i] = MissingDataSentinel
 			} else {
 				a[i] = scaled
+			}
+		}
+	}
+}
+
+// IQRR sets each outlier, as computed by the interquartile rule, to the missing
+// data sentinel.
+//
+// See https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data/box-whisker-plots/a/identifying-outliers-iqr-rule
+func IQRR(a []float32) {
+	float64Arr := []float64{}
+	for _, x := range a {
+		if x != MissingDataSentinel {
+			float64Arr = append(float64Arr, float64(x))
+		}
+	}
+
+	values := stats.Sample{Xs: float64Arr}
+	q1 := values.Quantile(0.25)
+	q3 := values.Quantile(0.75)
+	if math.IsNaN(q1) || math.IsNaN(q3) {
+		return
+	}
+	if math.IsInf(q1, 0) || math.IsInf(q3, 0) {
+		return
+	}
+
+	lo := float32(q1 - 1.5*(q3-q1))
+	hi := float32(q3 + 1.5*(q3-q1))
+	for i, x := range a {
+		if x != MissingDataSentinel {
+			if x < lo || x > hi {
+				a[i] = MissingDataSentinel
 			}
 		}
 	}

@@ -108,6 +108,7 @@ func NewContext(rowsFromQuery RowsFromQuery, rowsFromShortcut RowsFromShortcut) 
 			"step":         traceStepFunc,
 			"scale_by_ave": scaleByAveFunc,
 			"scale_by_avg": scaleByAveFunc,
+			"iqrr":         iqrrFunc,
 		},
 	}
 }
