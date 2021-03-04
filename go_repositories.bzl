@@ -902,13 +902,6 @@ def go_repositories():
     )
 
     go_repository(
-        name = "com_github_geertjohan_go_rice",
-        importpath = "github.com/GeertJohan/go.rice",
-        sum = "h1:KkI6O9uMaQU3VEKaj01ulavtF7o1fWT7+pk/4voiMLQ=",
-        version = "v1.0.0",
-    )
-
-    go_repository(
         name = "com_github_ghodss_yaml",
         importpath = "github.com/ghodss/yaml",
         sum = "h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=",

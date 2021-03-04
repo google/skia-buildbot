@@ -7,18 +7,7 @@ docs:
 	perf-tool markdown > PERFTOOL.md
 	perfserver markdown > PERFSERVER.md
 
-# The command line tool that embeds plain files into Go code.
-${GOPATH}/bin/rice:
-	go get github.com/GeertJohan/go.rice/rice
-
-go/sql/migrations/cockroachdb/rice-box.go: $(wildcard ./migrations/cockroachdb/*) ${GOPATH}/bin/rice
-	cd go/sql/migrations/cockroachdb; rice embed-go
-
-# The SQL migration files are embedded via Go files and linked into the executable.
-.PHONY: migration_source
-migration_source: go/sql/migrations/cockroachdb/rice-box.go
-
-build: migration_source ./dist
+build: ./dist
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver ./go/perf-tool
 	./images/perfserver/release
 
@@ -29,7 +18,7 @@ package-lock.json: package.json
 	npm ci
 	touch package-lock.json
 
-build_backup: migration_source
+build_backup:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-tool
 	./images/backup/release
 

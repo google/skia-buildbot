@@ -90,7 +90,6 @@ def RunSteps(api):
       'github.com/kisielk/errcheck',
       'golang.org/x/tools/cmd/goimports',
       'golang.org/x/tools/cmd/stringer',
-      'github.com/GeertJohan/go.rice/rice',
       'github.com/twitchtv/twirp/protoc-gen-twirp',
       'go.larrymyers.com/protoc-gen-twirp_typescript'
     ]

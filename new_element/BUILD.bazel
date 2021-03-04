@@ -2,16 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "new_element_lib",
-    srcs = [
-        "main.go",
-        "rice-box.go",
-    ],
+    srcs = ["main.go"],
     importpath = "go.skia.org/infra/new_element",
     visibility = ["//visibility:private"],
-    deps = [
-        "//go/util",
-        "@com_github_geertjohan_go_rice//embedded",
-    ],
+    deps = ["//go/util"],
 )
 
 go_binary(
