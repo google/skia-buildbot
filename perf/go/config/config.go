@@ -221,6 +221,7 @@ type FrontendFlags struct {
 	NumShift                       int
 	Port                           string
 	PromPort                       string
+	ResourcesDir                   string
 	InternalPort                   string
 	Radius                         int
 	StepUpOnly                     bool
@@ -351,6 +352,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "internal_port",
 			Value:       ":9000",
 			Usage:       "HTTP service address for internal clients, e.g. probers. No authentication on this port.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.ResourcesDir,
+			Name:        "resources_dir",
+			Value:       "",
+			Usage:       "The directory to find templates, JS, and CSS files. If blank then ../../dist relative to the current directory will be used.",
 		},
 		&cli.IntFlag{
 			Destination: &flags.Radius,
