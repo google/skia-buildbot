@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b8b17b0a_3cb17913",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 595,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-04T20:32:14Z",
+      "side": 1,
+      "message": "nit: wrap docs to 100 cols",
+      "range": {
+        "startLine": 595,
+        "startChar": 85,
+        "endLine": 595,
+        "endChar": 106
+      },
+      "revId": "728f47f44ebc67d568821527ca45304b1f931e85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
