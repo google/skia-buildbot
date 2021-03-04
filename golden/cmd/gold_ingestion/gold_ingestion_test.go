@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
+
 	"go.skia.org/infra/golden/go/config"
 
 	"github.com/stretchr/testify/assert"
@@ -30,8 +32,9 @@ func TestPubSubSource_IngestFile_PrimaryBranch_NoErrors_Ack(t *testing.T) {
 	ms.On("SetIngested", testutils.AnyContext, realPrimaryBranchFile, mock.Anything).Return(nil)
 
 	ps := pubSubSource{
-		IngestionStore:         ms,
-		PrimaryBranchProcessor: mp,
+		IngestionStore:                 ms,
+		PrimaryBranchProcessor:         mp,
+		PrimaryBranchStreamingLiveness: nopLiveness{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realPrimaryBranchFile)
 	assert.True(t, shouldAck)
@@ -90,9 +93,10 @@ func TestPubSubSource_IngestFile_TryjobData_NoErrors_Ack(t *testing.T) {
 	ms.On("SetIngested", testutils.AnyContext, realTryjobFile, mock.Anything).Return(nil)
 
 	ps := pubSubSource{
-		IngestionStore:         ms,
-		PrimaryBranchProcessor: mp,
-		TryjobProcessor:        mtp,
+		IngestionStore:                   ms,
+		PrimaryBranchProcessor:           mp,
+		TryjobProcessor:                  mtp,
+		SecondaryBranchStreamingLiveness: nopLiveness{},
 	}
 	shouldAck := ps.ingestFile(context.Background(), realTryjobFile)
 	assert.True(t, shouldAck)
@@ -207,8 +211,9 @@ func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 	mp.On("Process", testutils.AnyContext, "file3.json").Return(nil)
 
 	ps := &pubSubSource{
-		PrimaryBranchProcessor: mp,
-		IngestionStore:         mis,
+		PrimaryBranchProcessor:         mp,
+		IngestionStore:                 mis,
+		PrimaryBranchStreamingLiveness: nopLiveness{},
 	}
 
 	startBackupPolling(ctx, isc, []ingestion.FileSearcher{mfs1, mfs2}, ps)
@@ -220,3 +225,17 @@ func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 	mis.AssertExpectations(t)
 	mp.AssertExpectations(t)
 }
+
+// nopLiveness is a no-op metrics2.Liveness implementation to fake out during tests.
+type nopLiveness struct{}
+
+func (n nopLiveness) Get() int64 { return 0 }
+
+func (n nopLiveness) ManualReset(_ time.Time) {}
+
+func (n nopLiveness) Reset() {}
+
+func (n nopLiveness) Close() {}
+
+// Ensure that nopLiveness implements the Liveness interface.
+var _ metrics2.Liveness = (*nopLiveness)(nil)

@@ -684,7 +684,7 @@ groups:
       description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
 
   - alert: GoldPollingIngestionStalled
-    expr: liveness_gold_bt_s{metric="since-last-run"} > 150*60
+    expr: liveness_gold_ingestion_s{metric="since_last_successful_poll"} > 150*60
     labels:
       category: infra
       severity: warning
@@ -694,7 +694,7 @@ groups:
       description: '{{ $labels.app }} has not been able to poll the bucket for missed files to ingest for a while. See https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldpollingingestionstalled'
 
   - alert: GoldStreamingIngestionStalled
-    expr: liveness_gold_bt_s{metric="last-successful-process"} > 24*60*60
+    expr: liveness_gold_ingestion_s{metric="since_last_successful_streaming_result"} > 24*60*60
     labels:
       category: infra
       severity: warning
@@ -742,26 +742,6 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldexpectationsstale'
-
-  - alert: GoldCorruptTryJobParamMaps
-    expr: bad_param_maps > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'TryJobResults may be missing Params. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
-
-  - alert: GoldTryJobResultsIncompleteData
-    expr: bad_results > 0
-    labels:
-      category: infra
-      severity: critical
-      owner: kjlubick@google.com
-    annotations:
-      abbr: '{{ $labels.app }}'
-      description: 'There are a nonzero amount of TryJobResults that were missing Params. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
 
   - alert: GoldNoDataAtHead
     expr: gold_empty_commits_at_head{appgroup!~"gold-chrome.*"} >= 20
