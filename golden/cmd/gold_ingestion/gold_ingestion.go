@@ -37,9 +37,6 @@ import (
 const (
 	// Arbitrarily picked.
 	maxSQLConnections = 20
-
-	// Arbitrarily picked.
-	simultaneousFilesProcessed = 4
 )
 
 type ingestionServerConfig struct {
@@ -65,6 +62,10 @@ type ingestionServerConfig struct {
 	// event (usually). We like our subscription names to be unique and keyed to the instance,
 	// for easier following up on "Why are there so many backed up messages?"
 	IngestionSubscription string `json:"ingestion_subscription"`
+
+	// FilesProcessedInParallel controls how many goroutines are used to process PubSub messages.
+	// The default is 4, but if instances are handling lots of small files, this can be increased.
+	FilesProcessedInParallel int `json:"files_processed_in_parallel" optional:"true"`
 
 	// PrimaryBranchConfig describes how the primary branch ingestion should be configured.
 	PrimaryBranchConfig ingesterConfig `json:"primary_branch_config"`
@@ -309,7 +310,11 @@ func listen(ctx context.Context, isc ingestionServerConfig, p *pubSubSource) err
 		sub.ReceiveSettings.MaxOutstandingMessages = isc.PubSubFetchSize
 	}
 
-	sub.ReceiveSettings.NumGoroutines = simultaneousFilesProcessed
+	if isc.FilesProcessedInParallel == 0 {
+		sub.ReceiveSettings.NumGoroutines = 4
+	} else {
+		sub.ReceiveSettings.NumGoroutines = isc.FilesProcessedInParallel
+	}
 
 	// Blocks until context cancels or PubSub fails in a non retryable way.
 	return skerr.Wrap(sub.Receive(ctx, p.ingestFromPubSubMessage))
