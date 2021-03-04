@@ -2,12 +2,16 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "cockroachdb",
-    srcs = ["cockroachdb.go"],
+    srcs = [
+        "cockroachdb.go",
+        "rice-box.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/sql/migrations/cockroachdb",
     visibility = ["//visibility:public"],
     deps = [
         "//go/repo_root",
         "//go/skerr",
         "@com_github_geertjohan_go_rice//:go_rice",
+        "@com_github_geertjohan_go_rice//embedded",
     ],
 )

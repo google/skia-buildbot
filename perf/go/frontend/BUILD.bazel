@@ -27,7 +27,6 @@ go_library(
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/dfbuilder",
-        "//perf/go/dist",
         "//perf/go/dryrun",
         "//perf/go/git",
         "//perf/go/notify",
