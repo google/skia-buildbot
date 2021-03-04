@@ -22,6 +22,30 @@
       },
       "revId": "728f47f44ebc67d568821527ca45304b1f931e85",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "eb5ce556_40b29a3c",
+        "filename": "go/calc/funcs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 595,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-04T21:02:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8b17b0a_3cb17913",
+      "range": {
+        "startLine": 595,
+        "startChar": 85,
+        "endLine": 595,
+        "endChar": 106
+      },
+      "revId": "728f47f44ebc67d568821527ca45304b1f931e85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
