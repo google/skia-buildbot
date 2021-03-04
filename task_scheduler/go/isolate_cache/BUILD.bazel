@@ -1,1 +1,0 @@
-load("//bazel/go:go_test.bzl", "go_test")
