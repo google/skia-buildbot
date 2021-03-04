@@ -343,3 +343,17 @@ func TestLog(t *testing.T) {
 		}
 	}
 }
+
+func TestIQRR(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := newTestContext(Rows{
+		",name=t1,": []float32{5, 7, 10, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25},
+	}, nil)
+	formula := `iqrr(filter("name=t1"))`
+	rows, err := ctx.Eval(formula)
+	if err != nil {
+		t.Fatalf("Failed to eval iqrr() test: %s", err)
+	}
+	expected := []float32{e, e, e, 15, 19, 21, 21, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25}
+	assert.Equal(t, expected, rows["iqrr(,name=t1,)"])
+}
