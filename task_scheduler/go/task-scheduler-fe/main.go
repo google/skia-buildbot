@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/rs/cors"
+
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
@@ -292,11 +294,23 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// addCorsMiddleware wraps the specified HTTP handler with a handler that applies the
+// CORS specification on the request, and adds relevant CORS headers as necessary.
+// This is needed for some handlers that do not have this middleware. Eg: the twirp
+// handler (https://github.com/twitchtv/twirp/issues/210).
+func addCorsMiddleware(handler http.Handler) http.Handler {
+	corsWrapper := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		Debug:          true,
+	})
+	return corsWrapper.Handler(handler)
+}
+
 func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(httputils.AddCorsMiddleware(srv))
+	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(addCorsMiddleware(srv))
 	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
 	r.HandleFunc("/job/{id}", httputils.OriginTrial(jobHandler, *local))
 	r.HandleFunc("/job/{id}/timeline", httputils.OriginTrial(jobTimelineHandler, *local))
