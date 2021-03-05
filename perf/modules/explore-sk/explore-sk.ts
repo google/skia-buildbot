@@ -107,6 +107,8 @@ class State {
 
   showZero: boolean = true;
 
+  dots: boolean = true; // Whether to show dots when plotting traces.
+
   autoRefresh: boolean = false;
 
   numCommits: number = 50;
@@ -299,15 +301,33 @@ export class ExploreSk extends ElementSk {
         Highlighted Only
       </button>
 
-      <span title='Number of commits skipped between each point displayed.' ?hidden=${ele.isZero(
-    ele._dataframe.skip,
-  )} id=skip>${ele._dataframe.skip}</span>
-      <checkbox-sk name=zero @change=${ele.zeroChangeHandler} ?checked=${
-    ele.state.showZero
-  } label='Zero' title='Toggle the presence of the zero line.'>Zero</checkbox-sk>
-      <checkbox-sk name=auto @change=${ele.autoRefreshHandler} ?checked=${
-    ele.state.autoRefresh
-  } label='Auto-refresh'   title='Auto-refresh the data displayed in the graph.'>Auto-Refresh</checkbox-sk>
+      <span
+        title='Number of commits skipped between each point displayed.'
+        ?hidden=${ele.isZero(ele._dataframe.skip)}
+        id=skip>
+          ${ele._dataframe.skip}
+      </span>
+      <checkbox-sk
+        name=zero
+        @change=${ele.zeroChangeHandler}
+        ?checked=${ele.state.showZero}
+        label='Zero'
+        title='Toggle the presence of the zero line.'>
+      </checkbox-sk>
+      <checkbox-sk
+        name=dots
+        @change=${ele.toggleDotsHandler}
+        ?checked=${ele.state.dots}
+        label='Dots'
+        title='Toggle the presence of dots at each commit.'>
+      </checkbox-sk>
+      <checkbox-sk
+        name=auto
+        @change=${ele.autoRefreshHandler}
+        ?checked=${ele.state.autoRefresh}
+        label='Auto-refresh'
+        title='Auto-refresh the data displayed in the graph.'>
+      </checkbox-sk>
       <div
         id=calcButtons
         ?hide_if_no_data=${!ele.hasData()}>
@@ -326,7 +346,6 @@ export class ExploreSk extends ElementSk {
           title='Apply iqrr() to all the traces.'>
           Remove outliers
         </button>
-
         <button
           @click=${ele.csv}
           title='Download all displayed data as a CSV file.'>
@@ -783,6 +802,7 @@ export class ExploreSk extends ElementSk {
         };
 
         this._render();
+        this.plot!.dots = this.state.dots;
         // If there is at least one query, the use the last one to repopulate the
         // query-sk dialog.
         const numQueries = this.state.queries.length;
@@ -884,6 +904,12 @@ export class ExploreSk extends ElementSk {
     this.state.showZero = (e.target! as HTMLInputElement).checked;
     this._stateHasChanged();
     this.zeroChanged();
+  }
+
+  private toggleDotsHandler() {
+    this.state.dots = !this.state.dots;
+    this._stateHasChanged();
+    this.plot!.dots = this.state.dots;
   }
 
   private zeroChanged() {

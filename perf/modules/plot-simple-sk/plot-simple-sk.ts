@@ -399,6 +399,9 @@ export class PlotSimpleSk extends ElementSk {
   // The location of the XBar. See the xbar property..
   private _xbar: number;
 
+  // If true then draw dots on the traces.
+  private _dots: boolean = true;
+
   // The locations of the background bands. See bands property.
   private _bands: number[];
 
@@ -1452,8 +1455,10 @@ export class PlotSimpleSk extends ElementSk {
         ctx.lineWidth = this.SUMMARY_HIGHLIGHT_LINE_WIDTH;
 
         ctx.stroke(highlightedLine.detail.linePath!);
-        ctx.fill(highlightedLine.detail.dotsPath!);
-        ctx.stroke(highlightedLine.detail.dotsPath!);
+        if (this.dots) {
+          ctx.fill(highlightedLine.detail.dotsPath!);
+          ctx.stroke(highlightedLine.detail.dotsPath!);
+        }
       });
 
       // Find the line currently hovered over.
@@ -1471,8 +1476,10 @@ export class PlotSimpleSk extends ElementSk {
         ctx.lineWidth = this.HOVER_LINE_WIDTH;
 
         // Just draw the dots, not the line.
-        ctx.fill(line.detail.dotsPath!);
-        ctx.stroke(line.detail.dotsPath!);
+        if (this.dots) {
+          ctx.fill(line.detail.dotsPath!);
+          ctx.stroke(line.detail.dotsPath!);
+        }
       }
 
       if (!this._inZoomDrag) {
@@ -1600,8 +1607,10 @@ export class PlotSimpleSk extends ElementSk {
         ctx.strokeStyle = line.color;
         ctx.lineWidth = DETAIL_LINE_WIDTH;
         ctx.stroke(line.detail.linePath!);
-        ctx.fill(line.detail.dotsPath!);
-        ctx.stroke(line.detail.dotsPath!);
+        if (this.dots) {
+          ctx.fill(line.detail.dotsPath!);
+          ctx.stroke(line.detail.dotsPath!);
+        }
       });
     }
     ctx.restore();
@@ -1618,8 +1627,10 @@ export class PlotSimpleSk extends ElementSk {
           ctx.strokeStyle = line.color;
           ctx.lineWidth = SUMMARY_LINE_WIDTH;
           ctx.stroke(line.summary.linePath!);
-          ctx.fill(line.summary.dotsPath!);
-          ctx.stroke(line.summary.dotsPath!);
+          if (this.dots) {
+            ctx.fill(line.summary.dotsPath!);
+            ctx.stroke(line.summary.dotsPath!);
+          }
         });
       }
       ctx.restore();
@@ -1761,6 +1772,14 @@ export class PlotSimpleSk extends ElementSk {
     } else {
       this.removeAttribute('summary');
     }
+  }
+
+  /** @prop nodots {boolean} Mirrors the nodots attribute.  */
+  get dots(): boolean { return this._dots; }
+
+  set dots(val: boolean) {
+    this._dots = val;
+    this._drawTracesCanvas();
   }
 }
 
