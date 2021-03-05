@@ -24,6 +24,7 @@ import '../skottie-text-editor'
 import { replaceTexts } from '../skottie-text-editor/text-replace'
 import '../skottie-library-sk'
 import { SoundMap, AudioPlayer } from '../audio'
+import '../skottie-performance-sk'
 import { renderByDomain } from '../helpers/templates'
 import { supportedDomains } from '../helpers/domains'
 
@@ -142,6 +143,14 @@ const libraryButton = (ele) => renderByDomain(
   LIBRARY_SUPPORTED_DOMAINS,
 );
 
+const performanceChart = (ele) => {
+  if (!ele._showPerformanceChart) {
+    return '';
+  }
+  return html`
+<skottie-performance-sk></skottie-performance-sk>`;
+};
+
 const displayLoaded = (ele) => html`
 <button class=edit-config @click=${ ele._startEdit}>
   ${ele._state.filename} ${ele._width}x${ele._height} ...
@@ -167,6 +176,10 @@ const displayLoaded = (ele) => html`
   <checkbox-sk label="Show text editor"
                ?checked=${ele._showTextEditor}
                @click=${ele._toggleTextEditor}>
+  </checkbox-sk>
+  <checkbox-sk label="Show performance chart"
+               ?checked=${ele._showPerformanceChart}
+               @click=${ele._togglePerformanceChart}>
   </checkbox-sk>
   ${libraryButton(ele)}
   <button @click=${ele._toggleEmbed}>Embed</button>
@@ -194,7 +207,6 @@ const displayLoaded = (ele) => html`
     </label>
   </p>
 </collapse-sk>
-
 <section class=figures>
   <figure>
     ${skottiePlayer(ele)}
@@ -204,6 +216,7 @@ const displayLoaded = (ele) => html`
   ${livePreview(ele)}
 </section>
 
+${performanceChart(ele)}
 ${jsonEditor(ele)}
 ${jsonTextEditor(ele)}
 `;
@@ -265,6 +278,7 @@ define('skottie-sk', class extends HTMLElement {
     this._ui = DIALOG_MODE;
     this._hash = '';
     this._skottiePlayer = null;
+    this._skottiePerformanceChart = null;
     this._lottie = null;
     this._live = null;
     this._playing = true;
@@ -276,6 +290,7 @@ define('skottie-sk', class extends HTMLElement {
     this._showLottie = false;
     this._showEditor = false;
     this._showTextEditor = false;
+    this._showPerformanceChart = false;
     this._showLibrary = false;
     this._scrubbing = false;
     this._playingOnStartOfScrub = false;
@@ -292,6 +307,7 @@ define('skottie-sk', class extends HTMLElement {
           'l' : this._showLottie,
           'e' : this._showEditor,
           't' : this._showTextEditor,
+          'p' : this._showPerformanceChart,
           'i' : this._showLibrary,
           'w' : this._width,
           'h' : this._height,
@@ -302,6 +318,7 @@ define('skottie-sk', class extends HTMLElement {
       this._showLottie = newState.l;
       this._showEditor = newState.e;
       this._showTextEditor = newState.t;
+      this._showPerformanceChart = newState.p;
       this._showLibrary = newState.i;
       this._width = newState.w;
       this._height = newState.h;
@@ -346,7 +363,13 @@ define('skottie-sk', class extends HTMLElement {
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
         const normalizedProgress = progress / this._duration;
+        this._skottiePerformanceChart&& this._skottiePerformanceChart.start(
+          progress,
+          this._duration,
+          this._state.lottie.fr
+        );
         this._skottiePlayer && this._skottiePlayer.seek(normalizedProgress);
+        this._skottiePerformanceChart && this._skottiePerformanceChart.end();
         this._skottieLibrary && this._skottieLibrary.seek(normalizedProgress);
 
         // lottie player takes the milliseconds from the beginning of the animation.
@@ -453,6 +476,7 @@ define('skottie-sk', class extends HTMLElement {
       soundMap: this._state.soundMap,
       fps:      this._fps,
     }).then(() => {
+      this._skottiePerformanceChart && this._skottiePerformanceChart.reset();
       this._duration = this._skottiePlayer.duration();
       // If the user has specified a value for FPS, we want to lock the
       // size of the scrubber so it is as discrete as the frame rate.
@@ -671,6 +695,7 @@ define('skottie-sk', class extends HTMLElement {
     render(template(this), this, {eventContext: this});
 
     this._skottiePlayer = $$('skottie-player-sk', this);
+    this._skottiePerformanceChart = $$('skottie-performance-sk', this);
     this._skottieLibrary = $$('skottie-library-sk', this);
 
     if (this._ui === LOADED_MODE) {
@@ -834,6 +859,14 @@ define('skottie-sk', class extends HTMLElement {
     e.preventDefault();
     this._showTextEditor = false;
     this._showEditor = !this._showEditor;
+    this._stateChanged();
+    this.render();
+  }
+
+  _togglePerformanceChart(e) {
+    // avoid double toggles
+    e.preventDefault();
+    this._showPerformanceChart = !this._showPerformanceChart;
     this._stateChanged();
     this.render();
   }
