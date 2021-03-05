@@ -698,7 +698,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r := topLevelRouter.NewRoute().Subrouter()
 	r.Use(httputils.LoggingGzipRequestResponse)
 	r.HandleFunc("/", httputils.CorsHandler(defaultHandler))
-	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
+	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)

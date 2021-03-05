@@ -308,15 +308,15 @@ func addCorsMiddleware(handler http.Handler) http.Handler {
 
 func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
-	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
+	r.HandleFunc("/", mainHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.PathPrefix(rpc.TaskSchedulerServicePathPrefix).Handler(addCorsMiddleware(srv))
-	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
-	r.HandleFunc("/job/{id}", httputils.OriginTrial(jobHandler, *local))
-	r.HandleFunc("/job/{id}/timeline", httputils.OriginTrial(jobTimelineHandler, *local))
-	r.HandleFunc("/jobs/search", httputils.OriginTrial(jobSearchHandler, *local))
-	r.HandleFunc("/task/{id}", httputils.OriginTrial(taskHandler, *local))
-	r.HandleFunc("/trigger", httputils.OriginTrial(triggerHandler, *local))
+	r.HandleFunc("/skip_tasks", skipTasksHandler)
+	r.HandleFunc("/job/{id}", jobHandler)
+	r.HandleFunc("/job/{id}/timeline", jobTimelineHandler)
+	r.HandleFunc("/jobs/search", jobSearchHandler)
+	r.HandleFunc("/task/{id}", taskHandler)
+	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
