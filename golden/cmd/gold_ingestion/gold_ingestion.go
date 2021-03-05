@@ -414,6 +414,7 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesToScan []ingestion.FileSearcher, pss *pubSubSource) {
 	pollingLiveness := metrics2.NewLiveness("gold_ingestion", map[string]string{
 		"metric": "since_last_successful_poll",
+		"source": "combined",
 	})
 
 	go util.RepeatCtx(ctx, isc.BackupPollInterval.Duration, func(ctx context.Context) {
