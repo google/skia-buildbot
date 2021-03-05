@@ -97,7 +97,7 @@ test-frontend-ci:
 run-local-instance:
 	perfserver frontend \
 	    --local \
-		--do_clustering=true \
+		--do_clustering=false \
 		--port=:8001 \
 		--noemail \
 	    --config_filename=./configs/cdb-nano.json \
