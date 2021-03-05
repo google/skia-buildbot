@@ -66,7 +66,6 @@ func (b *btProcessor) Process(ctx context.Context, fileName string) error {
 	defer span.End()
 	r, err := b.source.GetReader(ctx, fileName)
 	if err != nil {
-
 		return skerr.Wrap(err)
 	}
 	gr, err := processGoldResults(ctx, r)
