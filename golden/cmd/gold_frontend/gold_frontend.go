@@ -750,7 +750,6 @@ func addUIRoutes(router *mux.Router, fsc *frontendServerConfig, handlers *web.Ha
 	templateHandler := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
-			httputils.AddOriginTrialHeader(w, fsc.Local)
 
 			// Reload the template if we are running locally.
 			if fsc.Local {
