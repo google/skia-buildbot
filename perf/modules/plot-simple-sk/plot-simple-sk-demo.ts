@@ -107,6 +107,10 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
     ele.bands = [1, 4, 20, 30];
   });
 
+  $$<HTMLButtonElement>('#toggleDots')!.addEventListener('click', () => {
+    ele.dots = !ele.dots;
+  });
+
   $$<HTMLButtonElement>('#special')!.addEventListener('click', () => {
     const trace = [];
     for (let i = 0; i < 50; i++) {
