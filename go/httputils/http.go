@@ -47,33 +47,11 @@ const (
 	// SCHEME_AT_LOAD_BALANCER_HEADER is the header, added by the load balancer,
 	// the has the scheme [http|https] that the original request was made under.
 	SCHEME_AT_LOAD_BALANCER_HEADER = "x-forwarded-proto"
-
-	// localHostWebComponentsV0OriginToken can be used at http://localhost:9000
-	// It expires on Nov 12, 2020.
-	localHostWebComponentsV0OriginToken = `Asj9156nKv8Yaa99na3D87xFo6Y5PVlAFqXN/ffAHF3SqLDauNvamdp2gVApHHBmLncpamWJdaenWNzVyn6sDwQAAABSeyJvcmlnaW4iOiJodHRwOi8vbG9jYWxob3N0OjkwMDAiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA1MjAxNzcwfQ==`
 )
 
 var (
 	serverErr = errors.New("Server error")
 	clientErr = errors.New("Client error")
-
-	// webComponentsV0OriginTokens can be served as HTTP headers on html
-	// pages that still use the v0 webcomponents (e.g. Polymer). According
-	// to documentation, it is valid to supply all of these tokens, despite
-	// some of them not matching the origin of the current page:
-	// http://googlechrome.github.io/OriginTrials/developer-guide.html#15-can-i-provide-multiple-tokens-on-a-page
-	webComponentsV0OriginTokens = []string{
-		// *.skia.org; expires 12 Nov 2020.
-		`Al33X34uF+jRN7CIQv5R/UbaMyBlPBfyqVPK1O+GIzO1/h1ybaqM3744R40n0c0poZd+hLmBMZHoQIHz/Mc1RwkAAABkeyJvcmlnaW4iOiJodHRwczovL3NraWEub3JnOjQ0MyIsImZlYXR1cmUiOiJXZWJDb21wb25lbnRzVjAiLCJleHBpcnkiOjE2MDUxOTg0OTUsImlzU3ViZG9tYWluIjp0cnVlfQ==`,
-		// skia-android-compile.corp.goog; expires 6 Jan 2021.
-		`As6l+EAhLq3MEh4giGRYh3H8RcUWOVoS7DujASVd5FAk+W5YCdE4a0hWIT/Il+KFRIKlUPoFGApGi+DAN/cdpwMAAABneyJvcmlnaW4iOiJodHRwczovL3NraWEtYW5kcm9pZC1jb21waWxlLmNvcnAuZ29vZzo0NDMiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA5OTU5NjY0fQ==`,
-		// skia-autoroll.corp.goog; expires 6 Jan 2021.
-		`Asdfqej+gvgjqSUmpQFox2OD7rJZPWWcoQijMk84Bi5l0aptkBTGuGRwEBUbbTBrHEAA91683sK4EyCyS9/OOQQAAABgeyJvcmlnaW4iOiJodHRwczovL3NraWEtYXV0b3JvbGwuY29ycC5nb29nOjQ0MyIsImZlYXR1cmUiOiJXZWJDb21wb25lbnRzVjAiLCJleHBpcnkiOjE2MDk5NTk3NTJ9`,
-		// skia-status.corp.goog; expires 6 Jan 2021.
-		`AmLLkXuv9bR+vFPBoca2xc8MncSvaSb2tdZuUtrN+oey/cyt6zPxAmD69cUC3BCfD/xPmCq31ePxRghN9yP8igkAAABeeyJvcmlnaW4iOiJodHRwczovL3NraWEtc3RhdHVzLmNvcnAuZ29vZzo0NDMiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA5OTU5ODA5fQ==`,
-		// skia-task-scheduler.corp.goog; expires 6 Jan 2021.
-		`AoTcyXL07CoZ1AQAxf/ZFMCNUuUTiZnof/+ocgB4dz8Wz32IHp305cQXfuitdUor2sGs4zohrLOIuorCqJR2eAIAAABmeyJvcmlnaW4iOiJodHRwczovL3NraWEtdGFzay1zY2hlZHVsZXIuY29ycC5nb29nOjQ0MyIsImZlYXR1cmUiOiJXZWJDb21wb25lbnRzVjAiLCJleHBpcnkiOjE2MDk5NTk4MzJ9`,
-	}
 )
 
 // HealthCheckHandler returns 200 OK with an empty body, appropriate
@@ -667,7 +645,7 @@ func GetBaseURL(urlStr string) (string, error) {
 //
 func HTTPS(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
-		if "http" == r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) {
+		if r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) == "http" {
 			u := *r.URL
 			u.Host = r.Host
 			u.Scheme = "https"
@@ -734,26 +712,6 @@ func RunHealthCheckServer(port string) {
 	h = HealthzAndHTTPS(h)
 	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(port, nil))
-}
-
-// AddOriginTrialHeader adds the proper headers to re-enable WebComponents v0 in Chrome.
-func AddOriginTrialHeader(w http.ResponseWriter, local bool) {
-	if local {
-		w.Header().Set("Origin-Trial", localHostWebComponentsV0OriginToken)
-	} else {
-		for _, tok := range webComponentsV0OriginTokens {
-			w.Header().Add("Origin-Trial", tok)
-		}
-	}
-}
-
-// OriginTrial is a handler wrapper which adds the proper headers to re-enable
-// WebComponents v0 in Chrome.
-func OriginTrial(h http.HandlerFunc, local bool) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		AddOriginTrialHeader(w, local)
-		h(w, r)
-	}
 }
 
 // GetWithContext is a helper function to execute a GET request to the given url using the

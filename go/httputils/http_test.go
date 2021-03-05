@@ -99,7 +99,7 @@ func TestBackoffTransport(t *testing.T) {
 		require.NoError(t, err)
 		now := time.Now()
 		resp, err := bt.RoundTrip(r)
-		dur := time.Now().Sub(now)
+		dur := time.Since(now)
 		expected := codes[len(codes)-1]
 		if expected == 0 {
 			require.Equal(t, mockRoundTripErr, err)
