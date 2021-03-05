@@ -1,5 +1,10 @@
+/* eslint-disable dot-notation */
 import { assert } from 'chai';
-import { calculateRangeChange } from './explore-sk';
+import fetchMock from 'fetch-mock';
+import { FrameRequest, progress } from '../json';
+import { calculateRangeChange, ExploreSk } from './explore-sk';
+
+fetchMock.config.overwriteRoutes = true;
 
 describe('calculateRangeChange', () => {
   const offsets: [number, number] = [100, 120];
@@ -59,5 +64,42 @@ describe('calculateRangeChange', () => {
 
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isFalse(ret.rangeChange);
+  });
+});
+
+describe('applyFuncToTraces', () => {
+  window.sk = {
+    perf: {
+      radius: 2,
+      key_order: null,
+      num_shift: 50,
+      interesting: 2,
+      step_up_only: false,
+      commit_range_url: '',
+      demo: true,
+      display_group_by: false,
+    },
+  };
+
+  // Create a common element-sk to be used by all the tests.
+  const explore = document.createElement('explore-sk') as ExploreSk;
+  document.body.appendChild(explore);
+
+  const finishedBody: progress.SerializedProgress = {
+    status: 'Finished',
+    messages: [{ key: 'Step', value: '2/2' }],
+    results: { somedata: 1 },
+    url: '',
+  };
+
+  it('applies the func to existing formulas', async () => {
+    const startURL = '/_/frame/start';
+    fetchMock.post(startURL, finishedBody);
+    explore['state'].formulas = ['shortcut("Xfoo")'];
+    await explore['applyFuncToTraces']('iqrr');
+    assert.isTrue(fetchMock.done());
+    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string);
+    assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
+    fetchMock.restore();
   });
 });
