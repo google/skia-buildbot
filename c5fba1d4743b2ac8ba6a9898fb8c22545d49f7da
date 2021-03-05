@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5a658ad6_ceb7bd41",
+        "filename": "skottie/modules/skottie-performance-sk/skottie-performance-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-05T20:55:19Z",
+      "side": 1,
+      "message": "nit: remove commented out code here and below.",
+      "range": {
+        "startLine": 97,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 18
+      },
+      "revId": "c5fba1d4743b2ac8ba6a9898fb8c22545d49f7da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
