@@ -47,7 +47,7 @@ var (
 )
 
 func metricsAnalysisOnWorkers() error {
-	swarmingClient, err := master_common.Init("run_metrics_analysis")
+	swarmingClient, casClient, err := master_common.Init("run_metrics_analysis")
 	if err != nil {
 		return fmt.Errorf("Could not init: %s", err)
 	}
@@ -132,14 +132,13 @@ func metricsAnalysisOnWorkers() error {
 
 	// Trigger task to return hash of telemetry isolates.
 	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 	}
 	if telemetryHash == "" {
 		return errors.New("Found empty telemetry hash!")
 	}
-	isolateDeps := []string{telemetryHash}
 
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
@@ -155,7 +154,9 @@ func metricsAnalysisOnWorkers() error {
 		"--metric_name=" + *metricName,
 		"--value_column_name=" + *valueColumnName,
 	}
-	numWorkers, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
+	casSpec := util.CasMetricsAnalysis()
+	casSpec.IncludeDigests = append(casSpec.IncludeDigests, telemetryHash)
+	numWorkers, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", *runID, util.PLATFORM_LINUX, casSpec, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}

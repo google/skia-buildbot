@@ -24,6 +24,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
@@ -57,7 +58,8 @@ var (
 	// Will be used to construct task specific URLs in emails. Will have a trailing "/".
 	WebappURL string
 
-	swarm swarming.ApiClient
+	swarm     swarming.ApiClient
+	casClient cas.CAS
 )
 
 type CommonCols struct {
@@ -84,7 +86,7 @@ type CommonCols struct {
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error
+	TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error
 	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
 	SetCompleted(success bool)
@@ -265,7 +267,7 @@ func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask 
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
 		autoscaler.RegisterGCETask(taskId)
 	}
-	return datastoreTask.TriggerSwarmingTaskAndMail(ctx, swarm)
+	return datastoreTask.TriggerSwarmingTaskAndMail(ctx, swarm, casClient)
 }
 
 type QueryParams struct {
@@ -799,13 +801,14 @@ func AddHandlers(externalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
 }
 
-func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, getGCETasksCount func(ctx context.Context) (int, error)) error {
+func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, cas cas.CAS, getGCETasksCount func(ctx context.Context) (int, error)) error {
 	WebappURL = ctfeURL
 	if WebappURL[len(WebappURL)-1:] != "/" {
 		WebappURL = WebappURL + "/"
 	}
 	ServiceAccountFile = serviceAccountFileFlagVal
 	swarm = swarmingClient
+	casClient = cas
 	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
 	if err != nil {
 		sklog.Fatal(err)
