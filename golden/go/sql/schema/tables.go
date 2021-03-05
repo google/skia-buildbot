@@ -58,12 +58,12 @@ const (
 	NBTrue  NullableBool = 2
 )
 
-type ExpectationLabel rune
+type ExpectationLabel string
 
 const (
-	LabelUntriaged ExpectationLabel = 'u'
-	LabelPositive  ExpectationLabel = 'p'
-	LabelNegative  ExpectationLabel = 'n'
+	LabelUntriaged ExpectationLabel = "u"
+	LabelPositive  ExpectationLabel = "p"
+	LabelNegative  ExpectationLabel = "n"
 )
 
 type ChangelistStatus string
@@ -343,7 +343,7 @@ type ExpectationRow struct {
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r ExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"grouping_id", "digest", "label", "expectation_record_id"},
-		[]interface{}{r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
+		[]interface{}{r.GroupingID, r.Digest, r.Label, r.ExpectationRecordID}
 }
 
 // DiffMetricRow represents the pixel-by-pixel comparison between two images (identified by their
