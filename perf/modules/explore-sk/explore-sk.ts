@@ -312,17 +312,17 @@ export class ExploreSk extends ElementSk {
         id=calcButtons
         ?hide_if_no_data=${!ele.hasData()}>
         <button
-          @click=${ele.norm}
+          @click=${() => ele.applyFuncToTraces('norm')}
           title='Apply norm() to all the traces.'>
           Normalize
         </button>
         <button
-          @click=${ele.scaleByAvg}
+          @click=${() => ele.applyFuncToTraces('scale_by_avg')}
           title='Apply scale_by_avg() to all the traces.'>
           Scale By Avg
         </button>
         <button
-          @click=${ele.iqrr}
+          @click=${() => { ele.applyFuncToTraces('iqrr'); }}
           title='Apply iqrr() to all the traces.'>
           Remove outliers
         </button>
@@ -1055,7 +1055,7 @@ export class ExploreSk extends ElementSk {
    * Returns the Promise that's creating the shortcut, or undefined if
    * there isn't a shortcut to create.
    */
-  private reShortCut(keys: string[]) {
+  private reShortCut(keys: string[]): Promise<void> | undefined {
     if (keys.length === 0) {
       this.state.keys = '';
       this.state.queries = [];
@@ -1087,7 +1087,7 @@ export class ExploreSk extends ElementSk {
    * Returns the Promise that's creating the shortcut, or undefined if
    * there isn't a shortcut to create.
    */
-  private shortcutAll() {
+  private shortcutAll(): Promise<void> | undefined {
     const toShortcut: string[] = [];
 
     Object.keys(this._dataframe.traceset).forEach((key) => {
@@ -1099,69 +1099,26 @@ export class ExploreSk extends ElementSk {
     return this.reShortCut(toShortcut);
   }
 
-  // Apply norm() to all the traces currently being displayed.
-  private norm() {
-    const promise = this.shortcutAll();
-    if (!promise) {
-      errorMessage('No traces to normalize.');
-      return;
-    }
-    promise.then(() => {
-      const f = `norm(shortcut("${this.state.keys}"))`;
-      this.removeAll(true);
-      const body = this.requestFrameBodyFullFromState();
-      Object.assign(body, {
-        formulas: [f],
-      });
-      this.state.formulas.push(f);
-      this._stateHasChanged();
-      this.requestFrame(body, (json) => {
-        this.addTraces(json, false);
-      });
-    });
-  }
+  private async applyFuncToTraces(funcName: string) {
+    // Move all non-formula traces into a shortcut.
+    await this.shortcutAll();
 
-  // Apply iqrr() to all the traces currently being displayed.
-  private iqrr() {
-    const promise = this.shortcutAll();
-    if (!promise) {
-      errorMessage('No traces to process.');
-      return;
+    // Apply the func to the shortcut traces.
+    let updatedFormulas: string[] = [];
+    if (this.state.keys !== '') {
+      updatedFormulas.push(`${funcName}(shortcut("${this.state.keys}"))`);
     }
-    promise.then(() => {
-      const f = `iqrr(shortcut("${this.state.keys}"))`;
-      this.removeAll(true);
-      const body = this.requestFrameBodyFullFromState();
-      Object.assign(body, {
-        formulas: [f],
-      });
-      this.state.formulas.push(f);
-      this._stateHasChanged();
-      this.requestFrame(body, (json) => {
-        this.addTraces(json, false);
-      });
-    });
-  }
 
-  /** Apply scale_by_avg() to all the traces currently being displayed. */
-  private scaleByAvg() {
-    const promise = this.shortcutAll();
-    if (!promise) {
-      errorMessage('No traces to scale.');
-      return;
-    }
-    promise.then(() => {
-      const f = `scale_by_avg(shortcut("${this.state.keys}"))`;
-      this.removeAll(true);
-      const body = this.requestFrameBodyFullFromState();
-      Object.assign(body, {
-        formulas: [f],
-      });
-      this.state.formulas.push(f);
-      this._stateHasChanged();
-      this.requestFrame(body, (json) => {
-        this.addTraces(json, false);
-      });
+    // Also apply the func to any existing formulas.
+    updatedFormulas = updatedFormulas.concat(
+      this.state.formulas.map((f) => `${funcName}(${f})`),
+    );
+
+    this.removeAll(true);
+    this.state.formulas = updatedFormulas;
+    this._stateHasChanged();
+    this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
+      this.addTraces(json, false);
     });
   }
 
