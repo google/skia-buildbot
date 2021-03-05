@@ -3,7 +3,6 @@ package httputils
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,7 +13,6 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -449,58 +447,10 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 	}
 }
 
-// MakeRenamingResourceHandler is an HTTP handler function designed for serving files.
-// It takes a map that can be used to alias a url. The primary usecase is to have the
-// url be distinct from the file that will show the content. e.g. /foo/bar can be represented
-// by my-custom-element.html in the passed in resourcesDir
-func MakeRenamingResourceHandler(resourcesDir string, aliases map[string]string) func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
-		if newURL, ok := aliases[r.URL.Path]; ok {
-			r.URL.Path = newURL
-		}
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
 // CorsHandler is an HTTP handler function which adds the necessary header for CORS.
 func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
-		h(w, r)
-	}
-}
-
-// CorsCredentialsHandler is an HTTPS handler function which adds the necessary header
-// for a CORS request using credentials. This allows, for example, status.skia.org to
-// make a request to gold.skia.org using the *.skia.org cookie that is shared
-// between them.
-//
-// To have the browser use the cookie, the withCredentials on the XMLHttpRequest
-// must be true, or the credentials option must be true when using fetch.
-// In addition to this client-side setting, the server must set
-// Access-Control-Allow-Credentials to be true.
-//
-// However, Access-Control-Allow-Origin (ACAO) cannot be the wildcard "*", or the browser
-// gets upset (https://stackoverflow.com/q/19743396) The ACAO must be exactly the origin
-// of the request (lists of origins aren't supported [1]). The best practice is to
-// write the ACAO header dynamically, based on the requesting Origin header, which is what
-// is done here, assuming the header ends with the passed in originSuffix (e.g. ".skia.org")
-//
-// [1] https://www.w3.org/TR/cors/#access-control-allow-origin-response-header
-//     "In practice the origin-list-or-null production is more constrained. Rather
-//      than allowing a space-separated list of origins, it is either a single origin
-//      or the string "null"."
-func CorsCredentialsHandler(h func(http.ResponseWriter, *http.Request), originSuffix string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if origin, ok := r.Header["Origin"]; ok {
-			if strings.HasSuffix(origin[0], originSuffix) {
-				w.Header().Add("Access-Control-Allow-Origin", origin[0])
-				w.Header().Add("Access-Control-Allow-Credentials", "true")
-			}
-		}
-
 		h(w, r)
 	}
 }
@@ -541,26 +491,6 @@ func getPositiveInt(query url.Values, param string, defaultVal int) (int, error)
 		return defaultVal, nil
 	}
 	return val, nil
-}
-
-// ParseFormValues reads form values from the http.Request and sets them on the
-// given struct. Follows JSON decoding rules.
-func ParseFormValues(r *http.Request, rv interface{}) error {
-	if err := r.ParseForm(); err != nil {
-		return err
-	}
-	// Take the first value for each key.
-	m := make(map[string]string, len(r.Form))
-	for k, v := range r.Form {
-		m[k] = v[0]
-	}
-
-	// Decode using the json package.
-	b, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(b, rv)
 }
 
 // MetricsTransport is an http.RoundTripper which logs each request to metrics.
@@ -613,23 +543,6 @@ func NewMetricsTransport(rt http.RoundTripper) http.RoundTripper {
 func AddMetricsToClient(c *http.Client) *http.Client {
 	c.Transport = NewMetricsTransport(c.Transport)
 	return c
-}
-
-// GetBaseURL strips everything but the scheme and hostname from the given URL e.g.:
-//
-//    https://example.com/some/path/action#abcde => https://example.com
-//
-// If the input URL cannot be parsed an error is returned.
-func GetBaseURL(urlStr string) (string, error) {
-	parsedURL, err := url.Parse(urlStr)
-	if err != nil {
-		return "", err
-	}
-	rv := url.URL{
-		Scheme: parsedURL.Scheme,
-		Host:   parsedURL.Host,
-	}
-	return rv.String(), nil
 }
 
 // HTTPS forces traffic to go over HTTPS.  See:
