@@ -170,7 +170,7 @@ func (b *TablesBuilder) finalizeExpectations() []*schema.ExpectationRow {
 				continue
 			}
 			if existingRecord.Label != ed.LabelBefore {
-				logAndPanic("Expectation Delta precondition is incorrect. Label before was %d: %#v", existingRecord.Label, ed)
+				logAndPanic("Expectation Delta precondition is incorrect. Label before was %s: %#v", existingRecord.Label, ed)
 			}
 			existingRecord.Label = ed.LabelAfter
 			existingRecord.ExpectationRecordID = &ed.ExpectationRecordID
@@ -507,7 +507,7 @@ func (b *TablesBuilder) Build() schema.Tables {
 					continue
 				}
 				if existingRecord.Label != delta.LabelBefore {
-					logAndPanic("Expectation Delta precondition is incorrect. Label before was %d: %#v", existingRecord.Label, delta)
+					logAndPanic("Expectation Delta precondition is incorrect. Label before was %s: %#v", existingRecord.Label, delta)
 				}
 				existingRecord.Label = delta.LabelAfter
 				existingRecord.ExpectationRecordID = delta.ExpectationRecordID
