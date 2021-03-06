@@ -41,6 +41,6 @@ sk_demo_page_server(
 
 sk_element_puppeteer_test(
     name = "puppeteer_test",
-    srcs = [":example-control-sk_puppeteer_test.ts"],
+    src = "example-control-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
 )

@@ -41,6 +41,6 @@ sk_demo_page_server(
 
 sk_element_puppeteer_test(
     name = "puppeteer_test",
-    srcs = [":{{.ElementName}}_puppeteer_test.ts"],
+    src = "{{.ElementName}}_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
 )
