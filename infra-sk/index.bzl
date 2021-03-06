@@ -14,7 +14,6 @@ load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo
 
 # Re-export these common rules so we only have to load this .bzl file from our BUILD.bazel files.
 karma_test = _karma_test
-nodejs_test = _nodejs_test
 sass_library = _sass_library
 sk_demo_page_server = _sk_demo_page_server
 ts_library = _ts_library
@@ -116,10 +115,10 @@ def generate_sass_stylesheet_with_imports(name, scss_files_to_import, scss_outpu
         cmd = " && ".join(cmds),
     )
 
-def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibility = None):
-    """Runs a NodeJS unit test using the Mocha test runner.
+def nodejs_test(name, srcs = [], deps = [], tags = [], args = None, visibility = None):
+    """Runs a Node.js unit test using the Mocha test runner.
 
-    For tests that should run in the browser, please use karma_mocha_test instead.
+    For tests that should run in the browser, please use karma_test instead.
 
     Args:
       name: Name of the target.
@@ -132,7 +131,7 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibi
     if args == None:
         args = ["$(rootpath %s)" % src for src in srcs]
 
-    nodejs_test(
+    _nodejs_test(
         name = name,
         entry_point = "@infra-sk_npm//:node_modules/mocha/bin/mocha",
         data = srcs + deps + [
@@ -175,7 +174,7 @@ def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):
       sk_demo_page_server: Label for the sk_demo_page_server target.
       deps: Any ts_library dependencies.
     """
-    nodejs_mocha_test(
+    nodejs_test(
         name = name + "_test_only",
         srcs = srcs,
         tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
