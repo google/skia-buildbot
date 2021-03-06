@@ -15,6 +15,7 @@ go_library(
     importpath = "go.skia.org/infra/go/metrics2",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "@com_github_golang_glog//:glog",
