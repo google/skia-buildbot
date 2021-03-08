@@ -238,6 +238,10 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 				ID:     "ps1",
 				Number: 1,
 			},
+			"ps2": {
+				ID:     "ps2",
+				Number: 2,
+			},
 		},
 	}
 	respBody, err := json.Marshal(ci)
@@ -290,7 +294,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	} else {
 		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	}
-	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 	if !gerritCfg.HasCq {
 		urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}

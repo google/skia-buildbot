@@ -825,9 +825,14 @@ func (p changeListSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 type revisionSlice []*Revision
 
-func (r revisionSlice) Len() int           { return len(r) }
-func (r revisionSlice) Less(i, j int) bool { return r[i].Created.Before(r[j].Created) }
-func (r revisionSlice) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+func (r revisionSlice) Len() int { return len(r) }
+func (r revisionSlice) Less(i, j int) bool {
+	if !util.TimeIsZero(r[i].Created) && !util.TimeIsZero(r[j].Created) {
+		return r[i].Created.Before(r[j].Created)
+	}
+	return r[i].Number < r[j].Number
+}
+func (r revisionSlice) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
 
 // SearchTerm is a wrapper for search terms to pass into the Search method.
 type SearchTerm struct {
