@@ -161,6 +161,24 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "a80bad5b_6bd7a8ef",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-08T19:14:17Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "43a8f7c5_fdf6a66e",
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "22cdd4c8_7e4d4b80",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 5
