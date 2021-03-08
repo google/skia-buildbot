@@ -19,7 +19,7 @@
   pubsub_project_id: "skia-public",
   sql_connection: "root@gold-cockroachdb-public:26234",
   sql_database: "pdfium",
-  known_hashes_gcs_path: "skia-gold-pdfium/hash_files/gold-pdfium-hashes.txt",
+  known_hashes_gcs_path: "skia-pdfium-gm/hash_files/gold-pdfium-hashes.txt",
 
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false
