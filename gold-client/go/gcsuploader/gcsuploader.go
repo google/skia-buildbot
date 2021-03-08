@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
+	"time"
 
 	gstorage "cloud.google.com/go/storage"
+	"github.com/cenkalti/backoff"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/exec"
@@ -144,17 +146,29 @@ func (h *clientImpl) uploadToGCS(ctx context.Context, data []byte, dst string) e
 	bucket, objPath := gcs.SplitGSPath(dst)
 	handle := h.client.Bucket(bucket).Object(objPath)
 
-	// TODO(kjlubick): Check if the file exists before-hand and skip uploading unless
-	// force is set. This could remove the need to read known_hashes
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel() // The docs say to cancel the context in the event of an error or success.
-	w := handle.NewWriter(ctx)
-	_, err := w.Write(data)
+	eb := backoff.NewExponentialBackOff()
+	eb.InitialInterval = time.Second
+	eb.MaxInterval = 10 * time.Second
+	eb.MaxElapsedTime = 30 * time.Second
+	err := backoff.Retry(func() error {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel() // The docs say to cancel the context in the event of an error or success.
+		w := handle.NewWriter(ctx)
+		_, err := w.Write(data)
+		if err != nil {
+			fmt.Printf("Error writing to %s: %s (retrying)\n", dst, err)
+			return skerr.Wrap(err)
+		}
+		if err := w.Close(); err != nil {
+			fmt.Printf("Error closing file %s: %s (retrying)\n", dst, err)
+			return skerr.Wrap(err)
+		}
+		return nil
+	}, eb)
 	if err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "uploading %d bytes to %s with exponential retries", len(data), dst)
 	}
-	return w.Close()
+	return nil
 }
 
 // DryRunImpl implements the GCSUploader and ImageDownloader interfaces (but doesn't
