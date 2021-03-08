@@ -112,9 +112,11 @@ var (
 		HasCq: true,
 		SetCqLabels: map[string]int{
 			LabelCommitQueue: LabelCommitQueueSubmit,
+			LabelBotCommit:   LabelBotCommitApproved,
 		},
 		SetDryRunLabels: map[string]int{
 			LabelCommitQueue: LabelCommitQueueDryRun,
+			LabelBotCommit:   LabelBotCommitApproved,
 		},
 		NoCqLabels: map[string]int{
 			LabelCommitQueue: LabelCommitQueueNone,

@@ -207,6 +207,10 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.Parent
 				ID:     "ps1",
 				Number: 1,
 			},
+			"ps2": {
+				ID:     "ps2",
+				Number: 2,
+			},
 		},
 		WorkInProgress: true,
 	}
@@ -249,7 +253,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.Parent
 	} else {
 		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	}
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 	if !gerritCfg.HasCq {
 		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}
@@ -343,6 +347,10 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 				ID:     "ps1",
 				Number: 1,
 			},
+			"ps2": {
+				ID:     "ps2",
+				Number: 2,
+			},
 		},
 		WorkInProgress: true,
 	}
@@ -379,7 +387,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Mock the request to set the CQ.
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, fakeCommitMsg)
 	require.NoError(t, err)

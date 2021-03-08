@@ -3,9 +3,12 @@ package gerrit
 import (
 	"context"
 	"strings"
+	"time"
 
+	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // EditChange is a helper for creating a new patch set on an existing
@@ -49,10 +52,31 @@ func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch
 	}); err != nil {
 		return ci, skerr.Wrapf(err, "failed to edit change")
 	}
-	// Update the view of the Change to include the new patchset.
-	ci2, err := g.GetIssueProperties(ctx, ci.Issue)
-	if err != nil {
-		return ci, skerr.Wrapf(err, "failed to retrieve issue properties")
+	// Update the view of the Change to include the new patchset. Sometimes
+	// Gerrit lags and doesn't include the second patchset in the response, so
+	// we use retries with exponential backoff until it shows up or the allotted
+	// time runs out.
+	exp := &backoff.ExponentialBackOff{
+		InitialInterval:     time.Second,
+		RandomizationFactor: 0.5,
+		Multiplier:          2,
+		MaxInterval:         16 * time.Second,
+		MaxElapsedTime:      time.Minute,
+		Clock:               backoff.SystemClock,
 	}
-	return ci2, nil
+	var ci2 *ChangeInfo
+	loadChange := func() error {
+		ci2, err = g.GetIssueProperties(ctx, ci.Issue)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to retrieve issue properties")
+		}
+		if len(ci2.Revisions) < 2 {
+			sklog.Errorf("Change is missing second patchset; reloading.")
+			return skerr.Fmt("change is missing second patchset")
+		}
+		sklog.Info("Retrieved issue properties successfully.")
+		return nil
+	}
+
+	return ci2, skerr.Wrap(backoff.Retry(loadChange, exp))
 }
