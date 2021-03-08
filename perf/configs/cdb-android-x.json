@@ -28,7 +28,7 @@
     "branches": [
       "aosp-androidx-master-dev",
       "aosp-androidx-main",
-      "androidx-studio-integration"
+      "git_androidx-studio-integration"
     ],
     "file_ingestion_pubsub_topic_name": ""
   },
