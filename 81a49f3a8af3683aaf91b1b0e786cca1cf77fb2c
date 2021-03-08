@@ -16,6 +16,41 @@
       "message": "Does line 36 not also need an update?",
       "revId": "81a49f3a8af3683aaf91b1b0e786cca1cf77fb2c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0390bc04_ee55ba09",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9705
+      },
+      "writtenOn": "2021-03-08T22:57:34Z",
+      "side": 1,
+      "message": "LGTM but I think we still need a skia committer to +1 too",
+      "revId": "81a49f3a8af3683aaf91b1b0e786cca1cf77fb2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7d6cd0a4_90d9a596",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9705
+      },
+      "writtenOn": "2021-03-08T22:57:34Z",
+      "side": 1,
+      "message": "No, I think that was what we got wrong the last time we did this. The parent repo is emscripten-releases itself, which isn\u0027t changing.",
+      "parentUuid": "5c7f43d9_7bb3c1b0",
+      "revId": "81a49f3a8af3683aaf91b1b0e786cca1cf77fb2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
