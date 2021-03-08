@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f9fe4c52_cce468ab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-08T15:39:54Z",
+      "side": 1,
+      "message": "PTAL",
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "22cdd4c8_7e4d4b80",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 833,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-08T15:39:54Z",
+      "side": 1,
+      "message": "I\u0027m not sure whether this matters outside of testing, but the tests flaked without this.",
+      "range": {
+        "startLine": 830,
+        "startChar": 0,
+        "endLine": 833,
+        "endChar": 33
+      },
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
