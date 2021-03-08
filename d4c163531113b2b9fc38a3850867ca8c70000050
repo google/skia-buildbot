@@ -16,6 +16,98 @@
       "message": "I would especially like feedback on readability of the code and organization of the test.",
       "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae0e25f9_eb6f838e",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-08T20:03:37Z",
+      "side": 1,
+      "message": "Seems like the only invalid sizes are non-positive ones:\nhttps://github.com/hashicorp/golang-lru/blob/80c98217689d6df152309d574ccc682b21dc802c/simplelru/lru.go#L28\n\nMaybe panicking would be simpler here, because it almost surely indicates a coding error, not something we can necessarily recover from.",
+      "range": {
+        "startLine": 59,
+        "startChar": 30,
+        "endLine": 59,
+        "endChar": 72
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3bef637e_95debe45",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-08T20:03:37Z",
+      "side": 1,
+      "message": "Is it OK if one of these fail and we leave the DB partially updated? Would it make sense to wrap this in a SQL transaction, and roll it back if one of these methods returns a non-nil error?",
+      "range": {
+        "startLine": 286,
+        "startChar": 0,
+        "endLine": 310,
+        "endChar": 0
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c4c7f1f1_70a669a9",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-08T20:03:37Z",
+      "side": 1,
+      "message": "Idea, feel free to ignore: extract this pattern into a function, e.g.:\n\n  func chinkInsert(sqlStatement string, chunkSize int, rows []interface{}, extractValuesFromRowFn func(row interface{}) []string) err {\n    ...\n  }\n\nSample usage:\n\n  err :\u003d chunkInsert(\n    `INSERT INTO Groupings (grouping_id, keys) VALUES %s ON CONFLICT DO NOTHING;`,\n    chunkSize,\n    rows,\n    func(row interface{}) []string {\n      r:\u003d row.(schema.GroupingRow)\n      return []string{r.GroupingID, r.Keys}\n    })",
+      "range": {
+        "startLine": 323,
+        "startChar": 0,
+        "endLine": 343,
+        "endChar": 0
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f2fdd5ff_48c16199",
+        "filename": "golden/go/ingestion_processors/primarysql_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-08T20:03:37Z",
+      "side": 1,
+      "message": "I wonder if we could define a function that takes a SQL query and a struct, and does all this heavy lifting for us, including converting from pgtype.Bool to schema.NullableBool, etc. Go\u0027s reflection API might be useful for this.\n\nI feel like such a function could simplify both our tests and our production code.",
+      "range": {
+        "startLine": 367,
+        "startChar": 0,
+        "endLine": 379,
+        "endChar": 10
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
