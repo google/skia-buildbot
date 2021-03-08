@@ -84,6 +84,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "604f3992_87958201",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-08T18:22:36Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "67094b4c_e5a2f1d0",
+      "range": {
+        "startLine": 62,
+        "startChar": 23,
+        "endLine": 62,
+        "endChar": 43
+      },
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "449ff21c_51de7d82",
         "filename": "go/gerrit/change_edit_helpers.go",
         "patchSetId": 5
@@ -113,6 +137,24 @@
       "side": 1,
       "message": "I don\u0027t know.  I\u0027ve only seen the evidence after the fact.  I guess I could add logging and we could watch for it?",
       "parentUuid": "449ff21c_51de7d82",
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "43a8f7c5_fdf6a66e",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-08T18:22:36Z",
+      "side": 1,
+      "message": "Adding some logging would be good",
+      "parentUuid": "3044b1c0_254e92f8",
       "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
