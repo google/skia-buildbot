@@ -51,6 +51,24 @@
       "parentUuid": "5c7f43d9_7bb3c1b0",
       "revId": "81a49f3a8af3683aaf91b1b0e786cca1cf77fb2c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "090f9528_24c1ae21",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10802
+      },
+      "writtenOn": "2021-03-08T22:58:50Z",
+      "side": 1,
+      "message": "I don\u0027t think so does it?   The branch in emscripten-releases that we are merging DEPS changes into is not changing and is still master right?",
+      "parentUuid": "5c7f43d9_7bb3c1b0",
+      "revId": "81a49f3a8af3683aaf91b1b0e786cca1cf77fb2c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
