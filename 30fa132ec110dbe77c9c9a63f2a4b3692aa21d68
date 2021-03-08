@@ -20,6 +20,63 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "16f98923_aee1b378",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-08T18:05:48Z",
+      "side": 1,
+      "message": "LGTM",
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3ec66246_5288659a",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-08T18:05:48Z",
+      "side": 1,
+      "message": "This is confusing. Is this 4 seconds?",
+      "range": {
+        "startLine": 62,
+        "startChar": 23,
+        "endLine": 62,
+        "endChar": 43
+      },
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "449ff21c_51de7d82",
+        "filename": "go/gerrit/change_edit_helpers.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-08T18:05:48Z",
+      "side": 1,
+      "message": "Just curious: When it doesn\u0027t work the first time, how long before it typically starts working? is it on the 1st retry?",
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "22cdd4c8_7e4d4b80",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 5
@@ -31,6 +88,30 @@
       "writtenOn": "2021-03-08T15:39:54Z",
       "side": 1,
       "message": "I\u0027m not sure whether this matters outside of testing, but the tests flaked without this.",
+      "range": {
+        "startLine": 830,
+        "startChar": 0,
+        "endLine": 833,
+        "endChar": 33
+      },
+      "revId": "30fa132ec110dbe77c9c9a63f2a4b3692aa21d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "40455229_5c111f3e",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 833,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-08T18:05:48Z",
+      "side": 1,
+      "message": "I\u0027m not sure either",
+      "parentUuid": "22cdd4c8_7e4d4b80",
       "range": {
         "startLine": 830,
         "startChar": 0,
