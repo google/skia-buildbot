@@ -67,7 +67,7 @@ func (a *authOpt) Validate() error {
 // GetHTTPClient implements the AuthOpt interface.
 func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if a.GSUtil {
-		return httputils.DefaultClientConfig().Client(), nil
+		return httputils.DefaultClientConfig().WithoutRetries().Client(), nil
 	}
 	var tokenSrc oauth2.TokenSource
 	if a.Luci {
@@ -89,7 +89,7 @@ func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if _, err := tokenSrc.Token(); err != nil {
 		return nil, skerr.Wrapf(err, "retrieving initial auth token")
 	}
-	return httputils.DefaultClientConfig().WithTokenSource(tokenSrc).Client(), nil
+	return httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(tokenSrc).Client(), nil
 }
 
 // GetGCSUploader implements the AuthOpt interface.

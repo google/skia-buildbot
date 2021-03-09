@@ -6,68 +6,58 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/cenkalti/backoff"
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
-const maxAttempts = 5
-
 // getWithRetries makes a GET request with retries to work around the rare unexpected EOF error.
 // See https://crbug.com/skia/9108.
-//
-// Note: http.Client retries certain kinds of request upon encountering network errors. See
-// https://golang.org/pkg/net/http/#Transport for more. This function covers other errors.
 func getWithRetries(ctx context.Context, url string) ([]byte, error) {
-	var lastErr error
 	httpClient := extractHTTPClient(ctx)
 
-	for attempts := 0; attempts < maxAttempts; attempts++ {
-		if err := ctx.Err(); err != nil {
-			return nil, skerr.Wrapf(err, "context error")
-		}
-		if lastErr != nil {
-			fmt.Printf("Retry attempt #%d after error: %s\n", attempts, lastErr)
-			// reset the error
-			lastErr = nil
+	eb := backoff.NewExponentialBackOff()
+	eb.InitialInterval = time.Second
+	eb.MaxInterval = 10 * time.Second
+	eb.MaxElapsedTime = 30 * time.Second
 
-			// Sleep to give the server time to recover, if needed.
-			time.Sleep(time.Duration(500+rand.Int31n(1000)) * time.Millisecond)
-		}
-
-		// wrap in a function to make sure the defer resp.Body.Close() can
-		// happen before we try again.
-		b, err := func() ([]byte, error) {
-			resp, err := httpClient.Get(url)
-			if err != nil {
-				return nil, skerr.Fmt("error on GET %s: %s", url, err)
-			}
-
-			if resp.StatusCode >= http.StatusBadRequest {
-				return nil, skerr.Fmt("GET %s resulted in a %d: %s", url, resp.StatusCode, resp.Status)
-			}
-			defer func() {
-				if err := resp.Body.Close(); err != nil {
-					fmt.Printf("Warning while closing HTTP response for %s: %s", url, err)
-				}
-			}()
-			b, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil, skerr.Fmt("error reading body from GET %s: %s", url, err)
-			}
-			return b, nil
-		}()
-		if err != nil {
-			lastErr = err
-			continue
-		}
-		return b, nil
+	var returnBytes []byte
+	logAndReturn := func(err error) error {
+		fmt.Printf("\t%s\n", err)
+		return err
 	}
-	return nil, lastErr
+	err := backoff.Retry(func() error {
+		if err := ctx.Err(); err != nil {
+			return backoff.Permanent(err)
+		}
+		resp, err := httpClient.Get(url)
+		if err != nil {
+			return logAndReturn(skerr.Wrapf(err, "GET %s", url))
+		}
+
+		if resp.StatusCode >= http.StatusBadRequest {
+			return logAndReturn(skerr.Fmt("GET %s resulted in a %d: %s", url, resp.StatusCode, resp.Status))
+		}
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				fmt.Printf("Warning while closing HTTP response for %s: %s", url, err)
+			}
+		}()
+		returnBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return logAndReturn(skerr.Wrapf(err, "reading body from GET %s", url))
+		}
+		return nil
+	}, eb)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return returnBytes, nil
 }
 
 // post makes a POST request to the specified URL with the given body.
