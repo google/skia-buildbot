@@ -1,0 +1,28 @@
+{
+  "description": "This file has data from two traces from the same test. It should match up with commit id 0000000105 and be in tile 1",
+  "gitHash" : "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "key" : {
+    "name" : "square",
+    "source_type" : "corners"
+  },
+  "results" : [
+    {
+      "key" : {
+        "os" : "Windows10.3"
+      },
+      "md5" : "a02a02a02a02a02a02a02a02a02a02a0",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Android"
+      },
+      "md5" : "a02a02a02a02a02a02a02a02a02a02a0",
+      "options" : {
+        "ext" : "png"
+      }
+    }
+  ]
+}
