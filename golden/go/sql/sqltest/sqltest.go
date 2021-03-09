@@ -66,6 +66,21 @@ type SQLExporter interface {
 	ToSQLRow() (colNames []string, colData []interface{})
 }
 
+// SQLScanner is an abstraction around reading a single row from an SQL table.
+type SQLScanner interface {
+	// ScanFrom takes in a function that takes in any number of pointers and will fill in the data.
+	// The arguments passed into scan should be the row fields in the order they appear in the
+	// table schema, as they will be filled in via a SELECT * FROM Table.
+	ScanFrom(scan func(...interface{}) error) error
+}
+
+// RowsOrder is an option that rows in a table can implement to specify the ordering of the returned
+// data (to make for easier to debug tests).
+type RowsOrder interface {
+	// RowsOrderBy returns a SQL fragment like "ORDER BY my_field DESC".
+	RowsOrderBy() string
+}
+
 // BulkInsertDataTables adds all the data from tables to the provided database. tables is expected
 // to be a struct that contains fields which are slices of SQLExporter. The tables will be inserted
 // in the same order that the fields are in the struct - if there are foreign key relationships,
@@ -117,4 +132,42 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 
 	_, err := db.Exec(ctx, insert, arguments...)
 	return skerr.Wrapf(err, "Inserting %d rows into table %s", table.Len(), name)
+}
+
+// GetAllRows returns all rows for a given table. The passed in row param must be a pointer type
+// that implements the sqltest.Scanner interface. The passed in row may optionally implement the
+// sqltest.RowsOrder interface to specify an ordering to return the rows in (this can make for
+// easier to debug tests).
+// The returned value is a slice of the provided row type (without a pointer) and can be converted
+// to a normal slice via a type assertion. If anything goes wrong, the function will panic.
+func GetAllRows(ctx context.Context, t *testing.T, db *pgxpool.Pool, table string, row interface{}) interface{} {
+	if _, ok := row.(SQLScanner); !ok {
+		require.Fail(t, "Row does not implement SQLScanner. Need pointer type.", "%#v", row)
+	}
+
+	statement := `SELECT * FROM ` + table
+	if ro, ok := row.(RowsOrder); ok {
+		statement += " " + ro.RowsOrderBy()
+	}
+	rows, err := db.Query(ctx, statement)
+	require.NoError(t, err)
+	defer rows.Close()
+
+	// typ now refers to the non-pointer type of row (aka RowType).
+	typ := reflect.TypeOf(row).Elem()
+	// Make an empty slice of RowType.
+	rv := reflect.MakeSlice(reflect.SliceOf(typ), 0, 5)
+	for rows.Next() {
+		// Create a new *RowType
+		newVal := reflect.New(typ)
+		// Convert it to SQLScanner. This should always succeed because of the type
+		// assertion earlier.
+		s := newVal.Interface().(SQLScanner)
+		// Have the type extract its values from the rows object.
+		require.NoError(t, s.ScanFrom(rows.Scan))
+		// Add the dereferenced (non-pointer) type to the slice
+		rv = reflect.Append(rv, newVal.Elem())
+	}
+	// Return the slice as type interface{}; It can be type asserted to []RowType by the caller.
+	return rv.Interface()
 }

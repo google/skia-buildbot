@@ -37,7 +37,8 @@ type TileID int
 
 type NullableBool int
 
-func (b NullableBool) toSQL() *bool {
+// ToSQL returns the nullable value as a type compatible with SQL backends.
+func (b NullableBool) ToSQL() *bool {
 	var rv bool
 	switch b {
 	case NBNull:
@@ -213,7 +214,7 @@ type TraceRow struct {
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r TraceRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"trace_id", "grouping_id", "keys", "matches_any_ignore_rule"},
-		[]interface{}{r.TraceID, r.GroupingID, r.Keys, r.MatchesAnyIgnoreRule.toSQL()}
+		[]interface{}{r.TraceID, r.GroupingID, r.Keys, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
 type GroupingRow struct {
@@ -427,7 +428,7 @@ func (r ValueAtHeadRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"trace_id", "most_recent_commit_id", "digest", "options_id", "grouping_id",
 			"keys", "expectation_label", "expectation_record_id", "matches_any_ignore_rule"},
 		[]interface{}{r.TraceID, r.MostRecentCommitID, r.Digest, r.OptionsID, r.GroupingID,
-			r.Keys, string(r.Label), r.ExpectationRecordID, r.MatchesAnyIgnoreRule.toSQL()}
+			r.Keys, string(r.Label), r.ExpectationRecordID, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
 // PrimaryBranchParamRow corresponds to a given key/value pair that was seen within a range (tile)
