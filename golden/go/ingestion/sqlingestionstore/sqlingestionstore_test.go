@@ -22,16 +22,7 @@ func TestSetIngested_WritesToDeprecatedIngestedFiles(t *testing.T) {
 	require.NoError(t, store.SetIngested(ctx, "gcs://my-bucket/myfile.json", time.Date(2021, time.January, 7, 10, 40, 0, 0, time.UTC)))
 	require.NoError(t, store.SetIngested(ctx, "s3://my-bucket/myotherfile.json", time.Date(2021, time.January, 8, 9, 10, 11, 0, time.UTC)))
 
-	rows, err := db.Query(ctx, `SELECT * FROM DeprecatedIngestedFiles`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualRows []schema.DeprecatedIngestedFileRow
-	for rows.Next() {
-		var r schema.DeprecatedIngestedFileRow
-		assert.NoError(t, rows.Scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested))
-		r.LastIngested = r.LastIngested.UTC() // Timezone is not set to UTC upon scanning?
-		actualRows = append(actualRows, r)
-	}
+	actualRows := sqltest.GetAllRows(ctx, t, db, "DeprecatedIngestedFiles", &schema.DeprecatedIngestedFileRow{}).([]schema.DeprecatedIngestedFileRow)
 	assert.Equal(t, []schema.DeprecatedIngestedFileRow{{
 		SourceFileID: schema.SourceFileID{0x81, 0xb3, 0xcd, 0xa8, 0x7a, 0x82, 0x33, 0x5, 0x6d, 0x3c, 0x28, 0x29, 0x23, 0x9b, 0x25, 0xfc},
 		SourceFile:   "gcs://my-bucket/myfile.json",

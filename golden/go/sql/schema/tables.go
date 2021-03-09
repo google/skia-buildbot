@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 )
 
 // MD5Hash is a specialized type for an array of bytes representing an MD5Hash. We use MD5 hashes
@@ -51,6 +53,17 @@ func (b NullableBool) ToSQL() *bool {
 		return nil
 	}
 	return &rv
+}
+
+func toNullableBool(matches pgtype.Bool) NullableBool {
+	if matches.Status == pgtype.Present {
+		if matches.Bool {
+			return NBTrue
+		} else {
+			return NBFalse
+		}
+	}
+	return NBNull
 }
 
 const (
@@ -144,6 +157,12 @@ func (r TraceValueRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.Shard, r.TraceID, r.CommitID, r.Digest, r.GroupingID, r.OptionsID, r.SourceFileID}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *TraceValueRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.Shard, &r.TraceID, &r.CommitID, &r.Digest, &r.GroupingID,
+		&r.OptionsID, &r.SourceFileID)
+}
+
 // CommitWithDataRow represents a commit that has produced some data on the primary branch.
 // It is expected to be created during ingestion.
 type CommitWithDataRow struct {
@@ -162,6 +181,16 @@ type CommitWithDataRow struct {
 func (r CommitWithDataRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"commit_id", "tile_id"},
 		[]interface{}{r.CommitID, r.TileID}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *CommitWithDataRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.CommitID, &r.TileID)
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface to sort commits by CommitID.
+func (r CommitWithDataRow) RowsOrderBy() string {
+	return `ORDER BY commit_id ASC`
 }
 
 // GitCommitRow represents a git commit that we may or may not have seen data for.
@@ -184,6 +213,20 @@ type GitCommitRow struct {
 func (r GitCommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"git_hash", "commit_id", "commit_time", "author_email", "subject"},
 		[]interface{}{r.GitHash, r.CommitID, r.CommitTime, r.AuthorEmail, r.Subject}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *GitCommitRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.GitHash, &r.CommitID, &r.CommitTime, &r.AuthorEmail, &r.Subject); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.CommitTime = r.CommitTime.UTC()
+	return nil
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface to sort commits by CommitID.
+func (r GitCommitRow) RowsOrderBy() string {
+	return `ORDER BY commit_id DESC`
 }
 
 type TraceRow struct {
@@ -217,6 +260,21 @@ func (r TraceRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.TraceID, r.GroupingID, r.Keys, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *TraceRow) ScanFrom(scan func(...interface{}) error) error {
+	var matches pgtype.Bool
+	if err := scan(&r.TraceID, &r.Corpus, &r.GroupingID, &r.Keys, &matches); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.MatchesAnyIgnoreRule = toNullableBool(matches)
+	return nil
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface to sort traces by test name.
+func (r TraceRow) RowsOrderBy() string {
+	return `ORDER BY keys->>'name'`
+}
+
 type GroupingRow struct {
 	// GroupingID is the MD5 hash of the key/values belonging to the grouping, that is, the
 	// mechanism by which we partition our test data into "things that should all look the same".
@@ -234,6 +292,11 @@ func (r GroupingRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.GroupingID, r.Keys}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *GroupingRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.GroupingID, &r.Keys)
+}
+
 type OptionsRow struct {
 	// OptionsID is the MD5 hash of the key/values that act as metadata and do not impact the
 	// uniqueness of traces.
@@ -247,6 +310,11 @@ type OptionsRow struct {
 func (r OptionsRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"options_id", "keys"},
 		[]interface{}{r.OptionsID, r.Keys}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *OptionsRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.OptionsID, &r.Keys)
 }
 
 type SourceFileRow struct {
@@ -266,6 +334,20 @@ func (r SourceFileRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.SourceFileID, r.SourceFile, r.LastIngested}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *SourceFileRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.LastIngested = r.LastIngested.UTC()
+	return nil
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface.
+func (r SourceFileRow) RowsOrderBy() string {
+	return "ORDER BY last_ingested ASC"
+}
+
 type DeprecatedIngestedFileRow struct {
 	// SourceFileID is the MD5 hash of the source file that has been ingested.
 	SourceFileID SourceFileID `sql:"source_file_id BYTES PRIMARY KEY"`
@@ -275,6 +357,15 @@ type DeprecatedIngestedFileRow struct {
 	// LastIngested is the time at which this file was most recently read in and successfully
 	// processed.
 	LastIngested time.Time `sql:"last_ingested TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *DeprecatedIngestedFileRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.SourceFileID, &r.SourceFile, &r.LastIngested); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.LastIngested = r.LastIngested.UTC()
+	return nil
 }
 
 type ExpectationRecordRow struct {
@@ -347,6 +438,17 @@ func (r ExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.GroupingID, r.Digest, r.Label, r.ExpectationRecordID}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *ExpectationRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID)
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface, sorting the rows first by digest, then
+// by grouping id (which is a hash).
+func (r ExpectationRow) RowsOrderBy() string {
+	return "ORDER BY digest, grouping_id ASC"
+}
+
 // DiffMetricRow represents the pixel-by-pixel comparison between two images (identified by their
 // digests). To avoid having n^2 comparisons (where n is the number of unique digests ever seen),
 // we only calculate diffs against recent images that are in the same grouping. These rows don't
@@ -387,6 +489,17 @@ func (r DiffMetricRow) ToSQLRow() (colNames []string, colData []interface{}) {
 			"max_channel_diff", "combined_metric", "dimensions_differ", "ts"},
 		[]interface{}{r.LeftDigest, r.RightDigest, r.NumPixelsDiff, r.PercentPixelsDiff, r.MaxRGBADiffs,
 			r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, r.Timestamp}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *DiffMetricRow) ScanFrom(scan func(...interface{}) error) error {
+	err := scan(&r.LeftDigest, &r.RightDigest, &r.NumPixelsDiff, &r.PercentPixelsDiff,
+		&r.MaxRGBADiffs, &r.MaxChannelDiff, &r.CombinedMetric, &r.DimensionsDiffer, &r.Timestamp)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.Timestamp = r.Timestamp.UTC()
+	return nil
 }
 
 // ValueAtHeadRow represents the most recent data point for a each trace. It contains some
@@ -431,6 +544,18 @@ func (r ValueAtHeadRow) ToSQLRow() (colNames []string, colData []interface{}) {
 			r.Keys, string(r.Label), r.ExpectationRecordID, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *ValueAtHeadRow) ScanFrom(scan func(...interface{}) error) error {
+	var matches pgtype.Bool
+	err := scan(&r.TraceID, &r.MostRecentCommitID, &r.Digest, &r.OptionsID,
+		&r.GroupingID, &r.Corpus, &r.Keys, &r.Label, &r.ExpectationRecordID, &matches)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.MatchesAnyIgnoreRule = toNullableBool(matches)
+	return nil
+}
+
 // PrimaryBranchParamRow corresponds to a given key/value pair that was seen within a range (tile)
 // of commits. Originally, we had done a join between Traces and TraceValues to find the params
 // where commit_id was in a given range. However, this took several minutes when there were 1M+
@@ -453,6 +578,16 @@ type PrimaryBranchParamRow struct {
 func (r PrimaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"tile_id", "key", "value"},
 		[]interface{}{r.TileID, r.Key, r.Value}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *PrimaryBranchParamRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.TileID, &r.Key, &r.Value)
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface.
+func (r PrimaryBranchParamRow) RowsOrderBy() string {
+	return `ORDER BY tile_id, key ASC`
 }
 
 // TiledTraceDigestRow corresponds to a given trace producing a given digest within a range (tile)
@@ -478,6 +613,16 @@ func (r TiledTraceDigestRow) ToSQLRow() (colNames []string, colData []interface{
 		[]interface{}{r.TraceID, r.TileID, r.Digest}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *TiledTraceDigestRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.TraceID, &r.TileID, &r.Digest)
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface.
+func (r TiledTraceDigestRow) RowsOrderBy() string {
+	return `ORDER BY tile_id, digest ASC`
+}
+
 type IgnoreRuleRow struct {
 	// IgnoreRuleID is the id for this rule.
 	IgnoreRuleID uuid.UUID `sql:"ignore_rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
@@ -498,6 +643,20 @@ type IgnoreRuleRow struct {
 func (r IgnoreRuleRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"ignore_rule_id", "creator_email", "updated_email", "expires", "note", "query"},
 		[]interface{}{r.IgnoreRuleID, r.CreatorEmail, r.UpdatedEmail, r.Expires, r.Note, r.Query}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *IgnoreRuleRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.IgnoreRuleID, &r.CreatorEmail, &r.UpdatedEmail, &r.Expires, &r.Note, &r.Query); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.Expires = r.Expires.UTC()
+	return nil
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface.
+func (r IgnoreRuleRow) RowsOrderBy() string {
+	return `ORDER BY expires ASC`
 }
 
 type ChangelistRow struct {
@@ -525,6 +684,15 @@ type ChangelistRow struct {
 func (r ChangelistRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"changelist_id", "system", "status", "owner_email", "subject", "last_ingested_data"},
 		[]interface{}{r.ChangelistID, r.System, r.Status, r.OwnerEmail, r.Subject, r.LastIngestedData}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *ChangelistRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.ChangelistID, &r.System, &r.Status, &r.OwnerEmail, &r.Subject, &r.LastIngestedData); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.LastIngestedData = r.LastIngestedData.UTC()
+	return nil
 }
 
 type PatchsetRow struct {
@@ -559,6 +727,17 @@ func (r PatchsetRow) ToSQLRow() (colNames []string, colData []interface{}) {
 			"commented_on_cl", "last_checked_if_comment_necessary"},
 		[]interface{}{r.PatchsetID, r.System, r.ChangelistID, r.Order, r.GitHash,
 			r.CommentedOnCL, r.LastCheckedIfCommentNecessary}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *PatchsetRow) ScanFrom(scan func(...interface{}) error) error {
+	err := scan(&r.PatchsetID, &r.System, &r.ChangelistID, &r.Order, &r.GitHash,
+		&r.CommentedOnCL, &r.LastCheckedIfCommentNecessary)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.LastCheckedIfCommentNecessary = r.LastCheckedIfCommentNecessary.UTC()
+	return nil
 }
 
 type TryjobRow struct {
@@ -689,4 +868,18 @@ type ProblemImageRow struct {
 func (r ProblemImageRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"digest", "num_errors", "latest_error", "error_ts"},
 		[]interface{}{r.Digest, r.NumErrors, r.Digest, r.ErrorTS}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *ProblemImageRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.Digest, &r.NumErrors, &r.LatestError, &r.ErrorTS); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.ErrorTS = r.ErrorTS.UTC()
+	return nil
+}
+
+// RowsOrderBy implements the sqltest.RowsOrder interface.
+func (r ProblemImageRow) RowsOrderBy() string {
+	return `ORDER BY digest ASC`
 }

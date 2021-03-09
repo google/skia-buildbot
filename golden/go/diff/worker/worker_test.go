@@ -474,34 +474,16 @@ func TestCalculateDiffs_IgnoredTracesNotComparedToEachOther_Success(t *testing.T
 }
 
 func getAllDiffMetricRows(t *testing.T, db *pgxpool.Pool) []schema.DiffMetricRow {
-	rows, err := db.Query(context.Background(), `SELECT * FROM DiffMetrics ORDER BY left_digest, right_digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualMetrics []schema.DiffMetricRow
-	for rows.Next() {
-		var m schema.DiffMetricRow
-		require.NoError(t, rows.Scan(&m.LeftDigest, &m.RightDigest, &m.NumPixelsDiff, &m.PercentPixelsDiff,
-			&m.MaxRGBADiffs, &m.MaxChannelDiff, &m.CombinedMetric, &m.DimensionsDiffer, &m.Timestamp))
-		m.Timestamp = m.Timestamp.UTC()
-		actualMetrics = append(actualMetrics, m)
+	rows := sqltest.GetAllRows(context.Background(), t, db, "DiffMetrics", &schema.DiffMetricRow{}).([]schema.DiffMetricRow)
+	for _, r := range rows {
 		// spot check that we handle arrays correctly.
-		assert.NotEqual(t, [4]int{0, 0, 0, 0}, m.MaxRGBADiffs)
+		assert.NotEqual(t, [4]int{0, 0, 0, 0}, r.MaxRGBADiffs)
 	}
-	return actualMetrics
+	return rows
 }
 
 func getAllProblemImageRows(t *testing.T, db *pgxpool.Pool) []schema.ProblemImageRow {
-	rows, err := db.Query(context.Background(), `SELECT * FROM ProblemImages ORDER BY digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualRows []schema.ProblemImageRow
-	for rows.Next() {
-		var r schema.ProblemImageRow
-		require.NoError(t, rows.Scan(&r.Digest, &r.NumErrors, &r.LatestError, &r.ErrorTS))
-		r.ErrorTS = r.ErrorTS.UTC()
-		actualRows = append(actualRows, r)
-	}
-	return actualRows
+	return sqltest.GetAllRows(context.Background(), t, db, "ProblemImages", &schema.ProblemImageRow{}).([]schema.ProblemImageRow)
 }
 
 func makeSparseData() schema.Tables {

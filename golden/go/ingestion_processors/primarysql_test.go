@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgtype"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -42,14 +40,14 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	err := s.Process(ctx, dks.WindowsFile3)
 	require.NoError(t, err)
 
-	actualSourceFiles := getAllSourceFiles(ctx, t, db)
+	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
 	assert.Equal(t, []schema.SourceFileRow{{
 		SourceFileID: h(dks.WindowsFile3),
 		SourceFile:   dks.WindowsFile3,
 		LastIngested: fakeIngestionTime,
 	}}, actualSourceFiles)
 
-	actualGroupings := getAllGroupings(ctx, t, db)
+	actualGroupings := sqltest.GetAllRows(ctx, t, db, "Groupings", &schema.GroupingRow{}).([]schema.GroupingRow)
 	assert.ElementsMatch(t, []schema.GroupingRow{{
 		GroupingID: h(circleGrouping),
 		Keys: map[string]string{
@@ -70,7 +68,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		},
 	}}, actualGroupings)
 
-	actualOptions := getAllOptions(ctx, t, db)
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
 	assert.ElementsMatch(t, []schema.OptionsRow{{
 		OptionsID: h(pngOptions),
 		Keys: map[string]string{
@@ -78,7 +76,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		},
 	}}, actualOptions)
 
-	actualTraces := getAllTraces(ctx, t, db)
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
 	assert.Equal(t, []schema.TraceRow{{
 		TraceID:    h(circleTraceKeys),
 		Corpus:     dks.RoundCorpus,
@@ -117,13 +115,13 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}}, actualTraces)
 
-	actualCommitsWithData := getAllCommitsWithData(ctx, t, db)
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
 	assert.Equal(t, []schema.CommitWithDataRow{{
 		CommitID: expectedCommitID,
 		TileID:   0,
 	}}, actualCommitsWithData)
 
-	actualTraceValues := getAllTraceValues(ctx, t, db)
+	actualTraceValues := sqltest.GetAllRows(ctx, t, db, "TraceValues", &schema.TraceValueRow{}).([]schema.TraceValueRow)
 	assert.ElementsMatch(t, []schema.TraceValueRow{{
 		Shard:        0x4,
 		TraceID:      h(squareTraceKeys),
@@ -150,7 +148,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		SourceFileID: h(dks.WindowsFile3),
 	}}, actualTraceValues)
 
-	actualValuesAtHead := getAllValuesAtHead(ctx, t, db)
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
 	assert.ElementsMatch(t, []schema.ValueAtHeadRow{{
 		TraceID:            h(squareTraceKeys),
 		MostRecentCommitID: expectedCommitID,
@@ -201,7 +199,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}}, actualValuesAtHead)
 
-	actualExpectations := getAllExpectations(ctx, t, db)
+	actualExpectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
 	assert.Equal(t, []schema.ExpectationRow{{
 		GroupingID: h(squareGrouping),
 		Digest:     d(dks.DigestA01Pos),
@@ -216,7 +214,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		Label:      schema.LabelUntriaged,
 	}}, actualExpectations)
 
-	actualPrimaryBranchParams := getAllPrimaryBranchParams(ctx, t, db)
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
 	assert.Equal(t, []schema.PrimaryBranchParamRow{
 		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, TileID: 0},
 		{Key: dks.DeviceKey, Value: dks.QuadroDevice, TileID: 0},
@@ -229,7 +227,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		{Key: types.CorpusField, Value: dks.RoundCorpus, TileID: 0},
 	}, actualPrimaryBranchParams)
 
-	actualTiledTraceDigests := getAllTiledTraceDigests(ctx, t, db)
+	actualTiledTraceDigests := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
 	assert.Equal(t, []schema.TiledTraceDigestRow{
 		{TraceID: h(squareTraceKeys), Digest: d(dks.DigestA01Pos), TileID: 0},
 		{TraceID: h(triangleTraceKeys), Digest: d(dks.DigestB01Pos), TileID: 0},
@@ -267,152 +265,4 @@ func d(digest types.Digest) []byte {
 
 func overwriteNow(ctx context.Context, ts time.Time) context.Context {
 	return context.WithValue(ctx, overwriteNowKey, ts)
-}
-
-func getAllSourceFiles(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.SourceFileRow {
-	rows, err := db.Query(ctx, `SELECT * FROM SourceFiles ORDER BY last_ingested ASC`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.SourceFileRow
-	for rows.Next() {
-		var sfr schema.SourceFileRow
-		require.NoError(t, rows.Scan(&sfr.SourceFileID, &sfr.SourceFile, &sfr.LastIngested))
-		sfr.LastIngested = sfr.LastIngested.UTC()
-		rv = append(rv, sfr)
-	}
-	return rv
-}
-
-func getAllGroupings(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.GroupingRow {
-	rows, err := db.Query(ctx, `SELECT * FROM Groupings`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.GroupingRow
-	for rows.Next() {
-		var gr schema.GroupingRow
-		require.NoError(t, rows.Scan(&gr.GroupingID, &gr.Keys))
-		rv = append(rv, gr)
-	}
-	return rv
-}
-
-func getAllOptions(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.OptionsRow {
-	rows, err := db.Query(ctx, `SELECT * FROM Options`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.OptionsRow
-	for rows.Next() {
-		var or schema.OptionsRow
-		require.NoError(t, rows.Scan(&or.OptionsID, &or.Keys))
-		rv = append(rv, or)
-	}
-	return rv
-}
-
-func getAllTraces(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.TraceRow {
-	rows, err := db.Query(ctx, `SELECT * FROM Traces ORDER BY keys->>'name'`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.TraceRow
-	for rows.Next() {
-		var tr schema.TraceRow
-		var matches pgtype.Bool
-		require.NoError(t, rows.Scan(&tr.TraceID, &tr.Corpus, &tr.GroupingID, &tr.Keys, &matches))
-		tr.MatchesAnyIgnoreRule = toNullableBool(matches)
-		rv = append(rv, tr)
-	}
-	return rv
-}
-
-func toNullableBool(matches pgtype.Bool) schema.NullableBool {
-	if matches.Status == pgtype.Present {
-		if matches.Bool {
-			return schema.NBTrue
-		} else {
-			return schema.NBFalse
-		}
-	}
-	return schema.NBNull
-}
-
-func getAllCommitsWithData(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.CommitWithDataRow {
-	rows, err := db.Query(ctx, `SELECT * FROM CommitsWithData ORDER BY commit_id ASC`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.CommitWithDataRow
-	for rows.Next() {
-		var cr schema.CommitWithDataRow
-		require.NoError(t, rows.Scan(&cr.CommitID, &cr.TileID))
-		rv = append(rv, cr)
-	}
-	return rv
-}
-
-func getAllTraceValues(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.TraceValueRow {
-	rows, err := db.Query(ctx, `SELECT * FROM TraceValues`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.TraceValueRow
-	for rows.Next() {
-		var tr schema.TraceValueRow
-		require.NoError(t, rows.Scan(&tr.Shard, &tr.TraceID, &tr.CommitID, &tr.Digest, &tr.GroupingID,
-			&tr.OptionsID, &tr.SourceFileID))
-		rv = append(rv, tr)
-	}
-	return rv
-}
-
-func getAllValuesAtHead(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.ValueAtHeadRow {
-	rows, err := db.Query(ctx, `SELECT * FROM ValuesAtHead`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.ValueAtHeadRow
-	for rows.Next() {
-		var vr schema.ValueAtHeadRow
-		var matches pgtype.Bool
-		require.NoError(t, rows.Scan(&vr.TraceID, &vr.MostRecentCommitID, &vr.Digest, &vr.OptionsID,
-			&vr.GroupingID, &vr.Corpus, &vr.Keys, &vr.Label, &vr.ExpectationRecordID, &matches))
-		vr.MatchesAnyIgnoreRule = toNullableBool(matches)
-		rv = append(rv, vr)
-	}
-	return rv
-}
-
-func getAllExpectations(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.ExpectationRow {
-	rows, err := db.Query(ctx, `SELECT * FROM Expectations ORDER BY digest, grouping_id ASC`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.ExpectationRow
-	for rows.Next() {
-		var er schema.ExpectationRow
-		require.NoError(t, rows.Scan(&er.GroupingID, &er.Digest, &er.Label, &er.ExpectationRecordID))
-		rv = append(rv, er)
-	}
-	return rv
-}
-
-func getAllPrimaryBranchParams(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.PrimaryBranchParamRow {
-	rows, err := db.Query(ctx, `SELECT * FROM PrimaryBranchParams ORDER BY tile_id, key ASC`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.PrimaryBranchParamRow
-	for rows.Next() {
-		var pr schema.PrimaryBranchParamRow
-		require.NoError(t, rows.Scan(&pr.TileID, &pr.Key, &pr.Value))
-		rv = append(rv, pr)
-	}
-	return rv
-}
-
-func getAllTiledTraceDigests(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.TiledTraceDigestRow {
-	rows, err := db.Query(ctx, `SELECT * FROM TiledTraceDigests ORDER BY tile_id, digest`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.TiledTraceDigestRow
-	for rows.Next() {
-		var tr schema.TiledTraceDigestRow
-		require.NoError(t, rows.Scan(&tr.TraceID, &tr.TileID, &tr.Digest))
-		rv = append(rv, tr)
-	}
-	return rv
 }

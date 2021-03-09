@@ -44,16 +44,7 @@ func TestCreate_RulesAppearInSQLTableAndCanBeListed(t *testing.T) {
 
 	// It's good to query the database directly for at least one test, so we can verify List()
 	// is returning the proper data.
-	rows, err := db.Query(ctx, `SELECT * FROM IgnoreRules ORDER BY expires ASC`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var actualRows []schema.IgnoreRuleRow
-	for rows.Next() {
-		var r schema.IgnoreRuleRow
-		require.NoError(t, rows.Scan(&r.IgnoreRuleID, &r.CreatorEmail, &r.UpdatedEmail, &r.Expires, &r.Note, &r.Query))
-		r.Expires = r.Expires.UTC()
-		actualRows = append(actualRows, r)
-	}
+	actualRows := sqltest.GetAllRows(ctx, t, db, "IgnoreRules", &schema.IgnoreRuleRow{}).([]schema.IgnoreRuleRow)
 	require.Len(t, actualRows, 2)
 	firstID := actualRows[0].IgnoreRuleID
 	secondID := actualRows[1].IgnoreRuleID

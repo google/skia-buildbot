@@ -46,18 +46,15 @@ func TestPutChangelist_CLDoesNotExist_Success(t *testing.T) {
 	assert.Equal(t, cl, actual)
 
 	// Check the SQL directly so we can trust GetChangelist in other tests.
-	row := db.QueryRow(ctx, `SELECT * FROM Changelists LIMIT 1`)
-	var r schema.ChangelistRow
-	require.NoError(t, row.Scan(&r.ChangelistID, &r.System, &r.Status, &r.OwnerEmail, &r.Subject, &r.LastIngestedData))
-	r.LastIngestedData = r.LastIngestedData.UTC()
-	assert.Equal(t, schema.ChangelistRow{
+	clRows := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
 		ChangelistID:     "gerrit_987654",
 		System:           "gerrit",
 		Status:           schema.StatusAbandoned,
 		OwnerEmail:       "test@example.com",
 		Subject:          "some code",
 		LastIngestedData: time.Date(2019, time.August, 13, 12, 11, 10, 0, time.UTC),
-	}, r)
+	}}, clRows)
 }
 
 func TestPutChangelist_CLExists_CLUpdated(t *testing.T) {
@@ -168,12 +165,8 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check the SQL directly so we can trust GetPatchset* in other tests.
-	row := db.QueryRow(ctx, `SELECT * FROM Patchsets LIMIT 1`)
-	var r schema.PatchsetRow
-	require.NoError(t, row.Scan(&r.PatchsetID, &r.System, &r.ChangelistID, &r.Order, &r.GitHash,
-		&r.CommentedOnCL, &r.LastCheckedIfCommentNecessary))
-	r.LastCheckedIfCommentNecessary = r.LastCheckedIfCommentNecessary.UTC()
-	assert.Equal(t, schema.PatchsetRow{
+	psRows := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
+	assert.Equal(t, []schema.PatchsetRow{{
 		PatchsetID:                    "gerrit_abcdef",
 		System:                        "gerrit",
 		ChangelistID:                  "gerrit_987654",
@@ -181,7 +174,7 @@ func TestPutPatchset_CLExists_Success(t *testing.T) {
 		GitHash:                       "fedcba98765443321",
 		CommentedOnCL:                 true,
 		LastCheckedIfCommentNecessary: time.Date(2021, time.January, 1, 2, 40, 0, 0, time.UTC),
-	}, r)
+	}}, psRows)
 
 	actual, err := store.GetPatchset(ctx, unqualifiedCLID, unqualifiedPSID)
 	require.NoError(t, err)
