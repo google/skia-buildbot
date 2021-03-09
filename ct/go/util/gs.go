@@ -119,7 +119,7 @@ type filePathToStorageObject struct {
 // downloadRemoteDir downloads the specified Google Storage dir to the specified
 // local dir. The local dir will be emptied and recreated. Handles multiple levels
 // of directories.
-func (gs *GcsUtil) downloadRemoteDir(localDir, gsDir string) error {
+func (gs *GcsUtil) downloadRemoteDir(localDir, bucket, gsDir string) error {
 	// Empty the local dir.
 	util.RemoveAll(localDir)
 	// Create the local dir.
@@ -134,7 +134,7 @@ func (gs *GcsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	go func() {
 		defer wgPopulator.Done()
 		defer close(chStorageObjects)
-		req := gs.service.Objects.List(GCSBucketName).Prefix(gsDir + "/")
+		req := gs.service.Objects.List(bucket).Prefix(gsDir + "/")
 		for req != nil {
 			resp, err := req.Do()
 			if err != nil {
@@ -220,13 +220,17 @@ func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir st
 func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	localDir := filepath.Join(ChromiumBuildsDir, chromiumBuild)
 	gsDir := path.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
+	return gs.DownloadChromiumBuildFromTo(localDir, GCSBucketName, gsDir, CHROMIUM_BUILD_ZIP_NAME)
+}
+
+func (gs *GcsUtil) DownloadChromiumBuildFromTo(localDir, bucket, gsDir, zipName string) error {
 	sklog.Infof("Downloading %s from Google Storage to %s", gsDir, localDir)
-	if err := gs.downloadRemoteDir(localDir, gsDir); err != nil {
+	if err := gs.downloadRemoteDir(localDir, bucket, gsDir); err != nil {
 		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
 	}
 
 	// Unzip the build.
-	zipFilePath := filepath.Join(localDir, CHROMIUM_BUILD_ZIP_NAME)
+	zipFilePath := filepath.Join(localDir, zipName)
 	if err := zip.UnZip(localDir, zipFilePath); err != nil {
 		return fmt.Errorf("Error when unzipping %s: %s", zipFilePath, err)
 	}
