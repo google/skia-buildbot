@@ -52,7 +52,7 @@ func TestGetWithRetries_MultipleAttempts_Error(t *testing.T) {
 	defer mh.AssertExpectations(t)
 
 	url := "example.com"
-	mh.On("Get", url).Return(httpResponse("Should be ignored.", "404 Not found", http.StatusNotFound), nil).Times(5)
+	mh.On("Get", url).Return(httpResponse("Should be ignored.", "404 Not found", http.StatusNotFound), nil)
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	_, err := getWithRetries(ctx, url)
