@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6d98eed_647446b4",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-09T12:53:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae0e25f9_eb6f838e",
+      "range": {
+        "startLine": 59,
+        "startChar": 30,
+        "endLine": 59,
+        "endChar": 72
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "3bef637e_95debe45",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-03-08T20:03:37Z",
       "side": 1,
       "message": "Is it OK if one of these fail and we leave the DB partially updated? Would it make sense to wrap this in a SQL transaction, and roll it back if one of these methods returns a non-nil error?",
+      "range": {
+        "startLine": 286,
+        "startChar": 0,
+        "endLine": 310,
+        "endChar": 0
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e6c7e18d_17780884",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-09T12:53:45Z",
+      "side": 1,
+      "message": "I tried ingestion this all in a transaction during exploratory design and it didn\u0027t work. For Skia, this is uploading so much data that these big transactions kept interfering with each other and either took a very long time to upload or didn\u0027t work.\n\nPerf doesn\u0027t use transactions for ingesting data for similar reasons and it hasn\u0027t been a problem. If Gold has an error processing a file, it will retry the whole file, so I think we\u0027ll be ok.\n\nAs far as having data in a partial state - those first 3 writes are to immutable tables (it\u0027s no problem if they have extra data). The expectations are almost always joined against TraceValues, so if something exists in Expectations but not in TraceValues, we\u0027ll be fine. The last 3 writes are effectively indexes of the TraceValues data, so if they aren\u0027t complete, that\u0027s ok for the short run (until the file is retried).\n\nI added some prose to the code to persist this discovery.",
+      "parentUuid": "3bef637e_95debe45",
       "range": {
         "startLine": 286,
         "startChar": 0,
@@ -89,6 +137,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "dd7f0998_56eb91d8",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-09T12:53:45Z",
+      "side": 1,
+      "message": "I don\u0027t think that aids readability/clarity.",
+      "parentUuid": "c4c7f1f1_70a669a9",
+      "range": {
+        "startLine": 323,
+        "startChar": 0,
+        "endLine": 343,
+        "endChar": 0
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "f2fdd5ff_48c16199",
         "filename": "golden/go/ingestion_processors/primarysql_test.go",
         "patchSetId": 7
@@ -100,6 +172,30 @@
       "writtenOn": "2021-03-08T20:03:37Z",
       "side": 1,
       "message": "I wonder if we could define a function that takes a SQL query and a struct, and does all this heavy lifting for us, including converting from pgtype.Bool to schema.NullableBool, etc. Go\u0027s reflection API might be useful for this.\n\nI feel like such a function could simplify both our tests and our production code.",
+      "range": {
+        "startLine": 367,
+        "startChar": 0,
+        "endLine": 379,
+        "endChar": 10
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "222eb8e1_a2914e87",
+        "filename": "golden/go/ingestion_processors/primarysql_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-09T12:53:45Z",
+      "side": 1,
+      "message": "I have an idea for that.",
+      "parentUuid": "f2fdd5ff_48c16199",
       "range": {
         "startLine": 367,
         "startChar": 0,
