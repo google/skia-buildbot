@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -70,7 +69,7 @@ func TestUpdateCycle_EmptyDB_UsesInitialCommit(t *testing.T) {
 	}
 	require.NoError(t, updateCycle(ctx, db, &mgl, rfc))
 
-	actualRows := getAllGitCommits(ctx, t, db)
+	actualRows := sqltest.GetAllRows(ctx, t, db, "GitCommits", &schema.GitCommitRow{}).([]schema.GitCommitRow)
 	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     "4444444444444444444444444444444444444444",
 		CommitID:    "001000000003",
@@ -157,7 +156,7 @@ func TestUpdateCycle_CommitsInDB_IncrementalUpdate(t *testing.T) {
 	}
 	require.NoError(t, updateCycle(ctx, db, &mgl, rfc))
 
-	actualRows := getAllGitCommits(ctx, t, db)
+	actualRows := sqltest.GetAllRows(ctx, t, db, "GitCommits", &schema.GitCommitRow{}).([]schema.GitCommitRow)
 	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     "6666666666666666666666666666666666666666",
 		CommitID:    "001000000005",
@@ -236,7 +235,7 @@ func TestUpdateCycle_NoNewCommits_NothingChanges(t *testing.T) {
 	}
 	require.NoError(t, updateCycle(ctx, db, &mgl, rfc))
 
-	actualRows := getAllGitCommits(ctx, t, db)
+	actualRows := sqltest.GetAllRows(ctx, t, db, "GitCommits", &schema.GitCommitRow{}).([]schema.GitCommitRow)
 	assert.Equal(t, []schema.GitCommitRow{{
 		GitHash:     "4444444444444444444444444444444444444444",
 		CommitID:    "001000000003",
@@ -256,18 +255,4 @@ func TestUpdateCycle_NoNewCommits_NothingChanges(t *testing.T) {
 		AuthorEmail: "author 2",
 		Subject:     "subject 2",
 	}}, actualRows)
-}
-
-func getAllGitCommits(ctx context.Context, t *testing.T, db *pgxpool.Pool) []schema.GitCommitRow {
-	rows, err := db.Query(ctx, `SELECT * FROM GitCommits ORDER BY commit_id DESC`)
-	require.NoError(t, err)
-	defer rows.Close()
-	var rv []schema.GitCommitRow
-	for rows.Next() {
-		var gc schema.GitCommitRow
-		require.NoError(t, rows.Scan(&gc.GitHash, &gc.CommitID, &gc.CommitTime, &gc.AuthorEmail, &gc.Subject))
-		gc.CommitTime = gc.CommitTime.UTC()
-		rv = append(rv, gc)
-	}
-	return rv
 }
