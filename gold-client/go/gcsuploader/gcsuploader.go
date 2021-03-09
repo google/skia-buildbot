@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/sklog"
+
 	gstorage "cloud.google.com/go/storage"
 	"github.com/cenkalti/backoff"
 	"google.golang.org/api/option"
@@ -146,11 +148,25 @@ func (h *clientImpl) uploadToGCS(ctx context.Context, data []byte, dst string) e
 	bucket, objPath := gcs.SplitGSPath(dst)
 	handle := h.client.Bucket(bucket).Object(objPath)
 
+	isFirstTime := true
 	eb := backoff.NewExponentialBackOff()
 	eb.InitialInterval = time.Second
 	eb.MaxInterval = 10 * time.Second
 	eb.MaxElapsedTime = 30 * time.Second
 	err := backoff.Retry(func() error {
+		if err := ctx.Err(); err != nil {
+			return backoff.Permanent(err)
+		}
+		// To avoid slowing down every upload with an extra check, we only check if the file
+		// already exists on the first failure (e.g. 503 that happens if multiple processes are
+		// writing the same file at once).
+		if !isFirstTime {
+			if _, err := handle.Attrs(ctx); err == nil {
+				sklog.Warningf("Skipping upload of %s - already exists on server", dst)
+				return nil
+			}
+		}
+		isFirstTime = false
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel() // The docs say to cancel the context in the event of an error or success.
 		w := handle.NewWriter(ctx)
