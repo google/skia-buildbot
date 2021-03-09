@@ -1,0 +1,43 @@
+{
+  "description": "This file has data from three traces across two corpora. It lines up datakitchensink.",
+  "gitHash" : "77e1d3255fde0bebc80f596f6a1c4ad79c8b8bbe",
+  "key" : {
+    "os": "Windows10.2",
+    "device": "QuadroP400"
+  },
+  "results" : [
+    {
+      "key" : {
+        "color mode" : "RGB",
+        "name" : "square",
+        "source_type" : "corners"
+      },
+      "md5" : "a01a01a01a01a01a01a01a01a01a01a0",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "color mode" : "RGB",
+        "name" : "triangle",
+        "source_type" : "corners"
+      },
+      "md5" : "b01b01b01b01b01b01b01b01b01b01b0",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "color mode" : "RGB",
+        "name" : "circle",
+        "source_type" : "round"
+      },
+      "md5" : "c01c01c01c01c01c01c01c01c01c01c0",
+      "options" : {
+        "ext" : "png"
+      }
+    }
+  ]
+}
