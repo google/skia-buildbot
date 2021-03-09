@@ -146,14 +146,30 @@ func (h *clientImpl) uploadToGCS(ctx context.Context, data []byte, dst string) e
 	bucket, objPath := gcs.SplitGSPath(dst)
 	handle := h.client.Bucket(bucket).Object(objPath)
 
+	isFirstTime := true
 	eb := backoff.NewExponentialBackOff()
 	eb.InitialInterval = time.Second
 	eb.MaxInterval = 10 * time.Second
 	eb.MaxElapsedTime = 30 * time.Second
 	err := backoff.Retry(func() error {
+		if err := ctx.Err(); err != nil {
+			return backoff.Permanent(err)
+		}
+		// To avoid slowing down every upload with an extra check, we only check if the file
+		// already exists on the first failure (e.g. 503 that happens if multiple processes are
+		// writing the same file at once).
+		if !isFirstTime {
+			if _, err := handle.Attrs(ctx); err == nil {
+				fmt.Printf("Skipping upload of %s - already exists on server\n", dst)
+				return nil
+			}
+		}
+		isFirstTime = false
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel() // The docs say to cancel the context in the event of an error or success.
 		w := handle.NewWriter(ctx)
+		w.ChunkSize = 0 // Upload files in one go, to avoid conflicts if multiple processes are
+		// uploading at the same time.
 		_, err := w.Write(data)
 		if err != nil {
 			fmt.Printf("Error writing to %s: %s (retrying)\n", dst, err)
