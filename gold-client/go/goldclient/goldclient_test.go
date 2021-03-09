@@ -2070,8 +2070,8 @@ func TestCloudClient_Whoami_Success(t *testing.T) {
 }
 
 func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
-	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
+	// This test takes >30 seconds to retry a bunch.
+	unittest.LargeTest(t)
 
 	wd := t.TempDir()
 
@@ -2195,8 +2195,8 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 }
 
 func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) {
-	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
+	// This test takes >30 seconds to retry a bunch.
+	unittest.LargeTest(t)
 
 	wd := t.TempDir()
 
@@ -2279,8 +2279,8 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 }
 
 func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *testing.T) {
-	// This test reads and writes a small amount of data from/to disk.
-	unittest.MediumTest(t)
+	// This test takes a while to deal with retries
+	unittest.LargeTest(t)
 
 	wd := t.TempDir()
 
