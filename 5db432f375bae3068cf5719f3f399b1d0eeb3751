@@ -16,6 +16,23 @@
       "message": "PTAL",
       "revId": "5db432f375bae3068cf5719f3f399b1d0eeb3751",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8d3da8f2_713efa35",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5610
+      },
+      "writtenOn": "2021-03-09T00:31:51Z",
+      "side": 1,
+      "message": "lgtm, but i have no CQ rights here (and this is what Skia gates this repo submit on)",
+      "revId": "5db432f375bae3068cf5719f3f399b1d0eeb3751",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
