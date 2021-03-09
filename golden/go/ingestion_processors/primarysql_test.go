@@ -10,7 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -235,6 +237,393 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	}, actualTiledTraceDigests)
 }
 
+func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const androidTraceKeys = `{"name":"square","os":"Android","source_type":"corners"}`
+	const windowsTraceKeys = `{"name":"square","os":"Windows10.3","source_type":"corners"}`
+	const fuzzyOptions = `{"ext":"png","fuzzy_ignored_border_thickness":"0","fuzzy_max_different_pixels":"10","fuzzy_pixel_delta_threshold":"20","image_matching_algorithm":"fuzzy"}`
+
+	existingData := makeDataForTileTests()
+
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	src := fakeGCSSourceFromFile(t, "use_existing_commit_in_tile1.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	require.NoError(t, s.Process(ctx, "use_existing_commit_in_tile1.json"))
+
+	// Check that all tiled data is calculated correctly
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Equal(t, []schema.CommitWithDataRow{
+		{CommitID: "0000000098", TileID: 0},
+		{CommitID: "0000000099", TileID: 0},
+		{CommitID: "0000000100", TileID: 0},
+		{CommitID: "0000000101", TileID: 0},
+		{CommitID: "0000000103", TileID: 1},
+		{CommitID: "0000000106", TileID: 1},
+		{CommitID: "0000000107", TileID: 1},
+		{CommitID: "0000000108", TileID: 1},
+	}, actualCommitsWithData)
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+	}, actualTiledTraces)
+
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "ext", Value: "png", TileID: 0},
+		{Key: "ext", Value: "png", TileID: 1},
+		{Key: "fuzzy_ignored_border_thickness", Value: "0", TileID: 1},
+		{Key: "fuzzy_max_different_pixels", Value: "10", TileID: 1},
+		{Key: "fuzzy_pixel_delta_threshold", Value: "20", TileID: 1},
+		{Key: "image_matching_algorithm", Value: "fuzzy", TileID: 1},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 1},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 1},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 1},
+	}, actualPrimaryBranchParams)
+
+	// Spot check some other interesting data.
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.ElementsMatch(t, []schema.OptionsRow{{
+		OptionsID: h(pngOptions),
+		Keys: map[string]string{
+			"ext": "png",
+		},
+	}, {
+		OptionsID: h(fuzzyOptions),
+		Keys: map[string]string{
+			"ext":                            "png",
+			"image_matching_algorithm":       "fuzzy",
+			"fuzzy_max_different_pixels":     "10",
+			"fuzzy_pixel_delta_threshold":    "20",
+			"fuzzy_ignored_border_thickness": "0",
+		},
+	}}, actualOptions)
+
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Equal(t, []schema.ValueAtHeadRow{{
+		TraceID:            h(windowsTraceKeys),
+		MostRecentCommitID: "0000000108",
+		Digest:             d(dks.DigestA03Pos),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(squareGrouping),
+		Corpus:             dks.CornersCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.OSKey:             dks.Windows10dot3OS,
+		},
+		Label:                schema.LabelUntriaged,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:            h(androidTraceKeys),
+		MostRecentCommitID: "0000000108",
+		Digest:             d(dks.DigestA02Pos),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(squareGrouping),
+		Corpus:             dks.CornersCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.OSKey:             dks.AndroidOS,
+		},
+		Label:                schema.LabelUntriaged,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, actualValuesAtHead)
+}
+
+func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const androidTraceKeys = `{"name":"square","os":"Android","source_type":"corners"}`
+	const windowsTraceKeys = `{"name":"square","os":"Windows10.3","source_type":"corners"}`
+	const fuzzyOptions = `{"ext":"png","fuzzy_ignored_border_thickness":"0","fuzzy_max_different_pixels":"10","fuzzy_pixel_delta_threshold":"20","image_matching_algorithm":"fuzzy"}`
+	const latestCommitID = "0000000109"
+
+	existingData := makeDataForTileTests()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	src := fakeGCSSourceFromFile(t, "should_start_tile_2.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	require.NoError(t, s.Process(ctx, "should_start_tile_2.json"))
+
+	// Check that all tiled data is calculated correctly
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Equal(t, []schema.CommitWithDataRow{
+		{CommitID: "0000000098", TileID: 0},
+		{CommitID: "0000000099", TileID: 0},
+		{CommitID: "0000000100", TileID: 0},
+		{CommitID: "0000000101", TileID: 0},
+		{CommitID: "0000000103", TileID: 1},
+		{CommitID: "0000000106", TileID: 1},
+		{CommitID: "0000000107", TileID: 1},
+		{CommitID: "0000000108", TileID: 1},
+		{CommitID: latestCommitID, TileID: 2}, // newly created
+	}, actualCommitsWithData)
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 2},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 2},
+	}, actualTiledTraces)
+
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "ext", Value: "png", TileID: 0},
+		{Key: "ext", Value: "png", TileID: 1},
+		{Key: "ext", Value: "png", TileID: 2},
+		{Key: "fuzzy_ignored_border_thickness", Value: "0", TileID: 2},
+		{Key: "fuzzy_max_different_pixels", Value: "10", TileID: 2},
+		{Key: "fuzzy_pixel_delta_threshold", Value: "20", TileID: 2},
+		{Key: "image_matching_algorithm", Value: "fuzzy", TileID: 2},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 2},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 1},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 2},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 1},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 2},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 1},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 2},
+	}, actualPrimaryBranchParams)
+
+	// Spot check some other interesting data.
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.ElementsMatch(t, []schema.OptionsRow{{
+		OptionsID: h(pngOptions),
+		Keys: map[string]string{
+			"ext": "png",
+		},
+	}, {
+		OptionsID: h(fuzzyOptions),
+		Keys: map[string]string{
+			"ext":                            "png",
+			"image_matching_algorithm":       "fuzzy",
+			"fuzzy_max_different_pixels":     "10",
+			"fuzzy_pixel_delta_threshold":    "20",
+			"fuzzy_ignored_border_thickness": "0",
+		},
+	}}, actualOptions)
+
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Equal(t, []schema.ValueAtHeadRow{{
+		TraceID:            h(windowsTraceKeys),
+		MostRecentCommitID: latestCommitID,
+		Digest:             d(dks.DigestA02Pos),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(squareGrouping),
+		Corpus:             dks.CornersCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.OSKey:             dks.Windows10dot3OS,
+		},
+		Label:                schema.LabelUntriaged,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:            h(androidTraceKeys),
+		MostRecentCommitID: latestCommitID,
+		Digest:             d(dks.DigestA02Pos),
+		OptionsID:          h(fuzzyOptions),
+		GroupingID:         h(squareGrouping),
+		Corpus:             dks.CornersCorpus,
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.OSKey:             dks.AndroidOS,
+		},
+		Label:                schema.LabelUntriaged,
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, actualValuesAtHead)
+}
+
+func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const androidTraceKeys = `{"name":"square","os":"Android","source_type":"corners"}`
+	const windowsTraceKeys = `{"name":"square","os":"Windows10.3","source_type":"corners"}`
+
+	existingData := makeDataForTileTests()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	src := fakeGCSSourceFromFile(t, "between_tile_1_and_2.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	require.NoError(t, s.Process(ctx, "between_tile_1_and_2.json"))
+
+	// Check that all tiled data is calculated correctly
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Equal(t, []schema.CommitWithDataRow{
+		{CommitID: "0000000098", TileID: 0},
+		{CommitID: "0000000099", TileID: 0},
+		{CommitID: "0000000100", TileID: 0},
+		{CommitID: "0000000101", TileID: 0},
+		{CommitID: "0000000102", TileID: 1}, // newly created
+		{CommitID: "0000000103", TileID: 1},
+		{CommitID: "0000000106", TileID: 1},
+		{CommitID: "0000000107", TileID: 1},
+		{CommitID: "0000000108", TileID: 1},
+	}, actualCommitsWithData)
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+	}, actualTiledTraces)
+
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "ext", Value: "png", TileID: 0},
+		{Key: "ext", Value: "png", TileID: 1},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 1},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 1},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 1},
+	}, actualPrimaryBranchParams)
+}
+
+func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const androidTraceKeys = `{"name":"square","os":"Android","source_type":"corners"}`
+	const windowsTraceKeys = `{"name":"square","os":"Windows10.3","source_type":"corners"}`
+
+	existingData := makeDataForTileTests()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
+
+	// Check that all tiled data is calculated correctly
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Equal(t, []schema.CommitWithDataRow{
+		{CommitID: "0000000098", TileID: 0},
+		{CommitID: "0000000099", TileID: 0},
+		{CommitID: "0000000100", TileID: 0},
+		{CommitID: "0000000101", TileID: 0},
+		{CommitID: "0000000103", TileID: 1},
+		{CommitID: "0000000105", TileID: 1}, // newly created
+		{CommitID: "0000000106", TileID: 1},
+		{CommitID: "0000000107", TileID: 1},
+		{CommitID: "0000000108", TileID: 1},
+	}, actualCommitsWithData)
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+	}, actualTiledTraces)
+
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "ext", Value: "png", TileID: 0},
+		{Key: "ext", Value: "png", TileID: 1},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 1},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 1},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 1},
+	}, actualPrimaryBranchParams)
+}
+
+func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const androidTraceKeys = `{"name":"square","os":"Android","source_type":"corners"}`
+	const windowsTraceKeys = `{"name":"square","os":"Windows10.3","source_type":"corners"}`
+
+	existingData := makeDataForTileTests()
+	// Trim off last 3 commits with data
+	existingData.CommitsWithData = existingData.CommitsWithData[:len(existingData.CommitsWithData)-3]
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
+
+	// Check that all tiled data is calculated correctly
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Equal(t, []schema.CommitWithDataRow{
+		{CommitID: "0000000098", TileID: 0},
+		{CommitID: "0000000099", TileID: 0},
+		{CommitID: "0000000100", TileID: 0},
+		{CommitID: "0000000101", TileID: 0},
+		{CommitID: "0000000103", TileID: 1},
+		{CommitID: "0000000105", TileID: 1}, // newly created
+	}, actualCommitsWithData)
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.ElementsMatch(t, []schema.TiledTraceDigestRow{
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 0},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 0},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(androidTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA02Pos), TileID: 1},
+		{TraceID: h(windowsTraceKeys), Digest: d(dks.DigestA03Pos), TileID: 1},
+	}, actualTiledTraces)
+
+	actualPrimaryBranchParams := sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}).([]schema.PrimaryBranchParamRow)
+	assert.ElementsMatch(t, []schema.PrimaryBranchParamRow{
+		{Key: "ext", Value: "png", TileID: 0},
+		{Key: "ext", Value: "png", TileID: 1},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 0},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, TileID: 1},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.AndroidOS, TileID: 1},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 0},
+		{Key: dks.OSKey, Value: dks.Windows10dot3OS, TileID: 1},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 1},
+	}, actualPrimaryBranchParams)
+}
+
+func repeat(s string, n int) []string {
+	rv := make([]string, 0, n)
+	for i := 0; i < n; i++ {
+		rv = append(rv, s)
+	}
+	return rv
+}
+
 var fakeIngestionTime = time.Date(2021, time.March, 14, 15, 9, 26, 0, time.UTC)
 
 const (
@@ -265,4 +654,41 @@ func d(digest types.Digest) []byte {
 
 func overwriteNow(ctx context.Context, ts time.Time) context.Context {
 	return context.WithValue(ctx, overwriteNowKey, ts)
+}
+
+// makeDataForTileTests returns a data set that has some gaps for new data to be inserted in
+// various places to test that tileIDs are properly created and respected.
+func makeDataForTileTests() schema.Tables {
+	b := databuilder.TablesBuilder{TileWidth: 4}
+	b.CommitsWithData().
+		Insert("0000000098", "user", "commit 98, expected tile 0", "2020-12-01T00:00:00Z").
+		Insert("0000000099", "user", "commit 99, expected tile 0", "2020-12-02T00:00:00Z").
+		Insert("0000000100", "user", "commit 100, expected tile 0", "2020-12-03T00:00:00Z").
+		Insert("0000000101", "user", "commit 101, expected tile 0", "2020-12-04T00:00:00Z").
+		Insert("0000000103", "user", "commit 103, expected tile 1", "2020-12-05T00:00:00Z").
+		Insert("0000000106", "user", "commit 106, expected tile 1", "2020-12-07T00:00:00Z").
+		Insert("0000000107", "user", "commit 107, expected tile 1", "2020-12-08T00:00:00Z").
+		Insert("0000000108", "user", "commit 108, expected tile 1", "2020-12-09T00:00:00Z")
+	b.CommitsWithNoData().
+		Insert("0000000102", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "user", "commit 102, expected tile 1", "2020-12-05T00:00:00Z").
+		Insert("0000000105", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "user", "commit 105, expected tile 1", "2020-12-05T00:00:00Z").
+		Insert("0000000109", "cccccccccccccccccccccccccccccccccccccccc", "user", "commit 109, expected tile 2", "2020-12-05T00:00:00Z")
+	b.SetDigests(map[rune]types.Digest{
+		'B': dks.DigestA02Pos,
+		'C': dks.DigestA03Pos,
+	})
+	b.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
+	b.AddTracesWithCommonKeys(paramtools.Params{
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.SquareTest,
+	}).History(
+		"BBBBCBCB",
+		"CCCCCCCC",
+	).Keys([]paramtools.Params{
+		{dks.OSKey: dks.AndroidOS},
+		{dks.OSKey: dks.Windows10dot3OS},
+	}).OptionsAll(paramtools.Params{"ext": "png"}).
+		IngestedFrom(repeat("dontcare", 8), repeat("2020-12-01T00:42:00Z", 8))
+	existingData := b.Build()
+	return existingData
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 
@@ -120,7 +121,7 @@ func (s *sqlPrimaryIngester) Process(ctx context.Context, fileName string) error
 	}
 	span.AddAttributes(trace.Int64Attribute("num_results", int64(len(gr.Results))))
 
-	commitID, tileID, shouldWriteCommit, err := s.getCommitAndTileID(ctx, gr)
+	commitID, tileID, err := s.getCommitAndTileID(ctx, gr)
 	if err != nil {
 		return skerr.Wrapf(err, "identifying commit id for file %s", fileName)
 	}
@@ -131,13 +132,6 @@ func (s *sqlPrimaryIngester) Process(ctx context.Context, fileName string) error
 		return ingestion.ErrRetryable
 	}
 
-	if shouldWriteCommit {
-		if err := s.insertIntoCommitsWithData(ctx, commitID, tileID); err != nil {
-			sklog.Errorf("Error writing to CommitsWithData for file %s: %s", fileName, err)
-			return ingestion.ErrRetryable
-		}
-		s.updateCommitCache(gr, commitID, tileID)
-	}
 	if err := s.upsertSourceFile(ctx, sourceFileID[:], fileName); err != nil {
 		sklog.Errorf("Error writing to SourceFiles for file %s: %s", fileName, err)
 		return ingestion.ErrRetryable
@@ -150,40 +144,114 @@ type commitCacheEntry struct {
 	tileID   schema.TileID
 }
 
-// getCommitID gets the commit id from the information provided in the given jsonio. Currently,
-// This looks up the GitHash to determine the commit_id (i.e. a sequence number), but this could
-// be more flexible (e.g. To support multiple repos).
-func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.GoldResults) (schema.CommitID, schema.TileID, bool, error) {
+// getCommitAndTileID gets the commit id and corresponding tile id from the information provided
+// in the given jsonio. Currently, this looks up the GitHash to determine the commit_id
+// (i.e. a sequence number), but this could be more flexible (e.g. To support multiple repos).
+// The tileID is derived from existing tileIDs of surrounding commits.
+func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.GoldResults) (schema.CommitID, schema.TileID, error) {
 	ctx, span := trace.StartSpan(ctx, "getCommitAndTileID")
 	defer span.End()
 	if gr.GitHash == "" {
-		return "", 0, false, skerr.Fmt("missing GitHash")
+		return "", 0, skerr.Fmt("missing GitHash")
 	}
 	if c, ok := s.commitsCache.Get(gr.GitHash); ok {
 		cce, ok := c.(commitCacheEntry)
 		if ok {
-			return cce.commitID, cce.tileID, false, nil
+			return cce.commitID, cce.tileID, nil
 		}
 		sklog.Warningf("Corrupt entry in commits cache: %#v", c)
 		s.commitsCache.Remove(gr.GitHash)
 	}
 	// Cache miss - go to DB; We can't assume it's in the CommitsWithData table yet.
 	row := s.db.QueryRow(ctx, `SELECT commit_id FROM GitCommits WHERE git_hash = $1`, gr.GitHash)
-	var rv schema.CommitID
-	if err := row.Scan(&rv); err != nil {
-		return "", 0, false, skerr.Wrapf(err, "Looking up git_hash = %q", gr.GitHash)
+	var commitID schema.CommitID
+	if err := row.Scan(&commitID); err != nil {
+		return "", 0, skerr.Wrapf(err, "Looking up git_hash = %q", gr.GitHash)
 	}
-	// TODO(kjlubick) do tile computation here.
-	return rv, 0, true, nil
+
+	tileID, err := s.getAndWriteTileIDForCommit(ctx, commitID)
+	if err != nil {
+		return "", 0, skerr.Wrapf(err, "computing tile id for %s", commitID)
+	}
+	s.updateCommitCache(gr, commitID, tileID)
+	return commitID, tileID, nil
 }
 
-// insertIntoCommitsWithData writes the given data to the CommitsWithData table. The rows in this
-// table are immutable once written.
-func (s *sqlPrimaryIngester) insertIntoCommitsWithData(ctx context.Context, id schema.CommitID, tileID schema.TileID) error {
-	_, err := s.db.Exec(ctx, `
+// getAndWriteTileIDForCommit determines the tileID that should be used for this commit and writes
+// it to the DB using a transaction. We use a transaction here (but not in general) because this
+// should be a relatively fast read/write sequence and done somewhat infrequently (e.g. new commit
+// has data created for it and it's not cached).
+func (s *sqlPrimaryIngester) getAndWriteTileIDForCommit(ctx context.Context, targetCommit schema.CommitID) (schema.TileID, error) {
+	ctx, span := trace.StartSpan(ctx, "getAndWriteTileIDForCommit")
+	defer span.End()
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	// intentionally ignore the error to rollback, since there's nothing we can do if it's a real
+	// error (beyond signaling to reingest this file) and it will return an error if the transaction
+	// is already committed.
+	defer func() { _ = tx.Rollback(ctx) }()
+	tileID, err := s.getTileIDForCommit(ctx, tx, targetCommit)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	// Rows in this table are immutable once written
+	_, err = tx.Exec(ctx, `
 INSERT INTO CommitsWithData (commit_id, tile_id) VALUES ($1, $2)
-ON CONFLICT DO NOTHING`, id, tileID)
-	return skerr.Wrap(err)
+ON CONFLICT DO NOTHING`, targetCommit, tileID)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	return tileID, nil
+}
+
+// getTileIDForCommit determines the tileID for this commit by looking at surrounding commits
+// (if any) for clues. If we have no commits before us, we are at tile 0. If we have no commits
+// after us, we are on the latest tile, or if that is full, we start the next tile. If there are
+// commits on either side of us, we use the tile for the commit after us.
+func (s *sqlPrimaryIngester) getTileIDForCommit(ctx context.Context, tx pgx.Tx, targetCommit schema.CommitID) (schema.TileID, error) {
+	ctx, span := trace.StartSpan(ctx, "getTileIDForCommit")
+	defer span.End()
+	row := tx.QueryRow(ctx, `SELECT commit_id, tile_id FROM CommitsWithData WHERE
+commit_id <= $1 ORDER BY commit_id DESC LIMIT 1`, targetCommit)
+	var cID schema.CommitID
+	var beforeTileID schema.TileID
+	if err := row.Scan(&cID, &beforeTileID); err == pgx.ErrNoRows {
+		// If there is no data before this commit, we are, by definition, at tile 0
+		return 0, nil
+	} else if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	if cID == targetCommit {
+		return beforeTileID, nil // already been computed
+	}
+
+	row = tx.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData WHERE
+commit_id >= $1 ORDER BY commit_id ASC LIMIT 1`, targetCommit)
+	var afterTileID schema.TileID
+	if err := row.Scan(&afterTileID); err == pgx.ErrNoRows {
+		// If there is no data after this commit, we are at the highest tile id.
+		row := tx.QueryRow(ctx, `SELECT count(*) FROM CommitsWithData WHERE
+tile_id = $1`, beforeTileID)
+		var count int
+		if err := row.Scan(&count); err != nil {
+			return 0, skerr.Wrap(err)
+		}
+		// If the size of the previous tile exceeds our tile width, go to the next tile.
+		if count >= s.tileWidth {
+			return beforeTileID + 1, nil
+		}
+		return beforeTileID, nil
+	} else if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	// We have CommitsWithData both before and after the targetCommit. We always return the tile
+	// after this one, because it is less likely that tile is full.
+	return afterTileID, nil
 }
 
 // updateCommitCache updates the local cache of "CommitsWithData" if necessary (so we know we do
@@ -201,6 +269,8 @@ func (s *sqlPrimaryIngester) updateCommitCache(gr *jsonio.GoldResults, id schema
 // upsertSourceFile creates a row in SourceFiles for the given file or updates the existing row's
 // last_ingested timestamp with now.
 func (s *sqlPrimaryIngester) upsertSourceFile(ctx context.Context, srcID schema.SourceFileID, fileName string) error {
+	ctx, span := trace.StartSpan(ctx, "upsertSourceFile")
+	defer span.End()
 	const statement = `UPSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
 VALUES ($1, $2, $3)`
 	_, err := s.db.Exec(ctx, statement, srcID, fileName, now(ctx))

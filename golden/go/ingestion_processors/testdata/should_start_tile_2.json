@@ -1,0 +1,32 @@
+{
+  "description": "This file has data from two traces from the same test. It should start a new tile.",
+  "gitHash" : "cccccccccccccccccccccccccccccccccccccccc",
+  "key" : {
+    "name" : "square",
+    "source_type" : "corners"
+  },
+  "results" : [
+    {
+      "key" : {
+        "os" : "Windows10.3"
+      },
+      "md5" : "a02a02a02a02a02a02a02a02a02a02a0",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Android"
+      },
+      "md5" : "a02a02a02a02a02a02a02a02a02a02a0",
+      "options" : {
+        "ext" : "png",
+        "image_matching_algorithm": "fuzzy",
+        "fuzzy_max_different_pixels": "10",
+        "fuzzy_pixel_delta_threshold": "20",
+        "fuzzy_ignored_border_thickness": "0"
+      }
+    }
+  ]
+}
