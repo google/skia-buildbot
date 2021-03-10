@@ -527,11 +527,6 @@ type ValueAtHeadRow struct {
 	// Keys is a JSON representation of a map[string]string that are the trace keys.
 	Keys paramtools.Params `sql:"keys JSONB NOT NULL"`
 
-	// Label represents the current triage status of the given digest for its grouping.
-	Label ExpectationLabel `sql:"expectation_label CHAR NOT NULL"`
-	// ExpectationRecordID (if set) is the record ID of the triage record. This allows fast lookup
-	// of who triaged this when.
-	ExpectationRecordID *uuid.UUID `sql:"expectation_record_id UUID"`
 	// MatchesAnyIgnoreRule is true if this trace is matched by any of the ignore rules.
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
 }
@@ -539,16 +534,16 @@ type ValueAtHeadRow struct {
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r ValueAtHeadRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"trace_id", "most_recent_commit_id", "digest", "options_id", "grouping_id",
-			"keys", "expectation_label", "expectation_record_id", "matches_any_ignore_rule"},
+			"keys", "matches_any_ignore_rule"},
 		[]interface{}{r.TraceID, r.MostRecentCommitID, r.Digest, r.OptionsID, r.GroupingID,
-			r.Keys, string(r.Label), r.ExpectationRecordID, r.MatchesAnyIgnoreRule.ToSQL()}
+			r.Keys, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ValueAtHeadRow) ScanFrom(scan func(...interface{}) error) error {
 	var matches pgtype.Bool
 	err := scan(&r.TraceID, &r.MostRecentCommitID, &r.Digest, &r.OptionsID,
-		&r.GroupingID, &r.Corpus, &r.Keys, &r.Label, &r.ExpectationRecordID, &matches)
+		&r.GroupingID, &r.Corpus, &r.Keys, &matches)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

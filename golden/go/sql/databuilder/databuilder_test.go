@@ -433,8 +433,6 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		GroupingID:           testOneGroupingID,
 		Corpus:               "corpus_one",
 		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_one", "os": "Android", "source_type": "corpus_one"},
-		Label:                schema.LabelUntriaged,
-		ExpectationRecordID:  nil,
 		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"Crosshatch","name":"test_two","os":"Android","source_type":"corpus_one"}`),
@@ -444,8 +442,6 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		GroupingID:           testTwoGroupingID,
 		Corpus:               "corpus_one",
 		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "Crosshatch", "name": "test_two", "os": "Android", "source_type": "corpus_one"},
-		Label:                schema.LabelPositive,
-		ExpectationRecordID:  &recordIDTwo,
 		MatchesAnyIgnoreRule: schema.NBFalse,
 	}, {
 		TraceID:              h(`{"color_mode":"rgb","device":"NUC1234","name":"test_two","os":"Windows10.7","source_type":"corpus_one"}`),
@@ -455,8 +451,6 @@ func TestBuild_CalledWithValidInput_ProducesCorrectData(t *testing.T) {
 		GroupingID:           testTwoGroupingID,
 		Corpus:               "corpus_one",
 		Keys:                 paramtools.Params{"color_mode": "rgb", "device": "NUC1234", "name": "test_two", "os": "Windows10.7", "source_type": "corpus_one"},
-		Label:                schema.LabelPositive,
-		ExpectationRecordID:  &recordIDTwo,
 		MatchesAnyIgnoreRule: schema.NBTrue,
 	}}, tables.ValuesAtHead)
 	assert.Equal(t, []schema.IgnoreRuleRow{{

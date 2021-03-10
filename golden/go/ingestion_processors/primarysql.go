@@ -346,7 +346,6 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 			OptionsID:            optionsID,
 			GroupingID:           groupingID,
 			Keys:                 keys,
-			Label:                schema.LabelUntriaged,
 			MatchesAnyIgnoreRule: schema.NBNull,
 		})
 		traceValuesToUpdate = append(traceValuesToUpdate, schema.TraceValueRow{
@@ -630,13 +629,13 @@ func (s *sqlPrimaryIngester) batchUpdateValuesAtHead(ctx context.Context, rows [
 			return nil
 		}
 		statement := `INSERT INTO ValuesAtHead (trace_id, most_recent_commit_id, digest,
-options_id, grouping_id, keys, expectation_label) VALUES `
-		const valuesPerRow = 7
+options_id, grouping_id, keys) VALUES `
+		const valuesPerRow = 6
 		statement += sql.ValuesPlaceholders(valuesPerRow, len(batch))
 		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
 		for _, row := range batch {
 			arguments = append(arguments, row.TraceID, row.MostRecentCommitID, row.Digest,
-				row.OptionsID, row.GroupingID, row.Keys, row.Label)
+				row.OptionsID, row.GroupingID, row.Keys)
 		}
 		// If the row already exists, we'll update these three fields if and only if the
 		// commit_id comes after the stored commit_id.
