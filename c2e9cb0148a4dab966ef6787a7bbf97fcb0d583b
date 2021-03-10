@@ -52,6 +52,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "d51f2220_55ef3c3c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-10T17:39:42Z",
+      "side": 1,
+      "message": "It should, for transitive deps we just read version from the DEPS file and copy it.",
+      "parentUuid": "6ab60532_644d0e7c",
+      "revId": "c2e9cb0148a4dab966ef6787a7bbf97fcb0d583b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "1d35e88c_6b3ac2d7",
@@ -65,6 +83,24 @@
       "writtenOn": "2021-03-10T16:35:59Z",
       "side": 1,
       "message": "nit: this was a little confusing to read how about\ninstance, err :\u003d c.client.Describe(ctx, c.name, id)\nif err !\u003d nil {\n  ...\n}\nreturn CIPDInstanceToRevision(c.name, c.tagAsID, instance), nil",
+      "revId": "c2e9cb0148a4dab966ef6787a7bbf97fcb0d583b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1397da53_f25c53ab",
+        "filename": "autoroll/go/repo_manager/child/cipd.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-10T17:39:42Z",
+      "side": 1,
+      "message": "That\u0027s better, thanks!",
+      "parentUuid": "1d35e88c_6b3ac2d7",
       "revId": "c2e9cb0148a4dab966ef6787a7bbf97fcb0d583b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
