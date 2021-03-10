@@ -67,6 +67,7 @@ type ChromiumAnalysisDatastoreTask struct {
 	MatchStdoutTxt       string   `json:"match_stdout_txt"`
 	ChromiumHash         string   `json:"chromium_hash"`
 	ApkGsPath            string   `json:"apk_gspath"`
+	ChromeBuildGsPath    string   `json:"chrome_build_gs_path"`
 	TelemetryIsolateHash string   `json:"telemetry_isolate_hash"`
 	CCList               []string `json:"cc_list"`
 	TaskPriority         int      `json:"task_priority"`
@@ -125,6 +126,7 @@ func (task *ChromiumAnalysisDatastoreTask) GetPopulatedAddTaskVars() (task_commo
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
 	taskVars.ChromiumHash = task.ChromiumHash
 	taskVars.ApkGsPath = task.ApkGsPath
+	taskVars.ChromeBuildGsPath = task.ChromeBuildGsPath
 	taskVars.TelemetryIsolateHash = task.TelemetryIsolateHash
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
@@ -191,6 +193,7 @@ func (task ChromiumAnalysisDatastoreTask) TriggerSwarmingTaskAndMail(ctx context
 		"--group_name=" + task.GroupName,
 		"--chromium_patch_gs_path=" + task.ChromiumPatchGSPath,
 		"--apk_gs_path=" + task.ApkGsPath,
+		"--chrome_build_gs_path=" + task.ChromeBuildGsPath,
 		"--telemetry_isolate_hash=" + task.TelemetryIsolateHash,
 		"--skia_patch_gs_path=" + task.SkiaPatchGSPath,
 		"--v8_patch_gs_path=" + task.V8PatchGSPath,
@@ -311,6 +314,7 @@ type ChromiumAnalysisAddTaskVars struct {
 	MatchStdoutTxt       string   `json:"match_stdout_txt"`
 	ChromiumHash         string   `json:"chromium_hash"`
 	ApkGsPath            string   `json:"apk_gs_path"`
+	ChromeBuildGsPath    string   `json:"chrome_build_gs_path"`
 	TelemetryIsolateHash string   `json:"telemetry_isolate_hash"`
 	CCList               []string `json:"cc_list"`
 	TaskPriority         string   `json:"task_priority"`
@@ -384,6 +388,7 @@ func (task *ChromiumAnalysisAddTaskVars) GetPopulatedDatastoreTask(ctx context.C
 		MatchStdoutTxt:       task.MatchStdoutTxt,
 		ChromiumHash:         task.ChromiumHash,
 		ApkGsPath:            task.ApkGsPath,
+		ChromeBuildGsPath:    task.ChromeBuildGsPath,
 		TelemetryIsolateHash: task.TelemetryIsolateHash,
 		CCList:               task.CCList,
 		GroupName:            task.GroupName,

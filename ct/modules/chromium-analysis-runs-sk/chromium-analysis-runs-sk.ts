@@ -187,6 +187,17 @@ ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskDialogTemplate(task,
           </td>
         </tr>`
                   : ''}
+      ${task.chrome_build_gs_path
+                  ? html`<tr>
+          <td>ChromeBuildGsPath:</td>
+          <td>
+            <a href="javascript:;" class=details
+              @click=${() => el._showDialog('chromeBuildGsPath', index)}>
+              Display Path
+            </a>
+          </td>
+        </tr>`
+                  : ''}
       ${task.telemetry_isolate_hash
                     ? html`<tr>
           <td>TelemetryIsolateHash:</td>
@@ -303,6 +314,12 @@ ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskDialogTemplate(task,
   @click=${hideDialog}>
   <div class="dialog-content surface-themes-sk">
     <pre>${task.apk_gspath}</pre>
+  </div>
+</div>
+<div id=${`chromeBuildGsPath${index}`} class="dialog-background hidden overlay-themes-sk"
+  @click=${hideDialog}>
+  <div class="dialog-content surface-themes-sk">
+    <pre>${task.chrome_build_gs_path}</pre>
   </div>
 </div>
 `;

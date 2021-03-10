@@ -160,7 +160,8 @@ export class ChromiumAnalysisSk extends ElementSk {
   </tr>
   <tr>
     <td>
-      Custom APK location (optional)<br/> (See
+      Custom APK location for Android<br/>
+      (optional)<br/> (See
       <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805">skbug/9805</a>)
     </td>
     <td>
@@ -169,7 +170,17 @@ export class ChromiumAnalysisSk extends ElementSk {
   </tr>
   <tr>
     <td>
-      Telemetry Isolate Hash (optional))<br/> (See
+      Custom Chrome build zip location<br/>
+      for non-Android runs (optional)<br/> (See
+      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805">skbug/9805</a>)
+    </td>
+    <td>
+      <input-sk value="" id=chrome_build_gs_path label="Eg: gs://chromium-browser-snapshots/Linux_x64/805044/chrome-linux.zip" class=long-field></input-sk>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Telemetry Isolate Hash (optional)<br/> (See
       <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853">skbug/9853</a>)
     </td>
     <td>
@@ -397,6 +408,7 @@ export class ChromiumAnalysisSk extends ElementSk {
     params.run_on_gce = ($$('#run_on_gce', this) as SelectSk).selection === 0;
     params.match_stdout_txt = ($$('#match_stdout_txt', this) as InputSk).value;
     params.apk_gs_path = ($$('#apk_gs_path', this) as InputSk).value;
+    params.chrome_build_gs_path = ($$('#chrome_build_gs_path', this) as InputSk).value;
     params.telemetry_isolate_hash = ($$('#telemetry_isolate_hash', this) as InputSk).value;
     params.custom_webpages = ($$('#pageset_selector', this) as PagesetSelectorSk).customPages;
     params.run_in_parallel = ($$('#run_in_parallel', this) as SelectSk).selection === 0;
