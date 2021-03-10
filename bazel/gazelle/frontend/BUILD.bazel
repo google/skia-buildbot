@@ -5,11 +5,13 @@ go_library(
     name = "frontend",
     srcs = [
         "extension.go",
+        "file_filter.go",
         "parse_imports.go",
     ],
     importpath = "go.skia.org/infra/bazel/gazelle/frontend",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/util",
         "@bazel_gazelle//config:go_default_library",
         "@bazel_gazelle//label:go_default_library",
         "@bazel_gazelle//language:go_default_library",
@@ -21,10 +23,15 @@ go_library(
 
 go_test(
     name = "frontend_test",
-    srcs = ["parse_imports_test.go"],
+    srcs = [
+        "extension_test.go",
+        "file_filter_test.go",
+        "parse_imports_test.go",
+    ],
     embed = [":frontend"],
     deps = [
         "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )
