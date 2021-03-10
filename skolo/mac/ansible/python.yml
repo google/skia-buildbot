@@ -7,6 +7,8 @@
     pkg_filename: python-2.7.14-macosx10.6.pkg
 
   tasks:
+    - name: Install Rosetta 2
+      command: /usr/sbin/softwareupdate --install-rosetta --agree-to-license
     - name: Download Python package
       get_url:
         url: https://www.python.org/ftp/python/2.7.14/{{ pkg_filename }}
