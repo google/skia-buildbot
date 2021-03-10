@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7fbc3fe9_e0ff56e0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-10T13:24:38Z",
+      "side": 1,
+      "message": "This is up and running: https://autoroll.skia.org/r/gn-chromium-autoroll\nIt uploaded a CL: https://chromium-review.googlesource.com/c/chromium/src/+/2747758/2/DEPS\nNote that the roller is using the package ID, not a git_revision tag, which may be less convenient to other readers of the DEPS file.",
+      "revId": "70b7ef9dc826c0bad124c4432bd74a30ee5c837c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
