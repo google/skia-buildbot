@@ -44,28 +44,43 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client
 		return nil, skerr.Wrap(err)
 	}
 	return &CIPDChild{
-		client: cipdClient,
-		name:   c.Name,
-		root:   workdir,
-		tag:    c.Tag,
+		client:  cipdClient,
+		name:    c.Name,
+		root:    workdir,
+		tag:     c.Tag,
+		tagAsID: c.TagAsId,
 	}, nil
 }
 
 // CIPDChild is an implementation of Child which deals with a CIPD package.
 type CIPDChild struct {
-	client cipd.CIPDClient
-	name   string
-	root   string
-	tag    string
+	client  cipd.CIPDClient
+	name    string
+	root    string
+	tag     string
+	tagAsID string
 }
 
 // GetRevision implements Child.
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	instance, err := c.client.Describe(ctx, c.name, id)
 	if err != nil {
-		return nil, err
+		pins, err2 := c.client.SearchInstances(ctx, c.name, []string{id})
+		if err2 != nil {
+			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and failed to search by tag with: %s", id, err2)
+		}
+		if len(pins) == 0 {
+			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and found no matching instances by tag.", id)
+		}
+		if len(pins) > 1 {
+			sklog.Errorf("Found more than one matching instance for tag %q; arbitrarily returning the first.", id)
+		}
+		instance, err = c.client.Describe(ctx, c.name, pins[0].InstanceID)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
-	return CIPDInstanceToRevision(c.name, instance), nil
+	return CIPDInstanceToRevision(c.name, c.tagAsID, instance), nil
 }
 
 // Update implements Child.
@@ -116,7 +131,7 @@ type cipdDetailsLine struct {
 
 // CIPDInstanceToRevision creates a revision.Revision based on the given
 // InstanceInfo.
-func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription) *revision.Revision {
+func CIPDInstanceToRevision(name, tagAsID string, instance *cipd_api.InstanceDescription) *revision.Revision {
 	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
 		Author:      instance.RegisteredBy,
@@ -125,6 +140,7 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 		Timestamp:   time.Time(instance.RegisteredTs),
 		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
 	}
+	foundTagAsID := false
 	detailsLines := []*cipdDetailsLine{}
 	for _, tag := range instance.Tags {
 		split := strings.SplitN(tag.Tag, ":", 2)
@@ -134,6 +150,11 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 		}
 		key := split[0]
 		val := split[1]
+		if tagAsID == key {
+			rev.Id = tag.Tag
+			rev.Display = tag.Tag
+			foundTagAsID = true
+		}
 		if key == "bug" {
 			// For bugs, we expect either eg. "chromium:1234" or "b/1234".
 			split := strings.SplitN(val, ":", 2)
@@ -177,6 +198,9 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 			}
 		}
 
+	}
+	if tagAsID != "" && !foundTagAsID {
+		rev.InvalidReason = fmt.Sprintf("No %q tag", tagAsID)
 	}
 	return rev
 }

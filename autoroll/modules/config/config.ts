@@ -460,11 +460,13 @@ interface FreeTypeParentConfigJSON {
 export interface CIPDChildConfig {
   name: string;
   tag: string;
+  tagAsId: string;
 }
 
 interface CIPDChildConfigJSON {
   name?: string;
   tag?: string;
+  tag_as_id?: string;
 }
 
 export interface FuchsiaSDKChildConfig {

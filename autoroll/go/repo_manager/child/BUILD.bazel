@@ -43,6 +43,7 @@ go_test(
     name = "child_test",
     srcs = [
         "cipd_manual_test.go",
+        "cipd_test.go",
         "gitiles_test.go",
         "semver_gcs_test.go",
     ],
@@ -65,5 +66,7 @@ go_test(
         "//go/vfs",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//cipd/client/cipd",
+        "@org_chromium_go_luci//cipd/common",
     ],
 )
