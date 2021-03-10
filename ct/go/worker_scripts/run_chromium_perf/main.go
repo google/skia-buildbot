@@ -108,20 +108,19 @@ func runChromiumPerf() error {
 	if *chromiumBuildNoPatch != *chromiumBuildWithPatch {
 		chromiumBuilds = append(chromiumBuilds, *chromiumBuildWithPatch)
 	}
-	// Download the specified chromium builds.
-	for _, chromiumBuild := range chromiumBuilds {
-		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
-			return err
-		}
-		//Delete the chromium build to save space when we are done.
-		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
-	}
-
 	chromiumBinaryName := util.BINARY_CHROME
 	if *targetPlatform == util.PLATFORM_WINDOWS {
 		chromiumBinaryName = util.BINARY_CHROME_WINDOWS
 	} else if *targetPlatform == util.PLATFORM_ANDROID {
 		chromiumBinaryName = util.ApkName
+	}
+	// Download the specified chromium builds.
+	for _, chromiumBuild := range chromiumBuilds {
+		if _, err := gs.DownloadChromiumBuild(chromiumBuild, chromiumBinaryName); err != nil {
+			return err
+		}
+		//Delete the chromium build to save space when we are done.
+		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
 	}
 	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, chromiumBinaryName)
 	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, chromiumBinaryName)
