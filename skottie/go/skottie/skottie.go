@@ -348,7 +348,7 @@ func (s *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash st
 
 	if s.canUploadZips && req.AssetsZip != "" {
 		if err := s.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
-			return skerr.Wrapf(err, "processing asset folder: %s", req.AssetsZip)
+			return skerr.Wrapf(err, "processing asset folder on %s", req.AssetsFilename)
 		}
 	}
 
@@ -508,7 +508,7 @@ var validFileName = regexp.MustCompile(`^[A-Za-z0-9._\-]+$`)
 func (s *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip string) error {
 	zr, err := readBase64Zip(b64Zip)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// This is to close any GCS writers on error
