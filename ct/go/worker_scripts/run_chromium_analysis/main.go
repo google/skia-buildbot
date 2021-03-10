@@ -44,6 +44,7 @@ var (
 	chromiumBuild      = flag.String("chromium_build", "", "The chromium build to use.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	apkGsPath          = flag.String("apk_gs_path", "", "GS path to a custom APK to use instead of building one from scratch. Eg: gs://chrome-unsigned/android-B0urB0N/79.0.3922.0/arm_64/ChromeModern.apk")
+	chromeBuildGsPath  = flag.String("chrome_build_gs_path", "", "GS path to a custom chrome build to use instead of building one from scratch. Eg: gs://chromium-browser-snapshots/Linux_x64/805044/chrome-linux.zip")
 	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	browserExtraArgs   = flag.String("browser_extra_args", "", "The extra arguments that are passed to the browser while running the benchmark.")
@@ -67,8 +68,8 @@ func runChromiumAnalysis() error {
 	defer sklog.Flush()
 
 	// Validate required arguments.
-	if *chromiumBuild == "" && *apkGsPath == "" {
-		return errors.New("Must specify either --chromium_build or --apk-gs-path")
+	if *chromiumBuild == "" && *apkGsPath == "" && *chromeBuildGsPath == "" {
+		return errors.New("Must specify either --chromium_build or --apk_gs_path or --chrome_build_gs_path")
 	}
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
@@ -104,34 +105,49 @@ func runChromiumAnalysis() error {
 		customWebpages = util.GetCustomPagesWithinRange(*startRange, *num, customWebpages)
 	}
 
-	// Download the specified chromium build if a custom APK is not specified.
-	if *apkGsPath == "" {
-		if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-			return err
-		}
-		// Delete the chromium build to save space when we are done.
-		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
-	}
 	chromiumBinary := util.BINARY_CHROME
-	pathToBinaryDir := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild)
 	if *targetPlatform == util.PLATFORM_WINDOWS {
 		chromiumBinary = util.BINARY_CHROME_WINDOWS
 	} else if *targetPlatform == util.PLATFORM_ANDROID {
 		chromiumBinary = util.ApkName
-		if *apkGsPath != "" {
-			pathToBinaryDir = filepath.Join(util.ChromiumBuildsDir, util.CUSTOM_APK_DIR_NAME)
-			util.MkdirAll(pathToBinaryDir, 0700)
-			defer skutil.RemoveAll(pathToBinaryDir)
-
-			// Download the specified APK from Google storage.
-			r := regexp.MustCompile(`gs://(.+?)/(.*)`)
-			m := r.FindStringSubmatch(*apkGsPath)
-			bucket := m[1]
-			remotePath := m[2]
-			localPath := filepath.Join(pathToBinaryDir, chromiumBinary)
-			if err := gs.DownloadRemoteFileFromBucket(bucket, remotePath, localPath); err != nil {
-				return fmt.Errorf("Error downloading %s from %s to %s: %s", remotePath, bucket, localPath, err)
+	}
+	pathToBinaryDir := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild)
+	// Download the specified chromium build if a custom APK is not specified.
+	if *apkGsPath == "" {
+		if *chromeBuildGsPath == "" {
+			pathToBinaryDir, err = gs.DownloadChromiumBuild(*chromiumBuild, chromiumBinary)
+			if err != nil {
+				return err
 			}
+		} else {
+			// If a custom chrome build is specified then download that instead.
+			customChromeBuildDir := filepath.Join(util.ChromiumBuildsDir, "custom-chrome-build")
+			util.MkdirAll(customChromeBuildDir, 0700)
+			r := regexp.MustCompile(`gs://(.+?)/(.*)/(.*\.zip)`)
+			m := r.FindStringSubmatch(*chromeBuildGsPath)
+			bucket := m[1]
+			gsDir := m[2]
+			zipName := m[3]
+			pathToBinaryDir, err = gs.DownloadChromiumBuildFromTo(customChromeBuildDir, bucket, gsDir, zipName, chromiumBinary)
+			if err != nil {
+				return err
+			}
+		}
+		// Delete the chromium build to save space when we are done.
+		defer skutil.RemoveAll(pathToBinaryDir)
+	} else {
+		pathToBinaryDir = filepath.Join(util.ChromiumBuildsDir, util.CUSTOM_APK_DIR_NAME)
+		util.MkdirAll(pathToBinaryDir, 0700)
+		defer skutil.RemoveAll(pathToBinaryDir)
+
+		// Download the specified APK from Google storage.
+		r := regexp.MustCompile(`gs://(.+?)/(.*)`)
+		m := r.FindStringSubmatch(*apkGsPath)
+		bucket := m[1]
+		remotePath := m[2]
+		localPath := filepath.Join(pathToBinaryDir, chromiumBinary)
+		if err := gs.DownloadRemoteFileFromBucket(bucket, remotePath, localPath); err != nil {
+			return fmt.Errorf("Error downloading %s from %s to %s: %s", remotePath, bucket, localPath, err)
 		}
 	}
 	chromiumBinaryPath := filepath.Join(pathToBinaryDir, chromiumBinary)

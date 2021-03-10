@@ -43,6 +43,7 @@ var (
 	matchStdoutText      = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
 	chromiumHash         = flag.String("chromium_hash", "", "The Chromium full hash the checkout should be synced to before applying patches.")
 	apkGsPath            = flag.String("apk_gs_path", "", "GS path to a custom APK to use instead of building one from scratch. Eg: gs://chrome-unsigned/android-B0urB0N/79.0.3922.0/arm_64/ChromeModern.apk")
+	chromeBuildGsPath    = flag.String("chrome_build_gs_path", "", "GS path to a custom chrome build to use instead of building one from scratch. Eg: gs://chromium-browser-snapshots/Linux_x64/805044/chrome-linux.zip")
 	telemetryIsolateHash = flag.String("telemetry_isolate_hash", "", "User specified telemetry isolate hash to download and use from isolate server. If specified the \"Isolate Telemetry\" task will be skipped.")
 	taskPriority         = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 	groupName            = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
@@ -92,6 +93,9 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 	if *apkGsPath != "" && !strings.HasPrefix(*apkGsPath, "gs://") {
 		return errors.New("apkGsPath must start with gs://")
+	}
+	if *chromeBuildGsPath != "" && !strings.HasPrefix(*chromeBuildGsPath, "gs://") {
+		return errors.New("chromeBuildGsPath must start with gs://")
 	}
 
 	// Use defaults.
@@ -145,17 +149,11 @@ func runChromiumAnalysisOnWorkers() error {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuild string
-	if *apkGsPath != "" {
-		// Do not trigger chromium build if a custom APK is specified for Android.
+	if *apkGsPath != "" || *chromeBuildGsPath != "" {
+		// Do not trigger chromium build if a custom APK or chrome build is specified.
 		chromiumBuild = ""
 	} else {
 		group.Go("build chromium", func() error {
-			if *apkGsPath != "" {
-				// Do a no-op here if a custom APK is specified for Android.
-				chromiumBuild = ""
-				return nil
-			}
-
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
@@ -207,6 +205,7 @@ func runChromiumAnalysisOnWorkers() error {
 		"--chromium_build=" + chromiumBuild,
 		"--run_id=" + *runID,
 		"--apk_gs_path=" + *apkGsPath,
+		"--chrome_build_gs_path=" + *chromeBuildGsPath,
 		"--benchmark_name=" + *benchmarkName,
 		"--benchmark_extra_args=" + *benchmarkExtraArgs,
 		"--browser_extra_args=" + *browserExtraArgs,

@@ -149,6 +149,7 @@ export interface ChromiumAnalysisDatastoreTask {
 	match_stdout_txt: string;
 	chromium_hash: string;
 	apk_gspath: string;
+	chrome_build_gs_path: string;
 	telemetry_isolate_hash: string;
 	cc_list: string[] | null;
 	task_priority: number;
@@ -177,6 +178,7 @@ export interface ChromiumAnalysisAddTaskVars {
 	match_stdout_txt: string;
 	chromium_hash: string;
 	apk_gs_path: string;
+	chrome_build_gs_path: string;
 	telemetry_isolate_hash: string;
 	cc_list: string[] | null;
 	task_priority: string;

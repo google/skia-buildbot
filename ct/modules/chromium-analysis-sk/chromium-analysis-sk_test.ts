@@ -154,6 +154,7 @@ describe('chromium-analysis-sk', () => {
       benchmark_args: '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format',
       browser_args: '',
       catapult_patch: '',
+      chrome_build_gs_path: '',
       chromium_hash: '',
       chromium_patch: '\n\ndiff --git a/DEPS b/DEPS\nindex 849ae22..ee07579 100644\n--- a/DEPS\n+++ b/DEPS\n@@ -178,7 +178,7 @@\n   # Three lines of non-changing comments so that\n   # the commit queue can handle CLs rolling Skia\n   # and whatever else without interference from each other.\n-  \'skia_revision\': \'cc7ec24ca824ca13d5a8a8e562fcec695ae54390\',\n+  \'skia_revision\': \'1dbc3b533962b0ae803a2a5ee89f61146228d73b\',\n   # Three lines of non-changing comments so that\n   # the commit queue can handle CLs rolling V8\n   # and whatever else without interference from each other.\n',
       custom_webpages: '',
