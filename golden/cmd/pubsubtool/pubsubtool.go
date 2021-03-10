@@ -18,6 +18,7 @@ import (
 
 func main() {
 	bucketName := flag.String("bucket_name", "", "The GCS bucket to listen to (see bucket_notifications)")
+	prefix := flag.String("prefix", "", "The GCS prefix to listen to.")
 	projectID := flag.String("project_id", "skia-public", "The project for PubSub events")
 	topicName := flag.String("topic_name", "", "The topic to create if it does not exist")
 	subscriptionName := flag.String("subscription_name", "", "The subscription to create if it does not exist")
@@ -47,6 +48,10 @@ func main() {
 		}
 	} else if task == "bucket_notifications" {
 		if err := listBucketNotifications(ctx, gsc, *bucketName); err != nil {
+			sklog.Fatalf("Listing bucket notifications on GCS bucket %s: %s", *bucketName, err)
+		}
+	} else if task == "subscribe_to_bucket" {
+		if err := subscribeToBucket(ctx, gsc, *bucketName, *prefix); err != nil {
 			sklog.Fatalf("Listing bucket notifications on GCS bucket %s: %s", *bucketName, err)
 		}
 	} else {
@@ -121,4 +126,19 @@ func listBucketNotifications(ctx context.Context, gsc *storage.Client, bucketNam
 		sklog.Infof("%s events under //%s are published to topic %s in project %s", n.EventTypes, n.ObjectNamePrefix, n.TopicID, n.TopicProjectID)
 	}
 	return nil
+}
+
+func subscribeToBucket(ctx context.Context, gsc *storage.Client, bucketName, prefix string) error {
+	if prefix != "" {
+		return skerr.Fmt("Must specify prefix")
+	}
+	bucket := gsc.Bucket(bucketName)
+	err := bucket.AddNotification(ctx, &storage.Notification{
+		ID:               "",
+		TopicID:          "",
+		TopicProjectID:   "",
+		EventTypes:       []string{storage.ObjectFinalizeEvent},
+		ObjectNamePrefix: prefix,
+		PayloadFormat:    "",
+	})
 }
