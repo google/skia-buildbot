@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0df0530d_b7373977",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-10T23:13:51Z",
+      "side": 1,
+      "message": "gif exporter client side for skottie animations. I added gif.js as part of the build files since it can\u0027t be used as an npm module.\nI checked the license and it\u0027s MIT.\nI hope that\u0027s fine.",
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
