@@ -110,7 +110,7 @@ func runChromiumPerf() error {
 	}
 	// Download the specified chromium builds.
 	for _, chromiumBuild := range chromiumBuilds {
-		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
+		if _, err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
 			return err
 		}
 		//Delete the chromium build to save space when we are done.
