@@ -18,6 +18,8 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
         to: 'img/jsoneditor-icons.svg',
       },
       { from: resolve(__dirname, 'build/canvaskit/canvaskit.wasm') },
+      { from: resolve(__dirname, 'modules/skottie-gif-exporter/gif.worker.js') },
+      { from: resolve(__dirname, 'modules/skottie-gif-exporter/gif.worker.js.map') },
       { from: resolve(__dirname, 'node_modules/@webcomponents/custom-elements/custom-elements.min.js') },
     ]),
   );
