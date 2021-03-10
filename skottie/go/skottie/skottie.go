@@ -91,6 +91,7 @@ func main() {
 	if err := config.ParseConfigFile(*configPath, "config", &sc); err != nil {
 		sklog.Fatalf("Loading config file %s: %s", *configPath, err)
 	}
+	sklog.Infof("Loaded config %#v", sc)
 
 	srv, err := newServer(sc)
 	if err != nil {
@@ -162,6 +163,7 @@ func newServer(sc skottieConfig) (*Server, error) {
 
 	srv := &Server{
 		alwaysReloadTemplates: sc.Local,
+		canUploadZips:         sc.CanUploadZips,
 		gcsClient:             gcsclient.New(storageClient, sc.GCSBucket),
 		resourceDir:           resourcesDir,
 	}
@@ -346,9 +348,13 @@ func (s *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash st
 		return skerr.Fmt("Lottie JSON is too big (%d bytes)", len(b))
 	}
 
-	if s.canUploadZips && req.AssetsZip != "" {
-		if err := s.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
-			return skerr.Wrapf(err, "processing asset folder on %s", req.AssetsFilename)
+	if req.AssetsZip != "" {
+		if s.canUploadZips {
+			if err := s.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
+				return skerr.Wrapf(err, "processing asset folder %s on %s", req.AssetsFilename, req.Filename)
+			}
+		} else {
+			sklog.Warningf("Got zip asset from %s even though this instance doesn't support it", req.Filename)
 		}
 	}
 
