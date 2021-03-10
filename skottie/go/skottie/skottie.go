@@ -21,16 +21,19 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/config"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"golang.org/x/sync/errgroup"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -130,7 +133,7 @@ func main() {
 type Server struct {
 	alwaysReloadTemplates bool
 	canUploadZips         bool
-	bucket                *storage.BucketHandle
+	gcsClient             gcs.GCSClient
 	resourceDir           string
 	templates             *template.Template
 }
@@ -159,7 +162,7 @@ func newServer(sc skottieConfig) (*Server, error) {
 
 	srv := &Server{
 		alwaysReloadTemplates: sc.Local,
-		bucket:                storageClient.Bucket(sc.GCSBucket),
+		gcsClient:             gcsclient.New(storageClient, sc.GCSBucket),
 		resourceDir:           resourcesDir,
 	}
 	srv.loadTemplates()
@@ -214,7 +217,7 @@ func (s *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	hash := mux.Vars(r)["hash"]
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
-	reader, err := s.bucket.Object(path).NewReader(r.Context())
+	reader, err := s.gcsClient.FileReader(r.Context(), path)
 	if err != nil {
 		sklog.Warningf("Can't load JSON file %s from GCS: %s", path, err)
 		w.WriteHeader(http.StatusNotFound)
@@ -236,7 +239,7 @@ func (s *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
 	hash := mux.Vars(r)["hash"]
 	name := mux.Vars(r)["name"]
 	path := strings.Join([]string{hash, "assets", name}, "/")
-	reader, err := s.bucket.Object(path).NewReader(r.Context())
+	reader, err := s.gcsClient.FileReader(r.Context(), path)
 	if err != nil {
 		sklog.Warningf("Can't load asset %s from GCS: %s", path, err)
 		w.WriteHeader(http.StatusNotFound)
@@ -275,12 +278,16 @@ func (s *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	defer util.Close(r.Body)
 	var req UploadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, err, "Error decoding JSON.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Error decoding JSON.", http.StatusBadRequest)
 		return
 	}
 	// Check for maliciously sized input on any field we upload to GCS
-	if len(req.AssetsFilename) > maxZipSize || len(req.Filename) > maxFilenameSize {
-		httputils.ReportError(w, nil, "Input file(s) too big", http.StatusInternalServerError)
+	if len(req.AssetsZip) > maxZipSize || len(req.Filename) > maxFilenameSize {
+		http.Error(w, "Input file(s) too big", http.StatusBadRequest)
+		return
+	}
+	if req.Lottie == nil {
+		http.Error(w, "Invalid input - missing lottie", http.StatusBadRequest)
 		return
 	}
 
@@ -288,7 +295,7 @@ func (s *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	h := md5.New()
 	b, err := json.Marshal(req)
 	if err != nil {
-		httputils.ReportError(w, err, "Can't re-encode request.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Can't re-encode request.", http.StatusBadRequest)
 		return
 	}
 	if _, err = h.Write(b); err != nil {
@@ -333,15 +340,15 @@ func (s *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash string) error {
 	b, err := json.Marshal(req.Lottie)
 	if err != nil {
-		return skerr.Fmt("Can't re-encode lottie file: %s", err)
+		return skerr.Wrapf(err, "re-encoding lottie file %s", req.Filename)
 	}
 	if len(b) > maxJSONSize {
-		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", len(b), err)
+		return skerr.Fmt("Lottie JSON is too big (%d bytes)", len(b))
 	}
 
 	if s.canUploadZips && req.AssetsZip != "" {
 		if err := s.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
-			return skerr.Fmt("Could not process asset folder: %s", err)
+			return skerr.Wrapf(err, "processing asset folder: %s", req.AssetsZip)
 		}
 	}
 
@@ -355,18 +362,21 @@ func (s *Server) uploadState(ctx context.Context, req *UploadRequest, hash strin
 	// Write JSON file, containing the state (filename, lottie, etc)
 	bytesToUpload, err := json.Marshal(req)
 	if err != nil {
-		return skerr.Fmt("Can't re-encode request: %s", err)
+		return skerr.Wrapf(err, "re-encoding request %s", req.Filename)
 	}
 
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
-	obj := s.bucket.Object(path)
-	wr := obj.NewWriter(ctx)
-	wr.ObjectAttrs.ContentEncoding = "application/json"
+	// If the context to a GCS Writer is canceled, it is closed (and should be closed on error).
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	wr := s.gcsClient.FileWriter(ctx, path, gcs.FileWriteOptions{
+		ContentEncoding: "application/json",
+	})
 	if _, err := wr.Write(bytesToUpload); err != nil {
-		return skerr.Fmt("Failed writing JSON to GCS: %s", err)
+		return skerr.Wrapf(err, "writing JSON to GCS %s", path)
 	}
 	if err := wr.Close(); err != nil {
-		return skerr.Fmt("Failed writing JSON to GCS on close: %s", err)
+		return skerr.Wrapf(err, "writing JSON to GCS on close %s", path)
 	}
 	return nil
 }
@@ -374,7 +384,7 @@ func (s *Server) uploadState(ctx context.Context, req *UploadRequest, hash strin
 func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash string) error {
 	zr, err := readBase64Zip(req.AssetsZip)
 	if err != nil {
-		return err
+		return skerr.Wrapf(err, "reading base64 zip for %s", req.Filename)
 	}
 
 	var jsonFile *zip.File
@@ -401,17 +411,17 @@ func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash str
 	}
 
 	if jsonFile.UncompressedSize64 > maxJSONSize {
-		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", jsonFile.UncompressedSize64, err)
+		return skerr.Fmt("Lottie JSON is too big (%d bytes)", jsonFile.UncompressedSize64)
 	}
 
 	fr, err := jsonFile.Open()
 	if err != nil {
-		return skerr.Fmt("Could not unzip lottie.json: %s", err)
+		return skerr.Wrapf(err, "unziping lottie.json %s", req.Filename)
 	}
 
 	lottieBytes, err := ioutil.ReadAll(fr)
 	if err := json.Unmarshal(lottieBytes, &req.Lottie); err != nil {
-		return skerr.Fmt("lottie.json was invalid JSON: %s", err)
+		return skerr.Wrapf(err, "lottie.json was invalid JSON: %s", req.Filename)
 	}
 
 	// We don't need to store the zip contents
@@ -422,7 +432,7 @@ func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash str
 	req.AssetsFilename = ""
 
 	if err := s.uploadState(ctx, req, hash); err != nil {
-		return skerr.Fmt("Could not upload lottie.json state: %s", err)
+		return skerr.Wrapf(err, "uploading lottie.json state %s", req.Filename)
 	}
 
 	eg, newCtx := errgroup.WithContext(ctx)
@@ -440,7 +450,7 @@ func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash str
 				dest := strings.Join([]string{hash, "assets", strippedName}, "/")
 				sklog.Infof("Uploading %s from zip file to %s", strippedName, dest)
 				if err := s.writeZipFileToGCS(newCtx, tf, dest, "application/octet-stream"); err != nil {
-					return skerr.Fmt("Failed while uploading asset %s to %s: %s", tf.Name, dest, err)
+					return skerr.Wrapf(err, "uploading asset %s to %s", tf.Name, dest)
 				}
 				return nil
 			})
@@ -452,17 +462,20 @@ func (s *Server) createFromZip(ctx context.Context, req *UploadRequest, hash str
 func (s *Server) writeZipFileToGCS(ctx context.Context, f *zip.File, dest, encoding string) error {
 	fr, err := f.Open()
 	if err != nil {
-		return skerr.Fmt("Failed reading out of zip file when uploading %s: %s", dest, err)
+		return skerr.Wrapf(err, "reading out of zip file when uploading %s", dest)
 	}
 	defer util.Close(fr)
-	obj := s.bucket.Object(dest)
-	wr := obj.NewWriter(ctx)
-	wr.ObjectAttrs.ContentEncoding = encoding
+	// If the context to a GCS Writer is canceled, it is closed (and should be closed on error).
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	wr := s.gcsClient.FileWriter(ctx, dest, gcs.FileWriteOptions{
+		ContentEncoding: encoding,
+	})
 	if _, err := io.Copy(wr, fr); err != nil {
-		return skerr.Fmt("Failed writing JSON to GCS: %s", err)
+		return skerr.Wrapf(err, "writing JSON to GCS %s", dest)
 	}
 	if err := wr.Close(); err != nil {
-		return skerr.Fmt("Failed writing JSON to GCS on close: %s", err)
+		return skerr.Wrapf(err, "writing JSON to GCS on close: %s", dest)
 	}
 	return nil
 }
@@ -498,6 +511,9 @@ func (s *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip string)
 		return err
 	}
 
+	// This is to close any GCS writers on error
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	for _, f := range zr.File {
 		if f != nil {
 			strippedName := getFileName(f.Name)
@@ -507,31 +523,34 @@ func (s *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip string)
 			}
 			fr, err := f.Open()
 			if err != nil {
-				return skerr.Fmt("Could not open zipped file %s: %s", f.Name, err)
+				return skerr.Wrapf(err, "Could not open zipped file %s", f.Name)
 			}
-			defer util.Close(fr)
 			sklog.Infof("See %s [%s] in zip file, should upload it", strippedName, f.Name)
 			path := strings.Join([]string{lottieHash, "assets", strippedName}, "/")
-			obj := s.bucket.Object(path)
-			wr := obj.NewWriter(ctx)
 
-			wr.ObjectAttrs.ContentEncoding = "application/octet-stream"
+			wr := s.gcsClient.FileWriter(ctx, path, gcs.FileWriteOptions{
+				ContentEncoding: "application/octet-stream",
+			})
 			if _, err := io.Copy(wr, fr); err != nil {
-				return skerr.Fmt("Could not write %s to GCS %s: %s", f.Name, path, err)
+				_ = fr.Close()
+				return skerr.Wrapf(err, "writing %s to GCS %s", f.Name, path)
+			}
+			if err := fr.Close(); err != nil {
+				return skerr.Wrapf(err, "Closing zip file %s", f.Name)
 			}
 			if err := wr.Close(); err != nil {
-				return skerr.Fmt("Could not write %s to GCS on close %s: %s", f.Name, path, err)
+				return skerr.Wrapf(err, "writing %s to GCS on close %s", f.Name, path)
 			}
 		}
 	}
 	return nil
 }
 
-const BASE64_ZIP_PREFIX = "data:application/zip;base64,"
+const base64ZipPrefix = "data:application/zip;base64,"
 
 func readBase64Zip(b64Zip string) (*zip.Reader, error) {
-	if strings.HasPrefix(b64Zip, BASE64_ZIP_PREFIX) {
-		b64Zip = strings.TrimPrefix(b64Zip, BASE64_ZIP_PREFIX)
+	if strings.HasPrefix(b64Zip, base64ZipPrefix) {
+		b64Zip = strings.TrimPrefix(b64Zip, base64ZipPrefix)
 	} else {
 		return nil, skerr.Fmt("Not a base64 encoded zip")
 	}
@@ -540,14 +559,14 @@ func readBase64Zip(b64Zip string) (*zip.Reader, error) {
 	}
 	data, err := base64.StdEncoding.DecodeString(b64Zip)
 	if err != nil {
-		return nil, skerr.Fmt("Could not decode base64 string %s", err)
+		return nil, skerr.Wrapf(err, "decoding base64 string")
 	}
 
 	zb := bytes.NewReader(data)
 
 	zr, err := zip.NewReader(zb, int64(len(data)))
 	if err != nil {
-		return nil, skerr.Fmt("Could not unzip bytes %s", err)
+		return nil, skerr.Wrapf(err, "unziping base64 decoded bytes")
 	}
 
 	if len(zr.File) > maxZipFiles {
