@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cockroach sql --url postgresql://root@localhost:25000/skia?sslmode=disable -e "SELECT Regressions.alert_id, Regressions.commit_number, Commits.commit_time, Commits.git_hash, Commits.author, Commits.subject, Regressions.regression FROM Regressions INNER LOOKUP JOIN Commits ON Regressions.commit_number = Commits.commit_number WHERE Commits.commit_number > 50486;" --format=csv > ~/regressions.csv
