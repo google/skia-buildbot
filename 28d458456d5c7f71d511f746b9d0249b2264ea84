@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "40a6dcc9_f1a9affd",
+        "filename": "ct/go/ctfe/chromium_analysis/chromium_analysis.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-03-10T16:19:30Z",
+      "side": 1,
+      "message": "chrome_build_gs_path for consistency with the majority of client side code? Here and in chromium-analysis-runs-sk.ts?",
+      "range": {
+        "startLine": 70,
+        "startChar": 38,
+        "endLine": 70,
+        "endChar": 57
+      },
+      "revId": "28d458456d5c7f71d511f746b9d0249b2264ea84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
