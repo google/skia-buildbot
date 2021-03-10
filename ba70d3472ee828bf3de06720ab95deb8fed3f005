@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c3d047bf_1291af3b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6026
+      },
+      "writtenOn": "2021-03-10T12:03:11Z",
+      "side": 1,
+      "message": "Based on autoroll/config/goldctl-linux-chromium.cfg\n\nNo idea if this will work -- the easiest way is probably to check it in and see?",
+      "revId": "ba70d3472ee828bf3de06720ab95deb8fed3f005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
