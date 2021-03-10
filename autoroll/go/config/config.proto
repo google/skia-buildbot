@@ -431,6 +431,11 @@ message CIPDChildConfig {
     string name = 1;
     // tag to track.
     string tag = 2;
+    // tag_as_id optionally refers to a tag key which should be used as the
+    // revision ID instead of the package ID. If provided, any package versions
+    // which are missing this tag are ignored, and in cases where multiple
+    // matching tags are present one is chosen arbitrarily.
+    string tag_as_id = 3;
 }
 
 // FuchsiaSDKChildConfig provides configuration for the Fuchsia SDK Child.
