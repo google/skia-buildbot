@@ -1,18 +1,15 @@
 load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
 
 ts_library(
-    name = "util_lib",
-    srcs = [":util.ts"],
+    name = "util",
+    srcs = ["util.ts"],
     visibility = ["//visibility:public"],
     deps = [
         "@infra-sk_npm//@types/express",
-        "@infra-sk_npm//@types/mocha",
-        "@infra-sk_npm//@types/node",
         "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//@types/webpack",
         "@infra-sk_npm//@types/webpack-dev-middleware",
         "@infra-sk_npm//express",
-        "@infra-sk_npm//mocha",
         "@infra-sk_npm//puppeteer",
         "@infra-sk_npm//webpack",
         "@infra-sk_npm//webpack-dev-middleware",
@@ -20,7 +17,15 @@ ts_library(
 )
 
 nodejs_test(
-    name = "util_test",
-    src = ":util_nodejs_test.ts",
-    deps = [":util_lib"],
+    name = "util_nodejs_test",
+    src = "util_nodejs_test.ts",
+    deps = [
+        ":util",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//@types/express",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//express",
+        "@infra-sk_npm//puppeteer",
+    ],
 )

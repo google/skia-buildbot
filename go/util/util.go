@@ -930,6 +930,17 @@ func SSliceDedup(slice []string) []string {
 	return deduped
 }
 
+// SSliceFilter filters a slice of strings, preserving their order.
+func SSliceFilter(slice []string, criteria func(string) bool) []string {
+	filtered := []string{}
+	for _, s := range slice {
+		if criteria(s) {
+			filtered = append(filtered, s)
+		}
+	}
+	return filtered
+}
+
 // IsLocal attempts to determine whether or not we're running on a developer
 // machine vs in Swarming or Kubernetes.
 func IsLocal() bool {
