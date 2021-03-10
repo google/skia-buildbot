@@ -16,6 +16,24 @@
       "message": "return?",
       "revId": "6a88b4d2129caabbe4d68f5feaae5f9a02077003",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "313e6754_a43a835c",
+        "filename": "skottie/go/skottie/skottie.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-10T15:40:53Z",
+      "side": 1,
+      "message": "Good catch. Done.",
+      "parentUuid": "a6a33ffd_3c1f72b2",
+      "revId": "6a88b4d2129caabbe4d68f5feaae5f9a02077003",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
