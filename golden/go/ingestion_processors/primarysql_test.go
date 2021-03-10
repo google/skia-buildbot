@@ -165,7 +165,6 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 			dks.OSKey:             dks.Windows10dot2OS,
 			dks.DeviceKey:         dks.QuadroDevice,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}, {
 		TraceID:            h(triangleTraceKeys),
@@ -181,7 +180,6 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 			dks.OSKey:             dks.Windows10dot2OS,
 			dks.DeviceKey:         dks.QuadroDevice,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}, {
 		TraceID:            h(circleTraceKeys),
@@ -197,7 +195,6 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 			dks.OSKey:             dks.Windows10dot2OS,
 			dks.DeviceKey:         dks.QuadroDevice,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}}, actualValuesAtHead)
 
@@ -325,7 +322,6 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 			types.PrimaryKeyField: dks.SquareTest,
 			dks.OSKey:             dks.Windows10dot3OS,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}, {
 		TraceID:            h(androidTraceKeys),
@@ -339,7 +335,6 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 			types.PrimaryKeyField: dks.SquareTest,
 			dks.OSKey:             dks.AndroidOS,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}}, actualValuesAtHead)
 }
@@ -439,7 +434,6 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 			types.PrimaryKeyField: dks.SquareTest,
 			dks.OSKey:             dks.Windows10dot3OS,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}, {
 		TraceID:            h(androidTraceKeys),
@@ -453,7 +447,6 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 			types.PrimaryKeyField: dks.SquareTest,
 			dks.OSKey:             dks.AndroidOS,
 		},
-		Label:                schema.LabelUntriaged,
 		MatchesAnyIgnoreRule: schema.NBNull,
 	}}, actualValuesAtHead)
 }

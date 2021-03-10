@@ -167,8 +167,6 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   grouping_id BYTES NOT NULL,
   corpus STRING AS (keys->>'source_type') STORED NOT NULL,
   keys JSONB NOT NULL,
-  expectation_label CHAR NOT NULL,
-  expectation_record_id UUID,
   matches_any_ignore_rule BOOL
 );
 CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (

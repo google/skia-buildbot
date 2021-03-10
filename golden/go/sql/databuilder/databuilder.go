@@ -519,13 +519,6 @@ func (b *TablesBuilder) Build() schema.Tables {
 
 	tables.DiffMetrics = b.diffMetrics
 	for _, atHead := range valuesAtHead {
-		for _, exp := range tables.Expectations {
-			if bytes.Equal(exp.GroupingID, atHead.GroupingID) && bytes.Equal(exp.Digest, atHead.Digest) {
-				atHead.ExpectationRecordID = exp.ExpectationRecordID
-				atHead.Label = exp.Label
-				break
-			}
-		}
 		tables.ValuesAtHead = append(tables.ValuesAtHead, *atHead)
 	}
 	tables.IgnoreRules = b.ignoreRules
