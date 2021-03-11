@@ -55,6 +55,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "e2db26e1_fadfce43",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "Since the documentation only describes how to use it from the dist folder and they haven\u0027t published the latest updates to npm, I opted to add it to this project.\nI included the README.md and LICENSE on the latest patch",
+      "parentUuid": "9a06d066_43c4f5b4",
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3aa51cbc_ef3d5c50",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
@@ -66,6 +84,30 @@
       "writtenOn": "2021-03-11T12:48:06Z",
       "side": 1,
       "message": "copypasta",
+      "range": {
+        "startLine": 2,
+        "startChar": 19,
+        "endLine": 2,
+        "endChar": 23
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "269d6671_5ee8eaaa",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "fixed",
+      "parentUuid": "3aa51cbc_ef3d5c50",
       "range": {
         "startLine": 2,
         "startChar": 19,
@@ -101,6 +143,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "6fa476f0_c42f32ff",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "removed the class on both buttons since it was not used.",
+      "parentUuid": "44415f30_5a3e598d",
+      "range": {
+        "startLine": 43,
+        "startChar": 33,
+        "endLine": 43,
+        "endChar": 37
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "df79ba09_7da55559",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
@@ -112,6 +178,30 @@
       "writtenOn": "2021-03-11T12:48:06Z",
       "side": 1,
       "message": "The ?\u003d operator will probably do what you want here but simpler. I\u0027ve used it before with html boolean attributes.\n\nselected?\u003d${ele._state.ditherValue \u003d\u003d\u003d index}",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3265766_eed4a7c8",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "that\u0027s right, thanks\n`?selected\u003d${ele._state.ditherValue \u003d\u003d\u003d index}`\nwith the question mark at the beginning",
+      "parentUuid": "df79ba09_7da55559",
       "range": {
         "startLine": 50,
         "startChar": 12,
@@ -147,6 +237,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "52770714_fc4087c8",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "makes sense, done",
+      "parentUuid": "f943befc_02336dec",
+      "range": {
+        "startLine": 119,
+        "startChar": 14,
+        "endLine": 119,
+        "endChar": 49
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "d8caa240_5e80a11e",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
@@ -158,6 +272,30 @@
       "writtenOn": "2021-03-11T12:48:06Z",
       "side": 1,
       "message": "If we are worried about blocking the main thread, would we be able to do this on a WebWorker? How much extra work is that?",
+      "range": {
+        "startLine": 214,
+        "startChar": 7,
+        "endLine": 214,
+        "endChar": 39
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c82ac040_e083e680",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "Since I need the canvas instance of the skottie canvas element to draw it frame by frame, I can\u0027t spin it on a worker class because I won\u0027t be able to access the DOM. I\u0027m not sure if there is a way to pass the canvas when it\u0027s been created on the main thread.",
+      "parentUuid": "d8caa240_5e80a11e",
       "range": {
         "startLine": 214,
         "startChar": 7,
@@ -193,6 +331,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "2cd8ce56_c07c24ff",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "e20e0e59_b8c2c0f6",
+      "range": {
+        "startLine": 237,
+        "startChar": 14,
+        "endLine": 237,
+        "endChar": 23
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "32d81d58_853c0d27",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
@@ -204,6 +366,30 @@
       "writtenOn": "2021-03-11T12:48:06Z",
       "side": 1,
       "message": "Gif Exporter already spawns some web workers it seems. Where does the blocking on the main thread come in? Copying the pixels from the canvas element?",
+      "range": {
+        "startLine": 250,
+        "startChar": 15,
+        "endLine": 250,
+        "endChar": 28
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "227062bb_1c8a7170",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T18:37:41Z",
+      "side": 1,
+      "message": "yes, we are iterating the animation frame by frame and adding it to the git instance frame stack.",
+      "parentUuid": "32d81d58_853c0d27",
       "range": {
         "startLine": 250,
         "startChar": 15,
