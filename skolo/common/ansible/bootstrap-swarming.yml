@@ -2,15 +2,26 @@
 # Ensure Swarming has been bootstrapped.
 - hosts: all
   vars:
-    swarming_path: /b/s
-    bootstrap_script_path: "{{ home }}/bootstrap-swarming.py"
+    swarming_path: /opt/s
+    # This is where we previously installed Swarming. Newer Macs don't allow this.
+    # https://support.apple.com/en-us/HT210650
+    legacy_swarming_path: /b/s
   tasks:
+  - name: Check Swarming legacy location
+    stat:
+      path: "{{ legacy_swarming_path }}"
+    register: legacy_results
+  - fail:
+      msg: An existing Swarming installation exists at {{ legacy_swarming_path }}. New Swarming
+        installations should be in {{ swarming_path }}. {{ results.stat.exists }}
+    when: legacy_results.stat.exists
   - name: Check if host has already been bootstrapped
     stat:
       path: "{{ swarming_path }}"
     register: results
   - debug:
-      msg: Did we find an existing Swarming installation? {{ results.stat.exists }}
+      msg: Did we find an existing Swarming installation at {{ swarming_path }}?
+        {{ results.stat.exists }}
   - when: not results.stat.exists
     block:
       - name: Retrieve authorization token
@@ -22,14 +33,23 @@
             Metadata-Flavor: "Google"
           return_content: yes
         register: auth_token
-      - name: Download Swarming bootstrap script {{ bootstrap_script_path }}
+      # The following is based on the example command at
+      # https://chromium.googlesource.com/infra/luci/luci-py/+/ab50e2ea9a4fb6b1545576dc6433992a971260af/appengine/swarming/ui2/modules/swarming-index/swarming-index.js#52
+      - name: Create {{ swarming_path }}
+        become: true
+        file:
+          state: directory
+          path: "{{ swarming_path }}"
+          owner: chrome-bot
+          mode: '0755'
+      - name: Download Swarming bot code
         get_url:
-          url: "{{ swarming_server }}/bootstrap"
+          url: "{{ swarming_server }}/bot_code"
           headers:
             Authorization: Bearer {{ auth_token.json.access_token }}
-          dest: "{{ bootstrap_script_path }}"
+          dest: "{{ swarming_path }}/swarming_bot.zip"
       - name: Bootstrap Swarming (triggers reboot, so expected to fail)
-        command: python -u {{ bootstrap_script_path }}
+        command: python -u "{{ swarming_path }}/swarming_bot.zip"
         ignore_errors: True
       - name: Wait for reboot after bootstrapping Swarming
         wait_for_connection:
