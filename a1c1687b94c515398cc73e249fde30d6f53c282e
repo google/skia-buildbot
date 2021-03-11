@@ -16,6 +16,230 @@
       "message": "gif exporter client side for skottie animations. I added gif.js as part of the build files since it can\u0027t be used as an npm module.\nI checked the license and it\u0027s MIT.\nI hope that\u0027s fine.",
       "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "198037dc_8ce92ecc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "+Joe as an FYI on the new dependency",
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3aa51cbc_ef3d5c50",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "copypasta",
+      "range": {
+        "startLine": 2,
+        "startChar": 19,
+        "endLine": 2,
+        "endChar": 23
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "44415f30_5a3e598d",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "should this have a cancel class?",
+      "range": {
+        "startLine": 43,
+        "startChar": 33,
+        "endLine": 43,
+        "endChar": 37
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "df79ba09_7da55559",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "The ?\u003d operator will probably do what you want here but simpler. I\u0027ve used it before with html boolean attributes.\n\nselected?\u003d${ele._state.ditherValue \u003d\u003d\u003d index}",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f943befc_02336dec",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "Do you know if this could create too many ObjectURls if render calls this a lot? Maybe have this url be a property on the main element so we can control the fact that it gets created once (like blobURL or something).",
+      "range": {
+        "startLine": 119,
+        "startChar": 14,
+        "endLine": 119,
+        "endChar": 49
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d8caa240_5e80a11e",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "If we are worried about blocking the main thread, would we be able to do this on a WebWorker? How much extra work is that?",
+      "range": {
+        "startLine": 214,
+        "startChar": 7,
+        "endLine": 214,
+        "endChar": 39
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e20e0e59_b8c2c0f6",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "nit: maybe add a reminder that this render() is to produce the animated gif, not the lit-html render",
+      "range": {
+        "startLine": 237,
+        "startChar": 14,
+        "endLine": 237,
+        "endChar": 23
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "32d81d58_853c0d27",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "Gif Exporter already spawns some web workers it seems. Where does the blocking on the main thread come in? Copying the pixels from the canvas element?",
+      "range": {
+        "startLine": 250,
+        "startChar": 15,
+        "endLine": 250,
+        "endChar": 28
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7bf5555a_51885311",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "this.querySelector(\".skottie-canvas\") ?",
+      "range": {
+        "startLine": 206,
+        "startChar": 12,
+        "endLine": 206,
+        "endChar": 34
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "775f9a5c_2ac83717",
+        "filename": "skottie/webpack.config.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T12:48:06Z",
+      "side": 1,
+      "message": "I doubt we need the source map for our production build, right?",
+      "range": {
+        "startLine": 22,
+        "startChar": 77,
+        "endLine": 22,
+        "endChar": 80
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
