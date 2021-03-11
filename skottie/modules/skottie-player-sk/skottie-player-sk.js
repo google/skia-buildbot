@@ -175,6 +175,7 @@ define('skottie-player-sk', class extends HTMLElement {
     this._config.width = config.width;
     this._config.height = config.height;
     this._config.fps = config.fps;
+    this._animationName = config.lottie.nm;
 
     this._render();
     return canvasReady.then((ck) => {
@@ -190,6 +191,19 @@ define('skottie-player-sk', class extends HTMLElement {
 
   duration() {
     return this._state.duration * (this._state.currentSegment.t1 - this._state.currentSegment.t0);
+  }
+
+  fps() {
+    return this._state.nativeFps;
+  }
+
+  animationName() {
+    return this._animationName;
+  }
+
+  canvas() {
+    // TODO(hernantorrisi) find a better way to get the canvas element
+    return this.querySelector(".skottie-canvas");
   }
 
   seek(t) {

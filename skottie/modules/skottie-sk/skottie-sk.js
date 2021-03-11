@@ -20,6 +20,7 @@ import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 import { stateReflector } from 'common-sk/modules/stateReflector'
+import '../skottie-gif-exporter'
 import '../skottie-text-editor'
 import { replaceTexts } from '../skottie-text-editor/text-replace'
 import '../skottie-library-sk'
@@ -105,6 +106,19 @@ const jsonEditor = (ele) => {
 </section>`;
 }
 
+const gifExporter = (ele) => {
+  if (!ele._showGifExporter) {
+    return '';
+  }
+  return html`
+<section class=editor>
+  <skottie-gif-exporter
+    @start=${ele._onGifExportStart}
+  >
+  </skottie-gif-exporter>
+</section>`;
+}
+
 const jsonTextEditor = (ele) => {
   if (!ele._showTextEditor) {
     return '';
@@ -173,6 +187,10 @@ const displayLoaded = (ele) => html`
                ?checked=${ele._showEditor}
                @click=${ele._toggleEditor}>
   </checkbox-sk>
+  <checkbox-sk label="Show gif exporter"
+               ?checked=${ele._showGifExporter}
+               @click=${ele._toggleGifExporter}>
+  </checkbox-sk>
   <checkbox-sk label="Show text editor"
                ?checked=${ele._showTextEditor}
                @click=${ele._toggleTextEditor}>
@@ -218,6 +236,7 @@ const displayLoaded = (ele) => html`
 
 ${performanceChart(ele)}
 ${jsonEditor(ele)}
+${gifExporter(ele)}
 ${jsonTextEditor(ele)}
 `;
 
@@ -289,6 +308,7 @@ define('skottie-sk', class extends HTMLElement {
     this._hasEdits = false;
     this._showLottie = false;
     this._showEditor = false;
+    this._showGifExporter = false;
     this._showTextEditor = false;
     this._showPerformanceChart = false;
     this._showLibrary = false;
@@ -306,6 +326,7 @@ define('skottie-sk', class extends HTMLElement {
           // provide empty values
           'l' : this._showLottie,
           'e' : this._showEditor,
+          'g' : this._showGifExporter,
           't' : this._showTextEditor,
           'p' : this._showPerformanceChart,
           'i' : this._showLibrary,
@@ -317,6 +338,7 @@ define('skottie-sk', class extends HTMLElement {
     }, /*setState*/(newState) => {
       this._showLottie = newState.l;
       this._showEditor = newState.e;
+      this._showGifExporter = newState.g;
       this._showTextEditor = newState.t;
       this._showPerformanceChart = newState.p;
       this._showLibrary = newState.i;
@@ -325,6 +347,7 @@ define('skottie-sk', class extends HTMLElement {
       this._fps = newState.f;
       this._backgroundColor = newState.bg;
       this._applyTextEdits = this._applyTextEdits.bind(this);
+      this._onGifExportStart = this._onGifExportStart.bind(this);
       this.render();
     });
 
@@ -409,6 +432,12 @@ define('skottie-sk', class extends HTMLElement {
     this._skottieLibrary && this._skottieLibrary.replaceTexts(texts);
 
     this._upload();
+  }
+
+  _onGifExportStart() {
+    if (this._playing) {
+      this._playpause();
+    }
   }
 
   _applyEdits() {
@@ -698,6 +727,11 @@ define('skottie-sk', class extends HTMLElement {
     this._skottiePerformanceChart = $$('skottie-performance-sk', this);
     this._skottieLibrary = $$('skottie-library-sk', this);
 
+    const skottieGifExporter = $$('skottie-gif-exporter', this);
+    if (skottieGifExporter) {
+      skottieGifExporter.player = this._skottiePlayer;
+    }
+
     if (this._ui === LOADED_MODE) {
       try {
         this._renderLottieWeb();
@@ -859,6 +893,14 @@ define('skottie-sk', class extends HTMLElement {
     e.preventDefault();
     this._showTextEditor = false;
     this._showEditor = !this._showEditor;
+    this._stateChanged();
+    this.render();
+  }
+
+  _toggleGifExporter(e) {
+    // avoid double toggles
+    e.preventDefault();
+    this._showGifExporter = !this._showGifExporter;
     this._stateChanged();
     this.render();
   }
