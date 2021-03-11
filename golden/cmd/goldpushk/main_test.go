@@ -148,6 +148,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	skiaGitilesFollower := makeID(goldpushk.Skia, goldpushk.GitilesFollower)
 	skiaInfraBaselineServer := makeID(goldpushk.SkiaInfra, goldpushk.BaselineServer)
 	skiaInfraFrontend := makeID(goldpushk.SkiaInfra, goldpushk.Frontend)
+	skiaIngestion := makeID(goldpushk.Skia, goldpushk.Ingestion)
 	skiaIngestionBT := makeID(goldpushk.Skia, goldpushk.IngestionBT)
 	skiaPublicFrontend := makeID(goldpushk.SkiaPublic, goldpushk.Frontend)
 
@@ -222,15 +223,15 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 		[]goldpushk.DeployableUnitID{chromeIngestionBT, chromeFrontend})
 	test("Multiple instances, all services, no canary",
 		[]string{"chrome", "skia"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaFrontend, skiaGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaIngestion, skiaFrontend, skiaGitilesFollower},
 		nil)
 	test("Multiple instances, all services, one canary",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaIngestion, skiaGitilesFollower},
 		[]goldpushk.DeployableUnitID{skiaFrontend})
 	test("Multiple instances, all services, multiple canaries",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:ingestion-bt", "skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestion, skiaGitilesFollower},
 		[]goldpushk.DeployableUnitID{skiaIngestionBT, skiaFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

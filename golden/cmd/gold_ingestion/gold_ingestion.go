@@ -415,6 +415,11 @@ func (p *pubSubSource) ingestFile(ctx context.Context, name string) bool {
 }
 
 func startBackupPolling(ctx context.Context, isc ingestionServerConfig, sourcesToScan []ingestion.FileSearcher, pss *pubSubSource) {
+	if isc.BackupPollInterval.Duration <= 0 {
+		sklog.Infof("Skipping backup polling")
+		return
+	}
+
 	pollingLiveness := metrics2.NewLiveness("gold_ingestion", map[string]string{
 		"metric": "since_last_successful_poll",
 		"source": "combined",

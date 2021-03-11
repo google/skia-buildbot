@@ -22,9 +22,10 @@ const (
 	// Gold services.
 	BaselineServer  Service = "baselineserver"
 	DiffCalculator  Service = "diffcalculator"
-	IngestionBT     Service = "ingestion-bt"
 	Frontend        Service = "frontend"
 	GitilesFollower Service = "gitilesfollower"
+	Ingestion       Service = "ingestion" // New, SQL based ingestion
+	IngestionBT     Service = "ingestion-bt"
 
 	// Testing Gold instances.
 	TestInstance1     Instance = "goldpushk-test1"
@@ -70,9 +71,10 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		knownServices: []Service{
 			BaselineServer,
 			DiffCalculator,
-			IngestionBT,
 			Frontend,
 			GitilesFollower,
+			Ingestion,
+			IngestionBT,
 		},
 	}
 
@@ -93,6 +95,10 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			}
 		}
 	}
+
+	// Temporary additions for testing
+	s.add(SkiaInfra, Ingestion)
+	s.add(Skia, Ingestion)
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
