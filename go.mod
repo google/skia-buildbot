@@ -71,6 +71,7 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
+	github.com/cockroachdb/cockroach-go/v2 v2.1.0
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/containerd/containerd v1.4.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.1.0
@@ -110,9 +111,8 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
-	github.com/jackc/pgconn v1.7.0 // indirect
-	github.com/jackc/pgtype v1.5.0
-	github.com/jackc/pgx/v4 v4.9.0
+	github.com/jackc/pgtype v1.6.1
+	github.com/jackc/pgx/v4 v4.9.2
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
