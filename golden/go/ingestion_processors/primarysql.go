@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -184,29 +185,26 @@ func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.
 func (s *sqlPrimaryIngester) getAndWriteTileIDForCommit(ctx context.Context, targetCommit schema.CommitID) (schema.TileID, error) {
 	ctx, span := trace.StartSpan(ctx, "getAndWriteTileIDForCommit")
 	defer span.End()
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	// intentionally ignore the error to rollback, since there's nothing we can do if it's a real
-	// error (beyond signaling to reingest this file) and it will return an error if the transaction
-	// is already committed.
-	defer func() { _ = tx.Rollback(ctx) }()
-	tileID, err := s.getTileIDForCommit(ctx, tx, targetCommit)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	// Rows in this table are immutable once written
-	_, err = tx.Exec(ctx, `
+	var returnTileID schema.TileID
+	err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		tileID, err := s.getTileIDForCommit(ctx, tx, targetCommit)
+		if err != nil {
+			return err
+		}
+		// Rows in this table are immutable once written
+		_, err = tx.Exec(ctx, `
 INSERT INTO CommitsWithData (commit_id, tile_id) VALUES ($1, $2)
 ON CONFLICT DO NOTHING`, targetCommit, tileID)
+		if err != nil {
+			return err
+		}
+		returnTileID = tileID
+		return nil
+	})
 	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
-	if err := tx.Commit(ctx); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	return tileID, nil
+	return returnTileID, nil
 }
 
 // getTileIDForCommit determines the tileID for this commit by looking at surrounding commits
@@ -224,7 +222,7 @@ commit_id <= $1 ORDER BY commit_id DESC LIMIT 1`, targetCommit)
 		// If there is no data before this commit, we are, by definition, at tile 0
 		return 0, nil
 	} else if err != nil {
-		return 0, skerr.Wrap(err)
+		return 0, err // Don't wrap - crdbpgx might retry
 	}
 	if cID == targetCommit {
 		return beforeTileID, nil // already been computed
@@ -239,7 +237,7 @@ commit_id >= $1 ORDER BY commit_id ASC LIMIT 1`, targetCommit)
 tile_id = $1`, beforeTileID)
 		var count int
 		if err := row.Scan(&count); err != nil {
-			return 0, skerr.Wrap(err)
+			return 0, err // Don't wrap - crdbpgx might retry
 		}
 		// If the size of the previous tile exceeds our tile width, go to the next tile.
 		if count >= s.tileWidth {
@@ -247,7 +245,7 @@ tile_id = $1`, beforeTileID)
 		}
 		return beforeTileID, nil
 	} else if err != nil {
-		return 0, skerr.Wrap(err)
+		return 0, err // Don't wrap - crdbpgx might retry
 	}
 	// We have CommitsWithData both before and after the targetCommit. We always return the tile
 	// after this one, because it is less likely that tile is full.
@@ -273,7 +271,10 @@ func (s *sqlPrimaryIngester) upsertSourceFile(ctx context.Context, srcID schema.
 	defer span.End()
 	const statement = `UPSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
 VALUES ($1, $2, $3)`
-	_, err := s.db.Exec(ctx, statement, srcID, fileName, now(ctx))
+	err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, srcID, fileName, now(ctx))
+		return err // Don't wrap - crdbpgx might retry
+	})
 	return skerr.Wrap(err)
 }
 
@@ -413,7 +414,10 @@ func (s *sqlPrimaryIngester) batchCreateGroupings(ctx context.Context, rows []sc
 		// is immutable.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -452,7 +456,10 @@ func (s *sqlPrimaryIngester) batchCreateOptions(ctx context.Context, rows []sche
 		// is immutable.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -492,7 +499,10 @@ func (s *sqlPrimaryIngester) batchCreateTraces(ctx context.Context, rows []schem
 		// is immutable (we aren't writing to matches_any_ignore_rule).
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -572,7 +582,10 @@ func (s *sqlPrimaryIngester) batchCreateExpectations(ctx context.Context, rows [
 		// case, we don't want to overwrite it.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -604,7 +617,10 @@ grouping_id, options_id, source_file_id) VALUES `
 				row.GroupingID, row.OptionsID, row.SourceFileID)
 		}
 		vp := sql.ValuesPlaceholders(valuesPerRow, len(batch))
-		_, err := s.db.Exec(ctx, statement+vp, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement+vp, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -644,7 +660,10 @@ ON CONFLICT (trace_id)
 DO UPDATE SET (most_recent_commit_id, digest, options_id) =
     (excluded.most_recent_commit_id, excluded.digest, excluded.options_id)
 WHERE excluded.most_recent_commit_id > ValuesAtHead.most_recent_commit_id`
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -694,7 +713,10 @@ func (s *sqlPrimaryIngester) batchCreatePrimaryBranchParams(ctx context.Context,
 		// ON CONFLICT DO NOTHING because if the rows already exist, the data is immutable.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
@@ -734,7 +756,10 @@ func (s *sqlPrimaryIngester) batchCreateTiledTraceDigests(ctx context.Context, v
 		// ON CONFLICT DO NOTHING because if the rows already exist, the data is immutable.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		_, err := s.db.Exec(ctx, statement, arguments...)
+		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // Don't wrap - crdbpgx might retry
+		})
 		return skerr.Wrap(err)
 	})
 	if err != nil {
