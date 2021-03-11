@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "3fd100ca_ee72cbb1",
+        "filename": "ct/go/worker_scripts/capture_archives/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-03-11T18:13:04Z",
+      "side": 1,
+      "message": "nit: seems like this should be defined next to CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK in util/constants.go.",
+      "range": {
+        "startLine": 93,
+        "startChar": 11,
+        "endLine": 93,
+        "endChar": 41
+      },
+      "revId": "a80e3e57b838ae48f396de4d22a1ad2e8b2600cf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
