@@ -114,6 +114,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "b713f970_9f62a7ec",
+        "filename": "golden/go/ingestion_processors/primarysql.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-11T18:57:38Z",
+      "side": 1,
+      "message": "Thanks for explaining!",
+      "parentUuid": "e6c7e18d_17780884",
+      "range": {
+        "startLine": 286,
+        "startChar": 0,
+        "endLine": 310,
+        "endChar": 0
+      },
+      "revId": "d4c163531113b2b9fc38a3850867ca8c70000050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "c4c7f1f1_70a669a9",
         "filename": "golden/go/ingestion_processors/primarysql.go",
         "patchSetId": 7
