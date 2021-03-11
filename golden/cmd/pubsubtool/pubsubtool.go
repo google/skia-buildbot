@@ -18,6 +18,7 @@ import (
 
 func main() {
 	bucketName := flag.String("bucket_name", "", "The GCS bucket to listen to (see bucket_notifications)")
+	prefix := flag.String("prefix", "", "The GCS prefix to listen to.")
 	projectID := flag.String("project_id", "skia-public", "The project for PubSub events")
 	topicName := flag.String("topic_name", "", "The topic to create if it does not exist")
 	subscriptionName := flag.String("subscription_name", "", "The subscription to create if it does not exist")
@@ -49,6 +50,10 @@ func main() {
 		if err := listBucketNotifications(ctx, gsc, *bucketName); err != nil {
 			sklog.Fatalf("Listing bucket notifications on GCS bucket %s: %s", *bucketName, err)
 		}
+	} else if task == "subscribe_to_bucket" {
+		if err := subscribeToBucket(ctx, psc, *projectID, *topicName, *subscriptionName, gsc, *bucketName, *prefix); err != nil {
+			sklog.Fatalf("Creating new bucket notification: %s", err)
+		}
 	} else {
 		sklog.Fatalf(`Invalid command: %q. Try "create".`, task)
 	}
@@ -79,22 +84,19 @@ func createTopicAndSubscription(ctx context.Context, psc *pubsub.Client, topic, 
 		return skerr.Fmt("Can't have empty topic or subscription")
 	}
 	// Create the topic if it doesn't exist yet.
-	t := psc.Topic(topic)
-	if exists, err := t.Exists(ctx); err != nil {
-		return skerr.Fmt("Error checking whether topic exits: %s", err)
-	} else if !exists {
-		if t, err = psc.CreateTopic(ctx, topic); err != nil {
-			return skerr.Fmt("Error creating pubsub topic '%s': %s", topic, err)
-		}
+	t, err := createTopicIfNotExists(ctx, psc, topic)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	// Create the subscription if it doesn't exist.
 	s := psc.Subscription(sub)
 	if exists, err := s.Exists(ctx); err != nil {
-		return skerr.Fmt("Error checking existence of pubsub subscription '%s': %s", sub, err)
+		return skerr.Wrapf(err, "checking existence of pubsub subscription %q", sub)
 	} else if !exists {
 		_, err = psc.CreateSubscription(ctx, sub, pubsub.SubscriptionConfig{
-			Topic:             t,
+			Topic: t,
+			// These are the default values for the diff-metrics subscription
 			AckDeadline:       2 * time.Minute,
 			RetentionDuration: 4 * time.Hour,
 			RetryPolicy: &pubsub.RetryPolicy{
@@ -103,11 +105,23 @@ func createTopicAndSubscription(ctx context.Context, psc *pubsub.Client, topic, 
 			},
 		})
 		if err != nil {
-			return skerr.Fmt("Error creating pubsub subscription '%s': %s", sub, err)
+			return skerr.Wrapf(err, "creating pubsub subscription %q", sub)
 		}
 	}
 	sklog.Infof("Topic %s and Subscription %s exist if they didn't before", topic, sub)
 	return nil
+}
+
+func createTopicIfNotExists(ctx context.Context, psc *pubsub.Client, topic string) (*pubsub.Topic, error) {
+	t := psc.Topic(topic)
+	if exists, err := t.Exists(ctx); err != nil {
+		return nil, skerr.Wrapf(err, "checking whether topic %q exists", topic)
+	} else if !exists {
+		if t, err = psc.CreateTopic(ctx, topic); err != nil {
+			return nil, skerr.Wrapf(err, "creating pubsub topic %q", topic)
+		}
+	}
+	return t, nil
 }
 
 func listBucketNotifications(ctx context.Context, gsc *storage.Client, bucketName string) error {
@@ -120,5 +134,54 @@ func listBucketNotifications(ctx context.Context, gsc *storage.Client, bucketNam
 	for _, n := range notifications {
 		sklog.Infof("%s events under //%s are published to topic %s in project %s", n.EventTypes, n.ObjectNamePrefix, n.TopicID, n.TopicProjectID)
 	}
+	return nil
+}
+
+func subscribeToBucket(ctx context.Context, psc *pubsub.Client, project, topic, subscription string, gsc *storage.Client, bucket, prefix string) error {
+	if prefix == "" {
+		return skerr.Fmt("Must specify prefix")
+	}
+	t, err := createTopicIfNotExists(ctx, psc, topic)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	_, err = gsc.Bucket(bucket).AddNotification(ctx, &storage.Notification{
+		TopicID:          topic,
+		TopicProjectID:   project,
+		EventTypes:       []string{storage.ObjectFinalizeEvent},
+		ObjectNamePrefix: prefix,
+		PayloadFormat:    storage.NoPayload, // We only care about properties
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "creating topic %s in project %s for files from gcs://%s/%s", topic, project, bucket, prefix)
+	}
+
+	// Create the subscription if it doesn't exist.
+	s := psc.Subscription(subscription)
+	if exists, err := s.Exists(ctx); err != nil {
+		return skerr.Wrapf(err, "checking existence of pubsub subscription %q", subscription)
+	} else if !exists {
+		_, err = psc.CreateSubscription(ctx, subscription, pubsub.SubscriptionConfig{
+			Topic: t,
+			// These are the default values for the data files subscriptions.
+			AckDeadline:       2 * time.Minute,
+			RetentionDuration: 2 * 24 * time.Hour,
+			RetryPolicy: &pubsub.RetryPolicy{
+				MinimumBackoff: 10 * time.Second,
+				MaximumBackoff: 5 * time.Minute,
+			},
+			// A deadletter policy should be set up and verified via the
+			// cloud console UI (there's usually one additional permission to grant)
+			// Retry attempts 5 is usually fine (to prevent bad files from filling up
+			// our PubSub queue).
+		})
+		if err != nil {
+			return skerr.Wrapf(err, "creating pubsub subscription %q", subscription)
+		}
+	} else {
+		sklog.Infof("Subscription %q already existed", subscription)
+	}
+	sklog.Infof("Subscription %s ready to listen to topic %s which gets events from files created in gs://%s/%s", subscription, topic, bucket, prefix)
 	return nil
 }
