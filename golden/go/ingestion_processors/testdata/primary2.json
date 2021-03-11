@@ -1,0 +1,151 @@
+{
+  "description": "This file has data from 12 traces. It pretends all the Windows machines (even the old 10.2 ones) start drawing blank on a previously no-data commit.",
+  "gitHash" : "0105010501050105010501050105010501050105",
+  "key" : {
+    "device": "QuadroP400"
+  },
+  "results" : [
+    {
+      "key" : {
+        "os": "Windows10.2",
+        "color mode" : "RGB",
+        "name" : "square",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.2",
+        "color mode" : "RGB",
+        "name" : "triangle",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.2",
+        "color mode" : "RGB",
+        "name" : "circle",
+        "source_type" : "round"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },{
+      "key" : {
+        "os": "Windows10.3",
+        "color mode" : "RGB",
+        "name" : "square",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.3",
+        "color mode" : "RGB",
+        "name" : "triangle",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.3",
+        "color mode" : "RGB",
+        "name" : "circle",
+        "source_type" : "round"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.2",
+        "color mode" : "GREY",
+        "name" : "square",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.2",
+        "color mode" : "GREY",
+        "name" : "triangle",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.2",
+        "color mode" : "GREY",
+        "name" : "circle",
+        "source_type" : "round"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },{
+      "key" : {
+        "os": "Windows10.3",
+        "color mode" : "GREY",
+        "name" : "square",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.3",
+        "color mode" : "GREY",
+        "name" : "triangle",
+        "source_type" : "corners"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Windows10.3",
+        "color mode" : "GREY",
+        "name" : "circle",
+        "source_type" : "round"
+      },
+      "md5" : "00000000000000000000000000000000",
+      "options" : {
+        "ext" : "png"
+      }
+    }
+  ]
+}

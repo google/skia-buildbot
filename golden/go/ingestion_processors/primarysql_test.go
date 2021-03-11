@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -614,6 +617,55 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
 		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 0},
 		{Key: types.CorpusField, Value: dks.CornersCorpus, TileID: 1},
 	}, actualPrimaryBranchParams)
+}
+
+func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			src := fakeGCSSourceFromFile(t, "primary2.json")
+			s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+
+			for j := 0; j < 10; j++ {
+				if err := ctx.Err(); err != nil {
+					return
+				}
+				if err := s.Process(ctx, "primary2.json"); err != nil {
+					assert.NoError(t, err)
+					return
+				}
+			}
+			return
+		}()
+	}
+	wg.Wait()
+	// spot check the data to make sure it was written
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(`{"color mode":"RGB","device":"QuadroP400","name":"triangle","os":"Windows10.2","source_type":"corners"}`),
+		MostRecentCommitID: "0000000105",
+		Digest:             d(dks.DigestBlank),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(`{"name":"triangle",source_type":"corners"}`),
+		Corpus:             dks.CornersCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.QuadroDevice,
+			dks.OSKey:             dks.Windows10dot2OS,
+			types.PrimaryKeyField: dks.TriangleTest,
+			types.CorpusField:     dks.CornersCorpus,
+		},
+		Label:                schema.LabelUntriaged,
+		MatchesAnyIgnoreRule: schema.NBFalse,
+	})
+	spew.Dump(actualValuesAtHead)
 }
 
 func repeat(s string, n int) []string {

@@ -43,7 +43,10 @@ this sets up a real version of cockroachdb.
 `, out, emulators.GetEmulatorHostEnvVarName(emulators.CockroachDB))
 
 	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", host, dbName)
-	conn, err := pgxpool.Connect(ctx, connectionString)
+	conf, err := pgxpool.ParseConfig(connectionString)
+	require.NoError(t, err)
+	conf.MaxConns = 4
+	conn, err := pgxpool.ConnectConfig(ctx, conf)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		conn.Close()
