@@ -25,6 +25,9 @@ import (
 )
 
 const (
+	// SQLPrimaryBranch indicates that the primary branch ingester use the SQL backend.
+	SQLPrimaryBranch = "sql_primary"
+
 	sqlTileWidthConfig = "TileWidth"
 
 	commitsCacheSize         = 1000
@@ -52,7 +55,7 @@ type sqlPrimaryIngester struct {
 
 // PrimaryBranchSQL creates a Processor that writes to the SQL backend and returns it.
 // It panics if configuration is invalid.
-func PrimaryBranchSQL(_ context.Context, src ingestion.Source, configParams map[string]string, db *pgxpool.Pool) *sqlPrimaryIngester {
+func PrimaryBranchSQL(src ingestion.Source, configParams map[string]string, db *pgxpool.Pool) *sqlPrimaryIngester {
 	tw := configParams[sqlTileWidthConfig]
 	tileWidth := 10
 	if tw != "" {

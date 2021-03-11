@@ -38,7 +38,7 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	const circleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"circle","os":"Windows10.2","source_type":"round"}`
 	const expectedCommitID = "0000000100"
 	src := fakeGCSSourceFromFile(t, "primary1.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
@@ -256,7 +256,7 @@ func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
 
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "use_existing_commit_in_tile1.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
 	require.NoError(t, s.Process(ctx, "use_existing_commit_in_tile1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -361,7 +361,7 @@ func TestPrimarySQL_Process_PreviousTilesAreFull_NewTileCreated(t *testing.T) {
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_start_tile_2.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
 	require.NoError(t, s.Process(ctx, "should_start_tile_2.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -471,7 +471,7 @@ func TestPrimarySQL_Process_BetweenTwoTiles_UseHigherTile(t *testing.T) {
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "between_tile_1_and_2.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
 	require.NoError(t, s.Process(ctx, "between_tile_1_and_2.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -524,7 +524,7 @@ func TestPrimarySQL_Process_SurroundingCommitsHaveSameTile_UseThatTile(t *testin
 	existingData := makeDataForTileTests()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
 	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -579,7 +579,7 @@ func TestPrimarySQL_Process_AtEndTileNotFull_UseThatTile(t *testing.T) {
 	existingData.CommitsWithData = existingData.CommitsWithData[:len(existingData.CommitsWithData)-3]
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	src := fakeGCSSourceFromFile(t, "should_create_in_tile_1.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "4"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "4"}, db)
 	require.NoError(t, s.Process(ctx, "should_create_in_tile_1.json"))
 
 	// Check that all tiled data is calculated correctly
@@ -634,7 +634,7 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 		go func() {
 			defer wg.Done()
 			src := fakeGCSSourceFromFile(t, "primary2.json")
-			s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+			s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
 
 			for j := 0; j < 10; j++ {
 				if err := ctx.Err(); err != nil {
@@ -692,7 +692,7 @@ func TestPrimarySQL_Process_UnknownGitHash_ReturnsError(t *testing.T) {
 	// GitCommits table is empty, meaning all commits are unknown.
 
 	src := fakeGCSSourceFromFile(t, "primary1.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
@@ -705,7 +705,7 @@ func TestPrimarySQL_Process_MissingGitHash_ReturnsError(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
 	src := fakeGCSSourceFromFile(t, "missing_git_hash.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
@@ -722,7 +722,7 @@ func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
 	}))
 
 	src := fakeGCSSourceFromFile(t, "no_results.json")
-	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
 	totalMetricBefore := s.filesProcessed.Get()
 	successMetricBefore := s.filesSuccess.Get()
 	resultsMetricBefore := s.resultsIngested.Get()
