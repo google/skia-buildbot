@@ -16,6 +16,23 @@
       "message": "This is a big change with a lot of potential to break things.  It looks okay to me but we should be really careful about deploying it.  +Kevin as well.",
       "revId": "1e08a957126967b6fc215d46a334f3e17882c74e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "91541598_9a2c59fb",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T14:13:48Z",
+      "side": 1,
+      "message": "Why are we changing the swarming directory? That rationale should be included in the commit message at the very least, possibly also in bootstrap.yaml",
+      "revId": "1e08a957126967b6fc215d46a334f3e17882c74e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
