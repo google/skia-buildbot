@@ -146,6 +146,8 @@ func computeCockroachDBCmd() string {
 	// parallel tests from interfering with each other.
 	if bazel.InRBE() {
 		cmd += " --http-addr=localhost:0"
+	} else {
+		cmd += " --http-addr=localhost:9090"
 	}
 
 	return cmd
