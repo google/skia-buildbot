@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gold-{{.INSTANCE_ID}}-ingestion
+spec:
+  ports:
+    - name: http
+      port: 9091
+    - name: metrics
+      port: 20000
+  selector:
+      app: gold-{{.INSTANCE_ID}}-ingestion
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gold-{{.INSTANCE_ID}}-ingestion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gold-{{.INSTANCE_ID}}-ingestion
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: gold-{{.INSTANCE_ID}}-ingestion  # Pod template's label selector
+        appgroup: gold-{{.INSTANCE_ID}}
+        date: "{{.NOW}}" # Forces a re-deploy even if just the config file changes.
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      affinity:
+        nodeAffinity: # Schedule these pods to a specific set of nodes.
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              # The following label/key will be available in 1.17
+              # "node.kubernetes.io/instance-type": "n1-standard-16"
+              - matchExpressions:
+                  - key: "{{.K8S_NODE_SELECTOR_KEY}}"
+                    operator: In
+                    values: # Either of these two values are fine.
+                      - "{{.K8S_NODE_SELECTOR_VALUE1}}"
+                      - "{{.K8S_NODE_SELECTOR_VALUE2}}"
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: gold-{{.INSTANCE_ID}}-ingestion
+          image: {{.INGESTION_IMAGE}}
+          args:
+            - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
+            - "--config=/etc/gold-config/{{.INSTANCE_ID}}-ingestion.json5"
+            - "--logtostderr"
+          ports:
+            - containerPort: 9091
+              name: http-health
+          volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-config-volume
+              mountPath: /etc/gold-config/
+            - name: gold-service-account-secrets
+              mountPath: /var/secrets/google
+            {{if .INCLUDE_GITHUB_CREDS}}
+            - name: gold-github-token
+              mountPath: /var/secrets/github/
+            {{end}}
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/service-account.json
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: 2
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9091
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: gold-{{.INSTANCE_ID}}-config-volume
+          configMap:
+            defaultMode: 400
+            name: gold-{{.INSTANCE_ID}}-config
+        - name: gold-service-account-secrets
+          secret:
+            secretName: gold-service-account-secrets
+        {{if .INCLUDE_GITHUB_CREDS}}
+        - name: gold-github-token
+          secret:
+            secretName: gold-github-token
+        {{end}}

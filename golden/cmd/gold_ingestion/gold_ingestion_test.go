@@ -181,7 +181,7 @@ func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 	ctx = context.WithValue(ctx, overwriteNowKey, fakeNow)
 
 	isc := ingestionServerConfig{
-		BackupPollInterval: config.Duration{Duration: time.Hour}, // not really relevant
+		BackupPollInterval: config.Duration{Duration: time.Hour},
 		BackupPollScope:    config.Duration{Duration: 2 * time.Hour},
 	}
 
