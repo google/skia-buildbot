@@ -87,6 +87,12 @@ func captureArchives() error {
 	// This bool will be used to determine if the task is successful at the end.
 	successfulCapture := false
 
+	// Which story to use when recording WPR.
+	story := util.CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK
+	if *pagesetType == util.PAGESET_TYPE_AMP_LIVE_REPRO || *pagesetType == util.PAGESET_TYPE_AMP_PUPPETEER_SITES {
+		story = util.CAPTURE_ARCHIVES_AMP_STORY
+	}
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < WORKER_POOL_SIZE; i++ {
 		// Increment the WaitGroup counter.
@@ -116,7 +122,7 @@ func captureArchives() error {
 				archiveDataFile := addIndexInDataFileLocation(decodedPageset.ArchiveDataFile, index)
 				args := []string{
 					recordWprBinary,
-					util.CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK,
+					story,
 					"--browser=reference",
 					"--user-agent=" + decodedPageset.UserAgent,
 					"--urls-list=" + decodedPageset.UrlsList,

@@ -32,16 +32,18 @@ const (
 	MAX_URI_GET_TRIES = 4
 
 	// Pageset types supported by CT.
-	PAGESET_TYPE_ALL              = "All"
-	PAGESET_TYPE_100k             = "100k"
-	PAGESET_TYPE_MOBILE_100k      = "Mobile100k"
-	PAGESET_TYPE_LAYOUTSHIFT_100k = "LayoutShift100k"
-	PAGESET_TYPE_10k              = "10k"
-	PAGESET_TYPE_MOBILE_10k       = "Mobile10k"
-	PAGESET_TYPE_MOBILE_VOLT_10k  = "VoltMobile10k"
-	PAGESET_TYPE_LAYOUTSHIFT_10k  = "LayoutShift10k"
-	PAGESET_TYPE_DUMMY_1k         = "Dummy1k"       // Used for testing.
-	PAGESET_TYPE_MOBILE_DUMMY_1k  = "DummyMobile1k" // Used for testing.
+	PAGESET_TYPE_ALL                 = "All"
+	PAGESET_TYPE_100k                = "100k"
+	PAGESET_TYPE_MOBILE_100k         = "Mobile100k"
+	PAGESET_TYPE_LAYOUTSHIFT_100k    = "LayoutShift100k"
+	PAGESET_TYPE_10k                 = "10k"
+	PAGESET_TYPE_MOBILE_10k          = "Mobile10k"
+	PAGESET_TYPE_MOBILE_VOLT_10k     = "VoltMobile10k"
+	PAGESET_TYPE_LAYOUTSHIFT_10k     = "LayoutShift10k"
+	PAGESET_TYPE_AMP_LIVE_REPRO      = "AMPLiveRepro"
+	PAGESET_TYPE_AMP_PUPPETEER_SITES = "AMPPuppeteerSites"
+	PAGESET_TYPE_DUMMY_1k            = "Dummy1k"       // Used for testing.
+	PAGESET_TYPE_MOBILE_DUMMY_1k     = "DummyMobile1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME          = "chrome"
@@ -125,6 +127,7 @@ const (
 
 	// Capture Archives
 	CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK = "rasterize_and_record_micro_ct"
+	CAPTURE_ARCHIVES_AMP_STORY            = "layout_shift_cluster_telemetry"
 
 	// Run Chromium Perf
 	ADB_VERSION_TIMEOUT            = 5 * time.Minute
@@ -311,6 +314,24 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Layout Shift 10K (with desktop user-agent)",
+		},
+		PAGESET_TYPE_AMP_LIVE_REPRO: {
+			NumPages:                   3600,
+			CSVSource:                  "csv/amp-cls-ct-live-repro.csv",
+			UserAgent:                  "mobile",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "AMP live repro (with mobile user-agent)",
+		},
+		PAGESET_TYPE_AMP_PUPPETEER_SITES: {
+			NumPages:                   1000,
+			CSVSource:                  "csv/amp-cls-puppeteer-sites.csv",
+			UserAgent:                  "mobile",
+			CreatePagesetsTimeoutSecs:  1800,
+			CaptureArchivesTimeoutSecs: 300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "AMP puppeteer sites (with mobile user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: {
 			NumPages:                   1000,
