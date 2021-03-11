@@ -146,7 +146,7 @@ export class SortSk extends ElementSk {
       throw 'Failed to find "target" attribute.';
     }
     const arr: SortableEntry[] = [];
-    for (const ele of container.children) {
+    for (const ele of Array.from(container.children)) {
       const htmlEle = ele as HTMLElement;
       const value: string = htmlEle.dataset[key] || '';
       const entry = {

@@ -3,28 +3,17 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "frontend",
-    srcs = [
-        "extension.go",
-        "parse_imports.go",
-    ],
+    srcs = ["extension.go"],
     importpath = "go.skia.org/infra/bazel/gazelle/frontend",
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_gazelle//config:go_default_library",
-        "@bazel_gazelle//label:go_default_library",
+        "//bazel/gazelle/frontend/language",
         "@bazel_gazelle//language:go_default_library",
-        "@bazel_gazelle//repo:go_default_library",
-        "@bazel_gazelle//resolve:go_default_library",
-        "@bazel_gazelle//rule:go_default_library",
     ],
 )
 
 go_test(
     name = "frontend_test",
-    srcs = ["parse_imports_test.go"],
+    srcs = ["extension_test.go"],
     embed = [":frontend"],
-    deps = [
-        "//go/testutils/unittest",
-        "@com_github_stretchr_testify//require",
-    ],
 )
