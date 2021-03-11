@@ -785,3 +785,17 @@ func TestSSliceDedup(t *testing.T) {
 	require.Equal(t, []string{"foo", "baz", "bar"}, SSliceDedup([]string{"foo", "foo", "baz", "bar", "bar", "baz"}))
 	require.Equal(t, []string{"foo", "bar", "baz"}, SSliceDedup([]string{"foo", "foo", "bar", "baz", "bar", "baz"}))
 }
+
+func TestSSliceFilter(t *testing.T) {
+	unittest.SmallTest(t)
+
+	criteria := func(s string) bool {
+		return strings.HasPrefix(s, "keep")
+	}
+
+	require.Equal(t, []string{}, SSliceFilter([]string{}, criteria))
+	require.Equal(t, []string{}, SSliceFilter([]string{"foo"}, criteria))
+	require.Equal(t, []string{"keep me"}, SSliceFilter([]string{"foo", "keep me"}, criteria))
+	require.Equal(t, []string{"keep me"}, SSliceFilter([]string{"keep me", "foo"}, criteria))
+	require.Equal(t, []string{"keep me", "keeper"}, SSliceFilter([]string{"foo", "keep me", "bar", "keeper", "baz"}, criteria))
+}
