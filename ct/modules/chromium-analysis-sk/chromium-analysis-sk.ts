@@ -172,7 +172,7 @@ export class ChromiumAnalysisSk extends ElementSk {
     <td>
       Custom Chrome build zip location<br/>
       for non-Android runs (optional)<br/> (See
-      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805">skbug/9805</a>)
+      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=11395">skbug/11395</a>)
     </td>
     <td>
       <input-sk value="" id=chrome_build_gs_path label="Eg: gs://chromium-browser-snapshots/Linux_x64/805044/chrome-linux.zip" class=long-field></input-sk>
