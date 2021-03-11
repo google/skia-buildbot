@@ -118,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "4ed6052a_6fe26129",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "269d6671_5ee8eaaa",
+      "range": {
+        "startLine": 2,
+        "startChar": 19,
+        "endLine": 2,
+        "endChar": 23
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "44415f30_5a3e598d",
@@ -155,6 +179,30 @@
       "side": 1,
       "message": "removed the class on both buttons since it was not used.",
       "parentUuid": "44415f30_5a3e598d",
+      "range": {
+        "startLine": 43,
+        "startChar": 33,
+        "endLine": 43,
+        "endChar": 37
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ac2c3a4f_d2749064",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6fa476f0_c42f32ff",
       "range": {
         "startLine": 43,
         "startChar": 33,
@@ -212,6 +260,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "f0d66454_6f08b9af",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c3265766_eed4a7c8",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "f943befc_02336dec",
@@ -249,6 +321,30 @@
       "side": 1,
       "message": "makes sense, done",
       "parentUuid": "f943befc_02336dec",
+      "range": {
+        "startLine": 119,
+        "startChar": 14,
+        "endLine": 119,
+        "endChar": 49
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b98d999_b51aa756",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "52770714_fc4087c8",
       "range": {
         "startLine": 119,
         "startChar": 14,
@@ -308,6 +404,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "40991b4d_32241800",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "There is a way to transfer control: https://github.com/google/skia/blob/master/demos.skia.org/demos/web_worker/main.js",
+      "parentUuid": "c82ac040_e083e680",
+      "range": {
+        "startLine": 214,
+        "startChar": 7,
+        "endLine": 214,
+        "endChar": 39
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e20e0e59_b8c2c0f6",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
@@ -343,6 +463,30 @@
       "side": 1,
       "message": "done",
       "parentUuid": "e20e0e59_b8c2c0f6",
+      "range": {
+        "startLine": 237,
+        "startChar": 14,
+        "endLine": 237,
+        "endChar": 23
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "130b17ef_2ba9639b",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2cd8ce56_c07c24ff",
       "range": {
         "startLine": 237,
         "startChar": 14,
@@ -400,6 +544,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8ff7a7b1_9c148ade",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "227062bb_1c8a7170",
+      "range": {
+        "startLine": 250,
+        "startChar": 15,
+        "endLine": 250,
+        "endChar": 28
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "7bf5555a_51885311",
@@ -423,6 +591,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "891df9cb_f9fdc9e6",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7bf5555a_51885311",
+      "range": {
+        "startLine": 206,
+        "startChar": 12,
+        "endLine": 206,
+        "endChar": 34
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "775f9a5c_2ac83717",
@@ -436,6 +628,30 @@
       "writtenOn": "2021-03-11T12:48:06Z",
       "side": 1,
       "message": "I doubt we need the source map for our production build, right?",
+      "range": {
+        "startLine": 22,
+        "startChar": 77,
+        "endLine": 22,
+        "endChar": 80
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de3f9336_c39949df",
+        "filename": "skottie/webpack.config.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T19:01:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "775f9a5c_2ac83717",
       "range": {
         "startLine": 22,
         "startChar": 77,
