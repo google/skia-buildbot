@@ -22,6 +22,30 @@
       },
       "revId": "b5d37f9749fe6a59a98e00e24f8e3901bd85ba0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d0d33d96_7d738b75",
+        "filename": "skolo/raspberry-pi/start_swarming",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-11T15:21:05Z",
+      "side": 1,
+      "message": "Yes, probably an elseif - we don\u0027t want swarming twice.",
+      "parentUuid": "2ba5e7ea_2ed84e36",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 2
+      },
+      "revId": "b5d37f9749fe6a59a98e00e24f8e3901bd85ba0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
