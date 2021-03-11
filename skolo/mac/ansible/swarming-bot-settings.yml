@@ -12,8 +12,3 @@
         create: yes
         line: 'chrome-bot ALL=NOPASSWD:/sbin/shutdown -r now'
         validate: '/usr/sbin/visudo -cf %s'
-    - name: Create and set permissions on /b
-      file:
-        path: /b
-        state: directory
-        owner: chrome-bot
