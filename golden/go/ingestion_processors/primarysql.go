@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -43,6 +44,10 @@ type sqlPrimaryIngester struct {
 	optionGroupingCache *lru.Cache
 	paramsCache         *lru.Cache
 	traceCache          *lru.Cache
+
+	filesProcessed  metrics2.Counter
+	filesSuccess    metrics2.Counter
+	resultsIngested metrics2.Counter
 }
 
 // PrimaryBranchSQL creates a Processor that writes to the SQL backend and returns it.
@@ -87,6 +92,10 @@ func PrimaryBranchSQL(_ context.Context, src ingestion.Source, configParams map[
 		optionGroupingCache: ogCache,
 		paramsCache:         paramsCache,
 		traceCache:          tCache,
+
+		filesProcessed:  metrics2.GetCounter("gold_primarysqlingestion_files_processed"),
+		filesSuccess:    metrics2.GetCounter("gold_primarysqlingestion_files_success"),
+		resultsIngested: metrics2.GetCounter("gold_primarysqlingestion_results_ingested"),
 	}
 }
 
@@ -104,6 +113,7 @@ func (s *sqlPrimaryIngester) HandlesFile(name string) bool {
 // short-term errors if it partially succeeds and relies on retrying ingestion of files to
 // deal with SQL errors.
 func (s *sqlPrimaryIngester) Process(ctx context.Context, fileName string) error {
+	s.filesProcessed.Inc(1)
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	ctx, span := trace.StartSpan(ctx, "ingestion_SQLPrimaryBranchProcess")
@@ -137,6 +147,8 @@ func (s *sqlPrimaryIngester) Process(ctx context.Context, fileName string) error
 		sklog.Errorf("Error writing to SourceFiles for file %s: %s", fileName, err)
 		return ingestion.ErrRetryable
 	}
+	s.filesSuccess.Inc(1)
+	s.resultsIngested.Inc(int64(len(gr.Results)))
 	return nil
 }
 
@@ -153,6 +165,7 @@ func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.
 	ctx, span := trace.StartSpan(ctx, "getCommitAndTileID")
 	defer span.End()
 	if gr.GitHash == "" {
+		// should never happen, assuming the jsonio.Validate works
 		return "", 0, skerr.Fmt("missing GitHash")
 	}
 	if c, ok := s.commitsCache.Get(gr.GitHash); ok {
@@ -167,7 +180,7 @@ func (s *sqlPrimaryIngester) getCommitAndTileID(ctx context.Context, gr *jsonio.
 	row := s.db.QueryRow(ctx, `SELECT commit_id FROM GitCommits WHERE git_hash = $1`, gr.GitHash)
 	var commitID schema.CommitID
 	if err := row.Scan(&commitID); err != nil {
-		return "", 0, skerr.Wrapf(err, "Looking up git_hash = %q", gr.GitHash)
+		return "", 0, skerr.Wrapf(err, "looking up git_hash = %q", gr.GitHash)
 	}
 
 	tileID, err := s.getAndWriteTileIDForCommit(ctx, commitID)
@@ -189,14 +202,14 @@ func (s *sqlPrimaryIngester) getAndWriteTileIDForCommit(ctx context.Context, tar
 	err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		tileID, err := s.getTileIDForCommit(ctx, tx, targetCommit)
 		if err != nil {
-			return err
+			return err // Don't wrap - crdbpgx might retry
 		}
 		// Rows in this table are immutable once written
 		_, err = tx.Exec(ctx, `
 INSERT INTO CommitsWithData (commit_id, tile_id) VALUES ($1, $2)
 ON CONFLICT DO NOTHING`, targetCommit, tileID)
 		if err != nil {
-			return err
+			return err // Don't wrap - crdbpgx might retry
 		}
 		returnTileID = tileID
 		return nil
@@ -255,9 +268,6 @@ tile_id = $1`, beforeTileID)
 // updateCommitCache updates the local cache of "CommitsWithData" if necessary (so we know we do
 // not have to write to the table the next time).
 func (s *sqlPrimaryIngester) updateCommitCache(gr *jsonio.GoldResults, id schema.CommitID, tileID schema.TileID) {
-	if s.commitsCache.Contains(gr.GitHash) {
-		return
-	}
 	s.commitsCache.Add(gr.GitHash, commitCacheEntry{
 		commitID: id,
 		tileID:   tileID,

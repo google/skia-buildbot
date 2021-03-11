@@ -1,0 +1,9 @@
+{
+  "description": "This file has a valid gitHash but no results",
+  "gitHash" : "77e1d3255fde0bebc80f596f6a1c4ad79c8b8bbe",
+  "key" : {
+    "os": "Windows10.2",
+    "device": "QuadroP400"
+  },
+  "results" : []
+}

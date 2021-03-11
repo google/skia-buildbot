@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/sql/databuilder"
@@ -38,6 +39,9 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 	const expectedCommitID = "0000000100"
 	src := fakeGCSSourceFromFile(t, "primary1.json")
 	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	totalMetricBefore := s.filesProcessed.Get()
+	successMetricBefore := s.filesSuccess.Get()
+	resultsMetricBefore := s.resultsIngested.Get()
 
 	ctx = overwriteNow(ctx, fakeIngestionTime)
 	err := s.Process(ctx, dks.WindowsFile3)
@@ -233,6 +237,10 @@ func TestPrimarySQL_Process_AllNewData_Success(t *testing.T) {
 		{TraceID: h(triangleTraceKeys), Digest: d(dks.DigestB01Pos), TileID: 0},
 		{TraceID: h(circleTraceKeys), Digest: d(dks.DigestC01Pos), TileID: 0},
 	}, actualTiledTraceDigests)
+
+	assert.Equal(t, totalMetricBefore+1, s.filesProcessed.Get())
+	assert.Equal(t, successMetricBefore+1, s.filesSuccess.Get())
+	assert.Equal(t, resultsMetricBefore+3, s.resultsIngested.Get())
 }
 
 func TestPrimarySQL_Process_TileAlreadyComputed_Success(t *testing.T) {
@@ -616,6 +624,10 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
+	totalMetricBefore := metrics2.GetCounter("gold_primarysqlingestion_files_processed").Get()
+	successMetricBefore := metrics2.GetCounter("gold_primarysqlingestion_files_success").Get()
+	resultsMetricBefore := metrics2.GetCounter("gold_primarysqlingestion_results_ingested").Get()
+
 	wg := sync.WaitGroup{}
 	for i := 0; i < 4; i++ {
 		wg.Add(1)
@@ -666,6 +678,67 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 		Digest:     d(dks.DigestBlank),
 		Label:      schema.LabelUntriaged,
 	})
+
+	// We ingested a total of 40 files, each with 12 results
+	assert.Equal(t, totalMetricBefore+40, metrics2.GetCounter("gold_primarysqlingestion_files_processed").Get())
+	assert.Equal(t, successMetricBefore+40, metrics2.GetCounter("gold_primarysqlingestion_files_success").Get())
+	assert.Equal(t, resultsMetricBefore+480, metrics2.GetCounter("gold_primarysqlingestion_results_ingested").Get())
+}
+
+func TestPrimarySQL_Process_UnknownGitHash_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	// GitCommits table is empty, meaning all commits are unknown.
+
+	src := fakeGCSSourceFromFile(t, "primary1.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+
+	err := s.Process(ctx, "whatever")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "looking up git_hash")
+}
+
+func TestPrimarySQL_Process_MissingGitHash_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	src := fakeGCSSourceFromFile(t, "missing_git_hash.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+
+	err := s.Process(ctx, "whatever")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `"gitHash" must be hexadecimal`)
+}
+
+func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	validCommits := dks.Build().GitCommits
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, schema.Tables{
+		GitCommits: validCommits,
+	}))
+
+	src := fakeGCSSourceFromFile(t, "no_results.json")
+	s := PrimaryBranchSQL(ctx, src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	totalMetricBefore := s.filesProcessed.Get()
+	successMetricBefore := s.filesSuccess.Get()
+	resultsMetricBefore := s.resultsIngested.Get()
+
+	err := s.Process(ctx, "whatever")
+	require.NoError(t, err)
+
+	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
+	assert.Empty(t, actualSourceFiles)
+
+	acutalCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Empty(t, acutalCommitsWithData)
+
+	assert.Equal(t, totalMetricBefore+1, s.filesProcessed.Get())
+	assert.Equal(t, successMetricBefore, s.filesSuccess.Get())
+	assert.Equal(t, resultsMetricBefore, s.resultsIngested.Get())
 }
 
 func repeat(s string, n int) []string {
