@@ -33,6 +33,24 @@
       "message": "Why are we changing the swarming directory? That rationale should be included in the commit message at the very least, possibly also in bootstrap.yaml",
       "revId": "1e08a957126967b6fc215d46a334f3e17882c74e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5e3ed89f_760c2eea",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2021-03-11T15:18:50Z",
+      "side": 1,
+      "message": "Mac 10.15+ doesn\u0027t allow writing to \u0027/\u0027, added a link to the description and bootstrap-swarming.yml.  This is currently a required patch for these macs (mentioned in https://docs.google.com/document/d/1X7Hvsj33AlBmj-KEWfFbmdCArUJJAICLkB7ipDcxRV8 comment).  Presumably we should commit the change rather than always patching.  Unless we only want Mac to be different, thoughts?",
+      "parentUuid": "91541598_9a2c59fb",
+      "revId": "1e08a957126967b6fc215d46a334f3e17882c74e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
