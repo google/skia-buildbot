@@ -146,6 +146,10 @@ func computeCockroachDBCmd() string {
 	// parallel tests from interfering with each other.
 	if bazel.InRBE() {
 		cmd += " --http-addr=localhost:0"
+	} else {
+		// The default port for Cockroach's web UI 8080, but that is the same port at which we serve
+		// demo pages during development.
+		cmd += " --http-addr=localhost:9090"
 	}
 
 	return cmd
