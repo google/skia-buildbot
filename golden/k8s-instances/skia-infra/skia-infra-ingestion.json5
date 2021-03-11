@@ -1,6 +1,6 @@
 {
-  backup_poll_interval: "1h",
-  backup_poll_scope: "2h",
+  backup_poll_interval: "0", // Disabled while we grab old data
+  backup_poll_scope: "0",
   ingestion_files_topic: "gold-skia-infra-data-files",
   ingestion_subscription: "gold-skia-infra-ingestion",
   port: ":9091",
