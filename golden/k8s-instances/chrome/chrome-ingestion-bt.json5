@@ -3,10 +3,10 @@
   backup_poll_scope: "2h",
   ingestion_files_topic: "gold-chrome-eventbus-bt",
   ingestion_subscription: "gold-ingestion+gold-chrome-eventbus-bt",
-  files_processed_in_parallel: 10, // chrome has lots of small files.
+  files_processed_in_parallel: 20, // chrome has lots of small files.
   port: ":9091",
   prom_port: ":20000",
-  pubsub_fetch_size: 50,
+  pubsub_fetch_size: 100,
 
   primary_branch_config: {
     type: "big_table_tracestore",
