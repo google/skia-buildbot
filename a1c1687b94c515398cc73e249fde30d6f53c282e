@@ -428,6 +428,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4db4e078_c0c3e850",
+        "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T20:06:12Z",
+      "side": 1,
+      "message": "yes, if it\u0027s ok, I\u0027ll take a look on another PR.",
+      "parentUuid": "40991b4d_32241800",
+      "range": {
+        "startLine": 214,
+        "startChar": 7,
+        "endLine": 214,
+        "endChar": 39
+      },
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "e20e0e59_b8c2c0f6",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1

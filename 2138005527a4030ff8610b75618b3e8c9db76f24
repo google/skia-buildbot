@@ -33,6 +33,23 @@
       "message": "Feel free to land as is and try using the worker in a followup CL",
       "revId": "2138005527a4030ff8610b75618b3e8c9db76f24",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "660bf48b_44e581b5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-11T20:06:12Z",
+      "side": 1,
+      "message": "I\u0027ll work on the worker solution on a separate PR.\nAre the gif.js README and LICENSE ok?",
+      "revId": "2138005527a4030ff8610b75618b3e8c9db76f24",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
