@@ -196,7 +196,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create GCS Client")
 	}
-	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, vcs)
+	primaryBranchProcessor, src, err := getPrimaryBranchIngester(ctx, isc.PrimaryBranchConfig, gcsClient, vcs, sqlDB)
 	if err != nil {
 		sklog.Fatalf("Setting up primary branch ingestion: %s", err)
 	}
@@ -237,7 +237,7 @@ func main() {
 	sklog.Fatalf("Listening for files to ingest %s", listen(ctx, isc, pss))
 }
 
-func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, vcs *bt_vcs.BigTableVCS) (ingestion.Processor, ingestion.FileSearcher, error) {
+func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClient *storage.Client, vcs *bt_vcs.BigTableVCS, db *pgxpool.Pool) (ingestion.Processor, ingestion.FileSearcher, error) {
 	src := &ingestion.GCSSource{
 		Client: gcsClient,
 		Bucket: conf.Source.Bucket,
@@ -255,6 +255,9 @@ func getPrimaryBranchIngester(ctx context.Context, conf ingesterConfig, gcsClien
 			return nil, nil, skerr.Wrap(err)
 		}
 		sklog.Infof("Configured BT-backed primary branch ingestion")
+	} else if conf.Type == ingestion_processors.SQLPrimaryBranch {
+		primaryBranchProcessor = ingestion_processors.PrimaryBranchSQL(src, conf.ExtraParams, db)
+		sklog.Infof("Configured SQL primary branch ingestion")
 	} else {
 		return nil, nil, skerr.Fmt("unknown ingestion backend: %q", conf.Type)
 	}
