@@ -33,6 +33,42 @@
       "message": "(Is this blocked on anything? Eagerly awaiting the landing 😊)",
       "revId": "d1236157720dceec1171f757ad72cb972ffa9f07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d9d7f22_d8f8e195",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-11T14:59:32Z",
+      "side": 1,
+      "message": "Oh, unfortunately we can\u0027t obtain a git log for a CIPD package.  I guess it\u0027s possible, but we\u0027d have to add code to query gitiles for the revisions.  Sent for review to remove those things from the commit message for this roller: https://skia-review.googlesource.com/c/buildbot/+/383658",
+      "parentUuid": "4bb0f09b_c4ef10da",
+      "revId": "d1236157720dceec1171f757ad72cb972ffa9f07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c16a281c_7e2c9ef4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-11T14:59:32Z",
+      "side": 1,
+      "message": "No, sorry, I\u0027ve just been busy with other things.",
+      "parentUuid": "b98a307c_0794dd70",
+      "revId": "d1236157720dceec1171f757ad72cb972ffa9f07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
