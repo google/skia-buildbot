@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4bb0f09b_c4ef10da",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6026
+      },
+      "writtenOn": "2021-03-11T00:10:03Z",
+      "side": 1,
+      "message": "Looking at https://chromium-review.googlesource.com/c/chromium/src/+/2747758 , the tag has to be filtered out for the git url too ( https://gn.googlesource.com/gn.git/+log/git_revision:dfcbc6fed0a8352696f92d67ccad54048ad182b3..oVD0A-L6P )",
+      "revId": "d1236157720dceec1171f757ad72cb972ffa9f07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
