@@ -18,6 +18,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "@com_github_cenkalti_backoff//:backoff",
         "@com_github_golang_groupcache//lru",
         "@org_chromium_go_luci//buildbucket/proto",
     ],

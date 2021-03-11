@@ -11,7 +11,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/paramtools",
+        "//go/skerr",
         "@com_github_google_uuid//:uuid",
+        "@com_github_jackc_pgtype//:pgtype",
     ],
 )
 
