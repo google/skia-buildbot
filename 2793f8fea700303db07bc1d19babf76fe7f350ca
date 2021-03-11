@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "511ccb49_23ae3b03",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6026
+      },
+      "writtenOn": "2021-03-11T14:09:10Z",
+      "side": 1,
+      "message": "All manual gn rolls had this though, and it can work if the cipd version is a git rev: https://source.chromium.org/chromium/chromium/src/+/master:tools/gn/roll_gn.py;l\u003d102?q\u003droll_gn.py\u0026ss\u003dchromium",
+      "revId": "2793f8fea700303db07bc1d19babf76fe7f350ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
