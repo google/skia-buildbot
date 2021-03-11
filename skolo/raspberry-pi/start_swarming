@@ -20,29 +20,23 @@ elif [[ "$host" = skia-d-* ]]; then
   swarming="https://chromium-swarm-dev.appspot.com"
 fi
 
-if [ ! -d "/b/s" ]; then
-  mkdir /b/s
-  cd /b/s
-  echo "Bootstrapping $swarming, expect a reboot"
+if [ -d "/b/s" ]; then
+  echo "Starting swarming at legacy location /b/s"
+  /usr/bin/python /b/s/swarming_bot.zip start_bot &
   # The following is based on this Ansible script, which was not used here
   # because it would've complicated the setup flow a bit:
-  # https://skia.googlesource.com/buildbot/+show/master/skolo/common/ansible/bootstrap-swarming.yml
-  script=$(cat << EOF
-import json
-import urllib2
-
-token_url = ('http://metadata/computeMetadata/v1/instance/'
-             'service-accounts/default/token')
-req = urllib2.Request(token_url, headers={'Metadata-Flavor': 'Google'})
-tok = json.load(urllib2.urlopen(req))
-req = urllib2.Request(
-    '$swarming/bootstrap',
-    headers={'Authorization': 'Bearer %s' % tok['access_token']})
-exec urllib2.urlopen(req).read()
-EOF
-)
-  python -c "$script"
+  # https://skia.googlesource.com/buildbot/+/master/skolo/common/ansible/bootstrap-swarming.yml
+elif [ ! -d "/opt/s" ]; then
+  mkdir -p /opt/s
+  cd /opt/s
+  tok=$(curl --silent --show-error --header "Metadata-Flavor: Google" \
+    "http://metadata/computeMetadata/v1/instance/service-accounts/default/token" | \
+    sed -E 's/.*"access_token":"([^"]+)".*/\1/')
+  curl --silent --show-error --location "${swarming}/bot_code?tok=${tok}" \
+    --output /opt/s/swarming_bot.zip
+  echo "Bootstrapping $swarming at /opt/s, expect a reboot"
+  /usr/bin/python -u /opt/s/swarming_bot.zip
 else
-  echo "Starting swarming"
-  /usr/bin/python /b/s/swarming_bot.zip start_bot &
+  echo "Starting swarming at /opt/s"
+  /usr/bin/python /opt/s/swarming_bot.zip start_bot &
 fi
