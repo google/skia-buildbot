@@ -1,14 +1,17 @@
+load("//bazel/go:go_test.bzl", "go_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "skottie_lib",
-    srcs = ["main.go"],
+    srcs = ["skottie.go"],
     importpath = "go.skia.org/infra/skottie/go/skottie",
     visibility = ["//visibility:private"],
     deps = [
         "//go/auth",
         "//go/common",
         "//go/config",
+        "//go/gcs",
+        "//go/gcs/gcsclient",
         "//go/httputils",
         "//go/login",
         "//go/skerr",
@@ -25,4 +28,20 @@ go_binary(
     name = "skottie",
     embed = [":skottie_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "skottie_test",
+    srcs = ["skottie_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":skottie_lib"],
+    deps = [
+        "//go/gcs",
+        "//go/gcs/test_gcsclient",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
 )

@@ -28,6 +28,7 @@ go_library(
         "//golden/go/tiling",
         "//golden/go/types",
         "//golden/go/web/frontend",
+        "@com_github_cenkalti_backoff//:backoff",
         "@org_golang_x_sync//errgroup",
     ],
 )

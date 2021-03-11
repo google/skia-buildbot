@@ -10,6 +10,7 @@ go_library(
         "//go/exec",
         "//go/gcs",
         "//go/skerr",
+        "@com_github_cenkalti_backoff//:backoff",
         "@com_google_cloud_go_storage//:storage",
         "@org_golang_google_api//option",
     ],
@@ -17,12 +18,17 @@ go_library(
 
 go_test(
     name = "gcsuploader_test",
-    srcs = ["gcsuploader_test.go"],
+    srcs = [
+        "gcsuploader_manual_test.go",
+        "gcsuploader_test.go",
+    ],
     embed = [":gcsuploader"],
     deps = [
         "//go/exec",
         "//go/testutils/unittest",
+        "//go/util",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go_storage//:storage",
     ],
 )

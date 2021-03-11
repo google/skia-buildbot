@@ -22,7 +22,10 @@ go_test(
     srcs = ["sqltest_test.go"],
     embed = [":sqltest"],
     deps = [
+        "//go/skerr",
         "//go/testutils/unittest",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgtype//:pgtype",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

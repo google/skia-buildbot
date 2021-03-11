@@ -468,6 +468,12 @@ def go_repositories():
         sum = "h1:eApuUG8W2EtBVwxqLlY2wgoqDYOg3WvIHGvW4fUbbow=",
         version = "v0.0.0-20190925194419-606b3d062051",
     )
+    go_repository(
+        name = "com_github_cockroachdb_cockroach_go_v2",
+        importpath = "github.com/cockroachdb/cockroach-go/v2",
+        sum = "h1:zicZlBhWZu6wfK7Ezg4Owdc3HamLpRdBllPTT9tb+2k=",
+        version = "v2.1.0",
+    )
 
     go_repository(
         name = "com_github_cockroachdb_datadriven",
@@ -1564,8 +1570,8 @@ def go_repositories():
     go_repository(
         name = "com_github_jackc_pgconn",
         importpath = "github.com/jackc/pgconn",
-        sum = "h1:pwjzcYyfmz/HQOQlENvG1OcDqauTGaqlVahq934F0/U=",
-        version = "v1.7.0",
+        sum = "h1:195tt17jkjy+FrFlY0pgyrul5kRLb7BGXY3JTrNxeXU=",
+        version = "v1.7.2",
     )
 
     go_repository(
@@ -1599,8 +1605,8 @@ def go_repositories():
     go_repository(
         name = "com_github_jackc_pgproto3_v2",
         importpath = "github.com/jackc/pgproto3/v2",
-        sum = "h1:NUbEWPmCQZbMmYlTjVoNPhc0CfnYyz2bfUAh6A5ZVJM=",
-        version = "v2.0.5",
+        sum = "h1:b1105ZGEMFe7aCvrT1Cca3VoVb4ZFMaFJLJcg/3zD+8=",
+        version = "v2.0.6",
     )
     go_repository(
         name = "com_github_jackc_pgservicefile",
@@ -1612,15 +1618,15 @@ def go_repositories():
     go_repository(
         name = "com_github_jackc_pgtype",
         importpath = "github.com/jackc/pgtype",
-        sum = "h1:jzBqRk2HFG2CV4AIwgCI2PwTgm6UUoCAK2ofHHRirtc=",
-        version = "v1.5.0",
+        sum = "h1:CAtFD7TS95KrxRAh3bidgLwva48WYxk8YkbHZsSWfbI=",
+        version = "v1.6.1",
     )
 
     go_repository(
         name = "com_github_jackc_pgx_v4",
         importpath = "github.com/jackc/pgx/v4",
-        sum = "h1:6STjDqppM2ROy5p1wNDcsC7zJTjSHeuCsguZmXyzx7c=",
-        version = "v4.9.0",
+        sum = "h1:1V7EAc5jvIqXwdzgk8+YyOK+4071hhePzBCAF6gxUUw=",
+        version = "v4.9.2",
     )
 
     go_repository(
@@ -1669,6 +1675,18 @@ def go_repositories():
         importpath = "github.com/jessevdk/go-flags",
         sum = "h1:4IU2WS7AumrZ/40jfhf4QVDMsQwqA7VEHozFRrGARJA=",
         version = "v1.4.0",
+    )
+    go_repository(
+        name = "com_github_jinzhu_inflection",
+        importpath = "github.com/jinzhu/inflection",
+        sum = "h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=",
+        version = "v1.0.0",
+    )
+    go_repository(
+        name = "com_github_jinzhu_now",
+        importpath = "github.com/jinzhu/now",
+        sum = "h1:g39TucaRWyV3dwDO++eEc6qf8TVIQ/Da48WmqjZ3i7E=",
+        version = "v1.1.1",
     )
 
     go_repository(
@@ -1949,8 +1967,8 @@ def go_repositories():
     go_repository(
         name = "com_github_mattn_go_sqlite3",
         importpath = "github.com/mattn/go-sqlite3",
-        sum = "h1:LDdKkqtYlom37fkvqs8rMPFKAMe8+SgjbwZ6ex1/A/Q=",
-        version = "v1.11.0",
+        sum = "h1:gXHsfypPkaMZrKbD5209QV9jbUTJKjyR5WD3HYQSd+U=",
+        version = "v2.0.3+incompatible",
     )
 
     go_repository(
@@ -3218,6 +3236,18 @@ def go_repositories():
         importpath = "go.etcd.io/etcd",
         sum = "h1:VcrIfasaLFkyjk6KNlXQSzO+B0fZcnECiDrKJsfxka0=",
         version = "v0.0.0-20191023171146-3cf2f69b5738",
+    )
+    go_repository(
+        name = "io_gorm_driver_postgres",
+        importpath = "gorm.io/driver/postgres",
+        sum = "h1:raX6ezL/ciUmaYTvOq48jq1GE95aMC0CmxQYbxQ4Ufw=",
+        version = "v1.0.5",
+    )
+    go_repository(
+        name = "io_gorm_gorm",
+        importpath = "gorm.io/gorm",
+        sum = "h1:qa7tC1WcU+DBI/ZKMxvXy1FcrlGsvxlaKufHrT2qQ08=",
+        version = "v1.20.6",
     )
 
     go_repository(
