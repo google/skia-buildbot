@@ -37,6 +37,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9a06d066_43c4f5b4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-11T13:50:50Z",
+      "side": 1,
+      "message": "I do see https://www.npmjs.com/package/gif.js, is there a reason we can\u0027t use that or https://www.npmjs.com/package/gif.js-upgrade?\n\nThe MIT License is fine, but if we can\u0027t use the npm package then we should copy the LICENSE file also and add a README.md on where the code came from.",
+      "parentUuid": "198037dc_8ce92ecc",
+      "revId": "a1c1687b94c515398cc73e249fde30d6f53c282e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "3aa51cbc_ef3d5c50",
         "filename": "skottie/modules/skottie-gif-exporter/skottie-gif-exporter.js",
         "patchSetId": 1
