@@ -48,21 +48,30 @@ func main() {
 	if exists, err := topic.Exists(ctx); err != nil {
 		sklog.Fatalf("Error checking for existing topic %q: %s", *ingesterTopic, err)
 	} else if !exists {
-		sklog.Fatalf("Diff work topic %s does not exist in project %s", *ingesterTopic, *projectID)
+		sklog.Fatalf("topic %s does not exist in project %s", *ingesterTopic, *projectID)
 	}
 
-	sklog.Infof("starting")
+	sklog.Infof("starting scanning %q in project %s", *ingesterTopic, *projectID)
 
 	beginning := time.Date(*startYear, time.Month(*startMonth), *startDay, 0, 0, 0, 0, time.UTC)
 
 	dirs := fileutil.GetHourlyDirs(*srcRootDir, beginning, time.Now())
 	for _, dir := range dirs {
 		sklog.Infof("Directory: %q", dir)
+		var last *pubsub.PublishResult
 		err := gcs.AllFilesInDir(gcsClient, *srcBucket, dir, func(item *storage.ObjectAttrs) {
-			publishSyntheticStorageEvent(ctx, topic, item.Bucket, item.Name)
+			last = publishSyntheticStorageEvent(ctx, topic, item.Bucket, item.Name)
 		})
 		if err != nil {
 			sklog.Warningf("Error while processing dir %s: %s", dir, err)
+		}
+		if last != nil {
+			_, err := last.Get(context.Background())
+			if err != nil {
+				sklog.Fatalf("Could not publish: %s", err)
+			} else {
+				sklog.Debugf("Published something for %s", dir)
+			}
 		}
 	}
 
@@ -71,8 +80,8 @@ func main() {
 	sklog.Infof("done")
 }
 
-func publishSyntheticStorageEvent(ctx context.Context, topic *pubsub.Topic, bucket, fileName string) {
-	topic.Publish(ctx, &pubsub.Message{
+func publishSyntheticStorageEvent(ctx context.Context, topic *pubsub.Topic, bucket, fileName string) *pubsub.PublishResult {
+	return topic.Publish(ctx, &pubsub.Message{
 		// These are the important attributes read for ingestion.
 		// https://cloud.google.com/storage/docs/pubsub-notifications#attributes
 		Attributes: map[string]string{
