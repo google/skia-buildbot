@@ -9,11 +9,11 @@
  * @attr waiting - If present then display the waiting cursor.
  */
 import { html } from 'lit-html';
-import { Description } from '../json';
 
 import { errorMessage } from 'elements-sk/errorMessage';
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { Description } from '../json';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
@@ -26,6 +26,8 @@ import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
+
+export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
 
 const temps = (temperatures: { [key: string]: number }) => {
   if (!temperatures) {
@@ -45,25 +47,23 @@ const temps = (temperatures: { [key: string]: number }) => {
       <summary>Avg: ${ave.toFixed(1)}</summary>
       <table>
         ${Object.entries(temperatures).map(
-          (pair) =>
-            html`
+    (pair) => html`
               <tr>
                 <td>${pair[0]}</td>
                 <td>${pair[1]}</td>
               </tr>
-            `
-        )}
+            `,
+  )}
       </table>
     </details>
   `;
 };
 
-const isRunning = (machine: Description) =>
-  machine.RunningSwarmingTask
-    ? html`
+const isRunning = (machine: Description) => (machine.RunningSwarmingTask
+  ? html`
         <cached-icon-sk title="Running"></cached-icon-sk>
       `
-    : '';
+  : '');
 
 const asList = (arr: string[]) => arr.join(' | ');
 
@@ -76,14 +76,13 @@ const dimensions = (machine: Description) => {
       <summary>Dimensions</summary>
       <table>
         ${Object.entries(machine.Dimensions).map(
-          (pair) =>
-            html`
+    (pair) => html`
               <tr>
                 <td>${pair[0]}</td>
                 <td>${asList(pair[1]!)}</td>
               </tr>
-            `
-        )}
+            `,
+  )}
       </table>
     </details>
   `;
@@ -99,13 +98,14 @@ const annotation = (machine: Description) => {
   `;
 };
 
+// eslint-disable-next-line no-use-before-define
 const update = (ele: MachineServerSk, machine: Description) => {
   const msg = machine.ScheduledForDeletion ? 'Waiting for update.' : 'Update';
   return html`
     <button
       title="Force the pod to be killed and re-created"
       class="update"
-      @click=${() => ele._toggleUpdate(machine.Dimensions.id![0])}
+      @click=${() => ele.toggleUpdate(machine.Dimensions.id![0])}
     >
       ${msg}
     </button>
@@ -126,6 +126,7 @@ const imageName = (machine: Description) => {
   return parts[1];
 };
 
+// eslint-disable-next-line no-use-before-define
 const powerCycle = (ele: MachineServerSk, machine: Description) => {
   if (machine.PowerCycle) {
     return 'Waiting for Power Cycle';
@@ -133,48 +134,45 @@ const powerCycle = (ele: MachineServerSk, machine: Description) => {
   return html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
-      @click=${() => ele._togglePowerCycle(machine.Dimensions.id![0])}
+      @click=${() => ele.togglePowerCycle(machine.Dimensions.id![0])}
     ></power-settings-new-icon-sk>
   `;
 };
 
-const clearDevice = (ele: MachineServerSk, machine: Description) => {
-  return machine.RunningSwarmingTask
-    ? ''
-    : html`
+// eslint-disable-next-line no-use-before-define
+const clearDevice = (ele: MachineServerSk, machine: Description) => (machine.RunningSwarmingTask
+  ? ''
+  : html`
         <clear-icon-sk
           title="Clear the dimensions for the bot"
-          @click=${() => ele._clearDevice(machine.Dimensions.id![0])}
+          @click=${() => ele.clearDevice(machine.Dimensions.id![0])}
         ></clear-icon-sk>
-      `;
-};
+      `);
 
-const toggleMode = (ele: MachineServerSk, machine: Description) => {
-  return html`
+// eslint-disable-next-line no-use-before-define
+const toggleMode = (ele: MachineServerSk, machine: Description) => html`
     <button
       class="mode"
-      @click=${() => ele._toggleMode(machine.Dimensions.id![0])}
+      @click=${() => ele.toggleMode(machine.Dimensions.id![0])}
       title="Put the machine in maintenance mode."
     >
       ${machine.Mode}
     </button>
   `;
-};
 
-const machineLink = (machine: Description) => {
-  return html`
+const machineLink = (machine: Description) => html`
     <a
       href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}"
     >
       ${machine.Dimensions.id}
     </a>
   `;
-};
 
+// eslint-disable-next-line no-use-before-define
 const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
   <delete-icon-sk
     title="Remove the machine from the database."
-    @click=${() => ele._deleteDevice(machine.Dimensions.id![0])}
+    @click=${() => ele.deleteDevice(machine.Dimensions.id![0])}
   ></delete-icon-sk>
 `;
 
@@ -183,9 +181,15 @@ const deviceUptime = (machine: Description) => html`
   ${strDuration(machine.DeviceUptime - (machine.DeviceUptime % 60))}
 `;
 
-const rows = (ele: MachineServerSk) =>
-  ele._machines.map(
-    (machine) => html`
+/** Returns the CSS class that should decorate the LastUpdated value. */
+export const outOfSpecIfTooOld = (lastUpdated: string): string => {
+  const diff = (Date.now() - Date.parse(lastUpdated));
+  return diff > MAX_LAST_UPDATED_ACCEPTABLE_MS ? 'outOfSpec' : '';
+};
+
+// eslint-disable-next-line no-use-before-define
+const rows = (ele: MachineServerSk) => ele._machines.map(
+  (machine) => html`
       <tr id=${machine.Dimensions.id}>
         <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
@@ -198,16 +202,17 @@ const rows = (ele: MachineServerSk) =>
         <td>${isRunning(machine)}</td>
         <td>${machine.Battery}</td>
         <td>${temps(machine.Temperature)}</td>
-        <td>${diffDate(machine.LastUpdated)}</td>
+        <td class="${outOfSpecIfTooOld(machine.LastUpdated)}">${diffDate(machine.LastUpdated)}</td>
         <td>${deviceUptime(machine)}</td>
         <td>${dimensions(machine)}</td>
         <td>${annotation(machine)}</td>
         <td>${imageName(machine)}</td>
         <td>${deleteMachine(ele, machine)}</td>
       </tr>
-    `
-  );
+    `,
+);
 
+// eslint-disable-next-line no-use-before-define
 const refreshButtonDisplayValue = (ele: MachineServerSk) => {
   if (ele.refreshing) {
     return html`
@@ -219,11 +224,12 @@ const refreshButtonDisplayValue = (ele: MachineServerSk) => {
   `;
 };
 
+// eslint-disable-next-line no-use-before-define
 const template = (ele: MachineServerSk) => html`
   <header>
     <span
       id="refresh"
-      @click=${() => ele._toggleRefresh()}
+      @click=${() => ele.toggleRefresh()}
       title="Start/Stop the automatic refreshing of data on the page."
     >
       ${refreshButtonDisplayValue(ele)}
@@ -272,27 +278,103 @@ export class MachineServerSk extends ElementSk {
     this._timeout = 0;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    this._refreshStep();
+    this.refreshStep();
   }
 
   /** @prop refreshing {bool} True if the data on the page is periodically refreshed. */
-  get refreshing() {
+  get refreshing(): boolean {
     return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true';
   }
 
-  set refreshing(val) {
-    window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, '' + !!val);
+  set refreshing(val: boolean) {
+    window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, `${!!val}`);
   }
 
-  _onError(msg: object) {
+  async toggleUpdate(id: string): Promise<void> {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_update/${id}`);
+      this.removeAttribute('waiting');
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    }
+  }
+
+  async toggleMode(id: string): Promise<void> {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_mode/${id}`);
+      this.removeAttribute('waiting');
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    }
+  }
+
+
+  async togglePowerCycle(id: string): Promise<void> {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_powercycle/${id}`);
+      this.removeAttribute('waiting');
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    }
+  }
+
+  async clearDevice(id: string): Promise<void> {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/remove_device/${id}`);
+      this.removeAttribute('waiting');
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    }
+  }
+
+  async deleteDevice(id: string): Promise<void> {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/delete_machine/${id}`);
+      this.removeAttribute('waiting');
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    }
+  }
+
+  toggleRefresh(): void {
+    this.refreshing = !this.refreshing;
+    this.refreshStep();
+  }
+
+  private async refreshStep() {
+    // Wait for _update to finish so we don't pile up requests if server latency
+    // rises.
+    await this.update();
+    if (this.refreshing && this._timeout === 0) {
+      this._timeout = window.setTimeout(() => {
+        // Only done here, so multiple calls to _refreshStep() won't start
+        // parallel setTimeout chains.
+        this._timeout = 0;
+
+        this.refreshStep();
+      }, 2000);
+    }
+  }
+
+  private onError(msg: any) {
     this.removeAttribute('waiting');
     errorMessage(msg);
   }
 
-  async _update(changeCursor = false) {
+  private async update(changeCursor = false) {
     if (changeCursor) {
       this.setAttribute('waiting', '');
     }
@@ -306,86 +388,9 @@ export class MachineServerSk extends ElementSk {
       this._machines = json;
       this._render();
     } catch (error) {
-      this._onError(error);
+      this.onError(error);
     }
   }
-
-  async _toggleMode(id: string) {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_mode/${id}`);
-      this.removeAttribute('waiting');
-      await this._update(true);
-    } catch (error) {
-      this._onError(error);
-    }
-  }
-
-  async _toggleUpdate(id: string) {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_update/${id}`);
-      this.removeAttribute('waiting');
-      await this._update(true);
-    } catch (error) {
-      this._onError(error);
-    }
-  }
-
-  async _togglePowerCycle(id: string) {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/toggle_powercycle/${id}`);
-      this.removeAttribute('waiting');
-      await this._update(true);
-    } catch (error) {
-      this._onError(error);
-    }
-  }
-
-  async _clearDevice(id: string) {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/remove_device/${id}`);
-      this.removeAttribute('waiting');
-      await this._update(true);
-    } catch (error) {
-      this._onError(error);
-    }
-  }
-
-  async _deleteDevice(id: string) {
-    try {
-      this.setAttribute('waiting', '');
-      await fetch(`/_/machine/delete_machine/${id}`);
-      this.removeAttribute('waiting');
-      await this._update(true);
-    } catch (error) {
-      this._onError(error);
-    }
-  }
-
-  async _refreshStep() {
-    // Wait for _update to finish so we don't pile up requests if server latency
-    // rises.
-    await this._update();
-    if (this.refreshing && this._timeout === 0) {
-      this._timeout = window.setTimeout(() => {
-        // Only done here, so multiple calls to _refreshStep() won't start
-        // parallel setTimeout chains.
-        this._timeout = 0;
-
-        this._refreshStep();
-      }, 2000);
-    }
-  }
-
-  _toggleRefresh() {
-    this.refreshing = !this.refreshing;
-    this._refreshStep();
-  }
-
-  disconnectedCallback() {}
 }
 
 window.customElements.define('machine-server-sk', MachineServerSk);
