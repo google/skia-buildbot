@@ -99,7 +99,7 @@ func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig)
 	// clone said repository here before setting up the aforementioned delegate "run" function, and
 	// make the checkout available to the caller test case via the corresponding environment variable.
 	originalDepotToolsTestEnvVar := os.Getenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR)
-	if bazel.InRBE() {
+	if bazel.InBazelTestOnRBE() {
 		depotToolsDir := filepath.Join(wd, "depot_tools")
 		_, err := git.NewCheckout(ctx, infra_common.REPO_DEPOT_TOOLS, wd)
 		require.NoError(t, err)

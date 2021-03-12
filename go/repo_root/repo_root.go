@@ -17,7 +17,7 @@ import (
 // Outside of Bazel, it returns the path to the repo checkout's root directory.  Note that this will
 // return an error if the CWD is not inside a checkout, so this cannot run on production servers.
 func Get() (string, error) {
-	if bazel.InBazel() {
+	if bazel.InBazelTest() {
 		return bazel.RunfilesDir(), nil
 	}
 

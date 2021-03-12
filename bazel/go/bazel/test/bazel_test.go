@@ -17,7 +17,7 @@ func TestInBazel(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.BazelOnlyTest(t)
 
-	require.True(t, bazel.InBazel())
+	require.True(t, bazel.InBazelTest())
 }
 
 func TestRunfilesDir_UsedToLocateAKnownRunfile_Success(t *testing.T) {

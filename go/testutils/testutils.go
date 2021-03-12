@@ -45,7 +45,7 @@ func TestDataDir(t sktest.TestingT) string {
 			//
 			// Under "go test" this is not necessary because the path returned by runtime.Caller() is
 			// absolute.
-			if bazel.InBazel() {
+			if bazel.InBazelTest() {
 				file = filepath.Join(bazel.RunfilesDir(), file)
 			}
 
