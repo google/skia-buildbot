@@ -733,12 +733,363 @@ func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
 	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
 	assert.Empty(t, actualSourceFiles)
 
-	acutalCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
-	assert.Empty(t, acutalCommitsWithData)
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Empty(t, actualCommitsWithData)
 
 	assert.Equal(t, totalMetricBefore+1, s.filesProcessed.Get())
 	assert.Equal(t, successMetricBefore, s.filesSuccess.Get())
 	assert.Equal(t, resultsMetricBefore, s.resultsIngested.Get())
+}
+
+// This test ingests data from a trace already seen on the primary branch and a trace that has not
+// been seen before. It will be from the latest commit (does not have data yet). We expect the
+// ValuesAtHead table will have the existing trace be updated and a new entry created for the old
+// trace.
+func TestPrimarySQL_Process_MoreRecentData_ValuesAtHeadUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const circleTraceKeys = `{"color mode":"RGB","device":"taimen","name":"circle","os":"Android","source_type":"round"}`
+	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
+	const expectedCommitID = "0000000111"
+	src := fakeGCSSourceFromFile(t, "values_at_head1.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	require.NoError(t, s.Process(ctx, "values_at_head1.json"))
+
+	// Spot check the created or updated data due to the ingested file.
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(circleTraceKeys),
+		MostRecentCommitID: expectedCommitID, // This was updated
+		Digest:             d(dks.DigestC05Unt),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(circleGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.CircleTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBTrue,
+	})
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(roundRectTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestE02Pos_CL),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(roundRectGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Contains(t, actualCommitsWithData, schema.CommitWithDataRow{
+		CommitID: expectedCommitID,
+		TileID:   2,
+	})
+
+	actualExpectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(roundRectGrouping),
+		Digest:     d(dks.DigestE02Pos_CL),
+		Label:      schema.LabelUntriaged,
+	})
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(circleGrouping),
+		Digest:     d(dks.DigestC05Unt),
+		Label:      schema.LabelUntriaged,
+	})
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 2})
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 2})
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Contains(t, actualTraces, schema.TraceRow{
+		TraceID:    h(roundRectTraceKeys),
+		Corpus:     dks.RoundCorpus,
+		GroupingID: h(roundRectGrouping),
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+}
+
+func TestPrimarySQL_Process_MoreRecentDataWithCaches_ValuesAtHeadUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const circleTraceKeys = `{"color mode":"RGB","device":"taimen","name":"circle","os":"Android","source_type":"round"}`
+	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
+	const expectedCommitID = "0000000111"
+	src := fakeGCSSourceFromFile(t, "values_at_head1.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	addToTraceCache(s, circleTraceKeys)
+	addToExpectationsCache(s, circleGrouping, dks.DigestC05Unt)
+	addToOptionGroupingCache(s, circleGrouping)
+	require.NoError(t, s.Process(ctx, "values_at_head1.json"))
+
+	// Spot check the created or updated data due to the ingested file.
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(circleTraceKeys),
+		MostRecentCommitID: expectedCommitID, // This was updated
+		Digest:             d(dks.DigestC05Unt),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(circleGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.CircleTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBTrue,
+	})
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(roundRectTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestE02Pos_CL),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(roundRectGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+
+	actualCommitsWithData := sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}).([]schema.CommitWithDataRow)
+	assert.Contains(t, actualCommitsWithData, schema.CommitWithDataRow{
+		CommitID: expectedCommitID,
+		TileID:   2,
+	})
+
+	actualExpectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(roundRectGrouping),
+		Digest:     d(dks.DigestE02Pos_CL),
+		Label:      schema.LabelUntriaged,
+	})
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(circleGrouping),
+		Digest:     d(dks.DigestC05Unt),
+		Label:      schema.LabelUntriaged,
+	})
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 2})
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 2})
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Contains(t, actualTraces, schema.TraceRow{
+		TraceID:    h(roundRectTraceKeys),
+		Corpus:     dks.RoundCorpus,
+		GroupingID: h(roundRectGrouping),
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+}
+
+func TestPrimarySQL_Process_OlderData_SomeValuesAtHeadUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const circleTraceKeys = `{"color mode":"RGB","device":"taimen","name":"circle","os":"Android","source_type":"round"}`
+	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
+	const expectedCommitID = "0000000107"
+	src := fakeGCSSourceFromFile(t, "values_at_head2.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	require.NoError(t, s.Process(ctx, "values_at_head2.json"))
+
+	// Spot check the created or updated data due to the ingested file.
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(circleTraceKeys),
+		MostRecentCommitID: "0000000110", // This was *not* updated
+		Digest:             d(dks.DigestC05Unt),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(circleGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.CircleTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBTrue,
+	})
+	// Even though this isn't the newest commit, it's the latest data (only data) for this trace.
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(roundRectTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestE02Pos_CL),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(roundRectGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+
+	actualExpectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(roundRectGrouping),
+		Digest:     d(dks.DigestE02Pos_CL),
+		Label:      schema.LabelUntriaged,
+	})
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(circleGrouping),
+		Digest:     d(dks.DigestC05Unt),
+		Label:      schema.LabelUntriaged,
+	})
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 1})
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1})
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Contains(t, actualTraces, schema.TraceRow{
+		TraceID:    h(roundRectTraceKeys),
+		Corpus:     dks.RoundCorpus,
+		GroupingID: h(roundRectGrouping),
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+}
+
+func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const circleTraceKeys = `{"color mode":"RGB","device":"taimen","name":"circle","os":"Android","source_type":"round"}`
+	const roundRectTraceKeys = `{"color mode":"GREY","device":"taimen","name":"round rect","os":"Android","source_type":"round"}`
+	const expectedCommitID = "0000000107"
+	src := fakeGCSSourceFromFile(t, "values_at_head2.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	addToTraceCache(s, circleTraceKeys)
+	addToExpectationsCache(s, circleGrouping, dks.DigestC05Unt)
+	addToOptionGroupingCache(s, circleGrouping)
+	require.NoError(t, s.Process(ctx, "values_at_head2.json"))
+
+	// Spot check the created or updated data due to the ingested file.
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(circleTraceKeys),
+		MostRecentCommitID: "0000000110", // This was *not* updated
+		Digest:             d(dks.DigestC05Unt),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(circleGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.CircleTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBTrue,
+	})
+	assert.Contains(t, actualValuesAtHead, schema.ValueAtHeadRow{
+		TraceID:            h(roundRectTraceKeys),
+		MostRecentCommitID: expectedCommitID,
+		Digest:             d(dks.DigestE02Pos_CL),
+		OptionsID:          h(pngOptions),
+		GroupingID:         h(roundRectGrouping),
+		Corpus:             dks.RoundCorpus,
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
+
+	actualExpectations := sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}).([]schema.ExpectationRow)
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(roundRectGrouping),
+		Digest:     d(dks.DigestE02Pos_CL),
+		Label:      schema.LabelUntriaged,
+	})
+	assert.Contains(t, actualExpectations, schema.ExpectationRow{
+		GroupingID: h(circleGrouping),
+		Digest:     d(dks.DigestC05Unt),
+		Label:      schema.LabelUntriaged,
+	})
+
+	actualTiledTraces := sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}).([]schema.TiledTraceDigestRow)
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(roundRectTraceKeys), Digest: d(dks.DigestE02Pos_CL), TileID: 1})
+	assert.Contains(t, actualTiledTraces, schema.TiledTraceDigestRow{
+		TraceID: h(circleTraceKeys), Digest: d(dks.DigestC05Unt), TileID: 1})
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Contains(t, actualTraces, schema.TraceRow{
+		TraceID:    h(roundRectTraceKeys),
+		Corpus:     dks.RoundCorpus,
+		GroupingID: h(roundRectGrouping),
+		Keys: paramtools.Params{
+			dks.ColorModeKey:      dks.GreyColorMode,
+			dks.DeviceKey:         dks.TaimenDevice,
+			dks.OSKey:             dks.AndroidOS,
+			types.PrimaryKeyField: dks.RoundRectTest,
+			types.CorpusField:     dks.RoundCorpus,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	})
 }
 
 func repeat(s string, n int) []string {
@@ -752,11 +1103,11 @@ func repeat(s string, n int) []string {
 var fakeIngestionTime = time.Date(2021, time.March, 14, 15, 9, 26, 0, time.UTC)
 
 const (
-	circleGrouping   = `{"name":"circle","source_type":"round"}`
-	squareGrouping   = `{"name":"square","source_type":"corners"}`
-	triangleGrouping = `{"name":"triangle","source_type":"corners"}`
-
-	pngOptions = `{"ext":"png"}`
+	circleGrouping    = `{"name":"circle","source_type":"round"}`
+	squareGrouping    = `{"name":"square","source_type":"corners"}`
+	triangleGrouping  = `{"name":"triangle","source_type":"corners"}`
+	roundRectGrouping = `{"name":"round rect","source_type":"round"}`
+	pngOptions        = `{"ext":"png"}`
 )
 
 // h returns the MD5 hash of the provided string.
@@ -816,4 +1167,17 @@ func makeDataForTileTests() schema.Tables {
 		IngestedFrom(repeat("dontcare", 8), repeat("2020-12-01T00:42:00Z", 8))
 	existingData := b.Build()
 	return existingData
+}
+
+func addToTraceCache(s *sqlPrimaryIngester, keyJSON string) {
+	s.traceCache.Add(string(h(keyJSON)), struct{}{})
+}
+
+func addToExpectationsCache(s *sqlPrimaryIngester, grouping string, digest types.Digest) {
+	k := string(h(grouping)) + string(d(digest))
+	s.expectationsCache.Add(k, struct{}{})
+}
+
+func addToOptionGroupingCache(s *sqlPrimaryIngester, groupOrOpt string) {
+	s.optionGroupingCache.Add(string(h(groupOrOpt)), struct{}{})
 }

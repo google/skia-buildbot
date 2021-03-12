@@ -32,7 +32,8 @@ func Build() schema.Tables {
 	b.CommitsWithNoData().
 		Insert("0000000103", "0103010301030103010301030103010301030103", UserFour, "no data 103", "2020-12-06T01:00:00Z").
 		Insert("0000000104", "0104010401040104010401040104010401040104", UserFour, "no data 104", "2020-12-06T02:00:00Z").
-		Insert("0000000105", "0105010501050105010501050105010501050105", UserFour, "no data 105", "2020-12-06T03:00:00Z")
+		Insert("0000000105", "0105010501050105010501050105010501050105", UserFour, "no data 105", "2020-12-06T03:00:00Z").
+		Insert("0000000111", "0111011101110111011101110111011101110111", UserFour, "no data 111", "2020-12-12T12:00:00Z")
 
 	b.SetDigests(map[rune]types.Digest{
 		// by convention, upper case are positively triaged, lowercase
