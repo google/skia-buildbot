@@ -90,7 +90,7 @@ def go_test(name, srcs, tags = [], args = [], **kwargs):
     non_manual_test_srcs = [src for src in srcs if not src.endswith("_manual_test.go")]
 
     # Generate the base go_test target, excluding any *_manual_test.go files.
-    _go_test(name = name, srcs = non_manual_test_srcs, tags = tags, **kwargs)
+    _go_test(name = name, srcs = non_manual_test_srcs, tags = tags, args = args, **kwargs)
 
     # Only generate the target for manual tests if there is at least one *_manual_test.go file.
     if len(srcs) != len(non_manual_test_srcs):

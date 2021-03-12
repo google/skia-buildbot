@@ -1,4 +1,4 @@
-package frontend
+package parsers
 
 import (
 	"fmt"
@@ -11,14 +11,17 @@ import (
 // TypeScript imports parser. //
 ////////////////////////////////
 
+// tsImportRegexps contains all the regular expressions necessary to extract imports from a
+// TypeScript source file.
 var tsImportRegexps = []*regexp.Regexp{
 	// Matches the following styles of imports:
 	//     import * from 'foo';
+	//     export * from 'foo';
 	//     import * as bar from 'foo';
 	//     import { bar, baz } from 'foo';
 	//     import { bar, baz as qux } from 'foo';
-	regexp.MustCompile(`^\s*import\s*{?(\*|[[:alnum:]]|_|\$|,|\s)*}?\s*from\s*'(?P<path>.*)'`), // Single quotes.
-	regexp.MustCompile(`^\s*import\s*{?(\*|[[:alnum:]]|_|\$|,|\s)*}?\s*from\s*"(?P<path>.*)"`), // Double quotes.
+	regexp.MustCompile(`^\s*(import|export)\s*{?(\*|[[:alnum:]]|_|\$|,|\s)*}?\s*from\s*'(?P<path>.*)'`), // Single quotes.
+	regexp.MustCompile(`^\s*(import|export)\s*{?(\*|[[:alnum:]]|_|\$|,|\s)*}?\s*from\s*"(?P<path>.*)"`), // Double quotes.
 
 	// Matches multiline imports, e.g.:
 	//     import {
@@ -34,9 +37,9 @@ var tsImportRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^\s*import\s*"(?P<path>.*)"`), // Double quotes.
 }
 
-// parseTSImports takes the contents of a TypeScript source file and extracts the verbatim paths of
+// ParseTSImports takes the contents of a TypeScript source file and extracts the verbatim paths of
 // any imported modules.
-func parseTSImports(source string) []string {
+func ParseTSImports(source string) []string {
 	// Remove comments from the source file.
 	lines := splitLinesAndRemoveComments(source)
 
@@ -87,9 +90,9 @@ var sassImportRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^\s*@(import|use|forward)\s*"(?P<path>[\w~_/\.\-]+)"`), // Double quotes.
 }
 
-// parseSassImports takes the contents of a Sass source file and extracts the verbatim paths of any
+// ParseSassImports takes the contents of a Sass source file and extracts the verbatim paths of any
 // imported modules.
-func parseSassImports(source string) []string {
+func ParseSassImports(source string) []string {
 	// Remove comments from the source file.
 	lines := splitLinesAndRemoveComments(source)
 
@@ -136,6 +139,12 @@ func splitLinesAndRemoveComments(source string) []string {
 }
 
 var (
+	// singleLineBlockCommentRegexp matches a single-line /* block comment */, and captures any
+	// uncommented code before and after the block comment.
+	//
+	// Known limitation: This regexp ignores string literals.
+	singleLineBlockCommentRegexp = regexp.MustCompile(`(?P<uncommented_before>.*)/\*.*\*/(?P<uncommented_after>.*)`)
+
 	// blockCommentStartRegexp matches the "/*" at the beginning of a /* block comment */, and
 	// captures any uncommented code that precedes it.
 	//
@@ -155,8 +164,16 @@ func stripBlockComments(lines []string) []string {
 
 	for _, line := range lines {
 		if !blockComment {
-			// We are not currently inside a /* block comment */. Does one start on the current line?
-			match := blockCommentStartRegexp.FindStringSubmatch(line)
+			// We are not currently inside a /* block comment */. Does this line have a single-line block
+			// comment?
+			match := singleLineBlockCommentRegexp.FindStringSubmatch(line)
+			if len(match) > 0 {
+				// Remove the single-line block-comment and proceed as if it was never there.
+				line = match[1] + match[2]
+			}
+
+			// Does a multi-line block-comment start on the current line?
+			match = blockCommentStartRegexp.FindStringSubmatch(line)
 			if len(match) > 0 {
 				// Block comment found. Keep the portion of the line that precedes the "/*" characters.
 				blockComment = true
