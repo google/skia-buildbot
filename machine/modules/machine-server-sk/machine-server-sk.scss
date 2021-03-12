@@ -12,6 +12,7 @@ machine-server-sk {
     border-bottom: solid 1px var(--on-surface);
     position: fixed;
     top: 0;
+    z-index: 10;
   }
 
   button {
@@ -36,6 +37,11 @@ machine-server-sk {
   td {
     vertical-align: top;
     padding: 8px 4px 4px 4px;
+  }
+
+  td.outOfSpec {
+    color: var(--error);
+    font-weight: bold;
   }
 
   main {
