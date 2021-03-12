@@ -139,7 +139,10 @@ func main() {
 	failIfNonEmptyGitDiff()
 
 	// Update all Go BUILD targets with Gazelle, and fail if there are any diffs.
-	bazel("run", "//:gazelle", "--", "update", ".")
+	//
+	// We invoke Gazelle with --lang go,proto to prevent it from using our extension to generate BUILD
+	// files for front-end code, which is currently in development.
+	bazel("run", "//:gazelle", "--", "update", "--lang", "go,proto", ".")
 	failIfNonEmptyGitDiff()
 
 	// Build all code in the repository. The tryjob will fail upon any build errors.
