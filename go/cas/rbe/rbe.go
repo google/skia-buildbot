@@ -222,6 +222,12 @@ func makeTree(dirs []*remoteexecution.Directory) (*directoryNode, []*remoteexecu
 // Returns an error if the two trees are incompatible, eg. trees that contain
 // files with the same name but different digests.
 func (c *Client) mergeTrees(ctx context.Context, a, b *directoryNode) (*directoryNode, error) {
+	if a == nil {
+		return b, nil
+	}
+	if b == nil {
+		return a, nil
+	}
 	// Files.
 	filesMap := map[string]*remoteexecution.FileNode{}
 	for _, file := range a.Files {
