@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	cipd_common "go.chromium.org/luci/cipd/common"
+
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -23,10 +25,9 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-
-	"go.skia.org/infra/go/metrics2"
 )
 
 var cipdRoot = path.Join(os.TempDir(), "cipd")
@@ -353,7 +354,8 @@ func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parent
 	return skerr.Wrap(err)
 }
 
-// VulkanDepsUpdateCommitMessage runs a script to produce a more usful commit message.
+// VulkanDepsUpdateCommitMessage runs a script to produce a more useful commit
+// message.
 func VulkanDepsUpdateCommitMessage(ctx context.Context, env []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	sklog.Info("Running update-commit-message script...")
 	out, err := exec.RunCommand(ctx, &exec.Command{
@@ -363,5 +365,31 @@ func VulkanDepsUpdateCommitMessage(ctx context.Context, env []string, _ *http.Cl
 		Env:  env,
 	})
 	sklog.Infof("Output from update-commit-message.py:\n%s", out)
+	return skerr.Wrap(err)
+}
+
+// ExtractG3Libs downloads and extracts
+func ExtractG3Libs(ctx context.Context, env []string, client *http.Client, parentRepoDir string, from, to *revision.Revision) error {
+	tmp, err := ioutil.TempDir("", "")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	cipdClient, err := cipd.NewClient(client, tmp)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := cipdClient.FetchAndDeployInstance(ctx, "tmp", cipd_common.Pin{
+		PackageName: "TODO",
+		InstanceID:  to.Id,
+	}, 0); err != nil {
+		return skerr.Wrap(err)
+	}
+	cipdPkgPath := filepath.Join(tmp, "tmp")
+	_, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python3",
+		Args: []string{filepath.Join("third_party", "google3", "extract_and_commit_doubledown_extras.py"), "--cipd-package-path", cipdPkgPath},
+		Dir:  parentRepoDir,
+		Env:  env,
+	})
 	return skerr.Wrap(err)
 }
