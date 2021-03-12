@@ -1,0 +1,22 @@
+note-editor-sk {
+  dialog {
+    padding: 8px;
+    border: solid 1px var(--on-surface);
+    color: var(--on-background);
+    background: var(--background);
+  }
+
+  .controls {
+    display: flex;
+    justify-content: flex-end;
+    margin: 8px 0 0 0;
+  }
+
+  button {
+    margin: 0 8px 0 0;
+  }
+
+  input {
+    width: 512px;
+  }
+}
