@@ -1092,6 +1092,37 @@ func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testi
 	})
 }
 
+func TestPrimarySQL_MonitorCacheMetrics_Success(t *testing.T) {
+	unittest.MediumTest(t)
+	s := PrimaryBranchSQL(nil, nil, nil)
+	addToOptionGroupingCache(s, pngOptions)
+	addToExpectationsCache(s, "whatever", dks.DigestBlank)
+	addToExpectationsCache(s, "whatever2", dks.DigestBlank)
+	addToTraceCache(s, "trace 1")
+	addToTraceCache(s, "trace 2")
+	addToTraceCache(s, "trace 3")
+	addToParamsCache(s, "key1", "value1", 1)
+	addToParamsCache(s, "key1", "value1", 2)
+	addToParamsCache(s, "key1", "value1", 3)
+	addToParamsCache(s, "key1", "value1", 4)
+	addToCommitCache(s, "git1", "id1", 1)
+	addToCommitCache(s, "git2", "id2", 1)
+	addToCommitCache(s, "git3", "id3", 1)
+	addToCommitCache(s, "git4", "id4", 1)
+	addToCommitCache(s, "git5", "id5", 1)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s.MonitorCacheMetrics(ctx)
+	time.Sleep(time.Second)
+
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "optionGrouping"}).Get())
+	assert.Equal(t, int64(2), metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "expectations"}).Get())
+	assert.Equal(t, int64(3), metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "trace"}).Get())
+	assert.Equal(t, int64(4), metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "params"}).Get())
+	assert.Equal(t, int64(5), metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "commits"}).Get())
+}
+
 func repeat(s string, n int) []string {
 	rv := make([]string, 0, n)
 	for i := 0; i < n; i++ {
@@ -1180,4 +1211,23 @@ func addToExpectationsCache(s *sqlPrimaryIngester, grouping string, digest types
 
 func addToOptionGroupingCache(s *sqlPrimaryIngester, groupOrOpt string) {
 	s.optionGroupingCache.Add(string(h(groupOrOpt)), struct{}{})
+}
+
+func addToParamsCache(s *sqlPrimaryIngester, key, value string, tile schema.TileID) {
+	pr := schema.PrimaryBranchParamRow{
+		TileID: tile,
+		Key:    key,
+		Value:  value,
+	}
+	s.paramsCache.Add(pr, struct{}{})
+	if !s.paramsCache.Contains(pr) { // Just to make sure this cache is valid
+		panic("Not a valid key type")
+	}
+}
+
+func addToCommitCache(s *sqlPrimaryIngester, gitHash string, commitID schema.CommitID, tileID schema.TileID) {
+	s.commitsCache.Add(gitHash, commitCacheEntry{
+		commitID: commitID,
+		tileID:   tileID,
+	})
 }
