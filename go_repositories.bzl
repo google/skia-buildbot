@@ -14,8 +14,8 @@ def go_repositories():
     go_repository(
         name = "co_honnef_go_tools",
         importpath = "honnef.co/go/tools",
-        sum = "h1:W18jzjh8mfPez+AwGLxmOImucz/IFjpNlrKVnaj2YVc=",
-        version = "v0.0.1-2020.1.6",
+        sum = "h1:UoveltGrhghAA7ePc+e+QYDHXrBps2PqFZiHkGR/xK8=",
+        version = "v0.0.1-2020.1.4",
     )
 
     go_repository(
@@ -227,8 +227,8 @@ def go_repositories():
     go_repository(
         name = "com_github_bazelbuild_bazel_gazelle",
         importpath = "github.com/bazelbuild/bazel-gazelle",
-        sum = "h1:buszGdD9d/Z691sxFDgOdcEUWli0ZT2tBXUxfbLMrb4=",
-        version = "v0.21.1",
+        sum = "h1:cfvF5dcjFKTehIQkLWioFWpGWi41Q38/WBM2d/2QCTs=",
+        version = "v0.22.3",
     )
 
     go_repository(
@@ -260,8 +260,8 @@ def go_repositories():
     go_repository(
         name = "com_github_bazelbuild_rules_go",
         importpath = "github.com/bazelbuild/rules_go",
-        sum = "h1:mb2SfWfQcOkIGTEf8QdRna9nF6nnjlyv/qeXvPVkleE=",
-        version = "v0.25.0",
+        sum = "h1:wzbawlkLtl2ze9w/312NHZ84c7kpUCtlkD8HgFY27sw=",
+        version = "v0.0.0-20190719190356-6dae44dc5cab",
     )
 
     go_repository(
@@ -752,8 +752,8 @@ def go_repositories():
     go_repository(
         name = "com_github_dustin_go_humanize",
         importpath = "github.com/dustin/go-humanize",
-        sum = "h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=",
-        version = "v1.0.0",
+        sum = "h1:qk/FSDDxo05wdJH28W+p5yivv7LuLYLRXPPD8KQCtZs=",
+        version = "v0.0.0-20171111073723-bb3d318650d4",
     )
 
     go_repository(
@@ -1897,8 +1897,8 @@ def go_repositories():
     go_repository(
         name = "com_github_mailru_easyjson",
         importpath = "github.com/mailru/easyjson",
-        sum = "h1:8yTIVnZgCoiM1TgqoeTl+LfU5Jg6/xL3QhGQnimLYnA=",
-        version = "v0.7.6",
+        sum = "h1:mdxE1MF9o53iCb2Ghj1VfWvh7ZOwHpnVG/xwXrV90U8=",
+        version = "v0.7.1",
     )
 
     go_repository(
@@ -1960,8 +1960,8 @@ def go_repositories():
     go_repository(
         name = "com_github_mattn_go_runewidth",
         importpath = "github.com/mattn/go-runewidth",
-        sum = "h1:Lm995f3rfxdpd6TSmuVCHVb/QhupuXlYr8sCI/QdE+0=",
-        version = "v0.0.9",
+        sum = "h1:a+kO+98RDGEfo6asOGMmpodZq4FNtnGP54yps8BzLR4=",
+        version = "v0.0.3",
     )
 
     go_repository(
@@ -2384,8 +2384,8 @@ def go_repositories():
     go_repository(
         name = "com_github_peterh_liner",
         importpath = "github.com/peterh/liner",
-        sum = "h1:w/UPXyl5GfahFxcTOz2j9wCIHNI+pUPr2laqpojKNCg=",
-        version = "v1.2.0",
+        sum = "h1:f+aAedNJA6uk7+6rXsYBnhdo4Xux7ESLe+kcuVUF5os=",
+        version = "v1.1.0",
     )
     go_repository(
         name = "com_github_phpdave11_gofpdi",
@@ -3362,8 +3362,8 @@ def go_repositories():
     go_repository(
         name = "io_rsc_sampler",
         importpath = "rsc.io/sampler",
-        sum = "h1:7i08f/p5TBU5joCPW3GjWG1ZFCmr28ybGqlXtelhEK8=",
-        version = "v1.99.99",
+        sum = "h1:7uVkIFmeBqHfdjD+gZwtXXI+RODJ2Wc4O7MPEh/QiW4=",
+        version = "v1.3.0",
     )
     go_repository(
         name = "net_starlark_go",
