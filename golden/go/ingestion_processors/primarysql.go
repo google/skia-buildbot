@@ -134,6 +134,7 @@ func (s *sqlPrimaryIngester) Process(ctx context.Context, fileName string) error
 		return nil
 	}
 	span.AddAttributes(trace.Int64Attribute("num_results", int64(len(gr.Results))))
+	sklog.Infof("Ingesting %d results from file %s", len(gr.Results), fileName)
 
 	commitID, tileID, err := s.getCommitAndTileID(ctx, gr)
 	if err != nil {
@@ -651,7 +652,7 @@ func (s *sqlPrimaryIngester) batchUpdateValuesAtHead(ctx context.Context, rows [
 	ctx, span := trace.StartSpan(ctx, "batchUpdateValuesAtHead")
 	span.AddAttributes(trace.Int64Attribute("values", int64(len(rows))))
 	defer span.End()
-	const chunkSize = 100 // Arbitrarily picked (smaller because more likely to contend)
+	const chunkSize = 50 // Arbitrarily picked (smaller because more likely to contend)
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
