@@ -35,6 +35,8 @@ const (
 	optionsGroupingCacheSize = 1_000_000
 	paramsCacheSize          = 100_000
 	traceCacheSize           = 10_000_000
+
+	cacheSizeMetric = "gold_ingestion_cache_sizes"
 )
 
 type sqlPrimaryIngester struct {
@@ -780,6 +782,22 @@ func (s *sqlPrimaryIngester) batchCreateTiledTraceDigests(ctx context.Context, v
 		return skerr.Wrapf(err, "storing %d Tiled Trace Digest rows", len(values))
 	}
 	return nil
+}
+
+// MonitorCacheMetrics starts a goroutine to report the cache sizes every minute
+func (s *sqlPrimaryIngester) MonitorCacheMetrics(ctx context.Context) {
+	commitSize := metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "commits"})
+	expectationSize := metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "expectations"})
+	optionGroupingSize := metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "optionGrouping"})
+	paramsSize := metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "params"})
+	traceSize := metrics2.GetInt64Metric(cacheSizeMetric, map[string]string{"cache_name": "trace"})
+	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		commitSize.Update(int64(s.commitsCache.Len()))
+		expectationSize.Update(int64(s.expectationsCache.Len()))
+		optionGroupingSize.Update(int64(s.optionGroupingCache.Len()))
+		paramsSize.Update(int64(s.paramsCache.Len()))
+		traceSize.Update(int64(s.traceCache.Len()))
+	})
 }
 
 func groupingFor(keys map[string]string) map[string]string {
