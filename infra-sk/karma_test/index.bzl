@@ -1,8 +1,8 @@
 """This module defines the karma_test rule."""
 
-load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//karma:index.bzl", _generated_karma_test = "karma_test")
+load("//infra-sk:ts_library.bzl", "ts_library")
 
 def karma_test(name, srcs, deps, entry_point = None):
     """Runs unit tests in a browser with Karma and the Mocha test runner.
@@ -41,7 +41,6 @@ def karma_test(name, srcs, deps, entry_point = None):
         srcs = srcs,
         deps = deps + [
             # Add common test dependencies for convenience.
-            "@infra-sk_npm//@types/mocha",
             "@infra-sk_npm//@types/chai",
             "@infra-sk_npm//@types/sinon",
         ],
