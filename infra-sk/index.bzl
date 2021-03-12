@@ -162,7 +162,7 @@ def nodejs_test(
         visibility = visibility,
     )
 
-def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):
+def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
     """Defines a Puppeteer test for the demo page served by an sk_demo_page_server.
 
     Puppeteer tests should save any screenshots inside the $TEST_UNDECLARED_OUTPUTS_DIR directory.
@@ -180,17 +180,17 @@ def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):
 
     Args:
       name: Name of the rule.
-      srcs: Labels for the test's TypeScript files.
+      src: A single TypeScript source file.
       sk_demo_page_server: Label for the sk_demo_page_server target.
       deps: Any ts_library dependencies.
     """
 
-    if len(srcs) != 1:
-        fail("srcs must have exactly one file.")
+    if not src.endswith("_puppeteer_test.ts"):
+        fail("Puppeteer tests must end with \"_puppeteer_test.ts\".")
 
     nodejs_test(
         name = name + "_test_only",
-        src = srcs[0],
+        src = src,
         tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
         deps = deps + [
             "//puppeteer-tests:util_lib",
