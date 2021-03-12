@@ -142,7 +142,7 @@ func FakeExeTest(t sktest.TestingT) {
 // BazelOnlyTest is a function which should be called at the beginning of tests
 // which should only run under Bazel (e.g. via "bazel test ...").
 func BazelOnlyTest(t sktest.TestingT) {
-	if !bazel.InBazel() {
+	if !bazel.InBazelTest() {
 		t.Skip("Not running Bazel tests from outside Bazel.")
 	}
 }
@@ -233,7 +233,7 @@ const (
 // requiresEmulator fails the test when running outside of RBE if the corresponding *_EMULATOR_HOST
 // environment variable wasn't set, or starts a new emulator instance under RBE if necessary.
 func requiresEmulator(t sktest.TestingT, emulator emulators.Emulator, scope emulatorScopeUnderRBE) {
-	if bazel.InRBE() {
+	if bazel.InBazelTestOnRBE() {
 		setUpEmulatorBazelRBEOnly(t, emulator, scope)
 		return
 	}
@@ -265,7 +265,7 @@ var testCaseSpecificEmulatorInstancesBazelRBEOnly = map[emulators.Emulator]bool{
 // Test case-specific instances should only be used in the presence of hard-to-diagnose bugs that
 // only occur under RBE.
 func setUpEmulatorBazelRBEOnly(t sktest.TestingT, emulator emulators.Emulator, scope emulatorScopeUnderRBE) {
-	if !bazel.InRBE() {
+	if !bazel.InBazelTestOnRBE() {
 		panic("This function must only be called when running under Bazel and RBE.")
 	}
 

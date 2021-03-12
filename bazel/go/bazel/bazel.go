@@ -6,17 +6,17 @@ import (
 	"path/filepath"
 )
 
-// InBazel returns true if running under Bazel (e.g. "bazel test", "bazel run"), or false otherwise.
-func InBazel() bool {
+// InBazelTest returns true if running under Bazel (e.g. "bazel test"), or false otherwise.
+func InBazelTest() bool {
 	// See https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions.
 	return os.Getenv("TEST_WORKSPACE") != ""
 }
 
-// InRBE returns true if running under Bazel on RBE (e.g. "bazel test --config=remote"), or false
-// otherwise.
-func InRBE() bool {
+// InBazelTestOnRBE returns true if running under Bazel on RBE (e.g. "bazel test --config=remote"),
+// or false otherwise.
+func InBazelTestOnRBE() bool {
 	// The BAZEL_REMOTE environment variable is set in //.bazelrc when running with --config=remote.
-	return InBazel() && os.Getenv("BAZEL_REMOTE") == "true"
+	return InBazelTest() && os.Getenv("BAZEL_REMOTE") == "true"
 }
 
 // RunfilesDir returns the path to the directory under which a Bazel-built binary or test can find

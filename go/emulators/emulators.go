@@ -122,7 +122,7 @@ func makeEmulatorInfo(emulator Emulator) emulatorInfo {
 
 	// Under Bazel and RBE, we choose an unused port to minimize the chances of parallel tests from
 	// interfering with each other.
-	if bazel.InRBE() {
+	if bazel.InBazelTestOnRBE() {
 		info.port = findUnusedTCPPort()
 	}
 
@@ -144,7 +144,7 @@ func computeCockroachDBCmd() string {
 
 	// Under RBE, we want the web UI to be served on a random TCP port. This minimizes the chance of
 	// parallel tests from interfering with each other.
-	if bazel.InRBE() {
+	if bazel.InBazelTestOnRBE() {
 		cmd += " --http-addr=localhost:0"
 	} else {
 		// The default port for Cockroach's web UI 8080, but that is the same port at which we serve
@@ -242,7 +242,7 @@ func StartEmulatorIfNotRunning(emulator Emulator) (bool, error) {
 // parallel (e.g. one instance started via this function, and another one started via
 // StartEmulatorIfNotRunning). This function will panic if called outside of RBE.
 func StartAdHocEmulatorInstanceAndSetEmulatorHostEnvVarBazelRBEOnly(emulator Emulator) error {
-	if !bazel.InRBE() {
+	if !bazel.InBazelTestOnRBE() {
 		panic("This function cannot be called outside of RBE.")
 	}
 	info := makeEmulatorInfo(emulator)
@@ -262,7 +262,7 @@ func startEmulator(emulatorInfo emulatorInfo) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	if bazel.InRBE() {
+	if bazel.InBazelTestOnRBE() {
 		// Force emulator child processes to die as soon as the parent process (e.g. the Go test runner)
 		// dies. If we don't do this, the emulators will continue running indefinitely after the parent
 		// process dies, eventually timing out.
@@ -324,7 +324,7 @@ func StopAllEmulators() error {
 	}
 
 	signal := "SIGTERM"
-	if bazel.InRBE() {
+	if bazel.InBazelTestOnRBE() {
 		// Under Bazel and RBE, we don't need graceful termination because the RBE containers are
 		// ephemeral. Killing the emulators with SIGKILL is faster and simpler.
 		signal = "SIGKILL"
