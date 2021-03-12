@@ -1,0 +1,32 @@
+{
+  "description": "This file has data from two traces. One trace exists in the primary branch already of datakitchensink, the other does not. This data is for the latest commit.",
+  "gitHash" : "0111011101110111011101110111011101110111",
+  "key" : {
+    "os": "Android",
+    "device": "taimen"
+  },
+  "results" : [
+    {
+      "key" : {
+        "color mode" : "RGB",
+        "name" : "circle",
+        "source_type" : "round"
+      },
+      "md5" : "c05c05c05c05c05c05c05c05c05c05c0",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "color mode" : "GREY",
+        "name" : "round rect",
+        "source_type" : "round"
+      },
+      "md5" : "e02e02e02e02e02e02e02e02e02e02e0",
+      "options" : {
+        "ext" : "png"
+      }
+    }
+  ]
+}
