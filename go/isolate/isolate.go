@@ -6,17 +6,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"path"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"sort"
-	"strconv"
-	"strings"
 
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -37,58 +34,40 @@ var (
 
 // Client is a Skia-specific wrapper around the Isolate executable.
 type Client struct {
+	casInstance        string
 	isolate            string
 	isolateserver      string
-	serverUrl          string
+	isolateServerURL   string
 	workdir            string
 	serviceAccountJSON string
 }
 
 // NewClient returns a Client instance which expects to find the "isolate" and
 // "isolated" binaries in PATH. Typically they should be obtained via CIPD.
-func NewClient(workdir, server string) (*Client, error) {
+func NewClient(workdir, isolateServerURL, casInstance string) (*Client, error) {
 	if workdir == "" {
 		return nil, skerr.Fmt("workdir is required")
 	}
-	if server == "" {
-		return nil, skerr.Fmt("server is required")
+	if (isolateServerURL == "" && casInstance == "") || (isolateServerURL != "" && casInstance != "") {
+		return nil, skerr.Fmt("Exactly one of isolateServerURL or casInstance is required")
 	}
 	absPath, err := filepath.Abs(workdir)
 	if err != nil {
 		return nil, err
 	}
 	return &Client{
-		isolate:       "isolate",
-		isolateserver: "isolated",
-		serverUrl:     server,
-		workdir:       absPath,
+		casInstance:      casInstance,
+		isolate:          "isolate",
+		isolateserver:    "isolated",
+		isolateServerURL: isolateServerURL,
+		workdir:          absPath,
 	}, nil
-}
-
-// NewClientWithServiceAccount returns a Client instance which uses
-// "--service-account-json" for its isolate binary calls. This is required for
-// servers that are not listed in the chrome-infra-auth bypass list.
-func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
-	c, err := NewClient(workdir, server)
-	if err != nil {
-		return nil, err
-	}
-	c.serviceAccountJSON = serviceAccountJSON
-	return c, nil
-}
-
-// ServerURL return the Isolate server URL.
-func (c *Client) ServerURL() string {
-	return c.serverUrl
 }
 
 // Task is a description of the necessary inputs to isolate a task.
 type Task struct {
 	// BaseDir is the directory in which the files to be isolated reside.
 	BaseDir string
-
-	// Deps is a list of isolated hashes upon which this task depends.
-	Deps []string
 
 	// ExtraVars is a map containing variable keys and values for the task.
 	ExtraVars map[string]string
@@ -270,7 +249,11 @@ func writeIsolatedFile(filepath string, i *isolated.Isolated) error {
 func (c *Client) batchArchiveTasks(ctx context.Context, genJsonFiles []string, jsonOutput string) error {
 	cmd := []string{
 		c.isolate, "batcharchive", "--verbose",
-		"--isolate-server", c.serverUrl,
+	}
+	if c.casInstance != "" {
+		cmd = append(cmd, "--cas-instance", c.casInstance)
+	} else {
+		cmd = append(cmd, "--isolate-server", c.isolateServerURL)
 	}
 	if c.serviceAccountJSON != "" {
 		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
@@ -283,66 +266,56 @@ func (c *Client) batchArchiveTasks(ctx context.Context, genJsonFiles []string, j
 	if err != nil {
 		return fmt.Errorf("Failed to run isolate: %s\nOutput:\n%s", err, output)
 	}
+	sklog.Infof("Isolate output: %s", output)
 	return nil
 }
 
-// IsolateTasks uploads the necessary inputs for the task to the isolate server
-// and returns the isolated hashes.
-func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*isolated.Isolated, error) {
+// IsolateTask uploads the necessary inputs for the task to the isolate server
+// and returns the isolated hash.
+func (c *Client) IsolateTask(ctx context.Context, task *Task) (string, error) {
 	// Validation.
-	if len(tasks) == 0 {
-		return []string{}, []*isolated.Isolated{}, nil
-	}
-	for _, t := range tasks {
-		if err := t.Validate(); err != nil {
-			return nil, nil, err
-		}
+	if err := task.Validate(); err != nil {
+		return "", err
 	}
 
 	// Setup.
 	tmpDir, err := ioutil.TempDir("", "isolate")
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to create temporary dir: %s", err)
+		return "", skerr.Wrapf(err, "failed to create temporary dir")
 	}
 	defer util.RemoveAll(tmpDir)
 
 	// Write the .isolated.gen.json files.
-	genJsonFiles := make([]string, 0, len(tasks))
-	isolatedFilePaths := make([]string, 0, len(tasks))
-	for i, t := range tasks {
-		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
-		genJsonFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
-		isolatedFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
-		if err := writeIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
-			return nil, nil, err
-		}
-		genJsonFiles = append(genJsonFiles, genJsonFile)
-		isolatedFilePaths = append(isolatedFilePaths, isolatedFile)
+	taskId := fmt.Sprintf(TASK_ID_TMPL, "0")
+	genJsonFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
+	isolatedFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
+	if err := writeIsolatedGenJson(task, genJsonFile, isolatedFile); err != nil {
+		return "", err
 	}
 
 	// Isolate the tasks.
-	if err := c.batchArchiveTasks(ctx, genJsonFiles, ""); err != nil {
-		return nil, nil, err
+	jsonOutput := filepath.Join(tmpDir, "isolated.json")
+	if err := c.batchArchiveTasks(ctx, []string{genJsonFile}, jsonOutput); err != nil {
+		return "", err
 	}
 
-	// Read the isolated files and add any extra dependencies.
-	isolatedFiles := make([]*isolated.Isolated, 0, len(isolatedFilePaths))
-	for i, f := range isolatedFilePaths {
-		t := tasks[i]
-		iso, err := readIsolatedFile(f)
-		if err != nil {
-			return nil, nil, err
-		}
-		for _, dep := range t.Deps {
-			iso.Includes = append(iso.Includes, isolated.HexDigest(dep))
-		}
-		isolatedFiles = append(isolatedFiles, iso)
-	}
-	hashes, err := c.ReUploadIsolatedFiles(ctx, isolatedFiles)
+	// Read the JSON output file and return the hash.
+	b, err := ioutil.ReadFile(jsonOutput)
 	if err != nil {
-		return nil, nil, err
+		return "", skerr.Wrap(err)
 	}
-	return hashes, isolatedFiles, err
+	var hashes map[string]string
+	if err := json.Unmarshal(b, &hashes); err != nil {
+		return "", skerr.Wrap(err)
+	}
+	// We only provided one task, so there should only be one key in the map.
+	if len(hashes) != 1 {
+		return "", skerr.Fmt("Expected 1 hash but got %d; output: %s", len(hashes), string(b))
+	}
+	for _, hash := range hashes {
+		return hash, nil
+	}
+	return "", skerr.Fmt("Don't know how to read isolated output")
 }
 
 // DownloadIsolateHash downloads the specified isolate hash into the specified output dir.
@@ -351,10 +324,14 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 func (c *Client) DownloadIsolateHash(ctx context.Context, isolateHash, outputDir, downloadedFileList string) error {
 	cmd := []string{
 		c.isolateserver, "download", "--verbose",
-		"--isolate-server", c.serverUrl,
 		"--isolated", isolateHash,
 		"--output-dir", outputDir,
 		"--output-files", filepath.Join(outputDir, downloadedFileList),
+	}
+	if c.casInstance != "" {
+		cmd = append(cmd, "--cas-instance", c.casInstance)
+	} else {
+		cmd = append(cmd, "--isolate-server", c.isolateServerURL)
 	}
 	if c.serviceAccountJSON != "" {
 		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
@@ -364,66 +341,4 @@ func (c *Client) DownloadIsolateHash(ctx context.Context, isolateHash, outputDir
 		return fmt.Errorf("Failed to download isolate hash %s: %s\nOutput:\n%s", isolateHash, err, output)
 	}
 	return nil
-}
-
-// ReUploadIsolatedFiles re-uploads the given existing isolated files, eg. to add dependencies.
-func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*isolated.Isolated) ([]string, error) {
-	// Setup.
-	tmpDir, err := ioutil.TempDir("", "isolate")
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create temporary dir: %s", err)
-	}
-	defer util.RemoveAll(tmpDir)
-
-	// Re-upload the isolated files.
-	isolatedFilePaths := make([]string, 0, len(isolatedFiles))
-	for i, isolatedFile := range isolatedFiles {
-		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
-		filePath := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
-		isolatedFilePaths = append(isolatedFilePaths, filePath)
-		if err := writeIsolatedFile(filePath, isolatedFile); err != nil {
-			return nil, err
-		}
-	}
-
-	cmd := []string{
-		c.isolateserver, "archive", "--verbose",
-		"--isolate-server", c.serverUrl,
-	}
-	if c.serviceAccountJSON != "" {
-		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
-	}
-	for _, f := range isolatedFilePaths {
-		dirname, filename := path.Split(f)
-		if runtime.GOOS == "windows" {
-			// Win path prefixes seem to confuse isolate server.
-			dirname = strings.TrimPrefix(dirname, `c:`)
-			filename = strings.TrimPrefix(filename, `c:`)
-		}
-		cmd = append(cmd, "--files", fmt.Sprintf("%s:%s", dirname, filename))
-	}
-	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to run isolate: %s\nOutput:\n%s", err, output)
-	}
-
-	// Parse isolated hash for each task from the output.
-	hashes := map[string]string{}
-	for _, line := range strings.Split(string(output), "\n") {
-		m := isolatedHashRegexp.FindStringSubmatch(line)
-		if m != nil {
-			if len(m) != 3 {
-				return nil, fmt.Errorf("Isolated output regexp returned invalid match: %v", m)
-			}
-			hashes[m[2]] = m[1]
-		}
-	}
-	if len(hashes) != len(isolatedFiles) {
-		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes:\n%s", string(output))
-	}
-	rv := make([]string, 0, len(isolatedFiles))
-	for i := range isolatedFiles {
-		rv = append(rv, hashes[fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))])
-	}
-	return rv, nil
 }

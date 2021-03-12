@@ -20,7 +20,7 @@ import (
 
 const (
 	// TODO(rmistry): Change back to 1000 once swarming can handle >10k pending tasks.
-	MAX_PAGES_PER_SWARMING_BOT = 50000
+	maxPagesPerSwarmingBot = 50000
 )
 
 var (
@@ -30,7 +30,7 @@ var (
 )
 
 func createPagesetsOnWorkers() error {
-	swarmingClient, err := master_common.Init("create_pagesets")
+	swarmingClient, casClient, err := master_common.Init("create_pagesets")
 	if err != nil {
 		return fmt.Errorf("Could not init: %s", err)
 	}
@@ -61,7 +61,8 @@ func createPagesetsOnWorkers() error {
 		"bin/create_pagesets",
 		"-logtostderr",
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, *runOnGCE, *master_common.Local, 1, baseCmd, []string{} /* isolateDeps */, swarmingClient); err != nil {
+	casSpec := util.CasCreatePagesets()
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", *runID, util.PLATFORM_LINUX, casSpec, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, maxPagesPerSwarmingBot, util.PagesetTypeToInfo[*pagesetType].NumPages, *runOnGCE, *master_common.Local, 1, baseCmd, swarmingClient, casClient); err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 

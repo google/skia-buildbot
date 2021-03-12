@@ -57,7 +57,7 @@ func TestIsolateTasks(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
-	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
+	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE, "")
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -190,7 +190,7 @@ func TestDownloadIsolateHash(t *testing.T) {
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
+	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE, "")
 	require.NoError(t, err)
 
 	err = c.DownloadIsolateHash(ctx, testHash, workdir, downloadedFileList)
@@ -208,7 +208,7 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
 
-	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
+	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE, "")
 	require.NoError(t, err)
 
 	ctx := context.Background()
