@@ -35,7 +35,7 @@ export interface TestBed {
  *
  * Any test cases for behaviors that apply to both the in-browser and Puppeteer environments should
  * be place here. Test cases for environment-specific behaviors, if any, should be placed in
- * page_object_element_test.ts or page_object_element_puppeteer_test.ts.
+ * page_object_element_karma_test.ts or page_object_element_nodejs_test.ts.
  */
 export const describePageObjectElement = (testBed: TestBed) => {
   it('supports innerText', async () => {
