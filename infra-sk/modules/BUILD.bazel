@@ -13,7 +13,7 @@ ts_library(
 
 karma_test(
     name = "test_util_test",
-    srcs = ["test_util_test.ts"],
+    src = "test_util_test.ts",
     deps = [
         ":test_util",
         "@infra-sk_npm//@types/chai",
