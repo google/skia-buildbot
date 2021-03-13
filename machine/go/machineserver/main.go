@@ -312,6 +312,35 @@ func (s *server) machineDeleteMachineHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) machineSetNoteHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := strings.TrimSpace(vars["id"])
+	if id == "" {
+		http.Error(w, "ID must be supplied.", http.StatusBadRequest)
+		return
+	}
+	var note machine.Annotation
+	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
+		httputils.ReportError(w, err, "Failed to parse incoming note.", http.StatusBadRequest)
+		return
+	}
+	note.User = user(r)
+	note.Timestamp = time.Now()
+
+	var ret machine.Description
+	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+		ret = in.Copy()
+		ret.Note = note
+		return ret
+	})
+	auditlog.Log(r, "set-note", note)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler).Methods("GET")
@@ -321,6 +350,7 @@ func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("GET")
 	r.HandleFunc("/_/machine/remove_device/{id:.+}", s.machineRemoveDeviceHandler).Methods("GET")
 	r.HandleFunc("/_/machine/delete_machine/{id:.+}", s.machineDeleteMachineHandler).Methods("GET")
+	r.HandleFunc("/_/machine/set_note/{id:.+}", s.machineSetNoteHandler).Methods("POST")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 

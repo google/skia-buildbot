@@ -9,6 +9,7 @@ sk_element(
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk:theme-chooser-sk"],
     ts_deps = [
         "//machine/modules/json",
+        "//machine/modules/note-editor-sk",
         "@infra-sk_npm//common-sk",
     ],
     ts_srcs = [
