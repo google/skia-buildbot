@@ -2,6 +2,7 @@ import './machine-server-sk';
 import fetchMock from 'fetch-mock';
 import { assert } from 'chai';
 import { MachineServerSk, MAX_LAST_UPDATED_ACCEPTABLE_MS, outOfSpecIfTooOld } from './machine-server-sk';
+import { Description } from '../json';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -14,7 +15,7 @@ afterEach(() => {
 
 describe('machine-server-sk', () => {
   describe('loads data by fetch on connectedCallback', () => {
-    fetchMock.get('/_/machines', [
+    const result: Description[] = [
       {
         Mode: 'available',
         Battery: 100,
@@ -23,15 +24,28 @@ describe('machine-server-sk', () => {
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
         },
+        Note: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
+        },
         Annotation: {
           User: '',
           Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         LastUpdated: '2020-04-21T17:33:09.638275Z',
         Temperature: { dumpsys_battery: 26 },
+        PodName: 'foo',
+        KubernetesImage: '',
+        ScheduledForDeletion: '',
+        PowerCycle: false,
+        RunningSwarmingTask: false,
+        RecoveryStart: '',
+        DeviceUptime: 0,
       },
-    ]);
+    ];
+    fetchMock.get('/_/machines', result);
 
     it('fetches', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
       container.innerHTML = '<machine-server-sk></machine-server-sk>';
@@ -39,6 +53,7 @@ describe('machine-server-sk', () => {
 
       // Wait for the initial fetch to finish.
       await fetchMock.flush(true);
+
       // Each row has an id set to the machine id.
       assert.isNotNull(s!.querySelector('#skia-rpi2-rack4-shelf1-002'));
     }));
@@ -53,6 +68,11 @@ describe('machine-server-sk', () => {
           id: ['skia-rpi2-rack4-shelf1-002'],
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
+        },
+        Note: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
         },
         Annotation: {
           User: '',
@@ -82,6 +102,11 @@ describe('machine-server-sk', () => {
             id: ['skia-rpi2-rack4-shelf1-002'],
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
           },
           Annotation: {
             User: '',
@@ -117,6 +142,11 @@ describe('machine-server-sk', () => {
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
         },
+        Note: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
+        },
         Annotation: {
           User: '',
           Message: '',
@@ -150,6 +180,11 @@ describe('machine-server-sk', () => {
             id: ['skia-rpi2-rack4-shelf1-002'],
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
           },
           Annotation: {
             User: '',
@@ -185,6 +220,11 @@ describe('machine-server-sk', () => {
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
         },
+        Note: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
+        },
         Annotation: {
           User: '',
           Message: '',
@@ -214,6 +254,11 @@ describe('machine-server-sk', () => {
             id: ['skia-rpi2-rack4-shelf1-002'],
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
           },
           Annotation: {
             User: '',
@@ -251,6 +296,11 @@ describe('machine-server-sk', () => {
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
         },
+        Note: {
+          User: '',
+          Message: '',
+          Timestamp: '2020-04-21T17:33:09.638275Z',
+        },
         Annotation: {
           User: '',
           Message: '',
@@ -285,6 +335,11 @@ describe('machine-server-sk', () => {
             id: ['skia-rpi2-rack4-shelf1-002'],
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
           },
           Annotation: {
             User: '',
@@ -329,6 +384,11 @@ describe('machine-server-sk', () => {
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
           },
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
+          },
           Annotation: {
             User: '',
             Message: '',
@@ -362,6 +422,11 @@ describe('machine-server-sk', () => {
           PodName: 'rpi-swarming-123456-987',
           ScheduledForDeletion: 'rpi-swarming-123456-987',
           Dimensions: {},
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
+          },
           Annotation: {
             User: '',
             Message: '',
@@ -398,6 +463,11 @@ describe('machine-server-sk', () => {
             id: ['skia-rpi2-rack4-shelf1-002'],
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Note: {
+            User: '',
+            Message: '',
+            Timestamp: '2020-04-21T17:33:09.638275Z',
           },
           Annotation: {
             User: '',

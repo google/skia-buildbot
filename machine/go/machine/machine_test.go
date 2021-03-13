@@ -22,6 +22,11 @@ func TestCopy(t *testing.T) {
 			User:      "barney@example.com",
 			Timestamp: testTime,
 		},
+		Note: Annotation{
+			Message:   "Battery swollen.",
+			User:      "wilma@example.com",
+			Timestamp: testTime,
+		},
 		Dimensions: SwarmingDimensions{
 			"foo": []string{"bar"},
 		},
