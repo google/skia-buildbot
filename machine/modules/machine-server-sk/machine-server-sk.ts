@@ -8,34 +8,38 @@
  *
  * @attr waiting - If present then display the waiting cursor.
  */
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 
 import { errorMessage } from 'elements-sk/errorMessage';
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { Description } from '../json';
+import { $$ } from 'common-sk/modules/dom';
+import { Annotation, Description } from '../json';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/clear-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
+import 'elements-sk/icon/edit-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons/index';
+import { NoteEditorSk } from '../note-editor-sk/note-editor-sk';
+import '../note-editor-sk';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
 export const MAX_LAST_UPDATED_ACCEPTABLE_MS = 60 * 1000;
 
-const temps = (temperatures: { [key: string]: number }) => {
+const temps = (temperatures: { [key: string]: number }): TemplateResult => {
   if (!temperatures) {
-    return '';
+    return html``;
   }
   const values = Object.values(temperatures);
   if (!values.length) {
-    return '';
+    return html``;
   }
   let total = 0;
   values.forEach((x) => {
@@ -59,17 +63,17 @@ const temps = (temperatures: { [key: string]: number }) => {
   `;
 };
 
-const isRunning = (machine: Description) => (machine.RunningSwarmingTask
+const isRunning = (machine: Description): TemplateResult => (machine.RunningSwarmingTask
   ? html`
         <cached-icon-sk title="Running"></cached-icon-sk>
       `
-  : '');
+  : html``);
 
 const asList = (arr: string[]) => arr.join(' | ');
 
-const dimensions = (machine: Description) => {
+const dimensions = (machine: Description): TemplateResult => {
   if (!machine.Dimensions) {
-    return '';
+    return html``;
   }
   return html`
     <details class="dimensions">
@@ -88,18 +92,19 @@ const dimensions = (machine: Description) => {
   `;
 };
 
-const annotation = (machine: Description) => {
-  if (!machine.Annotation.Message) {
-    return '';
+
+const annotation = (ann: Annotation | null): TemplateResult => {
+  if (!ann?.Message) {
+    return html``;
   }
   return html`
-    ${machine.Annotation.User} (${diffDate(machine.Annotation.Timestamp)}) -
-    ${machine.Annotation.Message}
+    ${ann.User} (${diffDate(ann.Timestamp)}) -
+    ${ann.Message}
   `;
 };
 
 // eslint-disable-next-line no-use-before-define
-const update = (ele: MachineServerSk, machine: Description) => {
+const update = (ele: MachineServerSk, machine: Description): TemplateResult => {
   const msg = machine.ScheduledForDeletion ? 'Waiting for update.' : 'Update';
   return html`
     <button
@@ -112,7 +117,7 @@ const update = (ele: MachineServerSk, machine: Description) => {
   `;
 };
 
-const imageName = (machine: Description) => {
+const imageName = (machine: Description): string => {
   // KubernetesImage looks like:
   // "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean".
   // We just need to display everything after the ":".
@@ -127,9 +132,9 @@ const imageName = (machine: Description) => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const powerCycle = (ele: MachineServerSk, machine: Description) => {
+const powerCycle = (ele: MachineServerSk, machine: Description): TemplateResult => {
   if (machine.PowerCycle) {
-    return 'Waiting for Power Cycle';
+    return html`Waiting for Power Cycle`;
   }
   return html`
     <power-settings-new-icon-sk
@@ -140,8 +145,8 @@ const powerCycle = (ele: MachineServerSk, machine: Description) => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const clearDevice = (ele: MachineServerSk, machine: Description) => (machine.RunningSwarmingTask
-  ? ''
+const clearDevice = (ele: MachineServerSk, machine: Description): TemplateResult => (machine.RunningSwarmingTask
+  ? html``
   : html`
         <clear-icon-sk
           title="Clear the dimensions for the bot"
@@ -160,7 +165,7 @@ const toggleMode = (ele: MachineServerSk, machine: Description) => html`
     </button>
   `;
 
-const machineLink = (machine: Description) => html`
+const machineLink = (machine: Description): TemplateResult => html`
     <a
       href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}"
     >
@@ -169,7 +174,7 @@ const machineLink = (machine: Description) => html`
   `;
 
 // eslint-disable-next-line no-use-before-define
-const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
+const deleteMachine = (ele: MachineServerSk, machine: Description): TemplateResult => html`
   <delete-icon-sk
     title="Remove the machine from the database."
     @click=${() => ele.deleteDevice(machine.Dimensions.id![0])}
@@ -177,7 +182,7 @@ const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
 `;
 
 /** Displays the device uptime, truncated to the minute. */
-const deviceUptime = (machine: Description) => html`
+const deviceUptime = (machine: Description): TemplateResult => html`
   ${strDuration(machine.DeviceUptime - (machine.DeviceUptime % 60))}
 `;
 
@@ -187,10 +192,16 @@ export const outOfSpecIfTooOld = (lastUpdated: string): string => {
   return diff > MAX_LAST_UPDATED_ACCEPTABLE_MS ? 'outOfSpec' : '';
 };
 
+
 // eslint-disable-next-line no-use-before-define
-const rows = (ele: MachineServerSk) => ele._machines.map(
+const note = (ele: MachineServerSk, machine: Description): TemplateResult => html`
+  <edit-icon-sk @click=${() => ele.editNote(machine.Dimensions.id![0], machine)}></edit-icon-sk>${annotation(machine.Note)}
+`;
+
+// eslint-disable-next-line no-use-before-define
+const rows = (ele: MachineServerSk): TemplateResult[] => ele._machines.map(
   (machine) => html`
-      <tr id=${machine.Dimensions.id}>
+      <tr id=${machine.Dimensions.id![0]}>
         <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
         <td>${machine.Dimensions.device_type}</td>
@@ -205,7 +216,8 @@ const rows = (ele: MachineServerSk) => ele._machines.map(
         <td class="${outOfSpecIfTooOld(machine.LastUpdated)}">${diffDate(machine.LastUpdated)}</td>
         <td>${deviceUptime(machine)}</td>
         <td>${dimensions(machine)}</td>
-        <td>${annotation(machine)}</td>
+        <td>${note(ele, machine)}</td>
+        <td>${annotation(machine.Annotation)}</td>
         <td>${imageName(machine)}</td>
         <td>${deleteMachine(ele, machine)}</td>
       </tr>
@@ -213,7 +225,7 @@ const rows = (ele: MachineServerSk) => ele._machines.map(
 );
 
 // eslint-disable-next-line no-use-before-define
-const refreshButtonDisplayValue = (ele: MachineServerSk) => {
+const refreshButtonDisplayValue = (ele: MachineServerSk): TemplateResult => {
   if (ele.refreshing) {
     return html`
       <pause-icon-sk></pause-icon-sk>
@@ -225,7 +237,7 @@ const refreshButtonDisplayValue = (ele: MachineServerSk) => {
 };
 
 // eslint-disable-next-line no-use-before-define
-const template = (ele: MachineServerSk) => html`
+const template = (ele: MachineServerSk): TemplateResult => html`
   <header>
     <span
       id="refresh"
@@ -255,6 +267,7 @@ const template = (ele: MachineServerSk) => html`
         <th>Last Seen</th>
         <th>Uptime</th>
         <th>Dimensions</th>
+        <th>Note</th>
         <th>Annotation</th>
         <th>Image</th>
         <th>Delete</th>
@@ -262,6 +275,7 @@ const template = (ele: MachineServerSk) => html`
       ${rows(ele)}
     </table>
   </main>
+  <note-editor-sk></note-editor-sk>
   <error-toast-sk></error-toast-sk>
 `;
 
@@ -269,6 +283,8 @@ export class MachineServerSk extends ElementSk {
   _machines: Description[];
 
   _timeout: number;
+
+  private noteEditor: NoteEditorSk | null = null;
 
   constructor() {
     super(template);
@@ -278,10 +294,11 @@ export class MachineServerSk extends ElementSk {
     this._timeout = 0;
   }
 
-  connectedCallback(): void {
+  async connectedCallback(): Promise<void> {
     super.connectedCallback();
     this._render();
-    this.refreshStep();
+    this.noteEditor = $$<NoteEditorSk>('note-editor-sk', this)!;
+    await this.refreshStep();
   }
 
   /** @prop refreshing {bool} True if the data on the page is periodically refreshed. */
@@ -315,6 +332,29 @@ export class MachineServerSk extends ElementSk {
     }
   }
 
+  async editNote(id: string, machine: Description): Promise<void> {
+    try {
+      const editedAnnotation = await this.noteEditor!.edit(machine.Note);
+      if (!editedAnnotation) {
+        return;
+      }
+      this.setAttribute('waiting', '');
+      const resp = await fetch(`/_/machine/set_note/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedAnnotation),
+      });
+      this.removeAttribute('waiting');
+      if (!resp.ok) {
+        this.onError(resp.statusText);
+      }
+      await this.update(true);
+    } catch (error) {
+      this.onError(error);
+    }
+  }
 
   async togglePowerCycle(id: string): Promise<void> {
     try {
@@ -354,7 +394,7 @@ export class MachineServerSk extends ElementSk {
     this.refreshStep();
   }
 
-  private async refreshStep() {
+  private async refreshStep(): Promise<void> {
     // Wait for _update to finish so we don't pile up requests if server latency
     // rises.
     await this.update();
