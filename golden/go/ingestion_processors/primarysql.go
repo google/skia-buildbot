@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -376,32 +377,32 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 		})
 	}
 
-	if err := s.batchCreateGroupings(ctx, groupingsToCreate); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchCreateOptions(ctx, optionsToCreate); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchCreateTraces(ctx, tracesToCreate); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchCreateUntriagedExpectations(ctx, traceValuesToUpdate); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchUpdateTraceValues(ctx, traceValuesToUpdate); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchUpdateValuesAtHead(ctx, valuesAtHeadToUpdate); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchCreatePrimaryBranchParams(ctx, paramset, tileID); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := s.batchCreateTiledTraceDigests(ctx, traceValuesToUpdate, tileID); err != nil {
-		return skerr.Wrap(err)
-	}
-
-	return nil
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchCreateGroupings(ctx, groupingsToCreate))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchCreateOptions(ctx, optionsToCreate))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchCreateTraces(ctx, tracesToCreate))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchCreateUntriagedExpectations(ctx, traceValuesToUpdate))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchUpdateTraceValues(ctx, traceValuesToUpdate))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchUpdateValuesAtHead(ctx, valuesAtHeadToUpdate))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchCreatePrimaryBranchParams(ctx, paramset, tileID))
+	})
+	eg.Go(func() error {
+		return skerr.Wrap(s.batchCreateTiledTraceDigests(ctx, traceValuesToUpdate, tileID))
+	})
+	return skerr.Wrap(eg.Wait())
 }
 
 // batchCreateGroupings writes the given grouping rows to the Groupings table if they aren't
@@ -415,6 +416,9 @@ func (s *sqlPrimaryIngester) batchCreateGroupings(ctx context.Context, rows []sc
 	defer span.End()
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -457,6 +461,9 @@ func (s *sqlPrimaryIngester) batchCreateOptions(ctx context.Context, rows []sche
 	defer span.End()
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -500,6 +507,9 @@ func (s *sqlPrimaryIngester) batchCreateTraces(ctx context.Context, rows []schem
 	defer span.End()
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -582,6 +592,9 @@ func (s *sqlPrimaryIngester) batchCreateExpectations(ctx context.Context, rows [
 	defer span.End()
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -620,6 +633,9 @@ func (s *sqlPrimaryIngester) batchUpdateTraceValues(ctx context.Context, rows []
 	defer span.End()
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -656,6 +672,9 @@ func (s *sqlPrimaryIngester) batchUpdateValuesAtHead(ctx context.Context, rows [
 	defer span.End()
 	const chunkSize = 50 // Arbitrarily picked (smaller because more likely to contend)
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -715,6 +734,9 @@ func (s *sqlPrimaryIngester) batchCreatePrimaryBranchParams(ctx context.Context,
 
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(rows), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := rows[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
@@ -758,6 +780,9 @@ func (s *sqlPrimaryIngester) batchCreateTiledTraceDigests(ctx context.Context, v
 
 	const chunkSize = 200 // Arbitrarily picked
 	err := util.ChunkIter(len(values), chunkSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		batch := values[startIdx:endIdx]
 		if len(batch) == 0 {
 			return nil
