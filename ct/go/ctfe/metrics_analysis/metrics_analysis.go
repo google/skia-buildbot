@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
@@ -135,7 +136,7 @@ func (task MetricsAnalysisDatastoreTask) Get(c context.Context, key *datastore.K
 	return t, nil
 }
 
-func (task MetricsAnalysisDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
+func (task MetricsAnalysisDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	cmd := []string{
@@ -154,8 +155,8 @@ func (task MetricsAnalysisDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.
 		"--catapult_patch_gs_path=" + task.CatapultPatchGSPath,
 		"--custom_traces_csv_gs_path=" + task.CustomTracesGSPath,
 	}
-
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
+	casSpec := ctutil.CasMetricsAnalysisMaster()
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", false, cmd, casSpec, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for metrics_analysis_on_workers with cmd %v: %s", cmd, err)
 	}

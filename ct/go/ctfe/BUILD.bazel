@@ -17,6 +17,7 @@ go_library(
         "//ct/go/util",
         "//go/allowed",
         "//go/auth",
+        "//go/cas/rbe",
         "//go/common",
         "//go/ds",
         "//go/httputils",
@@ -26,6 +27,7 @@ go_library(
         "//go/swarming",
         "//go/util",
         "@com_github_gorilla_mux//:mux",
+        "@org_golang_google_api//compute/v1:compute",
         "@org_golang_google_api//option",
     ],
 )
