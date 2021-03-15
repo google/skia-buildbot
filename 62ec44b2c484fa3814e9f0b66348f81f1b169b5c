@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3e31295c_1dd316e9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 16074
+      },
+      "writtenOn": "2021-03-15T23:07:46Z",
+      "side": 1,
+      "message": "Added pagination to the skottie library component to allow loading multiple animations without affecting performance.",
+      "revId": "62ec44b2c484fa3814e9f0b66348f81f1b169b5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
