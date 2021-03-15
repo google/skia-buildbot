@@ -233,6 +233,31 @@ func TestCalculateDiffs_ReadFromPrimaryBranch_Success(t *testing.T) {
 	assert.Empty(t, getAllProblemImageRows(t, db))
 }
 
+func TestCalculateDiffs_PrimaryBranchOptOut_NothingComputed(t *testing.T) {
+	unittest.LargeTest(t)
+
+	fakeNow := time.Date(2021, time.February, 1, 1, 1, 1, 0, time.UTC)
+	ctx := context.WithValue(context.Background(), NowSourceKey, mockTime(fakeNow))
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	// Remove existing diffs
+	existingData.DiffMetrics = nil
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	waitForSystemTime()
+	w := newWorkerUsingImagesFromKitchenSink(t, db)
+	w.commitsWithDataToSearch = -1
+
+	grouping := paramtools.Params{
+		types.CorpusField:     dks.CornersCorpus,
+		types.PrimaryKeyField: dks.TriangleTest,
+	}
+	require.NoError(t, w.CalculateDiffs(ctx, grouping, nil, nil))
+
+	// Nothing should be computed because primary branch digests are ignored.
+	assert.Empty(t, getAllDiffMetricRows(t, db))
+	assert.Empty(t, getAllProblemImageRows(t, db))
+}
+
 func TestCalculateDiffs_ReadFromPrimaryBranch_SparseData_Success(t *testing.T) {
 	unittest.LargeTest(t)
 

@@ -85,7 +85,7 @@ type WorkerImpl struct {
 	imageSource              ImageSource
 	badDigestsCache          *ttlcache.Cache
 	decodedImageCache        *ristretto.Cache
-	commitsWithDataToSearch  int
+	commitsWithDataToSearch  int // negative value means don't use primary branch.
 	metricsCalculatedCounter metrics2.Counter
 	decodedImageBytesSummary metrics2.Float64SummaryMetric
 	encodedImageBytesSummary metrics2.Float64SummaryMetric
@@ -93,9 +93,6 @@ type WorkerImpl struct {
 
 // New returns a WorkerImpl that is ready to compute diffs.
 func New(db *pgxpool.Pool, src ImageSource, dc DiffCache, commitsWithDataToSearch int) *WorkerImpl {
-	if commitsWithDataToSearch <= 0 {
-		panic("Invalid value for commitsWithDataToSearch")
-	}
 	imgCache, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: 20_000, // we expect a few thousand decoded images to fit.
 		MaxCost:     decodedImageCacheSizeGB * 1024 * 1024 * 1024,
@@ -283,6 +280,9 @@ func addMetadata(span *trace.Span, grouping paramtools.Params, leftDigestCount, 
 // getStartingTile returns the commit ID which is the beginning of the tile of interest (so we
 // get enough data to do our comparisons).
 func (w *WorkerImpl) getStartingTile(ctx context.Context) (schema.TileID, error) {
+	if w.commitsWithDataToSearch <= 0 {
+		return 0, nil
+	}
 	row := w.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
 AS OF SYSTEM TIME '-0.1s'
 ORDER BY commit_id DESC
@@ -304,6 +304,9 @@ LIMIT 1 OFFSET $1`, w.commitsWithDataToSearch-1)
 // getAllExisting returns the unique digests that were seen on the primary branch for a given
 // grouping starting at the given commit.
 func (w *WorkerImpl) getAllExisting(ctx context.Context, beginTileStart schema.TileID, grouping paramtools.Params) ([]types.Digest, error) {
+	if w.commitsWithDataToSearch <= 0 {
+		return nil, nil
+	}
 	ctx, span := trace.StartSpan(ctx, "getAllExisting")
 	defer span.End()
 	const statement = `
@@ -333,6 +336,9 @@ WHERE TiledTraceDigests.tile_id >= $2`
 }
 
 func (w *WorkerImpl) getNonIgnoredExisting(ctx context.Context, beginTileStart schema.TileID, grouping paramtools.Params) ([]types.Digest, error) {
+	if w.commitsWithDataToSearch <= 0 {
+		return nil, nil
+	}
 	ctx, span := trace.StartSpan(ctx, "getNonIgnoredExisting")
 	defer span.End()
 	const statement = `
