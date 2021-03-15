@@ -252,6 +252,8 @@ type TraceRow struct {
 	// This index speeds up fetching traces by grouping, e.g. when enumerating the work needed for
 	// creating diffs.
 	groupingIgnoredIndex struct{} `sql:"INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)"`
+	// This index makes application of all ignore rules easier.
+	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
@@ -529,6 +531,9 @@ type ValueAtHeadRow struct {
 
 	// MatchesAnyIgnoreRule is true if this trace is matched by any of the ignore rules.
 	MatchesAnyIgnoreRule NullableBool `sql:"matches_any_ignore_rule BOOL"`
+
+	// This index makes application of all ignore rules easier.
+	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

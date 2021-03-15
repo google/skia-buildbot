@@ -149,7 +149,8 @@ CREATE TABLE IF NOT EXISTS Traces (
   grouping_id BYTES NOT NULL,
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL,
-  INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)
+  INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule),
+  INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)
 );
 CREATE TABLE IF NOT EXISTS Tryjobs (
   tryjob_id STRING PRIMARY KEY,
@@ -167,7 +168,8 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   grouping_id BYTES NOT NULL,
   corpus STRING AS (keys->>'source_type') STORED NOT NULL,
   keys JSONB NOT NULL,
-  matches_any_ignore_rule BOOL
+  matches_any_ignore_rule BOOL,
+  INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)
 );
 CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
   source_file_id BYTES PRIMARY KEY,
