@@ -16,6 +16,29 @@
       "message": "tbr",
       "revId": "c773e74d086fd0202681e93e84bbd0c509df7983",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a485ee0_1b9f31e3",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-15T15:46:24Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 57,
+        "startChar": 36,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "c773e74d086fd0202681e93e84bbd0c509df7983",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }

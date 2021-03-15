@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "829b9533_19bddc9d",
+        "filename": "machine/package.json",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-15T15:46:24Z",
+      "side": 0,
+      "message": "Why the removal of devDependencies? AFAIK, we don\u0027t ship code that depends on chai etc.",
+      "range": {
+        "startLine": 17,
+        "startChar": 3,
+        "endLine": 17,
+        "endChar": 18
+      },
+      "revId": "9e6221b97d3525a33f62d90cc963889829b34105",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
