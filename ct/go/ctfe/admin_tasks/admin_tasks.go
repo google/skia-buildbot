@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
@@ -112,7 +113,7 @@ func (task RecreatePageSetsDatastoreTask) Get(c context.Context, key *datastore.
 	return t, nil
 }
 
-func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
+func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
 	cmd := []string{
@@ -125,8 +126,8 @@ func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context
 		"--run_id=" + runID,
 		"--pageset_type=" + task.PageSets,
 	}
-
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
+	casSpec := ctutil.CasCreatePagesetsMaster()
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", false, cmd, casSpec, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with cmd %v: %s", cmd, err)
 	}
@@ -229,7 +230,7 @@ func (task RecreateWebpageArchivesDatastoreTask) Get(c context.Context, key *dat
 	return t, nil
 }
 
-func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
+func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
 	cmd := []string{
@@ -242,8 +243,8 @@ func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx 
 		"--run_id=" + runID,
 		"--pageset_type=" + task.PageSets,
 	}
-
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
+	casSpec := ctutil.CasCaptureArchivesMaster()
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", false, cmd, casSpec, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with cmd %v: %s", cmd, err)
 	}

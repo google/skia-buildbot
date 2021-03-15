@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/skerr"
@@ -89,7 +90,7 @@ func buildRepo() error {
 	}
 	defer skutil.RemoveAll(workDir)
 	// Create isolate client.
-	i, err := isolate.NewClient(workDir, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	i, err := isolate.NewClient(workDir, rbe.InstanceChromeSwarming)
 	if err != nil {
 		return fmt.Errorf("Failed to create isolate client: %s", err)
 	}
@@ -98,18 +99,14 @@ func buildRepo() error {
 		BaseDir:     buildOutDir,
 		IsolateFile: isolateFile,
 	}
-	isolateTasks := []*isolate.Task{isolateTask}
-	hashes, _, err := i.IsolateTasks(ctx, isolateTasks)
+	hash, err := i.IsolateTask(ctx, isolateTask)
 	if err != nil {
 		return fmt.Errorf("Could not isolate telemetry task: %s", err)
-	}
-	if len(hashes) != 1 {
-		return fmt.Errorf("IsolateTasks returned incorrect number of hashes %d (expected 1)", len(hashes))
 	}
 
 	// Record the isolate hash in the output file.
 	hashOutputFile := filepath.Join(*outDir, util.ISOLATE_TELEMETRY_FILENAME)
-	if err := ioutil.WriteFile(hashOutputFile, []byte(hashes[0]), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(hashOutputFile, []byte(hash), os.ModePerm); err != nil {
 		return fmt.Errorf("Could not write to %s: %s", hashOutputFile, err)
 	}
 

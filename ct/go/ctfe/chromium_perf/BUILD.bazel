@@ -9,6 +9,7 @@ go_library(
         "//ct/go/ctfe/task_common",
         "//ct/go/ctfe/util",
         "//ct/go/util",
+        "//go/cas",
         "//go/ds",
         "//go/email",
         "//go/swarming",
