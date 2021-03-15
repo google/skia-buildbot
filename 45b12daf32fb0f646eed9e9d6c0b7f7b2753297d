@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ce6fc7e7_c133d76c",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-15T19:26:06Z",
+      "side": 1,
+      "message": "Nit: camelCase",
+      "range": {
+        "startLine": 93,
+        "startChar": 6,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "45b12daf32fb0f646eed9e9d6c0b7f7b2753297d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
