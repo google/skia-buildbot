@@ -50,6 +50,9 @@ type Common struct {
 	// project.
 	FirestoreProjectID string `json:"fs_project_id"`
 
+	// GCS path, where the known hashes file should be stored. Format: <bucket>/<path>.
+	KnownHashesGCSPath string `json:"known_hashes_gcs_path"`
+
 	// Project ID that houses the pubsub topic.
 	PubsubProjectID string `json:"pubsub_project_id"`
 
@@ -59,8 +62,8 @@ type Common struct {
 	// SQL Database name; typically the instance id. e.g. 'flutter', 'skia', etc
 	SQLDatabaseName string `json:"sql_database" optional:"true"`
 
-	// GCS path, where the known hashes file should be stored. Format: <bucket>/<path>.
-	KnownHashesGCSPath string `json:"known_hashes_gcs_path"`
+	// TracingProportion overrides the per-service default, which is handy for debugging.
+	TracingProportion float64 `json:"tracing_proportion" optional:"true"`
 
 	// If provided (e.g. ":9002"), a port serving performance-related and other debugging RPCS will
 	// be opened up. This RPC will not require authentication.

@@ -106,9 +106,13 @@ func main() {
 	}
 
 	common.InitWithMust("diffcalculator", logOpts...)
-	// We expect there to be a lot of diff work, so we sample 1% of them to avoid incurring
-	// too much overhead.
-	if err := tracing.Initialize(0.01); err != nil {
+	// We expect there to be a lot of diff work, so we sample 1% of them by default
+	// to avoid incurring too much overhead.
+	tp := 0.01
+	if dcc.TracingProportion > tp {
+		tp = dcc.TracingProportion
+	}
+	if err := tracing.Initialize(tp); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 
