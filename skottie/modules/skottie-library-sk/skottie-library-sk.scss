@@ -31,7 +31,7 @@ skottie-library-sk {
     .thumbnail {
       border: 1px solid black;
       cursor: pointer;
-      display: inline-block;
+      display: none;
       list-style-type:none;
       margin: 5px;
       padding: 5px;
@@ -50,5 +50,14 @@ skottie-library-sk {
   label.size {
     display: block;
     margin: 0.6em;
+  }
+
+  label.page {
+    display: block;
+    margin: 0.6em;
+  }
+
+  select.dropdown {
+    padding: 10px;
   }
 }

@@ -33,6 +33,9 @@ const replaceTextsInLayers = (textsDictionary, layers) => {
 };
 
 export const replaceTextsByLayerName = (texts, currentAnimation) => {
+  if (!texts) {
+    return currentAnimation;
+  }
   const animation = JSON.parse(JSON.stringify(currentAnimation));
   // Create dictionary to access data by name instead of iterating on every layer
   const textsDictionary = texts.reduce((dict, text) => {
