@@ -30,9 +30,14 @@ describe('digest-details-sk', () => {
       await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_negative-only');
     });
 
-    it('was given data no other images to compare against', async () => {
+    it('was given no other images to compare against', async () => {
       const digestDetailsSk = await testBed.page.$('#no_refs');
       await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_no-refs');
+    });
+
+    it('is computing the closest positive and negative', async () => {
+      const digestDetailsSk = await testBed.page.$('#no_refs_yet');
+      await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_computing-refs');
     });
 
     it('was given a changelist id', async () => {
