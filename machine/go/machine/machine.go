@@ -42,9 +42,7 @@ const (
 // definitions.
 var AllModes = []Mode{ModeAvailable, ModeMaintenance, ModeRecovery}
 
-// Annotation is used to record the most recent user change to Description. This
-// will be in addition to the normal auditlog of user actions:
-// https://pkg.go.dev/go.skia.org/infra/go/auditlog?tab=doc
+// Annotations are timestamped messages.
 type Annotation struct {
 	Message   string
 	User      string
@@ -53,8 +51,16 @@ type Annotation struct {
 
 // Description is the current state of a single machine.
 type Description struct {
-	Mode       Mode
+	Mode Mode
+
+	// Annotation is used to record the most recent user change to Description.
+	// This will be in addition to the normal auditlog of user actions:
+	// https://pkg.go.dev/go.skia.org/infra/go/auditlog?tab=doc
 	Annotation Annotation
+
+	// Note is a user authored message on the state of a machine.
+	Note Annotation
+
 	Dimensions SwarmingDimensions
 	PodName    string
 

@@ -2,6 +2,7 @@
 @import '~elements-sk/toast-sk/toast-sk';
 @import '~elements-sk/styles/buttons/buttons';
 @import '~elements-sk/themes/themes';
+@import '~../theme/theme';
 
 machine-server-sk {
   header {
@@ -13,13 +14,6 @@ machine-server-sk {
     position: fixed;
     top: 0;
     z-index: 10;
-  }
-
-  button {
-    margin: 0;
-    padding: 4px;
-    height: auto;
-    text-transform: capitalize;
   }
 
   table {

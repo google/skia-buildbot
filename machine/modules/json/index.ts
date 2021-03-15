@@ -9,6 +9,7 @@ export interface Annotation {
 export interface Description {
 	Mode: Mode;
 	Annotation: Annotation;
+	Note: Annotation;
 	Dimensions: SwarmingDimensions;
 	PodName: string;
 	KubernetesImage: string;

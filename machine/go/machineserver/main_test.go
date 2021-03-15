@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -359,4 +362,84 @@ func TestMachineDeleteMachineHandler_FailOnMissingID(t *testing.T) {
 	router.ServeHTTP(w, r)
 
 	assert.Equal(t, 404, w.Code)
+}
+
+func TestMachineSetNoteHandler_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cfg := setupForTest(t)
+	store, err := store.New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	const podName = "rpi-swarming-123456"
+	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
+		ret := in.Copy()
+		ret.PodName = podName
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Create our server.
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	note := machine.Annotation{
+		Message: "Hello World",
+	}
+	b, err := json.Marshal(note)
+	assert.NoError(t, err)
+	r := httptest.NewRequest("POST", "/_/machine/set_note/someid", bytes.NewReader(b))
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 200, w.Code)
+	machines, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, machines, 1)
+	assert.Equal(t, machines[0].Note.Message, "Hello World")
+}
+
+func TestMachineSetNoteHandler_FailOnMissingID(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Create our server.
+	s := &server{}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("POST", "/_/machine/set_note/", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 404, w.Code)
+}
+
+func TestMachineSetNoteHandler_FailOnInvalidJSON(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Create our server.
+	s := &server{}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("POST", "/_/machine/set_note/someid", bytes.NewReader([]byte("This isn't valid JSON.")))
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }

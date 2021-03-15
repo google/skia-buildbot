@@ -5,7 +5,7 @@ web: ./modules/json/index.ts package-lock.json
 	npx webpack --mode=development
 
 ./modules/json/index.ts: ./go/machine/machine.go
-	go run ./go/machine/ts
+	go generate ./go/...
 
 
 test:
