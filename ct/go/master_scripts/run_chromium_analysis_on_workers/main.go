@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT         = 100
-	MAX_PAGES_PER_ANDROID_SWARMING_BOT = 20
+	maxPagesPerSwarmingBot        = 100
+	maxPagesPerAndroidSwarmingBot = 20
 )
 
 var (
@@ -57,7 +57,7 @@ var (
 )
 
 func runChromiumAnalysisOnWorkers() error {
-	swarmingClient, err := master_common.Init("run_chromium_analysis")
+	swarmingClient, casClient, err := master_common.Init("run_chromium_analysis")
 	if err != nil {
 		return fmt.Errorf("Could not init: %s", err)
 	}
@@ -154,7 +154,7 @@ func runChromiumAnalysisOnWorkers() error {
 		chromiumBuild = ""
 	} else {
 		group.Go("build chromium", func() error {
-			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
+			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -167,20 +167,20 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 
 	// Isolate telemetry.
-	isolateDeps := []string{}
+	casDeps := []string{}
 	if *telemetryIsolateHash != "" {
-		isolateDeps = append(isolateDeps, *telemetryIsolateHash)
+		casDeps = append(casDeps, *telemetryIsolateHash)
 	} else {
 		group.Go("isolate telemetry", func() error {
 			telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-			telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
+			telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
 			}
 			if telemetryHash == "" {
 				return skerr.Fmt("Found empty telemetry hash!")
 			}
-			isolateDeps = append(isolateDeps, telemetryHash)
+			casDeps = append(casDeps, telemetryHash)
 			return nil
 		})
 	}
@@ -221,12 +221,17 @@ func runChromiumAnalysisOnWorkers() error {
 		return fmt.Errorf("Error encountered when calculating number of pages: %s", err)
 	}
 	// Calculate the max pages to run per bot.
-	defaultMaxPagesPerSwarmingBot := MAX_PAGES_PER_SWARMING_BOT
+	defaultMaxPagesPerSwarmingBot := maxPagesPerSwarmingBot
 	if *targetPlatform == util.PLATFORM_ANDROID {
-		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
+		defaultMaxPagesPerSwarmingBot = maxPagesPerAndroidSwarmingBot
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
+	casSpec := util.CasChromiumAnalysisLinux()
+	if *targetPlatform == util.PLATFORM_WINDOWS {
+		casSpec = util.CasChromiumAnalysisWin()
+	}
+	casSpec.IncludeDigests = append(casSpec.IncludeDigests, casDeps...)
+	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", *runID, *targetPlatform, casSpec, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}

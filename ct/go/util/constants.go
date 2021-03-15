@@ -149,22 +149,6 @@ const (
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
 	XVFB_TIMEOUT         = 5 * time.Minute
 
-	// Isolate files for master scripts.
-	CREATE_PAGESETS_MASTER_ISOLATE   = "create_pagesets_on_workers.isolate"
-	CAPTURE_ARCHIVES_MASTER_ISOLATE  = "capture_archives_on_workers.isolate"
-	CHROMIUM_ANALYSIS_MASTER_ISOLATE = "run_chromium_analysis_on_workers.isolate"
-	CHROMIUM_PERF_MASTER_ISOLATE     = "run_chromium_perf_on_workers.isolate"
-	METRICS_ANALYSIS_MASTER_ISOLATE  = "metrics_analysis_on_workers.isolate"
-	// Isolate files for worker scripts.
-	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
-	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
-	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
-	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
-	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
-	// Isolate files for build scripts.
-	BUILD_REPO_ISOLATE        = "build_repo.isolate"
-	ISOLATE_TELEMETRY_ISOLATE = "isolate_telemetry.isolate"
-
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
 	// that swarming will not use today's timestamp as default. See if there is a better way to handle

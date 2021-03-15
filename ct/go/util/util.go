@@ -24,12 +24,14 @@ import (
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
+	"go.skia.org/infra/go/cas"
+	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -45,6 +47,148 @@ const (
 
 	PATCH_LIMIT = 1 << 26
 )
+
+// CasSpecs for master scripts.
+func CasCreatePagesetsMaster() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"bin/create_pagesets_on_workers"},
+		IncludeCasSpecs: []*CasSpec{
+			CasPython(),
+			CasCreatePagesets(),
+		},
+	}
+}
+func CasCaptureArchivesMaster() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"bin/capture_archives_on_workers"},
+		IncludeCasSpecs: []*CasSpec{
+			CasPython(),
+			CasIsolateTelemetryLinux(),
+			CasIsolateTelemetryWin(),
+			CasCaptureArchives(),
+		},
+	}
+}
+func CasChromiumAnalysisMaster() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"bin/run_chromium_analysis_on_workers"},
+		IncludeCasSpecs: []*CasSpec{
+			CasPython(),
+			CasBuildRepoLinux(),
+			CasBuildRepoWin(),
+			CasIsolateTelemetryLinux(),
+			CasIsolateTelemetryWin(),
+			CasChromiumAnalysisLinux(),
+			CasChromiumAnalysisWin(),
+		},
+	}
+}
+func CasChromiumPerfMaster() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"bin/run_chromium_perf_on_workers"},
+		IncludeCasSpecs: []*CasSpec{
+			CasPython(),
+			CasBuildRepoLinux(),
+			CasBuildRepoWin(),
+			CasIsolateTelemetryLinux(),
+			CasIsolateTelemetryWin(),
+			CasChromiumPerfLinux(),
+			CasChromiumPerfWin(),
+		},
+	}
+}
+func CasMetricsAnalysisMaster() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"bin/metrics_analysis_on_workers"},
+		IncludeCasSpecs: []*CasSpec{
+			CasPython(),
+			CasIsolateTelemetryLinux(),
+			CasIsolateTelemetryWin(),
+			CasMetricsAnalysis(),
+		},
+	}
+}
+
+// CasSpecs for worker scripts.
+func CasCreatePagesets() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/create_pagesets"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasCaptureArchives() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"bin/capture_archives"},
+	}
+}
+func CasChromiumAnalysisLinux() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/run_chromium_analysis"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasChromiumAnalysisWin() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/run_chromium_analysis.exe"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasChromiumPerfLinux() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/run_chromium_perf"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasChromiumPerfWin() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/run_chromium_perf.exe"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasMetricsAnalysis() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/metrics_analysis"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+
+// CasSpecs for build scripts.
+func CasBuildRepoLinux() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/build_repo"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasBuildRepoWin() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/build_repo.exe"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasIsolateTelemetryLinux() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/isolate_telemetry"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasIsolateTelemetryWin() *CasSpec {
+	return &CasSpec{
+		Paths:           []string{"bin/isolate_telemetry.exe"},
+		IncludeCasSpecs: []*CasSpec{CasPython()},
+	}
+}
+func CasPython() *CasSpec {
+	return &CasSpec{
+		Paths: []string{"py/"},
+	}
+}
+
+// CasSpec describes a set of files to upload to CAS.
+type CasSpec struct {
+	Paths           []string
+	IncludeCasSpecs []*CasSpec
+	IncludeDigests  []string
+}
 
 func TimeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
@@ -270,47 +414,46 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 	return int(math.Ceil(float64(maxPagesPerBot) / float64(repeatValue)))
 }
 
-// GetIsolateClient creates an isolate client using the specified service account.
-func GetIsolateClient(serviceAccountJSON string) (*isolate.Client, error) {
-	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+// UploadToCAS uploads the given CasSpec and returns the resulting digest.
+func UploadToCAS(ctx context.Context, casClient cas.CAS, casSpec *CasSpec, local, runOnMaster bool) (string, error) {
+	casRoot, err := GetCASRoot(local, runOnMaster)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get temp dir: %s", err)
+		return "", skerr.Wrapf(err, "failed to get CAS root")
 	}
-	return isolate.NewClientWithServiceAccount(workDir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
+
+	// Gather the paths to upload.
+	paths := util.NewStringSet()
+	digests := util.NewStringSet()
+	var gather func(*CasSpec)
+	gather = func(casSpec *CasSpec) {
+		paths.AddLists(casSpec.Paths)
+		digests.AddLists(casSpec.IncludeDigests)
+		for _, includeCasSpec := range casSpec.IncludeCasSpecs {
+			gather(includeCasSpec)
+		}
+	}
+	gather(casSpec)
+
+	// Upload.
+	rootDigest, err := casClient.Upload(ctx, casRoot, paths.Keys(), nil)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to upload to CAS")
+	}
+	digests[rootDigest] = true
+	mergedCASDigest, err := casClient.Merge(ctx, digests.Keys())
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to merge CAS digests")
+	}
+	return mergedCASDigest, nil
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON, targetPlatform string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, runOnGCE, local bool, repeatValue int, baseCmd, isolateDeps []string, swarmingClient swarming.ApiClient) (int, error) {
-	// Get path to isolate files.
-	pathToIsolates, err := GetPathToIsolates(local, false)
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, targetPlatform string, casSpec *CasSpec, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, runOnGCE, local bool, repeatValue int, baseCmd []string, swarmingClient swarming.ApiClient, casClient cas.CAS) (int, error) {
+	// Upload the task inputs to CAS.
+	casDigest, err := UploadToCAS(ctx, casClient, casSpec, local, false)
 	if err != nil {
-		return 0, fmt.Errorf("Could not get path to isolates: %s", err)
+		return 0, skerr.Wrapf(err, "failed to upload CAS inputs for task")
 	}
-	// Find which os to use.
-	osType := "linux"
-	if targetPlatform == PLATFORM_WINDOWS {
-		osType = "win"
-	}
-
-	// Isolate and use the isolate hash for all triggered tasks.
-	isolateClient, err := GetIsolateClient(serviceAccountJSON)
-	if err != nil {
-		return 0, fmt.Errorf("Could not instantiate isolate client: %s", err)
-	}
-	isolateTask := &isolate.Task{
-		BaseDir:     pathToIsolates,
-		IsolateFile: path.Join(pathToIsolates, isolateName),
-		Deps:        isolateDeps,
-		OsType:      osType,
-	}
-	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
-	if err != nil {
-		return 0, fmt.Errorf("Could not isolate the telemetry isolate task: %s", err)
-	}
-	if len(isolateHashes) != 1 {
-		return 0, fmt.Errorf("Expected one hash when isolating telemetry isolate task. Not: %+v", isolateHashes)
-	}
-	isolateHash := isolateHashes[0]
 
 	// Create swarming commands for all tasks.
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
@@ -389,14 +532,17 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			cmd := cmd
 			go func() {
 				defer wg.Done()
-				req := MakeSwarmingTaskRequest(ctx, taskName, isolateHash, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, int64(priority), ioTimeout)
+				req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, int64(priority), ioTimeout, casClient)
+				if err != nil {
+					sklog.Errorf("Failed to create Swarming task request for task %q: %s", taskName, err)
+				}
 				resp, err := swarmingClient.TriggerTask(req)
 				if err != nil {
 					sklog.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 					return
 				}
 
-				_, state, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient, isolateClient)
+				_, state, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient)
 				if err != nil {
 					sklog.Errorf("task %s failed: %s", taskName, err)
 					if state == swarming.TASK_STATE_KILLED {
@@ -410,7 +556,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						sklog.Errorf("Could not trigger swarming retry task %s: %s", taskName, err)
 						return
 					}
-					if _, _, err := pollSwarmingTaskToCompletion(ctx, retryResp.TaskId, swarmingClient, isolateClient); err != nil {
+					if _, _, err := pollSwarmingTaskToCompletion(ctx, retryResp.TaskId, swarmingClient); err != nil {
 						sklog.Errorf("task %s failed inspite of a retry: %s", taskName, err)
 						return
 					}
@@ -424,18 +570,17 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	return numTasks, nil
 }
 
-// GetPathToIsolates returns the location of CT's isolates.
-// local should be set to true if we need the location of isolates when debugging locally.
-// runOnMaster should be set if we need the location of isolates on ctfe.
-// If both are false then it is assumed that we are running on a swarming bot.
-func GetPathToIsolates(local, runOnMaster bool) (string, error) {
+// GetCASRoot returns the location of CT's CAS inputs. local should be set to
+// true when debugging locally. runOnMaster should be set on ctfe. If both are
+// false then it is assumed that we are running on a swarming bot.
+func GetCASRoot(local, runOnMaster bool) (string, error) {
 	if local {
 		_, currentFile, _, _ := runtime.Caller(0)
-		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates"), nil
+		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile)))), nil
 	} else if runOnMaster {
-		return filepath.Join("/", "usr", "local", "share", "ctfe", "isolates"), nil
+		return filepath.Join("/", "usr", "local", "share", "ctfe"), nil
 	} else {
-		return filepath.Abs(filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "isolates"))
+		return filepath.Abs(filepath.Join(filepath.Dir(filepath.Dir(os.Args[0]))))
 	}
 }
 
@@ -446,7 +591,7 @@ func GetPathToPyFiles(local bool) (string, error) {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py"), nil
 	} else {
-		return filepath.Abs(filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "py"))
+		return filepath.Abs(filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "py"))
 	}
 }
 
@@ -864,9 +1009,9 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 }
 
 // pollSwarmingTaskToCompletion polls the specified swarming task till it completes. It returns the
-// isolated output hash (if it exists) and the state of the swarming task if there is no error.
+// resulting CAS digest (if it exists) and the state of the swarming task if there is no error.
 // TODO(rmistry): Use pubsub instead.
-func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingClient swarming.ApiClient, isolateClient *isolate.Client) (string, string, error) {
+func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingClient swarming.ApiClient) (string, string, error) {
 	for range time.Tick(2 * time.Minute) {
 		swarmingTask, err := swarmingClient.GetTask(taskId, false)
 		if err != nil {
@@ -882,14 +1027,13 @@ func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingCl
 		case swarming.TASK_STATE_COMPLETED:
 			if swarmingTask.Failure {
 				return "", swarmingTask.State, fmt.Errorf("The task %s failed", taskId)
-			} else {
-				sklog.Infof("The task %s successfully completed", taskId)
-				if swarmingTask.OutputsRef == nil {
-					return "", swarmingTask.State, nil
-				} else {
-					return swarmingTask.OutputsRef.Isolated, swarmingTask.State, nil
-				}
 			}
+			sklog.Infof("The task %s successfully completed", taskId)
+			if swarmingTask.CasOutputRoot == nil {
+				return "", swarmingTask.State, nil
+			}
+			digest := rbe.DigestToString(swarmingTask.CasOutputRoot.Digest.Hash, swarmingTask.CasOutputRoot.Digest.SizeBytes)
+			return digest, swarmingTask.State, nil
 		default:
 			sklog.Errorf("Unknown swarming state %v in %v", swarmingTask.State, swarmingTask)
 		}
@@ -897,47 +1041,30 @@ func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingCl
 	return "", "", nil
 }
 
-// TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
-// archives it, and triggers its swarming task. The swarming task will run the isolate_telemetry
-// worker script which will return the isolate hash.
-func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool, swarmingClient swarming.ApiClient) (string, error) {
-	// Get path to isolate files.
-	pathToIsolates, err := GetPathToIsolates(local, false)
-	if err != nil {
-		return "", fmt.Errorf("Could not get path to isolates: %s", err)
-	}
+// TriggerIsolateTelemetrySwarmingTask triggers a swarming task which runs the
+// isolate_telemetry worker script to upload telemetry to CAS and returns the
+// resulting digest.
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool, swarmingClient swarming.ApiClient, casClient cas.CAS) (string, error) {
 	// Find which dimensions, os and CIPD pkgs to use.
 	dimensions := GCE_LINUX_BUILDER_DIMENSIONS
-	osType := "linux"
+	var casSpec *CasSpec
 	cipdPkgs := []string{}
 	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(specs.CIPD_PKGS_ISOLATE)...)
 	if targetPlatform == PLATFORM_WINDOWS {
+		casSpec = CasIsolateTelemetryWin()
 		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
-		osType = "win"
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	} else {
+		casSpec = CasIsolateTelemetryLinux()
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
 
-	// Isolate the task.
-	isolateClient, err := GetIsolateClient(serviceAccountJSON)
+	// Upload task inputs to CAS.
+	casDigest, err := UploadToCAS(ctx, casClient, casSpec, local, false)
 	if err != nil {
-		return "", fmt.Errorf("Could not instantiate isolate client: %s", err)
-	}
-	isolateTask := &isolate.Task{
-		BaseDir:     pathToIsolates,
-		IsolateFile: path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE),
-		Deps:        []string{},
-		OsType:      osType,
-	}
-	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
-	if err != nil {
-		return "", fmt.Errorf("Could not isolate the telemetry isolate task: %s", err)
-	}
-	if len(isolateHashes) != 1 {
-		return "", fmt.Errorf("Expected one hash when isolating telemetry isolate task. Not: %+v", isolateHashes)
+		return "", skerr.Wrapf(err, "failed to upload task inputs to CAS")
 	}
 
 	// Trigger swarming task and wait for it to complete.
@@ -953,24 +1080,27 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		"--target_platform=" + targetPlatform,
 		"--out=${ISOLATED_OUTDIR}",
 	}
-	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout)
+	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout, casClient)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to create Swarming task request")
+	}
 	resp, err := swarmingClient.TriggerTask(req)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
-	isolateHash, _, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient, isolateClient)
+	outputDigest, _, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient)
 	if err != nil {
 		return "", fmt.Errorf("Could not collect task ID %s: %s", resp.TaskId, err)
 	}
 
-	// Download isolate output of the task.
+	// Download CAS output of the task.
 	outputDir, err := ioutil.TempDir("", fmt.Sprintf("download_%s", resp.TaskId))
 	if err != nil {
 		return "", fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
 	defer util.RemoveAll(outputDir)
-	if err := isolateClient.DownloadIsolateHash(ctx, isolateHash, outputDir, "files-list.txt"); err != nil {
-		return "", fmt.Errorf("Could not download %s: %s", isolateHash, err)
+	if err := casClient.Download(ctx, outputDir, outputDigest); err != nil {
+		return "", fmt.Errorf("Could not download %s: %s", outputDigest, err)
 	}
 	outputFile := filepath.Join(outputDir, ISOLATE_TELEMETRY_FILENAME)
 	contents, err := ioutil.ReadFile(outputFile)
@@ -980,7 +1110,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
-func MakeSwarmingTaskRequest(ctx context.Context, taskName, isolatedHash string, cipdPkgs, cmd, tags []string, dims, envPrefixes map[string]string, priority int64, ioTimeoutSecs time.Duration) *swarming_api.SwarmingRpcsNewTaskRequest {
+func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, cipdPkgs, cmd, tags []string, dims, envPrefixes map[string]string, priority int64, ioTimeoutSecs time.Duration, casClient cas.CAS) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
 	if len(cipdPkgs) > 0 {
 		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
@@ -1015,6 +1145,15 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, isolatedHash string,
 		}
 	}
 
+	casInstance, err := rbe.GetCASInstance(casClient)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	casInput, err := swarming.MakeCASReference(casDigest, casInstance)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
 	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
 	executionTimeoutSecs := 36 * time.Hour
@@ -1029,64 +1168,39 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, isolatedHash string,
 			{
 				ExpirationSecs: int64(expirationTimeoutSecs.Seconds()),
 				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					CasInputRoot:         casInput,
 					CipdInput:            cipdInput,
 					Command:              cmd,
 					Dimensions:           swarmingDims,
 					EnvPrefixes:          swarmingEnvPrefixes,
 					ExecutionTimeoutSecs: int64(executionTimeoutSecs.Seconds()),
-					InputsRef: &swarming_api.SwarmingRpcsFilesRef{
-						Isolated:       isolatedHash,
-						Isolatedserver: isolate.ISOLATE_SERVER_URL_PRIVATE,
-						Namespace:      isolate.DEFAULT_NAMESPACE,
-					},
-					IoTimeoutSecs: int64(ioTimeoutSecs.Seconds()),
+					IoTimeoutSecs:        int64(ioTimeoutSecs.Seconds()),
 				},
 				WaitForCapacity: false,
 			},
 		},
 		User: CT_SERVICE_ACCOUNT,
-	}
+	}, nil
 }
 
-func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, cmd []string, swarmingClient swarming.ApiClient) (string, error) {
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string, local bool, cmd []string, casSpec *CasSpec, swarmingClient swarming.ApiClient, casClient cas.CAS) (string, error) {
 	// Master scripts only need linux versions of their cipd packages. But still need to specify
 	// osType correctly so that exe binaries can be packaged for windows.
-	osType := "linux"
 	cipdPkgs := []string{}
 	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
-	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(specs.CIPD_PKGS_ISOLATE)...)
-	if targetPlatform == PLATFORM_WINDOWS {
-		osType = "win"
-	}
 
-	// Get path to isolate files.
-	pathToIsolates, err := GetPathToIsolates(local, true)
+	// Upload the task inputs to CAS.
+	casDigest, err := UploadToCAS(ctx, casClient, casSpec, local, true)
 	if err != nil {
-		return "", fmt.Errorf("Could not get path to isolates: %s", err)
-	}
-
-	// Isolate the task.
-	isolateClient, err := GetIsolateClient(serviceAccountJSON)
-	if err != nil {
-		return "", fmt.Errorf("Could not instantiate isolate client: %s", err)
-	}
-	isolateTask := &isolate.Task{
-		BaseDir:     pathToIsolates,
-		IsolateFile: path.Join(pathToIsolates, isolateFileName),
-		Deps:        []string{},
-		OsType:      osType,
-	}
-	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
-	if err != nil {
-		return "", fmt.Errorf("Could not isolate the master script task: %s", err)
-	}
-	if len(isolateHashes) != 1 {
-		return "", fmt.Errorf("Expected one hash when isolating the master script task. Not: %+v", isolateHashes)
+		return "", skerr.Wrapf(err, "failed to upload task inputs to CAS")
 	}
 
 	// Trigger swarming task.
-	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, GCE_LINUX_MASTER_DIMENSIONS, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, 3*24*time.Hour)
+	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, GCE_LINUX_MASTER_DIMENSIONS, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, 3*24*time.Hour, casClient)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to create Swarming task request")
+	}
 	resp, err := swarmingClient.TriggerTask(req)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
@@ -1094,44 +1208,26 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	return resp.TaskId, nil
 }
 
-// TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
-// archives it, and triggers it's swarming task. The swarming task will run the build_repo
-// worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarming.ApiClient) ([]string, error) {
-	// Get path to isolate files.
-	pathToIsolates, err := GetPathToIsolates(local, false)
-	if err != nil {
-		return nil, fmt.Errorf("Could not get path to isolates: %s", err)
-	}
-
+// TriggerBuildRepoSwarmingTask triggers a swarming task which runs the
+// build_repo worker script which will return a list of remote build
+// directories.
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarming.ApiClient, casClient cas.CAS) ([]string, error) {
 	// Find which os and CIPD pkgs to use.
-	osType := "linux"
+	var casSpec *CasSpec
 	if targetPlatform == PLATFORM_WINDOWS {
-		osType = "win"
+		casSpec = CasBuildRepoWin()
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	} else {
+		casSpec = CasBuildRepoLinux()
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
 
-	// Isolate the task.
-	isolateClient, err := GetIsolateClient(serviceAccountJSON)
+	// Upload task inputs to CAS.
+	casDigest, err := UploadToCAS(ctx, casClient, casSpec, local, false)
 	if err != nil {
-		return nil, fmt.Errorf("Could not instantiate isolate client: %s", err)
-	}
-	isolateTask := &isolate.Task{
-		BaseDir:     pathToIsolates,
-		IsolateFile: path.Join(pathToIsolates, BUILD_REPO_ISOLATE),
-		Deps:        []string{},
-		OsType:      osType,
-	}
-	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
-	if err != nil {
-		return nil, fmt.Errorf("Could not isolate the telemetry isolate task: %s", err)
-	}
-	if len(isolateHashes) != 1 {
-		return nil, fmt.Errorf("Expected one hash when isolating telemetry isolate task. Not: %+v", isolateHashes)
+		return nil, skerr.Wrapf(err, "failed to upload task inputs to CAS")
 	}
 
 	// Trigger swarming task and wait for it to complete.
@@ -1157,24 +1253,28 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout)
+
+	req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout, casClient)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create Swarming task request")
+	}
 	resp, err := swarmingClient.TriggerTask(req)
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
-	isolateHash, _, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient, isolateClient)
+	outputDigest, _, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient)
 	if err != nil {
 		return nil, fmt.Errorf("Could not collect task ID %s: %s", resp.TaskId, err)
 	}
 
-	// Download isolate output of the task.
+	// Download output of the task.
 	outputDir, err := ioutil.TempDir("", fmt.Sprintf("download_%s", resp.TaskId))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
 	defer util.RemoveAll(outputDir)
-	if err := isolateClient.DownloadIsolateHash(ctx, isolateHash, outputDir, "files-list.txt"); err != nil {
-		return nil, fmt.Errorf("Could not download %s: %s", isolateHash, err)
+	if err := casClient.Download(ctx, outputDir, outputDigest); err != nil {
+		return nil, fmt.Errorf("Could not download %s: %s", outputDigest, err)
 	}
 	outputFile := filepath.Join(outputDir, BUILD_OUTPUT_FILENAME)
 	contents, err := ioutil.ReadFile(outputFile)

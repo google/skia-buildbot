@@ -59,7 +59,7 @@ var (
 )
 
 func runChromiumPerfOnWorkers() error {
-	swarmingClient, err := master_common.Init("run_chromium_perf")
+	swarmingClient, casClient, err := master_common.Init("run_chromium_perf")
 	if err != nil {
 		return fmt.Errorf("Could not init: %s", err)
 	}
@@ -175,7 +175,7 @@ func runChromiumPerfOnWorkers() error {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
-				true, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
+				true, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -189,7 +189,7 @@ func runChromiumPerfOnWorkers() error {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
-				false, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
+				false, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient, casClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -203,17 +203,17 @@ func runChromiumPerfOnWorkers() error {
 	})
 
 	// Isolate telemetry.
-	isolateDeps := []string{}
+	casDeps := []string{}
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient, casClient)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
 		if telemetryHash == "" {
 			return fmt.Errorf("Found empty telemetry hash!")
 		}
-		isolateDeps = append(isolateDeps, telemetryHash)
+		casDeps = append(casDeps, telemetryHash)
 		return nil
 	})
 
@@ -254,7 +254,12 @@ func runChromiumPerfOnWorkers() error {
 		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), baseCmd, isolateDeps, swarmingClient)
+	casSpec := util.CasChromiumPerfLinux()
+	if *targetPlatform == util.PLATFORM_WINDOWS {
+		casSpec = util.CasChromiumPerfWin()
+	}
+	casSpec.IncludeDigests = append(casSpec.IncludeDigests, casDeps...)
+	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", *runID, *targetPlatform, casSpec, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), baseCmd, swarmingClient, casClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}

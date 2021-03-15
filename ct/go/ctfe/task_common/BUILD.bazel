@@ -10,6 +10,7 @@ go_library(
         "//ct/go/ctfe/util",
         "//ct/go/util",
         "//go/auth",
+        "//go/cas",
         "//go/ds",
         "//go/gerrit",
         "//go/httputils",

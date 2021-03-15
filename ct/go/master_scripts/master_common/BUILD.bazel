@@ -8,9 +8,13 @@ go_library(
     deps = [
         "//ct/go/util",
         "//go/auth",
+        "//go/cas",
+        "//go/cas/rbe",
         "//go/common",
         "//go/httputils",
         "//go/luciauth",
+        "//go/skerr",
         "//go/swarming",
+        "@org_golang_google_api//compute/v1:compute",
     ],
 )
