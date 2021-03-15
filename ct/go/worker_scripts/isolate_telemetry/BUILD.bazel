@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//ct/go/util",
         "//ct/go/worker_scripts/worker_common",
+        "//go/cas/rbe",
         "//go/git",
         "//go/isolate",
         "//go/skerr",
