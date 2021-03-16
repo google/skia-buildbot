@@ -2,7 +2,7 @@ import './index';
 import fetchMock from 'fetch-mock';
 import { $$ } from 'common-sk/modules/dom';
 import {
-  typicalDetails, negativeOnly, noRefs, noTraces, twoHundredCommits, fakeNow,
+  typicalDetails, negativeOnly, noRefs, noRefsYet, noTraces, twoHundredCommits, fakeNow,
 } from './test_data';
 import { setImageEndpointsForDemos } from '../common';
 import { delay } from '../demo_util';
@@ -28,6 +28,11 @@ ele = document.createElement('digest-details-sk');
 ele.details = noRefs;
 ele.commits = twoHundredCommits;
 $$('#no_refs').appendChild(ele);
+
+ele = document.createElement('digest-details-sk');
+ele.details = noRefsYet;
+ele.commits = twoHundredCommits;
+$$('#no_refs_yet').appendChild(ele);
 
 ele = document.createElement('digest-details-sk');
 ele.details = typicalDetails;

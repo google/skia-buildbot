@@ -126,7 +126,9 @@ const imageComparison = (ele) => {
     detail: detailHref(ele._grouping, ele._digest, ele.changeListID, ele.crs),
   };
   if (!ele.right) {
-    return html`<image-compare-sk .left=${left}></image-compare-sk>`;
+    const hasOtherDigests = ele._traces && ele._traces.digests && ele._traces.digests.length > 1;
+    return html`<image-compare-sk .left=${left}
+        .isComputingDiffs=${hasOtherDigests}></image-compare-sk>`;
   }
 
   const right = {

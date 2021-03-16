@@ -281,6 +281,65 @@ export const noRefs = {
   refDiffs: null,
 };
 
+export const noRefsYet = {
+  test: 'dots-legend-sk_too-many-digests',
+  digest: '6246b773851984c726cb2e1cb13510c2',
+  status: 'positive',
+  triage_history: [
+    {
+      user: 'user1@example.com',
+      ts: '2020-02-25T16:08:18.776Z',
+    },
+    {
+      user: 'user2@example.com',
+      ts: '2020-02-25T16:05:13.000Z',
+    },
+  ],
+  paramset: {
+    ext: [
+      'png',
+    ],
+    name: [
+      'dots-legend-sk_too-many-digests',
+    ],
+    source_type: [
+      'infra',
+    ],
+    os: [
+      'Linux',
+    ],
+  },
+  traces: {
+    tileSize: 200,
+    traces: [
+      {
+        data: mod2Data,
+        label: ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
+        params: {
+          ext: 'png',
+          name: 'dots-legend-sk_too-many-digests',
+          os: 'Linux',
+          source_type: 'infra',
+        },
+        comment_indices: null,
+      },
+    ],
+    digests: [
+      {
+        digest: '6246b773851984c726cb2e1cb13510c2',
+        status: 'positive',
+      },
+      {
+        digest: 'ec3b8f27397d99581e06eaa46d6d5837',
+        status: 'negative',
+      },
+    ],
+    total_digests: 3,
+  },
+  closestRef: '',
+  refDiffs: null,
+};
+
 export const noTraces = {
   test: 'dots-legend-sk_too-many-digests',
   digest: '6246b773851984c726cb2e1cb13510c2',

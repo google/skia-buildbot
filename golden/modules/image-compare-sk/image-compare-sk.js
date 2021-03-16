@@ -44,7 +44,11 @@ const template = (ele) => html`
 `;
 
 const comparison = (ele) => {
-  if (!ele.right) {
+  if (!ele.right ) {
+    if (ele.isComputingDiffs) {
+      return html`<div class=computing title="Check back later">
+            Computing closest positive and negative image. Check back later.</div>`;
+    }
     return html`<div class=no_compare>No other images to compare against.</div>`;
   }
   const diffSrc = digestDiffImagePath(ele.left.digest, ele.right.digest);
@@ -77,12 +81,20 @@ define('image-compare-sk', class extends ElementSk {
       detail: '',
     };
     this._right = null;
+    this._computingDiffs = false;
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
     dialogPolyfill.registerDialog($$('dialog.zoom_dialog', this));
+  }
+
+  get isComputingDiffs() {return this._computingDiffs; }
+
+  set isComputingDiffs(b) {
+    this._computingDiffs = !!b;
+    this._render();
   }
 
   /**
