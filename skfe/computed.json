@@ -171,6 +171,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gold-pdfium-baselineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-pdfium-baselineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-pdfium-baselineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-pdfium-frontend",
           "endpoints": [
             {
@@ -2538,6 +2564,34 @@
                       "domains": "pdfium-gold.skia.org",
                       "name": "pdfium-gold.skia.org",
                       "routes": [
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/hashes"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-pdfium-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "safe_regex": {
+                              "google_re2": {},
+                              "regex": "/json/v\\d+/expectations.*"
+                            }
+                          },
+                          "route": {
+                            "cluster": "gold-pdfium-baselineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
                         {
                           "match": {
                             "prefix": "/"
