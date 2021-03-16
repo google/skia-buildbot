@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -34,18 +35,48 @@ func (s *StoreImpl) Create(ctx context.Context, rule ignore.Rule) error {
 	if err != nil {
 		return skerr.Wrapf(err, "invalid ignore query %q", rule.Query)
 	}
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	defer rollbackAndLogIfError(ctx, tx)
-	_, err = tx.Exec(ctx, `
+	err = crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `
 INSERT INTO IgnoreRules (creator_email, updated_email, expires, note, query)
 VALUES ($1, $2, $3, $4, $5)`, rule.CreatedBy, rule.CreatedBy, rule.Expires, rule.Note, v)
-	if err != nil {
+		return err // Don't wrap - crdbpgx might retry
+	})
+	// We could be updating a lot of traces and values at head here. If done as one big transaction,
+	// that could take a while to land if we are ingesting a lot of new data at the time. As such,
+	// we do it in three independent transactions
+	if err := markTracesAsIgnored(ctx, s.db, v); err != nil {
 		return skerr.Wrap(err)
 	}
-	return skerr.Wrap(updateTracesAndCommit(ctx, tx))
+	if err := markValuesAtHeadAsIgnored(ctx, s.db, v); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// markTracesAsIgnored will update all Traces matching the given paramset as ignored.
+func markTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]string) error {
+	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps})
+	statement := `UPDATE Traces SET matches_any_ignore_rule = TRUE WHERE `
+	statement += condition
+	statement += ` RETURNING NOTHING`
+	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, arguments...)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	return skerr.Wrap(err)
+}
+
+// markValuesAtHeadAsIgnored will update all ValuesAtHead matching the given paramset as ignored.
+func markValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]string) error {
+	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps})
+	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = TRUE WHERE `
+	statement += condition
+	statement += ` RETURNING NOTHING`
+	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, arguments...)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	return skerr.Wrap(err)
 }
 
 func rollbackAndLogIfError(ctx context.Context, tx pgx.Tx) {
