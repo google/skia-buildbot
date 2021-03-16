@@ -1,0 +1,18 @@
+load("//infra-sk:index.bzl", "karma_test", "ts_library")
+
+ts_library(
+    name = "calcs",
+    srcs = ["calcs.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//perf/modules/json:index"],
+)
+
+karma_test(
+    name = "calcs_test",
+    src = "calcs_test.ts",
+    deps = [
+        ":calcs",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)

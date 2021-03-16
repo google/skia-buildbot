@@ -32,6 +32,7 @@ import '../domain-picker-sk';
 import '../json-source-sk';
 import '../plot-simple-sk';
 import '../query-count-sk';
+import '../window/window';
 
 import {
   DataFrame,
@@ -1143,7 +1144,7 @@ export class ExploreSk extends ElementSk {
     this.removeAll(true);
     this.state.formulas = updatedFormulas;
     this._stateHasChanged();
-    this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
+    await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
       this.addTraces(json, false);
     });
   }
