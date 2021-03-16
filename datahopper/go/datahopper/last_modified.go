@@ -26,10 +26,10 @@ func updateLastModifiedMetrics(ctx context.Context, client *http.Client, reposTo
 				return skerr.Wrapf(err, "Failed loading %s", file)
 			}
 			if len(log) != 1 {
-				return skerr.Fmt("Failed to obtain the last commit which modified %s in %s; expected 1 commit but got %d", file, repo.URL, len(log))
+				return skerr.Fmt("Failed to obtain the last commit which modified %s in %s; expected 1 commit but got %d", file, repo.URL(), len(log))
 			}
 			metrics2.GetInt64Metric(METRIC_LAST_MODIFIED, map[string]string{
-				"repo": repo.URL,
+				"repo": repo.URL(),
 				"file": file,
 			}).Update(int64(now.Sub(log[0].Timestamp).Seconds()))
 		}

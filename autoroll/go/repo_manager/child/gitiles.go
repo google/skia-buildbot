@@ -64,7 +64,7 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 
 // See documentation for Child interface.
 func (c *gitilesChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
-	return git_common.Clone(ctx, c.URL, dest, rev)
+	return git_common.Clone(ctx, c.URL(), dest, rev)
 }
 
 // gitilesChild implements Child.
