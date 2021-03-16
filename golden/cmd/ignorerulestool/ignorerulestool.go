@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
@@ -60,7 +58,7 @@ func updateIgnoredTraces(ctx context.Context, db *pgxpool.Pool) error {
 
 // updateTraces applies ignore rules to all traces in batches of 1000.
 func updateTraces(ctx context.Context, db *pgxpool.Pool, rules []paramtools.ParamSet) error {
-	condition, arguments := convertIgnoreRules(rules)
+	condition, arguments := sqlignorestore.ConvertIgnoreRules(rules)
 	statement := `UPDATE Traces SET matches_any_ignore_rule = `
 	statement += condition
 	// We return the literal value 1 if a non-zero number of rows were updated. Otherwise the
@@ -90,7 +88,7 @@ func updateTraces(ctx context.Context, db *pgxpool.Pool, rules []paramtools.Para
 
 // updateTraces applies ignore rules to all traces in batches of 1000.
 func updateValuesAtHead(ctx context.Context, db *pgxpool.Pool, rules []paramtools.ParamSet) error {
-	condition, arguments := convertIgnoreRules(rules)
+	condition, arguments := sqlignorestore.ConvertIgnoreRules(rules)
 	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
 	statement += condition
 	// We return the literal value 1 if a non-zero number of rows were updated. Otherwise the
@@ -137,51 +135,4 @@ func getIgnoreRules(ctx context.Context, db *pgxpool.Pool) ([]paramtools.ParamSe
 		return nil
 	})
 	return ignoreRules, skerr.Wrap(err)
-}
-
-// convertIgnoreRules turns a Paramset into a SQL clause that would match rows using a column
-// named "keys". It is currently implemented with AND clauses, but could potentially be done
-// with UNION/INTERSECT depending on performance needs.
-func convertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
-	if len(rules) == 0 {
-		return "false", nil
-	}
-	conditions := make([]string, 0, len(rules))
-	var arguments []interface{}
-	argIdx := 1
-
-	for _, rule := range rules {
-		rule.Normalize()
-		keys := make([]string, 0, len(rule))
-		for key := range rule {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys) // sort the keys for determinism
-
-		andParts := make([]string, 0, len(rules))
-		for _, key := range keys {
-			values := rule[key]
-			// We need the COALESCE because if a trace has one key, but not another, it will
-			// return NULL. We don't want this NULL to propagate (FALSE OR NULL == NULL), so
-			// we coalesce it to false (since if a trace lacks a key, it cannot match the key:value
-			// pair).
-			subCondition := fmt.Sprintf("COALESCE(keys ->> $%d::STRING IN (", argIdx)
-			argIdx++
-			arguments = append(arguments, key)
-			for i, value := range values {
-				if i != 0 {
-					subCondition += ", "
-				}
-				subCondition += fmt.Sprintf("$%d", argIdx)
-				argIdx++
-				arguments = append(arguments, value)
-			}
-			subCondition += "), FALSE)"
-			andParts = append(andParts, subCondition)
-		}
-		condition := "(" + strings.Join(andParts, " AND ") + ")"
-		conditions = append(conditions, condition)
-	}
-	combined := "(" + strings.Join(conditions, "\nOR ") + ")"
-	return combined, arguments
 }
