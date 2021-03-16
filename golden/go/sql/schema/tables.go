@@ -254,6 +254,8 @@ type TraceRow struct {
 	groupingIgnoredIndex struct{} `sql:"INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule)"`
 	// This index makes application of all ignore rules easier.
 	ignoredGroupingIndex struct{} `sql:"INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)"`
+	// This index makes querying by keys faster
+	keysIndex struct{} `sql:"INVERTED INDEX keys_idx (keys)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.

@@ -2,12 +2,12 @@ package sqlignorestore
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
-
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/databuilder"
-	"go.skia.org/infra/golden/go/sql/datakitchensink"
+	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
@@ -161,7 +161,7 @@ func loadTestData(t *testing.T, ctx context.Context, db *pgxpool.Pool) {
 	data := databuilder.TablesBuilder{}
 	data.CommitsWithData().Insert("123", "whoever@example.com", "initial commit", "2021-01-11T16:00:00Z")
 	data.SetDigests(map[rune]types.Digest{
-		'a': datakitchensink.DigestA04Unt,
+		'a': dks.DigestA04Unt,
 	})
 	data.SetGroupingKeys(types.CorpusField, types.PrimaryKeyField)
 	data.AddTracesWithCommonKeys(paramtools.Params{types.CorpusField: "gm", "os": "Android"}).
@@ -475,22 +475,58 @@ func TestDelete_NoRulesRemain_NothingIsIgnored(t *testing.T) {
 	}
 }
 
+func TestList_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	findIDForRule := func(substr string) string {
+		for _, r := range existingData.IgnoreRules {
+			if strings.Contains(r.Note, substr) {
+				return r.IgnoreRuleID.String()
+			}
+		}
+		panic("could not find")
+	}
+	store := New(db)
+	rules, err := store.List(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []ignore.Rule{{
+		ID:        findIDForRule("expired"),
+		CreatedBy: dks.UserTwo,
+		UpdatedBy: dks.UserOne,
+		Expires:   time.Date(2020, time.February, 14, 13, 12, 11, 0, time.UTC),
+		Query:     "device=Nokia4&source_type=corners",
+		Note:      "This rule has expired (and does not apply to anything)",
+	}, {
+		ID:        findIDForRule("Taimen"),
+		CreatedBy: dks.UserTwo,
+		UpdatedBy: dks.UserOne,
+		Expires:   time.Date(2030, time.December, 30, 15, 16, 17, 0, time.UTC),
+		Query:     "device=taimen&name=square&name=circle",
+		Note:      "Taimen isn't drawing correctly enough yet",
+	}}, rules)
+}
+
 func TestConvertIgnoreRules_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	condition, args := convertIgnoreRules(nil)
+	condition, args := ConvertIgnoreRules(nil)
 	assert.Equal(t, "false", condition)
 	assert.Empty(t, args)
 
-	condition, args = convertIgnoreRules([]paramtools.ParamSet{
+	condition, args = ConvertIgnoreRules([]paramtools.ParamSet{
 		{
 			"key1": []string{"alpha"},
 		},
 	})
-	assert.Equal(t, `((keys ->> $1::STRING IN ($2)))`, condition)
+	assert.Equal(t, `((COALESCE(keys ->> $1::STRING IN ($2), FALSE)))`, condition)
 	assert.Equal(t, []interface{}{"key1", "alpha"}, args)
 
-	condition, args = convertIgnoreRules([]paramtools.ParamSet{
+	condition, args = ConvertIgnoreRules([]paramtools.ParamSet{
 		{
 			"key1": []string{"alpha", "beta"},
 			"key2": []string{"gamma"},
@@ -499,8 +535,8 @@ func TestConvertIgnoreRules_Success(t *testing.T) {
 			"key3": []string{"delta", "epsilon", "zeta"},
 		},
 	})
-	const expectedCondition = `((keys ->> $1::STRING IN ($2, $3) AND keys ->> $4::STRING IN ($5))
-OR (keys ->> $6::STRING IN ($7, $8, $9)))`
+	const expectedCondition = `((COALESCE(keys ->> $1::STRING IN ($2, $3), FALSE) AND COALESCE(keys ->> $4::STRING IN ($5), FALSE))
+OR (COALESCE(keys ->> $6::STRING IN ($7, $8, $9), FALSE)))`
 	assert.Equal(t, expectedCondition, condition)
 	assert.Equal(t, []interface{}{"key1", "alpha", "beta", "key2", "gamma", "key3", "delta", "epsilon", "zeta"}, args)
 }

@@ -27,7 +27,8 @@ func New(db *pgxpool.Pool) *StoreImpl {
 	return &StoreImpl{db: db}
 }
 
-// Create implements the ignore.Store interface.
+// Create implements the ignore.Store interface. It will mark all traces that match the rule as
+// "ignored".
 func (s *StoreImpl) Create(ctx context.Context, rule ignore.Rule) error {
 	v, err := url.ParseQuery(rule.Query)
 	if err != nil {
@@ -80,7 +81,10 @@ func (s *StoreImpl) List(ctx context.Context) ([]ignore.Rule, error) {
 	return rv, nil
 }
 
-// Update implements the ignore.Store interface.
+// Update implements the ignore.Store interface. If the rule paramset changes, it will mark the
+// traces that match the old params as "ignored" or not depending on how the unchanged n-1 rules
+// plus the new rule affect them. It will then update all traces that match the new rule as
+// "ignored".
 func (s *StoreImpl) Update(ctx context.Context, rule ignore.Rule) error {
 	v, err := url.ParseQuery(rule.Query)
 	if err != nil {
@@ -100,7 +104,8 @@ WHERE ignore_rule_id = $5`, rule.UpdatedBy, rule.Expires, rule.Note, v, rule.ID)
 	return skerr.Wrap(updateTracesAndCommit(ctx, tx))
 }
 
-// Delete implements the ignore.Store interface.
+// Delete implements the ignore.Store interface. It will mark the traces that match the params of
+// the deleted rule as "ignored" or not depending on how the unchanged n-1 rules affect them.
 func (s *StoreImpl) Delete(ctx context.Context, id string) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -161,10 +166,13 @@ func updateTracesAndCommit(ctx context.Context, tx pgx.Tx) error {
 	//return nil
 }
 
-// convertIgnoreRules turns a Paramset into a SQL clause that would match rows using a column
+// Make sure Store fulfills the ignore.Store interface
+var _ ignore.Store = (*StoreImpl)(nil)
+
+// ConvertIgnoreRules turns a Paramset into a SQL clause that would match rows using a column
 // named "keys". It is currently implemented with AND/OR clauses, but could potentially be done
 // with UNION/INTERSECT depending on performance needs.
-func convertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
+func ConvertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
 	if len(rules) == 0 {
 		return "false", nil
 	}
@@ -183,7 +191,11 @@ func convertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
 		andParts := make([]string, 0, len(rules))
 		for _, key := range keys {
 			values := rule[key]
-			subCondition := fmt.Sprintf("keys ->> $%d::STRING IN (", argIdx)
+			// We need the COALESCE because if a trace has one key, but not another, it will
+			// return NULL. We don't want this NULL to propagate (FALSE OR NULL == NULL), so
+			// we coalesce it to false (since if a trace lacks a key, it cannot match the key:value
+			// pair).
+			subCondition := fmt.Sprintf("COALESCE(keys ->> $%d::STRING IN (", argIdx)
 			argIdx++
 			arguments = append(arguments, key)
 			for i, value := range values {
@@ -194,7 +206,7 @@ func convertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
 				argIdx++
 				arguments = append(arguments, value)
 			}
-			subCondition += ")"
+			subCondition += "), FALSE)"
 			andParts = append(andParts, subCondition)
 		}
 		condition := "(" + strings.Join(andParts, " AND ") + ")"
@@ -203,6 +215,3 @@ func convertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
 	combined := "(" + strings.Join(conditions, "\nOR ") + ")"
 	return combined, arguments
 }
-
-// Make sure Store fulfills the ignore.Store interface
-var _ ignore.Store = (*StoreImpl)(nil)

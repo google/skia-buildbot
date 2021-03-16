@@ -150,7 +150,8 @@ CREATE TABLE IF NOT EXISTS Traces (
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL,
   INDEX grouping_ignored_idx (grouping_id, matches_any_ignore_rule),
-  INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id)
+  INDEX ignored_grouping_idx (matches_any_ignore_rule, grouping_id),
+  INVERTED INDEX keys_idx (keys)
 );
 CREATE TABLE IF NOT EXISTS Tryjobs (
   tryjob_id STRING PRIMARY KEY,

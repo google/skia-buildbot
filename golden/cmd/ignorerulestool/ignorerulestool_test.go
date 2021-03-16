@@ -302,36 +302,6 @@ func TestUpdateIgnoredTraces_NullableRules_SetToCorrectValue(t *testing.T) {
 	assert.Equal(t, 0, count)
 }
 
-func TestConvertIgnoreRules_Success(t *testing.T) {
-	unittest.SmallTest(t)
-
-	condition, args := convertIgnoreRules(nil)
-	assert.Equal(t, "false", condition)
-	assert.Empty(t, args)
-
-	condition, args = convertIgnoreRules([]paramtools.ParamSet{
-		{
-			"key1": []string{"alpha"},
-		},
-	})
-	assert.Equal(t, `((COALESCE(keys ->> $1::STRING IN ($2), FALSE)))`, condition)
-	assert.Equal(t, []interface{}{"key1", "alpha"}, args)
-
-	condition, args = convertIgnoreRules([]paramtools.ParamSet{
-		{
-			"key1": []string{"alpha", "beta"},
-			"key2": []string{"gamma"},
-		},
-		{
-			"key3": []string{"delta", "epsilon", "zeta"},
-		},
-	})
-	const expectedCondition = `((COALESCE(keys ->> $1::STRING IN ($2, $3), FALSE) AND COALESCE(keys ->> $4::STRING IN ($5), FALSE))
-OR (COALESCE(keys ->> $6::STRING IN ($7, $8, $9), FALSE)))`
-	assert.Equal(t, expectedCondition, condition)
-	assert.Equal(t, []interface{}{"key1", "alpha", "beta", "key2", "gamma", "key3", "delta", "epsilon", "zeta"}, args)
-}
-
 func makeRandomTraceIDs(n int) []schema.TraceID {
 	rv := make([]schema.TraceID, 0, n)
 	for i := 0; i < n; i++ {
