@@ -119,45 +119,46 @@ DELETE FROM IgnoreRules WHERE ignore_rule_id = $1`, id)
 // ValuesAtHead. This is done in the passed in transaction, so if it fails, we can rollback.
 // If successful, the transaction is committed.
 func updateTracesAndCommit(ctx context.Context, tx pgx.Tx) error {
-	rows, err := tx.Query(ctx, "SELECT query FROM IgnoreRules")
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	var ignoreRules []paramtools.ParamSet
-	for rows.Next() {
-		rule := paramtools.ParamSet{}
-		err := rows.Scan(&rule)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		ignoreRules = append(ignoreRules, rule)
-	}
-	sklog.Infof("Applying %d rules", len(ignoreRules))
-
-	condition, arguments := convertIgnoreRules(ignoreRules)
-
-	statement := `UPDATE Traces SET matches_any_ignore_rule = `
-	statement += condition
-	// RETURNING NOTHING hints the SQL engine that it can shard this out w/o having to count the
-	// total number of rows modified, which can lead to slightly faster queries.
-	statement += ` RETURNING NOTHING`
-	_, err = tx.Exec(ctx, statement, arguments...)
-	if err != nil {
-		return skerr.Wrapf(err, "Updating traces with statement: %s", statement)
-	}
-
-	headStatement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
-	headStatement += condition
-	headStatement += ` RETURNING NOTHING`
-	_, err = tx.Exec(ctx, headStatement, arguments...)
-	if err != nil {
-		return skerr.Wrapf(err, "Updating head table with statement: %s", headStatement)
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
+	return skerr.Wrap(tx.Commit(ctx))
+	//rows, err := tx.Query(ctx, "SELECT query FROM IgnoreRules")
+	//if err != nil {
+	//	return skerr.Wrap(err)
+	//}
+	//var ignoreRules []paramtools.ParamSet
+	//for rows.Next() {
+	//	rule := paramtools.ParamSet{}
+	//	err := rows.Scan(&rule)
+	//	if err != nil {
+	//		return skerr.Wrap(err)
+	//	}
+	//	ignoreRules = append(ignoreRules, rule)
+	//}
+	//sklog.Infof("Applying %d rules", len(ignoreRules))
+	//
+	//condition, arguments := convertIgnoreRules(ignoreRules)
+	//
+	//statement := `UPDATE Traces SET matches_any_ignore_rule = `
+	//statement += condition
+	//// RETURNING NOTHING hints the SQL engine that it can shard this out w/o having to count the
+	//// total number of rows modified, which can lead to slightly faster queries.
+	//statement += ` RETURNING NOTHING`
+	//_, err = tx.Exec(ctx, statement, arguments...)
+	//if err != nil {
+	//	return skerr.Wrapf(err, "Updating traces with statement: %s", statement)
+	//}
+	//
+	//headStatement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
+	//headStatement += condition
+	//headStatement += ` RETURNING NOTHING`
+	//_, err = tx.Exec(ctx, headStatement, arguments...)
+	//if err != nil {
+	//	return skerr.Wrapf(err, "Updating head table with statement: %s", headStatement)
+	//}
+	//
+	//if err := tx.Commit(ctx); err != nil {
+	//	return skerr.Wrap(err)
+	//}
+	//return nil
 }
 
 // convertIgnoreRules turns a Paramset into a SQL clause that would match rows using a column
