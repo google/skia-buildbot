@@ -24,8 +24,8 @@ const (
 	DiffCalculator  Service = "diffcalculator"
 	Frontend        Service = "frontend"
 	GitilesFollower Service = "gitilesfollower"
-	Ingestion       Service = "ingestion" // New, SQL based ingestion
-	IngestionBT     Service = "ingestion-bt"
+	Ingestion       Service = "ingestion"    // New, SQL based ingestion
+	IngestionBT     Service = "ingestion-bt" // Deprecated, BigTable based ingestion
 
 	// Testing Gold instances.
 	TestInstance1     Instance = "goldpushk-test1"
@@ -86,6 +86,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		} else {
 			// Add common services for regular instances.
 			s.add(instance, DiffCalculator)
+			s.add(instance, Ingestion)
 			s.add(instance, IngestionBT)
 			s.add(instance, Frontend)
 			// See skbug.com/11367 for ChromiumOSTastDev.
@@ -95,10 +96,6 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			}
 		}
 	}
-
-	// Temporary additions for testing
-	s.add(SkiaInfra, Ingestion)
-	s.add(Skia, Ingestion)
 
 	// Add BaselineServer to the instances that require it.
 	publicInstancesNeedingBaselineServer := []Instance{
@@ -116,6 +113,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
 	s.addWithOptions(Fuchsia, DiffCalculator, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
+	s.addWithOptions(Fuchsia, Ingestion, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
 	return s
 }
