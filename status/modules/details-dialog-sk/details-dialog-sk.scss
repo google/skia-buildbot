@@ -38,6 +38,15 @@ details-dialog-sk {
     justify-content: space-between;
   }
 
+  .small-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .clickable {
+    cursor: pointer;
+  }
+
   // The title container is sometimes wide due to child elements farther down the dialog being wide
   // (i.e. task-driver-sk). Don't let it get in the way of the close button.
   .titleContainer {

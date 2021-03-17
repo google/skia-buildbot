@@ -21,6 +21,7 @@ import { logsUrl, revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../
 import '../comments-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/icon/close-icon-sk';
+import 'elements-sk/icon/content-copy-icon-sk';
 import 'elements-sk/icon/launch-icon-sk';
 import '../../../infra-sk/modules/task-driver-sk';
 import { $$ } from 'common-sk/modules/dom';
@@ -255,6 +256,12 @@ export class DetailsDialogSk extends ElementSk {
         >
           ${commit.hash}
         </a>
+        <content-copy-icon-sk
+          class="small-icon clickable"
+          @click=${() => {
+            navigator.clipboard.writeText(commit.hash);
+          }}
+        ></content-copy-icon-sk>
         <br />
         ${commit.author}
         <br />
