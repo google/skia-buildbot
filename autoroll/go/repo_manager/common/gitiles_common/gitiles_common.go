@@ -17,7 +17,7 @@ import (
 
 // GitilesRepo provides helpers for dealing with repos which use Gitiles.
 type GitilesRepo struct {
-	*gitiles.Repo
+	gitiles.GitilesRepo
 	branch *config_vars.Template
 	deps   []*config.VersionFileConfig
 }
@@ -36,9 +36,9 @@ func NewGitilesRepo(ctx context.Context, c *config.GitilesConfig, reg *config_va
 	}
 	repo := gitiles.NewRepo(c.RepoUrl, client)
 	return &GitilesRepo{
-		Repo:   repo,
-		branch: branch,
-		deps:   c.Dependencies,
+		GitilesRepo: repo,
+		branch:      branch,
+		deps:        c.Dependencies,
 	}, nil
 }
 
@@ -51,11 +51,11 @@ func (r *GitilesRepo) Branch() string {
 // revision ID, which may be a commit hash or fully-qualified ref name.
 func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	// Load the details for this revision.
-	details, err := r.Details(ctx, id)
+	details, err := r.GitilesRepo.Details(ctx, id)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to retrieve revision %q", id)
 	}
-	rev := revision.FromLongCommit(fmt.Sprintf(gitiles.CommitURL, r.URL, "%s"), details)
+	rev := revision.FromLongCommit(fmt.Sprintf(gitiles.CommitURL, r.GitilesRepo.URL(), "%s"), details)
 
 	// Optionally load any dependencies.
 	if len(r.deps) > 0 {
@@ -100,5 +100,5 @@ func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, er
 
 // VFS implements the child.Child interface.
 func (r *GitilesRepo) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
-	return r.Repo.VFS(ctx, rev.Id)
+	return r.GitilesRepo.VFS(ctx, rev.Id)
 }
