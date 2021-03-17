@@ -200,8 +200,8 @@ ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskDialogTemplate(task,
                   : ''}
       ${task.telemetry_isolate_hash
                     ? html`<tr>
-          <td>TelemetryIsolateHash:</td>
-          <td><a href="https://chrome-isolated.appspot.com/browse?digest=${task.telemetry_isolate_hash}">${task.telemetry_isolate_hash}</a></td>
+          <td>TelemetryCASHash:</td>
+          <td><a href="https://cas-viewer.appspot.com/projects/chrome-swarming/instances/default_instance/blobs/${task.telemetry_isolate_hash}/tree">${task.telemetry_isolate_hash}</a></td>
         </tr>`
                     : ''}
     </table>

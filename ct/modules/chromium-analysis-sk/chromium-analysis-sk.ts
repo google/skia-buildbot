@@ -180,11 +180,11 @@ export class ChromiumAnalysisSk extends ElementSk {
   </tr>
   <tr>
     <td>
-      Telemetry Isolate Hash (optional)<br/> (See
-      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853">skbug/9853</a>)
+      Telemetry CAS Hash (optional)<br/> (See
+      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853#c11">skbug/9853</a>)
     </td>
     <td>
-      <input-sk value="" id=telemetry_isolate_hash class=long-field></input-sk>
+      <input-sk value="" label="Eg: 704a0dfa6e4d24599dc362fb8db5ffb918d806959ace1e75066ea6ed4f55a50a/652" id=telemetry_isolate_hash class=long-field></input-sk>
     </td>
   </tr>
   <tr>
