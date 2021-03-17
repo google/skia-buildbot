@@ -16,6 +16,29 @@
       "message": "I\u0027ll push this config change tomorrow AM instead of now, just before I leave 😎",
       "revId": "e16fcb806586ddb1869e426582f1ae84fd6781b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4216e5d2_5179ce87",
+        "filename": "skfe/envoy-starter.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1402,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-17T00:31:24Z",
+      "side": 1,
+      "message": "Should we include the unversioned paths as well? See e.g. the routes for flutter-gold.skia.org on lines 1442-1504.",
+      "range": {
+        "startLine": 1402,
+        "startChar": 40,
+        "endLine": 1402,
+        "endChar": 58
+      },
+      "revId": "e16fcb806586ddb1869e426582f1ae84fd6781b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
