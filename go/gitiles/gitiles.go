@@ -63,11 +63,74 @@ var (
 	ErrStopIteration = errors.New("stop iteration")
 )
 
+// GitilesRepo is an interface to Gitiles.
+type GitilesRepo interface {
+	// Details returns a vcsinfo.LongCommit for the given commit.
+	Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, error)
+	// ReadObject reads the given object at the given ref, returning its contents
+	// and FileInfo.
+	ReadObject(ctx context.Context, path, ref string) (os.FileInfo, []byte, error)
+	// ReadFileAtRef reads the given file at the given ref.
+	ReadFileAtRef(ctx context.Context, srcPath, ref string) ([]byte, error)
+	// ReadFile reads the current version of the given file from the main branch
+	// of the Repo.
+	ReadFile(ctx context.Context, srcPath string) ([]byte, error)
+	// DownloadFile downloads the current version of the given file from the main
+	// branch of the Repo.
+	DownloadFile(ctx context.Context, srcPath, dstPath string) error
+	// DownloadFileAtRef downloads the given file at the given ref.
+	DownloadFileAtRef(ctx context.Context, srcPath, ref, dstPath string) error
+	// ListDirAtRef reads the given directory at the given ref. Returns a slice of
+	// file names and a slice of dir names, relative to the given directory, or any
+	// error which occurred.
+	ListDirAtRef(ctx context.Context, dir, ref string) ([]os.FileInfo, error)
+	// ListDir reads the given directory on the main branch. Returns a slice of
+	// file names and a slice of dir names, relative to the given directory, or any
+	// error which occurred.
+	ListDir(ctx context.Context, dir string) ([]os.FileInfo, error)
+	// ResolveRef resolves the given ref to a commit hash.
+	ResolveRef(ctx context.Context, ref string) (string, error)
+	// ListFilesRecursiveAtRef returns a list of all file paths, relative to the
+	// given directory, under the given directory at the given ref.
+	ListFilesRecursiveAtRef(ctx context.Context, topDir, ref string) ([]string, error)
+	// ListFilesRecursive returns a list of all file paths, relative to the given
+	// directory, under the given directory on the main branch.
+	ListFilesRecursive(ctx context.Context, dir string) ([]string, error)
+	// Log returns Gitiles' equivalent to "git log" for the given expression.
+	Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*vcsinfo.LongCommit, error)
+	// LogFirstParent is equivalent to "git log --first-parent A..B", ie. it
+	// only returns commits which are reachable from A by following the first parent
+	// (the "main" branch) but not from B. LogFirstParent is incompatible with
+	// LogPath.
+	LogFirstParent(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error)
+	// LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
+	// ie. it only returns commits which are on the direct path from A to B, and
+	// only on the "main" branch. This is as opposed to "git log from..to" which
+	// returns all commits which are ancestors of 'to' but not 'from'. LogLinear is
+	// incompatible with LogPath.
+	LogLinear(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error)
+	// LogFn runs the given function for each commit in the log for the given
+	// expression. It stops when ErrStopIteration is returned.
+	LogFn(ctx context.Context, logExpr string, fn func(context.Context, *vcsinfo.LongCommit) error, opts ...LogOption) error
+	// LogFnBatch is the same as LogFn but it runs the given function over batches
+	// of commits.
+	LogFnBatch(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error
+	// Branches returns the list of branches in the repo.
+	Branches(ctx context.Context) ([]*git.Branch, error)
+	// Tags returns the list of tags in the repo. The returned map has tag names as
+	// keys and commit hashes as values.
+	Tags(ctx context.Context) (map[string]string, error)
+	// URL returns the repo URL.
+	URL() string
+	// VFS returns a vfs.FS using Gitiles at the given revision.
+	VFS(ctx context.Context, ref string) (*FS, error)
+}
+
 // Repo is an object used for interacting with a single Git repo using Gitiles.
 type Repo struct {
 	client *http.Client
 	rl     *rate.Limiter
-	URL    string
+	url    string
 }
 
 // NewRepo creates and returns a new Repo object.
@@ -80,7 +143,7 @@ func NewRepo(url string, c *http.Client) *Repo {
 	return &Repo{
 		client: c,
 		rl:     rate.NewLimiter(maxQPS, maxBurst),
-		URL:    url,
+		url:    url,
 	}
 }
 
@@ -122,7 +185,7 @@ func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error 
 // and FileInfo.
 func (r *Repo) ReadObject(ctx context.Context, path, ref string) (os.FileInfo, []byte, error) {
 	path = strings.TrimSuffix(path, "/")
-	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.URL, ref, path))
+	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.url, ref, path))
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
@@ -344,7 +407,7 @@ func LongCommitToCommit(details *vcsinfo.LongCommit) (*Commit, error) {
 // getCommit returns a Commit for the given ref.
 func (r *Repo) getCommit(ctx context.Context, ref string) (*Commit, error) {
 	var c Commit
-	if err := r.getJSON(ctx, fmt.Sprintf(CommitURLJSON, r.URL, ref), &c); err != nil {
+	if err := r.getJSON(ctx, fmt.Sprintf(CommitURLJSON, r.url, ref), &c); err != nil {
 		return nil, err
 	}
 	return &c, nil
@@ -525,7 +588,7 @@ func (r *Repo) logHelper(ctx context.Context, logExpr string, fn func(context.Co
 	if path != "" {
 		logExpr += "/" + path
 	}
-	url := fmt.Sprintf(LogURL, r.URL, logExpr)
+	url := fmt.Sprintf(LogURL, r.url, logExpr)
 	if query != "" {
 		url += "&" + query
 	}
@@ -716,7 +779,7 @@ type RefsMap map[string]Ref
 // Branches returns the list of branches in the repo.
 func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
 	branchMap := RefsMap{}
-	if err := r.getJSON(ctx, fmt.Sprintf(RefsURL, r.URL), &branchMap); err != nil {
+	if err := r.getJSON(ctx, fmt.Sprintf(RefsURL, r.url), &branchMap); err != nil {
 		return nil, err
 	}
 	rv := make([]*git.Branch, 0, len(branchMap))
@@ -737,7 +800,7 @@ func (r *Repo) Tags(ctx context.Context) (map[string]string, error) {
 		Value  string `json:"value"`
 		Peeled string `json:"peeled"`
 	}{}
-	if err := r.getJSON(ctx, fmt.Sprintf(TagsURL, r.URL), &tags); err != nil {
+	if err := r.getJSON(ctx, fmt.Sprintf(TagsURL, r.url), &tags); err != nil {
 		return nil, err
 	}
 	rv := make(map[string]string, len(tags))
@@ -746,3 +809,10 @@ func (r *Repo) Tags(ctx context.Context) (map[string]string, error) {
 	}
 	return rv, nil
 }
+
+// URL returns the repo URL.
+func (r *Repo) URL() string {
+	return r.url
+}
+
+var _ GitilesRepo = &Repo{}

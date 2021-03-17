@@ -52,14 +52,14 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 	sbc, err := supported_branches.ReadConfigFromRepo(repo)
 	if err != nil {
 		if strings.Contains(err.Error(), "Not Found") {
-			sklog.Infof("Skipping repo %s; no supported branches file found.", repo.URL)
+			sklog.Infof("Skipping repo %s; no supported branches file found.", repo.URL())
 			return nil
 		}
-		return fmt.Errorf("Failed to get supported branches for %s: %s", repo.URL, err)
+		return fmt.Errorf("Failed to get supported branches for %s: %s", repo.URL(), err)
 	}
 	cqCfg, err := cq.GetCQConfig(repo)
 	if err != nil {
-		return fmt.Errorf("Failed to get CQ config for %s: %s", repo.URL, err)
+		return fmt.Errorf("Failed to get CQ config for %s: %s", repo.URL(), err)
 	}
 	for _, branch := range sbc.Branches {
 		// Find the CQ trybots for this branch.
@@ -72,7 +72,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 			branchExists = 1
 		}
 		branchExistsMetric := metrics2.GetInt64Metric(METRIC_BRANCH_EXISTS, map[string]string{
-			"repo":   repo.URL,
+			"repo":   repo.URL(),
 			"branch": branch.Ref,
 		})
 		branchExistsMetric.Update(branchExists)
@@ -98,11 +98,11 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		// Obtain the tasks cfg for this branch.
 		tasksContents, err := repo.ReadFileAtRef(context.Background(), specs.TASKS_CFG_FILE, branch.Ref)
 		if err != nil {
-			return fmt.Errorf("Failed to read %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL, err)
+			return fmt.Errorf("Failed to read %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL(), err)
 		}
 		tasksCfg, err := specs.ParseTasksCfg(string(tasksContents))
 		if err != nil {
-			return fmt.Errorf("Failed to parse %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL, err)
+			return fmt.Errorf("Failed to parse %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL(), err)
 		}
 
 		// Determine whether each tryjob exists in the tasks cfg.
@@ -113,7 +113,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 				jobExists = 1
 			}
 			jobExistsMetric := metrics2.GetInt64Metric(METRIC_TRYJOB_EXISTS, map[string]string{
-				"repo":   repo.URL,
+				"repo":   repo.URL(),
 				"branch": branch.Ref,
 				"tryjob": job,
 			})
@@ -158,7 +158,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 					}
 				}
 				botExistsMetric := metrics2.GetInt64Metric(METRIC_BOT_EXISTS, map[string]string{
-					"repo":   repo.URL,
+					"repo":   repo.URL(),
 					"branch": branch.Ref,
 					"tryjob": job,
 				})

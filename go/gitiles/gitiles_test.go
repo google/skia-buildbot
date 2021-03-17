@@ -370,7 +370,7 @@ func TestLogLimit(t *testing.T) {
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
 		opt := LogLimit(limit)
-		url := fmt.Sprintf(LogURL, repo.URL, logExpr) + fmt.Sprintf("&%s=%s", opt.Key(), opt.Value())
+		url := fmt.Sprintf(LogURL, repo.URL(), logExpr) + fmt.Sprintf("&%s=%s", opt.Key(), opt.Value())
 		if start != "" {
 			url += "&s=" + start
 		}

@@ -282,9 +282,9 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	// Create a tmpGitStore.
 	sklog.Info("Retrieving graph from temporary store.")
 	t := timer.New("Retrieving graph from temp store")
-	graph, ri, err := setupInitialIngest(ctx, r.gcsClient, r.gcsPath, r.gitiles.URL)
+	graph, ri, err := setupInitialIngest(ctx, r.gcsClient, r.gcsPath, r.gitiles.URL())
 	if err != nil {
-		return skerr.Wrapf(err, "Failed initial ingestion of %s using GCS file %s", r.gitiles.URL, r.gcsPath)
+		return skerr.Wrapf(err, "Failed initial ingestion of %s using GCS file %s", r.gitiles.URL(), r.gcsPath)
 	}
 	for _, c := range graph.GetAll() {
 		r.Commits[c.Hash] = c.LongCommit
@@ -514,7 +514,7 @@ func (r *repoImpl) Update(ctx context.Context) error {
 		newBranches[branch.Name] = branch.Head
 	}
 	for name, b := range oldBranches {
-		if _, ok := newBranches[name]; !ok && ignoreDeletedBranch[r.gitiles.URL][name] {
+		if _, ok := newBranches[name]; !ok && ignoreDeletedBranch[r.gitiles.URL()][name] {
 			sklog.Warningf("Branch %q missing from new branches; ignoring.", name)
 			branches = append(branches, b)
 		}
@@ -561,7 +561,7 @@ func (r *repoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommi
 	}
 	// Fall back to retrieving from Gitiles, store any new commits in the
 	// local cache.
-	sklog.Errorf("Missing commit %s in %s", hash[:7], r.gitiles.URL)
+	sklog.Errorf("Missing commit %s in %s", hash[:7], r.gitiles.URL())
 	if err := r.processCommits(ctx, r.addCommitsToCacheFn(), func(ctx context.Context, commitsCh chan<- *commitBatch) error {
 		return r.loadCommitsFromGitiles(ctx, "", hash, commitsCh)
 	}); err != nil {
@@ -569,14 +569,14 @@ func (r *repoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommi
 	}
 	c, ok := r.Commits[hash]
 	if !ok {
-		return nil, skerr.Fmt("Commit %s in %s is still missing despite attempting to load it from gitiles.", hash, r.gitiles.URL)
+		return nil, skerr.Fmt("Commit %s in %s is still missing despite attempting to load it from gitiles.", hash, r.gitiles.URL())
 	}
 	return c, nil
 }
 
 // See documentation for RepoImpl interface.
 func (r *repoImpl) UpdateCallback(ctx context.Context, added, removed []*vcsinfo.LongCommit, graph *repograph.Graph) error {
-	sklog.Infof("repoImpl.UpdateCallback for %s", r.gitiles.URL)
+	sklog.Infof("repoImpl.UpdateCallback for %s", r.gitiles.URL())
 	defer metrics2.FuncTimer().Stop()
 	// Ensure that branch membership is up to date.
 	modified := graph.UpdateBranchInfo()
@@ -596,7 +596,7 @@ func (r *repoImpl) UpdateCallback(ctx context.Context, added, removed []*vcsinfo
 		putCommits = append(putCommits, c)
 	}
 	// TODO(borenet): Should we delete commits which were removed?
-	sklog.Infof("Put %d new and %d modified commits for %s.", len(added), len(modified), r.gitiles.URL)
+	sklog.Infof("Put %d new and %d modified commits for %s.", len(added), len(modified), r.gitiles.URL())
 	if err := r.gitstore.Put(ctx, putCommits); err != nil {
 		return skerr.Wrapf(err, "Failed putting commits into GitStore.")
 	}
