@@ -547,10 +547,6 @@ define('skottie-sk', class extends HTMLElement {
         }
       }
 
-      if (sounds.map.size > 0) {
-        this._toggleVolumeSlider();
-      }
-
       // check fonts
       fonts.forEach(font => {
         if (!assets[font.fName]) {
@@ -733,6 +729,12 @@ define('skottie-sk', class extends HTMLElement {
     }
 
     if (this._ui === LOADED_MODE) {
+      if (this._state.soundMap.map.size > 0) {
+        this._hideVolumeSlider(false);
+      } else {
+        this._hideVolumeSlider(true);
+        console.log(true);
+      }
       try {
         this._renderLottieWeb();
         this._renderJSONEditor();
@@ -941,9 +943,9 @@ define('skottie-sk', class extends HTMLElement {
     this.render();
   }
 
-  _toggleVolumeSlider() {
+  _hideVolumeSlider(v) {
     let collapse = $$('#volume', this);
-    collapse.closed = !collapse;
+    collapse.closed = v;
   }
 
   _upload() {

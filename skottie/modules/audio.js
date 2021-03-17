@@ -48,8 +48,14 @@ export function AudioPlayer(source) {
     }
   }
   this.seek = function(t) {
-    if (!this.playing && t >=0) {
-      this.howl.play();
+    if (!this.playing && t >= 0) {
+      // Sometimes browsers will prevent the audio from playing.
+      // We need to resume the AudioContext or it will never play.
+      if (Howler.ctx.state == "suspended") {
+        Howler.ctx.resume().then(() => this.howl.play());
+      } else {
+        this.howl.play();
+      }
       this.playing = true;
     }
 
