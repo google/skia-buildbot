@@ -147,8 +147,10 @@ export class TaskQueueSk extends ElementSk {
     }
 
     // Find all tasks scheduled in the future.
-    queryParams.include_future_runs = true;
-    queryStr = `?${fromObject(queryParams)}`;
+    const futureQueryParams = {
+      include_future_runs: true,
+    };
+    queryStr = `?${fromObject(futureQueryParams)}`;
     for (const obj of taskDescriptors) {
       allPromises.push(fetch(obj.get_url + queryStr, { method: 'POST' })
         .then(jsonOrThrow)
