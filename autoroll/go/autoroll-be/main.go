@@ -309,7 +309,7 @@ func main() {
 				issues = append(issues, issues2...)
 				for _, ci := range issues {
 					if ci.Updated.Before(time.Now().Add(-168 * time.Hour)) {
-						if err := g.Abandon(ctx, ci, "Abandoning new/draft issues older than a week."); err != nil {
+						if err := g.Abandon(ctx, ci, "Abandoning new/draft issues older than a week."); err != nil && !strings.Contains(err.Error(), "change is abandoned") {
 							sklog.Errorf("Failed to abandon old issue %s: %s", g.Url(ci.Issue), err)
 						}
 					}
