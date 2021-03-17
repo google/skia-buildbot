@@ -141,6 +141,7 @@ describe('commits-table-sk', () => {
     expect($('.task-spec', table).map((el) => el.getAttribute('title'))).to.have.deep.members([
       'Always-Red-Spec',
       'Interesting-Spec',
+      'Only-Failed-On-Commented-Commit-Spec',
     ]);
 
     clickLabel(2, 'Comments');
