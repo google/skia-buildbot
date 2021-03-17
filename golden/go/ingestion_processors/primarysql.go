@@ -332,7 +332,7 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 		grouping := groupingFor(keys)
 		_, groupingID := sql.SerializeMap(grouping)
 
-		if h := string(optionsID); !s.optionGroupingCache.Contains(h) {
+		if h := string(optionsID); !s.optionGroupingCache.Contains(h) && !newCacheEntries[h] {
 			optionsToCreate = append(optionsToCreate, schema.OptionsRow{
 				OptionsID: optionsID,
 				Keys:      options,
@@ -340,7 +340,7 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 			newCacheEntries[h] = true
 		}
 
-		if h := string(groupingID); !s.optionGroupingCache.Contains(h) {
+		if h := string(groupingID); !s.optionGroupingCache.Contains(h) && !newCacheEntries[h] {
 			groupingsToCreate = append(groupingsToCreate, schema.GroupingRow{
 				GroupingID: groupingID,
 				Keys:       grouping,
@@ -348,14 +348,18 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 			newCacheEntries[h] = true
 		}
 
-		if h := string(traceID); !s.traceCache.Contains(h) {
+		th := string(traceID)
+		if newCacheEntries[th] {
+			continue // already seen data for this trace
+		}
+		newCacheEntries[th] = true
+		if !s.traceCache.Contains(th) {
 			tracesToCreate = append(tracesToCreate, schema.TraceRow{
 				TraceID:              traceID,
 				GroupingID:           groupingID,
 				Keys:                 keys,
 				MatchesAnyIgnoreRule: schema.NBNull,
 			})
-			newCacheEntries[h] = true
 		}
 		valuesAtHeadToUpdate = append(valuesAtHeadToUpdate, schema.ValueAtHeadRow{
 			TraceID:              traceID,
