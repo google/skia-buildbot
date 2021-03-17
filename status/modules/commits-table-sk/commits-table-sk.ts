@@ -105,16 +105,19 @@ export class TaskSpecDetails {
   // Metadata about the set of tasks in this spec.
   hasSuccess = false;
   hasFailure = false;
+  // Like the above, but more restrictive - has failure not associated with
+  // a commit with 'ignore failure' comment.
+  hasNonIgnoredFailure = false;
   hasTaskComment = false;
 
   interesting(): boolean {
-    return this.hasSuccess && this.hasFailure && !this.ignoreFailure;
+    return this.hasSuccess && this.hasNonIgnoredFailure && !this.ignoreFailure;
   }
   hasFailing(): boolean {
     return this.hasFailure;
   }
   hasFailingNoComment(): boolean {
-    return this.hasFailure && (!this.comments || this.comments.length == 0);
+    return this.hasNonIgnoredFailure && (!this.comments || this.comments.length == 0);
   }
   hasComment(): boolean {
     return this.hasTaskComment || (this.comments && this.comments.length > 0);
@@ -401,14 +404,17 @@ class Data {
       }
       // Aggregate data about this spec's tasks.
       details.hasSuccess = details.hasSuccess || task.status == TASK_STATUS_SUCCESS;
-      // Only count failures we aren't ignoring.
-      details.hasFailure =
-        details.hasFailure ||
+      // 'Interesting' looks for non-ignored failures, 'Failures' looks for any failure.
+      details.hasNonIgnoredFailure =
+        details.hasNonIgnoredFailure ||
         (!commit.ignoreFailure &&
           (task.status == TASK_STATUS_FAILURE || task.status == TASK_STATUS_MISHAP));
+      details.hasFailure =
+        details.hasFailure ||
+        task.status == TASK_STATUS_FAILURE ||
+        task.status == TASK_STATUS_MISHAP;
       details.hasTaskComment =
         details.hasTaskComment || (this.comments.get(commit.hash)?.get(taskSpec)?.length || 0) > 0;
-      // TODO(westont): Track purple tasks.
     }
   }
 
