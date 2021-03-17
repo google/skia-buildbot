@@ -15,8 +15,10 @@ import (
 	"go.chromium.org/luci/cipd/common"
 
 	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -26,6 +28,7 @@ import (
 const (
 	cipdPackageUrlTmpl  = "%s/p/%s/+/%s"
 	cipdBuganizerPrefix = "b/"
+	gitRevisionTag      = "git_revision"
 )
 
 var (
@@ -43,12 +46,22 @@ func NewCIPD(ctx context.Context, c *config.CIPDChildConfig, client *http.Client
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	var gitRepo *gitiles_common.GitilesRepo
+	if c.GitilesRepo != "" {
+		gitRepo, err = gitiles_common.NewGitilesRepo(ctx, &config.GitilesConfig{
+			Branch:  git.DefaultBranch,
+			RepoUrl: c.GitilesRepo,
+		}, nil, client)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	return &CIPDChild{
 		client:  cipdClient,
 		name:    c.Name,
 		root:    workdir,
 		tag:     c.Tag,
-		tagAsID: c.TagAsId,
+		gitRepo: gitRepo,
 	}, nil
 }
 
@@ -58,7 +71,7 @@ type CIPDChild struct {
 	name    string
 	root    string
 	tag     string
-	tagAsID string
+	gitRepo *gitiles_common.GitilesRepo
 }
 
 // GetRevision implements Child.
@@ -80,7 +93,20 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 			return nil, skerr.Wrap(err)
 		}
 	}
-	return CIPDInstanceToRevision(c.name, c.tagAsID, instance), nil
+	rev := CIPDInstanceToRevision(c.name, instance)
+	if c.gitRepo != nil {
+		gitRevision := getGitRevisionFromCIPDInstance(instance)
+		if gitRevision == "" {
+			rev.InvalidReason = "No git_revision tag"
+		} else {
+			rev, err = c.gitRepo.GetRevision(ctx, gitRevision)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			rev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, gitRevision)
+		}
+	}
+	return rev, nil
 }
 
 // Update implements Child.
@@ -97,6 +123,35 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 	notRolledRevs := []*revision.Revision{}
 	if lastRollRev.Id != tipRev.Id {
 		notRolledRevs = append(notRolledRevs, tipRev)
+	}
+	if c.gitRepo != nil {
+		// Obtain the git revisions from the backing repo.
+		_, lastRollRevHash, err := splitCIPDTag(lastRollRev.Id)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		_, tipRevHash, err := splitCIPDTag(tipRev.Id)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		notRolledCommits, err := c.gitRepo.LogFirstParent(ctx, lastRollRevHash, tipRevHash)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		notRolledRevs, err = c.gitRepo.ConvertRevisions(ctx, notRolledCommits)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
+		}
+		for _, rev := range notRolledRevs {
+			// Fix the IDs to be CIPD tags rather than Git commit hashes.
+			rev.Id = fmt.Sprintf("%s:%s", gitRevisionTag, rev.Id)
+
+			// Make in-between revisions invalid, since we only have CIPD
+			// package instances associated with lastRollRev and tipRev.
+			if rev.Id != lastRollRev.Id && rev.Id != tipRev.Id {
+				rev.InvalidReason = "No associated CIPD package."
+			}
+		}
 	}
 	return tipRev, notRolledRevs, nil
 }
@@ -131,7 +186,7 @@ type cipdDetailsLine struct {
 
 // CIPDInstanceToRevision creates a revision.Revision based on the given
 // InstanceInfo.
-func CIPDInstanceToRevision(name, tagAsID string, instance *cipd_api.InstanceDescription) *revision.Revision {
+func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription) *revision.Revision {
 	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
 		Author:      instance.RegisteredBy,
@@ -140,7 +195,6 @@ func CIPDInstanceToRevision(name, tagAsID string, instance *cipd_api.InstanceDes
 		Timestamp:   time.Time(instance.RegisteredTs),
 		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
 	}
-	foundTagAsID := false
 	detailsLines := []*cipdDetailsLine{}
 	for _, tag := range instance.Tags {
 		split := strings.SplitN(tag.Tag, ":", 2)
@@ -150,11 +204,6 @@ func CIPDInstanceToRevision(name, tagAsID string, instance *cipd_api.InstanceDes
 		}
 		key := split[0]
 		val := split[1]
-		if tagAsID == key {
-			rev.Id = tag.Tag
-			rev.Display = tag.Tag
-			foundTagAsID = true
-		}
 		if key == "bug" {
 			// For bugs, we expect either eg. "chromium:1234" or "b/1234".
 			split := strings.SplitN(val, ":", 2)
@@ -197,12 +246,44 @@ func CIPDInstanceToRevision(name, tagAsID string, instance *cipd_api.InstanceDes
 				rev.Details += "\n"
 			}
 		}
-
-	}
-	if tagAsID != "" && !foundTagAsID {
-		rev.InvalidReason = fmt.Sprintf("No %q tag", tagAsID)
 	}
 	return rev
+}
+
+// getGitRevisionFromCIPDInstance retrieves the git_revision tag from the given
+// CIPD package instance, or the empty string if none exists.
+func getGitRevisionFromCIPDInstance(instance *cipd_api.InstanceDescription) string {
+	for _, tag := range instance.Tags {
+		key, value, err := splitCIPDTag(tag.Tag)
+		if err != nil {
+			sklog.Error(err)
+			continue
+		}
+		if gitRevisionTag == key {
+			return value
+		}
+	}
+	return ""
+}
+
+// splitCIPDTag returns the key and value of the tag, which must be in
+// "key:value" form.
+func splitCIPDTag(tag string) (string, string, error) {
+	split := strings.SplitN(tag, ":", 2)
+	if len(split) != 2 {
+		return "", "", skerr.Fmt("Invalid CIPD tag %q; expected <key>:<value>", tag)
+	}
+	return split[0], split[1], nil
+}
+
+// joinCIPDTag joins the key and value into a CIPD tag.
+func joinCIPDTag(key, value string) string {
+	return fmt.Sprintf("%s:%s", key, value)
+}
+
+// gitRevTag creates a git_revision tag for the given hash.
+func gitRevTag(hash string) string {
+	return joinCIPDTag(gitRevisionTag, hash)
 }
 
 var _ Child = &CIPDChild{}
