@@ -8,7 +8,7 @@ task-driver-sk {
   div.step {
     border-style: solid;
     border-width: 0px 0px 1px 5px;
-    border-bottom-color: #EEEEEE;
+    border-bottom-color: #eeeeee;
     font-family: sans-serif;
     margin: 2px;
     padding: 10px;
@@ -86,7 +86,7 @@ task-driver-sk {
   }
 
   tr {
-    border-bottom: 1px solid #EEEEEE;
+    border-bottom: 1px solid #eeeeee;
     display: table-row;
   }
 
@@ -102,7 +102,8 @@ task-driver-sk {
     display: table-row-group;
   }
 
-  td,th {
+  td,
+  th {
     display: table-cell;
     padding: 10px;
   }
@@ -119,5 +120,11 @@ task-driver-sk {
 
   number {
     text-align: right;
+  }
+}
+
+.darkmode task-driver-sk {
+  tr:hover {
+    background-color: var(--surface-2dp);
   }
 }
