@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -267,8 +269,17 @@ func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams
 			term += fmt.Sprintf(" and Repo == %s", *params.Repo)
 		}
 	}
+
+	// Log the search parameters and the resulting query.
+	b, err := json.MarshalIndent(params, "", "  ")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	sklog.Infof("Searching jobs; query: %s; params: %s", q, string(b))
+
+	// Search the DB.
 	results := []*types.Job{}
-	err := d.client.IterDocs(ctx, "SearchJobs", term, q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	err = d.client.IterDocs(ctx, "SearchJobs", term, q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var job types.Job
 		if err := doc.DataTo(&job); err != nil {
 			return err
