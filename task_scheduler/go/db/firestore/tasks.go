@@ -248,6 +248,12 @@ func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchPara
 	} else if params.Revision != nil {
 		q = q.Where("Revision", "==", *params.Revision)
 		term = fmt.Sprintf("Revision == %s", *params.Revision)
+
+		// Name is compatible with Revision because we have an index for it.
+		if params.Name != nil {
+			q = q.Where("Name", "==", *params.Name)
+			term += fmt.Sprintf(" and Name == %s", *params.Name)
+		}
 	} else if params.Status != nil && *params.Status == types.TASK_STATUS_RUNNING {
 		q = q.Where("Status", "==", *params.Status)
 		term = fmt.Sprintf("Status == %s", *params.Status)
@@ -279,5 +285,6 @@ func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchPara
 	if err == db.ErrDoneSearching {
 		err = nil
 	}
+	sklog.Infof("Searching tasks; terms: %q; results: %d", term, len(results))
 	return results, err
 }

@@ -267,6 +267,8 @@ func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams
 			term += fmt.Sprintf(" and Repo == %s", *params.Repo)
 		}
 	}
+
+	// Search the DB.
 	results := []*types.Job{}
 	err := d.client.IterDocs(ctx, "SearchJobs", term, q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var job types.Job
@@ -284,5 +286,6 @@ func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams
 	if err == db.ErrDoneSearching {
 		err = nil
 	}
+	sklog.Infof("Searching jobs; terms: %q; results: %d", term, len(results))
 	return results, err
 }
