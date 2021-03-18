@@ -653,6 +653,7 @@ func (r *IgnoreRuleRow) ScanFrom(scan func(...interface{}) error) error {
 		return skerr.Wrap(err)
 	}
 	r.Expires = r.Expires.UTC()
+	paramtools.ParamSet(r.Query).Normalize()
 	return nil
 }
 

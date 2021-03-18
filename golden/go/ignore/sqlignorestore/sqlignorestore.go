@@ -117,22 +117,91 @@ func (s *StoreImpl) List(ctx context.Context) ([]ignore.Rule, error) {
 // plus the new rule affect them. It will then update all traces that match the new rule as
 // "ignored".
 func (s *StoreImpl) Update(ctx context.Context, rule ignore.Rule) error {
-	v, err := url.ParseQuery(rule.Query)
+	newParamSet, err := url.ParseQuery(rule.Query)
 	if err != nil {
 		return skerr.Wrapf(err, "invalid ignore query %q", rule.Query)
 	}
-	tx, err := s.db.Begin(ctx)
+	existingRulePS, err := s.getRuleParamset(ctx, rule.ID)
 	if err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "getting existing rule with id %s", rule.ID)
 	}
-	defer rollbackAndLogIfError(ctx, tx)
-	_, err = tx.Exec(ctx, `
+	err = crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err = tx.Exec(ctx, `
 UPDATE IgnoreRules SET (updated_email, expires, note, query) = ($1, $2, $3, $4)
-WHERE ignore_rule_id = $5`, rule.UpdatedBy, rule.Expires, rule.Note, v, rule.ID)
+WHERE ignore_rule_id = $5`, rule.UpdatedBy, rule.Expires, rule.Note, newParamSet, rule.ID)
+		return err // Don't wrap - crdbpgx might retry
+	})
 	if err != nil {
+		return skerr.Wrapf(err, "updating rule with id %s to %#v %#v", rule.ID, rule, newParamSet)
+	}
+	if existingRulePS.Equal(newParamSet) {
+		// We don't need to update Traces or ValuesAtHead because the query was unchanged.
+		return nil
+	}
+	// We could be updating a lot of traces and values at head here. If done as one big transaction,
+	// that could take a while to land if we are ingesting a lot of new data at the time. As such,
+	// we update in separate transactions.
+	combinedRules, err := s.getOtherRules(ctx, rule.ID)
+	if err != nil {
+		return skerr.Wrapf(err, "getting other rules when updating %s", rule.ID)
+	}
+	// Apply those old rules to the traces that match the old paramset
+	if err := conditionallyMarkTracesAsIgnored(ctx, s.db, existingRulePS, combinedRules); err != nil {
 		return skerr.Wrap(err)
 	}
-	return skerr.Wrap(updateTracesAndCommit(ctx, tx))
+	if err := conditionallyMarkValuesAtHeadAsIgnored(ctx, s.db, existingRulePS, combinedRules); err != nil {
+		return skerr.Wrap(err)
+	}
+	// Apply the result of the new rules.
+	if err := markTracesAsIgnored(ctx, s.db, newParamSet); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := markValuesAtHeadAsIgnored(ctx, s.db, newParamSet); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// conditionallyMarkTracesAsIgnored applies the slice of rules to all traces that match the
+// provided PatchSet.
+func conditionallyMarkTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
+	matches, matchArgs := ConvertIgnoreRules(rules)
+	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
+	statement := `UPDATE Traces SET matches_any_ignore_rule = `
+	statement += matches
+	statement += `WHERE `
+	statement += condition
+	statement += ` RETURNING NOTHING`
+	matchArgs = append(matchArgs, conArgs...)
+	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, matchArgs...)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "updating traces to match %d rules", len(rules))
+	}
+	return nil
+}
+
+// conditionallyMarkValuesAtHeadAsIgnored applies the slice of rules to all ValuesAtHead that
+// match the provided PatchSet.
+func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
+	matches, matchArgs := ConvertIgnoreRules(rules)
+	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
+	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
+	statement += matches
+	statement += `WHERE `
+	statement += condition
+	statement += ` RETURNING NOTHING`
+	matchArgs = append(matchArgs, conArgs...)
+	err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, matchArgs...)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "updating traces to match %d rules", len(rules))
+	}
+	return nil
 }
 
 // Delete implements the ignore.Store interface. It will mark the traces that match the params of
@@ -149,6 +218,32 @@ DELETE FROM IgnoreRules WHERE ignore_rule_id = $1`, id)
 		return skerr.Wrap(err)
 	}
 	return skerr.Wrap(updateTracesAndCommit(ctx, tx))
+}
+
+func (s *StoreImpl) getRuleParamset(ctx context.Context, id string) (paramtools.ParamSet, error) {
+	var ps paramtools.ParamSet
+	row := s.db.QueryRow(ctx, `SELECT query FROM IgnoreRules where ignore_rule_id = $1`, id)
+	if err := row.Scan(&ps); err != nil {
+		return ps, skerr.Wrap(err)
+	}
+	return ps, nil
+}
+
+func (s *StoreImpl) getOtherRules(ctx context.Context, id string) ([]paramtools.ParamSet, error) {
+	var rules []paramtools.ParamSet
+	rows, err := s.db.Query(ctx, `SELECT query FROM IgnoreRules where ignore_rule_id != $1`, id)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var ps paramtools.ParamSet
+		if err := rows.Scan(&ps); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rules = append(rules, ps)
+	}
+	return rules, nil
 }
 
 // updateTracesAndCommit gets all current ignore rules and apply them to all Traces and
@@ -204,12 +299,18 @@ var _ ignore.Store = (*StoreImpl)(nil)
 // named "keys". It is currently implemented with AND/OR clauses, but could potentially be done
 // with UNION/INTERSECT depending on performance needs.
 func ConvertIgnoreRules(rules []paramtools.ParamSet) (string, []interface{}) {
+	return convertIgnoreRules(rules, 1)
+}
+
+// convertIgnoreRules takes a parameter that configures where the numbered params start.
+// 1 is the lowest legal value. 2^16 is the biggest.
+func convertIgnoreRules(rules []paramtools.ParamSet, startIndex int) (string, []interface{}) {
 	if len(rules) == 0 {
 		return "false", nil
 	}
 	conditions := make([]string, 0, len(rules))
 	var arguments []interface{}
-	argIdx := 1
+	argIdx := startIndex
 
 	for _, rule := range rules {
 		rule.Normalize()

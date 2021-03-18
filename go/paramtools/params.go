@@ -148,6 +148,33 @@ func (p ParamSet) AddParamSet(ps map[string][]string) {
 	}
 }
 
+// Equal returns true if the given Paramset contain exactly the same keys and associated
+// values as this one. Side Effect: both ParamSets will be normalized after this call (their
+// values will be sorted) if they have the same number of keys.
+func (p ParamSet) Equal(right map[string][]string) bool {
+	if len(p) != len(right) {
+		return false
+	}
+	p.Normalize()
+	ParamSet(right).Normalize()
+	for k, leftValues := range p {
+		rightValues, ok := right[k]
+		if !ok {
+			return false
+		}
+		// Due to normalize, we expect leftValues and rightValues to be in sorted order
+		if len(leftValues) != len(rightValues) {
+			return false
+		}
+		for i := range leftValues {
+			if leftValues[i] != rightValues[i] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // Keys returns the keys of the ReadOnlyParamSet.
 func (p ReadOnlyParamSet) Keys() []string {
 	ret := make([]string, 0, len(p))

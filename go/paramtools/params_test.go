@@ -555,9 +555,93 @@ func TestParamSetAddParamSet_NonEmptyReadOnlyParamSet_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ps := NewParamSet()
 	rops := ReadOnlyParamSet{
-		"foo": []string{"bar", "baz"},
-		"qux": []string{"quux"},
+		"foo": {"bar", "baz"},
+		"qux": {"quux"},
 	}
 	ps.AddParamSet(rops)
 	assert.Equal(t, ReadOnlyParamSet(ps), rops)
+}
+
+func TestParamSetEqual_KeysAndValuesMatch_ReturnsTrue(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.True(t, ParamSet{}.Equal(nil))
+	assert.True(t, ParamSet{
+		"alpha": {"beta", "gamma", "delta"},
+	}.Equal(ReadOnlyParamSet{
+		"alpha": {"gamma", "delta", "beta"},
+	}))
+	assert.True(t, ParamSet{
+		"alpha":   {"beta", "gamma", "delta"},
+		"epsilon": {},
+		"lambda":  {"mu", "kappa"},
+	}.Equal(map[string][]string{
+		"alpha":   {"gamma", "delta", "beta"},
+		"epsilon": {},
+		"lambda":  {"kappa", "mu"},
+	}))
+}
+
+func TestParamSetEqual_KeysAndValuesDoNotMatch_ReturnsFalse(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.False(t, ParamSet{}.Equal(ParamSet{
+		"something": {"something else"},
+	}))
+	assert.False(t, ParamSet{
+		"something": {"something else"},
+	}.Equal(ParamSet{}))
+	assert.False(t, ParamSet{
+		"something": {"something else"},
+	}.Equal(nil))
+	assert.False(t, ParamSet{
+		"alpha": {"beta", "gamma", "delta"},
+	}.Equal(ParamSet{
+		"alpha": {"gamma", "delta"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha": {"beta", "delta"},
+	}.Equal(ParamSet{
+		"alpha": {"gamma", "delta", "beta"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha": {"beta", "delta", "gamma", "gamma"},
+	}.Equal(ParamSet{
+		"alpha": {"gamma", "delta", "beta"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha": {"beta", "delta", "gamma"},
+	}.Equal(ParamSet{
+		"alpha": {"gamma", "delta", "beta", "gamma"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha":   {"beta", "gamma", "delta"},
+		"epsilon": {},
+		"lambda":  {"mu", "kappa"},
+	}.Equal(ParamSet{
+		"alpha":  {"gamma", "delta", "beta"},
+		"lambda": {"kappa", "mu"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha":  {"beta", "gamma", "delta"},
+		"lambda": {"mu", "kappa"},
+	}.Equal(map[string][]string{
+		"alpha":   {"gamma", "delta", "beta"},
+		"epsilon": {},
+		"lambda":  {"kappa", "mu"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha":  {"beta", "gamma", "delta"},
+		"delta":  {},
+		"lambda": {"mu", "kappa"},
+	}.Equal(ParamSet{
+		"alpha":   {"gamma", "delta", "beta"},
+		"epsilon": {},
+		"lambda":  {"kappa", "mu"},
+	}))
+	assert.False(t, ParamSet{
+		"alpha": {"beta", "gamma", "delta"},
+	}.Equal(ParamSet{
+		"alpha": {"gamma", "delta", "bettttttttttta"},
+	}))
 }
