@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.opencensus.io/trace"
+
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -30,6 +32,8 @@ func New(db *pgxpool.Pool) *StoreImpl {
 // Create implements the ignore.Store interface. It will mark all traces that match the rule as
 // "ignored".
 func (s *StoreImpl) Create(ctx context.Context, rule ignore.Rule) error {
+	ctx, span := trace.StartSpan(ctx, "ignorestore_Create", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
 	v, err := url.ParseQuery(rule.Query)
 	if err != nil {
 		return skerr.Wrapf(err, "invalid ignore query %q", rule.Query)
@@ -57,6 +61,8 @@ VALUES ($1, $2, $3, $4, $5)`, rule.CreatedBy, rule.CreatedBy, rule.Expires, rule
 
 // markTracesAsIgnored will update all Traces matching the given paramset as ignored.
 func markTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]string) error {
+	ctx, span := trace.StartSpan(ctx, "markTracesAsIgnored")
+	defer span.End()
 	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps})
 	statement := `UPDATE Traces SET matches_any_ignore_rule = TRUE WHERE `
 	statement += condition
@@ -70,6 +76,8 @@ func markTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]
 
 // markValuesAtHeadAsIgnored will update all ValuesAtHead matching the given paramset as ignored.
 func markValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[string][]string) error {
+	ctx, span := trace.StartSpan(ctx, "markValuesAtHeadAsIgnored")
+	defer span.End()
 	condition, arguments := ConvertIgnoreRules([]paramtools.ParamSet{ps})
 	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = TRUE WHERE `
 	statement += condition
@@ -83,6 +91,8 @@ func markValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[str
 
 // List implements the ignore.Store interface.
 func (s *StoreImpl) List(ctx context.Context) ([]ignore.Rule, error) {
+	ctx, span := trace.StartSpan(ctx, "ignorestore_List", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
 	var rv []ignore.Rule
 	rows, err := s.db.Query(ctx, `SELECT * FROM IgnoreRules ORDER BY expires ASC`)
 	if err != nil {
@@ -112,6 +122,8 @@ func (s *StoreImpl) List(ctx context.Context) ([]ignore.Rule, error) {
 // plus the new rule affect them. It will then update all traces that match the new rule as
 // "ignored".
 func (s *StoreImpl) Update(ctx context.Context, rule ignore.Rule) error {
+	ctx, span := trace.StartSpan(ctx, "ignorestore_Update", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
 	newParamSet, err := url.ParseQuery(rule.Query)
 	if err != nil {
 		return skerr.Wrapf(err, "invalid ignore query %q", rule.Query)
@@ -160,6 +172,8 @@ WHERE ignore_rule_id = $5`, rule.UpdatedBy, rule.Expires, rule.Note, newParamSet
 // conditionallyMarkTracesAsIgnored applies the slice of rules to all traces that match the
 // provided PatchSet.
 func conditionallyMarkTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
+	ctx, span := trace.StartSpan(ctx, "conditionallyMarkTracesAsIgnored")
+	defer span.End()
 	matches, matchArgs := ConvertIgnoreRules(rules)
 	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
 	statement := `UPDATE Traces SET matches_any_ignore_rule = `
@@ -181,6 +195,8 @@ func conditionallyMarkTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps 
 // conditionallyMarkValuesAtHeadAsIgnored applies the slice of rules to all ValuesAtHead that
 // match the provided PatchSet.
 func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps paramtools.ParamSet, rules []paramtools.ParamSet) error {
+	ctx, span := trace.StartSpan(ctx, "conditionallyMarkValuesAtHeadAsIgnored")
+	defer span.End()
 	matches, matchArgs := ConvertIgnoreRules(rules)
 	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
 	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
@@ -202,6 +218,8 @@ func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Poo
 // Delete implements the ignore.Store interface. It will mark the traces that match the params of
 // the deleted rule as "ignored" or not depending on how the unchanged n-1 rules affect them.
 func (s *StoreImpl) Delete(ctx context.Context, id string) error {
+	ctx, span := trace.StartSpan(ctx, "ignorestore_Delete", trace.WithSampler(trace.AlwaysSample()))
+	defer span.End()
 	existingRulePS, err := s.getRuleParamSet(ctx, id)
 	if err != nil {
 		return skerr.Wrapf(err, "getting existing rule with id %s", id)
@@ -230,6 +248,8 @@ DELETE FROM IgnoreRules WHERE ignore_rule_id = $1`, id)
 
 // getRuleParamSet returns the ParamSet for a given rule.
 func (s *StoreImpl) getRuleParamSet(ctx context.Context, id string) (paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getRuleParamSet")
+	defer span.End()
 	var ps paramtools.ParamSet
 	row := s.db.QueryRow(ctx, `SELECT query FROM IgnoreRules where ignore_rule_id = $1`, id)
 	if err := row.Scan(&ps); err != nil {
@@ -240,6 +260,8 @@ func (s *StoreImpl) getRuleParamSet(ctx context.Context, id string) (paramtools.
 
 // getOtherRules returns a slice of params that has all rules not matching the given id.
 func (s *StoreImpl) getOtherRules(ctx context.Context, id string) ([]paramtools.ParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "getOtherRules")
+	defer span.End()
 	var rules []paramtools.ParamSet
 	rows, err := s.db.Query(ctx, `SELECT query FROM IgnoreRules where ignore_rule_id != $1`, id)
 	if err != nil {
