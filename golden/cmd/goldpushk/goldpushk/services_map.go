@@ -89,9 +89,8 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			s.add(instance, Ingestion)
 			s.add(instance, IngestionBT)
 			s.add(instance, Frontend)
-			// See skbug.com/11367 for ChromiumOSTastDev.
 			// See http://review.skia.org/376843 for Fuchsia
-			if instance != ChromiumOSTastDev && instance != Fuchsia {
+			if instance != Fuchsia {
 				s.add(instance, GitilesFollower)
 			}
 		}
