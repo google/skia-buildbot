@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"flag"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -29,6 +30,8 @@ func main() {
 		startYear  = flag.Int("start_year", 2019, "year to start ingesting")
 		startMonth = flag.Int("start_month", 1, "month to start ingesting")
 		startDay   = flag.Int("start_day", 1, "day to start ingesting (at midnight UTC)")
+
+		sleepBetweenDays = flag.Duration("sleep_between_days", 0, "If non-zero, the amount of time to wait after reingesting one day's worth of data.")
 	)
 	flag.Parse()
 
@@ -71,6 +74,12 @@ func main() {
 				sklog.Fatalf("Could not publish: %s", err)
 			} else {
 				sklog.Debugf("Published something for %s", dir)
+			}
+		}
+		if strings.HasSuffix(dir, "/23") {
+			if *sleepBetweenDays > time.Second {
+				sklog.Infof("Waiting at the end of a day")
+				time.Sleep(*sleepBetweenDays)
 			}
 		}
 	}
