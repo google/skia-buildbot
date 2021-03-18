@@ -14,7 +14,6 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
@@ -41,6 +40,9 @@ INSERT INTO IgnoreRules (creator_email, updated_email, expires, note, query)
 VALUES ($1, $2, $3, $4, $5)`, rule.CreatedBy, rule.CreatedBy, rule.Expires, rule.Note, v)
 		return err // Don't wrap - crdbpgx might retry
 	})
+	if err != nil {
+		return skerr.Wrapf(err, "creating ignore rule %#v", rule)
+	}
 	// We could be updating a lot of traces and values at head here. If done as one big transaction,
 	// that could take a while to land if we are ingesting a lot of new data at the time. As such,
 	// we do it in three independent transactions
@@ -79,13 +81,6 @@ func markValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Pool, ps map[str
 	return skerr.Wrap(err)
 }
 
-func rollbackAndLogIfError(ctx context.Context, tx pgx.Tx) {
-	err := tx.Rollback(ctx)
-	if err != nil && err != pgx.ErrTxClosed {
-		sklog.Warningf("Error while rolling back: %s", err)
-	}
-}
-
 // List implements the ignore.Store interface.
 func (s *StoreImpl) List(ctx context.Context) ([]ignore.Rule, error) {
 	var rv []ignore.Rule
@@ -121,7 +116,7 @@ func (s *StoreImpl) Update(ctx context.Context, rule ignore.Rule) error {
 	if err != nil {
 		return skerr.Wrapf(err, "invalid ignore query %q", rule.Query)
 	}
-	existingRulePS, err := s.getRuleParamset(ctx, rule.ID)
+	existingRulePS, err := s.getRuleParamSet(ctx, rule.ID)
 	if err != nil {
 		return skerr.Wrapf(err, "getting existing rule with id %s", rule.ID)
 	}
@@ -169,7 +164,7 @@ func conditionallyMarkTracesAsIgnored(ctx context.Context, db *pgxpool.Pool, ps 
 	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
 	statement := `UPDATE Traces SET matches_any_ignore_rule = `
 	statement += matches
-	statement += `WHERE `
+	statement += ` WHERE `
 	statement += condition
 	statement += ` RETURNING NOTHING`
 	matchArgs = append(matchArgs, conArgs...)
@@ -190,7 +185,7 @@ func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Poo
 	condition, conArgs := convertIgnoreRules([]paramtools.ParamSet{ps}, len(matchArgs)+1)
 	statement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
 	statement += matches
-	statement += `WHERE `
+	statement += ` WHERE `
 	statement += condition
 	statement += ` RETURNING NOTHING`
 	matchArgs = append(matchArgs, conArgs...)
@@ -207,20 +202,34 @@ func conditionallyMarkValuesAtHeadAsIgnored(ctx context.Context, db *pgxpool.Poo
 // Delete implements the ignore.Store interface. It will mark the traces that match the params of
 // the deleted rule as "ignored" or not depending on how the unchanged n-1 rules affect them.
 func (s *StoreImpl) Delete(ctx context.Context, id string) error {
-	tx, err := s.db.Begin(ctx)
+	existingRulePS, err := s.getRuleParamSet(ctx, id)
 	if err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "getting existing rule with id %s", id)
 	}
-	defer rollbackAndLogIfError(ctx, tx)
-	_, err = tx.Exec(ctx, `
+	err = crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err = tx.Exec(ctx, `
 DELETE FROM IgnoreRules WHERE ignore_rule_id = $1`, id)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	// We could be updating a lot of traces and values at head here. If done as one big transaction,
+	// that could take a while to land if we are ingesting a lot of new data at the time. As such,
+	// we update in separate transactions.
+	remainingRules, err := s.getOtherRules(ctx, id)
 	if err != nil {
+		return skerr.Wrapf(err, "getting other rules when deleting %s", id)
+	}
+	// Apply those old rules to the traces that match the old paramset
+	if err := conditionallyMarkTracesAsIgnored(ctx, s.db, existingRulePS, remainingRules); err != nil {
 		return skerr.Wrap(err)
 	}
-	return skerr.Wrap(updateTracesAndCommit(ctx, tx))
+	if err := conditionallyMarkValuesAtHeadAsIgnored(ctx, s.db, existingRulePS, remainingRules); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
-func (s *StoreImpl) getRuleParamset(ctx context.Context, id string) (paramtools.ParamSet, error) {
+// getRuleParamSet returns the ParamSet for a given rule.
+func (s *StoreImpl) getRuleParamSet(ctx context.Context, id string) (paramtools.ParamSet, error) {
 	var ps paramtools.ParamSet
 	row := s.db.QueryRow(ctx, `SELECT query FROM IgnoreRules where ignore_rule_id = $1`, id)
 	if err := row.Scan(&ps); err != nil {
@@ -229,6 +238,7 @@ func (s *StoreImpl) getRuleParamset(ctx context.Context, id string) (paramtools.
 	return ps, nil
 }
 
+// getOtherRules returns a slice of params that has all rules not matching the given id.
 func (s *StoreImpl) getOtherRules(ctx context.Context, id string) ([]paramtools.ParamSet, error) {
 	var rules []paramtools.ParamSet
 	rows, err := s.db.Query(ctx, `SELECT query FROM IgnoreRules where ignore_rule_id != $1`, id)
@@ -244,52 +254,6 @@ func (s *StoreImpl) getOtherRules(ctx context.Context, id string) ([]paramtools.
 		rules = append(rules, ps)
 	}
 	return rules, nil
-}
-
-// updateTracesAndCommit gets all current ignore rules and apply them to all Traces and
-// ValuesAtHead. This is done in the passed in transaction, so if it fails, we can rollback.
-// If successful, the transaction is committed.
-func updateTracesAndCommit(ctx context.Context, tx pgx.Tx) error {
-	return skerr.Wrap(tx.Commit(ctx))
-	//rows, err := tx.Query(ctx, "SELECT query FROM IgnoreRules")
-	//if err != nil {
-	//	return skerr.Wrap(err)
-	//}
-	//var ignoreRules []paramtools.ParamSet
-	//for rows.Next() {
-	//	rule := paramtools.ParamSet{}
-	//	err := rows.Scan(&rule)
-	//	if err != nil {
-	//		return skerr.Wrap(err)
-	//	}
-	//	ignoreRules = append(ignoreRules, rule)
-	//}
-	//sklog.Infof("Applying %d rules", len(ignoreRules))
-	//
-	//condition, arguments := convertIgnoreRules(ignoreRules)
-	//
-	//statement := `UPDATE Traces SET matches_any_ignore_rule = `
-	//statement += condition
-	//// RETURNING NOTHING hints the SQL engine that it can shard this out w/o having to count the
-	//// total number of rows modified, which can lead to slightly faster queries.
-	//statement += ` RETURNING NOTHING`
-	//_, err = tx.Exec(ctx, statement, arguments...)
-	//if err != nil {
-	//	return skerr.Wrapf(err, "Updating traces with statement: %s", statement)
-	//}
-	//
-	//headStatement := `UPDATE ValuesAtHead SET matches_any_ignore_rule = `
-	//headStatement += condition
-	//headStatement += ` RETURNING NOTHING`
-	//_, err = tx.Exec(ctx, headStatement, arguments...)
-	//if err != nil {
-	//	return skerr.Wrapf(err, "Updating head table with statement: %s", headStatement)
-	//}
-	//
-	//if err := tx.Commit(ctx); err != nil {
-	//	return skerr.Wrap(err)
-	//}
-	//return nil
 }
 
 // Make sure Store fulfills the ignore.Store interface

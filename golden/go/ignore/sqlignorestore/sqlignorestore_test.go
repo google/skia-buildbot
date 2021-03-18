@@ -213,8 +213,8 @@ func TestCreate_RuleWithMissingKey_NothingUpdated(t *testing.T) {
 	assert.Equal(t, expectedStatuses, actualValuesAtHead)
 }
 
-// loadTestData creates 6 traces of varying ignore states (2 each of NULL, True, False) with
-// a single ignore rule.
+// loadTestData creates 6 traces of varying ignore states (2 ignored, 4 not) with a single
+// ignore rule.
 func loadTestData() schema.Tables {
 	data := databuilder.TablesBuilder{}
 	data.CommitsWithData().Insert("123", "whoever@example.com", "initial commit", "2021-01-11T16:00:00Z")
@@ -605,7 +605,7 @@ func TestDelete_ExistingRule_RuleIsDeleted(t *testing.T) {
 	}, rules[0])
 }
 
-func TestDelete_MissingID_NothingIsDeleted(t *testing.T) {
+func TestDelete_MissingID_ErrorReturnedAndNothingIsDeleted(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -624,16 +624,85 @@ func TestDelete_MissingID_NothingIsDeleted(t *testing.T) {
 	require.Len(t, rules, 1)
 
 	// It is extremely unlikely this is the actual record ID.
-	require.NoError(t, store.Delete(ctx, "00000000-1111-2222-3333-444444444444"))
+	require.Error(t, store.Delete(ctx, "00000000-1111-2222-3333-444444444444"))
 
 	rules, err = store.List(ctx)
 	require.NoError(t, err)
 	require.Len(t, rules, 1)
 }
 
-func TestDelete_NoRulesRemain_NothingIsIgnored(t *testing.T) {
-	t.Skip("Broken")
+func TestDelete_NoRulesRemain_NoTracesAreIgnored(t *testing.T) {
+	unittest.LargeTest(t)
 
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := loadTestData()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	store := New(db)
+	require.NoError(t, store.Delete(ctx, existingData.IgnoreRules[0].IgnoreRuleID.String()))
+
+	expectedStatuses := map[string]schema.NullableBool{
+		"SailfishOne":   schema.NBFalse, // changed
+		"SailfishTwo":   schema.NBFalse, // changed
+		"SailfishThree": schema.NBFalse, // changed
+		"BullheadOne":   schema.NBFalse, // untouched
+		"BullheadTwo":   schema.NBFalse, // untouched
+		"BullheadThree": schema.NBFalse, // untouched
+	}
+	actualTraces := getTracesAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualTraces)
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualValuesAtHead)
+}
+
+func TestDelete_RuleAffectingNothingDeleted_RemainingRuleStillApplies(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	store := New(db)
+	require.NoError(t, store.Delete(ctx, idForRule(existingData.IgnoreRules, "expired")))
+
+	actualTraces := getTracesAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBTrue, actualTraces["taimencircle"])       // Still ignored
+	assert.Equal(t, schema.NBTrue, actualTraces["taimensquare"])       // Still ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["taimentriangle"])    // not affected
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyeround rect"]) // not affected
+	assert.Equal(t, schema.NBFalse, actualTraces["iPad6,3square"])     // not affected
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimencircle"])    // Still ignored
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimensquare"])    // Still ignored
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimentriangle"]) // not affected
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["iPad6,3square"])  // not affected
+}
+
+func TestDelete_RuleAffectingSomethingDeleted_RemainingRuleStillApplies(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	store := New(db)
+	require.NoError(t, store.Delete(ctx, idForRule(existingData.IgnoreRules, "Taimen")))
+
+	actualTraces := getTracesAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBFalse, actualTraces["taimencircle"])      // no longer ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["taimensquare"])      // no longer ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["taimentriangle"])    // not affected
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyeround rect"]) // not affected
+	assert.Equal(t, schema.NBFalse, actualTraces["iPad6,3square"])     // not affected
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimencircle"])   // no longer ignored
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimensquare"])   // no longer ignored
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimentriangle"]) // not affected
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["iPad6,3square"])  // not affected
 }
 
 func TestList_Success(t *testing.T) {
@@ -643,27 +712,18 @@ func TestList_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	existingData := dks.Build()
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
-
-	findIDForRule := func(substr string) string {
-		for _, r := range existingData.IgnoreRules {
-			if strings.Contains(r.Note, substr) {
-				return r.IgnoreRuleID.String()
-			}
-		}
-		panic("could not find")
-	}
 	store := New(db)
 	rules, err := store.List(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, []ignore.Rule{{
-		ID:        findIDForRule("expired"),
+		ID:        idForRule(existingData.IgnoreRules, "expired"),
 		CreatedBy: dks.UserTwo,
 		UpdatedBy: dks.UserOne,
 		Expires:   time.Date(2020, time.February, 14, 13, 12, 11, 0, time.UTC),
 		Query:     "device=Nokia4&source_type=corners",
 		Note:      "This rule has expired (and does not apply to anything)",
 	}, {
-		ID:        findIDForRule("Taimen"),
+		ID:        idForRule(existingData.IgnoreRules, "Taimen"),
 		CreatedBy: dks.UserTwo,
 		UpdatedBy: dks.UserOne,
 		Expires:   time.Date(2030, time.December, 30, 15, 16, 17, 0, time.UTC),
