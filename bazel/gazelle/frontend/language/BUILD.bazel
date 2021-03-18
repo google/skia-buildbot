@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "language",
+    srcs = ["language.go"],
+    importpath = "go.skia.org/infra/bazel/gazelle/frontend/language",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/gazelle/frontend/common",
+        "//bazel/gazelle/frontend/configurer",
+        "//bazel/gazelle/frontend/parsers",
+        "//bazel/gazelle/frontend/resolver",
+        "//go/util",
+        "@bazel_gazelle//config:go_default_library",
+        "@bazel_gazelle//language:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+    ],
+)
