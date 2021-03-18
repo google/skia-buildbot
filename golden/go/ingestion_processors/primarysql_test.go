@@ -1092,6 +1092,68 @@ func TestPrimarySQL_Process_OlderDataWithCaches_SomeValuesAtHeadUpdated(t *testi
 	})
 }
 
+func TestPrimarySQL_Process_DuplicateTraces_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	validCommits := dks.Build().GitCommits
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, schema.Tables{
+		GitCommits: validCommits,
+	}))
+
+	const squareTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"square","os":"Windows10.2","source_type":"corners"}`
+	const triangleTraceKeys = `{"color mode":"RGB","device":"QuadroP400","name":"triangle","os":"Windows10.2","source_type":"corners"}`
+	src := fakeGCSSourceFromFile(t, "duplicate_traces.json")
+	s := PrimaryBranchSQL(src, map[string]string{sqlTileWidthConfig: "5"}, db)
+	resultsMetricBefore := s.resultsIngested.Get()
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := s.Process(ctx, "whatever.json")
+	require.NoError(t, err)
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Equal(t, []schema.TraceRow{{
+		TraceID:    h(squareTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:    h(triangleTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(triangleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.Windows10dot2OS,
+			dks.DeviceKey:         dks.QuadroDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, actualTraces)
+
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.Len(t, actualOptions, 1)
+
+	actualGroupings := sqltest.GetAllRows(ctx, t, db, "Groupings", &schema.GroupingRow{}).([]schema.GroupingRow)
+	assert.Len(t, actualGroupings, 2)
+
+	actualTraceValues := sqltest.GetAllRows(ctx, t, db, "TraceValues", &schema.TraceValueRow{}).([]schema.TraceValueRow)
+	assert.Len(t, actualTraceValues, 2)
+
+	actualValuesAtHead := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	assert.Len(t, actualValuesAtHead, 2)
+
+	// We processed 3 results, even though there was a duplicate.
+	assert.Equal(t, resultsMetricBefore+3, s.resultsIngested.Get())
+}
+
 func TestPrimarySQL_MonitorCacheMetrics_Success(t *testing.T) {
 	unittest.MediumTest(t)
 	s := PrimaryBranchSQL(nil, nil, nil)
