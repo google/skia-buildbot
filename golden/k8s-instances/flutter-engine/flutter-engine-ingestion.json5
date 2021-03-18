@@ -1,33 +1,34 @@
 {
   backup_poll_interval: "1h",
   backup_poll_scope: "2h",
-  ingestion_files_topic: "gold-skia-infra-data-files",
-  ingestion_subscription: "gold-skia-infra-ingestion",
+  ingestion_files_topic: "gold-flutter-engine-data-files",
+  ingestion_subscription: "gold-flutter-engine-ingestion",
   port: ":9091",
   prom_port: ":20000",
 
   primary_branch_config: {
     type: "sql_primary",
     gcs_source: {
-      bucket: "skia-gold-skia-infra",
+      bucket: "skia-gold-flutter-engine",
       prefix: "dm-json-v1"
     },
     extra_configuration: {
-      TileWidth: "100",
+      TileWidth: "100"
     }
   },
 // TODO(kjlubick) enable the below once ingestion-bt is removed
 //  secondary_branch_config: {
 //    type: "sql_secondary",
 //    gcs_source: {
-//      bucket: "skia-gold-skia-infra",
+//      bucket: "skia-gold-flutter-engine",
 //      prefix: "trybot/dm-json-v1"
 //    },
 //    extra_configuration: {
-//      CodeReviewSystems: "gerrit",
-//      GerritURL:         "https://skia-review.googlesource.com",
+//      CodeReviewSystems:     "github",
+//      GitHubCredentialsPath: "/var/secrets/github/github_token",
+//      GitHubRepo:            "flutter/engine",
 //
-//      ContinuousIntegrationSystems: "buildbucket",
+//      ContinuousIntegrationSystems: "cirrus,buildbucket",
 //    }
 //  },
 

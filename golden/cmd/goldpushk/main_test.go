@@ -128,6 +128,7 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	chromeBaselineServer := makeID(goldpushk.Chrome, goldpushk.BaselineServer)
 	chromeDiffCalculator := makeID(goldpushk.Chrome, goldpushk.DiffCalculator)
 	chromeFrontend := makeID(goldpushk.Chrome, goldpushk.Frontend)
+	chromeIngestion := makeID(goldpushk.Chrome, goldpushk.Ingestion)
 	chromeIngestionBT := makeID(goldpushk.Chrome, goldpushk.IngestionBT)
 	chromeGitilesFollower := makeID(goldpushk.Chrome, goldpushk.GitilesFollower)
 	chromePublicFrontend := makeID(goldpushk.ChromePublic, goldpushk.Frontend)
@@ -212,27 +213,27 @@ func TestParseAndValidateFlagsSuccess(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	test("Single instance, all services, no canary",
 		[]string{"chrome"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeIngestion, chromeFrontend, chromeGitilesFollower},
 		nil)
 	test("Single instance, all services, one canary",
 		[]string{"chrome"}, []string{"all"}, []string{"chrome:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeIngestion, chromeGitilesFollower},
 		[]goldpushk.DeployableUnitID{chromeFrontend})
 	test("Single instance, all services, multiple canaries",
 		[]string{"chrome"}, []string{"all"}, []string{"chrome:ingestion-bt", "chrome:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestion, chromeGitilesFollower},
 		[]goldpushk.DeployableUnitID{chromeIngestionBT, chromeFrontend})
 	test("Multiple instances, all services, no canary",
 		[]string{"chrome", "skia"}, []string{"all"}, nil,
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaIngestion, skiaFrontend, skiaGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeIngestion, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaIngestion, skiaFrontend, skiaGitilesFollower},
 		nil)
 	test("Multiple instances, all services, one canary",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaIngestion, skiaGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeIngestion, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestionBT, skiaIngestion, skiaGitilesFollower},
 		[]goldpushk.DeployableUnitID{skiaFrontend})
 	test("Multiple instances, all services, multiple canaries",
 		[]string{"chrome", "skia"}, []string{"all"}, []string{"skia:ingestion-bt", "skia:frontend"},
-		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestion, skiaGitilesFollower},
+		[]goldpushk.DeployableUnitID{chromeBaselineServer, chromeDiffCalculator, chromeIngestionBT, chromeIngestion, chromeFrontend, chromeGitilesFollower, skiaDiffCalculator, skiaIngestion, skiaGitilesFollower},
 		[]goldpushk.DeployableUnitID{skiaIngestionBT, skiaFrontend})
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

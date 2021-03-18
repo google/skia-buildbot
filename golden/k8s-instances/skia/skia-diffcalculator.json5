@@ -1,5 +1,5 @@
 {
-  commits_with_data_to_search: -1, // TODO(kjlubick) revert after re-ingestion complete
+  commits_with_data_to_search: -1, // TODO(kjlubick) turn back on slowly after re-ingestion
   diff_cache_namespace: "skia",
   diff_work_subscription: "gold-skia-diffcalculator", // includes instance id
   memcached_server: "gold-memcached-0.gold-memcached:11211",

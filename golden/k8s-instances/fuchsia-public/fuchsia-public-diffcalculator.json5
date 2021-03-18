@@ -1,5 +1,5 @@
 {
-  commits_with_data_to_search: 200,
+  commits_with_data_to_search: -1, // TODO(kjlubick) turn back on slowly after re-ingestion
   diff_cache_namespace: "fuchsia-public",
   diff_work_subscription: "gold-fuchsia-public-diffcalculator", // includes instance id
   memcached_server: "gold-memcached-0.gold-memcached:11211",

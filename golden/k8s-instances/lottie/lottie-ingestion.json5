@@ -1,0 +1,24 @@
+{
+  backup_poll_interval: "1h",
+  backup_poll_scope: "2h",
+  ingestion_files_topic: "gold-lottie-data-files",
+  ingestion_subscription: "gold-lottie-ingestion",
+  port: ":9091",
+  prom_port: ":20000",
+
+  primary_branch_config: {
+    type: "sql_primary",
+    gcs_source: {
+      bucket: "skia-gold-lottie",
+      prefix: "dm-json-v1"
+    },
+    extra_configuration: {
+      TileWidth: "100"
+    }
+  },
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_NODE_SELECTOR_KEY: "beta.kubernetes.io/instance-type",
+  K8S_NODE_SELECTOR_VALUE1: "n1-standard-16",
+  K8S_NODE_SELECTOR_VALUE2: "e2-standard-16"
+}
