@@ -6,7 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgtype"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -119,45 +120,19 @@ func TestCreate_AllIgnoreStatusesNull_TracesMatchingRuleUpdated(t *testing.T) {
 		Note:      "skbug.com/1234",
 	}))
 
-	tr, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM Traces`)
-	require.NoError(t, err)
-	defer tr.Close()
-	actualTraces := map[string]schema.NullableBool{}
-	for tr.Next() {
-		var model string
-		var name string
-		var matches pgtype.Bool
-		require.NoError(t, tr.Scan(&model, &name, &matches))
-		actualTraces[model+name] = convertToNullableBool(matches)
-	}
-	assert.Equal(t, map[string]schema.NullableBool{
+	expectedStatuses := map[string]schema.NullableBool{
 		"SailfishOne":   schema.NBTrue, // changed
 		"SailfishTwo":   schema.NBTrue, // changed
 		"SailfishThree": schema.NBTrue, // changed
 		"BullheadOne":   schema.NBNull, // untouched
 		"BullheadTwo":   schema.NBNull, // untouched
 		"BullheadThree": schema.NBNull, // untouched
-	}, actualTraces)
+	}
+	actualTraces := getTracesAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualTraces)
 
-	vr, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM ValuesAtHead`)
-	require.NoError(t, err)
-	defer vr.Close()
-	actualValuesAtHead := map[string]schema.NullableBool{}
-	for vr.Next() {
-		var model string
-		var name string
-		var matches pgtype.Bool
-		require.NoError(t, vr.Scan(&model, &name, &matches))
-		actualValuesAtHead[model+name] = convertToNullableBool(matches)
-	}
-	assert.Equal(t, map[string]schema.NullableBool{
-		"SailfishOne":   schema.NBTrue, // changed
-		"SailfishTwo":   schema.NBTrue, // changed
-		"SailfishThree": schema.NBTrue, // changed
-		"BullheadOne":   schema.NBNull, // untouched
-		"BullheadTwo":   schema.NBNull, // untouched
-		"BullheadThree": schema.NBNull, // untouched
-	}, actualValuesAtHead)
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualValuesAtHead)
 }
 
 func TestCreate_RuleWithSomeMissingValues_TracesMatchingRuleUpdated(t *testing.T) {
@@ -185,45 +160,19 @@ func TestCreate_RuleWithSomeMissingValues_TracesMatchingRuleUpdated(t *testing.T
 		Note:  "skbug.com/1234",
 	}))
 
-	tr, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM Traces`)
-	require.NoError(t, err)
-	defer tr.Close()
-	actualTraces := map[string]schema.NullableBool{}
-	for tr.Next() {
-		var model string
-		var name string
-		var matches pgtype.Bool
-		require.NoError(t, tr.Scan(&model, &name, &matches))
-		actualTraces[model+name] = convertToNullableBool(matches)
-	}
-	assert.Equal(t, map[string]schema.NullableBool{
+	expectedStatuses := map[string]schema.NullableBool{
 		"SailfishOne":   schema.NBNull, // untouched
 		"SailfishTwo":   schema.NBNull, // untouched
 		"SailfishThree": schema.NBNull, // untouched
 		"BullheadOne":   schema.NBNull, // untouched
 		"BullheadTwo":   schema.NBTrue, // changed
 		"BullheadThree": schema.NBTrue, // changed
-	}, actualTraces)
+	}
+	actualTraces := getTracesAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualTraces)
 
-	vr, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM ValuesAtHead`)
-	require.NoError(t, err)
-	defer vr.Close()
-	actualValuesAtHead := map[string]schema.NullableBool{}
-	for vr.Next() {
-		var model string
-		var name string
-		var matches pgtype.Bool
-		require.NoError(t, vr.Scan(&model, &name, &matches))
-		actualValuesAtHead[model+name] = convertToNullableBool(matches)
-	}
-	assert.Equal(t, map[string]schema.NullableBool{
-		"SailfishOne":   schema.NBNull, // untouched
-		"SailfishTwo":   schema.NBNull, // untouched
-		"SailfishThree": schema.NBNull, // untouched
-		"BullheadOne":   schema.NBNull, // untouched
-		"BullheadTwo":   schema.NBTrue, // changed
-		"BullheadThree": schema.NBTrue, // changed
-	}, actualValuesAtHead)
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualValuesAtHead)
 }
 
 func TestCreate_RuleWithMissingKey_NothingUpdated(t *testing.T) {
@@ -249,45 +198,19 @@ func TestCreate_RuleWithMissingKey_NothingUpdated(t *testing.T) {
 		Note:      "skbug.com/1234",
 	}))
 
-	tr, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM Traces`)
-	require.NoError(t, err)
-	defer tr.Close()
-	actualTraces := map[string]schema.NullableBool{}
-	for tr.Next() {
-		var model string
-		var name string
-		var matches pgtype.Bool
-		require.NoError(t, tr.Scan(&model, &name, &matches))
-		actualTraces[model+name] = convertToNullableBool(matches)
-	}
-	assert.Equal(t, map[string]schema.NullableBool{
+	expectedStatuses := map[string]schema.NullableBool{
 		"SailfishOne":   schema.NBNull, // untouched
 		"SailfishTwo":   schema.NBNull, // untouched
 		"SailfishThree": schema.NBNull, // untouched
 		"BullheadOne":   schema.NBNull, // untouched
 		"BullheadTwo":   schema.NBNull, // untouched
 		"BullheadThree": schema.NBNull, // untouched
-	}, actualTraces)
+	}
+	actualTraces := getTracesAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualTraces)
 
-	vr, err := db.Query(ctx, `SELECT keys->>'model', keys->>'name', matches_any_ignore_rule FROM ValuesAtHead`)
-	require.NoError(t, err)
-	defer vr.Close()
-	actualValuesAtHead := map[string]schema.NullableBool{}
-	for vr.Next() {
-		var model string
-		var name string
-		var matches pgtype.Bool
-		require.NoError(t, vr.Scan(&model, &name, &matches))
-		actualValuesAtHead[model+name] = convertToNullableBool(matches)
-	}
-	assert.Equal(t, map[string]schema.NullableBool{
-		"SailfishOne":   schema.NBNull, // untouched
-		"SailfishTwo":   schema.NBNull, // untouched
-		"SailfishThree": schema.NBNull, // untouched
-		"BullheadOne":   schema.NBNull, // untouched
-		"BullheadTwo":   schema.NBNull, // untouched
-		"BullheadThree": schema.NBNull, // untouched
-	}, actualValuesAtHead)
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "model", "name")
+	assert.Equal(t, expectedStatuses, actualValuesAtHead)
 }
 
 // loadTestData creates 6 traces of varying ignore states (2 each of NULL, True, False) with
@@ -314,18 +237,281 @@ func loadTestData() schema.Tables {
 	return data.Build()
 }
 
-func convertToNullableBool(b pgtype.Bool) schema.NullableBool {
-	if b.Status != pgtype.Present {
-		return schema.NBNull
+func getTracesAndStatus(ctx context.Context, t *testing.T, db *pgxpool.Pool, keys ...string) map[string]schema.NullableBool {
+	require.NotEmpty(t, keys)
+	rows := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	actualTraces := map[string]schema.NullableBool{}
+	for _, r := range rows {
+		combined := ""
+		for _, key := range keys {
+			combined += r.Keys[key]
+		}
+		actualTraces[combined] = r.MatchesAnyIgnoreRule
 	}
-	if b.Bool {
-		return schema.NBTrue
-	}
-	return schema.NBFalse
+	return actualTraces
 }
 
-func TestUpdate_ExistingRule_RuleIsModified(t *testing.T) {
-	t.Skip("Broken")
+func getValuesAtHeadAndStatus(ctx context.Context, t *testing.T, db *pgxpool.Pool, keys ...string) map[string]schema.NullableBool {
+	require.NotEmpty(t, keys)
+	rows := sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}).([]schema.ValueAtHeadRow)
+	actualValues := map[string]schema.NullableBool{}
+	for _, r := range rows {
+		combined := ""
+		for _, key := range keys {
+			combined += r.Keys[key]
+		}
+		actualValues[combined] = r.MatchesAnyIgnoreRule
+	}
+	return actualValues
+}
+
+func TestUpdate_ExistingRuleExpanded_AdditionalTracesIgnored(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	newExpires := time.Date(2022, time.January, 1, 1, 1, 1, 0, time.UTC)
+
+	store := New(db)
+	require.NoError(t, store.Update(ctx, ignore.Rule{
+		ID:        idForRule(existingData.IgnoreRules, "Taimen"),
+		CreatedBy: dks.UserTwo,
+		UpdatedBy: dks.UserFour,
+		Expires:   newExpires,
+		// This rule previously ignored the square and circle test. Now it ignores all three tests.
+		Query: "device=taimen&name=square&name=triangle&name=circle",
+		Note:  "Should ignore all 3 tests now",
+	}))
+
+	actualTraces := getTracesAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBTrue, actualTraces["taimencircle"])       // Still ignored
+	assert.Equal(t, schema.NBTrue, actualTraces["taimensquare"])       // Still ignored
+	assert.Equal(t, schema.NBTrue, actualTraces["taimentriangle"])     // Updated
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyeround rect"]) // not affected
+	assert.Equal(t, schema.NBFalse, actualTraces["iPad6,3square"])     // not affected
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimencircle"])   // Still ignored
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimensquare"])   // Still ignored
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimentriangle"]) // Updated
+	// walleye + round rect is not landed, so it is not in the table ValuesAtHead
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["iPad6,3square"]) // not affected
+
+	actualIgnoreRules := sqltest.GetAllRows(ctx, t, db, "IgnoreRules", &schema.IgnoreRuleRow{}).([]schema.IgnoreRuleRow)
+	assert.ElementsMatch(t, []schema.IgnoreRuleRow{{
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "Taimen")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserFour,                    // Updated
+		Expires:      newExpires,                      // Updated
+		Note:         "Should ignore all 3 tests now", // Updated
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:         []string{dks.TaimenDevice},
+			types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest, dks.TriangleTest},
+		},
+	}, {
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "expired")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserOne,
+		Expires:      time.Date(2020, time.February, 14, 13, 12, 11, 0, time.UTC),
+		Note:         "This rule has expired (and does not apply to anything)",
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:     []string{"Nokia4"},
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+	}}, actualIgnoreRules)
+}
+
+func TestUpdate_QueryNotChanged_IgnoreRuleUpdated(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	newExpires := time.Date(2022, time.January, 1, 1, 1, 1, 0, time.UTC)
+
+	store := New(db)
+	require.NoError(t, store.Update(ctx, ignore.Rule{
+		ID:        idForRule(existingData.IgnoreRules, "Taimen"),
+		CreatedBy: dks.UserTwo,
+		UpdatedBy: dks.UserFour,
+		Expires:   newExpires,
+		Query:     "device=taimen&name=square&name=circle",
+		Note:      "Note and expires was updated",
+	}))
+
+	actualTraces := getTracesAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBTrue, actualTraces["taimencircle"])
+	assert.Equal(t, schema.NBTrue, actualTraces["taimensquare"])
+	assert.Equal(t, schema.NBFalse, actualTraces["taimentriangle"])
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyeround rect"])
+	assert.Equal(t, schema.NBFalse, actualTraces["iPad6,3square"])
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimencircle"])
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimensquare"])
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimentriangle"])
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["iPad6,3square"])
+
+	actualIgnoreRules := sqltest.GetAllRows(ctx, t, db, "IgnoreRules", &schema.IgnoreRuleRow{}).([]schema.IgnoreRuleRow)
+	assert.ElementsMatch(t, []schema.IgnoreRuleRow{{
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "Taimen")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserFour,                   // Updated
+		Expires:      newExpires,                     // Updated
+		Note:         "Note and expires was updated", // Updated
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:         []string{dks.TaimenDevice},
+			types.PrimaryKeyField: []string{dks.CircleTest, dks.SquareTest},
+		},
+	}, {
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "expired")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserOne,
+		Expires:      time.Date(2020, time.February, 14, 13, 12, 11, 0, time.UTC),
+		Note:         "This rule has expired (and does not apply to anything)",
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:     []string{"Nokia4"},
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+	}}, actualIgnoreRules)
+}
+
+func TestUpdate_ExistingRuleReduced_FewerTracesIgnored(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	newExpires := time.Date(2022, time.January, 1, 1, 1, 1, 0, time.UTC)
+
+	store := New(db)
+	require.NoError(t, store.Update(ctx, ignore.Rule{
+		ID:        idForRule(existingData.IgnoreRules, "Taimen"),
+		CreatedBy: dks.UserTwo,
+		UpdatedBy: dks.UserFour,
+		Expires:   newExpires,
+		// This rule previously ignored the square and circle test. Now it ignores just the one.
+		Query: "device=taimen&name=square",
+		Note:  "Should ignore one test now",
+	}))
+
+	actualTraces := getTracesAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBFalse, actualTraces["taimencircle"])      // updated
+	assert.Equal(t, schema.NBTrue, actualTraces["taimensquare"])       // still ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["taimentriangle"])    // still not ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyeround rect"]) // not affected
+	assert.Equal(t, schema.NBFalse, actualTraces["iPad6,3square"])     // not affected
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimencircle"])   // updated
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["taimensquare"])    // Still ignored
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimentriangle"]) // still not ignored
+	// walleye + round rect is not landed, so it is not in the table ValuesAtHead
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["iPad6,3square"]) // not affected
+
+	actualIgnoreRules := sqltest.GetAllRows(ctx, t, db, "IgnoreRules", &schema.IgnoreRuleRow{}).([]schema.IgnoreRuleRow)
+	assert.ElementsMatch(t, []schema.IgnoreRuleRow{{
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "Taimen")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserFour,                 // Updated
+		Expires:      newExpires,                   // Updated
+		Note:         "Should ignore one test now", // Updated
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:         []string{dks.TaimenDevice},
+			types.PrimaryKeyField: []string{dks.SquareTest},
+		},
+	}, {
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "expired")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserOne,
+		Expires:      time.Date(2020, time.February, 14, 13, 12, 11, 0, time.UTC),
+		Note:         "This rule has expired (and does not apply to anything)",
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:     []string{"Nokia4"},
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+	}}, actualIgnoreRules)
+}
+
+func TestUpdate_ExistingRuleChanged_DifferentTracesIgnored(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	existingData := dks.Build()
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+	newExpires := time.Date(2022, time.January, 1, 1, 1, 1, 0, time.UTC)
+
+	store := New(db)
+	require.NoError(t, store.Update(ctx, ignore.Rule{
+		ID:        idForRule(existingData.IgnoreRules, "Taimen"),
+		CreatedBy: dks.UserTwo,
+		UpdatedBy: dks.UserFour,
+		Expires:   newExpires,
+		// This rule previously ignored the taimen square and circle test. Now it ignores the
+		// walleye device and two different tests.
+		Query: "device=walleye&name=triangle&name=round rect",
+		Note:  "Should ignore walleye now",
+	}))
+
+	actualTraces := getTracesAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBFalse, actualTraces["taimencircle"])     // updated
+	assert.Equal(t, schema.NBFalse, actualTraces["taimensquare"])     // updated
+	assert.Equal(t, schema.NBFalse, actualTraces["taimentriangle"])   // still not ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyecircle"])    // still not ignored
+	assert.Equal(t, schema.NBFalse, actualTraces["walleyesquare"])    // updated
+	assert.Equal(t, schema.NBTrue, actualTraces["walleyetriangle"])   // still not ignored
+	assert.Equal(t, schema.NBTrue, actualTraces["walleyeround rect"]) // updated
+	assert.Equal(t, schema.NBFalse, actualTraces["iPad6,3square"])    // not affected
+
+	actualValuesAtHead := getValuesAtHeadAndStatus(ctx, t, db, "device", "name")
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimencircle"])   // updated
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimensquare"])   // updated
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["taimentriangle"]) // still not ignored
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["walleyecircle"])  // still not ignored
+	// walleye + round rect is not landed, so it is not in the table ValuesAtHead
+	assert.Equal(t, schema.NBTrue, actualValuesAtHead["walleyetriangle"]) // updated
+
+	assert.Equal(t, schema.NBFalse, actualValuesAtHead["iPad6,3square"]) // not affected
+
+	actualIgnoreRules := sqltest.GetAllRows(ctx, t, db, "IgnoreRules", &schema.IgnoreRuleRow{}).([]schema.IgnoreRuleRow)
+	assert.ElementsMatch(t, []schema.IgnoreRuleRow{{
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "Taimen")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserFour,                // Updated
+		Expires:      newExpires,                  // Updated
+		Note:         "Should ignore walleye now", // Updated
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:         []string{dks.WalleyeDevice},
+			types.PrimaryKeyField: []string{dks.RoundRectTest, dks.TriangleTest},
+		},
+	}, {
+		IgnoreRuleID: uuid.MustParse(idForRule(existingData.IgnoreRules, "expired")),
+		CreatorEmail: dks.UserTwo,
+		UpdatedEmail: dks.UserOne,
+		Expires:      time.Date(2020, time.February, 14, 13, 12, 11, 0, time.UTC),
+		Note:         "This rule has expired (and does not apply to anything)",
+		Query: paramtools.ReadOnlyParamSet{
+			dks.DeviceKey:     []string{"Nokia4"},
+			types.CorpusField: []string{dks.CornersCorpus},
+		},
+	}}, actualIgnoreRules)
+}
+
+func idForRule(rules []schema.IgnoreRuleRow, s string) string {
+	for _, r := range rules {
+		if strings.Contains(r.Note, s) {
+			return r.IgnoreRuleID.String()
+		}
+	}
+	panic("Could not find rule with matching note")
+}
+
+func TestUpdate_InvalidID_ReturnsErrorAndNothingIsModified(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx := context.Background()
@@ -344,47 +530,7 @@ func TestUpdate_ExistingRule_RuleIsModified(t *testing.T) {
 	require.Len(t, rules, 1)
 	recordID := rules[0].ID
 
-	require.NoError(t, store.Update(ctx, ignore.Rule{
-		ID:        recordID,
-		UpdatedBy: "updator@example.com",
-		Expires:   time.Date(2020, time.August, 3, 3, 3, 3, 0, time.UTC),
-		Query:     "model=NvidiaShield2015&model=Pixel3",
-		Note:      "See skbug.com/1234 for more",
-	}))
-
-	rules, err = store.List(ctx)
-	require.NoError(t, err)
-	require.Len(t, rules, 1)
-	assert.Equal(t, ignore.Rule{
-		ID:        recordID,
-		CreatedBy: "me@example.com",
-		UpdatedBy: "updator@example.com",
-		Expires:   time.Date(2020, time.August, 3, 3, 3, 3, 0, time.UTC),
-		Query:     "model=NvidiaShield2015&model=Pixel3",
-		Note:      "See skbug.com/1234 for more",
-	}, rules[0])
-}
-
-func TestUpdate_InvalidID_NothingIsModified(t *testing.T) {
-	unittest.LargeTest(t)
-
-	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	store := New(db)
-
-	require.NoError(t, store.Create(ctx, ignore.Rule{
-		CreatedBy: "me@example.com",
-		Expires:   time.Date(2020, time.May, 11, 10, 9, 0, 0, time.UTC),
-		Query:     "model=NvidiaShield2015",
-		Note:      "skbug.com/1234",
-	}))
-
-	rules, err := store.List(ctx)
-	require.NoError(t, err)
-	require.Len(t, rules, 1)
-	recordID := rules[0].ID
-
-	require.NoError(t, store.Update(ctx, ignore.Rule{
+	require.Error(t, store.Update(ctx, ignore.Rule{
 		ID:        "00000000-1111-2222-3333-444444444444",
 		UpdatedBy: "updator@example.com",
 		Expires:   time.Date(2020, time.August, 3, 3, 3, 3, 0, time.UTC),
@@ -403,11 +549,6 @@ func TestUpdate_InvalidID_NothingIsModified(t *testing.T) {
 		Query:     "model=NvidiaShield2015",
 		Note:      "skbug.com/1234",
 	}, rules[0])
-}
-
-func TestUpdated_AllTracesUpdated(t *testing.T) {
-	t.Skip("Broken")
-
 }
 
 func TestUpdate_InvalidQuery_ReturnsError(t *testing.T) {
