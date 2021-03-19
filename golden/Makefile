@@ -84,6 +84,10 @@ k8s-release-gitilesfollower: build-static-gitilesfollower
 k8s-release-ingestion: build-static-ingestion
 	./k8s_release_ingestion
 
+.PHONY: k8s-release-periodictasks
+k8s-release-periodictasks: build-static-periodictasks
+	./k8s_release_periodictasks
+
 .PHONY: k8s-release-goldpushk-healthy-server
 k8s-release-goldpushk-healthy-server: build-static-goldpushk-healthy-server
 	./k8s_release_goldpushk_healthy_server
@@ -121,6 +125,12 @@ build-static-ingestion:
 	mkdir -p ./build
 	rm -f ./build/gold_ingestion_k8s
 	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/...
+
+.PHONY: build-static-periodictasks
+build-static-periodictasks:
+	mkdir -p ./build
+	rm -f ./build/periodictasks_k8s
+	$(KGO) -o build/periodictasks_k8s -a ./cmd/periodictasks/...
 
 .PHONY: build-static-goldpushk-healthy-server
 build-static-goldpushk-healthy-server:

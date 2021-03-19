@@ -1,0 +1,5 @@
+{
+  null_ignore_period: "1m",
+  prom_port: ":20000",
+  ready_port: ":8000"
+}
