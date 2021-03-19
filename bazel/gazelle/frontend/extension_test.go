@@ -35,6 +35,231 @@ var basicWorkspace = []testtools.FileSpec{
 	},
 }
 
+func TestSassLibrary_Generate_Success(t *testing.T) {
+	unittest.BazelOnlyTest(t)
+
+	inputFiles := append([]testtools.FileSpec{
+		{
+			Path: "a/alpha.scss",
+			Content: `
+@import 'beta';
+@import 'b/delta';
+@import '../c/epsilon';
+@import '../d/d';
+@import '~elements-sk/colors';
+`,
+		},
+		{Path: "a/beta.scss"},
+		{Path: "a/b/delta.scss"},
+		{Path: "c/epsilon.scss"},
+		{Path: "d/d.scss", Content: `// Empty file with the same name as its Bazel package ("d").`},
+	}, basicWorkspace...)
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "alpha",
+    srcs = ["alpha.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":beta",
+        "//a/b:delta",
+        "//c:epsilon",
+        "//d",
+        "//infra-sk:elements-sk_scss",
+    ],
+)
+
+sass_library(
+    name = "beta",
+    srcs = ["beta.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "a/b/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "delta",
+    srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "c/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "epsilon",
+    srcs = ["epsilon.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "d/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "d",
+    srcs = ["d.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	}
+
+	test(t, inputFiles, expectedOutputFiles)
+}
+
+func TestSassLibrary_Update_Success(t *testing.T) {
+	unittest.BazelOnlyTest(t)
+
+	inputFiles := append([]testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "alpha",
+    srcs = ["alpha.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":beta",  # Not imported from alpha.scss. Gazelle should remove this dep.
+        ":delta",
+    ],
+)
+
+sass_library(
+    name = "beta",
+    srcs = ["beta.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "delta",
+    srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "epsilon",
+    srcs = ["epsilon.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "a/alpha.scss",
+			Content: `
+@import 'delta';                // Existing import.
+@import 'epsilon';              // New import. Gazelle should add this dep.
+@import '~elements-sk/colors';  // New import. Gazelle should add this dep.
+`,
+		},
+		{Path: "a/beta.scss"},
+		{Path: "a/delta.scss"},
+		{Path: "a/epsilon.scss"},
+	}, basicWorkspace...)
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "alpha",
+    srcs = ["alpha.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":delta",
+        ":epsilon",
+        "//infra-sk:elements-sk_scss",
+    ],
+)
+
+sass_library(
+    name = "beta",
+    srcs = ["beta.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "delta",
+    srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "epsilon",
+    srcs = ["epsilon.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	}
+
+	test(t, inputFiles, expectedOutputFiles)
+}
+
+func TestSassLibrary_Remove_Success(t *testing.T) {
+	unittest.BazelOnlyTest(t)
+
+	inputFiles := append([]testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "alpha",
+    srcs = [
+        "alpha.scss",
+        "beta.scss",  # This file was deleted. Gazelle should remove this dep.
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "beta",
+    srcs = ["beta.scss"],  # This file was deleted. Gazelle should remove this target.
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "a/alpha.scss"},
+	}, basicWorkspace...)
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "alpha",
+    srcs = ["alpha.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	}
+
+	test(t, inputFiles, expectedOutputFiles)
+}
+
 func TestTSLibrary_Generate_Success(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
