@@ -731,33 +731,3 @@ func TestList_Success(t *testing.T) {
 		Note:      "Taimen isn't drawing correctly enough yet",
 	}}, rules)
 }
-
-func TestConvertIgnoreRules_Success(t *testing.T) {
-	unittest.SmallTest(t)
-
-	condition, args := ConvertIgnoreRules(nil)
-	assert.Equal(t, "false", condition)
-	assert.Empty(t, args)
-
-	condition, args = ConvertIgnoreRules([]paramtools.ParamSet{
-		{
-			"key1": []string{"alpha"},
-		},
-	})
-	assert.Equal(t, `((COALESCE(keys ->> $1::STRING IN ($2), FALSE)))`, condition)
-	assert.Equal(t, []interface{}{"key1", "alpha"}, args)
-
-	condition, args = ConvertIgnoreRules([]paramtools.ParamSet{
-		{
-			"key1": []string{"alpha", "beta"},
-			"key2": []string{"gamma"},
-		},
-		{
-			"key3": []string{"delta", "epsilon", "zeta"},
-		},
-	})
-	const expectedCondition = `((COALESCE(keys ->> $1::STRING IN ($2, $3), FALSE) AND COALESCE(keys ->> $4::STRING IN ($5), FALSE))
-OR (COALESCE(keys ->> $6::STRING IN ($7, $8, $9), FALSE)))`
-	assert.Equal(t, expectedCondition, condition)
-	assert.Equal(t, []interface{}{"key1", "alpha", "beta", "key2", "gamma", "key3", "delta", "epsilon", "zeta"}, args)
-}
