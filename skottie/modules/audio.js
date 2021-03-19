@@ -21,10 +21,13 @@ export function SoundMap() {
       player.pause();
     }
   }
-  this.setVolume = function(v) {
+  this.stop = function() {
     for(const player of this.map.values()) {
-      player.volume(v);
+      player.seek(-1);
     }
+  }
+  this.setVolume = function(v) {
+    Howler.volume(v)
   }
 }
 
