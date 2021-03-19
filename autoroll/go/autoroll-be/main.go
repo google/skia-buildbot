@@ -79,7 +79,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-	defer common.Defer()
 	if *hang {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
