@@ -14,17 +14,25 @@ import (
 
 var gazelleBin = flag.String("gazelle_bin", "", "Path to the test-only Gazelle binary.")
 
-// TestNoop exercises the test harness, but does not make any assertions on the state of the file
-// system after running Gazelle.
-//
-// TODO(lovisolo): Delete once we have at least one real test.
-func TestNoop(t *testing.T) {
+func TestTSLibrary(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
 	inputFiles := []testtools.FileSpec{
-		{Path: "WORKSPACE"}, // Gazelle requires that a WORKSPACE file exists, even if it's empty.
+		{Path: "WORKSPACE"},
+		{Path: "hello/hello.ts", Content: "console.log('Hello, world!)"},
 	}
-	expectedOutputFiles := []testtools.FileSpec{}
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{Path: "hello/BUILD.bazel", Content: `load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "hello",
+    srcs = ["hello.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	}
 
 	test(t, inputFiles, expectedOutputFiles)
 }
