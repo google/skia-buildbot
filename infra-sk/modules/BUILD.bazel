@@ -16,6 +16,10 @@ karma_test(
     srcs = ["test_util_test.ts"],
     deps = [
         ":test_util",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//@types/sinon",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//sinon",
     ],
 )
