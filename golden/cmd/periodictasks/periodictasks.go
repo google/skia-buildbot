@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"flag"
+	"net/http"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -81,7 +83,8 @@ func main() {
 	startUpdateTracesWithNullStatus(ctx, db, ptc)
 
 	sklog.Infof("periodic tasks have been started")
-	select {}
+	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	sklog.Fatal(http.ListenAndServe(ptc.ReadyPort, nil))
 }
 
 func startUpdateTracesWithNullStatus(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
@@ -96,6 +99,7 @@ func startUpdateTracesWithNullStatus(ctx context.Context, db *pgxpool.Pool, ptc 
 			return // return so the liveness is not updated
 		}
 		liveness.Reset()
+		sklog.Infof("Done with updateTracesWithNullStatus")
 	})
 }
 
