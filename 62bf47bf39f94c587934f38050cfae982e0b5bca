@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b4c029a7_0c3e7220",
+        "filename": "bazel/gazelle/frontend/parsers/parsers.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-19T13:25:56Z",
+      "side": 1,
+      "message": "Please add \"We chose to use regexp over the following alternatives for the following reasons\"\n\nand list any that you considered. e.g. a golang-based typescript parser (for which I don\u0027t believe one exists).",
+      "revId": "62bf47bf39f94c587934f38050cfae982e0b5bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c6ce2ffd_c245465e",
+        "filename": "bazel/gazelle/frontend/parsers/parsers_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-19T13:25:56Z",
+      "side": 1,
+      "message": "nit: const source \u003d",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 7
+      },
+      "revId": "62bf47bf39f94c587934f38050cfae982e0b5bca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
