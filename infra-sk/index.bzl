@@ -14,7 +14,6 @@ load(":ts_library.bzl", _ts_library = "ts_library")
 
 # Re-export these common rules so we only have to load this .bzl file from our BUILD.bazel files.
 karma_test = _karma_test
-nodejs_test = _nodejs_test
 sass_library = _sass_library
 sk_demo_page_server = _sk_demo_page_server
 ts_library = _ts_library
@@ -110,35 +109,40 @@ def generate_sass_stylesheet_with_imports(name, scss_files_to_import, scss_outpu
         cmd = " && ".join(cmds),
     )
 
-def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibility = None):
-    """Runs a NodeJS unit test using the Mocha test runner.
+def nodejs_test(
+        name,
+        src,
+        deps = [],
+        tags = [],
+        visibility = None):
+    """Runs a Node.js unit test using the Mocha test runner.
 
-    For tests that should run in the browser, please use karma_mocha_test instead.
+    For tests that should run in the browser, please use karma_test instead.
 
     Args:
       name: Name of the target.
-      srcs: Labels for the test's TypeScript or JavaScript files.
+      src: A single TypeScript source file.
       deps: Any ts_library dependencies.
-      tags: Tags for the generated nodjs_test rule.
-      args: Additional command-line arguments for the mocha test runner.
+      tags: Tags for the generated nodejs_test rule.
       visibility: Visibility of the generated nodejs_test rule.
     """
-    if args == None:
-        args = ["$(rootpath %s)" % src for src in srcs]
 
-    nodejs_test(
+    mocha_deps = [
+        "@infra-sk_npm//mocha",
+        "@infra-sk_npm//ts-node",
+        "//:tsconfig.json",
+    ]
+
+    _nodejs_test(
         name = name,
         entry_point = "@infra-sk_npm//:node_modules/mocha/bin/mocha",
-        data = srcs + deps + [
-            "@infra-sk_npm//mocha",
-            "@infra-sk_npm//ts-node",
-            "//:tsconfig.json",
-        ],
+        data = [src] + deps + [dep for dep in mocha_deps if dep not in deps],
         templated_args = [
             "--require ts-node/register/transpile-only",
             "--timeout 60000",
             "--colors",
-        ] + args,
+            "$(rootpath %s)" % src,
+        ],
         tags = tags,
         visibility = visibility,
     )
@@ -165,9 +169,13 @@ def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):
       sk_demo_page_server: Label for the sk_demo_page_server target.
       deps: Any ts_library dependencies.
     """
-    nodejs_mocha_test(
+
+    if len(srcs) != 1:
+        fail("srcs must have exactly one file.")
+
+    nodejs_test(
         name = name + "_test_only",
-        srcs = srcs,
+        src = srcs[0],
         tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
         deps = deps,
     )

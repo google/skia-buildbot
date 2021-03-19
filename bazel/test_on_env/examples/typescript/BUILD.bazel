@@ -1,8 +1,8 @@
-load("//infra-sk:index.bzl", "nodejs_mocha_test")
+load("//infra-sk:index.bzl", "nodejs_test")
 
-nodejs_mocha_test(
+nodejs_test(
     name = "typescript_test",
-    srcs = ["typescript_test.ts"],
+    src = "typescript_test.ts",
     tags = ["manual"],
     visibility = ["//bazel/test_on_env:__pkg__"],
     deps = [
