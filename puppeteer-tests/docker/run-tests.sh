@@ -141,11 +141,17 @@ cp -r /src/particles/modules                 /tests/particles
 cp    /src/particles/Makefile                /tests/particles
 
 mkdir /tests/shaders
-cp -r /src/shaders/package*                /tests/shaders
-cp -r /src/shaders/webpack.config.ts       /tests/shaders
-cp -r /src/shaders/tsconfig.json           /tests/shaders
-cp -r /src/shaders/modules                 /tests/shaders
-cp    /src/shaders/Makefile                /tests/shaders
+cp -r /src/shaders/package*                  /tests/shaders
+cp -r /src/shaders/webpack.config.ts         /tests/shaders
+cp -r /src/shaders/tsconfig.json             /tests/shaders
+cp -r /src/shaders/modules                   /tests/shaders
+cp    /src/shaders/Makefile                  /tests/shaders
+
+mkdir /tests/machine
+cp -r /src/machine/package*                  /tests/machine
+cp -r /src/machine/webpack.config.ts         /tests/machine
+cp -r /src/machine/tsconfig.json             /tests/machine
+cp -r /src/machine/modules                   /tests/machine
 
 
 ################################################################################
@@ -198,6 +204,9 @@ make wasm_libs_fixed
 cd /tests/shaders
 npm ci
 make wasm_libs_fixed
+
+cd /tests/machine
+npm ci
 
 ################################################################################
 # Run tests.                                                                   #
@@ -252,4 +261,7 @@ cd /tests/particles
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/shaders
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/machine
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
