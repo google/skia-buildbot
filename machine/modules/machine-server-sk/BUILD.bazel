@@ -11,8 +11,11 @@ sk_element(
         "//machine/modules/note-editor-sk:note-editor-sk",
     ],
     ts_deps = [
+        "//infra-sk/modules/ElementSk:element-sk",
         "//machine/modules/json",
         "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -27,6 +30,8 @@ karma_test(
         ":machine-server-sk",
         "//infra-sk/modules:test_util",
         "//machine/modules/json",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//common-sk",
         "@infra-sk_npm//fetch-mock",
     ],
