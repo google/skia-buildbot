@@ -26,6 +26,7 @@ const (
 	GitilesFollower Service = "gitilesfollower"
 	Ingestion       Service = "ingestion"    // New, SQL based ingestion
 	IngestionBT     Service = "ingestion-bt" // Deprecated, BigTable based ingestion
+	PeriodicTasks   Service = "periodictasks"
 
 	// Testing Gold instances.
 	TestInstance1     Instance = "goldpushk-test1"
@@ -75,6 +76,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			GitilesFollower,
 			Ingestion,
 			IngestionBT,
+			PeriodicTasks,
 		},
 	}
 
@@ -86,9 +88,10 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		} else {
 			// Add common services for regular instances.
 			s.add(instance, DiffCalculator)
+			s.add(instance, Frontend)
 			s.add(instance, Ingestion)
 			s.add(instance, IngestionBT)
-			s.add(instance, Frontend)
+			s.add(instance, PeriodicTasks)
 			// See http://review.skia.org/376843 for Fuchsia
 			if instance != Fuchsia {
 				s.add(instance, GitilesFollower)
@@ -114,6 +117,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, Ingestion, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, Frontend, DeploymentOptions{internal: true})
+	s.addWithOptions(Fuchsia, PeriodicTasks, DeploymentOptions{internal: true})
 	return s
 }
 
