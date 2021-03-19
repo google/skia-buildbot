@@ -71,7 +71,7 @@ func main() {
 	// Command line flags.
 	var (
 		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
-		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to baseline server.")
+		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to gitiles follower server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
 	)
 
