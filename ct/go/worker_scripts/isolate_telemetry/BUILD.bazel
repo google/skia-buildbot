@@ -13,7 +13,6 @@ go_library(
         "//go/isolate",
         "//go/skerr",
         "//go/sklog",
-        "//go/util",
     ],
 )
 
