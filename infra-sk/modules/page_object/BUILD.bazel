@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "karma_test", "nodejs_mocha_test", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "nodejs_test", "ts_library")
 
 ts_library(
     name = "page_object",
@@ -38,14 +38,12 @@ karma_test(
     ],
 )
 
-nodejs_mocha_test(
+nodejs_test(
     name = "puppeteer_test",
-    srcs = [
-        "page_object_element_puppeteer_test.ts",
-        "page_object_element_test_cases.ts",
-    ],
+    src = "page_object_element_puppeteer_test.ts",
     deps = [
         ":page_object",
+        ":page_object_element_test_cases",
         "//puppeteer-tests:util_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//@types/puppeteer",

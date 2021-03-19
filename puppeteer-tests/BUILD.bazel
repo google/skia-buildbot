@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "nodejs_mocha_test", "ts_library")
+load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
 
 ts_library(
     name = "util_lib",
@@ -19,10 +19,8 @@ ts_library(
     ],
 )
 
-nodejs_mocha_test(
+nodejs_test(
     name = "util_test",
-    srcs = [":util_test.ts"],
-    deps = [
-        ":util_lib",
-    ],
+    src = ":util_test.ts",
+    deps = [":util_lib"],
 )
