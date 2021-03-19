@@ -64,7 +64,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Create the Child.
 	if c.GetCipdChild() != nil {
-		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), client, workdir)
+		childRM, err = child.NewCIPD(ctx, c.GetCipdChild(), reg, client, workdir)
 	} else if c.GetFuchsiaSdkChild() != nil {
 		childRM, err = child.NewFuchsiaSDK(ctx, c.GetFuchsiaSdkChild(), client)
 	} else if c.GetGitilesChild() != nil {

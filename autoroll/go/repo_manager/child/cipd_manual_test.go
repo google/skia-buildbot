@@ -40,7 +40,7 @@ func TestCIPDChild_VCS(t *testing.T) {
 	require.NoError(t, err)
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	wd := t.TempDir()
-	c, err := NewCIPD(ctx, &cfg, client, wd)
+	c, err := NewCIPD(ctx, &cfg, nil, client, wd)
 	require.NoError(t, err)
 
 	// Download.
