@@ -147,9 +147,13 @@ test-frontend-ci:
 	cd fiddlek && $(MAKE) test-frontend-ci
 	cd status && $(MAKE) test-frontend-ci
 
+# We invoke Gazelle with --lang go,proto to prevent it from using our extension to generate BUILD
+# files for front-end code, which is currently in development.
+#
+# TODO(lovisolo): Remove the --lang flag once the Gazelle extension is ready.
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
-	bazel run //:gazelle -- update ./
+	bazel run //:gazelle -- update --lang go,proto ./
 
 .PHONY: update-go-bazel-deps
 update-go-bazel-deps:
