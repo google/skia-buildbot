@@ -35,8 +35,7 @@ ts_library(
 
 karma_test(
     name = "test",
-    srcs = ["query-values-sk_test.ts"],
-    entry_point = "query-values-sk_test.ts",
+    src = "query-values-sk_test.ts",
     deps = [
         ":query-values-sk",
         ":query-values-sk_po",
