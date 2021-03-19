@@ -14,17 +14,226 @@ import (
 
 var gazelleBin = flag.String("gazelle_bin", "", "Path to the test-only Gazelle binary.")
 
-// TestNoop exercises the test harness, but does not make any assertions on the state of the file
-// system after running Gazelle.
-//
-// TODO(lovisolo): Delete once we have at least one real test.
-func TestNoop(t *testing.T) {
+// basicWorkspace contains the minimum files necessary for the Gazelle extension to work.
+var basicWorkspace = []testtools.FileSpec{
+	{Path: "WORKSPACE"}, // Gazelle requires that a WORKSPACE file exists, even if it's empty.
+	{
+		Path: "infra-sk/package.json",
+		Content: `
+{
+  "dependencies": {
+    "common-sk": "^3.4.1",
+    "elements-sk": "^4.0.0",
+    "lit-html": "~1.1.2"
+  },
+  "devDependencies": {
+    "@types/puppeteer": "^3.0.0",
+    "puppeteer": "^5.0.0"
+  }
+}
+`,
+	},
+}
+
+func TestTSLibrary_Generate_Success(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
-	inputFiles := []testtools.FileSpec{
-		{Path: "WORKSPACE"}, // Gazelle requires that a WORKSPACE file exists, even if it's empty.
+	inputFiles := append([]testtools.FileSpec{
+		{
+			Path: "a/alpha.ts",
+			Content: `
+// Empty file, no imports.
+`,
+		},
+		{
+			Path: "a/beta.ts",
+			Content: `
+import './alpha';
+import '../b/b';
+import '../b/delta';
+import '../c';
+import 'lit-html';   // NPM import with built-in TypeScript annotations.
+import 'puppeteer';  // NPM import with a separate @types/puppeteer package.
+import 'net'         // Built-in Node.js module.
+`,
+		},
+		{
+			Path: "b/delta.ts",
+			Content: `
+import 'common-sk'; // NPM import.
+`,
+		},
+		{
+			Path: "b/b.ts",
+			Content: `
+// Empty file with the same name as its Bazel package ("b").
+`,
+		},
+		{
+			Path: "c/index.ts",
+			Content: `
+// Empty file which may be imported as its parent folder's "main" module.
+`,
+		},
+	}, basicWorkspace...)
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "alpha",
+    srcs = ["alpha.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "beta",
+    srcs = ["beta.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":alpha",
+        "//b",
+        "//b:delta",
+        "//c:index",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
+    ],
+)
+`,
+		},
+		{
+			Path: "b/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "b",
+    srcs = ["b.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "delta",
+    srcs = ["delta.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["@infra-sk_npm//common-sk"],
+)
+`,
+		},
+		{
+			Path: "c/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "index",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
 	}
-	expectedOutputFiles := []testtools.FileSpec{}
+
+	test(t, inputFiles, expectedOutputFiles)
+}
+
+func TestTSLibrary_Remove_Success(t *testing.T) {
+	unittest.BazelOnlyTest(t)
+
+	inputFiles := append([]testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "alpha",
+    srcs = ["alpha.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@infra-sk_npm//common-sk",    # Not imported from alpha.ts. Gazelle should delete this dep.
+        "@infra-sk_npm//elements-sk",
+    ],
+)
+`,
+		},
+		{
+			Path: "a/alpha.ts",
+			Content: `
+import 'elements-sk';  // Existing import.
+import 'lit-html';     // New import.
+`,
+		},
+	}, basicWorkspace...)
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "alpha",
+    srcs = ["alpha.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
+`,
+		},
+	}
+
+	test(t, inputFiles, expectedOutputFiles)
+}
+
+func TestTSLibrary_Delete_Success(t *testing.T) {
+	unittest.BazelOnlyTest(t)
+
+	inputFiles := append([]testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "alpha",
+    srcs = [
+        "alpha.ts",
+        "beta.ts",  # This file was deleted. Gazelle should remove this entry in srcs.
+    ],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "delta",
+    srcs = ["delta.ts"],  # This file was deleted. Gazelle should remove the entire rule.
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "a/alpha.ts"},
+	}, basicWorkspace...)
+
+	expectedOutputFiles := []testtools.FileSpec{
+		{
+			Path: "a/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "alpha",
+    srcs = ["alpha.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	}
 
 	test(t, inputFiles, expectedOutputFiles)
 }
