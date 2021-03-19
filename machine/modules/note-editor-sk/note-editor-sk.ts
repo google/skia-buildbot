@@ -11,7 +11,6 @@ import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Annotation } from '../json';
 import 'elements-sk/styles/buttons';
-import '../theme/index';
 
 const defaultAnnotation: Annotation = {
   Message: '',
