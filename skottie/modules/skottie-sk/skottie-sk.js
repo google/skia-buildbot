@@ -731,9 +731,15 @@ define('skottie-sk', class extends HTMLElement {
     if (this._ui === LOADED_MODE) {
       if (this._state.soundMap.map.size > 0) {
         this._hideVolumeSlider(false);
+        // Stop any audio assets that start playing on frame 0
+        // Pause the playback to force a user gesture to resume the AudioContext
+        if (this._playing) {
+          this._playpause();
+          this._rewind();
+        }
+        this._state.soundMap.stop();
       } else {
         this._hideVolumeSlider(true);
-        console.log(true);
       }
       try {
         this._renderLottieWeb();
@@ -742,7 +748,6 @@ define('skottie-sk', class extends HTMLElement {
       } catch(e) {
         console.warn('caught error while rendering third party code', e);
       }
-
     }
   }
 
@@ -878,6 +883,11 @@ define('skottie-sk', class extends HTMLElement {
       this._firstFrameTime = null;
       this._live && this._live.goToAndStop(0);
       this._lottie && this._lottie.goToAndStop(0);
+      const scrubber = $$('#scrub', this);
+      if (scrubber) {
+        scrubber.value = 0;
+      }
+
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie && this._lottie.goToAndPlay(0);
