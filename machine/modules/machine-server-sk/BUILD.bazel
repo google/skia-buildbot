@@ -6,7 +6,10 @@ sk_element(
     name = "machine-server-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["machine-server-sk.scss"],
-    sk_element_deps = ["//infra-sk/modules/theme-chooser-sk:theme-chooser-sk"],
+    sk_element_deps = [
+        "//infra-sk/modules/theme-chooser-sk:theme-chooser-sk",
+        "//machine/modules/note-editor-sk:note-editor-sk",
+    ],
     ts_deps = [
         "//machine/modules/json",
         "@infra-sk_npm//common-sk",
@@ -23,6 +26,8 @@ karma_test(
     deps = [
         ":machine-server-sk",
         "//infra-sk/modules:test_util",
+        "//machine/modules/json",
+        "@infra-sk_npm//common-sk",
         "@infra-sk_npm//fetch-mock",
     ],
 )
