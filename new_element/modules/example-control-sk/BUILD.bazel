@@ -23,7 +23,7 @@ sk_element(
 
 karma_test(
     name = "test",
-    srcs = ["example-control-sk_test.ts"],
+    src = "example-control-sk_test.ts",
     deps = [
         ":example-control-sk",
         "//infra-sk/modules:test_util",
