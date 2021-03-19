@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "340d937f_2579fd74",
+        "filename": "sk/go/sk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-19T19:41:56Z",
+      "side": 1,
+      "message": "You might want to look at github.com/urfave/cli/v2 which I use for Perf:\n  https://skia.googlesource.com/buildbot/+/refs/heads/master/perf/go/perf-tool/main.go\n\nI found cobra did not scale well with the number and depth of nested commands.\n\nThe other thing I did in perf-tool was to create an Application interface that\nthe cli calls into, which allows mocking and testing:\n\nhttps://skia.googlesource.com/buildbot/+/refs/heads/master/perf/go/perf-tool/application/application.go",
+      "revId": "fabf4da655ac9c83eca4b75162a9d46edbd4f79e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "646827aa_b053cdf6",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-19T19:41:56Z",
+      "side": 1,
+      "message": "I would expect either this to be a sub-command, e.g.:\n\n$ sk try\n$ sk try list\n\nOr listing could be the default behavior of just doing\n\n$ sk try\n\nAnd the listing is skipped if you supply the --job flag:\n\n$ sk try --job\u003d\"*Perf*\"",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 82
+      },
+      "revId": "fabf4da655ac9c83eca4b75162a9d46edbd4f79e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
