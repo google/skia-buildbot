@@ -732,34 +732,6 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 	}
 }
 
-func TestSSliceCmp(t *testing.T) {
-	unittest.SmallTest(t)
-
-	// "Equal" slices.
-	testEq := func(a, b []string) {
-		require.Equal(t, 0, SSliceCmp(a, b))
-		require.Equal(t, 0, SSliceCmp(b, a))
-	}
-	testEq(nil, nil)
-	testEq(nil, []string{})
-	testEq([]string{}, []string{})
-	testEq([]string{"item"}, []string{"item"})
-	testEq([]string{"a", "b", "c"}, []string{"a", "b", "c"})
-
-	// a > b
-	testGt := func(a, b []string) {
-		require.Equal(t, 1, SSliceCmp(a, b))
-		require.Equal(t, -1, SSliceCmp(b, a))
-	}
-	testGt([]string{"a"}, nil)
-	testGt([]string{"a"}, []string{})
-	testGt([]string{"b"}, []string{"a"})
-	testGt([]string{"a", "b", "d"}, []string{"a", "b", "c"})
-	testGt([]string{"a", "b", "c", "d"}, []string{"a", "b", "c"})
-	testGt([]string{"a", "b", "d"}, []string{"a", "b", "c", "d"})
-	testGt([]string{"a", "c", "b"}, []string{"a", "b", "c"})
-}
-
 func TestPowerSet(t *testing.T) {
 	unittest.SmallTest(t)
 	test := func(inp int, expect [][]int) {

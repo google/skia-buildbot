@@ -1,7 +1,6 @@
 package util
 
 import (
-	"bufio"
 	"compress/gzip"
 	"context"
 	"crypto/md5"
@@ -10,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -18,7 +16,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -355,11 +352,6 @@ func MD5SSlice(val []string) (string, error) {
 	return fmt.Sprintf("%x", md5Writer.Sum(nil)), nil
 }
 
-// Round rounds the given float64 to the nearest whole integer.
-func Round(v float64) float64 {
-	return math.Floor(v + float64(0.5))
-}
-
 // TimeIsZero returns true if the time.Time is a zero-value or corresponds to
 // a zero Unix timestamp.
 func TimeIsZero(t time.Time) bool {
@@ -400,23 +392,6 @@ MainLoop:
 			fn(ctx)
 		}
 	}
-}
-
-// MD5FromReader returns the MD5 hash of the content in the provided reader.
-// If the writer w is not nil it will also write the content of the reader to w.
-func MD5FromReader(r io.Reader, w io.Writer) ([]byte, error) {
-	hashWriter := md5.New()
-	var tempOut io.Writer
-	if w == nil {
-		tempOut = hashWriter
-	} else {
-		tempOut = io.MultiWriter(w, hashWriter)
-	}
-
-	if _, err := io.Copy(tempOut, r); err != nil {
-		return nil, err
-	}
-	return hashWriter.Sum(nil), nil
 }
 
 // ChunkIter iterates over a slice in chunks of smaller slices.
@@ -703,15 +678,6 @@ func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 	return nil
 }
 
-// WithBufferedWriter is a helper for wrapping an io.Writer with a bufio.Writer.
-func WithBufferedWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
-	buf := bufio.NewWriter(w)
-	if err := fn(buf); err != nil {
-		return err
-	}
-	return buf.Flush()
-}
-
 // WithGzipWriter is a helper for wrapping an io.Writer with a gzip.Writer.
 func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
 	gzw := gzip.NewWriter(w)
@@ -821,26 +787,6 @@ func (mw MultiWriter) Write(b []byte) (int, error) {
 	return rv, rvErr.ErrorOrNil()
 }
 
-// ThreadSafeWriter wraps an io.Writer and provides thread safety.
-type ThreadSafeWriter struct {
-	w   io.Writer
-	mtx sync.Mutex
-}
-
-// See documentation for io.Writer.
-func (w *ThreadSafeWriter) Write(b []byte) (int, error) {
-	w.mtx.Lock()
-	defer w.mtx.Unlock()
-	return w.w.Write(b)
-}
-
-// NewThreadSafeWriter returns a ThreadSafeWriter which wraps the given Writer.
-func NewThreadSafeWriter(w io.Writer) io.Writer {
-	return &ThreadSafeWriter{
-		w: w,
-	}
-}
-
 // RoundUpToPowerOf2 rounds the given int up to the nearest power of 2.
 func RoundUpToPowerOf2(i int32) int32 {
 	// Taken from https://web.archive.org/web/20160703165415/https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
@@ -856,31 +802,6 @@ func RoundUpToPowerOf2(i int32) int32 {
 	i |= i >> 16
 	i++
 	return i
-}
-
-// SSliceCmp compares two string slices by comparing each element in order.
-// Returns -1 if the first slice is "less" than the second, 0 if they are equal,
-// and 1 if the first slice is "greater" than the second.
-func SSliceCmp(a, b []string) int {
-	for i, elemA := range a {
-		if len(b) <= i {
-			// If slice B is shorter than slice A, then A is not
-			// less than B.
-			return 1
-		}
-		elemB := b[i]
-		if elemA < elemB {
-			return -1
-		} else if elemA > elemB {
-			return 1
-		}
-	}
-	// The two slices are equal, up to len(a). If the lengths are the same,
-	// then the slices are equal. Otherwise, a < b.
-	if len(a) == len(b) {
-		return 0
-	}
-	return -1
 }
 
 // AskForConfirmation waits for the user to type "y" or "n".
