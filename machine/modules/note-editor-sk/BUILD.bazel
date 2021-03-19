@@ -33,7 +33,7 @@ sk_element(
 
 karma_test(
     name = "test",
-    srcs = ["note-editor-sk_test.ts"],
+    src = "note-editor-sk_test.ts",
     deps = [
         ":note-editor-sk",
         "//infra-sk/modules:test_util",

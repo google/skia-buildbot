@@ -4,47 +4,36 @@ load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//karma:index.bzl", _generated_karma_test = "karma_test")
 load("//infra-sk:ts_library.bzl", "ts_library")
 
-def karma_test(name, srcs, deps, entry_point = None):
-    """Runs unit tests in a browser with Karma and the Mocha test runner.
+def karma_test(name, src, deps = []):
+    """Runs TypeScript unit tests in a browser with Karma, using Mocha as the test runner.
 
-    When executed with `bazel test`, a headless Chrome browser will be used. This supports testing
+    When invoked via `bazel test`, a headless Chrome browser will be used. This supports testing
     multiple karma_test targets in parallel, and works on RBE.
 
-    When executed with `bazel run`, it prints out a URL to stdout that can be opened in the browser,
+    When invoked via `bazel run`, it prints out a URL to stdout that can be opened in the browser,
     e.g. to debug the tests using the browser's developer tools. Source maps are generated.
 
-    When executed with `ibazel test`, the test runner never exits, and tests will be rerun every
-    time a source file is changed.
+    When invoked via `ibazel test`, the test runner never exits, and tests will be rerun every time
+    a source file is changed.
 
-    When executed with `ibazel run`, it will act the same way as `bazel run`, but the tests will be
+    When invoked via `ibazel run`, it will act the same way as `bazel run`, but the tests will be
     rebuilt automatically when a source file changes. Reload the browser page to see the changes.
 
     Args:
       name: The name of the target.
-      srcs: The *.ts test files.
-      deps: The ts_library dependencies for the source files.
-      entry_point: File in srcs to be used as the entry point to generate the JS bundle executed by
-        the test runner. Optional if srcs contains only one file.
+      src: A single TypeScript source file.
+      deps: Any ts_library dependencies.
     """
-
-    if len(srcs) > 1 and not entry_point:
-        fail("An entry_point must be specified when srcs contains more than one file.")
-
-    if entry_point and entry_point not in srcs:
-        fail("The entry_point must be included in srcs.")
-
-    if len(srcs) == 1:
-        entry_point = srcs[0]
 
     ts_library(
         name = name + "_lib",
-        srcs = srcs,
+        srcs = [src],
         deps = deps,
     )
 
     rollup_bundle(
         name = name + "_bundle",
-        entry_point = entry_point,
+        entry_point = src,
         deps = [
             name + "_lib",
             "@infra-sk_npm//@rollup/plugin-node-resolve",

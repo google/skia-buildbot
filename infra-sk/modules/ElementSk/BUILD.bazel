@@ -16,7 +16,7 @@ ts_library(
 
 karma_test(
     name = "element-sk_test",
-    srcs = ["ElementSk_test.ts"],
+    src = "ElementSk_test.ts",
     deps = [
         ":element-sk",
         "@infra-sk_npm//@types/chai",

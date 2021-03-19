@@ -25,7 +25,7 @@ sk_element(
 
 karma_test(
     name = "test",
-    srcs = ["machine-server-sk_test.ts"],
+    src = "machine-server-sk_test.ts",
     deps = [
         ":machine-server-sk",
         "//infra-sk/modules:test_util",
