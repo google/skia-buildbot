@@ -1,5 +1,4 @@
-load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
-load("//infra-sk:index.bzl", "nodejs_mocha_test")
+load("//infra-sk:index.bzl", "nodejs_mocha_test", "ts_library")
 
 ts_library(
     name = "util_lib",
@@ -7,8 +6,6 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "@infra-sk_npm//@types/express",
-        "@infra-sk_npm//@types/mocha",
-        "@infra-sk_npm//@types/node",
         "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//@types/webpack",
         "@infra-sk_npm//@types/webpack-dev-middleware",
