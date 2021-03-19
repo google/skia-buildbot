@@ -35,6 +35,7 @@ import (
 	"os"
 	osexec "os/exec"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -297,16 +298,16 @@ func (c *execContext) Run(ctx context.Context, command *Command) error {
 // return an error if the command exited with a non-zero status or there is any other error.
 func (c *execContext) runSimpleCommand(ctx context.Context, command *Command) (string, error) {
 	output := bytes.Buffer{}
-	// We use a ThreadSafeWriter here because command.CombinedOutput may get
+	// We use a threadSafeWriter here because command.CombinedOutput may get
 	// wrapped with an io.MultiWriter if the caller set command.Stdout or
 	// command.Stderr, or if either command.LogStdout or command.LogStderr
 	// is true. In that case, the os/exec package will not be able to
 	// determine that CombinedOutput is shared between stdout and stderr and
 	// it will spin up an extra goroutine to write to it, causing a data
-	// race. We could be smarter and only use the ThreadSafeWriter when we
+	// race. We could be smarter and only use the threadSafeWriter when we
 	// know that this will be the case, but relies too much on our knowledge
 	// of the current os/exec implementation.
-	command.CombinedOutput = util.NewThreadSafeWriter(&output)
+	command.CombinedOutput = &threadSafeWriter{w: &output}
 	// Setting Verbose to Silent to maintain previous behavior.
 	command.Verbose = Silent
 	err := c.Run(ctx, command)
@@ -379,4 +380,17 @@ func RunIndefinitely(command *Command) (Process, <-chan error, error) {
 		done <- cmd.Wait()
 	}()
 	return cmd.Process, done, nil
+}
+
+// threadSafeWriter wraps an io.Writer and provides thread safety.
+type threadSafeWriter struct {
+	w   io.Writer
+	mtx sync.Mutex
+}
+
+// See documentation for io.Writer.
+func (w *threadSafeWriter) Write(b []byte) (int, error) {
+	w.mtx.Lock()
+	defer w.mtx.Unlock()
+	return w.w.Write(b)
 }
