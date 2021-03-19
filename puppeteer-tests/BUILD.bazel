@@ -20,7 +20,7 @@ ts_library(
 )
 
 nodejs_test(
-    name = "util_test",
-    src = ":util_test.ts",
+    name = "util_nodejs_test",
+    src = ":util_nodejs_test.ts",
     deps = [":util_lib"],
 )

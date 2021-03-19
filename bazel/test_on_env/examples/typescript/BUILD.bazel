@@ -2,7 +2,7 @@ load("//infra-sk:index.bzl", "nodejs_test")
 
 nodejs_test(
     name = "typescript_test",
-    src = "typescript_test.ts",
+    src = "typescript_nodejs_test.ts",
     tags = ["manual"],
     visibility = ["//bazel/test_on_env:__pkg__"],
     deps = [

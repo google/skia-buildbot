@@ -114,7 +114,8 @@ def nodejs_test(
         src,
         deps = [],
         tags = [],
-        visibility = None):
+        visibility = None,
+        _internal_skip_naming_convention_enforcement = False):
     """Runs a Node.js unit test using the Mocha test runner.
 
     For tests that should run in the browser, please use karma_test instead.
@@ -125,7 +126,12 @@ def nodejs_test(
       deps: Any ts_library dependencies.
       tags: Tags for the generated nodejs_test rule.
       visibility: Visibility of the generated nodejs_test rule.
+      _internal_skip_naming_convention_enforcement: Not part of the public API - do not use.
     """
+
+    # This macro is called by sk_element_puppeteer_test, which uses a different naming convention.
+    if not _internal_skip_naming_convention_enforcement and not src.endswith("_nodejs_test.ts"):
+        fail("Node.js tests must end with \"_nodejs_test.ts\".")
 
     mocha_deps = [
         "@infra-sk_npm//mocha",
@@ -170,11 +176,15 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
       deps: Any ts_library dependencies.
     """
 
+    if not src.endswith("_puppeteer_test.ts"):
+        fail("Puppeteer tests must end with \"_puppeteer_test.ts\".")
+
     nodejs_test(
         name = name + "_test_only",
         src = src,
         tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
         deps = deps,
+        _internal_skip_naming_convention_enforcement = True,
     )
 
     test_on_env(
