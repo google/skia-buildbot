@@ -39,11 +39,7 @@ def karma_test(name, srcs, deps, entry_point = None):
     ts_library(
         name = name + "_lib",
         srcs = srcs,
-        deps = deps + [
-            # Add common test dependencies for convenience.
-            "@infra-sk_npm//@types/chai",
-            "@infra-sk_npm//@types/sinon",
-        ],
+        deps = deps,
     )
 
     rollup_bundle(

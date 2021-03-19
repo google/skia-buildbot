@@ -13,6 +13,11 @@ sk_element(
     name = "theme-chooser-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["theme-chooser-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:element-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
     ts_srcs = [
         "index.ts",
         "theme-chooser-sk.ts",
@@ -25,6 +30,8 @@ karma_test(
     deps = [
         ":theme-chooser-sk",
         "//infra-sk/modules:test_util",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
     ],
 )
 
@@ -45,5 +52,12 @@ sk_element_puppeteer_test(
     name = "puppeteer_test",
     srcs = [":theme-chooser-sk_puppeteer_test.ts"],
     sk_demo_page_server = ":demo_page_server",
-    deps = [":theme-chooser-sk"],
+    deps = [
+        ":theme-chooser-sk",
+        "//puppeteer-tests:util_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//puppeteer",
+    ],
 )

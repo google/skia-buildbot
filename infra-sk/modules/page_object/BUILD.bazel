@@ -22,7 +22,9 @@ karma_test(
     entry_point = "page_object_element_test.ts",
     deps = [
         ":page_object",
+        "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//puppeteer",
     ],
 )
@@ -36,7 +38,9 @@ nodejs_mocha_test(
     deps = [
         ":page_object",
         "//puppeteer-tests:util_lib",
+        "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//puppeteer",
     ],
 )

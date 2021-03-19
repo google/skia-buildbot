@@ -13,6 +13,11 @@ sk_element(
     name = "query-values-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["query-values-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:element-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
     ts_srcs = [
         "index.ts",
         "query-values-sk.ts",
@@ -36,6 +41,8 @@ karma_test(
         ":query-values-sk",
         ":query-values-sk_po",
         "//infra-sk/modules:test_util",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
     ],
 )
 

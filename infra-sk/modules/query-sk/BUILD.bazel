@@ -15,7 +15,10 @@ sk_element(
     sass_srcs = ["query-sk.scss"],
     sk_element_deps = ["//infra-sk/modules/query-values-sk:query-values-sk"],
     ts_deps = [
+        "//infra-sk/modules/ElementSk:element-sk",
         "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -40,6 +43,8 @@ karma_test(
         ":query-sk",
         ":query-sk_po",
         "//infra-sk/modules:test_util",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//common-sk",
     ],
 )
@@ -61,4 +66,11 @@ sk_element_puppeteer_test(
     name = "puppeteer_test",
     srcs = [":query-sk_puppeteer_test.ts"],
     sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//puppeteer-tests:util_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//chai",
+        "@infra-sk_npm//puppeteer",
+    ],
 )

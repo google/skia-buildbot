@@ -79,13 +79,7 @@ def sk_element(name, ts_srcs, sass_srcs, ts_deps = [], sass_deps = [], sk_elemen
     ts_library(
         name = name,
         srcs = ts_srcs,
-        deps = all_ts_deps + [
-            # Add common dependencies for convenience. Almost all sk_element targets need these.
-            # It is OK if some of these dependencies are not used by an sk_element target.
-            "//infra-sk/modules/ElementSk:element-sk",
-            "@infra-sk_npm//elements-sk",
-            "@infra-sk_npm//lit-html",
-        ],
+        deps = all_ts_deps,
     )
 
     sass_library(
@@ -136,10 +130,8 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibi
         name = name,
         entry_point = "@infra-sk_npm//:node_modules/mocha/bin/mocha",
         data = srcs + deps + [
-            "@infra-sk_npm//chai",
             "@infra-sk_npm//mocha",
             "@infra-sk_npm//ts-node",
-            "@infra-sk_npm//@types/chai",
             "//:tsconfig.json",
         ],
         templated_args = [
@@ -177,11 +169,7 @@ def sk_element_puppeteer_test(name, srcs, sk_demo_page_server, deps = []):
         name = name + "_test_only",
         srcs = srcs,
         tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test all".
-        deps = deps + [
-            "//puppeteer-tests:util_lib",
-            "@infra-sk_npm//@types/puppeteer",
-            "@infra-sk_npm//puppeteer",
-        ],
+        deps = deps,
     )
 
     test_on_env(

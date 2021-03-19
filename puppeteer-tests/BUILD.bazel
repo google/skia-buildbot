@@ -5,10 +5,12 @@ ts_library(
     srcs = [":util.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//@types/express",
         "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//@types/webpack",
         "@infra-sk_npm//@types/webpack-dev-middleware",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//express",
         "@infra-sk_npm//mocha",
         "@infra-sk_npm//puppeteer",
