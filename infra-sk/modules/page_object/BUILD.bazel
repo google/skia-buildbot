@@ -27,7 +27,7 @@ ts_library(
 
 karma_test(
     name = "karma_test",
-    src = "page_object_element_test.ts",
+    src = "page_object_element_karma_test.ts",
     deps = [
         ":page_object",
         ":page_object_element_test_cases",
@@ -39,8 +39,8 @@ karma_test(
 )
 
 nodejs_test(
-    name = "puppeteer_test",
-    src = "page_object_element_puppeteer_test.ts",
+    name = "nodejs_test",
+    src = "page_object_element_nodejs_test.ts",
     deps = [
         ":page_object",
         ":page_object_element_test_cases",

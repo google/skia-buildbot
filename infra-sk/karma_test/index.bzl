@@ -25,6 +25,13 @@ def karma_test(name, src, deps = []):
       deps: Any ts_library dependencies.
     """
 
+    # Enforce test naming conventions. The Gazelle extension for front-end code relies on these.
+    if not src.endswith("_test.ts"):
+        fail("Karma tests must end with \"_test.ts\".")
+    for suffix in ["_puppeteer_test.ts", "_nodejs_test.ts"]:
+        if src.endswith(suffix):
+            fail("Karma tests cannot end with \"%s\"." % suffix)
+
     ts_library(
         name = name + "_lib",
         srcs = [src],

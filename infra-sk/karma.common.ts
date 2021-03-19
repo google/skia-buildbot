@@ -49,6 +49,10 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
       'modules/**/*_puppeteer_test.ts',
       'modules/*_puppeteer_test.js',
       'modules/**/*_puppeteer_test.js',
+      'modules/*_nodejs_test.ts',
+      'modules/**/*_nodejs_test.ts',
+      'modules/*_nodejs_test.js',
+      'modules/**/*_nodejs_test.js',
     ],
 
     // test results reporter to use
