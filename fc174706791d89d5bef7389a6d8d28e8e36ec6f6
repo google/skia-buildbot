@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bde7c7d8_39db6ae3",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-19T00:43:02Z",
+      "side": 1,
+      "message": "Nit: ParamSet?",
+      "range": {
+        "startLine": 154,
+        "startChar": 30,
+        "endLine": 154,
+        "endChar": 49
+      },
+      "revId": "fc174706791d89d5bef7389a6d8d28e8e36ec6f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
