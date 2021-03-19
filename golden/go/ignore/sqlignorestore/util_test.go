@@ -1,4 +1,4 @@
-package main
+package sqlignorestore
 
 import (
 	"context"
@@ -7,19 +7,48 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/golden/go/sql/databuilder"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/sql/databuilder"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
 )
+
+func TestConvertIgnoreRules_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	condition, args := ConvertIgnoreRules(nil)
+	assert.Equal(t, "false", condition)
+	assert.Empty(t, args)
+
+	condition, args = ConvertIgnoreRules([]paramtools.ParamSet{
+		{
+			"key1": []string{"alpha"},
+		},
+	})
+	assert.Equal(t, `((COALESCE(keys ->> $1::STRING IN ($2), FALSE)))`, condition)
+	assert.Equal(t, []interface{}{"key1", "alpha"}, args)
+
+	condition, args = ConvertIgnoreRules([]paramtools.ParamSet{
+		{
+			"key1": []string{"alpha", "beta"},
+			"key2": []string{"gamma"},
+		},
+		{
+			"key3": []string{"delta", "epsilon", "zeta"},
+		},
+	})
+	const expectedCondition = `((COALESCE(keys ->> $1::STRING IN ($2, $3), FALSE) AND COALESCE(keys ->> $4::STRING IN ($5), FALSE))
+OR (COALESCE(keys ->> $6::STRING IN ($7, $8, $9), FALSE)))`
+	assert.Equal(t, expectedCondition, condition)
+	assert.Equal(t, []interface{}{"key1", "alpha", "beta", "key2", "gamma", "key3", "delta", "epsilon", "zeta"}, args)
+}
 
 func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
 	unittest.LargeTest(t)
@@ -47,7 +76,7 @@ func TestUpdateIgnoredTraces_StartsNull_SetToCorrectValue(t *testing.T) {
 	assert.Equal(t, 33, count)
 	assert.Equal(t, 33, len(existingData.ValuesAtHead))
 
-	require.NoError(t, updateIgnoredTraces(ctx, db))
+	require.NoError(t, UpdateIgnoredTraces(ctx, db))
 	// Verify things are not null
 	row = db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule IS NULL`)
 	count = -1
@@ -92,7 +121,7 @@ func TestUpdateIgnoredTraces_StartsNotNull_NotChanged(t *testing.T) {
 	assert.Equal(t, 33, count)
 	assert.Equal(t, 33, len(existingData.ValuesAtHead))
 
-	require.NoError(t, updateIgnoredTraces(ctx, db))
+	require.NoError(t, UpdateIgnoredTraces(ctx, db))
 
 	// Verify things were unchanged
 	row = db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule = FALSE`)
@@ -192,7 +221,7 @@ func TestUpdateIgnoredTraces_MultipleBatches_Success(t *testing.T) {
 	require.NoError(t, row.Scan(&count))
 	assert.Equal(t, numTraces, count)
 
-	require.NoError(t, updateIgnoredTraces(ctx, db))
+	require.NoError(t, UpdateIgnoredTraces(ctx, db))
 
 	// Verify things are the right value
 	row = db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule IS NULL`)
@@ -290,7 +319,7 @@ func TestUpdateIgnoredTraces_NullableRules_SetToCorrectValue(t *testing.T) {
 	assert.Equal(t, 2, count)
 	assert.Equal(t, 2, len(existingData.ValuesAtHead))
 
-	require.NoError(t, updateIgnoredTraces(ctx, db))
+	require.NoError(t, UpdateIgnoredTraces(ctx, db))
 	// Verify things are not null
 	row = db.QueryRow(ctx, `SELECT count(*) FROM Traces WHERE matches_any_ignore_rule IS NULL`)
 	count = -1
