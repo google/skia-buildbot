@@ -37,7 +37,7 @@ ts_library(
 
 karma_test(
     name = "test",
-    srcs = ["paramset-sk_test.ts"],
+    src = "paramset-sk_test.ts",
     deps = [
         ":paramset-sk",
         ":paramset-sk_po",
