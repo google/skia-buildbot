@@ -1,7 +1,6 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
 load("@build_bazel_rules_nodejs//:index.bzl", _nodejs_test = "nodejs_test")
-load("@infra-sk_npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
 load("@infra-sk_npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@infra-sk_npm//@bazel/terser:index.bzl", "terser_minified")
 load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
@@ -11,6 +10,7 @@ load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/html_insert_nonce_attribute:index.bzl", "html_insert_nonce_attribute")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
+load(":ts_library.bzl", _ts_library = "ts_library")
 
 # Re-export these common rules so we only have to load this .bzl file from our BUILD.bazel files.
 karma_test = _karma_test
@@ -140,8 +140,6 @@ def nodejs_mocha_test(name, srcs = [], deps = [], tags = [], args = None, visibi
             "@infra-sk_npm//mocha",
             "@infra-sk_npm//ts-node",
             "@infra-sk_npm//@types/chai",
-            "@infra-sk_npm//@types/mocha",
-            "@infra-sk_npm//@types/node",
             "//:tsconfig.json",
         ],
         templated_args = [

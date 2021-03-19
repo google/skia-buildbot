@@ -7,7 +7,6 @@ ts_library(
     srcs = ["test_util.ts"],
     deps = [
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/mocha",
         "@infra-sk_npm//common-sk",
     ],
 )
