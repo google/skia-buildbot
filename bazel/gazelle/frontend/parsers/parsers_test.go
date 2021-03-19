@@ -10,25 +10,27 @@ import (
 func TestParseTSImports_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	source := `// Sample TypeScript file with imports.
+	source := `/* Sample TypeScript file with imports. */
 import 'path/to/a';                      // This comment should be ignored.
 import "path/to/b";                      // This comment should be ignored.
 import * from 'path/to/c';               // This comment should be ignored.
 import * from "path/to/d";               // This comment should be ignored.
-import * as foo from 'path/to/e';        // This comment should be ignored.
-import * as foo from "path/to/f";        // This comment should be ignored.
-import { foo_bar, $ } from 'path/to/g';  // This comment should be ignored.
-import { foo_bar, $ } from "path/to/h";  // This comment should be ignored.
-import { foo as bar } from 'path/to/i';  // This comment should be ignored.
-import { foo as bar } from "path/to/j";  // This comment should be ignored.
+export * from 'path/to/e';               // This comment should be ignored.
+export * from "path/to/f";               // This comment should be ignored.
+import * as foo from 'path/to/g';        // This comment should be ignored.
+import * as foo from "path/to/h";        // This comment should be ignored.
+import { foo_bar, $ } from 'path/to/i';  // This comment should be ignored.
+import { foo_bar, $ } from "path/to/j";  // This comment should be ignored.
+import { foo as bar } from 'path/to/k';  // This comment should be ignored.
+import { foo as bar } from "path/to/l";  // This comment should be ignored.
 import {                                 // This comment should be ignored.
   foo,                                   // This comment should be ignored.
   bar,                                   // This comment should be ignored.
-} from 'path/to/k';                      // This comment should be ignored.
+} from 'path/to/m';                      // This comment should be ignored.
 import {                                 // This comment should be ignored.
   foo,                                   // This comment should be ignored.
   bar,                                   // This comment should be ignored.
-} from "path/to/l";                      // This comment should be ignored.
+} from "path/to/n";                      // This comment should be ignored.
 
 // Duplicate imports should be ignored.
 import 'path/to/a';
@@ -50,7 +52,10 @@ import * from 'block-comment/b';
 // A more complex block comment.
 thisWillBeIgnored(); /*
 import 'block-comment/c';
-import * from 'block-comment/d'; */ import 'path/to/m';  // This import should NOT be ignored.
+import * from 'block-comment/d'; */ import 'path/to/o';  // This import should NOT be ignored.
+
+// A block comment that starts and ends on the same line.
+import /* 'block-comment/e' */ 'path/to/p':
 
 // Tests for various edge cases. Some of these are invalid TS because import is a reserved keyword.
 importfrom('ignored/a');
@@ -77,15 +82,18 @@ from = 'ignored/g';
 		"path/to/k",
 		"path/to/l",
 		"path/to/m",
+		"path/to/n",
+		"path/to/o",
+		"path/to/p",
 	}
 
-	require.Equal(t, expected, parseTSImports(source))
+	require.Equal(t, expected, ParseTSImports(source))
 }
 
 func TestParseSassImports_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	source := `// Sample Sass file with @import, @use and @forward statements.
+	source := `/* Sample Sass file with @import, @use and @forward statements. */
 
 @import 'path/to/a';  // This comment should be ignored.
 @import "path/to/b";  // This comment should be ignored.
@@ -147,6 +155,9 @@ func TestParseSassImports_Success(t *testing.T) {
 @import 'block-comment/d';
 @use 'block-comment/e';
 @forward 'block-comment/f'; */ @import 'path/to/q';  // This import should NOT be ignored.
+
+// A block comment that starts and ends on the same line.
+@import /* 'block-comment/g' */ 'path/to/r':
 `
 
 	expected := []string{
@@ -167,7 +178,8 @@ func TestParseSassImports_Success(t *testing.T) {
 		"path/to/o",
 		"path/to/p",
 		"path/to/q",
+		"path/to/r",
 	}
 
-	require.Equal(t, expected, parseSassImports(source))
+	require.Equal(t, expected, ParseSassImports(source))
 }

@@ -2,12 +2,20 @@ package resolver
 
 import (
 	"log"
+	"encoding/json"
+	"io/ioutil"
+	"path"
+	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
 	"github.com/bazelbuild/bazel-gazelle/label"
 	"github.com/bazelbuild/bazel-gazelle/repo"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
+	"go.skia.org/infra/bazel/gazelle/frontend/common"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -36,6 +44,9 @@ type Resolver struct {
 
 	// tsImportsToDeps maps TypeScript imports to rules that provide those imports.
 	tsImportsToDeps map[string]map[ruleKindAndLabel]bool
+
+	// npmPackages is the set of NPM dependencies and devDependencies read from the package.json file.
+	npmPackages map[string]bool
 }
 
 // ruleAKindAndLabel is a (rule kind, rule label) pair (e.g. "ts_library", "//path/to:my_ts_lib").
@@ -149,9 +160,64 @@ func (rslv *Resolver) Name() string {
 // Therefore, this method always returns an empty slice, which results in an empty
 // resolve.RuleIndex, but that is OK because we do not use it.
 func (rslv *Resolver) Imports(c *config.Config, r *rule.Rule, f *rule.File) []resolve.ImportSpec {
-	// TODO(lovisolo): Implement.
+	ruleLabel := label.New(c.RepoName, f.Pkg, r.Name())
+
+	switch r.Kind() {
+	case "ts_library":
+		importPaths := extractTypeScriptImportsProvidedByRule(f.Pkg, r, "srcs")
+		rslv.indexImportsProvidedByRule("ts", importPaths, r.Kind(), ruleLabel)
+	case "sass_library":
+		importPaths := extractSassImportsProvidedByRule(f.Pkg, r, "srcs")
+		rslv.indexImportsProvidedByRule("sass", importPaths, r.Kind(), ruleLabel)
+	case "sk_element":
+		tsImportPaths := extractTypeScriptImportsProvidedByRule(f.Pkg, r, "ts_srcs")
+		sassImportPaths := extractSassImportsProvidedByRule(f.Pkg, r, "sass_srcs")
+		rslv.indexImportsProvidedByRule("ts", tsImportPaths, r.Kind(), ruleLabel)
+		rslv.indexImportsProvidedByRule("sass", sassImportPaths, r.Kind(), ruleLabel)
+	}
 
 	return []resolve.ImportSpec{}
+}
+
+// extractTypeScriptImportsProvidedByRule takes a rule with TypeScript sources (e.g. "ts_library",
+// "sk_element", etc.) and returns the paths of the imports that the source files may satisfy.
+func extractTypeScriptImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr string) []string {
+	var importPaths []string
+	for _, src := range r.AttrStrings(srcsAttr) {
+		if !strings.HasSuffix(src, ".ts") {
+			log.Printf("Rule %s of kind %s contains a non-TypeScript file in its %s attribute: %s", label.New("", pkg, r.Name()).String(), r.Kind(), srcsAttr, src)
+			continue
+		}
+
+		importPaths = append(importPaths, path.Join(pkg, strings.TrimSuffix(src, path.Ext(src))))
+
+		// An index.ts file may also be imported as its parent folder's "main" module:
+		//
+		//     // The two following imports are equivalent.
+		//     import 'path/to/module/index';
+		//     import 'path/to/module';
+		//
+		// Reference:
+		// https://www.typescriptlang.org/docs/handbook/module-resolution.html#how-typescript-resolves-modules.
+		if src == "index.ts" {
+			importPaths = append(importPaths, pkg)
+		}
+	}
+	return importPaths
+}
+
+// extractTypeScriptImportsProvidedByRule takes a rule with Sass sources (e.g. "sass_library",
+// "sk_element", etc.) and returns the paths of the imports that the source files may satisfy.
+func extractSassImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr string) []string {
+	var importPaths []string
+	for _, src := range r.AttrStrings(srcsAttr) {
+		if !strings.HasSuffix(src, ".scss") {
+			log.Printf("Rule %s of kind %s contains a non-Sass file in its %s attribute: %s", label.New("", pkg, r.Name()).String(), r.Kind(), srcsAttr, src)
+			continue
+		}
+		importPaths = append(importPaths, path.Join(pkg, strings.TrimSuffix(src, path.Ext(src))))
+	}
+	return importPaths
 }
 
 // Embeds implements the resolve.Resolver interface.
@@ -169,7 +235,256 @@ func (rslv *Resolver) Embeds(r *rule.Rule, from label.Label) []label.Label { ret
 // successive calls to Language.GenerateRules(). Gazelle calls this method after all imports in the
 // repository have been indexed via successive calls to the Imports method.
 func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.RemoteCache, r *rule.Rule, imports interface{}, from label.Label) {
-	// TODO(lovisolo): Implement.
+	importsFromRuleSources := imports.(common.ImportsParsedFromRuleSources)
+
+	switch {
+	case r.Kind() == "karma_test" || r.Kind() == "nodejs_test" || r.Kind() == "sk_element_puppeteer_test" || r.Kind() == "ts_library":
+		var deps []label.Label
+		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
+			for _, ruleKindAndLabel := range rslv.resolveDepsForTypeScriptImport(r.Kind(), from, importPath, c.RepoRoot) {
+				deps = append(deps, ruleKindAndLabel.label)
+			}
+		}
+		setDeps(r, from, "deps", deps)
+
+	case r.Kind() == "sass_library":
+		var deps []label.Label
+		for _, importPath := range importsFromRuleSources.GetSassImports() {
+			ruleKindAndLabel := rslv.resolveDepForSassImport(r.Kind(), from, importPath)
+			if ruleKindAndLabel == noRuleKindAndLabel {
+				continue // No rule satisfies the current Sass import. A warning has already been logged.
+			}
+			dep := ruleKindAndLabel.label
+			if ruleKindAndLabel.kind == "sk_element" {
+				// Ensure that the target name is explicit ("//my/package:package" vs "//my/package") before
+				// appending the known suffix for the sass_library target generated by the sk_element macro.
+				if dep.Name == "" {
+					dep.Name = dep.Pkg
+				}
+				dep.Name = dep.Name + "_styles"
+			}
+			deps = append(deps, dep)
+		}
+		setDeps(r, from, "deps", deps)
+
+	case r.Kind() == "sk_element" || r.Kind() == "sk_page":
+		var skElementDeps, tsDeps, sassDeps []label.Label
+		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
+			for _, ruleKindAndLabel := range rslv.resolveDepsForTypeScriptImport(r.Kind(), from, importPath, c.RepoRoot) {
+				if ruleKindAndLabel.kind == "sk_element" {
+					skElementDeps = append(skElementDeps, ruleKindAndLabel.label)
+				} else {
+					tsDeps = append(tsDeps, ruleKindAndLabel.label)
+				}
+			}
+		}
+		for _, importPath := range importsFromRuleSources.GetSassImports() {
+			ruleKindAndLabel := rslv.resolveDepForSassImport(r.Kind(), from, importPath)
+			if ruleKindAndLabel == noRuleKindAndLabel {
+				continue // No rule satisfies the current Sass import. A warning has already been logged.
+			}
+			if ruleKindAndLabel.kind == "sk_element" {
+				skElementDeps = append(skElementDeps, ruleKindAndLabel.label)
+			} else {
+				sassDeps = append(sassDeps, ruleKindAndLabel.label)
+			}
+		}
+		setDeps(r, from, "sk_element_deps", skElementDeps)
+		setDeps(r, from, "ts_deps", tsDeps)
+		setDeps(r, from, "sass_deps", sassDeps)
+	}
+}
+
+// setDeps sets the dependencies of a rule.
+func setDeps(r *rule.Rule, l label.Label, depsAttr string, deps []label.Label) {
+	r.DelAttr(depsAttr)
+
+	var depsAsStrings []string
+	for _, dep := range deps {
+		dep = dep.Rel(l.Repo, l.Pkg)
+		// Filter out self-imports (e.g. when an sk_element has files index.ts and foo-sk.ts
+		// index.ts imports foo-sk.ts).
+		if dep.Relative && dep.Name == r.Name() {
+			continue
+		}
+		depsAsStrings = append(depsAsStrings, dep.String())
+	}
+
+	if len(depsAsStrings) > 0 {
+		depsAsStrings = util.SSliceDedup(depsAsStrings)
+		sort.Strings(depsAsStrings)
+		r.SetAttr(depsAttr, depsAsStrings)
+	}
+}
+
+// resolveDepForSassImport returns the label of the rule that resolves the given Sass import.
+func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.Label, importPath string) ruleKindAndLabel {
+	// The elements-sk styles are a special case because they come from a genrule that copies them
+	// from //infra-sk/node_modules/elements-sk into //bazel-bin/~elements-sk. These styles can be
+	// accessed via the //infra-sk:elements-sk_scss sass_library.
+	if strings.HasPrefix(importPath, "~elements-sk") {
+		return ruleKindAndLabel{
+			kind:  "sass_library",
+			label: label.New("", "infra-sk", "elements-sk_scss"),
+		}
+	}
+
+	// Sass always resolves imports relative to the current file first, so we normalize the import
+	// path relative to the current directory, e.g. "../bar" imported from "myapp/foo" becomes
+	// "myapp/bar".
+	//
+	// Reference:
+	// https://sass-lang.com/documentation/at-rules/use#load-paths
+	// https://sass-lang.com/documentation/at-rules/import#load-paths
+	normalizedImportPath := path.Join(ruleLabel.Pkg, strings.TrimSuffix(importPath, path.Ext(importPath)))
+
+	return rslv.findRuleThatProvidesImport("sass", normalizedImportPath, ruleKind, ruleLabel)
+}
+
+// resolveDepsForTypeScriptImport returns the labels of the rules that resolve the given TypeScript
+// import.
+//
+// If the import refers to an NPM package with a separate types declaration (e.g. "foo" and
+//"@types/foo"), the labels for both dependencies will be returned.
+func (rslv *Resolver) resolveDepsForTypeScriptImport(ruleKind string, ruleLabel label.Label, importPath string, repoRootDir string) []ruleKindAndLabel {
+	// Is this an import of another source file in the repository?
+	if strings.HasPrefix(importPath, "./") || strings.HasPrefix(importPath, "../") {
+		// Normalize the import path, e.g. "../bar" imported from "myapp/foo" becomes "myapp/bar".
+		normalizedImportPath := path.Join(ruleLabel.Pkg, importPath)
+
+		rkal := rslv.findRuleThatProvidesImport("ts", normalizedImportPath, ruleKind, ruleLabel)
+		if rkal == noRuleKindAndLabel {
+			return []ruleKindAndLabel{}
+		}
+		return []ruleKindAndLabel{rkal}
+	}
+
+	// The import must be either an NPM package or a built-in Node.js module.
+	moduleName := strings.Split(importPath, "/")[0] // e.g. my-module/foo/bar => my-module
+
+	// Is this an import from an NPM package?
+	if npmPackages := rslv.getNPMPackages(filepath.Join(repoRootDir, "infra-sk", "package.json")); npmPackages[moduleName] {
+		var rkals []ruleKindAndLabel
+		// Add as dependencies both the module and its type annotations package, if it exists.
+		rkals = append(rkals, ruleKindAndLabel{
+			kind:  "",                                                   // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
+			label: label.New(npmBazelNamespace, moduleName, moduleName), // e.g. @infra-sk_npm//puppeteer
+		})
+		typesModuleName := "@types/" + moduleName // e.g. @types/my-module
+		if npmPackages[typesModuleName] {
+			rkals = append(rkals, ruleKindAndLabel{
+				kind:  "",                                                        // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
+				label: label.New(npmBazelNamespace, typesModuleName, moduleName), // e.g. @infra-sk_npm//@types/puppeteer
+			})
+		}
+		return rkals
+	}
+
+	// Is this a built-in Node.js module?
+	if builtInNodeJSModules[moduleName] {
+		// Nothing to do - no need to add built-in modules as explicit dependencies.
+		return []ruleKindAndLabel{}
+	}
+
+	log.Printf("Unable to resolve import %q from %s (%s): no %q NPM package or built-in module found.", importPath, ruleLabel, ruleKind, moduleName)
+	return []ruleKindAndLabel{}
+}
+
+// getNPMPackages returns the set of NPM dependencies found in the package.json file.
+func (rslv *Resolver) getNPMPackages(path string) map[string]bool {
+	if rslv.npmPackages != nil {
+		return rslv.npmPackages
+	}
+
+	var packageJSON struct {
+		Dependencies    map[string]string `json:"dependencies"`
+		DevDependencies map[string]string `json:"devDependencies"`
+	}
+
+	// Read in and unmarshall package.json file.
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Panicf("Error reading file %q: %v", path, err)
+	}
+	if err := json.Unmarshal(b, &packageJSON); err != nil {
+		log.Panicf("Error parsing %s: %v", path, err)
+	}
+
+	// Extract all NPM packages found in the package.json file.
+	rslv.npmPackages = map[string]bool{}
+	for pkg := range packageJSON.Dependencies {
+		rslv.npmPackages[pkg] = true
+	}
+	for pkg := range packageJSON.DevDependencies {
+		rslv.npmPackages[pkg] = true
+	}
+
+	return rslv.npmPackages
+}
+
+// builtInNodeJSModules is a set of built-in Node.js modules.
+//
+// This set can be regenerated via the following command:
+//
+//     $ echo "require('module').builtinModules.forEach(m => console.log(m))" | nodejs
+//
+// See https://nodejs.org/api/module.html#module_module_builtinmodules.
+var builtInNodeJSModules = map[string]bool{
+	"_http_agent":         true,
+	"_http_client":        true,
+	"_http_common":        true,
+	"_http_incoming":      true,
+	"_http_outgoing":      true,
+	"_http_server":        true,
+	"_stream_duplex":      true,
+	"_stream_passthrough": true,
+	"_stream_readable":    true,
+	"_stream_transform":   true,
+	"_stream_wrap":        true,
+	"_stream_writable":    true,
+	"_tls_common":         true,
+	"_tls_wrap":           true,
+	"assert":              true,
+	"async_hooks":         true,
+	"buffer":              true,
+	"child_process":       true,
+	"cluster":             true,
+	"console":             true,
+	"constants":           true,
+	"crypto":              true,
+	"dgram":               true,
+	"dns":                 true,
+	"domain":              true,
+	"events":              true,
+	"fs":                  true,
+	"http":                true,
+	"http2":               true,
+	"https":               true,
+	"inspector":           true,
+	"module":              true,
+	"net":                 true,
+	"os":                  true,
+	"path":                true,
+	"perf_hooks":          true,
+	"process":             true,
+	"punycode":            true,
+	"querystring":         true,
+	"readline":            true,
+	"repl":                true,
+	"stream":              true,
+	"string_decoder":      true,
+	"sys":                 true,
+	"timers":              true,
+	"tls":                 true,
+	"trace_events":        true,
+	"tty":                 true,
+	"url":                 true,
+	"util":                true,
+	"v8":                  true,
+	"vm":                  true,
+	"wasi":                true,
+	"worker_threads":      true,
+	"zlib":                true,
 }
 
 var _ resolve.Resolver = &Resolver{}
