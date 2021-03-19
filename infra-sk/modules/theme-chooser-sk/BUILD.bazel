@@ -50,7 +50,7 @@ sk_demo_page_server(
 
 sk_element_puppeteer_test(
     name = "puppeteer_test",
-    srcs = [":theme-chooser-sk_puppeteer_test.ts"],
+    src = "theme-chooser-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":theme-chooser-sk",
