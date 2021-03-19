@@ -64,7 +64,7 @@ sk_demo_page_server(
 
 sk_element_puppeteer_test(
     name = "puppeteer_test",
-    srcs = [":query-sk_puppeteer_test.ts"],
+    src = "query-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_lib",
