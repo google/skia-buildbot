@@ -70,16 +70,10 @@ type ingestionServerConfig struct {
 	// PrimaryBranchConfig describes how the primary branch ingestion should be configured.
 	PrimaryBranchConfig ingesterConfig `json:"primary_branch_config"`
 
-	// Metrics service address (e.g., ':10110')
-	PromPort string `json:"prom_port"`
-
 	// PubSubFetchSize is how many worker messages to ask PubSub for. This defaults to 10, but for
 	// instances that have many small files ingested, this can be higher for better utilization
 	// and throughput.
 	PubSubFetchSize int `json:"pubsub_fetch_size" optional:"true"`
-
-	// The port to provide a web handler for /healthz
-	ReadyPort string `json:"port"`
 
 	// SecondaryBranchConfig is the optional config for ingestion on secondary branches (e.g. Tryjobs).
 	SecondaryBranchConfig *ingesterConfig `json:"secondary_branch_config" optional:"true"`
