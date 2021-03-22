@@ -53,7 +53,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{},
+				Results: []Result{},
 			},
 			ignoreResults: false,
 			errFragment:   `field "results" must not be empty`,
@@ -62,7 +62,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key:    map[string]string{},
 						Digest: "12345abc",
@@ -76,7 +76,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": ""},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "foo",
@@ -92,7 +92,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							"no_name": "bar",
@@ -108,7 +108,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -123,7 +123,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -139,7 +139,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -158,7 +158,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -177,7 +177,7 @@ func TestValidateInvalid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -276,15 +276,15 @@ func TestValidateValid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{},
+				Results: []Result{},
 			},
 			ignoreResults: true,
 		},
-		"masterBranch": {
+		"primaryBranch": {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -299,7 +299,7 @@ func TestValidateValid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -319,7 +319,7 @@ func TestValidateValid(t *testing.T) {
 			results: GoldResults{
 				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 				Key:     map[string]string{"param1": "value1"},
-				Results: []*Result{
+				Results: []Result{
 					{
 						Key: map[string]string{
 							types.PrimaryKeyField: "bar",
@@ -595,7 +595,7 @@ const (
 		"issue": ""
 	}`
 
-	// This is what goldctl should spit out when running on the master branch
+	// This is what goldctl should spit out when running on the primary branch
 	goldCtlMasterBranchJSON = `{
   "gitHash": "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438",
   "key": {

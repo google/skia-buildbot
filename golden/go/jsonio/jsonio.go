@@ -93,7 +93,7 @@ func ParseGoldResults(r io.Reader) (*GoldResults, error) {
 type GoldResults struct {
 	GitHash string            `json:"gitHash"  validate:"required"`
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
-	Results []*Result         `json:"results"  validate:"min=1"`
+	Results []Result          `json:"results"  validate:"min=1"`
 
 	// These indicate the results were ingested from a TryJob.
 	// ChangelistID and PatchsetID correspond to code_review.Changelist.SystemID and
@@ -126,7 +126,7 @@ type Result struct {
 type rawGoldResults struct {
 	GitHash string            `json:"gitHash"  validate:"required"`
 	Key     map[string]string `json:"key"      validate:"required,min=1"`
-	Results []*Result         `json:"results"  validate:"min=1"`
+	Results []Result          `json:"results"  validate:"min=1"`
 
 	// ChangelistID and PatchsetID correspond to code_review.Changelist.SystemID and
 	// code_review.Patchset.Order, respectively

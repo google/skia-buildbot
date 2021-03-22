@@ -118,7 +118,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
@@ -196,7 +196,7 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
@@ -272,7 +272,7 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
@@ -335,7 +335,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
@@ -372,7 +372,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "bullhead"},
 				Options: map[string]string{"some_option": "is VERY DIFFERENT", "ext": "png"},
 				Digest:  blankDigest,
@@ -421,7 +421,7 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 			Key: map[string]string{
 				"os": "Android",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler", "source_type": "my_corpus"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
@@ -522,7 +522,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
@@ -624,7 +624,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 				"os":          "Android",
 				"source_type": "my_corpus",
 			},
-			Results: []*jsonio.Result{{
+			Results: []jsonio.Result{{
 				Key:     map[string]string{"name": "pixel-tests", "device": "angler"},
 				Options: map[string]string{"some_option": "is optional", "ext": "png"},
 				Digest:  blankDigest,
