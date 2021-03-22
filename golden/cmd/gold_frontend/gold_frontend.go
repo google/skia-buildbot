@@ -18,6 +18,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/expectations/sqlwrapped"
+
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -99,6 +101,9 @@ type frontendServerConfig struct {
 	// If the frontend shouldn't track any CLs. For example, if we are tracking a repo that doesn't
 	// have a CQ.
 	DisableCLTracking bool `json:"disable_changelist_tracking"`
+
+	// If true, write expectation changes to the SQL backend.
+	EnableSQLExpectations bool `json:"enable_sql_expectation"`
 
 	// If a trace has more unique digests than this, it will be considered flaky. If this number is
 	// greater than NumCommits, then no trace can ever be flaky.
@@ -212,7 +217,7 @@ func main() {
 
 	fsClient := mustMakeFirestoreClient(ctx, fsc)
 
-	expStore, expChangeHandler := mustMakeExpectationsStore(ctx, fsClient)
+	expStore, cleaner, expChangeHandler := mustMakeExpectationsStore(ctx, fsc, fsClient, sqlDB)
 
 	publiclyViewableParams := mustMakePubliclyViewableParams(fsc)
 
@@ -234,7 +239,7 @@ func main() {
 
 	statusWatcher := mustMakeStatusWatcher(ctx, vcs, expStore, expChangeHandler, tileSource)
 
-	mustStartExpectationsCleanupProcess(ctx, fsc, expStore, ixr)
+	mustStartExpectationsCleanupProcess(ctx, fsc, cleaner, ixr)
 
 	handlers := mustMakeWebHandlers(sqlDB, expStore, gsClient, ignoreStore, ixr, reviewSystems, searchAPI, statusWatcher, tileSource, tjs)
 
@@ -408,14 +413,18 @@ func mustMakeFirestoreClient(ctx context.Context, fsc *frontendServerConfig) *fi
 
 // mustMakeExpectationsStore returns a Firestore-backed expectations.Store and a corresponding
 // change event dispatcher.
-func mustMakeExpectationsStore(ctx context.Context, fsClient *firestore.Client) (*fs_expectationstore.Store, *expectations.ChangeEventDispatcher) {
+func mustMakeExpectationsStore(ctx context.Context, fsc *frontendServerConfig, fsClient *firestore.Client, db *pgxpool.Pool) (expectations.Store, *fs_expectationstore.Store, *expectations.ChangeEventDispatcher) {
 	// Set up the cloud expectations store
 	expChangeHandler := expectations.NewEventDispatcher()
 	expStore := fs_expectationstore.New(fsClient, expChangeHandler, fs_expectationstore.ReadWrite)
 	if err := expStore.Initialize(ctx); err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
-	return expStore, expChangeHandler
+	if fsc.EnableSQLExpectations {
+		sklog.Infof("Writing expectations to SQL enabled")
+		return sqlwrapped.New(expStore, db), expStore, expChangeHandler
+	}
+	return expStore, expStore, expChangeHandler
 }
 
 // mustMakePubliclyViewableParams validates and computes a publicparams.Matcher from the publicly
