@@ -488,6 +488,7 @@ func TestNormal(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_IDLE)
 }
 
+// HERE HERE
 func TestDryRun(t *testing.T) {
 	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
@@ -611,7 +612,7 @@ func TestDryRun(t *testing.T) {
 	r.rollWindowOpen = true
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 
-	// Somebody landed the CL.
+	// Somebody landed the CL after switching to normal mode.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	require.NoError(t, roll.SwitchToNormal(ctx))
 	roll.SetSucceeded()
@@ -627,9 +628,23 @@ func TestDryRun(t *testing.T) {
 	require.NoError(t, roll.SwitchToNormal(ctx))
 	roll.SetFailed()
 	require.NoError(t, roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "abandoned"))
-	checkNextState(t, sm, S_NORMAL_FAILURE)
-	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+
+	// HERE HERE
+	// Somebody landed the CL in dry-run mode.
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	r.SetNextRollRev("HEAD+7")
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetDryRunSucceeded()
+	checkNextState(t, sm, S_DRY_RUN_SUCCESS)
+	checkNextState(t, sm, S_DRY_RUN_SUCCESS_LEAVING_OPEN)
+	checkNextState(t, sm, S_DRY_RUN_SUCCESS_LEAVING_OPEN)
+	require.NoError(t, roll.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "merged"))
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 }
 
 func TestNormalToDryRun(t *testing.T) {

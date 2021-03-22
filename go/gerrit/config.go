@@ -1,5 +1,7 @@
 package gerrit
 
+import "fmt"
+
 var (
 	// ConfigAndroid is the configuration for Android Gerrit hosts.
 	ConfigAndroid = &Config{
@@ -410,28 +412,42 @@ func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
 // parameter indicates whether or not all of the relevant trybots for this
 // change succeeded; it is unused if Config.DryRunUsesTryjobResults is false.
 func (c *Config) DryRunSuccess(ci *ChangeInfo, allTrybotsSucceeded bool) bool {
+	fmt.Println("IN DRY RUN SUCCESS")
 	if ci.IsClosed() {
+		fmt.Println("IN CLOSED")
+		fmt.Println(ci.IsMerged())
 		return ci.IsMerged()
 	}
 	if !c.HasCq {
 		// DryRunSuccess indicates that the CL has passed all of the
 		// checks required for submission; if there are no checks, then
 		// it has passed all of them by default.
+		fmt.Println("TRUE1")
 		return true
 	}
 	if c.CqLabelsUnsetOnCompletion {
 		if len(c.CqActiveLabels) > 0 && all(ci, c.CqActiveLabels, eq) {
+			fmt.Println("FALSE1")
+			fmt.Println(c.CqActiveLabels)
 			return false
 		}
 		if len(c.DryRunActiveLabels) > 0 && all(ci, c.DryRunActiveLabels, eq) {
+			fmt.Println("FALSE2")
+			fmt.Println(c.DryRunActiveLabels)
 			return false
 		}
 	}
 	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels, geq) {
+		fmt.Println("TRUE2")
 		return true
 	}
 	if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels, leq) {
+		fmt.Println("FALSE3")
+		fmt.Println(c.DryRunFailureLabels)
 		return false
 	}
+	fmt.Println("????")
+	fmt.Println(c.DryRunUsesTryjobResults)
+	fmt.Println(allTrybotsSucceeded)
 	return c.DryRunUsesTryjobResults && allTrybotsSucceeded
 }
