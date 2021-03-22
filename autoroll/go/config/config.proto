@@ -108,6 +108,9 @@ message CommitMsgConfig {
     // include_tests indicates whether the "Test: " lines from the revisions in
     // the roll should be propagated through to the roll itself.
     bool include_tests = 8;
+    // extra_footers are any extra footers which should be added to all roll
+    // commit messages.
+    repeated string extra_footers = 11;
 
     // BuiltIn lists the built-in commit message templates.
     enum BuiltIn {

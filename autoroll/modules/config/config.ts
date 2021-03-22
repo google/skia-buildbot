@@ -121,6 +121,7 @@ export interface CommitMsgConfig {
   includeRevisionCount: boolean;
   includeTbrLine: boolean;
   includeTests: boolean;
+  extraFooters?: string[];
   builtIn: CommitMsgConfig_BuiltIn;
   custom: string;
 }
@@ -134,6 +135,7 @@ interface CommitMsgConfigJSON {
   include_revision_count?: boolean;
   include_tbr_line?: boolean;
   include_tests?: boolean;
+  extra_footers?: string[];
   built_in?: string;
   custom?: string;
 }
