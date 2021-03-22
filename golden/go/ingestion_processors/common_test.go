@@ -43,7 +43,7 @@ func TestDMResults(t *testing.T) {
 			"model":            "ShuttleB",
 			"os":               "Win8",
 		},
-		Results: []*jsonio.Result{
+		Results: []jsonio.Result{
 			{
 				Key: map[string]string{
 					"config":              "pipe-8888",
