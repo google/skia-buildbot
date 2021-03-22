@@ -9,6 +9,7 @@
 """Delete the isolate cache on a Swarming bot."""
 
 
+from __future__ import print_function
 import errno
 import os
 import shutil
@@ -44,11 +45,11 @@ def RemoveDirectory(*path):
     # Give up and use cmd.exe's rd command.
     file_path = os.path.normcase(file_path)
     for _ in xrange(3):
-      print 'RemoveDirectory running %s' % (' '.join(
-          ['cmd.exe', '/c', 'rd', '/q', '/s', file_path]))
+      print('RemoveDirectory running %s' % (' '.join(
+          ['cmd.exe', '/c', 'rd', '/q', '/s', file_path])))
       if not subprocess.call(['cmd.exe', '/c', 'rd', '/q', '/s', file_path]):
         break
-      print '  Failed'
+      print('  Failed')
       time.sleep(3)
     return
 
@@ -86,7 +87,7 @@ def RemoveDirectory(*path):
       if exception_value.errno == errno.ENOENT:
         # File does not exist, and we're trying to delete, so we can ignore the
         # failure.
-        print 'WARNING:  Failed to list %s during rmtree.  Ignoring.\n' % path
+        print('WARNING:  Failed to list %s during rmtree.  Ignoring.\n' % path)
       else:
         raise
     else:
@@ -95,7 +96,7 @@ def RemoveDirectory(*path):
   for root, dirs, files in os.walk(file_path, topdown=False):
     # For POSIX:  making the directory writable guarantees removability.
     # Windows will ignore the non-read-only bits in the chmod value.
-    os.chmod(root, 0770)
+    os.chmod(root, 0o770)
     for name in files:
       remove_with_retry(os.remove, os.path.join(root, name))
     for name in dirs:
@@ -108,7 +109,7 @@ def RemoveDirectory(*path):
 isolate_cache = '/b/s/isolated_cache'
 if os.name == 'nt':
   isolate_cache = 'C:\\b\\s\\isolated_cache'
-print 'Deleting %s' % isolate_cache
+print('Deleting %s' % isolate_cache)
 RemoveDirectory(isolate_cache)
-print 'Successfully deleted %s' % isolate_cache
+print('Successfully deleted %s' % isolate_cache)
 

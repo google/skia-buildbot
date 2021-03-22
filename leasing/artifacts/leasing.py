@@ -3,8 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 """This script should be run on a Swarming bot as part of leasing.skia.org."""
 
+
+from __future__ import print_function
 import argparse
 import json
 import os
@@ -32,18 +35,18 @@ def main():
   args = parser.parse_args()
 
   if args.debug_command:
-    print 'Files are mapped into: '
-    print os.getcwd()
-    print
-    print 'Original command: '
-    print args.debug_command
-    print
-    print 'Dir to run command in: '
-    print os.path.join(os.getcwd(), args.command_relative_dir)
-    print
-  print
-  print ('Please cleanup after you are done debugging or when you get the '
-         '15 min warning email!')
+    print('Files are mapped into: ')
+    print(os.getcwd())
+    print()
+    print('Original command: ')
+    print(args.debug_command)
+    print()
+    print('Dir to run command in: ')
+    print(os.path.join(os.getcwd(), args.command_relative_dir))
+    print()
+  print()
+  print('Please cleanup after you are done debugging or when you get the '
+        '15 min warning email!')
   sys.stdout.flush()
 
   while True:
@@ -55,12 +58,12 @@ def main():
       if output['Expired']:
         break
     except urllib2.HTTPError as e:
-      print 'Could not contact the leasing server: %s' % e
+      print('Could not contact the leasing server: %s' % e)
 
     time.sleep(POLLING_WAIT_TIME_SECS)
 
-  print 'The lease time has expired.'
-  print 'Failing the task so that swarming reboots the host.'
+  print('The lease time has expired.')
+  print('Failing the task so that swarming reboots the host.')
   # Fail the task so that swarming reboots the host. This will force all SSH'ed
   # users to disconnect.
   return 1

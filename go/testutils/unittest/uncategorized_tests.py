@@ -7,6 +7,11 @@
 """Run the Go tests and report any uncategorized tests. Exit 1 if any."""
 
 
+# TODO(borenet): Delete this once we've switched completely to running tests
+# within Bazel and no longer need to categorize tests.
+
+
+from __future__ import print_function
 import re
 import subprocess
 import sys
@@ -31,9 +36,9 @@ def main():
         notskipped.append(name)
 
   if notskipped:
-    print '%d tests are not categorized:' % len(notskipped)
+    print('%d tests are not categorized:' % len(notskipped))
     for t in notskipped:
-      print '\t%s' % t
+      print('\t%s' % t)
     sys.exit(1)
 
 
