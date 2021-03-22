@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "985d9361_cf8c027b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 11964
+      },
+      "writtenOn": "2021-03-22T14:44:49Z",
+      "side": 1,
+      "message": "Not sure if this is the best approach to getting past the user gesture requirement. I considered setting state._playing to false initially but figured that would mess up demos at https://skia.org/user/modules/skottie without adding something like an autoplay flag.",
+      "revId": "21c5204145cf3ba1f4082aabd33564801dceb064",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
