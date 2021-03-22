@@ -280,7 +280,7 @@ func (c *GerritConfig) Validate() error {
 
 // CanQueryTrybots implements CodeReviewConfig.
 func (c *GerritConfig) CanQueryTrybots() bool {
-	return c.Config != GerritConfig_ANDROID
+	return c.Config != GerritConfig_ANDROID && c.Config != GerritConfig_ANDROID_NO_CR
 }
 
 // Validate implements util.Validator.

@@ -1,5 +1,7 @@
 package gerrit
 
+import "fmt"
+
 var (
 	// ConfigAndroid is the configuration for Android Gerrit hosts.
 	ConfigAndroid = &Config{
@@ -36,6 +38,48 @@ var (
 			LabelAutoSubmit:     LabelAutoSubmitNone,
 			LabelPresubmitReady: LabelPresubmitReadyEnable,
 		},
+		DryRunSuccessLabels: map[string]int{
+			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+		},
+		DryRunFailureLabels: map[string]int{
+			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
+		},
+		DryRunUsesTryjobResults: false,
+	}
+
+	// ConfigAndroid is the configuration for Android Gerrit hosts where
+	// the service account does not have CR+2 access.
+	ConfigAndroidNoCR = &Config{
+		SelfApproveLabels: map[string]int{
+			LabelCodeReview: LabelCodeReviewNone,
+		},
+		HasCq: true,
+		SetCqLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitSubmit,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
+		},
+		SetDryRunLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyNone,
+		},
+		NoCqLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyNone,
+		},
+		CqActiveLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitSubmit,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
+		},
+		CqSuccessLabels: map[string]int{
+			LabelAutoSubmit:        LabelAutoSubmitSubmit,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+		},
+		CqFailureLabels: map[string]int{
+			LabelAutoSubmit:        LabelAutoSubmitSubmit,
+			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
+		},
+		CqLabelsUnsetOnCompletion: true,
+		DryRunActiveLabels:        map[string]int{},
 		DryRunSuccessLabels: map[string]int{
 			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
 		},
@@ -351,16 +395,24 @@ func (c *Config) DryRunRunning(ci *ChangeInfo) bool {
 		return false
 	}
 	if len(c.DryRunActiveLabels) > 0 && !all(ci, c.DryRunActiveLabels, eq) {
+		fmt.Println("FALSE 1")
+		fmt.Println(c.DryRunActiveLabels)
 		return false
 	}
 	if c.CqLabelsUnsetOnCompletion {
+		fmt.Println("TRUE 1")
 		return true
 	}
 	if len(c.DryRunSuccessLabels) > 0 && all(ci, c.DryRunSuccessLabels, geq) {
+		fmt.Println("FALSE 2")
+		fmt.Println(c.DryRunSuccessLabels)
 		return false
 	} else if len(c.DryRunFailureLabels) > 0 && all(ci, c.DryRunFailureLabels, leq) {
+		fmt.Println("FALSE 3")
+		fmt.Println(c.DryRunFailureLabels)
 		return false
 	}
+	fmt.Println("TRUE 2")
 	return true
 }
 
