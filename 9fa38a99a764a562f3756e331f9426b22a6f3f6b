@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "1f87c4d8_d5f6b702",
+        "filename": "bazel/gazelle/frontend/extension_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T22:28:13Z",
+      "side": 1,
+      "message": "Functions testtools.CreateFiles and testtools.ChangeFiles do not change this slice. I did however turn this global into a function to prevent bugs in our tests from modifying this slice.",
+      "parentUuid": "5e94eb34_137aea12",
+      "range": {
+        "startLine": 18,
+        "startChar": 33,
+        "endLine": 18,
+        "endChar": 41
+      },
+      "revId": "9fa38a99a764a562f3756e331f9426b22a6f3f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "fcda4881_c26dcff8",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-19T13:38:55Z",
       "side": 1,
       "message": "delete when?",
+      "range": {
+        "startLine": 128,
+        "startChar": 21,
+        "endLine": 128,
+        "endChar": 28
+      },
+      "revId": "9fa38a99a764a562f3756e331f9426b22a6f3f6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "84b14779_8ab1531e",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T22:28:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fcda4881_c26dcff8",
       "range": {
         "startLine": 128,
         "startChar": 21,
