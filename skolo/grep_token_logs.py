@@ -9,6 +9,7 @@
 """Search the syslog on a jumphost to determine when auth tokens changed."""
 
 
+from __future__ import print_function
 import sys
 
 
@@ -74,7 +75,7 @@ def main():
   if len(sys.argv) > 1:
     lines = filter_logs(sys.argv[1], lines)
   for line in lines:
-    print line
+    print(line)
 
 
 if __name__ == '__main__':

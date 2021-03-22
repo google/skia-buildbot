@@ -7,6 +7,8 @@
 #
 # Note: This requires PIL or Pillow to be installed.
 
+
+from __future__ import print_function
 import sys
 from PIL import Image
 
@@ -48,10 +50,10 @@ image_sizes_differ = (
 total_px = xMax * yMax
 pixel_diff_percent = (num_diff_pixel / float(total_px)) * 100
 if pixel_diff_percent > 100.0:
-    print "Error: Percent difference > 100%"
+    print("Error: Percent difference > 100%")
 
-print "Image Sizes Differ:", image_sizes_differ
-print "TotalNumPixels:    ", total_px
-print "NumDiffPixels:     ", num_diff_pixel
-print "PixelDiffPercent:  ", pixel_diff_percent
-print "MaxRGBADiffs:      ", max_rgba_diff
+print("Image Sizes Differ:", image_sizes_differ)
+print("TotalNumPixels:    ", total_px)
+print("NumDiffPixels:     ", num_diff_pixel)
+print("PixelDiffPercent:  ", pixel_diff_percent)
+print("MaxRGBADiffs:      ", max_rgba_diff)
