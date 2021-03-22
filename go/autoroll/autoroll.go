@@ -162,7 +162,10 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 // RollResult derives a result string for the roll.
 func RollResult(roll *AutoRollIssue) string {
 	if roll.IsDryRun {
+		fmt.Println("ROLL RESULT")
 		if roll.DryRunFinished {
+			fmt.Println("ROLL RESULT DRY RUN FINISHED")
+			fmt.Println(roll.DryRunSuccess)
 			if roll.DryRunSuccess {
 				return ROLL_RESULT_DRY_RUN_SUCCESS
 			} else {
