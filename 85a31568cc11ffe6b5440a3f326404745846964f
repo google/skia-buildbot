@@ -788,6 +788,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b84152d_10cdc4d0",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-22T21:45:16Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ab75108a_57b3b75d",
+      "range": {
+        "startLine": 141,
+        "startChar": 69,
+        "endLine": 141,
+        "endChar": 72
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b57942ae_2bed45bc",
@@ -919,6 +943,30 @@
       "side": 1,
       "message": "What test cases would you like to see here?\n\nMy intent in this test is to show that the -sk prefix is irrelevant to determining whether a directory is an app page directory. As for the test on lines 22-42, I\u0027m asserting that the -sk suffix is necessary for a directory to be considered as a potential directory with a custom element.",
       "parentUuid": "b5eb01ae_04a52cad",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 29
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2d78a3d7_34f59442",
+        "filename": "bazel/gazelle/frontend/language/language_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-22T21:45:16Z",
+      "side": 1,
+      "message": "I now realize the test on line 35 does what I want.",
+      "parentUuid": "ed16513a_23d3e417",
       "range": {
         "startLine": 17,
         "startChar": 17,
