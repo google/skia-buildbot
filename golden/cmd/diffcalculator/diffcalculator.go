@@ -65,16 +65,10 @@ type diffCalculatorConfig struct {
 	// (e.g. gold-memcached-0.gold-memcached:11211).
 	MemcachedServer string `json:"memcached_server" optional:"true"`
 
-	// Metrics service address (e.g., ':10110')
-	PromPort string `json:"prom_port"`
-
 	// PubSubFetchSize is how many worker messages to ask PubSub for. This defaults to 10, but for
 	// instances that have many tests, but most of the messages result in no-ops, this can be
 	// higher for better utilization and throughput.
 	PubSubFetchSize int `json:"pubsub_fetch_size" optional:"true"`
-
-	// The port to provide a web handler for /healthz
-	ReadyPort string `json:"ready_port"`
 }
 
 func main() {

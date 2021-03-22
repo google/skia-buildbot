@@ -59,12 +59,6 @@ type repoFollowerConfig struct {
 
 	// PollPeriod is how often we should poll the source of truth.
 	PollPeriod config.Duration `json:"poll_period"`
-
-	// Metrics service address (e.g., ':10110')
-	PromPort string `json:"prom_port"`
-
-	// The port to provide a web handler for /healthz
-	ReadyPort string `json:"ready_port"`
 }
 
 func main() {

@@ -32,12 +32,6 @@ import (
 
 type baselineServerConfig struct {
 	config.Common
-
-	// HTTP service address (e.g., ':9000')
-	Port string `json:"port"`
-
-	// Metrics service address (e.g., ':10110')
-	PromPort string `json:"prom_port"`
 }
 
 func main() {
@@ -176,6 +170,6 @@ func main() {
 	router.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(appRouter))
 
 	// Start the server
-	sklog.Infof("Serving on http://127.0.0.1" + bsc.Port)
-	sklog.Fatal(http.ListenAndServe(bsc.Port, router))
+	sklog.Infof("Serving on http://127.0.0.1" + bsc.ReadyPort)
+	sklog.Fatal(http.ListenAndServe(bsc.ReadyPort, router))
 }

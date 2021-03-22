@@ -33,12 +33,6 @@ type periodicTasksConfig struct {
 
 	// NullIgnorePeriod is how often we should try to apply the ignore rules to null traces.
 	NullIgnorePeriod config.Duration `json:"null_ignore_period"`
-
-	// Metrics service address (e.g., ':10110')
-	PromPort string `json:"prom_port"`
-
-	// The port to provide a web handler for /healthz
-	ReadyPort string `json:"ready_port"`
 }
 
 func main() {
