@@ -224,7 +224,7 @@ func githubResultReaderWithCIS(t *testing.T, cis string) io.ReadCloser {
 		Key: map[string]string{
 			types.CorpusField: "arbitrary",
 		},
-		Results: []*jsonio.Result{
+		Results: []jsonio.Result{
 			{
 				Key: map[string]string{
 					types.PrimaryKeyField: "whatever",

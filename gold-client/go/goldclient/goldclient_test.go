@@ -493,7 +493,7 @@ func TestFinalizeNormal(t *testing.T) {
 				"os":  "TestOS",
 				"cpu": "z80",
 			},
-			Results: []*jsonio.Result{
+			Results: []jsonio.Result{
 				{
 					Key: map[string]string{
 						"name":        "first-test",
