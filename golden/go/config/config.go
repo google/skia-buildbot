@@ -53,8 +53,14 @@ type Common struct {
 	// GCS path, where the known hashes file should be stored. Format: <bucket>/<path>.
 	KnownHashesGCSPath string `json:"known_hashes_gcs_path"`
 
+	// Metrics service address (e.g., ':20000')
+	PromPort string `json:"prom_port"`
+
 	// Project ID that houses the pubsub topic.
 	PubsubProjectID string `json:"pubsub_project_id"`
+
+	// The port to provide a web handler for /healthz and any other web requests.
+	ReadyPort string `json:"ready_port"`
 
 	// SQL username, host and port; typically root@localhost:26234 or root@gold-cockroachdb:26234
 	SQLConnection string `json:"sql_connection" optional:"true"`

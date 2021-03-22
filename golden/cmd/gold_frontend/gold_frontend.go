@@ -120,14 +120,8 @@ type frontendServerConfig struct {
 	// tile size.
 	NumCommits int `json:"num_commits"`
 
-	// HTTP service address (e.g., ':9000')
-	Port string `json:"port"`
-
 	// The longest time positive expectations can go unused before being purged. (0 means infinity)
 	PositivesMaxAge config.Duration `json:"positives_max_age" optional:"true"`
-
-	// Metrics service address (e.g., ':20000')
-	PromPort string `json:"prom_port"`
 
 	// If non empty, this map of rules will be applied to traces to see if they can be showed on
 	// this instance.
@@ -247,8 +241,8 @@ func main() {
 	rootRouter := mustMakeRootRouter(fsc, handlers)
 
 	// Start the server
-	sklog.Infof("Serving on http://127.0.0.1" + fsc.Port)
-	sklog.Fatal(http.ListenAndServe(fsc.Port, rootRouter))
+	sklog.Infof("Serving on http://127.0.0.1" + fsc.ReadyPort)
+	sklog.Fatal(http.ListenAndServe(fsc.ReadyPort, rootRouter))
 }
 
 // mustLoadFrontendServerConfig parses the common and instance-specific JSON configuration files.
@@ -289,7 +283,7 @@ func mustSetUpOAuth2Login(fsc *frontendServerConfig) {
 	// Set up login
 	redirectURL := fsc.SiteURL + "/oauth2callback/"
 	if fsc.Local {
-		redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", fsc.Port)
+		redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", fsc.ReadyPort)
 	}
 	sklog.Infof("The allowed list of users is: %q", fsc.AuthorizedUsers)
 	if err := login.Init(redirectURL, strings.Join(fsc.AuthorizedUsers, " "), fsc.ClientSecretFile); err != nil {
