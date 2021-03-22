@@ -518,7 +518,7 @@ func (c *CloudClient) getResultStatePath() string {
 func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) tiling.TraceID {
 	key, traceID := c.makeResultKeyAndTraceId(name, additionalKeys)
 
-	newResult := &jsonio.Result{
+	newResult := jsonio.Result{
 		Digest: imgHash,
 		Key:    key,
 

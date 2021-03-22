@@ -157,7 +157,7 @@ func extractTraceStoreEntries(gr *jsonio.GoldResults, name string) ([]*tracestor
 }
 
 // paramsAndOptions creates the params and options maps from a given file and entry.
-func paramsAndOptions(gr *jsonio.GoldResults, r *jsonio.Result) (map[string]string, map[string]string) {
+func paramsAndOptions(gr *jsonio.GoldResults, r jsonio.Result) (map[string]string, map[string]string) {
 	params := make(map[string]string, len(gr.Key)+len(r.Key))
 	for k, v := range gr.Key {
 		params[k] = v

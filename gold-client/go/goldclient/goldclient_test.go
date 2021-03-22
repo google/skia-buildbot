@@ -261,7 +261,7 @@ func TestAddResult_Success(t *testing.T) {
 	}
 
 	traceId := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
-	assert.Equal(t, []*jsonio.Result{
+	assert.Equal(t, []jsonio.Result{
 		{
 			Digest: "9d0568469d206c1aedf1b71f12f474bc",
 			Key: map[string]string{
@@ -293,7 +293,7 @@ func TestAddResult_NoCorpusSpecified_UsesInstanceIdAsCorpus_Success(t *testing.T
 	}
 
 	traceId := goldClient.addResult("my_test", "9d0568469d206c1aedf1b71f12f474bc", map[string]string{"gamma": "delta"}, map[string]string{"epsilon": "zeta"})
-	assert.Equal(t, []*jsonio.Result{
+	assert.Equal(t, []jsonio.Result{
 		{
 			Digest: "9d0568469d206c1aedf1b71f12f474bc",
 			Key: map[string]string{
@@ -493,7 +493,7 @@ func TestFinalizeNormal(t *testing.T) {
 				"os":  "TestOS",
 				"cpu": "z80",
 			},
-			Results: []*jsonio.Result{
+			Results: []jsonio.Result{
 				{
 					Key: map[string]string{
 						"name":        "first-test",
@@ -685,7 +685,7 @@ func TestNewReportPassFail(t *testing.T) {
 		results := g.Results
 		assert.Len(t, results, 1)
 		r := results[0]
-		assert.Equal(t, &jsonio.Result{
+		assert.Equal(t, jsonio.Result{
 			Digest: imgHash,
 			Options: map[string]string{
 				"ext": "png",
@@ -761,7 +761,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 		results := g.Results
 		assert.Len(t, results, 1)
 		r := results[0]
-		assert.Equal(t, &jsonio.Result{
+		assert.Equal(t, jsonio.Result{
 			Digest: imgHash,
 			Options: map[string]string{
 				"ext": "png",
@@ -836,7 +836,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 		results := g.Results
 		assert.Len(t, results, 1)
 		r := results[0]
-		assert.Equal(t, &jsonio.Result{
+		assert.Equal(t, jsonio.Result{
 			Digest: imgHash,
 			Options: map[string]string{
 				"ext": "png",
@@ -967,7 +967,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 		results := g.Results
 		assert.Len(t, results, 1)
 		r := results[0]
-		assert.Equal(t, &jsonio.Result{
+		assert.Equal(t, jsonio.Result{
 			Digest: newImageHash,
 			Options: map[string]string{
 				"ext":                                   "png",
