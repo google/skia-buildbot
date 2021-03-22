@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/cleanup"
@@ -372,6 +373,10 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	build, err := t.bb2.GetBuild(ctx, buildId)
 	if err != nil {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to retrieve build %q: %s", buildId, err))
+	}
+	if build.Status != buildbucketpb.Status_SCHEDULED {
+		sklog.Warningf("Skipping build %d with status: %s", build.Id, build.Status)
+		return nil
 	}
 
 	// Obtain and validate the RepoState.
