@@ -7,12 +7,9 @@ go_library(
     importpath = "go.skia.org/infra/golden/cmd/ignorerulestool",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/paramtools",
-        "//go/skerr",
         "//go/sklog",
+        "//golden/go/ignore/sqlignorestore",
         "//golden/go/sql",
-        "@com_github_cockroachdb_cockroach_go_v2//crdb/crdbpgx",
-        "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],
 )
@@ -21,22 +18,4 @@ go_binary(
     name = "ignorerulestool",
     embed = [":ignorerulestool_lib"],
     visibility = ["//visibility:public"],
-)
-
-go_test(
-    name = "ignorerulestool_test",
-    srcs = ["ignorerulestool_test.go"],
-    embed = [":ignorerulestool_lib"],
-    deps = [
-        "//go/paramtools",
-        "//go/testutils/unittest",
-        "//golden/go/sql/databuilder",
-        "//golden/go/sql/datakitchensink",
-        "//golden/go/sql/schema",
-        "//golden/go/sql/sqltest",
-        "//golden/go/types",
-        "@com_github_google_uuid//:uuid",
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
-    ],
 )
