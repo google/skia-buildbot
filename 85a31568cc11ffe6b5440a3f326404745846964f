@@ -18,6 +18,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "40d29561_fd64c02e",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Thanks 😊",
+      "parentUuid": "abd3208c_5c586727",
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "856a6ae1_15efdd15",
@@ -31,6 +49,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "Does the Gazelle API call this something else, like \"rule declaration\"? If so, maybe make a note of that?",
+      "range": {
+        "startLine": 18,
+        "startChar": 27,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9cb7342c_4e97b632",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "856a6ae1_15efdd15",
       "range": {
         "startLine": 18,
         "startChar": 27,
@@ -64,6 +106,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c7f1faa6_ed0f1b43",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb541ebf_6f566549",
+      "range": {
+        "startLine": 48,
+        "startChar": 52,
+        "endLine": 48,
+        "endChar": 59
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b3ea3b61_d937db34",
@@ -77,6 +143,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "possible summary: \"What do I need to make?\"",
+      "range": {
+        "startLine": 49,
+        "startChar": 44,
+        "endLine": 49,
+        "endChar": 53
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c9b8fe5d_7c7c4d5a",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3ea3b61_d937db34",
       "range": {
         "startLine": 49,
         "startChar": 44,
@@ -110,6 +200,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "c5f17d77_07fa85e1",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30704c9f_64d0d462",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 13
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "236349e8_5cb07269",
@@ -123,6 +237,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "nit: these three words are unnecessary",
+      "range": {
+        "startLine": 183,
+        "startChar": 91,
+        "endLine": 184,
+        "endChar": 7
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "44381d88_7e50ae16",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "236349e8_5cb07269",
       "range": {
         "startLine": 183,
         "startChar": 91,
@@ -156,6 +294,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc17a08f_fdb12ac7",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19dd6e05_af3beda0",
+      "range": {
+        "startLine": 188,
+        "startChar": 25,
+        "endLine": 188,
+        "endChar": 27
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "55b7087d_070c98ae",
@@ -169,6 +331,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "Maybe move this up to two in-line comments on line 169 and 174.",
+      "range": {
+        "startLine": 190,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 4
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3fd6e46c_b427ab82",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "55b7087d_070c98ae",
       "range": {
         "startLine": 190,
         "startChar": 0,
@@ -202,6 +388,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3877532c_5da58726",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f89b2d81_a6b7f681",
+      "range": {
+        "startLine": 224,
+        "startChar": 3,
+        "endLine": 224,
+        "endChar": 46
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "a2797ad8_391bd234",
@@ -225,6 +435,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "6d828f12_b816591e",
+        "filename": "bazel/gazelle/frontend/README.md",
+        "patchSetId": 19
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2797ad8_391bd234",
+      "range": {
+        "startLine": 229,
+        "startChar": 63,
+        "endLine": 229,
+        "endChar": 82
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2f613b73_23cc9121",
@@ -238,6 +472,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "It is unusual for a test to have a CLI flag. Could we use an environment variable instead?\n\nIn any case, this setting should have a little more documentation; how to set it up, what it\u0027s for, etc.",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 14
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "21a8bce0_460fd5a3",
+        "filename": "bazel/gazelle/frontend/extension_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Replaced this with looking up the binary in the runfiles dir.",
+      "parentUuid": "2f613b73_23cc9121",
       "range": {
         "startLine": 15,
         "startChar": 4,
@@ -273,6 +531,30 @@
     {
       "unresolved": false,
       "key": {
+        "uuid": "fb5a78e8_6cf0a14c",
+        "filename": "bazel/gazelle/frontend/extension_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3fcc888_b5b3a5c0",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 39,
+        "endChar": 27
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
         "uuid": "848b8e6c_929e7329",
         "filename": "bazel/gazelle/frontend/language/language.go",
         "patchSetId": 19
@@ -284,6 +566,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "This lets us opt-in modules to roll out slowly? Good idea.",
+      "range": {
+        "startLine": 18,
+        "startChar": 10,
+        "endLine": 18,
+        "endChar": 20
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "128b3623_daeb5e33",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "That\u0027s the intent. Not all apps are ready yet, e.g. ones with a mix of TS and JS code.",
+      "parentUuid": "848b8e6c_929e7329",
       "range": {
         "startLine": 18,
         "startChar": 10,
@@ -317,6 +623,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "513dad47_24eff01d",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71754a85_c8f27a3b",
+      "range": {
+        "startLine": 20,
+        "startChar": 7,
+        "endLine": 20,
+        "endChar": 10
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "dbbfdfdb_63b61e29",
@@ -330,6 +660,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "This is a hardcoded list, but unlikely to change right?\n\nCould we add a test that reads in index.bzl and compares it to the list of Symbols to make sure they match?",
+      "range": {
+        "startLine": 69,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 15
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8b085395_f47f41aa",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "The list is relatively stable at this point. I\u0027m not sure adding such a test is worth the effort. If this list falls out of sync, Gazelle will either add invalid load() statements to our BUILD files, and/or generate rules that are not correctly imported. In both cases, the Bazel build would fail (i.e. Infra-PerCommit-Build-Bazel-* would turn red), and we would find out immediately.",
+      "parentUuid": "dbbfdfdb_63b61e29",
       "range": {
         "startLine": 69,
         "startChar": 5,
@@ -363,6 +717,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cdadfb5c_4ee5f76a",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Added a comment in the ImportsParsedFromRuleSources interface definition.",
+      "parentUuid": "38095f87_bcc236ec",
+      "range": {
+        "startLine": 84,
+        "startChar": 1,
+        "endLine": 84,
+        "endChar": 12
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "26133919_e207854e",
@@ -376,6 +754,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "This will make the -sk \"convention\" we have a load-bearing requirement. Is there a reason to do that and not just assume modules/* is a custom element?",
+      "range": {
+        "startLine": 141,
+        "startChar": 69,
+        "endLine": 141,
+        "endChar": 72
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab75108a_57b3b75d",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "The main reason is that this convention makes the logic for generating sk_element targets simpler. I started without enforcing this, but ran into trouble because we do have directories under //\u003capp\u003e/modules/... that are not custom elements.\n\nI say let\u0027s stick with this assumption for now, and only relax it if we find it limiting when we start rolling out this Gazelle extension.",
+      "parentUuid": "26133919_e207854e",
       "range": {
         "startLine": 141,
         "startChar": 69,
@@ -409,6 +811,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cadf77b7_e8a181a2",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b57942ae_2bed45bc",
+      "range": {
+        "startLine": 157,
+        "startChar": 24,
+        "endLine": 157,
+        "endChar": 34
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "d0032236_57e8d304",
@@ -422,6 +848,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "I don\u0027t think this casting is necessary - I don\u0027t need to do it when I build my SQL queries.",
+      "range": {
+        "startLine": 250,
+        "startChar": 64,
+        "endLine": 250,
+        "endChar": 77
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "791bb7d5_ae58e542",
+        "filename": "bazel/gazelle/frontend/language/language.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d0032236_57e8d304",
       "range": {
         "startLine": 250,
         "startChar": 64,
@@ -457,6 +907,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "ed16513a_23d3e417",
+        "filename": "bazel/gazelle/frontend/language/language_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "What test cases would you like to see here?\n\nMy intent in this test is to show that the -sk prefix is irrelevant to determining whether a directory is an app page directory. As for the test on lines 22-42, I\u0027m asserting that the -sk suffix is necessary for a directory to be considered as a potential directory with a custom element.",
+      "parentUuid": "b5eb01ae_04a52cad",
+      "range": {
+        "startLine": 17,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 29
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "457a697c_6727a36d",
         "filename": "bazel/gazelle/frontend/resolver/resolver_test.go",
         "patchSetId": 19
@@ -468,6 +942,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "Maybe extract this into a method called loadResolverWithTestRules? If not, please add a comment describing the setup.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 9
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "17afddfb_4fd6deb2",
+        "filename": "bazel/gazelle/frontend/resolver/resolver_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Added comments for each setup step.",
+      "parentUuid": "457a697c_6727a36d",
       "range": {
         "startLine": 12,
         "startChar": 0,
@@ -501,6 +999,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0974b91c_9896f1c7",
+        "filename": "bazel/gazelle/frontend/resolver/resolver_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa924842_5a1c3cea",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 5
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "53015aef_613709ee",
@@ -514,6 +1036,30 @@
       "writtenOn": "2021-03-19T13:12:53Z",
       "side": 1,
       "message": "0.23.0 came out a few weeks ago. Any changes we need to do to be on the latest and greatest?",
+      "range": {
+        "startLine": 64,
+        "startChar": 38,
+        "endLine": 64,
+        "endChar": 44
+      },
+      "revId": "85a31568cc11ffe6b5440a3f326404745846964f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5438c783_e933337c",
+        "filename": "go.mod",
+        "patchSetId": 19
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-22T20:41:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53015aef_613709ee",
       "range": {
         "startLine": 64,
         "startChar": 38,
