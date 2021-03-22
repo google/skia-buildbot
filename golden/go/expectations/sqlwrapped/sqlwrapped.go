@@ -29,6 +29,13 @@ type impl struct {
 	branch string
 }
 
+func New(store expectations.Store, db *pgxpool.Pool) *impl {
+	return &impl{
+		store: store,
+		sqlDB: db,
+	}
+}
+
 // Get returns the result from the wrapped Store.
 func (i *impl) Get(ctx context.Context) (expectations.ReadOnly, error) {
 	return i.store.Get(ctx)
