@@ -177,4 +177,10 @@ CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
   source_file STRING NOT NULL,
   last_ingested TIMESTAMP WITH TIME ZONE NOT NULL
 );
+CREATE TABLE IF NOT EXISTS DeprecatedExpectationUndos (
+  id SERIAL PRIMARY KEY,
+  expectation_id STRING NOT NULL,
+  user_id STRING NOT NULL,
+  ts TIMESTAMP WITH TIME ZONE NOT NULL
+);
 `

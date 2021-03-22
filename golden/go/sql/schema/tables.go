@@ -118,7 +118,8 @@ type Tables struct {
 
 	// DeprecatedIngestedFiles allows us to keep track of files ingested with the old FS/BT ways
 	// until all the SQL ingestion is ready.
-	DeprecatedIngestedFiles []DeprecatedIngestedFileRow `sql_backup:"daily"`
+	DeprecatedIngestedFiles    []DeprecatedIngestedFileRow    `sql_backup:"daily"`
+	DeprecatedExpectationUndos []DeprecatedExpectationUndoRow `sql_backup:"daily"`
 }
 
 type TraceValueRow struct {
@@ -394,6 +395,16 @@ func (r ExpectationRecordRow) ToSQLRow() (colNames []string, colData []interface
 		[]interface{}{r.ExpectationRecordID, r.BranchName, r.UserName, r.TriageTime, r.NumChanges}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *ExpectationRecordRow) ScanFrom(scan func(...interface{}) error) error {
+	err := scan(&r.ExpectationRecordID, &r.BranchName, &r.UserName, &r.TriageTime, &r.NumChanges)
+	if err != nil {
+		return err
+	}
+	r.TriageTime = r.TriageTime.UTC()
+	return nil
+}
+
 type ExpectationDeltaRow struct {
 	// ExpectationRecordID corresponds to the parent ExpectationRecordRow.
 	ExpectationRecordID uuid.UUID `sql:"expectation_record_id UUID"`
@@ -417,7 +428,12 @@ type ExpectationDeltaRow struct {
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r ExpectationDeltaRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"expectation_record_id", "grouping_id", "digest", "label_before", "label_after"},
-		[]interface{}{r.ExpectationRecordID, r.GroupingID, r.Digest, string(r.LabelBefore), string(r.LabelAfter)}
+		[]interface{}{r.ExpectationRecordID, r.GroupingID, r.Digest, r.LabelBefore, r.LabelAfter}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *ExpectationDeltaRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.ExpectationRecordID, &r.GroupingID, &r.Digest, &r.LabelBefore, &r.LabelAfter)
 }
 
 // ExpectationRow contains an entry for every recent digest+grouping pair. This includes untriaged
@@ -855,6 +871,11 @@ func (r SecondaryBranchExpectationRow) ToSQLRow() (colNames []string, colData []
 		[]interface{}{r.BranchName, r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *SecondaryBranchExpectationRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.BranchName, &r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID)
+}
+
 type ProblemImageRow struct {
 	// Digest is the identifier of an image we had a hard time downloading or decoding while
 	// computing the diffs. This is a string because it may be a malformed digest.
@@ -885,4 +906,23 @@ func (r *ProblemImageRow) ScanFrom(scan func(...interface{}) error) error {
 // RowsOrderBy implements the sqltest.RowsOrder interface.
 func (r ProblemImageRow) RowsOrderBy() string {
 	return `ORDER BY digest ASC`
+}
+
+// DeprecatedExpectationUndoRow represents an undo operation that we could not automatically
+// apply during the transitional period of expectations. A human will manually apply these when
+// removing the firestore implementation from the loop.
+type DeprecatedExpectationUndoRow struct {
+	ID            int       `sql:"id SERIAL PRIMARY KEY"`
+	ExpectationID string    `sql:"expectation_id STRING NOT NULL"`
+	UserID        string    `sql:"user_id STRING NOT NULL"`
+	TS            time.Time `sql:"ts TIMESTAMP WITH TIME ZONE NOT NULL"`
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *DeprecatedExpectationUndoRow) ScanFrom(scan func(...interface{}) error) error {
+	if err := scan(&r.ID, &r.ExpectationID, &r.UserID, &r.TS); err != nil {
+		return skerr.Wrap(err)
+	}
+	r.TS = r.TS.UTC()
+	return nil
 }
