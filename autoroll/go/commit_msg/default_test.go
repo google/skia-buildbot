@@ -42,6 +42,8 @@ Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -77,6 +79,8 @@ Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -114,6 +118,8 @@ Cq-Include-Trybots: some-trybot
 Cq-Do-Not-Cancel-Tryjobs: true
 Tbr: reviewer@google.com
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 
@@ -157,6 +163,8 @@ Cq-Do-Not-Cancel-Tryjobs: true
 Bug: None
 Tbr: reviewer@google.com
 Test: some-test
+My-Footer: BlahBlah
+My-Other-Footer: Blah
 `, result)
 }
 

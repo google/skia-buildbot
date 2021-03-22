@@ -12,17 +12,18 @@ import (
 // fakeCommitMsgConfig returns a valid CommitMsgConfig instance.
 func fakeCommitMsgConfig(t *testing.T) *config.CommitMsgConfig {
 	c := &config.CommitMsgConfig{
-		BugProject: fakeBugProject,
-		Template: &config.CommitMsgConfig_BuiltIn_{
-			BuiltIn: config.CommitMsgConfig_DEFAULT,
-		},
+		BugProject:           fakeBugProject,
 		ChildLogUrlTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
 		CqExtraTrybots:       []string{"some-trybot"},
 		CqDoNotCancelTrybots: true,
+		ExtraFooters:         []string{"My-Footer: BlahBlah", "My-Other-Footer: Blah"},
 		IncludeLog:           true,
 		IncludeRevisionCount: true,
 		IncludeTbrLine:       true,
 		IncludeTests:         true,
+		Template: &config.CommitMsgConfig_BuiltIn_{
+			BuiltIn: config.CommitMsgConfig_DEFAULT,
+		},
 	}
 	// Sanity check.
 	require.NoError(t, c.Validate())

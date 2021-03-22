@@ -86,5 +86,7 @@ Tbr: {{ stringsJoin .Reviewers "," }}
 {{ if .IncludeTests -}}
 {{ range .Tests }}Test: {{.}}
 {{- end -}}
+{{ range .ExtraFooters }}
+{{.}}{{ end -}}
 {{- end }}`))
 )
