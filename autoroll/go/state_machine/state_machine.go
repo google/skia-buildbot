@@ -668,16 +668,25 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
+		// This is the problem
+		// HERE HERE HERE
 		if currentRoll.IsClosed() {
+			fmt.Println("ROLL IS CLOSED IN STATE_MACHINE")
+			fmt.Println(currentRoll.IsSuccess())
 			if currentRoll.IsSuccess() {
 				// Someone manually landed the roll.
 				return S_NORMAL_SUCCESS, nil
+			} else if currentRoll.IsDryRunSuccess() {
+				// Someone closed the roll but the dry run was successful.
+				return S_DRY_RUN_SUCCESS, nil
 			} else {
-				// Someone manually closed the roll.
-				return S_NORMAL_FAILURE, nil
+				// Someone closed the roll and the dry run had failed.
+				return S_DRY_RUN_FAILURE, nil
 			}
 		} else if currentRoll.IsDryRunFinished() {
+			fmt.Println("IS DRY RUN FINISHED IS TRUE")
 			if currentRoll.IsDryRunSuccess() {
+				fmt.Println("IS DRY RUN SUCESS IS TRUE")
 				return S_DRY_RUN_SUCCESS, nil
 			} else {
 				return S_DRY_RUN_FAILURE, nil

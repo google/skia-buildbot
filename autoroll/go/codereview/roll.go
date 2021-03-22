@@ -75,6 +75,8 @@ func updateIssueFromGerritChangeInfo(i *autoroll.AutoRollIssue, ci *gerrit.Chang
 		return fmt.Errorf("CL ID %d differs from existing issue number %d!", ci.Issue, i.Issue)
 	}
 	i.CqFinished = !i.IsDryRun && !gc.CqRunning(ci)
+	// CqSuccess is always false when it's a DryRun.
+	// HERE HERE HERE
 	i.CqSuccess = !i.IsDryRun && gc.CqSuccess(ci)
 	i.DryRunFinished = i.IsDryRun && !gc.DryRunRunning(ci)
 	i.DryRunSuccess = i.IsDryRun && gc.DryRunSuccess(ci, gc.DryRunUsesTryjobResults && i.AllTrybotsSucceeded())
