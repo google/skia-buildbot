@@ -45,6 +45,48 @@ var (
 		DryRunUsesTryjobResults: false,
 	}
 
+	// ConfigAndroid is the configuration for Android Gerrit hosts where
+	// the service account does not have CR+2 access.
+	ConfigAndroidNoCR = &Config{
+		SelfApproveLabels: map[string]int{
+			LabelCodeReview: LabelCodeReviewNone,
+		},
+		HasCq: true,
+		SetCqLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitSubmit,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
+		},
+		SetDryRunLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyNone,
+		},
+		NoCqLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitNone,
+			LabelPresubmitReady: LabelPresubmitReadyNone,
+		},
+		CqActiveLabels: map[string]int{
+			LabelAutoSubmit:     LabelAutoSubmitSubmit,
+			LabelPresubmitReady: LabelPresubmitReadyEnable,
+		},
+		CqSuccessLabels: map[string]int{
+			LabelAutoSubmit:        LabelAutoSubmitSubmit,
+			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+		},
+		CqFailureLabels: map[string]int{
+			LabelAutoSubmit:        LabelAutoSubmitSubmit,
+			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
+		},
+		CqLabelsUnsetOnCompletion: true,
+		DryRunActiveLabels:        map[string]int{},
+		DryRunSuccessLabels: map[string]int{
+			LabelPresubmitVerified: LabelPresubmitVerifiedAccepted,
+		},
+		DryRunFailureLabels: map[string]int{
+			LabelPresubmitVerified: LabelPresubmitVerifiedRejected,
+		},
+		DryRunUsesTryjobResults: false,
+	}
+
 	// ConfigANGLE is the configuration for ANGLE Gerrit hosts.
 	ConfigANGLE = &Config{
 		SelfApproveLabels: map[string]int{
