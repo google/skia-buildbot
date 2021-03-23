@@ -137,6 +137,8 @@ const (
 	// URLTmplChange is the template for a change URL.
 	URLTmplChange = "/changes/%s/detail?o=ALL_REVISIONS"
 
+	URLTmplChangeAllFiles = "/changes/%s/detail?o=CURRENT_REVISION&o=ALL_FILES"
+
 	urlCommitMsgHook = "/tools/hooks/commit-msg"
 
 	// Kinds of patchsets.
@@ -319,11 +321,12 @@ type FileInfo struct {
 
 // Revision is the information associated with a patchset in Gerrit.
 type Revision struct {
-	ID            string    `json:"-"`
-	Number        int64     `json:"_number"`
-	CreatedString string    `json:"created"`
-	Created       time.Time `json:"-"`
-	Kind          string    `json:"kind"`
+	ID            string              `json:"-"`
+	Number        int64               `json:"_number"`
+	CreatedString string              `json:"created"`
+	Created       time.Time           `json:"-"`
+	Kind          string              `json:"kind"`
+	Files         map[string]FileInfo `json:"files"`
 }
 
 // GerritInterface describes interactions with a Gerrit host.
@@ -539,6 +542,22 @@ func (g *Gerrit) GetIssueProperties(ctx context.Context, issue int64) (*ChangeIn
 // GetChange returns the ChangeInfo object for the given ID.
 func (g *Gerrit) GetChange(ctx context.Context, id string) (*ChangeInfo, error) {
 	url := fmt.Sprintf(URLTmplChange, id)
+	fullIssue := &ChangeInfo{}
+	if err := g.get(ctx, url, fullIssue, ErrNotFound); err != nil {
+		// Pass ErrNotFound through unchanged so calling functions can check for it.
+		if err == ErrNotFound {
+			return nil, err
+		}
+		return nil, skerr.Fmt("Failed to load details for issue %q: %v", id, err)
+	}
+	return fixupChangeInfo(fullIssue), nil
+}
+
+// GetChangeWithFiles returns the ChangeInfo object for the given ID with
+// Revisions populated with the most recent patchset and all FileInfo for every
+// file changes in the issue.
+func (g *Gerrit) GetChangeWithFiles(ctx context.Context, id string) (*ChangeInfo, error) {
+	url := fmt.Sprintf(URLTmplChangeAllFiles, id)
 	fullIssue := &ChangeInfo{}
 	if err := g.get(ctx, url, fullIssue, ErrNotFound); err != nil {
 		// Pass ErrNotFound through unchanged so calling functions can check for it.
