@@ -645,7 +645,6 @@ func TestPrimarySQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T
 					return
 				}
 			}
-			return
 		}()
 	}
 	wg.Wait()

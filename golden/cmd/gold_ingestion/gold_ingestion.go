@@ -198,6 +198,9 @@ func main() {
 
 	var secondaryBranchLiveness metrics2.Liveness
 	tryjobProcessor, src, err := getSecondaryBranchIngester(ctx, isc.SecondaryBranchConfig, gcsClient, client, sqlDB)
+	if err != nil {
+		sklog.Fatalf("Setting up secondary branch ingestion: %s", err)
+	}
 	if src != nil {
 		sourcesToScan = append(sourcesToScan, src)
 		secondaryBranchLiveness = metrics2.NewLiveness("gold_ingestion", map[string]string{
