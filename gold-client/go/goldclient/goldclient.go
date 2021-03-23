@@ -245,7 +245,7 @@ func loadAndHashImage(fileName string) ([]byte, types.Digest, error) {
 // SetSharedConfig implements the GoldClient interface.
 func (c *CloudClient) SetSharedConfig(ctx context.Context, sharedConfig jsonio.GoldResults, skipValidation bool) error {
 	if !skipValidation {
-		if err := sharedConfig.Validate(true); err != nil {
+		if err := sharedConfig.Validate(); err != nil {
 			return skerr.Wrapf(err, "invalid configuration")
 		}
 	}
@@ -315,7 +315,7 @@ func (c *CloudClient) addTest(ctx context.Context, name types.TestName, imgFileN
 	traceId := c.addResult(name, imgDigest, additionalKeys, optionalKeys)
 
 	// At this point the result should be correct for uploading.
-	if err := c.resultState.SharedConfig.Validate(false); err != nil {
+	if err := c.resultState.SharedConfig.Validate(); err != nil {
 		return false, skerr.Wrapf(err, "invalid test config")
 	}
 
