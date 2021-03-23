@@ -3,6 +3,7 @@ package repo_root
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/bazel/go/bazel"
@@ -36,4 +37,23 @@ func Get() (string, error) {
 		return d, nil
 	}
 	return "", fmt.Errorf("No repo root found; are we running inside a checkout?")
+}
+
+// GetLocal returns the path to the root of the current Git repo. Only intended
+// to be run on a developer machine, inside a Git checkout.
+func GetLocal() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	for {
+		gitDir := filepath.Join(cwd, ".git")
+		if _, err := os.Stat(gitDir); err == nil {
+			return cwd, nil
+		}
+		cwd, err = filepath.Abs(filepath.Join(cwd, ".."))
+		if err != nil {
+			return "", err
+		}
+	}
 }
