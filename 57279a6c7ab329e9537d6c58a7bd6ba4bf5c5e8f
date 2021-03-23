@@ -91,6 +91,30 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "4b92a2c9_f4da60d5",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-23T18:22:23Z",
+      "side": 1,
+      "message": "Hmm looks like there is already a AutoRollIssue.Committed, so maybe there needs to be a RollCLImpl.IsCommitted() which can be used here",
+      "parentUuid": "22ac1a3e_82155c76",
+      "range": {
+        "startLine": 678,
+        "startChar": 0,
+        "endLine": 678,
+        "endChar": 33
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "027ffeed_efa3417d",
         "filename": "autoroll/go/state_machine/state_machine_test.go",
         "patchSetId": 9
