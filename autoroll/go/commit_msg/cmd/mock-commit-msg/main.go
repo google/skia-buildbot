@@ -23,11 +23,13 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/repo_root"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
@@ -85,6 +87,13 @@ func main() {
 			log.Fatal(err)
 		}
 		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+		namespace := ds.AUTOROLL_NS
+		if cfg.IsInternal {
+			namespace = ds.AUTOROLL_INTERNAL_NS
+		}
+		if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
+			log.Fatal(err)
+		}
 
 		var gerritClient *gerrit.Gerrit
 		var githubClient *github.GitHub
