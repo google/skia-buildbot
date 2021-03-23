@@ -166,10 +166,7 @@ func (r *resultState) getResultFilePath(ctx context.Context) string {
 	fileName := fmt.Sprintf("dm-%d.json", now.UnixNano())
 	jobID := r.SharedConfig.TryJobID
 	if jobID == "" {
-		jobID = r.SharedConfig.Builder
-		if jobID == "" {
-			jobID = "waterfall"
-		}
+		jobID = "waterfall"
 	}
 	gitHashOrCL := r.SharedConfig.GitHash
 	if r.SharedConfig.ChangelistID != "" {

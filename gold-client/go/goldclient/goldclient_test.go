@@ -487,8 +487,8 @@ func TestFinalizeNormal(t *testing.T) {
 		GoldURL:         "https://testing-gold.skia.org",
 		Bucket:          "skia-gold-testing",
 		SharedConfig: jsonio.GoldResults{
-			GitHash: "cadbed23562",
-			Builder: "Test-Z80-Debug",
+			GitHash:  "cadbed23562",
+			TryJobID: "Test-Z80-Debug",
 			Key: map[string]string{
 				"os":  "TestOS",
 				"cpu": "z80",
