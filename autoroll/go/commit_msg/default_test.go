@@ -176,6 +176,7 @@ func TestNamedTemplateDefault_Minimal(t *testing.T) {
 	b.cfg.ChildLogUrlTmpl = ""
 	b.cfg.CqExtraTrybots = nil
 	b.cfg.CqDoNotCancelTrybots = false
+	b.cfg.ExtraFooters = nil
 	b.cfg.IncludeLog = false
 	b.cfg.IncludeTbrLine = false
 	b.cfg.IncludeTests = false
