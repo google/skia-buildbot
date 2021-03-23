@@ -16,6 +16,29 @@
       "message": "uh, wrong button",
       "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4750f5a6_8d7b5f8f",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T13:37:25Z",
+      "side": 1,
+      "message": "Just so I understand: this happens when someone abandoned the roll (otherwise currentRoll.IsSuccess() would be true), but the dry run succeeded?",
+      "range": {
+        "startLine": 678,
+        "startChar": 0,
+        "endLine": 678,
+        "endChar": 33
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
