@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "80f0f0c6_4b3d7eaa",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "Why restrict this to just one tryjob, why not use all remaining args as tryjob names?",
+      "range": {
+        "startLine": 43,
+        "startChar": 6,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0afc4265_774f8374",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "jobs, since this is a slice of jobs, not just a single one?",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 13
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "cb3ea2b0_b7b624ee",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "Needs doc comment that this doesn\u0027t return the issue, but just makes sure it was\nset via \u0027git cl issue nnnn\u0027 so that later calls to \u0027git cl try\u0027 will succeed.",
+      "range": {
+        "startLine": 147,
+        "startChar": 5,
+        "endLine": 147,
+        "endChar": 15
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b96a6e5f_b964c509",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "Shorten the nesting here by checking for nil and return right away\n\nif _, err :\u003d exec...; err \u003d\u003d nil {\n  return nil\n}\n\n// The remaining code gets outdented.",
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ebb8df65_1e2f65a4",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "getTryJobs and getInternalTryJobs need doc comments particularly explaining the return map[string][]string.",
+      "range": {
+        "startLine": 188,
+        "startChar": 5,
+        "endLine": 188,
+        "endChar": 15
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "27e958ab_1cc71cb1",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "Why not change \u0027getTryJobs\u0027 to take a passed in repoRoot, and then call that here with \u0027repoDir\u0027?",
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2119df5b_2de23b62",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-23T13:51:52Z",
+      "side": 1,
+      "message": "Can this be moved to //go/repo_root/ ?",
+      "range": {
+        "startLine": 250,
+        "startChar": 5,
+        "endLine": 250,
+        "endChar": 17
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
