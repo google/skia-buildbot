@@ -2,6 +2,7 @@ package ingestion_processors
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 
 	"go.opencensus.io/trace"
@@ -18,8 +19,15 @@ import (
 func parseGoldResultsFromReader(r io.ReadCloser) (*jsonio.GoldResults, error) {
 	defer util.Close(r)
 
-	gr, err := jsonio.ParseGoldResults(r)
-	if err != nil {
+	// Parse the bytes from the reader as JSON and validate it.
+	gr := &jsonio.GoldResults{}
+	if err := json.NewDecoder(r).Decode(gr); err != nil {
+		return nil, skerr.Wrapf(err, "could not parse JSON")
+	}
+	if err := gr.UpdateLegacyFields(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := gr.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return gr, nil

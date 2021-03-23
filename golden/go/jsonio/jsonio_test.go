@@ -5,354 +5,274 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/types"
 )
 
-// TestValidateInvalid tests a bunch of cases that fail validation
-func TestValidateInvalid(t *testing.T) {
+func TestValidate_InvalidData_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
-	type invalidInput struct {
-		results       GoldResults
-		ignoreResults bool
-		errFragment   string // should be unique enough to make sure we stopped on the right error.
+	test := func(name string, toValidate GoldResults, errFragment string) {
+		t.Run(name, func(t *testing.T) {
+			err := toValidate.Validate()
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), errFragment)
+		})
 	}
 
-	tests := map[string]invalidInput{
-		"empty": {
-			results:       GoldResults{},
-			ignoreResults: true,
-			errFragment:   `"gitHash" must be hexadecimal`,
-		},
-		"invalidHash": {
-			results: GoldResults{
-				GitHash: "whoops this isn't hexadecimal",
-				Key:     map[string]string{"param1": "value1"},
+	test("empty", GoldResults{}, `"gitHash" must be hexadecimal`)
+	test("invalidHash", GoldResults{
+		GitHash: "whoops this isn't hexadecimal",
+		Key:     map[string]string{"param1": "value1"},
+	}, `must be hexadecimal`)
+	test("missingKey", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+	}, `field "key" must not be empty`)
+	test("emptyKeyResults", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key:    map[string]string{},
+				Digest: "12345abc",
 			},
-			ignoreResults: true,
-			errFragment:   `must be hexadecimal`,
 		},
-		"missingKey": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+	}, `results" index 0: field "key" must not be empty`)
+	test("emptyKeyValue", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": ""},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "foo",
+					types.CorpusField:     "my corpus",
+				},
+				Digest: "12345abc",
 			},
-			ignoreResults: true,
-			errFragment:   `field "key" must not be empty`,
 		},
-		"missingResults": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
+	}, `field "key" must not have empty keys`)
+	test("noNameField", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					"no_name": "bar",
+				},
+				Digest: "12345abc",
 			},
-			ignoreResults: false,
-			errFragment:   `field "results" must not be empty`,
 		},
-		"emptyResults": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{},
+	}, `field "key" is missing key name`)
+	test("noCorpusField", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+				},
+				Digest: "12345abc",
 			},
-			ignoreResults: false,
-			errFragment:   `field "results" must not be empty`,
 		},
-		"emptyKeyResults": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key:    map[string]string{},
-						Digest: "12345abc",
-					},
+	}, `field "key" is missing key source_type`)
+	test("missingDigest", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
 				},
 			},
-			ignoreResults: false,
-			errFragment:   `results" index 0: field "key" must not be empty`,
 		},
-		"emptyKeyValue": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": ""},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "foo",
-						},
-						Digest: "12345abc",
-					},
+	}, `missing digest`)
+	test("invalidDigest", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+				},
+				Digest: "not hexadecimal",
+			},
+		},
+	}, `must be hexadecimal`)
+	test("missingOptions", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+				},
+				Digest: "abc123",
+				Options: map[string]string{
+					"oops": "",
 				},
 			},
-			ignoreResults: false,
-			errFragment:   `field "key" must not have empty keys`,
 		},
-		"noNameField": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							"no_name": "bar",
-						},
-						Digest: "12345abc",
-					},
+	}, `with key "oops"`)
+	test("missingOptions2", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
+				},
+				Digest: "abc123",
+				Options: map[string]string{
+					"": "missing",
 				},
 			},
-			ignoreResults: false,
-			errFragment:   `field "key" is missing key name`,
 		},
-		"missingDigest": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-					},
+	}, `with value "missing"`)
+	test("missingOptions3", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
+				},
+				Digest: "abc123",
+				Options: map[string]string{
+					"": "",
 				},
 			},
-			ignoreResults: false,
-			errFragment:   `missing digest`,
 		},
-		"invalidDigest": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "not hexadecimal",
-					},
-				},
-			},
-			ignoreResults: false,
-			errFragment:   `must be hexadecimal`,
-		},
-		"missingOptions": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "abc123",
-						Options: map[string]string{
-							"oops": "",
-						},
-					},
-				},
-			},
-			ignoreResults: false,
-			errFragment:   `with key "oops"`,
-		},
-		"missingOptions2": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "abc123",
-						Options: map[string]string{
-							"": "missing",
-						},
-					},
-				},
-			},
-			ignoreResults: false,
-			errFragment:   `with value "missing"`,
-		},
-		"missingOptions3": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "abc123",
-						Options: map[string]string{
-							"": "",
-						},
-					},
-				},
-			},
-			ignoreResults: false,
-			errFragment:   `empty key and value`,
-		},
-		"partialChangelistInfo": {
-			results: GoldResults{
-				GitHash:          "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:              map[string]string{"param1": "value1"},
-				ChangelistID:     "missing_tryjob",
-				CodeReviewSystem: "some_system",
-				PatchsetOrder:    1,
-			},
-			ignoreResults: true,
-			errFragment:   `all of or none of`,
-		},
-		"partialChangelistInfo2": {
-			results: GoldResults{
-				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:                         map[string]string{"param1": "value1"},
-				ChangelistID:                "missing_patchset",
-				CodeReviewSystem:            "some_system",
-				PatchsetOrder:               0, // order, by definition, starts at 1
-				TryJobID:                    "12345",
-				ContinuousIntegrationSystem: "sandbucket",
-			},
-			ignoreResults: true,
-			errFragment:   `all of or none of`,
-		},
-		"partialChangelistInfo3": {
-			results: GoldResults{
-				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:                         map[string]string{"param1": "value1"},
-				TryJobID:                    "12345",
-				ContinuousIntegrationSystem: "sandbucket",
-			},
-			ignoreResults: true,
-			errFragment:   `all of or none of`,
-		},
-		"partialChangelistInfo4": {
-			results: GoldResults{
-				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:                         map[string]string{"param1": "value1"},
-				ChangelistID:                "missing_patchset_id",
-				CodeReviewSystem:            "some_system",
-				PatchsetID:                  "",
-				TryJobID:                    "12345",
-				ContinuousIntegrationSystem: "sandbucket",
-			},
-			ignoreResults: true,
-			errFragment:   `all of or none of`,
-		},
-		"partialChangelistInfo5": {
-			results: GoldResults{
-				GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:                         map[string]string{"param1": "value1"},
-				ChangelistID:                "missing_tryjob",
-				CodeReviewSystem:            "some_system",
-				PatchsetID:                  "12345",
-				TryJobID:                    "",
-				ContinuousIntegrationSystem: "sandbucket",
-			},
-			ignoreResults: true,
-			errFragment:   `all of or none of`,
-		},
-	}
-
-	for name, testCase := range tests {
-		err := testCase.results.Validate(testCase.ignoreResults)
-		require.Error(t, err, "when processing %s: %v", name, testCase)
-		require.Contains(t, err.Error(), testCase.errFragment, name)
-		require.NotEmpty(t, testCase.errFragment, "write an assertion for %s - %s", name, err.Error())
-	}
+	}, `empty key and value`)
+	test("partialChangelistInfo", GoldResults{
+		GitHash:          "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:              map[string]string{"param1": "value1"},
+		ChangelistID:     "missing_tryjob",
+		CodeReviewSystem: "some_system",
+		PatchsetOrder:    1,
+	}, `all of or none of`)
+	test("partialChangelistInfo2", GoldResults{
+		GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:                         map[string]string{"param1": "value1"},
+		ChangelistID:                "missing_patchset",
+		CodeReviewSystem:            "some_system",
+		PatchsetOrder:               0, // order, by definition, starts at 1
+		TryJobID:                    "12345",
+		ContinuousIntegrationSystem: "sandbucket",
+	}, `all of or none of`)
+	test("partialChangelistInfo3", GoldResults{
+		GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:                         map[string]string{"param1": "value1"},
+		TryJobID:                    "12345",
+		ContinuousIntegrationSystem: "sandbucket",
+	}, `all of or none of`)
+	test("partialChangelistInfo4", GoldResults{
+		GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:                         map[string]string{"param1": "value1"},
+		ChangelistID:                "missing_patchset_id",
+		CodeReviewSystem:            "some_system",
+		PatchsetID:                  "",
+		TryJobID:                    "12345",
+		ContinuousIntegrationSystem: "sandbucket",
+	}, `all of or none of`)
+	test("partialChangelistInfo5", GoldResults{
+		GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:                         map[string]string{"param1": "value1"},
+		ChangelistID:                "missing_tryjob",
+		CodeReviewSystem:            "some_system",
+		PatchsetID:                  "12345",
+		TryJobID:                    "",
+		ContinuousIntegrationSystem: "sandbucket",
+	}, `all of or none of`)
 }
 
-// TestValidateValid tests a few cases that pass validation
-func TestValidateValid(t *testing.T) {
+func TestValidate_ValidResults_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	type validInput struct {
-		results       GoldResults
-		ignoreResults bool
+	test := func(name string, toValidate GoldResults) {
+		t.Run(name, func(t *testing.T) {
+			err := toValidate.Validate()
+			require.NoError(t, err)
+		})
 	}
 
-	tests := map[string]validInput{
-		"emptyResultsButResultsIgnored": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{},
-			},
-			ignoreResults: true,
-		},
-		"primaryBranch": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "12345abc",
-					},
+	test("primaryBranch", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
 				},
+				Digest: "12345abc",
 			},
-			ignoreResults: false,
 		},
-		"onChangelist": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "12345abc",
-					},
+	})
+	test("onChangelist", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
 				},
-				ChangelistID:                "123456",
-				CodeReviewSystem:            "some_system",
-				PatchsetOrder:               1,
-				TryJobID:                    "12345",
-				ContinuousIntegrationSystem: "sandbucket",
+				Digest: "12345abc",
 			},
-			ignoreResults: false,
 		},
-		"withPatchsetID": {
-			results: GoldResults{
-				GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
-				Key:     map[string]string{"param1": "value1"},
-				Results: []Result{
-					{
-						Key: map[string]string{
-							types.PrimaryKeyField: "bar",
-						},
-						Digest: "12345abc",
-					},
+		ChangelistID:                "123456",
+		CodeReviewSystem:            "some_system",
+		PatchsetOrder:               1,
+		TryJobID:                    "12345",
+		ContinuousIntegrationSystem: "sandbucket",
+	})
+	test("withPatchsetID", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
 				},
-				ChangelistID:                "123456",
-				CodeReviewSystem:            "some_system",
-				PatchsetID:                  "another id",
-				TryJobID:                    "12345",
-				ContinuousIntegrationSystem: "sandbucket",
+				Digest: "12345abc",
 			},
-			ignoreResults: false,
 		},
-	}
-
-	for name, testCase := range tests {
-		err := testCase.results.Validate(testCase.ignoreResults)
-		require.NoError(t, err, "when processing %s: %v", name, testCase)
-	}
-
+		ChangelistID:                "123456",
+		CodeReviewSystem:            "some_system",
+		PatchsetID:                  "another id",
+		TryJobID:                    "12345",
+		ContinuousIntegrationSystem: "sandbucket",
+	})
+	test("test name and corpus in key", GoldResults{
+		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
+		Key: map[string]string{
+			types.CorpusField:     "my corpus",
+			types.PrimaryKeyField: "bar",
+		},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					"param1": "value1",
+				},
+				Digest: "1234567890abcdef",
+			},
+		},
+	})
 }
 
-// TestParseGoldResultsValid tests a variety of valid inputs to make sure our parsing logic
+// TestUpdateLegacyFields_Success tests a variety of valid inputs to make sure our parsing logic
 // does not regress. It handles a variety of legacy and non legacy data.
-func TestParseGoldResultsValid(t *testing.T) {
+func TestUpdateLegacyFields_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	r := testParse(t, legacySkiaTryjobJSON)
+	r := parseUpdateValidate(t, legacySkiaTryjobJSON)
 
-	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
 	require.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
-	require.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
 	require.Equal(t, "12345", r.ChangelistID)
 	require.Equal(t, 10, r.PatchsetOrder)
 	require.Equal(t, "549340494940393", r.TryJobID)
@@ -361,14 +281,13 @@ func TestParseGoldResultsValid(t *testing.T) {
 	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
 	require.Len(t, r.Results, 3)
 
-	r = testParse(t, legacySkiaJSON)
+	r = parseUpdateValidate(t, legacySkiaJSON)
 	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
-	require.Equal(t, "Test-Android-Clang-Nexus7-CPU-Tegra3-arm-Release-All-Android", r.Builder)
 	require.Equal(t, r.Results[0].Key[types.PrimaryKeyField], "skottie_multiframe")
 	require.Contains(t, r.Results[0].Options, "color_type")
 
-	r = testParse(t, legacyGoldCtlTryjobJSON)
+	r = parseUpdateValidate(t, legacyGoldCtlTryjobJSON)
 	require.Equal(t, "1762193", r.ChangelistID)
 	require.Equal(t, 2, r.PatchsetOrder)
 	require.Equal(t, "8904604368086838672", r.TryJobID)
@@ -377,7 +296,7 @@ func TestParseGoldResultsValid(t *testing.T) {
 	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
 	require.Contains(t, r.Key, "vendor_id")
 
-	r = testParse(t, goldCtlTryjobJSON)
+	r = parseUpdateValidate(t, goldCtlTryjobJSON)
 	require.Equal(t, "1762193", r.ChangelistID)
 	require.Equal(t, 2, r.PatchsetOrder)
 	require.Equal(t, "8904604368086838672", r.TryJobID)
@@ -385,11 +304,11 @@ func TestParseGoldResultsValid(t *testing.T) {
 	require.Equal(t, "buildbucket", r.ContinuousIntegrationSystem)
 	require.Contains(t, r.Key, "vendor_id")
 
-	r = testParse(t, goldCtlTryjobPSIDJSON)
+	r = parseUpdateValidate(t, goldCtlTryjobPSIDJSON)
 	require.Equal(t, "1762193", r.ChangelistID)
 	require.Equal(t, "42191ad7b6f31d823d2d9904df24c0649ca3766c", r.PatchsetID)
 
-	r = testParse(t, goldCtlMasterBranchJSON)
+	r = parseUpdateValidate(t, goldCtlMasterBranchJSON)
 	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 	require.Equal(t, map[string]string{
@@ -397,47 +316,50 @@ func TestParseGoldResultsValid(t *testing.T) {
 		"msaa":      "True",
 	}, r.Key)
 
-	r = testParse(t, legacyGoldCtlJSON)
+	r = parseUpdateValidate(t, legacyGoldCtlJSON)
 	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 	require.Contains(t, r.Key, "vendor_id")
 
-	r = testParse(t, legacyMasterBranchJSON)
+	r = parseUpdateValidate(t, legacyMasterBranchJSON)
 	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 
-	r = testParse(t, negativeMasterBranchJSON)
+	r = parseUpdateValidate(t, negativeMasterBranchJSON)
 	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
 
-	r = testParse(t, emptyIssueJSON)
+	r = parseUpdateValidate(t, emptyIssueJSON)
 	require.Empty(t, r.ChangelistID)
 	require.Empty(t, r.TryJobID)
+
+	parseUpdateValidate(t, inverted_results)
 }
 
 func TestGenJson(t *testing.T) {
 	unittest.SmallTest(t)
 
 	// Test parsing the test JSON.
-	goldResults := testParse(t, legacySkiaTryjobJSON)
+	goldResults := parseUpdateValidate(t, legacySkiaTryjobJSON)
 
 	// For good measure we validate.
-	err := goldResults.Validate(false)
+	err := goldResults.Validate()
 	require.NoError(t, err)
 
 	// Encode and decode the results.
 	var buf bytes.Buffer
 	require.NoError(t, json.NewEncoder(&buf).Encode(goldResults))
-	newGoldResults := testParse(t, buf.String())
+	newGoldResults := parseUpdateValidate(t, buf.String())
 	require.Equal(t, goldResults, newGoldResults)
 }
 
-func testParse(t *testing.T, jsonStr string) *GoldResults {
+func parseUpdateValidate(t *testing.T, jsonStr string) *GoldResults {
 	buf := bytes.NewBuffer([]byte(jsonStr))
-
-	ret, err := ParseGoldResults(buf)
-	require.NoError(t, err)
-	return ret
+	gr := &GoldResults{}
+	require.NoError(t, json.NewDecoder(buf).Decode(gr))
+	require.NoError(t, gr.UpdateLegacyFields())
+	require.NoError(t, gr.Validate())
+	return gr
 }
 
 const (
@@ -576,6 +498,10 @@ const (
 		"key" : {
 			"arch" : "arm64"
 		},
+		"results": [{
+          "key":{"name": "abc", "source_type":"def"},
+          "md5": "0123456789abcdef0123456789abcdef"
+        }],
 		"issue": "0"
 	}`
 
@@ -584,6 +510,10 @@ const (
 		"key" : {
 			"arch" : "arm64"
 		},
+        "results": [{
+          "key":{"name": "abc", "source_type":"def"},
+          "md5": "0123456789abcdef0123456789abcdef"
+        }],
 		"issue": "-1"
 	}`
 
@@ -703,6 +633,39 @@ const (
   "crs": "gerrit",
   "try_job_id": "8904604368086838672",
   "cis": "buildbucket"
+}`
+
+	inverted_results = `{
+  "description": "This file has data from two traces from the same test. It should re-use commit with id 0000000103",
+  "gitHash" : "efbb705ff27b6a1a7e8ee36d219a7a0c41225771",
+  "key" : {
+    "name" : "square",
+    "source_type" : "corners"
+  },
+  "results" : [
+    {
+      "key" : {
+        "os" : "Windows10.3"
+      },
+      "md5" : "a02a02a02a02a02a02a02a02a02a02a0",
+      "options" : {
+        "ext" : "png"
+      }
+    },
+    {
+      "key" : {
+        "os": "Android"
+      },
+      "md5" : "a02a02a02a02a02a02a02a02a02a02a0",
+      "options" : {
+        "ext" : "png",
+        "image_matching_algorithm": "fuzzy",
+        "fuzzy_max_different_pixels": "10",
+        "fuzzy_pixel_delta_threshold": "20",
+        "fuzzy_ignored_border_thickness": "0"
+      }
+    }
+  ]
 }`
 
 	// This is what goldctl spits out before Aug 2019 when run on the waterfall, it

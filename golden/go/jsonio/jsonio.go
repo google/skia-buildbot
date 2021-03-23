@@ -40,8 +40,6 @@ package jsonio
 //
 
 import (
-	"encoding/json"
-	"io"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -64,70 +62,14 @@ func init() {
 	resultFields = jsonNameMap(Result{})
 }
 
-// ParseGoldResults parses JSON encoded Gold results. This needs to be called
-// instead of parsing directly into an instance of GoldResult.
-func ParseGoldResults(r io.Reader) (*GoldResults, error) {
-	// Decode JSON into a type that is more tolerant to failures. If there is
-	// a failure we just return the failure.
-	raw := &rawGoldResults{}
-	if err := json.NewDecoder(r).Decode(raw); err != nil {
-		return nil, skerr.Wrapf(err, "could not parse json")
-	}
-
-	// parse the raw input from the previous step, converting strings -> ints where appropriate
-	ret, err := raw.parse()
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	// Extract the embedded Gold result and validate it.
-	if err := ret.Validate(true); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	return ret, nil
-}
-
 // GoldResults is the top level structure to capture the the results of a
 // rendered test to be processed by Gold.
 type GoldResults struct {
-	GitHash string            `json:"gitHash"  validate:"required"`
-	Key     map[string]string `json:"key"      validate:"required,min=1"`
-	Results []Result          `json:"results"  validate:"min=1"`
+	GitHash string            `json:"gitHash"`
+	Key     map[string]string `json:"key"`
+	Results []Result          `json:"results"`
 
 	// These indicate the results were ingested from a TryJob.
-	// ChangelistID and PatchsetID correspond to code_review.Changelist.SystemID and
-	// code_review.Patchset.Order, respectively
-	ChangelistID     string `json:"change_list_id,omitempty"`
-	PatchsetOrder    int    `json:"patch_set_order,omitempty"`
-	PatchsetID       string `json:"patch_set_id,omitempty"`
-	CodeReviewSystem string `json:"crs,omitempty"`
-
-	// TryJobID corresponds to continuous_integration.TryJob.SystemID
-	TryJobID                    string `json:"try_job_id,omitempty"`
-	ContinuousIntegrationSystem string `json:"cis,omitempty"`
-
-	// Optional fields for tryjobs - can make debugging easier
-	Builder string `json:"builder"`
-	TaskID  string `json:"task_id"`
-}
-
-// Result holds the individual result of one test.
-type Result struct {
-	// In the event of a conflict, the key/values in Result.Key will override Options, which
-	// override the GoldResults.Key.
-	Key     map[string]string `json:"key"      validate:"required"`
-	Options map[string]string `json:"options"  validate:"required"`
-	Digest  types.Digest      `json:"md5"      validate:"required"`
-}
-
-// rawGoldResults used to embed GoldResults, but in newer versions of Go (1.12+), it became
-// frowned upon to override JSON comments, so this struct was essentially forked.
-type rawGoldResults struct {
-	GitHash string            `json:"gitHash"  validate:"required"`
-	Key     map[string]string `json:"key"      validate:"required,min=1"`
-	Results []Result          `json:"results"  validate:"min=1"`
-
 	// ChangelistID and PatchsetID correspond to code_review.Changelist.SystemID and
 	// code_review.Patchset.Order, respectively
 	ChangelistID     string `json:"change_list_id"`
@@ -146,53 +88,44 @@ type rawGoldResults struct {
 	BuildBucketID      string `json:"buildbucket_build_id"`
 	GerritChangelistID string `json:"issue"`
 	GerritPatchset     string `json:"patchset"`
-
-	// Optional fields for tryjobs - can make debugging easier
-	Builder string `json:"builder"`
-	TaskID  string `json:"task_id"`
 }
 
-// parse turns a rawGoldResults into GoldResults. The only validation it does is when
-// converting strings into integer values - if those fail, it will return an error.
-func (r *rawGoldResults) parse() (*GoldResults, error) {
-	ret := &GoldResults{
-		GitHash: r.GitHash,
-		Key:     r.Key,
-		Results: r.Results,
-		Builder: r.Builder,
-		TaskID:  r.TaskID,
-	}
-	if r.ChangelistID == "" && r.GerritChangelistID == "" {
-		return ret, nil
-	}
+// Result holds the individual result of one test.
+type Result struct {
+	// In the event of a conflict, the key/values in Result.Key will override Options, which
+	// override the GoldResults.Key.
+	Key     map[string]string `json:"key"      validate:"required"`
+	Options map[string]string `json:"options"  validate:"required"`
+	Digest  types.Digest      `json:"md5"      validate:"required"`
+}
 
-	if r.ChangelistID != "" {
-		ret.ChangelistID = r.ChangelistID
-		ret.CodeReviewSystem = r.CodeReviewSystem
-		ret.PatchsetOrder = r.PatchsetOrder
-		ret.PatchsetID = r.PatchsetID
-		ret.TryJobID = r.TryJobID
-		ret.ContinuousIntegrationSystem = r.ContinuousIntegrationSystem
-
-	} else if r.GerritChangelistID != "0" && r.GerritChangelistID != "-1" {
+// UpdateLegacyFields takes data from old, legacy fields and copies it into the newer equivalents.
+// This lets us import older data.
+func (g *GoldResults) UpdateLegacyFields() error {
+	if g.ChangelistID == "" && g.GerritChangelistID == "" {
+		return nil
+	}
+	if g.ChangelistID != "" {
+		// Should be good as is
+		return nil
+	} else if g.GerritChangelistID != "0" && g.GerritChangelistID != "-1" {
 		// Handles legacy inputs for older inputs that specified GerritChangelistID
-		ret.ChangelistID = r.GerritChangelistID
-		ret.CodeReviewSystem = "gerrit"
-		ret.TryJobID = r.BuildBucketID
-		ret.ContinuousIntegrationSystem = "buildbucket"
+		g.ChangelistID = g.GerritChangelistID
+		g.CodeReviewSystem = "gerrit"
+		g.TryJobID = g.BuildBucketID
+		g.ContinuousIntegrationSystem = "buildbucket"
 
-		if n, err := strconv.ParseInt(r.GerritPatchset, 10, 64); err != nil {
-			return nil, skerr.Wrapf(err, "invalid value for patchset: %q", r.GerritPatchset)
+		if n, err := strconv.ParseInt(g.GerritPatchset, 10, 64); err != nil {
+			return skerr.Wrapf(err, "invalid value for patchset: %q", g.GerritPatchset)
 		} else {
-			ret.PatchsetOrder = int(n)
+			g.PatchsetOrder = int(n)
 		}
-	} // else we are looking at a legacy master branch way.
-
-	return ret, nil
+	}
+	return nil
 }
 
 // Validate validates the instance of GoldResult to make sure it is self consistent.
-func (g *GoldResults) Validate(ignoreResults bool) error {
+func (g *GoldResults) Validate() error {
 	if g == nil {
 		return skerr.Fmt("Received nil pointer for GoldResult")
 	}
@@ -217,17 +150,20 @@ func (g *GoldResults) Validate(ignoreResults bool) error {
 			jn["ContinuousIntegrationSystem"], jn["CodeReviewSystem"], jn["TryJobID"], jn["ChangelistID"], jn["PatchsetOrder"], jn["PatchsetID"])
 	}
 
-	if !ignoreResults {
-		if len(g.Results) == 0 {
-			return skerr.Fmt("field %q must not be empty", jn["Results"])
+	hasTopLevelName := len(g.Key[types.PrimaryKeyField]) != 0
+	hasTopLevelCorpus := len(g.Key[types.CorpusField]) != 0
+
+	for i, r := range g.Results {
+		if err := r.validate(); err != nil {
+			return skerr.Wrapf(err, "validating field %q index %d", jn["Results"], i)
 		}
-		for i, r := range g.Results {
-			if err := r.validate(); err != nil {
-				return skerr.Wrapf(err, "validating field %q index %d", jn["Results"], i)
-			}
+		if !hasTopLevelName && len(r.Key[types.PrimaryKeyField]) == 0 {
+			return skerr.Fmt("field %q is missing key %s", jn["Key"], types.PrimaryKeyField)
+		}
+		if !hasTopLevelCorpus && len(r.Key[types.CorpusField]) == 0 {
+			return skerr.Fmt("field %q is missing key %s", jn["Key"], types.CorpusField)
 		}
 	}
-
 	return nil
 }
 
@@ -269,14 +205,11 @@ func (r *Result) validate() error {
 			return skerr.Wrapf(err, "field %q must not have empty keys or values", jn["Options"])
 		}
 	}
-	if _, ok := r.Key[types.PrimaryKeyField]; !ok {
-		return skerr.Fmt("field %q is missing key %s", jn["Key"], types.PrimaryKeyField)
-	}
 	if r.Digest == "" {
 		return skerr.Fmt("missing digest (field %q)", jn["Digest"])
 	}
 	if !isHex.MatchString(string(r.Digest)) {
-		return skerr.Fmt("field %q must be hexadecimal. Recieved %q", jn["Digest"], r.Digest)
+		return skerr.Fmt("field %q must be hexadecimal. Received %q", jn["Digest"], r.Digest)
 	}
 	return nil
 }
