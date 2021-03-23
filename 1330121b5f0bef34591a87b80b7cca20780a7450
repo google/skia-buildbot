@@ -24,6 +24,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "62019b3d_e381beca",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80f0f0c6_4b3d7eaa",
+      "range": {
+        "startLine": 43,
+        "startChar": 6,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "0afc4265_774f8374",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-03-23T13:51:52Z",
       "side": 1,
       "message": "jobs, since this is a slice of jobs, not just a single one?",
+      "range": {
+        "startLine": 81,
+        "startChar": 10,
+        "endLine": 81,
+        "endChar": 13
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d2a338c_0c2d0a88",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "This is just one job.",
+      "parentUuid": "0afc4265_774f8374",
       "range": {
         "startLine": 81,
         "startChar": 10,
@@ -70,6 +118,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "8bc1c052_87aa092d",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb3ea2b0_b7b624ee",
+      "range": {
+        "startLine": 147,
+        "startChar": 5,
+        "endLine": 147,
+        "endChar": 15
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b96a6e5f_b964c509",
@@ -83,6 +155,24 @@
       "writtenOn": "2021-03-23T13:51:52Z",
       "side": 1,
       "message": "Shorten the nesting here by checking for nil and return right away\n\nif _, err :\u003d exec...; err \u003d\u003d nil {\n  return nil\n}\n\n// The remaining code gets outdented.",
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "005a1a86_1c02a5b7",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b96a6e5f_b964c509",
       "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
@@ -110,6 +200,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "01fb03bf_1b88e0f6",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "Done for getTryJobs.  I realized that we don\u0027t actually have any internal jobs at the moment, so I just removed support for them.  We can add it back if/when that is necessary.",
+      "parentUuid": "ebb8df65_1e2f65a4",
+      "range": {
+        "startLine": 188,
+        "startChar": 5,
+        "endLine": 188,
+        "endChar": 15
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "27e958ab_1cc71cb1",
@@ -127,6 +241,24 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0b21fcd9_d200c362",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "No longer necessary now that getInternalTryJobs has been removed.",
+      "parentUuid": "27e958ab_1cc71cb1",
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "2119df5b_2de23b62",
@@ -140,6 +272,30 @@
       "writtenOn": "2021-03-23T13:51:52Z",
       "side": 1,
       "message": "Can this be moved to //go/repo_root/ ?",
+      "range": {
+        "startLine": 250,
+        "startChar": 5,
+        "endLine": 250,
+        "endChar": 17
+      },
+      "revId": "1330121b5f0bef34591a87b80b7cca20780a7450",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5d1cea6e_3ee0e91f",
+        "filename": "sk/go/try/try.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:46:43Z",
+      "side": 1,
+      "message": "Done, tried to make it non-confusing, but the existing repo_root.Get is very narrowly focused, and so is this function (now repo_root.GetLocal).",
+      "parentUuid": "2119df5b_2de23b62",
       "range": {
         "startLine": 250,
         "startChar": 5,
