@@ -672,9 +672,14 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			if currentRoll.IsSuccess() {
 				// Someone manually landed the roll.
 				return S_NORMAL_SUCCESS, nil
+			} else if currentRoll.IsDryRunSuccess() {
+				// Someone closed the roll but the dry run was successful so
+				// return dry run success.
+				return S_DRY_RUN_SUCCESS, nil
 			} else {
-				// Someone manually closed the roll.
-				return S_NORMAL_FAILURE, nil
+				// Someone closed the roll and the dry run had failed or had not
+				// completed yet so return dry run failure.
+				return S_DRY_RUN_FAILURE, nil
 			}
 		} else if currentRoll.IsDryRunFinished() {
 			if currentRoll.IsDryRunSuccess() {
