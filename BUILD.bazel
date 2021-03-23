@@ -45,8 +45,12 @@ load("//:elements-sk-scss.bzl", "generate_tilde_prefixed_elements_sk_scss_files"
 #
 # gazelle:map_kind go_test go_test //bazel/go:go_test.bzl
 
+# We use a custom Gazelle binary that adds support for our front-end Bazel rules and macros.
 # gazelle:prefix go.skia.org/infra
-gazelle(name = "gazelle")
+gazelle(
+    name = "gazelle",
+    gazelle = "//bazel/gazelle",
+)
 
 exports_files(
     ["tsconfig.json"],

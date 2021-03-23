@@ -1,0 +1,33 @@
+load("//bazel/go:go_test.bzl", "go_test")
+load("@bazel_gazelle//:def.bzl", "gazelle_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "frontend",
+    srcs = ["extension.go"],
+    importpath = "go.skia.org/infra/bazel/gazelle/frontend",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel/gazelle/frontend/language",
+        "@bazel_gazelle//language:go_default_library",
+    ],
+)
+
+go_test(
+    name = "frontend_test",
+    srcs = ["extension_test.go"],
+    data = [":gazelle_frontend_test_binary"],
+    embed = [":frontend"],
+    rundir = ".",
+    deps = [
+        "//bazel/go/bazel",
+        "//go/testutils/unittest",
+        "@bazel_gazelle//testtools:go_default_library",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+gazelle_binary(
+    name = "gazelle_frontend_test_binary",
+    languages = [":frontend"],
+)
