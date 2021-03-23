@@ -63,6 +63,53 @@
       },
       "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "22ac1a3e_82155c76",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:14:30Z",
+      "side": 1,
+      "message": "Ok, I think we need to add RollCLImpl.IsMerged(), and call that on line 672 instead of IsSuccess(). Then the rest of this doesn\u0027t need to change.",
+      "parentUuid": "dc43fa19_e0b94f64",
+      "range": {
+        "startLine": 678,
+        "startChar": 0,
+        "endLine": 678,
+        "endChar": 33
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "027ffeed_efa3417d",
+        "filename": "autoroll/go/state_machine/state_machine_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-23T18:14:30Z",
+      "side": 1,
+      "message": "This isn\u0027t correct; we can\u0027t go into failure-throttled state if the CL is abandoned.",
+      "range": {
+        "startLine": 630,
+        "startChar": 0,
+        "endLine": 631,
+        "endChar": 51
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
