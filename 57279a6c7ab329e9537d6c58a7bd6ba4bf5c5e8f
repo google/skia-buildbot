@@ -39,6 +39,30 @@
       },
       "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "dc43fa19_e0b94f64",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-23T14:02:40Z",
+      "side": 1,
+      "message": "This is for whenever the roll is closed and dry run is successful. Closed could be abandoned or merged.\n\nWhen a dry run is merged currentRoll.IsSuccess() (line 672) was always returning false because of this in roll.go:\ni.CqSuccess \u003d !i.IsDryRun \u0026\u0026 gc.CqSuccess(ci)\nThat makes sense because CqSuccess should not be true for dry runs.\nBut, since this block is for S_DRY_RUN_ACTIVE. Maybe it should never be checking for currentRoll.IsSuccess() because that will never be true?",
+      "parentUuid": "4750f5a6_8d7b5f8f",
+      "range": {
+        "startLine": 678,
+        "startChar": 0,
+        "endLine": 678,
+        "endChar": 33
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
