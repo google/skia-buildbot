@@ -317,6 +317,9 @@ func isSyncError(err error) bool {
 		// lagging behind.
 		sklog.Infof("Is sync error (bad object)")
 		return true
+	} else if strings.Contains(err.Error(), "Got error response status code 404") {
+		sklog.Infof("Is sync error (spurious 404 from Gitiles)")
+		return true
 	}
 	sklog.Infof("Not a sync error.")
 	return false
