@@ -187,6 +187,11 @@ func (r *gerritRoll) IsSuccess() bool {
 }
 
 // See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) IsCommitted() bool {
+	return r.issue.Committed
+}
+
+// See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IsDryRunFinished() bool {
 	return r.issue.DryRunFinished
 }

@@ -26,6 +26,7 @@ type TestRollCLImpl struct {
 	closedStatus string
 	closedMsg    string
 	isDryRun     bool
+	isCommitted  bool
 	normalResult string
 	dryRunResult string
 	rollingTo    *revision.Revision
@@ -116,6 +117,17 @@ func (r *TestRollCLImpl) SetDryRunSucceeded() {
 // Mark the roll as a failure.
 func (r *TestRollCLImpl) SetDryRunFailed() {
 	r.dryRunResult = "FAILED"
+}
+
+// Mark the roll as committed.
+func (r *TestRollCLImpl) SetCommitted() {
+	r.isCommitted = true
+	r.closedStatus = autoroll.ROLL_RESULT_SUCCESS
+}
+
+// See documentation for RollCLImpl.
+func (r *TestRollCLImpl) IsCommitted() bool {
+	return r.isCommitted
 }
 
 // See documentation for RollCLImpl.
@@ -613,8 +625,7 @@ func TestDryRun(t *testing.T) {
 
 	// Somebody landed the CL.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	require.NoError(t, roll.SwitchToNormal(ctx))
-	roll.SetSucceeded()
+	roll.SetCommitted()
 	r.SetRolledPast(roll.RollingTo().Id, true)
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
 	checkNextState(t, sm, S_NORMAL_IDLE)
