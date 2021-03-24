@@ -1,4 +1,4 @@
-import './index.ts';
+import './index';
 import { CalendarInputSk } from './calendar-input-sk';
 
 const evt = document.getElementById('evt')!;
