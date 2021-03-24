@@ -21,7 +21,7 @@ func TestDump_AfterInit_Success(t *testing.T) {
 	// and the known hashes (both empty).
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	initEnv := imgTest{
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		testKeysStrings: []string{"os:Android", "device:angler"},
