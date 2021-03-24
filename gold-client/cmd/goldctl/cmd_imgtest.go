@@ -161,7 +161,6 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	must(cmd.MarkFlagRequired(fstrWorkDir))
 	if !optional {
 		must(cmd.MarkFlagRequired("instance"))
-		must(cmd.MarkFlagRequired("commit"))
 	}
 }
 

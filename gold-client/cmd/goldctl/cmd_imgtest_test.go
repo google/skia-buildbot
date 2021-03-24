@@ -82,6 +82,76 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
 	assert.Contains(t, resultState, `"KnownHashes":{"00000000000000000000000000000000":true,"11111111111111111111111111111111":true}`)
 	assert.Contains(t, resultState, `"Expectations":{"other-test":{"00000000000000000000000000000000":"negative"},"pixel-tests":{"00000000000000000000000000000000":"positive"}}`)
+	assert.Contains(t, resultState, `"gitHash":"1234567890123456789012345678901234567890"`)
+}
+
+func TestImgTest_Init_ChangeListWithoutCommitHash_WritesProperResultState(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+
+	keysFile := filepath.Join(workDir, "keys.json")
+	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
+		Negative("other-test", blankDigest).
+		Known("11111111111111111111111111111111").BuildForCL("my_CRS", "my_CL")
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes (both empty).
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		corpus:                      "my_corpus",
+		instanceID:                  "my-instance",
+		keysFile:                    keysFile,
+		passFailStep:                true,
+		workDir:                     workDir,
+		codeReviewSystem:            "my_CRS",
+		changelistID:                "my_CL",
+		patchsetID:                  "some_patchset",
+		continuousIntegrationSystem: "my_CIS",
+		tryJobID:                    "some_tryjob",
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	b, err := ioutil.ReadFile(filepath.Join(workDir, "result-state.json"))
+	require.NoError(t, err)
+	resultState := string(b)
+	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
+	assert.Contains(t, resultState, `"KnownHashes":{"00000000000000000000000000000000":true,"11111111111111111111111111111111":true}`)
+	assert.Contains(t, resultState, `"Expectations":{"other-test":{"00000000000000000000000000000000":"negative"},"pixel-tests":{"00000000000000000000000000000000":"positive"}}`)
+	assert.Contains(t, resultState, `"change_list_id":"my_CL","patch_set_order":0,"patch_set_id":"some_patchset","crs":"my_CRS","try_job_id":"some_tryjob","cis":"my_CIS"`)
+}
+
+func TestImgTest_Init_NoChangeListNorCommitHash_NonzeroExitCode(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+
+	keysFile := filepath.Join(workDir, "keys.json")
+	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+
+	// Call imgtest init with the following flags. We expect it to fail because we need to provide
+	// a commit or CL info
+	ctx, output, exit := testContext(nil, nil, nil, nil)
+	env := imgTest{
+		corpus:       "my_corpus",
+		instanceID:   "my-instance",
+		keysFile:     keysFile,
+		passFailStep: true,
+		workDir:      workDir,
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	outStr := output.String()
+	exit.AssertWasCalledWithCode(t, 1, outStr)
+	assert.Contains(t, outStr, `invalid configuration: field "gitHash" or "change_list_id" must be set`)
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitCode(t *testing.T) {

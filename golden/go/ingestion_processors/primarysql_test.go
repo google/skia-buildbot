@@ -708,7 +708,7 @@ func TestPrimarySQL_Process_MissingGitHash_ReturnsError(t *testing.T) {
 
 	err := s.Process(ctx, "whatever")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), `"gitHash" must be hexadecimal`)
+	assert.Contains(t, err.Error(), `must be set`)
 }
 
 func TestPrimarySQL_Process_NoResults_NoDataWritten(t *testing.T) {
