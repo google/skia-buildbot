@@ -23,7 +23,7 @@ func TestValidate_InvalidData_ReturnsError(t *testing.T) {
 		})
 	}
 
-	test("empty", GoldResults{}, `"gitHash" must be hexadecimal`)
+	test("empty", GoldResults{}, `"gitHash" or "change_list_id" must be set`)
 	test("invalidHash", GoldResults{
 		GitHash: "whoops this isn't hexadecimal",
 		Key:     map[string]string{"param1": "value1"},
@@ -156,7 +156,6 @@ func TestValidate_InvalidData_ReturnsError(t *testing.T) {
 		PatchsetOrder:    1,
 	}, `all of or none of`)
 	test("partialChangelistInfo2", GoldResults{
-		GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
 		Key:                         map[string]string{"param1": "value1"},
 		ChangelistID:                "missing_patchset",
 		CodeReviewSystem:            "some_system",
@@ -180,7 +179,6 @@ func TestValidate_InvalidData_ReturnsError(t *testing.T) {
 		ContinuousIntegrationSystem: "sandbucket",
 	}, `all of or none of`)
 	test("partialChangelistInfo5", GoldResults{
-		GitHash:                     "aaa27ef254ad66609606c7af0730ee062b25edf9",
 		Key:                         map[string]string{"param1": "value1"},
 		ChangelistID:                "missing_tryjob",
 		CodeReviewSystem:            "some_system",
@@ -216,6 +214,23 @@ func TestValidate_ValidResults_Success(t *testing.T) {
 	test("onChangelist", GoldResults{
 		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
+				},
+				Digest: "12345abc",
+			},
+		},
+		ChangelistID:                "123456",
+		CodeReviewSystem:            "some_system",
+		PatchsetOrder:               1,
+		TryJobID:                    "12345",
+		ContinuousIntegrationSystem: "sandbucket",
+	})
+	test("Data for CL without GitHash", GoldResults{
+		Key: map[string]string{"param1": "value1"},
 		Results: []Result{
 			{
 				Key: map[string]string{
