@@ -113,6 +113,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "db0a55de_12578e51",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-24T12:51:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b92a2c9_f4da60d5",
+      "range": {
+        "startLine": 678,
+        "startChar": 0,
+        "endLine": 678,
+        "endChar": 33
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "027ffeed_efa3417d",
@@ -126,6 +150,30 @@
       "writtenOn": "2021-03-23T18:14:30Z",
       "side": 1,
       "message": "This isn\u0027t correct; we can\u0027t go into failure-throttled state if the CL is abandoned.",
+      "range": {
+        "startLine": 630,
+        "startChar": 0,
+        "endLine": 631,
+        "endChar": 51
+      },
+      "revId": "57279a6c7ab329e9537d6c58a7bd6ba4bf5c5e8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d8293ee9_f90b891d",
+        "filename": "autoroll/go/state_machine/state_machine_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-24T12:51:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "027ffeed_efa3417d",
       "range": {
         "startLine": 630,
         "startChar": 0,
