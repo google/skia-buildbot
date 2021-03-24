@@ -64,7 +64,7 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 	// and the known hashes (both empty).
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
-		commitHash:   "1234567890123456789012345678901234567890",
+		gitHash:      "1234567890123456789012345678901234567890",
 		corpus:       "my_corpus",
 		instanceID:   "my-instance",
 		keysFile:     keysFile,
@@ -83,6 +83,45 @@ func TestImgTest_Init_LoadKeysFromDisk_WritesProperResultState(t *testing.T) {
 	assert.Contains(t, resultState, `"KnownHashes":{"00000000000000000000000000000000":true,"11111111111111111111111111111111":true}`)
 	assert.Contains(t, resultState, `"Expectations":{"other-test":{"00000000000000000000000000000000":"negative"},"pixel-tests":{"00000000000000000000000000000000":"positive"}}`)
 	assert.Contains(t, resultState, `"gitHash":"1234567890123456789012345678901234567890"`)
+}
+
+func TestImgTest_Init_CommitIDAndMetadataSet_WritesProperResultState(t *testing.T) {
+	unittest.MediumTest(t)
+
+	workDir := t.TempDir()
+	setupAuthWithGSUtil(t, workDir)
+
+	keysFile := filepath.Join(workDir, "keys.json")
+	require.NoError(t, ioutil.WriteFile(keysFile, []byte(`{"os": "Android"}`), 0644))
+
+	mh := mockRPCResponses("https://my-instance-gold.skia.org").Positive("pixel-tests", blankDigest).
+		Negative("other-test", blankDigest).
+		Known("11111111111111111111111111111111").Build()
+
+	// Call imgtest init with the following flags. We expect it to load the baseline expectations
+	// and the known hashes (both empty).
+	ctx, output, exit := testContext(nil, mh, nil, nil)
+	env := imgTest{
+		commitID:       "92.103234.1.123456",
+		commitMetadata: "http://example.com/92.103234.1.123456.xml",
+		corpus:         "my_corpus",
+		instanceID:     "my-instance",
+		keysFile:       keysFile,
+		passFailStep:   true,
+		workDir:        workDir,
+	}
+	runUntilExit(t, func() {
+		env.Init(ctx)
+	})
+	exit.AssertWasCalledWithCode(t, 0, output.String())
+
+	b, err := ioutil.ReadFile(filepath.Join(workDir, "result-state.json"))
+	require.NoError(t, err)
+	resultState := string(b)
+	assert.Contains(t, resultState, `"key":{"os":"Android","source_type":"my_corpus"}`)
+	assert.Contains(t, resultState, `"KnownHashes":{"00000000000000000000000000000000":true,"11111111111111111111111111111111":true}`)
+	assert.Contains(t, resultState, `"Expectations":{"other-test":{"00000000000000000000000000000000":"negative"},"pixel-tests":{"00000000000000000000000000000000":"positive"}}`)
+	assert.Contains(t, resultState, `"commit_id":"92.103234.1.123456","commit_metadata":"http://example.com/92.103234.1.123456.xml"`)
 }
 
 func TestImgTest_Init_ChangeListWithoutCommitHash_WritesProperResultState(t *testing.T) {
@@ -167,7 +206,7 @@ func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitC
 	// and the known hashes (both empty).
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		passFailStep:    true,
@@ -244,7 +283,7 @@ func TestImgTest_InitAdd_OverwriteBucketAndURL_ProperLinks(t *testing.T) {
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
 		bucketOverride:  "my-custom-bucket",
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		passFailStep:    true,
@@ -321,7 +360,7 @@ func TestImgTest_InitAdd_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *t
 	// and the known hashes.
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		passFailStep:    true,
@@ -385,7 +424,7 @@ func TestImgTest_InitAdd_StreamingPassFail_SuccessiveCalls_ProperJSONUploaded(t 
 	// and the known hashes.
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		passFailStep:    true,
@@ -506,7 +545,7 @@ func TestImgTest_Add_StreamingPassFail_MatchesExpectations_ZeroExitCode(t *testi
 	// result for a test called pixel-tests. The digest has already been triaged positive.
 	ctx, output, exit := testContext(mg, mh, nil, mockTime(timeOne))
 	env := imgTest{
-		commitHash:              "1234567890123456789012345678901234567890",
+		gitHash:                 "1234567890123456789012345678901234567890",
 		corpus:                  "my_corpus",
 		failureFile:             filepath.Join(workDir, "failures.txt"),
 		instanceID:              "my-instance",
@@ -540,7 +579,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsMatch_ProperJSONUploaded(
 	// and the known hashes.
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		workDir:         workDir,
@@ -633,7 +672,7 @@ func TestImgTest_InitAddFinalize_BatchMode_ExpectationsDoNotMatch_ProperJSONAndI
 	// and the known hashes.
 	ctx, output, exit := testContext(nil, mh, nil, nil)
 	env := imgTest{
-		commitHash:      "1234567890123456789012345678901234567890",
+		gitHash:         "1234567890123456789012345678901234567890",
 		corpus:          "my_corpus",
 		instanceID:      "my-instance",
 		workDir:         workDir,
