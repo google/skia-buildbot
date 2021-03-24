@@ -35,6 +35,7 @@ go_library(
         "//golden/go/expectations",
         "//golden/go/expectations/cleanup",
         "//golden/go/expectations/fs_expectationstore",
+        "//golden/go/expectations/sqlwrapped",
         "//golden/go/ignore",
         "//golden/go/ignore/sqlignorestore",
         "//golden/go/indexer",
