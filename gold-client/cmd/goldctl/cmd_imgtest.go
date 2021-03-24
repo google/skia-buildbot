@@ -22,10 +22,12 @@ type imgTest struct {
 	bucketOverride              string
 	changelistID                string
 	codeReviewSystem            string
-	commitHash                  string
+	commitID                    string
+	commitMetadata              string
 	continuousIntegrationSystem string
 	corpus                      string
 	failureFile                 string
+	gitHash                     string
 	instanceID                  string
 	keysFile                    string
 	passFailStep                bool
@@ -147,11 +149,12 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVar(&i.bucketOverride, "bucket", "", "GCS Bucket to write to. If empty the URL will be derived from the value of 'instance'")
 	cmd.Flags().StringVar(&i.changelistID, "changelist", "", "Changelist ID if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.codeReviewSystem, "crs", "", "CodeReviewSystem, if any (e.g. 'gerrit', 'github')")
-	cmd.Flags().StringVar(&i.commitHash, "commit", "", "[Deprecated] Git commit hash, use git_hash instead")
-	cmd.Flags().StringVar(&i.commitHash, "git_hash", "", "Git commit hash")
+	cmd.Flags().StringVar(&i.commitID, "commit_id", "", "ID of the commit that produced the data. Use this or git_hash, but not both.")
+	cmd.Flags().StringVar(&i.commitMetadata, "commit_metadata", "", "Metadata that allows connecting a commit id to more information on the build that produced it.")
 	cmd.Flags().StringVar(&i.continuousIntegrationSystem, "cis", "", "ContinuousIntegrationSystem, if any (e.g. 'buildbucket')")
 	cmd.Flags().StringVar(&i.corpus, "corpus", "", "Gold Corpus Name. Overrides any other values (e.g. from keys-file or add-test-key)")
 	cmd.Flags().StringVar(&i.failureFile, "failure-file", "", "Path to the file where to write failure information")
+	cmd.Flags().StringVar(&i.gitHash, "git_hash", "", "Git commit hash")
 	cmd.Flags().StringVar(&i.keysFile, "keys-file", "", "JSON file containing key/value pairs commmon to all tests")
 	cmd.Flags().IntVar(&i.patchsetOrder, "patchset", 0, "Patchset number if this is run as a TryJob.")
 	cmd.Flags().StringVar(&i.patchsetID, "patchset_id", "", "Patchset id (e.g. githash) if this is run as a TryJob.")
@@ -159,6 +162,7 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVar(&i.urlOverride, "url", "", "URL of the Gold instance. If empty the URL will be derived from the value of 'instance'")
 
 	cmd.Flags().StringVar(&i.changelistID, "issue", "", "[deprecated] Gerrit issue if this is trybot run. ")
+	cmd.Flags().StringVar(&i.gitHash, "commit", "", "[deprecated] Git commit hash, use git_hash instead")
 	must(cmd.MarkFlagRequired(fstrWorkDir))
 	if !optional {
 		must(cmd.MarkFlagRequired("instance"))
@@ -265,7 +269,9 @@ func (i *imgTest) Init(ctx context.Context) {
 
 	// Define the meta data of the result that is shared by all tests.
 	gr := jsonio.GoldResults{
-		GitHash:                     i.commitHash,
+		GitHash:                     i.gitHash,
+		CommitID:                    i.commitID,
+		CommitMetadata:              i.commitMetadata,
 		Key:                         keyMap,
 		ChangelistID:                i.changelistID,
 		PatchsetOrder:               i.patchsetOrder,
@@ -309,7 +315,9 @@ func (i *imgTest) Add(ctx context.Context) {
 
 		// Define the meta data of the result that is shared by all tests.
 		gr := jsonio.GoldResults{
-			GitHash:                     i.commitHash,
+			GitHash:                     i.gitHash,
+			CommitID:                    i.commitID,
+			CommitMetadata:              i.commitMetadata,
 			Key:                         keyMap,
 			ChangelistID:                i.changelistID,
 			PatchsetOrder:               i.patchsetOrder,
