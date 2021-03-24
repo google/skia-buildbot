@@ -151,7 +151,7 @@ func TestImgTest_Init_NoChangeListNorCommitHash_NonzeroExitCode(t *testing.T) {
 	})
 	outStr := output.String()
 	exit.AssertWasCalledWithCode(t, 1, outStr)
-	assert.Contains(t, outStr, `invalid configuration: field "gitHash" or "change_list_id" must be set`)
+	assert.Contains(t, outStr, `invalid configuration: field "gitHash", "commit_id", or "change_list_id" must be set`)
 }
 
 func TestImgTest_InitAdd_StreamingPassFail_DoesNotMatchExpectations_NonzeroExitCode(t *testing.T) {
