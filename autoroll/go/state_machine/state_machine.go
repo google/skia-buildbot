@@ -86,6 +86,9 @@ type RollCLImpl interface {
 	// Return true iff the roll succeeded.
 	IsSuccess() bool
 
+	// Return true iff the roll has been committed.
+	IsCommitted() bool
+
 	// Return true iff the dry run is finished.
 	IsDryRunFinished() bool
 
@@ -669,7 +672,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
 		if currentRoll.IsClosed() {
-			if currentRoll.IsSuccess() {
+			if currentRoll.IsCommitted() {
 				// Someone manually landed the roll.
 				return S_NORMAL_SUCCESS, nil
 			} else {
