@@ -65,7 +65,16 @@ func init() {
 // GoldResults is the top level structure to capture the the results of a
 // rendered test to be processed by Gold.
 type GoldResults struct {
-	GitHash string            `json:"gitHash"`
+	// GitHash, if provided, can be used to derive the CommitID.
+	GitHash string `json:"gitHash"`
+	// CommitID will be used as the CommitID when storing this data (GitHash may be ignored).
+	CommitID string `json:"commit_id"`
+	// CommitMetadata, if provided, will be used to help link a CommitID to the information about
+	// the codebase at the time the test that produced this data was run. E.g. What version of
+	// the code and/or dependencies was compiled to run the tests. This may be something like a
+	// URL to either link directly or fetch additional information from.
+	CommitMetadata string `json:"commit_metadata"`
+
 	Key     map[string]string `json:"key"`
 	Results []Result          `json:"results"`
 
@@ -132,8 +141,8 @@ func (g *GoldResults) Validate() error {
 
 	jn := goldResultsFields
 
-	if g.GitHash == "" && g.ChangelistID == "" {
-		return skerr.Fmt("field %q or %q must be set.", jn["GitHash"], jn["ChangelistID"])
+	if noneOf(g.GitHash, g.CommitID, g.ChangelistID) {
+		return skerr.Fmt("field %q, %q, or %q must be set.", jn["GitHash"], jn["CommitID"], jn["ChangelistID"])
 	}
 	if g.GitHash != "" && !isHex.MatchString(g.GitHash) {
 		return skerr.Fmt("field %q must be hexadecimal. Received %q", jn["GitHash"], g.GitHash)

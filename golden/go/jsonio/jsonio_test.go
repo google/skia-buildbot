@@ -23,7 +23,7 @@ func TestValidate_InvalidData_ReturnsError(t *testing.T) {
 		})
 	}
 
-	test("empty", GoldResults{}, `"gitHash" or "change_list_id" must be set`)
+	test("empty", GoldResults{}, `"gitHash", "commit_id", or "change_list_id" must be set`)
 	test("invalidHash", GoldResults{
 		GitHash: "whoops this isn't hexadecimal",
 		Key:     map[string]string{"param1": "value1"},
@@ -201,6 +201,20 @@ func TestValidate_ValidResults_Success(t *testing.T) {
 	test("primaryBranch", GoldResults{
 		GitHash: "aaa27ef254ad66609606c7af0730ee062b25edf9",
 		Key:     map[string]string{"param1": "value1"},
+		Results: []Result{
+			{
+				Key: map[string]string{
+					types.PrimaryKeyField: "bar",
+					types.CorpusField:     "my corpus",
+				},
+				Digest: "12345abc",
+			},
+		},
+	})
+	test("With CommitID And Metadata", GoldResults{
+		CommitID:       "R89-13729.8.0",
+		CommitMetadata: "gs://chromeos-image-archive/release/R89-13729.8.0/manifest.xml",
+		Key:            map[string]string{"param1": "value1"},
 		Results: []Result{
 			{
 				Key: map[string]string{
