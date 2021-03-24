@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "34bc5a45_375a48e6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-24T18:22:52Z",
+      "side": 1,
+      "message": "Bug: skia:11294",
+      "revId": "e018d4e3f2c05a3c64f67957da8cdd0f6d28bd3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "089ea0a8_11329cad",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-24T18:22:52Z",
+      "side": 1,
+      "message": "This needs Go installed to run a python3 script?",
+      "revId": "e018d4e3f2c05a3c64f67957da8cdd0f6d28bd3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
