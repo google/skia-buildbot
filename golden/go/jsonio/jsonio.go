@@ -132,8 +132,10 @@ func (g *GoldResults) Validate() error {
 
 	jn := goldResultsFields
 
-	// Validate the fields
-	if !isHex.MatchString(g.GitHash) {
+	if g.GitHash == "" && g.ChangelistID == "" {
+		return skerr.Fmt("field %q or %q must be set.", jn["GitHash"], jn["ChangelistID"])
+	}
+	if g.GitHash != "" && !isHex.MatchString(g.GitHash) {
 		return skerr.Fmt("field %q must be hexadecimal. Received %q", jn["GitHash"], g.GitHash)
 	}
 	if len(g.Key) == 0 {
