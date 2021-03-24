@@ -52,6 +52,7 @@ var (
 		config.PreUploadStep_SKIA_GN_TO_BP:                       SkiaGnToBp,
 		config.PreUploadStep_UPDATE_FLUTTER_DEPS_FOR_DART:        UpdateFlutterDepsForDart,
 		config.PreUploadStep_VULKAN_DEPS_UPDATE_COMMIT_MESSAGE:   VulkanDepsUpdateCommitMessage,
+		config.PreUploadStep_UPDATE_BORINGSSL:                    UpdateBoringSSL,
 	}
 )
 
@@ -363,5 +364,36 @@ func VulkanDepsUpdateCommitMessage(ctx context.Context, env []string, _ *http.Cl
 		Env:  env,
 	})
 	sklog.Infof("Output from update-commit-message.py:\n%s", out)
+	return skerr.Wrap(err)
+}
+
+// UpdateBoringSSL runs a script to generate files for BoringSSL.
+func UpdateBoringSSL(ctx context.Context, env []string, client *http.Client, parentRepoDir string, _, _ *revision.Revision) error {
+	sklog.Info("Installing Go...")
+	_, goEnv, err := go_install.EnsureGo(ctx, client, cipdRoot)
+	if err != nil {
+		return err
+	}
+	envSlice := make([]string, 0, len(goEnv)+len(env))
+	for _, kv := range env {
+		split := strings.SplitN(kv, "=", 2)
+		if len(split) == 2 && split[0] == "PATH" {
+			kv = fmt.Sprintf("PATH=%s", goEnv["PATH"]+":"+split[1])
+		}
+		envSlice = append(envSlice, kv)
+	}
+	for k, v := range goEnv {
+		if k != "PATH" {
+			envSlice = append(envSlice, fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+	sklog.Info("Running update_boringssl script...")
+	out, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python3",
+		Args: []string{filepath.Join("third_party", "boringssl", "update_boringssl.py")},
+		Dir:  parentRepoDir,
+		Env:  envSlice,
+	})
+	sklog.Infof("Output from update_boringssl.py:\n%s", out)
 	return skerr.Wrap(err)
 }
