@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5490f6d1_a34cf3aa",
+        "filename": "autoroll/go/state_machine/state_machine_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-24T13:46:44Z",
+      "side": 1,
+      "message": "We should probably set r.isCommitted here too, right?  Or we need to have the caller call both SetSucceeded() and SetCommitted()",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 46
+      },
+      "revId": "5e6ee8e1a8ed3909e1066e18f8f8f3f6ba549dc2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
