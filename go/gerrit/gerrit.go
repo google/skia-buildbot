@@ -110,7 +110,7 @@ const (
 	LabelPresubmitVerifiedRunning = 0
 	// LabelPresubmitVerifiedAccepted indicates that the presubmit checks
 	// succeeded for this change.
-	LabelPresubmitVerifiedAccepted = 1
+	LabelPresubmitVerifiedAccepted = 2
 
 	// LabelVerified indicates whether the presubmit checks ran successfully for
 	// this change.
