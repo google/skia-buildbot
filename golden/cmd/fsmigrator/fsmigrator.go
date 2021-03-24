@@ -228,7 +228,7 @@ func storeExpectationDeltas(ctx context.Context, db *pgxpool.Pool, toStore map[s
 		})
 	}
 	if err := eg.Wait(); err != nil {
-		return skerr.Wrapf(err, "writing deltas to SQL")
+		return skerr.Wrapf(err, "writing expectations to SQL")
 	}
 	return nil
 }
@@ -239,51 +239,24 @@ var (
 
 func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string][]v3ExpectationEntry, nameToGroupings map[types.TestName]schema.GroupingID, deltas map[string][]v3ExpectationChange) (int, error) {
 	sklog.Infof("have %d partitions", len(toStore))
-	const batchSize = 1000
 	extraExpectations := int32(0)
 	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		extra, err := storePrimaryBranchExpectations(ctx, db, toStore[v3PrimaryPartition], nameToGroupings, deltas[v3PrimaryPartition])
+		atomic.AddInt32(&extraExpectations, int32(extra))
+		return skerr.Wrap(err)
+	})
+
 	for b, e := range toStore {
 		branchName, exps := b, e
+		if branchName == v3PrimaryPartition {
+			continue
+		}
 		sklog.Infof("Writing expectations from partition %s", branchName)
 		eg.Go(func() error {
-			return util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
-				if err := ctx.Err(); err != nil {
-					return skerr.Wrap(err)
-				}
-				batch := exps[startIdx:endIdx]
-				statement := `UPSERT INTO Expectations
-(grouping_id, digest, label, expectation_record_id) VALUES `
-				const valuesPerRow = 4
-				arguments := make([]interface{}, 0, valuesPerRow*len(batch))
-				for _, exp := range batch {
-					gID, ok := nameToGroupings[exp.Grouping]
-					if !ok {
-						continue
-					}
-					dBytes, err := sql.DigestToBytes(exp.Digest)
-					if err != nil {
-						sklog.Warningf("Corrupt digest %q on branch %s", exp.Digest, branchName)
-						continue
-					}
-					label := exp.Ranges[0].Label
-					recordID, ok := find(exp.Grouping, exp.Digest, label, deltas[branchName])
-					if !ok {
-						atomic.AddInt32(&extraExpectations, 1)
-						recordID = catchAllUUID
-					}
-					arguments = append(arguments, gID, dBytes, convertLabel(label), recordID)
-				}
-				if len(arguments) == 0 {
-					return nil
-				}
-				// Need to divide here to account for skipped rows.
-				statement += sql.ValuesPlaceholders(valuesPerRow, len(arguments)/valuesPerRow)
-				err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
-					_, err := tx.Exec(ctx, statement, arguments...)
-					return err // don't wrap - might get retried
-				})
-				return skerr.Wrap(err)
-			})
+			extra, err := storeSecondaryBranchExpectations(ctx, db, branchName, exps, nameToGroupings, deltas[branchName])
+			atomic.AddInt32(&extraExpectations, int32(extra))
+			return skerr.Wrap(err)
 		})
 	}
 	if err := eg.Wait(); err != nil {
@@ -292,6 +265,91 @@ func storeExpectations(ctx context.Context, db *pgxpool.Pool, toStore map[string
 	return int(extraExpectations), nil
 }
 
+func storePrimaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, exps []v3ExpectationEntry, nameToGroupings map[types.TestName]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
+	const batchSize = 1000
+	extra := 0
+	return extra, util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
+		batch := exps[startIdx:endIdx]
+		statement := `UPSERT INTO Expectations
+(grouping_id, digest, label, expectation_record_id) VALUES `
+		const valuesPerRow = 4
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, exp := range batch {
+			gID, ok := nameToGroupings[exp.Grouping]
+			if !ok {
+				continue
+			}
+			dBytes, err := sql.DigestToBytes(exp.Digest)
+			if err != nil {
+				sklog.Warningf("Corrupt digest %q on branch %s", exp.Digest, v3PrimaryPartition)
+				continue
+			}
+			label := exp.Ranges[0].Label
+			recordID, ok := find(exp.Grouping, exp.Digest, label, deltas)
+			if !ok {
+				extra++
+			}
+			arguments = append(arguments, gID, dBytes, convertLabel(label), recordID)
+		}
+		if len(arguments) == 0 {
+			return nil
+		}
+		// Need to divide here to account for skipped rows.
+		statement += sql.ValuesPlaceholders(valuesPerRow, len(arguments)/valuesPerRow)
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // don't wrap - might get retried
+		})
+		return skerr.Wrap(err)
+	})
+}
+
+func storeSecondaryBranchExpectations(ctx context.Context, db *pgxpool.Pool, branchName string, exps []v3ExpectationEntry, nameToGroupings map[types.TestName]schema.GroupingID, deltas []v3ExpectationChange) (int, error) {
+	const batchSize = 1000
+	extra := 0
+	return extra, util.ChunkIter(len(exps), batchSize, func(startIdx int, endIdx int) error {
+		if err := ctx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
+		batch := exps[startIdx:endIdx]
+		statement := `UPSERT INTO SecondaryBranchExpectations
+(branch_name, grouping_id, digest, label, expectation_record_id) VALUES `
+		const valuesPerRow = 5
+		arguments := make([]interface{}, 0, valuesPerRow*len(batch))
+		for _, exp := range batch {
+			gID, ok := nameToGroupings[exp.Grouping]
+			if !ok {
+				continue
+			}
+			dBytes, err := sql.DigestToBytes(exp.Digest)
+			if err != nil {
+				sklog.Warningf("Corrupt digest %q on branch %s", exp.Digest, branchName)
+				continue
+			}
+			label := exp.Ranges[0].Label
+			recordID, ok := find(exp.Grouping, exp.Digest, label, deltas)
+			if !ok {
+				extra++
+			}
+			arguments = append(arguments, branchName, gID, dBytes, convertLabel(label), recordID)
+		}
+		if len(arguments) == 0 {
+			return nil
+		}
+		// Need to divide here to account for skipped rows.
+		statement += sql.ValuesPlaceholders(valuesPerRow, len(arguments)/valuesPerRow)
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, statement, arguments...)
+			return err // don't wrap - might get retried
+		})
+		return skerr.Wrap(err)
+	})
+}
+
+// find returns a matching record id for the given change and true or the catch-all UUID and false.
 func find(grouping types.TestName, digest types.Digest, label expectations.LabelInt, deltas []v3ExpectationChange) (uuid.UUID, bool) {
 	for _, delta := range deltas {
 		if delta.Grouping == grouping && delta.Digest == digest && delta.AffectedRange.Label == label {
