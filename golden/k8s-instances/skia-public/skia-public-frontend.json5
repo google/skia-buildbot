@@ -8,6 +8,7 @@
   ],
   cl_comment_template: "<ignored>",
   client_secret_file: "/etc/skia.org/login.json",
+  enable_sql_expectation: true,
   flaky_trace_threshold: 10,
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
