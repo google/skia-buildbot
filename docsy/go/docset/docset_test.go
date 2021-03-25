@@ -1,0 +1,58 @@
+// docset keeps track of checkouts of a repository of Markdown documents.
+package docset
+
+import (
+	"context"
+	"io/ioutil"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/docsy/go/codereview"
+	crmocks "go.skia.org/infra/docsy/go/codereview/mocks"
+	"go.skia.org/infra/docsy/go/docsy"
+	"go.skia.org/infra/docsy/go/docsy/mocks"
+	gittestutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/testutils/unittest"
+)
+
+const (
+	docPath  = "site/"
+	docsyDir = "/docsy"
+)
+
+var mockTime = time.Unix(0, 12).UTC()
+
+func setupForTest(t *testing.T) (context.Context, string, string, string, docsy.Docsy, codereview.CodeReview, *docSet) {
+	timeNow = func() time.Time {
+		return mockTime
+	}
+	ctx := context.Background()
+	gb := gittestutils.GitInit(t, ctx)
+	gb.Add(ctx, "site/_index.md", "This is an index file.")
+	gb.Commit(ctx)
+
+	workDir, err := ioutil.TempDir("", "docset")
+	require.NoError(t, err)
+
+	d := &mocks.Docsy{}
+	src := filepath.Join(workDir, contentSubDirectory, "-1", docPath)
+	dst := filepath.Join(workDir, destinationSubDirectory, "-1", docPath)
+	d.On("Render", testutils.AnyContext, src, dst).Return(nil)
+	cr := &crmocks.CodeReview{}
+	cr.On("MainIssue").Return(codereview.Issue("-1"))
+	docset, err := New(context.Background(), workDir, docPath, docsyDir, gb.Dir(), cr, d)
+	require.NoError(t, err)
+	return ctx, workDir, src, dst, d, cr, docset
+}
+
+func TestNew_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	//	ctx, workDir, src, dst, d, cr, docset := setupForTest(t)
+	_, _, _, _, _, cr, docset := setupForTest(t)
+
+	require.NotNil(t, docset.cache[cr.MainIssue()])
+	require.Equal(t, mockTime, docset.cache[cr.MainIssue()].lastPatchsetCheck)
+}
