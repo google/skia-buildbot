@@ -1,0 +1,47 @@
+{
+  "description": "This file represents data from data kitchen sink's Tryjob01IphoneRGB, using the newer fields to determine CRS/CIS metadata",
+  "gitHash": "ffff111111111111111111111111111111111111",
+  "key": {
+    "os": "iOS",
+    "device": "iPhone12,1",
+    "color mode": "RGB"
+  },
+  "results": [
+    {
+      "key": {
+        "name": "square",
+        "source_type": "corners"
+      },
+      "options": {
+        "ext": "png"
+      },
+      "md5": "a01a01a01a01a01a01a01a01a01a01a0"
+    },
+    {
+      "key": {
+        "name": "triangle",
+        "source_type": "corners"
+      },
+      "options": {
+        "ext": "png"
+      },
+      "md5": "b01b01b01b01b01b01b01b01b01b01b0"
+    },
+    {
+      "key": {
+        "name": "circle",
+        "source_type": "round"
+      },
+      "options": {
+        "ext": "png"
+      },
+      "md5": "c07c07c07c07c07c07c07c07c07c07c0"
+    }
+  ],
+  "crs": "gerrit",
+  "change_list_id": "CL_fix_ios",
+  "patch_set_id": "PS_fixes_ipad_but_not_iphone",
+
+  "cis": "buildbucket",
+  "try_job_id": "tryjob_01_iphonergb"
+}
