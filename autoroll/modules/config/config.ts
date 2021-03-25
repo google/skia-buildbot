@@ -650,9 +650,11 @@ interface GitCheckoutConfigJSON {
 export interface BuildbucketRevisionFilterConfig {
   project: string;
   bucket: string;
+  buildsetCommitPrefix: string;
 }
 
 interface BuildbucketRevisionFilterConfigJSON {
   project?: string;
   bucket?: string;
+  buildset_commit_prefix?: string;
 }

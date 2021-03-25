@@ -92,7 +92,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 	var revFilter revision_filter.RevisionFilter
 	if c.GetBuildbucketRevisionFilter() != nil {
 		rfConfig := c.GetBuildbucketRevisionFilter()
-		revFilter, err = revision_filter.NewBuildbucketRevisionFilter(client, rfConfig.Project, rfConfig.Bucket)
+		revFilter, err = revision_filter.NewBuildbucketRevisionFilter(client, rfConfig.Project, rfConfig.Bucket, rfConfig.BuildsetCommitPrefix)
 	}
 	if err != nil {
 		return nil, skerr.Wrap(err)
