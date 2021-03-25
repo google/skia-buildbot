@@ -2,10 +2,19 @@ package ingestion_processors
 
 import (
 	"context"
+	"crypto/md5"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"go.skia.org/infra/golden/go/sql/schema"
+
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
+	"github.com/jackc/pgx/v4"
+
+	"go.skia.org/infra/golden/go/sql"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
@@ -26,7 +35,6 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tjstore/sqltjstore"
 )
@@ -55,6 +63,7 @@ type goldTryjobProcessor struct {
 	reviewSystems []clstore.ReviewSystem
 	tryJobStore   tjstore.Store
 	source        ingestion.Source
+	db            *pgxpool.Pool
 }
 
 // TryjobSQL returns an ingestion.Processor which is modular and can support
@@ -186,185 +195,92 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, fileName string) erro
 	if err != nil {
 		return skerr.Wrapf(err, "could not process file %s from source %s", fileName, g.source)
 	}
-
-	clID := ""
-	psOrder := 0
-	psID := ""
-	crs := gr.CodeReviewSystem
-	if crs == "" {
-		// Default to Gerrit; TODO(kjlubick) who uses this?
-		sklog.Warningf("Using default CRS (this may go away soon)")
-		crs = gerritCRS
+	if len(gr.Results) == 0 {
+		sklog.Infof("file %s had no tryjob results", fileName)
+		return nil
 	}
+	span.AddAttributes(trace.Int64Attribute("num_results", int64(len(gr.Results))))
+	sklog.Infof("Ingesting %d tryjob results from file %s", len(gr.Results), fileName)
 
-	system, ok := g.getCodeReviewSystem(crs)
-	if !ok {
-		return skerr.Fmt("File %s said it was for crs %q, which we aren't configured for", fileName, crs)
-	}
-	clID = gr.ChangelistID
-	psOrder = gr.PatchsetOrder
-	psID = gr.PatchsetID
-
-	tjID := ""
-	cisName := gr.ContinuousIntegrationSystem
-	if cisName == "" {
-		// Default to BuildBucket; TODO(kjlubick) who uses this?
-		sklog.Warningf("Using default CIS (this may go away soon)")
-		cisName = buildbucketCIS
-	}
-	var cisClient continuous_integration.Client
-	if ci, ok := g.cisClients[cisName]; ok {
-		tjID = gr.TryJobID
-		cisClient = ci
-	} else {
-		return skerr.Fmt("File %s said it was for cis %q, but this ingester wasn't configured for it", fileName, cisName)
-	}
-
-	// Fetch CL from clstore if we have seen it before, from CRS if we have not.
-	cl, err := system.Store.GetChangelist(ctx, clID)
-	if err == clstore.ErrNotFound {
-		cl, err = system.Client.GetChangelist(ctx, clID)
-		if err == code_review.ErrNotFound {
-			sklog.Warningf("Unknown %s CL with id %q", crs, clID)
-			// Try again later
-			return ingestion.ErrRetryable
-		} else if err != nil {
-			return skerr.Wrapf(err, "fetching CL from %s with id %q", crs, clID)
-		}
-		// This is a new CL, but we'll be storing it to the clstore down below when
-		// we confirm that the TryJob is valid.
-		cl.Updated = time.Time{} // store a sentinel value to CL.
-	} else if err != nil {
-		return skerr.Wrapf(err, "fetching CL from clstore with id %q", clID)
-	}
-
-	ps, err := g.getPatchset(ctx, system, psOrder, psID, clID)
+	clID, psID, err := g.lookupCLAndPS(ctx, gr)
 	if err != nil {
-		return skerr.Wrap(err)
+		return skerr.Wrapf(err, "Deriving CL and PS info for file %s", fileName)
 	}
 
-	combinedID := tjstore.CombinedPSID{CL: clID, PS: ps.SystemID, CRS: crs}
-
-	// We now need to 1) verify the TryJob is valid (either we've seen it before and know it's valid
-	// or we check now with the CIS) and 2) update the Changelist's timestamp and store it to
-	// clstore. This "refreshes" the Changelist, making it appear higher up on search results, etc.
-	_, err = g.tryJobStore.GetTryJob(ctx, tjID, cisName)
-	var tj continuous_integration.TryJob
-	writeTryJob := false
-	if err == tjstore.ErrNotFound {
-		tj, err = cisClient.GetTryJob(ctx, tjID)
-		if err == tjstore.ErrNotFound {
-			sklog.Warningf("Unknown %s Tryjob with id %q", cisName, tjID)
-			// Try again later - maybe there's some lag with the Integration System?
-			return ingestion.ErrRetryable
-		} else if err != nil {
-			sklog.Errorf("fetching tryjob from %s with id %q: %s", cisName, tjID, err)
-			return ingestion.ErrRetryable
-		}
-		writeTryJob = true
-		// If we are seeing that a CL was marked as Abandoned, it probably means the CL was
-		// re-opened. If this is incorrect (e.g. TryJob was triggered, CL was abandoned, commenter
-		// noticed CL was abandoned, and then the TryJob results started being processed), this
-		// is fine to mark it as Open, because commenter will correctly mark it as abandoned again.
-		// This approach makes fewer queries to the CodeReviewSystem than, for example, querying
-		// the CRS *here* if the CL is really open. Keeping CRS queries to a minimum is important,
-		// because our quota of them is not high enough to potentially check a CL is abandoned for
-		// every TryJobResult that is being streamed in.
-		if cl.Status == code_review.Abandoned {
-			cl.Status = code_review.Open
-		}
-	} else if err != nil {
-		sklog.Errorf("fetching TryJob from store with id %q: %s", tjID, err)
-		return ingestion.ErrRetryable
-	}
-	// In the SQL implementation, we need to create the CL first because of foreign key constraints.
-	if cl.Updated.IsZero() {
-		sklog.Debugf("First time seeing CL %s_%s", system.ID, cl.SystemID)
-		if err = system.Store.PutChangelist(ctx, cl); err != nil {
-			sklog.Errorf("Initially storing %s CL with id %q to clstore: %s", system.ID, clID, err)
-			return ingestion.ErrRetryable
-		}
-	}
-
-	defer shared.NewMetricsTimer("put_tryjobstore_entries").Stop()
-	// Store the results from the file.
-	if err := system.Store.PutPatchset(ctx, ps); err != nil {
-		sklog.Errorf("Could not store PS %s of %s CL %q to clstore: %s", psID, system.ID, clID, err)
-		return ingestion.ErrRetryable
-	}
-	if writeTryJob {
-		if err := g.tryJobStore.PutTryJob(ctx, combinedID, tj); err != nil {
-			sklog.Errorf("Storing tryjob %q to tryjobstore: %s", tjID, err)
-			return ingestion.ErrRetryable
-		}
-	}
-	tjr := toTryJobResults(gr, tjID, cisName)
-	sklog.Infof("Got %d results from file %s", len(tjr), fileName)
-	err = g.tryJobStore.PutResults(ctx, combinedID, fileName, tjr, time.Now())
+	tjID, err := g.lookupTryjob(ctx, gr, clID, psID)
 	if err != nil {
-		sklog.Errorf("Putting %d results for CL %s, PS %d (%s), TJ %s, file %s: %s", len(tjr), clID, psOrder, psID, tjID, fileName, err)
+		return skerr.Wrapf(err, "Deriving Tryjob info for file %s", fileName)
+	}
+
+	sourceFileID := md5.Sum([]byte(fileName))
+	if err := g.writeData(ctx, gr, clID, psID, tjID, sourceFileID[:]); err != nil {
+		sklog.Errorf("Error data for tryjob file %s: %s", fileName, err)
 		return ingestion.ErrRetryable
 	}
 
-	// Be sure to update this time now, so that other processes can use the cl.Update timestamp
-	// to determine if any changes have happened to the CL or any children PSes in a given time
-	// period.
-	cl.Updated = time.Now()
-	if err = system.Store.PutChangelist(ctx, cl); err != nil {
-		sklog.Errorf("Updating %s CL with id %q to clstore: %s", system.ID, clID, err)
+	ingestedTime := now(ctx)
+	if err := g.upsertSourceFile(ctx, sourceFileID[:], fileName, ingestedTime); err != nil {
+		sklog.Errorf("Error writing to SourceFiles for tryjob file %s: %s", fileName, err)
 		return ingestion.ErrRetryable
 	}
+
+	if err := g.updateCL(ctx, clID, ingestedTime); err != nil {
+		sklog.Errorf("Error writing updated CL time for file %s: %s", fileName, err)
+		return ingestion.ErrRetryable
+	}
+
 	return nil
 }
 
-// getPatchset looks up a Patchset either by id or order from our changelistStore. If it's not
-// there, it looks it up from the CRS and then stores it to the changelistStore before returning it.
-func (g *goldTryjobProcessor) getPatchset(ctx context.Context, system clstore.ReviewSystem, psOrder int, psID, clID string) (code_review.Patchset, error) {
-	// Try looking up patchset by ID first, then fall back to order.
-	if psID != "" {
-		// Fetch PS from clstore if we have seen it before, from CRS if we have not.
-		ps, err := system.Store.GetPatchset(ctx, clID, psID)
-		if err == clstore.ErrNotFound {
-			ps, err := system.Client.GetPatchset(ctx, clID, psID, 0)
-			if err != nil {
-				return code_review.Patchset{}, skerr.Wrapf(err, "Unknown %s PS %s for CL %q", system.ID, psID, clID)
-			}
-			return ps, nil
-		} else if err != nil {
-			return code_review.Patchset{}, skerr.Wrapf(err, "fetching PS from clstore with id %s for CL %q", psID, clID)
-		}
-		// already found the PS in the store
-		return ps, nil
+// lookupCLAndPS returns the qualified Changelist ID and Patchset ID for these given results if it
+// was able to derive them. It will create entries in the DB for them if they do not exist, after
+// looking them up with the code_review.Client if necessary.
+func (g *goldTryjobProcessor) lookupCLAndPS(ctx context.Context, gr *jsonio.GoldResults) (string, string, error) {
+	ctx, span := trace.StartSpan(ctx, "lookupCLAndPS")
+	defer span.End()
+	crsName := gr.CodeReviewSystem
+	if crsName == "" {
+		// Default to Gerrit; TODO(kjlubick) who uses this?
+		sklog.Warningf("Using default CRS (this may go away soon)")
+		crsName = gerritCRS
 	}
-	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
-	ps, err := system.Store.GetPatchsetByOrder(ctx, clID, psOrder)
-	if err == clstore.ErrNotFound {
-		ps, err := system.Client.GetPatchset(ctx, clID, "", psOrder)
-		if err != nil {
-			return code_review.Patchset{}, skerr.Wrapf(err, "Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
-		}
-		return ps, nil
-	} else if err != nil {
-		return code_review.Patchset{}, skerr.Wrapf(err, "fetching PS from clstore with order %d for CL %q", psOrder, clID)
+	system, ok := g.getCodeReviewSystem(crsName)
+	if !ok {
+		return "", "", skerr.Fmt("unsupported CRS: %s", crsName)
 	}
-	// already found the PS in the store
-	return ps, nil
-}
+	clID := gr.ChangelistID
+	psOrder := gr.PatchsetOrder
+	psID := gr.PatchsetID
 
-// toTryJobResults converts the JSON file to a slice of TryJobResult.
-func toTryJobResults(j *jsonio.GoldResults, tjID, cisName string) []tjstore.TryJobResult {
-	var tjr []tjstore.TryJobResult
-	for _, r := range j.Results {
-		tjr = append(tjr, tjstore.TryJobResult{
-			System:       cisName,
-			TryjobID:     tjID,
-			GroupParams:  j.Key,
-			ResultParams: r.Key,
-			Options:      r.Options,
-			Digest:       r.Digest,
-		})
+	qualifiedCLID := sql.Qualify(system.ID, clID)
+	qualifiedPSID := sql.Qualify(system.ID, psID)
+
+	row := g.db.QueryRow(ctx, `SELECT count(*) FROM Changelists
+WHERE changelist_id = $1 AND system = $2`, qualifiedCLID, system.ID)
+	count := -1
+	if err := row.Scan(&count); err != nil {
+		sklog.Errorf("Error fetching CL %s", qualifiedCLID)
+		return "", "", ingestion.ErrRetryable
 	}
-	return tjr
+	if count == 0 {
+		// Look it up and store it if it exists.
+		if err := g.lookupAndCreateCL(ctx, system.Client, clID, system.ID); err != nil {
+			return "", "", skerr.Wrapf(err, "problem initializing CL %s", clID)
+		}
+	}
+
+	row = g.db.QueryRow(ctx, `SELECT count(*) FROM Patchsets
+WHERE changelist_id = $1 AND system = $2 AND (patchset_id = $3 OR ps_order = $4)`,
+		qualifiedCLID, system.ID, qualifiedPSID, psOrder)
+	count = -1
+	if err := row.Scan(&count); err != nil {
+		sklog.Errorf("Error fetching PS %s, %d for CL", qualifiedPSID, psOrder, qualifiedCLID)
+		return "", "", ingestion.ErrRetryable
+	}
+	if count == 0 {
+		// TODO(kjlubick) look it up and store it
+	}
+	return qualifiedCLID, qualifiedPSID, nil
 }
 
 // getCodeReviewSystem returns the ReviewSystem associated with the crs, or false if there was no
@@ -379,4 +295,109 @@ func (g *goldTryjobProcessor) getCodeReviewSystem(crs string) (clstore.ReviewSys
 		}
 	}
 	return system, found
+}
+
+func (g *goldTryjobProcessor) lookupAndCreateCL(ctx context.Context, client code_review.Client, id, crs string) error {
+	ctx, span := trace.StartSpan(ctx, "lookupAndCreateCL")
+	defer span.End()
+	cl, err := client.GetChangelist(ctx, id)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	qID := sql.Qualify(crs, cl.SystemID)
+	const statement = `
+UPSERT INTO Changelists (changelist_id, system, status, owner_email, subject, last_ingested_data)
+VALUES ($1, $2, $3, $4, $5, $6)`
+	err = crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, qID, crs, convertFromStatusEnum(cl.Status), cl.Owner, cl.Subject, cl.Updated)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	if err != nil {
+		sklog.Errorf("Error Inserting CL %#v: %s", cl, err)
+		return ingestion.ErrRetryable
+	}
+	return nil
+}
+
+// lookupTryjob returns the qualified Tryjob ID for these given results if derivation was
+// successful. It will create an entry in the DB if it does not exist, using the ci.Client
+// if necessary to look it up. The created entry will be related to the provided CL and PS.
+func (g *goldTryjobProcessor) lookupTryjob(ctx context.Context, gr *jsonio.GoldResults, clID, psID string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "lookupTryjob")
+	defer span.End()
+
+	cisName := gr.ContinuousIntegrationSystem
+	if cisName == "" {
+		// Default to BuildBucket; TODO(kjlubick) who uses this?
+		sklog.Warningf("Using default CIS (this may go away soon)")
+		cisName = buildbucketCIS
+	}
+	system, ok := g.cisClients[cisName]
+	if !ok {
+		return "", skerr.Fmt("unsupported CIS: %s", cisName)
+	}
+
+	tjID := gr.TryJobID
+	qualifiedTJID := sql.Qualify(cisName, tjID)
+
+	row := g.db.QueryRow(ctx, `SELECT count(*) FROM Tryjobs
+WHERE tryjob_id = $1 AND system = $2`, qualifiedTJID, cisName)
+	count := -1
+	if err := row.Scan(&count); err != nil {
+		sklog.Errorf("Error fetching TJ %s", qualifiedTJID)
+		return "", ingestion.ErrRetryable
+	}
+	if count == 0 {
+		// TODO(kjlubick) look it up and store it
+		fmt.Printf("%v", system)
+	}
+
+	return tjID, nil
+}
+
+func (g *goldTryjobProcessor) writeData(ctx context.Context, gr *jsonio.GoldResults, clID, psID, tjID string, srcID schema.SourceFileID) error {
+	ctx, span := trace.StartSpan(ctx, "writeData")
+	defer span.End()
+
+	return nil
+}
+
+// upsertSourceFile creates a row in SourceFiles for the given file or updates the existing row's
+// last_ingested timestamp with the provided time.
+func (g *goldTryjobProcessor) upsertSourceFile(ctx context.Context, srcID schema.SourceFileID, fileName string, ingestedTime time.Time) interface{} {
+	ctx, span := trace.StartSpan(ctx, "upsertSourceFile")
+	defer span.End()
+	const statement = `UPSERT INTO SourceFiles (source_file_id, source_file, last_ingested)
+VALUES ($1, $2, $3)`
+	err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, srcID, fileName, ingestedTime)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	return skerr.Wrap(err)
+}
+
+// updateCL updates the last_ingested_data timestamp for this CL.
+func (g *goldTryjobProcessor) updateCL(ctx context.Context, id string, ts time.Time) error {
+	ctx, span := trace.StartSpan(ctx, "updateCL")
+	defer span.End()
+	const statement = `UPDATE Changelists SET last_ingested_data = $1
+WHERE changelist_id = $2`
+	err := crdbpgx.ExecuteTx(ctx, g.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, statement, ts, id)
+		return err // Don't wrap - crdbpgx might retry
+	})
+	return skerr.Wrapf(err, "updating time on CL %s", id)
+}
+
+func convertFromStatusEnum(status code_review.CLStatus) schema.ChangelistStatus {
+	switch status {
+	case code_review.Abandoned:
+		return schema.StatusAbandoned
+	case code_review.Open:
+		return schema.StatusOpen
+	case code_review.Landed:
+		return schema.StatusLanded
+	}
+	sklog.Warningf("Unknown status: %d", status)
+	return schema.StatusAbandoned
 }
