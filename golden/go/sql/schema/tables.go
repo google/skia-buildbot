@@ -782,6 +782,16 @@ func (r TryjobRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.TryjobID, r.System, r.ChangelistID, r.PatchsetID, r.DisplayName, r.LastIngestedData}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *TryjobRow) ScanFrom(scan func(...interface{}) error) error {
+	err := scan(&r.TryjobID, &r.System, &r.ChangelistID, &r.PatchsetID, &r.DisplayName, &r.LastIngestedData)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	r.LastIngestedData = r.LastIngestedData.UTC()
+	return nil
+}
+
 // SecondaryBranchValueRow corresponds to a data point produced by a changelist or on a branch.
 type SecondaryBranchValueRow struct {
 	// BranchName is a something like "gerrit_12345" or "chrome_m86" to identify the branch.
@@ -823,6 +833,12 @@ func (r SecondaryBranchValueRow) ToSQLRow() (colNames []string, colData []interf
 			r.OptionsID, r.SourceFileID, r.TryjobID}
 }
 
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *SecondaryBranchValueRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.BranchName, &r.VersionName, &r.TraceID, &r.Digest, &r.GroupingID,
+		&r.OptionsID, &r.SourceFileID, &r.TryjobID)
+}
+
 // SecondaryBranchParamRow corresponds to a given key/value pair that was seen in data from a
 // specific patchset or commit on a branch.
 type SecondaryBranchParamRow struct {
@@ -843,6 +859,11 @@ type SecondaryBranchParamRow struct {
 func (r SecondaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"branch_name", "version_name", "key", "value"},
 		[]interface{}{r.BranchName, r.VersionName, r.Key, r.Value}
+}
+
+// ScanFrom implements the sqltest.SQLScanner interface.
+func (r *SecondaryBranchParamRow) ScanFrom(scan func(...interface{}) error) error {
+	return scan(&r.BranchName, &r.VersionName, &r.Key, &r.Value)
 }
 
 // SecondaryBranchExpectationRow responds to a new expectation rule applying to a single Changelist.
