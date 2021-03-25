@@ -383,13 +383,13 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
-		return skerr.Wrap(s.batchCreateGroupings(ctx, groupingsToCreate))
+		return skerr.Wrap(batchCreateGroupings(ctx, s.db, groupingsToCreate, s.optionGroupingCache))
 	})
 	eg.Go(func() error {
-		return skerr.Wrap(s.batchCreateOptions(ctx, optionsToCreate))
+		return skerr.Wrap(batchCreateOptions(ctx, s.db, optionsToCreate, s.optionGroupingCache))
 	})
 	eg.Go(func() error {
-		return skerr.Wrap(s.batchCreateTraces(ctx, tracesToCreate))
+		return skerr.Wrap(batchCreateTraces(ctx, s.db, tracesToCreate, s.traceCache))
 	})
 	eg.Go(func() error {
 		return skerr.Wrap(s.batchCreateUntriagedExpectations(ctx, traceValuesToUpdate))
@@ -411,7 +411,7 @@ func (s *sqlPrimaryIngester) writeData(ctx context.Context, gr *jsonio.GoldResul
 
 // batchCreateGroupings writes the given grouping rows to the Groupings table if they aren't
 // already there (they are immutable once written). It updates the cache after a successful write.
-func (s *sqlPrimaryIngester) batchCreateGroupings(ctx context.Context, rows []schema.GroupingRow) error {
+func batchCreateGroupings(ctx context.Context, db crdbpgx.Conn, rows []schema.GroupingRow, cache *lru.Cache) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -438,7 +438,7 @@ func (s *sqlPrimaryIngester) batchCreateGroupings(ctx context.Context, rows []sc
 		// is immutable.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
 		})
@@ -449,14 +449,14 @@ func (s *sqlPrimaryIngester) batchCreateGroupings(ctx context.Context, rows []sc
 	}
 	// We've successfully written them to the DB, add them to the cache.
 	for _, r := range rows {
-		s.optionGroupingCache.Add(string(r.GroupingID), struct{}{})
+		cache.Add(string(r.GroupingID), struct{}{})
 	}
 	return nil
 }
 
 // batchCreateOptions writes the given options rows to the Options table if they aren't
 // already there (they are immutable once written). It updates the cache after a successful write.
-func (s *sqlPrimaryIngester) batchCreateOptions(ctx context.Context, rows []schema.OptionsRow) error {
+func batchCreateOptions(ctx context.Context, db crdbpgx.Conn, rows []schema.OptionsRow, cache *lru.Cache) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -483,7 +483,7 @@ func (s *sqlPrimaryIngester) batchCreateOptions(ctx context.Context, rows []sche
 		// is immutable.
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
 		})
@@ -494,7 +494,7 @@ func (s *sqlPrimaryIngester) batchCreateOptions(ctx context.Context, rows []sche
 	}
 	// We've successfully written them to the DB, add them to the cache.
 	for _, r := range rows {
-		s.optionGroupingCache.Add(string(r.OptionsID), struct{}{})
+		cache.Add(string(r.OptionsID), struct{}{})
 	}
 	return nil
 }
@@ -502,7 +502,7 @@ func (s *sqlPrimaryIngester) batchCreateOptions(ctx context.Context, rows []sche
 // batchCreateTraces writes the given trace rows to the Traces table if they aren't
 // already there. The values we write are immutable once written. It updates the cache after a
 // successful write.
-func (s *sqlPrimaryIngester) batchCreateTraces(ctx context.Context, rows []schema.TraceRow) error {
+func batchCreateTraces(ctx context.Context, db crdbpgx.Conn, rows []schema.TraceRow, cache *lru.Cache) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -529,7 +529,7 @@ func (s *sqlPrimaryIngester) batchCreateTraces(ctx context.Context, rows []schem
 		// is immutable (we aren't writing to matches_any_ignore_rule).
 		statement += ` ON CONFLICT DO NOTHING;`
 
-		err := crdbpgx.ExecuteTx(ctx, s.db, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		err := crdbpgx.ExecuteTx(ctx, db, pgx.TxOptions{}, func(tx pgx.Tx) error {
 			_, err := tx.Exec(ctx, statement, arguments...)
 			return err // Don't wrap - crdbpgx might retry
 		})
@@ -540,7 +540,7 @@ func (s *sqlPrimaryIngester) batchCreateTraces(ctx context.Context, rows []schem
 	}
 	// We've successfully written them to the DB, add them to the cache.
 	for _, r := range rows {
-		s.traceCache.Add(string(r.TraceID), struct{}{})
+		cache.Add(string(r.TraceID), struct{}{})
 	}
 	return nil
 }

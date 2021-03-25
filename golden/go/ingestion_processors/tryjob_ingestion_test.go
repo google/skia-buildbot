@@ -1,41 +1,27 @@
 package ingestion_processors
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
-	"io"
-	"io/ioutil"
 	"testing"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
-	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
-	"go.skia.org/infra/golden/go/ingestion"
-	ingestion_mocks "go.skia.org/infra/golden/go/ingestion/mocks"
-	"go.skia.org/infra/golden/go/jsonio"
-	"go.skia.org/infra/golden/go/tjstore"
-	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
+	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
+	"go.skia.org/infra/golden/go/sql/schema"
+	"go.skia.org/infra/golden/go/sql/sqltest"
 	"go.skia.org/infra/golden/go/types"
-)
-
-const (
-	legacyGoldCtlFile = "legacy-tryjob-goldctl.json"
-	githubGoldCtlFile = "github-goldctl.json"
 )
 
 func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
@@ -84,39 +70,221 @@ func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
 	assert.Contains(t, gtp.cisClients, buildbucketCIS)
 }
 
-// TestTryJobProcessFreshStartSunnyDay tests the scenario in which we see data uploaded to Gerrit
-// for a brand new CL, PS, and TryJob. There are no ignore rules and the known digests don't contain
-// gerritDigest.
-func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
-	mcls := makeEmptyCLStore()
-	mtjs := makeEmptyTJStore()
-	defer mcls.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
+func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
+	unittest.LargeTest(t)
 
-	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil).Twice()
-	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil).Once()
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil).Once()
+	// This file has data from 3 traces across 2 corpora. The data is for the patchset with order 3.
+	const clID = dks.ChangelistIDThatAttemptsToFixIOS
+	const psID = dks.PatchSetIDFixesIPadButNotIPhone
+	const tjID = dks.Tryjob01IPhoneRGB
+	const expectedPSOrder = 3
+	const squareTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"square","os":"iOS","source_type":"corners"}`
+	const triangleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"triangle","os":"iOS","source_type":"corners"}`
+	const circleTraceKeys = `{"color mode":"RGB","device":"iPhone12,1","name":"circle","os":"iOS","source_type":"round"}`
 
-	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
-	gtp := goldTryjobProcessor{
-		cisClients: makeBuildbucketCIS(),
+	const qualifiedCL = "gerrit_CL_fix_ios"
+	const qualifiedPS = "gerrit_PS_fixes_ipad_but_not_iphone"
+	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
+	mcrs := &mock_crs.Client{}
+	mcrs.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{
+		SystemID: clID,
+		Owner:    dks.UserOne,
+		Status:   code_review.Open,
+		Subject:  "Fix iOS",
+		// This time should get overwritten by the fakeIngestionTime
+		Updated: time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
+	}, nil)
+	mcrs.On("GetPatchset", testutils.AnyContext, clID, "", expectedPSOrder).Return(code_review.Patchset{
+		SystemID:     psID,
+		ChangelistID: clID,
+		Order:        expectedPSOrder,
+		GitHash:      "ffff111111111111111111111111111111111111",
+	}, nil)
+
+	mcis := &mock_cis.Client{}
+	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(ci.TryJob{
+		SystemID:    tjID,
+		System:      dks.BuildBucketCIS,
+		DisplayName: "Test-iPhone-RGB",
+	}, nil)
+
+	src := fakeGCSSourceFromFile(t, "from_goldctl_legacy_fields.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
 		reviewSystems: []clstore.ReviewSystem{
 			{
 				ID:     gerritCRS,
-				Client: makeGerritCRS(),
-				Store:  mcls,
-				// URLTemplate unused here
+				Client: mcrs,
+				// Store and URLTemplate unused here
 			},
 		},
-		tryJobStore: mtjs,
-		source:      src,
-	}
+		db:     db,
+		source: src,
+	})
 
-	err := gtp.Process(context.Background(), legacyGoldCtlFile)
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB)
 	require.NoError(t, err)
+
+	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
+	assert.Equal(t, []schema.SourceFileRow{{
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		SourceFile:   dks.Tryjob01FileIPhoneRGB,
+		LastIngested: fakeIngestionTime,
+	}}, actualSourceFiles)
+
+	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     qualifiedCL,
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "Fix iOS",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualChangelists)
+
+	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
+	assert.Equal(t, []schema.PatchsetRow{{
+		PatchsetID:   qualifiedPS,
+		System:       dks.GerritCRS,
+		ChangelistID: qualifiedCL,
+		Order:        3,
+		GitHash:      "ffff111111111111111111111111111111111111",
+	}}, actualPatchsets)
+
+	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         qualifiedTJ,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedPS,
+		DisplayName:      "Test-iPhone-RGB",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualTryjobs)
+
+	actualGroupings := sqltest.GetAllRows(ctx, t, db, "Groupings", &schema.GroupingRow{}).([]schema.GroupingRow)
+	assert.ElementsMatch(t, []schema.GroupingRow{{
+		GroupingID: h(circleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+		},
+	}, {
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+		},
+	}, {
+		GroupingID: h(triangleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+		},
+	}}, actualGroupings)
+
+	actualOptions := sqltest.GetAllRows(ctx, t, db, "Options", &schema.OptionsRow{}).([]schema.OptionsRow)
+	assert.ElementsMatch(t, []schema.OptionsRow{{
+		OptionsID: h(pngOptions),
+		Keys: map[string]string{
+			"ext": "png",
+		},
+	}}, actualOptions)
+
+	actualTraces := sqltest.GetAllRows(ctx, t, db, "Traces", &schema.TraceRow{}).([]schema.TraceRow)
+	assert.Equal(t, []schema.TraceRow{{
+		TraceID:    h(circleTraceKeys),
+		Corpus:     dks.RoundCorpus,
+		GroupingID: h(circleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.IOS,
+			dks.DeviceKey:         dks.IPhoneDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:    h(squareTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.IOS,
+			dks.DeviceKey:         dks.IPhoneDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}, {
+		TraceID:    h(triangleTraceKeys),
+		Corpus:     dks.CornersCorpus,
+		GroupingID: h(triangleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+			dks.ColorModeKey:      dks.RGBColorMode,
+			dks.OSKey:             dks.IOS,
+			dks.DeviceKey:         dks.IPhoneDevice,
+		},
+		MatchesAnyIgnoreRule: schema.NBNull,
+	}}, actualTraces)
+
+	actualParams := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchParams", &schema.SecondaryBranchParamRow{}).([]schema.SecondaryBranchParamRow)
+	assert.Equal(t, []schema.SecondaryBranchParamRow{
+		{Key: dks.ColorModeKey, Value: dks.RGBColorMode, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: dks.DeviceKey, Value: dks.IPhoneDevice, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: "ext", Value: "png", BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.PrimaryKeyField, Value: dks.CircleTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.PrimaryKeyField, Value: dks.SquareTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.PrimaryKeyField, Value: dks.TriangleTest, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: dks.OSKey, Value: dks.IOS, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.CorpusField, Value: dks.CornersCorpus, BranchName: qualifiedCL, VersionName: qualifiedPS},
+		{Key: types.CorpusField, Value: dks.RoundCorpus, BranchName: qualifiedCL, VersionName: qualifiedPS},
+	}, actualParams)
+
+	actualValues := sqltest.GetAllRows(ctx, t, db, "SecondaryBranchValues", &schema.SecondaryBranchValueRow{}).([]schema.SecondaryBranchValueRow)
+	assert.ElementsMatch(t, []schema.SecondaryBranchValueRow{{
+		BranchName: qualifiedCL, VersionName: qualifiedPS,
+		TraceID:      h(squareTraceKeys),
+		Digest:       d(dks.DigestA01Pos),
+		GroupingID:   h(squareGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		TryjobID:     qualifiedTJ,
+	}, {
+		BranchName: qualifiedCL, VersionName: qualifiedPS,
+		TraceID:      h(triangleTraceKeys),
+		Digest:       d(dks.DigestB01Pos),
+		GroupingID:   h(triangleGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		TryjobID:     qualifiedTJ,
+	}, {
+		BranchName: qualifiedCL, VersionName: qualifiedPS,
+		TraceID:      h(circleTraceKeys),
+		Digest:       d(dks.DigestC07Unt_CL),
+		GroupingID:   h(circleGrouping),
+		OptionsID:    h(pngOptions),
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		TryjobID:     qualifiedTJ,
+	}}, actualValues)
+
+	// We only write to SecondaryBranchExpectations when something is explicitly triaged.
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "SecondaryBranchExpectations", &schema.SecondaryBranchExpectationRow{}))
+
+	// Unlike the primary branch ingestion, these should be empty
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "CommitsWithData", &schema.CommitWithDataRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TraceValues", &schema.TraceValueRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "ValuesAtHead", &schema.ValueAtHeadRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "Expectations", &schema.ExpectationRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "PrimaryBranchParams", &schema.PrimaryBranchParamRow{}))
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
 }
 
 // TestTryJobProcessFreshStartGitHub tests the scenario in which we see data uploaded to GitHub for
@@ -124,463 +292,60 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 // was not previously seen or triaged on master and is not covered by an ignore rule, so the
 // created Patchset object should be marked as having UntriagedDigests.
 func TestTryJobProcessFreshStartGitHub(t *testing.T) {
-	unittest.SmallTest(t)
-	mcls := makeEmptyCLStore()
-	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls each of PutChangelist, PutPatchset, and PutTryJob
-	// with the new, correct objects object. Further, it should call PutResults with the
-	// appropriate TryJobResults.
-	defer mcls.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
-
-	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, githubCLID, makeGitHubCirrusTryJob().Updated)).Return(nil)
-	mcls.On("PutPatchset", testutils.AnyContext, code_review.Patchset{
-		SystemID:     githubPSID,
-		ChangelistID: githubCLID,
-		Order:        githubPSOrder,
-		GitHash:      githubPSID,
-	}).Return(nil).Once()
-
-	combinedID := tjstore.CombinedPSID{CL: githubCLID, PS: githubPSID, CRS: "github"}
-	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, makeGitHubCirrusTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubGoldCtlFile, makeGitHubTryJobResults(), anyTime).Return(nil)
-
-	src := fakeGCSSourceFromFile(t, githubGoldCtlFile)
-	gtp := goldTryjobProcessor{
-		cisClients: makeCirrusCIS(),
-		reviewSystems: []clstore.ReviewSystem{
-			{
-				ID:     githubCRS,
-				Client: makeGitHubCRS(),
-				Store:  mcls,
-				// URLTemplate unused here
-			},
-		},
-		tryJobStore: mtjs,
-		source:      src,
-	}
-
-	err := gtp.Process(context.Background(), githubGoldCtlFile)
-	require.NoError(t, err)
+	t.Skip("rebuild")
 }
 
 // TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs processes three results from different CIS
 // (and has the CIS return an error to short-circuit the process code) and verifies that the
 // two CIS we knew about were correctly contacted and the result with an unknown CIS was ignored.
 func TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs(t *testing.T) {
-	unittest.SmallTest(t)
-	mcls := &mock_clstore.Store{}
-	// We can return whatever here, since we plan to error out when the tryjob gets read.
-	mcls.On("GetChangelist", testutils.AnyContext, githubCLID).Return(makeChangelist(), nil)
-	mcls.On("GetPatchset", testutils.AnyContext, githubCLID, githubPSID).Return(makeGerritPatchsets()[0], nil)
-
-	bbClient := &mock_cis.Client{}
-	bbClient.On("GetTryJob", testutils.AnyContext, mock.Anything).Return(ci.TryJob{}, errors.New("buildbucket error")).Once()
-	defer bbClient.AssertExpectations(t) // make sure GetTryJob is called exactly once.
-
-	cirrusClient := &mock_cis.Client{}
-	cirrusClient.On("GetTryJob", testutils.AnyContext, mock.Anything).Return(ci.TryJob{}, errors.New("cirrus error")).Once()
-	defer cirrusClient.AssertExpectations(t) // make sure GetTryJob is called exactly once.
-
-	errorfulCISClients := map[string]ci.Client{
-		buildbucketCIS: bbClient,
-		cirrusCIS:      cirrusClient,
-	}
-
-	threeFileSource := &ingestion_mocks.Source{}
-	threeFileSource.On("HandlesFile", mock.Anything).Return(true)
-	threeFileSource.On("GetReader", testutils.AnyContext, "buildbucket.json").Return(githubResultReaderWithCIS(t, buildbucketCIS), nil)
-	threeFileSource.On("GetReader", testutils.AnyContext, "cirrus.json").Return(githubResultReaderWithCIS(t, cirrusCIS), nil)
-	threeFileSource.On("GetReader", testutils.AnyContext, "unknown.json").Return(githubResultReaderWithCIS(t, "unknown"), nil)
-
-	gtp := goldTryjobProcessor{
-		cisClients: errorfulCISClients,
-		reviewSystems: []clstore.ReviewSystem{
-			{
-				ID:    githubCRS,
-				Store: mcls,
-				// Client, URLTemplate unused here
-			},
-		},
-		tryJobStore: makeEmptyTJStore(),
-		source:      threeFileSource,
-	}
-
-	err := gtp.Process(context.Background(), "buildbucket.json")
-	require.Error(t, err)
-	assert.Equal(t, ingestion.ErrRetryable, err)
-
-	err = gtp.Process(context.Background(), "cirrus.json")
-	require.Error(t, err)
-	assert.Equal(t, ingestion.ErrRetryable, err)
-
-	err = gtp.Process(context.Background(), "unknown.json")
-	assert.Error(t, err)
-}
-
-func githubResultReaderWithCIS(t *testing.T, cis string) io.ReadCloser {
-	// We provide the bare minimum to be a valid result
-	gr := jsonio.GoldResults{
-		Key: map[string]string{
-			types.CorpusField: "arbitrary",
-		},
-		Results: []jsonio.Result{
-			{
-				Key: map[string]string{
-					types.PrimaryKeyField: "whatever",
-				},
-				// arbitrary, yet valid, md5 hash
-				Digest: "46eb78c9711cb79197d47f448ba51338",
-			},
-		},
-		// arbitrary, yet valid, sha1 (git) hash
-		GitHash:                     "6eb2b22a052a9913fe3b9170fc217e84def40598",
-		ChangelistID:                githubCLID,
-		PatchsetID:                  githubPSID,
-		CodeReviewSystem:            githubCRS,
-		TryJobID:                    "whatever",
-		ContinuousIntegrationSystem: cis,
-	}
-	b, err := json.Marshal(gr)
-	require.NoError(t, err)
-	return ioutil.NopCloser(bytes.NewReader(b))
+	t.Skip("rebuild")
 }
 
 // TestTryJobProcessCLExistsSunnyDay tests that the ingestion works when the CL already exists.
 func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
-	mcls := &mock_clstore.Store{}
-	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls PutChangelist (with updated time), PutPatchset
-	// (with the correct new object), PutTryJob with the new TryJob object and PutResults with
-	// the appropriate TryJobResults.
-	defer mcls.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
-
-	mcls.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
-	mcls.On("GetPatchsetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(code_review.Patchset{}, clstore.ErrNotFound)
-	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
-	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
-
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
-		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
-
-	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
-	gtp := goldTryjobProcessor{
-		cisClients: makeBuildbucketCIS(),
-		reviewSystems: []clstore.ReviewSystem{
-			{
-				ID:     gerritCRS,
-				Client: makeGerritCRS(),
-				Store:  mcls,
-				// URLTemplate unused here
-			},
-		},
-		tryJobStore: mtjs,
-		source:      src,
-	}
-
-	err := gtp.Process(context.Background(), legacyGoldCtlFile)
-	require.NoError(t, err)
+	t.Skip("rebuild")
 }
 
 // TestTryJobProcessCLExistsPreviouslyAbandoned tests that the ingestion works when the
 // CL already exists, but was marked abandoned at some point (and presumably was re-opened).
 func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
-	unittest.SmallTest(t)
-	mcls := &mock_clstore.Store{}
-	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls PutChangelist (with updated time and no longer
-	// abandoned), PutPatchset with the new object, PutTryJob with the new TryJob object,
-	// and PutResults with the appropriate TryJobResults.
-	defer mcls.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
-
-	cl := makeChangelist()
-	cl.Status = code_review.Abandoned
-	mcls.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(cl, nil)
-	mcls.On("GetPatchsetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(code_review.Patchset{}, clstore.ErrNotFound)
-	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
-	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
-
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
-		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
-
-	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
-	gtp := goldTryjobProcessor{
-		cisClients: makeBuildbucketCIS(),
-		reviewSystems: []clstore.ReviewSystem{
-			{
-				ID:     gerritCRS,
-				Client: makeGerritCRS(),
-				Store:  mcls,
-				// URLTemplate unused here
-			},
-		},
-		tryJobStore: mtjs,
-		source:      src,
-	}
-
-	err := gtp.Process(context.Background(), legacyGoldCtlFile)
-	require.NoError(t, err)
+	t.Skip("rebuild")
 }
 
 // TestTryJobProcessPSExistsSunnyDay tests that the ingestion works when the
 // CL and the PS already exists.
 func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
-	mcls := &mock_clstore.Store{}
-	mtjs := makeEmptyTJStore()
-	// We want to assert that the Process calls PutChangelist and PutPatchset (with updated times),
-	// PutTryJob with the new TryJob object, and PutResults with the appropriate TryJobResults.
-	defer mcls.AssertExpectations(t)
-	defer mtjs.AssertExpectations(t)
+	t.Skip("rebuild")
 
-	mcls.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
-	mcls.On("GetPatchsetByOrder", testutils.AnyContext, gerritCLID, gerritPSOrder).Return(makeGerritPatchset(), nil)
-	mcls.On("PutChangelist", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
-	mcls.On("PutPatchset", testutils.AnyContext, makeGerritPatchset()).Return(nil)
+}
 
-	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID,
-		legacyGoldCtlFile, makeTryJobResults(), anyTime).Return(nil)
+func TestTryjobSQL_Process_CLPSNeedResolution_Success(t *testing.T) {
+	t.Skip("waiting until after refactoring")
 
-	src := fakeGCSSourceFromFile(t, legacyGoldCtlFile)
+	src := fakeGCSSourceFromFile(t, "needs_lookup.json")
 	gtp := goldTryjobProcessor{
-		cisClients: makeBuildbucketCIS(),
-		reviewSystems: []clstore.ReviewSystem{
-			{
-				ID:    gerritCRS,
-				Store: mcls,
-				// Client, URLTemplate unused here
-			},
-		},
-		tryJobStore: mtjs,
-		source:      src,
+		source: src,
 	}
 
-	err := gtp.Process(context.Background(), legacyGoldCtlFile)
-	require.NoError(t, err)
+	require.NoError(t, gtp.Process(context.Background(), "needs_lookup.json"))
 }
 
-func makeEmptyCLStore() *mock_clstore.Store {
-	mcls := &mock_clstore.Store{}
-	mcls.On("GetChangelist", testutils.AnyContext, mock.Anything).Return(code_review.Changelist{}, clstore.ErrNotFound).Maybe()
-	mcls.On("GetPatchsetByOrder", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.Patchset{}, clstore.ErrNotFound).Maybe()
-	mcls.On("GetPatchset", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.Patchset{}, clstore.ErrNotFound).Maybe()
-
-	return mcls
-}
-
-func makeEmptyTJStore() *mock_tjstore.Store {
-	mtjs := &mock_tjstore.Store{}
-	mtjs.On("GetTryJob", testutils.AnyContext, mock.Anything, mock.Anything).Return(ci.TryJob{}, tjstore.ErrNotFound).Maybe()
-	return mtjs
-}
-
-// Below is the gerrit data that belongs to legacyGoldCtlFile. It doesn't need to be a super
-// complex example because we have tests that test parseDMResults directly.
-const (
-	gerritCLID    = "1762193"
-	gerritPSID    = "e1681c90cf6a4c3b6be2bc4b4cea59849c16a438"
-	gerritPSOrder = 2
-	gerritTJID    = "8904604368086838672"
-)
-
-var (
-	gerritCombinedID = tjstore.CombinedPSID{CL: gerritCLID, PS: gerritPSID, CRS: gerritCRS}
-
-	gerritCLDate = time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC)
-
-	anyTime = mock.MatchedBy(func(time.Time) bool { return true })
-)
-
-// These are functions to avoid mutations causing issues for future tests/checks
-func makeTryJobResults() []tjstore.TryJobResult {
-	return []tjstore.TryJobResult{
-		{
-			TryjobID: gerritTJID,
-			System:   buildbucketCIS,
-			Digest:   "690f72c0b56ae014c8ac66e7f25c0779",
-			GroupParams: paramtools.Params{
-				"device_id":     "0x1cb3",
-				"device_string": "None",
-				"msaa":          "True",
-				"vendor_id":     "0x10de",
-				"vendor_string": "None",
-			},
-			ResultParams: paramtools.Params{
-				"name":        "Pixel_CanvasDisplayLinearRGBUnaccelerated2DGPUCompositing",
-				"source_type": "chrome-gpu",
-			},
-			Options: paramtools.Params{
-				"ext": "png",
-			},
-		},
+func initCaches(processor goldTryjobProcessor) goldTryjobProcessor {
+	ogCache, err := lru.New(optionsGroupingCacheSize)
+	if err != nil {
+		panic(err) // should only throw error on invalid size
 	}
-}
-
-func makeChangelist() code_review.Changelist {
-	return code_review.Changelist{
-		SystemID: "1762193",
-		Owner:    "test@example.com",
-		Status:   code_review.Open,
-		Subject:  "initial commit",
-		Updated:  gerritCLDate,
+	paramsCache, err := lru.New(paramsCacheSize)
+	if err != nil {
+		panic(err) // should only throw error on invalid size
 	}
-}
-
-// clWithUpdatedTime returns a matcher that will assert the CL has properly had its Updated field
-// updated.
-func clWithUpdatedTime(t *testing.T, clID string, originalDate time.Time) interface{} {
-	return mock.MatchedBy(func(cl code_review.Changelist) bool {
-		assert.Equal(t, clID, cl.SystemID)
-		assert.Equal(t, code_review.Open, cl.Status)
-		// If the CL is being stored with the sentinel value, we can ignore the time check.
-		if !cl.Updated.IsZero() {
-			// Make sure the time is updated to be later than the original one (which was in November
-			// or August, depending on the testcase). Since this test was authored after 1 Dec 2019 and
-			// the Updated is set to time.Now(), we can just check that we are after then.
-			assert.True(t, cl.Updated.After(originalDate))
-		}
-
-		// assert messages are easier to debug than "not matched" errors, so say that we matched,
-		// but know the test will fail if any of the above asserts fail.
-		return true
-	})
-}
-
-func makeGerritPatchsets() []code_review.Patchset {
-	return []code_review.Patchset{
-		{
-			SystemID:     "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-			ChangelistID: "1762193",
-			Order:        1,
-			GitHash:      "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-		},
-		{
-			SystemID:     gerritPSID,
-			ChangelistID: "1762193",
-			Order:        gerritPSOrder,
-			GitHash:      gerritPSID,
-		},
-		{
-			SystemID:     "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-			ChangelistID: "1762193",
-			Order:        3,
-			GitHash:      "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-		},
+	tCache, err := lru.New(traceCacheSize)
+	if err != nil {
+		panic(err) // should only throw error on invalid size
 	}
-}
-
-func makeGerritPatchset() code_review.Patchset {
-	ps := makeGerritPatchsets()[1]
-	return ps
-}
-
-func makeGerritBuildbucketTryJob() ci.TryJob {
-	return ci.TryJob{
-		SystemID:    gerritTJID,
-		System:      buildbucketCIS,
-		DisplayName: "my-task",
-		Updated:     time.Date(2019, time.August, 19, 18, 20, 10, 0, time.UTC),
-	}
-}
-
-func makeBuildbucketCIS() map[string]ci.Client {
-	mcis := &mock_cis.Client{}
-	mcis.On("GetTryJob", testutils.AnyContext, gerritTJID).Return(makeGerritBuildbucketTryJob(), nil)
-	return map[string]ci.Client{
-		buildbucketCIS: mcis,
-	}
-}
-
-func makeGerritCRS() *mock_crs.Client {
-	mcrs := &mock_crs.Client{}
-	mcrs.On("GetChangelist", testutils.AnyContext, gerritCLID).Return(makeChangelist(), nil)
-	mcrs.On("GetPatchset", testutils.AnyContext, gerritCLID, mock.Anything, mock.Anything).Return(makeGerritPatchsets()[1], nil)
-	return mcrs
-}
-
-// Below is the gerrit data that belongs to githubGoldCtlFile, which is based on real data.
-const (
-	githubCLID    = "44474"
-	githubPSOrder = 1
-	githubPSID    = "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017"
-	githubTJID    = "5489081055707136"
-)
-
-func makeGitHubCirrusTryJob() ci.TryJob {
-	return ci.TryJob{
-		SystemID:    githubTJID,
-		System:      cirrusCIS,
-		DisplayName: "my-github-task",
-		Updated:     time.Date(2019, time.November, 19, 18, 20, 10, 0, time.UTC),
-	}
-}
-
-func makeGitHubTryJobResults() []tjstore.TryJobResult {
-	return []tjstore.TryJobResult{
-		{
-			TryjobID: githubTJID,
-			System:   cirrusCIS,
-			Digest:   "87599f3dec5b56dc110f1b63dc747182",
-			GroupParams: paramtools.Params{
-				"Platform": "windows",
-			},
-			ResultParams: paramtools.Params{
-				"name":        "cupertino.date_picker_test.datetime.initial",
-				"source_type": "flutter",
-			},
-			Options: paramtools.Params{
-				"ext": "png",
-			},
-		},
-		{
-			TryjobID: githubTJID,
-			System:   cirrusCIS,
-			Digest:   "7d04fc1ef547a8e092495dab4294b4cd",
-			GroupParams: paramtools.Params{
-				"Platform": "windows",
-			},
-			ResultParams: paramtools.Params{
-				"name":        "cupertino.date_picker_test.datetime.drag",
-				"source_type": "flutter",
-			},
-			Options: paramtools.Params{
-				"ext": "png",
-			},
-		},
-	}
-}
-
-func makeCirrusCIS() map[string]ci.Client {
-	mcis := &mock_cis.Client{}
-	mcis.On("GetTryJob", testutils.AnyContext, githubTJID).Return(makeGitHubCirrusTryJob(), nil)
-	return map[string]ci.Client{
-		cirrusCIS: mcis,
-	}
-}
-
-func makeGitHubCRS() *mock_crs.Client {
-	cl := code_review.Changelist{
-		SystemID: githubCLID,
-		Owner:    "test@example.com",
-		Status:   code_review.Open,
-		Subject:  "initial commit",
-		Updated:  time.Date(2019, time.November, 19, 18, 17, 16, 0, time.UTC),
-	}
-
-	ps := code_review.Patchset{
-		SystemID:     "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
-		ChangelistID: githubCLID,
-		Order:        githubPSOrder,
-		GitHash:      "fe1cad6c1a5d6dc7cea47f09efdd49f197a7f017",
-	}
-	mcrs := &mock_crs.Client{}
-	mcrs.On("GetChangelist", testutils.AnyContext, githubCLID).Return(cl, nil)
-	mcrs.On("GetPatchset", testutils.AnyContext, githubCLID, mock.Anything, mock.Anything).Return(ps, nil)
-	return mcrs
+	processor.optionGroupingCache = ogCache
+	processor.paramsCache = paramsCache
+	processor.traceCache = tCache
+	return processor
 }
