@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "52959682_892accc6",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-25T18:42:56Z",
+      "side": 1,
+      "message": "Optional: Add a TODO with a link to this CL for reference.",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 18
+      },
+      "revId": "69ecacff5a5202f8d87799aabe600f54a60dacf6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
