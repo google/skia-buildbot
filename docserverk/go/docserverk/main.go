@@ -125,6 +125,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.", http.StatusInternalServerError)
 			return
 		}
+		// EEEK - This is never cached and thus built for every requested file.
 		d, err = docset.NewDocSetForIssue(context.Background(), *workDir, *docRepo, issue)
 		if err == docset.IssueCommittedErr {
 			httputils.ReportError(w, err, "Failed to load the given CL, that issue is closed.", http.StatusInternalServerError)
