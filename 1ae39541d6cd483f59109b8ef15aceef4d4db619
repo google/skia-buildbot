@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4ca40eba_ce94ebe1",
+        "filename": "autoroll/go/config/config.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 654,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-26T11:32:33Z",
+      "side": 1,
+      "message": "Can we make this buildset_commit_tmpl or some such?  I\u0027d like to be able to do:\n\nbuildset :\u003d fmt.Sprintf(cfg.BuildsetCommitTmpl, commit)\n\nrather than needing to know to add \"/+/\"",
+      "range": {
+        "startLine": 654,
+        "startChar": 11,
+        "endLine": 654,
+        "endChar": 33
+      },
+      "revId": "1ae39541d6cd483f59109b8ef15aceef4d4db619",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
