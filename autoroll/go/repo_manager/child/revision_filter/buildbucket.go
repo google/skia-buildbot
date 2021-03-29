@@ -15,9 +15,10 @@ import (
 // BuildbucketRevisionFilter is a RevisionFilter which uses results from
 // BuildBucket to filter Revisions.
 type BuildbucketRevisionFilter struct {
-	bb      buildbucket.BuildBucketInterface
-	project string
-	bucket  string
+	bb                   buildbucket.BuildBucketInterface
+	project              string
+	bucket               string
+	buildsetCommitPrefix string
 }
 
 // Skip implements RevisionFilter.
@@ -25,7 +26,7 @@ func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revisio
 	pred := &buildbucketpb.BuildPredicate{
 		Builder: &buildbucketpb.BuilderID{Project: f.project, Bucket: f.bucket},
 		Tags: []*buildbucketpb.StringPair{
-			{Key: "buildset", Value: fmt.Sprintf("commit/git/%s", r.Id)},
+			{Key: "buildset", Value: fmt.Sprintf(f.buildsetCommitPrefix, r.Id)},
 		},
 	}
 	builds, err := f.bb.Search(ctx, pred)
@@ -64,14 +65,15 @@ func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revisio
 
 // NewBuildbucketRevisionFilter returns a RevisionFilter which uses results from
 // Buildbucket to filter revisions.
-func NewBuildbucketRevisionFilter(client *http.Client, project, bucket string) (*BuildbucketRevisionFilter, error) {
+func NewBuildbucketRevisionFilter(client *http.Client, project, bucket, buildsetCommitPrefix string) (*BuildbucketRevisionFilter, error) {
 	if project == "" || bucket == "" {
 		return nil, skerr.Fmt("both project and bucket must be specified for NewBuildbucketRevisionFilter")
 	}
 	return &BuildbucketRevisionFilter{
-		bb:      buildbucket.NewClient(client),
-		project: project,
-		bucket:  bucket,
+		bb:                   buildbucket.NewClient(client),
+		project:              project,
+		bucket:               bucket,
+		buildsetCommitPrefix: buildsetCommitPrefix,
 	}, nil
 }
 
