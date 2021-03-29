@@ -25,8 +25,7 @@
       prefix: "trybot/dm-json-v1"
     },
     extra_configuration: {
-      CodeReviewSystems: "gerrit",
-      GerritURL:         "https://chromium-review.googlesource.com",
+      CodeReviewSystems: "lookup_bb,gerrit",
 
       ContinuousIntegrationSystems: "buildbucket",
     }
