@@ -8,6 +8,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/httputils"
@@ -22,6 +23,7 @@ import (
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
 	"go.skia.org/infra/golden/go/ingestion"
+	"go.skia.org/infra/golden/go/ingestion_processors/mocks"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -48,6 +50,7 @@ func TestTryjobSQL_SingleCRSAndCIS_Success(t *testing.T) {
 	assert.Len(t, gtp.reviewSystems, 2)
 	assert.Len(t, gtp.cisClients, 1)
 	assert.Contains(t, gtp.cisClients, buildbucketCIS)
+	assert.Nil(t, gtp.lookupSystem)
 }
 
 func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
@@ -72,6 +75,30 @@ func TestTryjobSQL_SingleCRSDoubleCIS_Success(t *testing.T) {
 	assert.Len(t, gtp.cisClients, 2)
 	assert.Contains(t, gtp.cisClients, cirrusCIS)
 	assert.Contains(t, gtp.cisClients, buildbucketCIS)
+	assert.Nil(t, gtp.lookupSystem)
+}
+
+func TestTryjobSQL_LookupCRS_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	configParams := map[string]string{
+		lookupParam:            "buildbucket",
+		codeReviewSystemsParam: "gerrit",
+		gerritURLParam:         "https://example-review.googlesource.com",
+
+		continuousIntegrationSystemsParam: "buildbucket",
+	}
+
+	ctx := gerrit_crs.TestContext(context.Background())
+	p, err := TryjobSQL(ctx, nil, configParams, httputils.NewTimeoutClient(), nil)
+	require.NoError(t, err)
+	require.NotNil(t, p)
+
+	gtp, ok := p.(*goldTryjobProcessor)
+	require.True(t, ok)
+	assert.Len(t, gtp.reviewSystems, 1)
+	assert.Len(t, gtp.cisClients, 1)
+	assert.NotNil(t, gtp.lookupSystem)
 }
 
 func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
@@ -792,14 +819,195 @@ func TestTryjobSQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T)
 }
 
 func TestTryjobSQL_Process_CLPSNeedResolution_Success(t *testing.T) {
-	t.Skip("waiting until after refactoring")
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const resolvedCRS = dks.GerritCRS
+	const resolvedCL = dks.ChangelistIDThatAttemptsToFixIOS
+	const resolvedPSOrder = 3
+
+	const expectedTryjobID = dks.Tryjob01IPhoneRGB
+	const expectedPSID = dks.PatchSetIDFixesIPadButNotIPhone
+
+	const qualifiedCL = "gerrit_CL_fix_ios"
+	const qualifiedPS = "gerrit_PS_fixes_ipad_but_not_iphone"
+	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
+
+	ml := &mocks.LookupSystem{}
+	ml.On("Lookup", testutils.AnyContext, expectedTryjobID).Return(resolvedCRS, resolvedCL, resolvedPSOrder, nil)
+
+	mcrs := &mock_crs.Client{}
+	mcrs.On("GetChangelist", testutils.AnyContext, resolvedCL).Return(code_review.Changelist{
+		SystemID: resolvedCL,
+		Owner:    dks.UserOne,
+		Status:   code_review.Open,
+		Subject:  "Fix iOS",
+		// This time should get overwritten by the fakeIngestionTime
+		Updated: time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
+	}, nil)
+	mcrs.On("GetPatchset", testutils.AnyContext, resolvedCL, "", resolvedPSOrder).Return(code_review.Patchset{
+		SystemID:     expectedPSID,
+		ChangelistID: resolvedCL,
+		Order:        resolvedPSOrder,
+		GitHash:      "ffff111111111111111111111111111111111111",
+	}, nil)
+
+	mcis := &mock_cis.Client{}
+	mcis.On("GetTryJob", testutils.AnyContext, expectedTryjobID).Return(ci.TryJob{
+		SystemID:    expectedTryjobID,
+		System:      dks.BuildBucketCIS,
+		DisplayName: "Test-iPhone-RGB",
+	}, nil)
 
 	src := fakeGCSSourceFromFile(t, "needs_lookup.json")
-	gtp := goldTryjobProcessor{
-		source: src,
-	}
+	gtp := initCaches(goldTryjobProcessor{
+		source:       src,
+		db:           db,
+		lookupSystem: ml,
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+	})
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	require.NoError(t, gtp.Process(ctx, "needs_lookup.json"))
 
-	require.NoError(t, gtp.Process(context.Background(), "needs_lookup.json"))
+	// Spot check the resolved data
+	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     qualifiedCL,
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "Fix iOS",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualChangelists)
+
+	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
+	assert.Equal(t, []schema.PatchsetRow{{
+		PatchsetID:   qualifiedPS,
+		System:       dks.GerritCRS,
+		ChangelistID: qualifiedCL,
+		Order:        3,
+		GitHash:      "ffff111111111111111111111111111111111111",
+	}}, actualPatchsets)
+
+	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         qualifiedTJ,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedPS,
+		DisplayName:      "Test-iPhone-RGB",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualTryjobs)
+}
+
+func TestTryjobSQL_Process_CLPSNeedResolution_UsesCache(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
+
+	const resolvedCRS = dks.GerritCRS
+	const resolvedCL = dks.ChangelistIDThatAttemptsToFixIOS
+	const resolvedPSOrder = 3
+
+	const expectedTryjobID = dks.Tryjob01IPhoneRGB
+
+	ml := &mocks.LookupSystem{}
+	ml.On("Lookup", testutils.AnyContext, expectedTryjobID).
+		Return(resolvedCRS, resolvedCL, resolvedPSOrder, nil).Once() // Will fail if not cached
+
+	mcrs := &mock_crs.Client{}
+	mcis := &mock_cis.Client{}
+
+	src := fakeGCSSourceFromFile(t, "needs_lookup.json")
+	gtp := initCaches(goldTryjobProcessor{
+		source:       src,
+		db:           db,
+		lookupSystem: ml,
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+	})
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	require.NoError(t, gtp.Process(ctx, "needs_lookup.json"))
+	require.NoError(t, gtp.Process(ctx, "needs_lookup.json"))
+	require.NoError(t, gtp.Process(ctx, "needs_lookup.json"))
+	require.NoError(t, gtp.Process(ctx, "needs_lookup.json"))
+}
+
+func TestTryjobSQL_Process_LookupSystemNotConfigured_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	mcrs := &mock_crs.Client{}
+	mcis := &mock_cis.Client{}
+
+	src := fakeGCSSourceFromFile(t, "needs_lookup.json")
+	gtp := initCaches(goldTryjobProcessor{
+		source: src,
+		db:     db,
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+	})
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, "needs_lookup.json")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not configured")
+}
+
+func TestTryjobSQL_Process_LookupReturnsDifferentSystem_ReturnsError(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	ml := &mocks.LookupSystem{}
+	ml.On("Lookup", testutils.AnyContext, mock.Anything).Return("incorrect CRS", "whatever", 6, nil)
+
+	mcrs := &mock_crs.Client{}
+	mcis := &mock_cis.Client{}
+
+	src := fakeGCSSourceFromFile(t, "needs_lookup.json")
+	gtp := initCaches(goldTryjobProcessor{
+		source:       src,
+		db:           db,
+		lookupSystem: ml,
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     "gerrit",
+				Client: mcrs,
+			},
+		},
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+	})
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, "needs_lookup.json")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "after lookup")
 }
 
 func initCaches(processor goldTryjobProcessor) goldTryjobProcessor {
@@ -815,8 +1023,13 @@ func initCaches(processor goldTryjobProcessor) goldTryjobProcessor {
 	if err != nil {
 		panic(err) // should only throw error on invalid size
 	}
+	clCache, err := lru.New(clCacheSize)
+	if err != nil {
+		panic(err) // should only throw error on invalid size
+	}
 	processor.optionGroupingCache = ogCache
 	processor.paramsCache = paramsCache
 	processor.traceCache = tCache
+	processor.clCache = clCache
 	return processor
 }
