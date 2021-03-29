@@ -324,6 +324,7 @@ type Revision struct {
 	CreatedString string    `json:"created"`
 	Created       time.Time `json:"-"`
 	Kind          string    `json:"kind"`
+	Ref           string    `json:"ref"`
 }
 
 // GerritInterface describes interactions with a Gerrit host.
