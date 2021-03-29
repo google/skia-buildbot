@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d93f1bf7_a4b642ea",
+        "filename": "autoroll/go/repo_manager/child/revision_filter/buildbucket.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2021-03-29T12:48:04Z",
+      "side": 1,
+      "message": "Nit: if we\u0027re just going to include the fields from the config struct directly, we might as well just embed the config struct here.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 26
+      },
+      "revId": "f66fad25f6c67285cb30e1390859d63e4320cd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
