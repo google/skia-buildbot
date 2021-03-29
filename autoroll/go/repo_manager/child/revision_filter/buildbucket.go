@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
@@ -15,17 +16,16 @@ import (
 // BuildbucketRevisionFilter is a RevisionFilter which uses results from
 // BuildBucket to filter Revisions.
 type BuildbucketRevisionFilter struct {
-	bb      buildbucket.BuildBucketInterface
-	project string
-	bucket  string
+	bb       buildbucket.BuildBucketInterface
+	bbConfig *config.BuildbucketRevisionFilterConfig
 }
 
 // Skip implements RevisionFilter.
 func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (string, error) {
 	pred := &buildbucketpb.BuildPredicate{
-		Builder: &buildbucketpb.BuilderID{Project: f.project, Bucket: f.bucket},
+		Builder: &buildbucketpb.BuilderID{Project: f.bbConfig.Project, Bucket: f.bbConfig.Bucket},
 		Tags: []*buildbucketpb.StringPair{
-			{Key: "buildset", Value: fmt.Sprintf("commit/git/%s", r.Id)},
+			{Key: "buildset", Value: fmt.Sprintf(f.bbConfig.BuildsetCommitTmpl, r.Id)},
 		},
 	}
 	builds, err := f.bb.Search(ctx, pred)
@@ -64,14 +64,13 @@ func (f BuildbucketRevisionFilter) Skip(ctx context.Context, r *revision.Revisio
 
 // NewBuildbucketRevisionFilter returns a RevisionFilter which uses results from
 // Buildbucket to filter revisions.
-func NewBuildbucketRevisionFilter(client *http.Client, project, bucket string) (*BuildbucketRevisionFilter, error) {
-	if project == "" || bucket == "" {
-		return nil, skerr.Fmt("both project and bucket must be specified for NewBuildbucketRevisionFilter")
+func NewBuildbucketRevisionFilter(client *http.Client, bbConfig *config.BuildbucketRevisionFilterConfig) (*BuildbucketRevisionFilter, error) {
+	if bbConfig == nil {
+		return nil, skerr.Fmt("BuildbucketRevisionFilterConfig config must be specified")
 	}
 	return &BuildbucketRevisionFilter{
-		bb:      buildbucket.NewClient(client),
-		project: project,
-		bucket:  bucket,
+		bb:       buildbucket.NewClient(client),
+		bbConfig: bbConfig,
 	}, nil
 }
 
