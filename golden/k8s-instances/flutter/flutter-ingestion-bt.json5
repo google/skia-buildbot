@@ -3,8 +3,8 @@
   backup_poll_scope: "2h",
   ingestion_files_topic: "gold-flutter-eventbus-bt",
   ingestion_subscription: "gold-ingestion+gold-flutter-eventbus-bt",
-  port: ":9091",
   prom_port: ":20000",
+  ready_port: ":9091",
 
   primary_branch_config: {
     type: "big_table_tracestore",

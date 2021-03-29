@@ -3,8 +3,8 @@
   backup_poll_scope: "2h",
   ingestion_files_topic: "gold-fuchsia-public-data-files",
   ingestion_subscription: "gold-fuchsia-public-ingestion",
-  port: ":9091",
   prom_port: ":20000",
+  ready_port: ":9091",
 
   primary_branch_config: {
     type: "sql_primary",
