@@ -22,6 +22,30 @@
       },
       "revId": "69ecacff5a5202f8d87799aabe600f54a60dacf6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e2ced4db_a3e083de",
+        "filename": "golden/go/ingestion_processors/tryjob_ingestion_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-29T16:04:11Z",
+      "side": 1,
+      "message": "I\u0027ll have these taken care of shortly.",
+      "parentUuid": "52959682_892accc6",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 295,
+        "endChar": 18
+      },
+      "revId": "69ecacff5a5202f8d87799aabe600f54a60dacf6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
