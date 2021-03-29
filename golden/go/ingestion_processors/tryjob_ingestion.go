@@ -333,7 +333,7 @@ func (g *goldTryjobProcessor) lookupAndCreateCL(ctx context.Context, client code
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	qID := sql.Qualify(crs, cl.SystemID)
+	qID := sql.Qualify(crs, id)
 	const statement = `
 INSERT INTO Changelists (changelist_id, system, status, owner_email, subject, last_ingested_data)
 VALUES ($1, $2, $3, $4, $5, $6)

@@ -2,6 +2,7 @@ package ingestion_processors
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
@@ -19,6 +21,7 @@ import (
 	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	mock_cis "go.skia.org/infra/golden/go/continuous_integration/mocks"
+	"go.skia.org/infra/golden/go/ingestion"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -121,7 +124,6 @@ func TestTryjobSQL_Process_FirstFileForCL_Success(t *testing.T) {
 			{
 				ID:     gerritCRS,
 				Client: mcrs,
-				// Store and URLTemplate unused here
 			},
 		},
 		db:     db,
@@ -389,7 +391,6 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 			{
 				ID:     gerritCRS,
 				Client: mcrs,
-				// Store and URLTemplate unused here
 			},
 		},
 		db:     db,
@@ -558,7 +559,237 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
 }
 
-// TODO(kjlubick) tests for error cases with clients
+func TestTryjobSQL_Process_UnknownCL_ReturnsNonretriableError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	mcrs := &mock_crs.Client{}
+	mcrs.On("GetChangelist", testutils.AnyContext, dks.ChangelistIDThatAttemptsToFixIOS).Return(code_review.Changelist{}, code_review.ErrNotFound)
+	mcis := &mock_cis.Client{}
+
+	src := fakeGCSSourceFromFile(t, "from_goldctl_recent_fields.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		db:     db,
+		source: src,
+	})
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB)
+	require.Error(t, err)
+	assert.NotEqual(t, ingestion.ErrRetryable, skerr.Unwrap(err))
+	assert.Contains(t, err.Error(), "not found")
+
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}))
+}
+
+func TestTryjobSQL_Process_UnknownPS_ReturnsNonretriableError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const clID = dks.ChangelistIDThatAttemptsToFixIOS
+	const psID = dks.PatchSetIDFixesIPadButNotIPhone
+
+	mcrs := &mock_crs.Client{}
+	mcrs.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{
+		SystemID: clID,
+		Owner:    dks.UserOne,
+		Status:   code_review.Open,
+		Subject:  "Fix iOS",
+		Updated:  time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
+	}, nil)
+	mcrs.On("GetPatchset", testutils.AnyContext, clID, psID, 0).Return(code_review.Patchset{}, code_review.ErrNotFound)
+	mcis := &mock_cis.Client{}
+
+	src := fakeGCSSourceFromFile(t, "from_goldctl_recent_fields.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		db:     db,
+		source: src,
+	})
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB)
+	require.Error(t, err)
+	assert.NotEqual(t, ingestion.ErrRetryable, skerr.Unwrap(err))
+	assert.Contains(t, err.Error(), "not found")
+
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}))
+}
+
+func TestTryjobSQL_Process_UnknownTryjob_ReturnsNonretriableError(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const clID = dks.ChangelistIDThatAttemptsToFixIOS
+	const psID = dks.PatchSetIDFixesIPadButNotIPhone
+	const tjID = dks.Tryjob01IPhoneRGB
+
+	mcrs := &mock_crs.Client{}
+	mcrs.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{
+		SystemID: clID,
+		Owner:    dks.UserOne,
+		Status:   code_review.Open,
+		Subject:  "Fix iOS",
+		Updated:  time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
+	}, nil)
+	mcrs.On("GetPatchset", testutils.AnyContext, clID, psID, 0).Return(code_review.Patchset{
+		SystemID:     psID,
+		ChangelistID: clID,
+		Order:        3,
+		GitHash:      "ffff111111111111111111111111111111111111",
+	}, nil)
+
+	mcis := &mock_cis.Client{}
+	mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(ci.TryJob{}, ci.ErrNotFound)
+
+	src := fakeGCSSourceFromFile(t, "from_goldctl_recent_fields.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		db:     db,
+		source: src,
+	})
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB)
+	require.Error(t, err)
+	assert.NotEqual(t, ingestion.ErrRetryable, skerr.Unwrap(err))
+	assert.Contains(t, err.Error(), "not found")
+
+	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}))
+}
+
+func TestTryjobSQL_Process_SameFileMultipleTimesInParallel_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+
+	const clID = dks.ChangelistIDThatAttemptsToFixIOS
+	const psID = dks.PatchSetIDFixesIPadButNotIPhone
+	const tjID = dks.Tryjob01IPhoneRGB
+
+	const qualifiedCL = "gerrit_CL_fix_ios"
+	const qualifiedPS = "gerrit_PS_fixes_ipad_but_not_iphone"
+	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	wg := sync.WaitGroup{}
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			mcrs := &mock_crs.Client{}
+			mcrs.On("GetChangelist", testutils.AnyContext, clID).Return(code_review.Changelist{
+				SystemID: clID,
+				Owner:    dks.UserOne,
+				Status:   code_review.Open,
+				Subject:  "Fix iOS",
+				// This time should get overwritten by the fakeIngestionTime
+				Updated: time.Date(2020, time.December, 5, 15, 0, 0, 0, time.UTC),
+			}, nil)
+			mcrs.On("GetPatchset", testutils.AnyContext, clID, psID, 0).Return(code_review.Patchset{
+				SystemID:     psID,
+				ChangelistID: clID,
+				Order:        3,
+				GitHash:      "ffff111111111111111111111111111111111111",
+			}, nil)
+
+			mcis := &mock_cis.Client{}
+			mcis.On("GetTryJob", testutils.AnyContext, tjID).Return(ci.TryJob{
+				SystemID:    tjID,
+				System:      dks.BuildBucketCIS,
+				DisplayName: "Test-iPhone-RGB",
+			}, nil)
+
+			src := fakeGCSSourceFromFile(t, "from_goldctl_recent_fields.json")
+			gtp := initCaches(goldTryjobProcessor{
+				cisClients: map[string]ci.Client{
+					buildbucketCIS: mcis,
+				},
+				reviewSystems: []clstore.ReviewSystem{
+					{
+						ID:     gerritCRS,
+						Client: mcrs,
+					},
+				},
+				db:     db,
+				source: src,
+			})
+
+			for j := 0; j < 10; j++ {
+				if err := ctx.Err(); err != nil {
+					return
+				}
+				if err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB); err != nil {
+					assert.NoError(t, err)
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	// spot check the data to make sure it was written
+	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         qualifiedTJ,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedPS,
+		DisplayName:      "Test-iPhone-RGB",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualTryjobs)
+
+	actualGroupings := sqltest.GetAllRows(ctx, t, db, "Groupings", &schema.GroupingRow{}).([]schema.GroupingRow)
+	assert.ElementsMatch(t, []schema.GroupingRow{{
+		GroupingID: h(circleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.RoundCorpus,
+			types.PrimaryKeyField: dks.CircleTest,
+		},
+	}, {
+		GroupingID: h(squareGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.SquareTest,
+		},
+	}, {
+		GroupingID: h(triangleGrouping),
+		Keys: map[string]string{
+			types.CorpusField:     dks.CornersCorpus,
+			types.PrimaryKeyField: dks.TriangleTest,
+		},
+	}}, actualGroupings)
+}
 
 func TestTryjobSQL_Process_CLPSNeedResolution_Success(t *testing.T) {
 	t.Skip("waiting until after refactoring")
