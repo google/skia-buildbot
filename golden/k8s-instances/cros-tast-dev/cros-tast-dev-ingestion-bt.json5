@@ -26,9 +26,11 @@
     },
     extra_configuration: {
       CodeReviewSystems: "gerrit",
-      GerritURL:         "https://chromium-review.googlesource.com",
+      GerritURL:          "https://chromium-review.googlesource.com",
 
       ContinuousIntegrationSystems: "buildbucket",
+
+      LookupCLsIn: "buildbucket",
     }
   },
 

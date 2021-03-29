@@ -47,20 +47,26 @@ const (
 
 	continuousIntegrationSystemsParam = "ContinuousIntegrationSystems"
 
+	lookupParam = "LookupCLsIn"
+
 	gerritCRS         = "gerrit"
 	gerritInternalCRS = "gerrit-internal"
 	githubCRS         = "github"
 	buildbucketCIS    = "buildbucket"
 	cirrusCIS         = "cirrus"
+
+	clCacheSize = 1000
 )
 
 // goldTryjobProcessor implements the ingestion.Processor interface to ingest tryjob results.
 type goldTryjobProcessor struct {
 	cisClients    map[string]continuous_integration.Client
 	reviewSystems []clstore.ReviewSystem
+	lookupSystem  LookupSystem
 	source        ingestion.Source
 	db            *pgxpool.Pool
 
+	clCache             *lru.Cache
 	optionGroupingCache *lru.Cache
 	paramsCache         *lru.Cache
 	traceCache          *lru.Cache
@@ -100,6 +106,15 @@ func TryjobSQL(ctx context.Context, src ingestion.Source, configParams map[strin
 		})
 	}
 
+	var lookupSystem LookupSystem
+	if ls, ok := configParams[lookupParam]; ok {
+		if ls != buildbucketCIS {
+			return nil, skerr.Fmt("unknown lookup system: %s", ls)
+		}
+		bbClient := buildbucket.NewClient(client)
+		lookupSystem = newBuildbucketLookupClient(bbClient)
+	}
+
 	ogCache, err := lru.New(optionsGroupingCacheSize)
 	if err != nil {
 		panic(err) // should only throw error on invalid size
@@ -112,13 +127,19 @@ func TryjobSQL(ctx context.Context, src ingestion.Source, configParams map[strin
 	if err != nil {
 		panic(err) // should only throw error on invalid size
 	}
+	clCache, err := lru.New(clCacheSize)
+	if err != nil {
+		panic(err) // should only throw error on invalid size
+	}
 
 	return &goldTryjobProcessor{
 		cisClients:    cisClients,
 		reviewSystems: reviewSystems,
+		lookupSystem:  lookupSystem,
 		source:        src,
 
 		db:                  db,
+		clCache:             clCache,
 		optionGroupingCache: ogCache,
 		paramsCache:         paramsCache,
 		traceCache:          tCache,
@@ -260,19 +281,10 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, fileName string) erro
 func (g *goldTryjobProcessor) lookupCLAndPS(ctx context.Context, gr *jsonio.GoldResults) (string, string, error) {
 	ctx, span := trace.StartSpan(ctx, "lookupCLAndPS")
 	defer span.End()
-	crsName := gr.CodeReviewSystem
-	if crsName == "" {
-		// Default to Gerrit; TODO(kjlubick) who uses this?
-		sklog.Warningf("Using default CRS (this may go away soon)")
-		crsName = gerritCRS
+	system, clID, psID, psOrder, err := g.getIDs(ctx, gr)
+	if err != nil {
+		return "", "", skerr.Wrap(err)
 	}
-	system, ok := g.getCodeReviewSystem(crsName)
-	if !ok {
-		return "", "", skerr.Fmt("unsupported CRS: %s", crsName)
-	}
-	clID := gr.ChangelistID
-	psOrder := gr.PatchsetOrder
-	psID := gr.PatchsetID
 
 	qualifiedCLID := sql.Qualify(system.ID, clID)
 	qualifiedPSID := sql.Qualify(system.ID, psID)
@@ -308,6 +320,60 @@ WHERE changelist_id = $1 AND system = $2 AND (patchset_id = $3 OR ps_order = $4)
 		qualifiedPSID = psID
 	}
 	return qualifiedCLID, qualifiedPSID, nil
+}
+
+// getIDs returns the ReviewSystem, CL ID, PS ID, and PS Order from the given results. This could
+// result in looking that up using the lookupSystem (e.g. buildbucket).
+func (g *goldTryjobProcessor) getIDs(ctx context.Context, gr *jsonio.GoldResults) (clstore.ReviewSystem, string, string, int, error) {
+	ctx, span := trace.StartSpan(ctx, "getIDs")
+	defer span.End()
+	crsName := gr.CodeReviewSystem
+	if crsName == "" {
+		// Default to Gerrit; TODO(kjlubick) who uses this?
+		sklog.Warningf("Using default CRS (this may go away soon)")
+		crsName = gerritCRS
+	}
+	if crsName != "lookup" {
+		system, ok := g.getCodeReviewSystem(crsName)
+		if !ok {
+			return clstore.ReviewSystem{}, "", "", 0, skerr.Fmt("unsupported CRS: %s", crsName)
+		}
+		return system, gr.ChangelistID, gr.PatchsetID, gr.PatchsetOrder, nil
+	}
+	if g.lookupSystem == nil {
+		return clstore.ReviewSystem{}, "", "", 0, skerr.Fmt("Lookup of CL/PS is not configured")
+	}
+
+	if val, ok := g.clCache.Get(gr.TryJobID); ok {
+		ce, ok := val.(lookupCacheEntry)
+		if ok {
+			system, ok := g.getCodeReviewSystem(ce.crsName)
+			if !ok {
+				return clstore.ReviewSystem{}, "", "", 0, skerr.Fmt("unsupported CRS after lookup: %s", ce.crsName)
+			}
+			return system, ce.clID, "", ce.psOrder, nil
+		}
+	}
+	crsName, clID, psOrder, err := g.lookupSystem.Lookup(ctx, gr.TryJobID)
+	if err != nil {
+		return clstore.ReviewSystem{}, "", "", 0, skerr.Wrapf(err, "lookup up CL and PS from buildbucket %s", gr.TryJobID)
+	}
+	system, ok := g.getCodeReviewSystem(crsName)
+	if !ok {
+		return clstore.ReviewSystem{}, "", "", 0, skerr.Fmt("unsupported CRS after lookup: %s", crsName)
+	}
+	g.clCache.Add(gr.TryJobID, lookupCacheEntry{
+		crsName: crsName,
+		clID:    clID,
+		psOrder: psOrder,
+	})
+	return system, clID, "", psOrder, nil
+}
+
+type lookupCacheEntry struct {
+	crsName string
+	clID    string
+	psOrder int
 }
 
 // getCodeReviewSystem returns the ReviewSystem associated with the crs, or false if there was no
