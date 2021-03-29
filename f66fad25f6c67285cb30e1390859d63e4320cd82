@@ -22,6 +22,30 @@
       },
       "revId": "f66fad25f6c67285cb30e1390859d63e4320cd82",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8c4ba31b_eaf2b271",
+        "filename": "autoroll/go/repo_manager/child/revision_filter/buildbucket.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2021-03-29T12:55:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d93f1bf7_a4b642ea",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 26
+      },
+      "revId": "f66fad25f6c67285cb30e1390859d63e4320cd82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
