@@ -651,4 +651,5 @@ message GitCheckoutConfig {
 message BuildbucketRevisionFilterConfig {
     string project = 1;
     string bucket = 2;
+    string buildset_commit_tmpl = 3;
 }

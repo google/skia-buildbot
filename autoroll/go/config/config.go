@@ -1057,5 +1057,8 @@ func (c *BuildbucketRevisionFilterConfig) Validate() error {
 	if c.Bucket == "" {
 		return skerr.Fmt("Bucket is required.")
 	}
+	if c.BuildsetCommitTmpl == "" {
+		return skerr.Fmt("BuildsetCommitTmpl is required.")
+	}
 	return nil
 }
