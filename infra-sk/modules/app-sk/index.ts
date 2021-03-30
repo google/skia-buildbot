@@ -1,2 +1,2 @@
-import './app-sk.js'
+import './app-sk'
 import './app-sk.scss'
