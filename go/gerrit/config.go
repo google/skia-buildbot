@@ -203,7 +203,7 @@ var (
 	// hosts which have no commit queue.
 	ConfigChromiumBotCommitNoCQ = &Config{
 		SelfApproveLabels: map[string]int{
-			LabelCodeReview: LabelBotCommitApproved,
+			LabelBotCommit: LabelBotCommitApproved,
 		},
 		HasCq:           false,
 		SetCqLabels:     map[string]int{},
