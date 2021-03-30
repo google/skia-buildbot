@@ -1,7 +1,12 @@
 package language
 
 import (
+	"io/ioutil"
+	"log"
+	"path"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
@@ -9,6 +14,7 @@ import (
 	"github.com/bazelbuild/bazel-gazelle/rule"
 	"go.skia.org/infra/bazel/gazelle/frontend/common"
 	"go.skia.org/infra/bazel/gazelle/frontend/configurer"
+	"go.skia.org/infra/bazel/gazelle/frontend/parsers"
 	"go.skia.org/infra/bazel/gazelle/frontend/resolver"
 	"go.skia.org/infra/go/util"
 )
@@ -50,7 +56,11 @@ type Language struct {
 // kinds of rules generated for this language may be found here.
 func (l *Language) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
-		// TODO(lovisolo): Populate.
+		"ts_library": {
+			NonEmptyAttrs:  map[string]bool{"srcs": true},
+			MergeableAttrs: map[string]bool{"srcs": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
 	}
 }
 
@@ -116,6 +126,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 		}
 
 		// Limit generation of build targets to a hard-coded list of known good directories.
+		// TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
 		if !isTargetDirectory(args.Rel) {
 			return language.GenerateResult{}
 		}
@@ -233,7 +244,9 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 		} else if strings.HasSuffix(f, "_test.ts") {
 			// TODO(lovisolo): Generate a karma_test rule.
 		} else if strings.HasSuffix(f, ".ts") {
-			// TODO(lovisolo): Generate a ts_library rule.
+			r, i := generateTSLibraryRule(f, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		}
 	}
 
@@ -243,6 +256,29 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 // makeGenerateResult returns a language.GenerateResult with the results of generating build rules
 // for a directory.
 func makeGenerateResult(args language.GenerateArgs, rules []*rule.Rule, imports []common.ImportsParsedFromRuleSources) language.GenerateResult {
+	if len(rules) != len(imports) {
+		log.Panicf("Arguments rules and imports must be of the same length (lengths: %d, %d; directory: %s)", len(rules), len(imports), args.Rel)
+	}
+
+	// Sort the rules and imports slices by rule name to guarantee a deterministic result.
+	type ruleImportsPair struct {
+		rule    *rule.Rule
+		imports common.ImportsParsedFromRuleSources
+	}
+	var ruleImportsPairs []ruleImportsPair
+	for i, r := range rules {
+		ruleImportsPairs = append(ruleImportsPairs, ruleImportsPair{r, imports[i]})
+	}
+	sort.Slice(ruleImportsPairs, func(i, j int) bool {
+		return ruleImportsPairs[i].rule.Name() < ruleImportsPairs[j].rule.Name()
+	})
+	rules = nil
+	imports = nil
+	for _, ri := range ruleImportsPairs {
+		rules = append(rules, ri.rule)
+		imports = append(imports, ri.imports)
+	}
+
 	// The Imports field in language.GenerateResult is of type []interface{}, so we need to cast our
 	// imports slice to []interface{}.
 	var importsAsEmptyInterfaces []interface{}
@@ -329,6 +365,38 @@ func (p *skPageSrcs) has(src string) bool {
 	return src == p.html || src == p.ts || src == p.scss
 }
 
+// generateTSLibraryRule generates a ts_library rule for the given TypeScript file.
+func generateTSLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("ts_library", makeRuleNameFromFileName(file, "_ts_lib"))
+	rule.SetAttr("srcs", []string{file})
+	rule.SetAttr("visibility", []string{"//visibility:public"})
+	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+}
+
+// makeRuleNameFromFileName returns e.g. "baz_ts_lib" when given "foo/bar/baz.ts" and "_ts_lib".
+func makeRuleNameFromFileName(file, suffix string) string {
+	file = strings.ToLower(path.Base(file))
+	return strings.TrimSuffix(file, filepath.Ext(file)) + suffix
+}
+
+// extractImportsFromTypeScriptFile returns the verbatim paths of the import statements found in the
+// given TypeScript file.
+func extractImportsFromTypeScriptFile(path string) []string {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Panicf("Error reading file %q: %v", path, err)
+	}
+
+	// Ignore CSS / Sass imports from TypeScript files (Webpack idiom).
+	var imports []string
+	for _, imp := range parsers.ParseTSImports(string(b[:])) {
+		if !strings.HasSuffix(imp, ".css") && !strings.HasSuffix(imp, ".scss") {
+			imports = append(imports, imp)
+		}
+	}
+	return imports
+}
+
 // generateEmptyRules returns a list of rules that cannot be built with the files found in the
 // directory, for example because a file in its srcs argument does not exist anymore.
 //
@@ -337,7 +405,51 @@ func (p *skPageSrcs) has(src string) bool {
 func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 	var emptyRules []*rule.Rule
 
-	// TODO(lovisolo): Populate.
+	// If no BUILD.bazel file exists in the current directory, there's nothing to do.
+	if args.File == nil {
+		return emptyRules
+	}
+
+	allFilesInDir := map[string]bool{}
+	for _, f := range append(args.RegularFiles, args.GenFiles...) {
+		allFilesInDir[f] = true
+	}
+
+	someFilesFound := func(files ...string) bool {
+		for _, f := range files {
+			if allFilesInDir[f] {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, curRule := range args.File.Rules {
+		var empty bool
+
+		switch curRule.Kind() {
+		case "karma_test":
+			// TODO(lovisolo): Implement.
+		case "nodejs_test":
+			// TODO(lovisolo): Implement.
+		case "sass_library":
+			// TODO(lovisolo): Implement.
+		case "sk_demo_page_server":
+			// TODO(lovisolo): Implement.
+		case "sk_element":
+			// TODO(lovisolo): Implement.
+		case "sk_element_puppeteer_test":
+			// TODO(lovisolo): Implement.
+		case "sk_page":
+			// TODO(lovisolo): Implement.
+		case "ts_library":
+			empty = !someFilesFound(curRule.AttrStrings("srcs")...)
+		}
+
+		if empty {
+			emptyRules = append(emptyRules, rule.NewRule(curRule.Kind(), curRule.Name()))
+		}
+	}
 
 	return emptyRules
 }
