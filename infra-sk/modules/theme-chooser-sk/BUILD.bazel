@@ -1,20 +1,11 @@
-load(
-    "//infra-sk:index.bzl",
-    "karma_test",
-    "sk_demo_page_server",
-    "sk_element",
-    "sk_element_puppeteer_test",
-    "sk_page",
-)
-
-package(default_visibility = ["//visibility:public"])
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "theme-chooser-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
     sass_srcs = ["theme-chooser-sk.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
@@ -22,22 +13,13 @@ sk_element(
         "index.ts",
         "theme-chooser-sk.ts",
     ],
-)
-
-karma_test(
-    name = "test",
-    src = "theme-chooser-sk_test.ts",
-    deps = [
-        ":theme-chooser-sk",
-        "//infra-sk/modules:test_util",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-    ],
+    visibility = ["//visibility:public"],
 )
 
 sk_page(
     name = "theme-chooser-sk-demo",
     html_file = "theme-chooser-sk-demo.html",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
     scss_entry_point = "theme-chooser-sk-demo.scss",
     sk_element_deps = [":theme-chooser-sk"],
     ts_entry_point = "theme-chooser-sk-demo.ts",
@@ -49,15 +31,23 @@ sk_demo_page_server(
 )
 
 sk_element_puppeteer_test(
-    name = "puppeteer_test",
+    name = "theme-chooser-sk_puppeteer_test",
     src = "theme-chooser-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        ":theme-chooser-sk",
-        "//puppeteer-tests:util_lib",
+        "//puppeteer-tests:util_ts_lib",
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+karma_test(
+    name = "theme-chooser-sk_test",
+    src = "theme-chooser-sk_test.ts",
+    deps = [
+        ":theme-chooser-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
     ],
 )
