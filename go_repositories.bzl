@@ -1185,8 +1185,8 @@ def go_repositories():
     go_repository(
         name = "com_github_google_go_licenses",
         importpath = "github.com/google/go-licenses",
-        sum = "h1:qmrsmPqL7jK5f7dwLc4oDBZu/3pzB19tvhnP4TngNYY=",
-        version = "v0.0.0-20201026145851-73411c8fa237",
+        sum = "h1:JtmsUf+m+KdwCOgLG578T0Mvd0+l+dezPrJh5KYnXZg=",
+        version = "v0.0.0-20210329231322-ce1d9163b77d",
     )
 
     go_repository(
@@ -1206,8 +1206,8 @@ def go_repositories():
     go_repository(
         name = "com_github_google_licenseclassifier",
         importpath = "github.com/google/licenseclassifier",
-        sum = "h1:OggOMmdI0JLwg1FkOKH9S7fVHF0oEm8PX6S8kAdpOps=",
-        version = "v0.0.0-20200402202327-879cb1424de0",
+        sum = "h1:EfzlPF5MRmoWsCGvSkPZ1Nh9uVzHf4FfGnDQ6CXd2NA=",
+        version = "v0.0.0-20210325184830-bb04aff29e72",
     )
 
     go_repository(
