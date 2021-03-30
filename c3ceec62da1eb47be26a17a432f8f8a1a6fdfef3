@@ -16,6 +16,621 @@
       "message": "A large CL, best review route might be:\n\n1. README.md\n2. go/docsy\n3. go/codereview\n4. go/docset\n5. go/docsyserver",
       "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "704056c3_209b3b4a",
+        "filename": "docsyserver/README.md",
+        "patchSetId": 66
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "suggestion: \"using Docsy templates.\"\n\nHereafter Hugo/Docsy is probably fine.",
+      "range": {
+        "startLine": 4,
+        "startChar": 8,
+        "endLine": 4,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f923c503_0b2dc4a1",
+        "filename": "docsyserver/README.md",
+        "patchSetId": 66
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 7,
+        "startChar": 27,
+        "endLine": 7,
+        "endChar": 34
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "2f2c6a5b_a7bda09f",
+        "filename": "docsyserver/README.md",
+        "patchSetId": 66
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "FYI: there\u0027s a way to get notifications from Gerrit when CLs land https://g3doc.corp.google.com/company/teams/gerritcodereview/users/cloud-pubsub.md?cl\u003dhead if polling becomes an issue.",
+      "range": {
+        "startLine": 9,
+        "startChar": 14,
+        "endLine": 9,
+        "endChar": 33
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "27d50fb5_db517b91",
+        "filename": "docsyserver/go/codereview/codereview.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "This is a good abstraction pattern.",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 15
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "53edeb6a_4f7cdace",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "This is to skip the \"file\" for the commit message? I presume that\u0027s because the commit message won\u0027t/shouldn\u0027t impact the rendered pages, right?",
+      "range": {
+        "startLine": 62,
+        "startChar": 17,
+        "endLine": 62,
+        "endChar": 38
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "492184fa_e7d0c622",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "suggestion: Have a file for manual tests against a test Skia Infra CL, similar to https://skia-review.googlesource.com/c/buildbot/+/389931/5/golden/go/ingestion_processors/buildbucketlookup_manual_test.go where I polled BB directly just to make sure.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "f58c41ce_f45ff7a7",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "ubernit: expected, then actual.\n\nubernit: const expectedRef \u003d \"refs/changes/96/386796/22\" that is used on line 31 and 43",
+      "range": {
+        "startLine": 43,
+        "startChar": 18,
+        "endLine": 43,
+        "endChar": 21
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a92b09e4_c0b4c0c9",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "Maybe also a require.Error() before line 56 to avoid a less-obvious nil-dereference if no error is returned.\n\nSame suggestion for other error tests.",
+      "range": {
+        "startLine": 56,
+        "startChar": 9,
+        "endLine": 56,
+        "endChar": 17
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4a12686c_bf22d579",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "Could we have constants added to our gerrit package for these magic values?",
+      "range": {
+        "startLine": 129,
+        "startChar": 11,
+        "endLine": 129,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "139ac77e_9f2898d5",
+        "filename": "docsyserver/go/codereview/gerrit/gerrit_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "ElementsMatch is a good option if you don\u0027t care about the order of either list.",
+      "range": {
+        "startLine": 159,
+        "startChar": 9,
+        "endLine": 159,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ebcffe81_32fd0489",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "suggestion: I\u0027ve gotten good milage about overriding time using the context instead of a package variable. https://github.com/google/skia-buildbot/blob/5f0968bb332ae32d38d586ae5d23d97907bd5e1f/golden/go/ingestion_processors/primarysql.go#L846\n\nIt\u0027s less error-prone in that you don\u0027t have to remember to fix it afterward and are less likely to have tests use the wrong time.",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 8
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5dd55b8e_5b2b3e0e",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "It was a surprise to me that New called FileSystem. I expect New() functions to not do too much - would it be possible/feasible to have New *not* call FileSystem but rely on the client to call it? I think it would also make the tests easier to follow (e.g. Remove a lot of assertions from setupForTests*)",
+      "range": {
+        "startLine": 149,
+        "startChar": 18,
+        "endLine": 149,
+        "endChar": 28
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c1d587a2_15a190d5",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "ctx should be passed in.",
+      "range": {
+        "startLine": 369,
+        "startChar": 2,
+        "endLine": 369,
+        "endChar": 29
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1afd70f5_46c1af9c",
+        "filename": "docsyserver/go/docset/docset.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "After using the passed in context, this should check for a context err every tick or use a for and a select statement to stop as soon as the context expires.\n\nThis would allow adding a test for Start()",
+      "range": {
+        "startLine": 370,
+        "startChar": 43,
+        "endLine": 370,
+        "endChar": 44
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa974400_27f5ef2b",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "Is https://golang.org/pkg/testing/#T.TempDir applicable here?",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 31
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "86fd1fba_d192b56d",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "See suggestion in docset for simplifying the assertions in setupForTest* (which are hard for me to follow as is).",
+      "range": {
+        "startLine": 66,
+        "startChar": 9,
+        "endLine": 66,
+        "endChar": 16
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9234a45d_a13229ff",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "I don\u0027t think there are any expectations at this point, right?",
+      "range": {
+        "startLine": 68,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 22
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "555fb42a_94e1de2f",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "I\u0027m confused here - isn\u0027t this assertion already in setupForTest? setupForTest* both seem to do a lot of assertions for \"setup\" work.",
+      "range": {
+        "startLine": 110,
+        "startChar": 9,
+        "endLine": 110,
+        "endChar": 19
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "85845dbc_f482a4e3",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "Is https://golang.org/pkg/testing/#T.TempDir applicable here?",
+      "range": {
+        "startLine": 125,
+        "startChar": 24,
+        "endLine": 125,
+        "endChar": 31
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5aef0e3e_536895b6",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "suggestion: require.Contains() about the error message",
+      "range": {
+        "startLine": 150,
+        "startChar": 9,
+        "endLine": 150,
+        "endChar": 14
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c3ec713c_ce26cfa1",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "Should this expectation be asserted? Same question for following tests.",
+      "range": {
+        "startLine": 164,
+        "startChar": 1,
+        "endLine": 164,
+        "endChar": 6
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ac747647_7600e605",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "ubernit: Outside",
+      "range": {
+        "startLine": 222,
+        "startChar": 24,
+        "endLine": 222,
+        "endChar": 31
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e22de391_f62f147e",
+        "filename": "docsyserver/go/docset/docset_test.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "GeneratedMarkdownNotPresent",
+      "range": {
+        "startLine": 266,
+        "startChar": 32,
+        "endLine": 266,
+        "endChar": 39
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bb6199a6_07909c1f",
+        "filename": "docsyserver/go/docsy/docsy.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "nit: The Render function itself should have some docs about src/dst. The Docsy interface could be called Renderer and/or have docs saying something like \"Docsy is a wrapper around a template execution engine\".",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 20,
+        "endChar": 7
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "acf6321b_78d5230b",
+        "filename": "docsyserver/go/docsy/docsy.go",
+        "patchSetId": 66
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "What about also (or instead of) using trace.StartSpan()? I have found that gives me more actionable data than just the SummaryMetric.",
+      "range": {
+        "startLine": 51,
+        "startChar": 13,
+        "endLine": 51,
+        "endChar": 27
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ef19bcff_94755886",
+        "filename": "docsyserver/images/Dockerfile",
+        "patchSetId": 66
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "Good, this is the Active LTS version.",
+      "range": {
+        "startLine": 25,
+        "startChar": 34,
+        "endLine": 25,
+        "endChar": 36
+      },
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0f51607f_527cc616",
+        "filename": "docsyserver/images/head-end.html",
+        "patchSetId": 66
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T16:02:18Z",
+      "side": 1,
+      "message": "What\u0027s this file for? Something to let us embed fiddles and skotties? Should it be mentioned in the Readme or somewhere?",
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
