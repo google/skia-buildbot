@@ -1,39 +1,22 @@
-load(
-    "//infra-sk:index.bzl",
-    "karma_test",
-    "sk_demo_page_server",
-    "sk_element",
-    "sk_element_puppeteer_test",
-    "sk_page",
-)
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "{{.ElementName}}",
     sass_srcs = ["{{.ElementName}}.scss"],
     ts_deps = [
-        "//infra-sk/modules/ElementSk:element-sk",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
-        "index.ts",
         "{{.ElementName}}.ts",
+        "index.ts",
     ],
-)
-
-karma_test(
-    name = "test",
-    src = "{{.ElementName}}_test.ts",
-    deps = [
-        ":{{.ElementName}}",
-        "//infra-sk/modules:test_util",
-        "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//chai",
-    ],
+    visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "demo_page",
+    name = "{{.ElementName}}-demo",
     html_file = "{{.ElementName}}-demo.html",
     scss_entry_point = "{{.ElementName}}-demo.scss",
     sk_element_deps = [":{{.ElementName}}"],
@@ -42,18 +25,27 @@ sk_page(
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = "demo_page",
+    sk_page = ":{{.ElementName}}-demo",
 )
 
 sk_element_puppeteer_test(
-    name = "puppeteer_test",
+    name = "{{.ElementName}}_puppeteer_test",
     src = "{{.ElementName}}_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//puppeteer-tests:util_lib",
+        "//puppeteer-tests:util_ts_lib",
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+karma_test(
+    name = "{{.ElementName}}_test",
+    src = "{{.ElementName}}_test.ts",
+    deps = [
+        ":{{.ElementName}}",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
     ],
 )
