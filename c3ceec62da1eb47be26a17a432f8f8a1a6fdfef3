@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0be3b6cf_0ab1f193",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 66
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-30T12:45:22Z",
+      "side": 1,
+      "message": "A large CL, best review route might be:\n\n1. README.md\n2. go/docsy\n3. go/codereview\n4. go/docset\n5. go/docsyserver",
+      "revId": "c3ceec62da1eb47be26a17a432f8f8a1a6fdfef3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
