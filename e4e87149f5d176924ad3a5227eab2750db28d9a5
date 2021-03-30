@@ -41,6 +41,30 @@
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "21bfd277_63ebbb1c",
+        "filename": "bazel/gazelle/frontend/extension_test.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-30T18:33:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d6925890_1d7760ab",
+      "range": {
+        "startLine": 58,
+        "startChar": 30,
+        "endLine": 58,
+        "endChar": 35
+      },
+      "revId": "e4e87149f5d176924ad3a5227eab2750db28d9a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "b465dfd6_2d271a42",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-03-30T17:21:49Z",
       "side": 1,
       "message": "I usually prefer to return a nil slice rather than an empty slice, unless there\u0027s a good reason to return the empty slice. IIRC, a nil slice does not require any allocations, but an empty slice does. WDYT?",
+      "range": {
+        "startLine": 285,
+        "startChar": 10,
+        "endLine": 285,
+        "endChar": 30
+      },
+      "revId": "e4e87149f5d176924ad3a5227eab2750db28d9a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "172eef3a_d2671154",
+        "filename": "bazel/gazelle/frontend/resolver/resolver.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-30T18:33:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b465dfd6_2d271a42",
       "range": {
         "startLine": 285,
         "startChar": 10,
