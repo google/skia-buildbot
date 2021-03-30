@@ -28,7 +28,21 @@ import (
 //
 // TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
 var targetDirectories = map[string]bool{
-	// TODO(lovisolo): Populate.
+	"infra-sk/modules":                       false,
+	"infra-sk/modules/ElementSk":             false,
+	"infra-sk/modules/login-sk":              false,
+	"infra-sk/modules/page_object":           false,
+	"infra-sk/modules/paramset-sk":           false,
+	"infra-sk/modules/query-values-sk":       false,
+	"infra-sk/modules/query-sk":              false,
+	"infra-sk/modules/sort-sk":               false,
+	"infra-sk/modules/theme-chooser-sk":      false,
+	"machine/modules/json":                   false,
+	"machine/modules/machine-server-sk":      false,
+	"new_element/modules/example-control-sk": false,
+	"perf/modules":                           true,
+	"perf/pages":                             false,
+	"puppeteer-tests":                        false,
 }
 
 // isTargetDirectory returns true if this Gazelle extension should generate or update the BUILD file
