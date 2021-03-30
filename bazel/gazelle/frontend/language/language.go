@@ -61,6 +61,12 @@ func (l *Language) Kinds() map[string]rule.KindInfo {
 			MergeableAttrs: map[string]bool{"srcs": true},
 			ResolveAttrs:   map[string]bool{"deps": true},
 		},
+		"sk_element": {
+			MatchAny:       true,
+			NonEmptyAttrs:  map[string]bool{"ts_srcs": true, "sass_srcs": true},
+			MergeableAttrs: map[string]bool{"ts_srcs": true, "sass_srcs": true},
+			ResolveAttrs:   map[string]bool{"sass_deps": true, "sk_element_deps": true, "ts_deps": true},
+		},
 		"ts_library": {
 			NonEmptyAttrs:  map[string]bool{"srcs": true},
 			MergeableAttrs: map[string]bool{"srcs": true},
@@ -224,7 +230,9 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 
 		// Generate the rules.
 		if customElementSrcs.isValid() {
-			// TODO(lovisolo): Generate the sk_element rule.
+			r, i := generateSkElementRule(customElementName, customElementSrcs, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		}
 		if demoPageSrcs.isValid() {
 			// TODO(lovisolo): Generate the sk_page and sk_demo_page_server rules.
@@ -372,6 +380,32 @@ func (p *skPageSrcs) has(src string) bool {
 	return src == p.html || src == p.ts || src == p.scss
 }
 
+// generateSkElementRule generates a sk_element rule for the given sources.
+func generateSkElementRule(name string, srcs *skElementSrcs, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	tsSrcs := []string{srcs.ts}
+	if srcs.indexTs != "" {
+		tsSrcs = append(tsSrcs, srcs.indexTs)
+		sort.Strings(tsSrcs)
+	}
+
+	rule := rule.NewRule("sk_element", name)
+	rule.SetAttr("ts_srcs", tsSrcs)
+	if srcs.scss != "" {
+		rule.SetAttr("sass_srcs", []string{srcs.scss})
+	}
+	rule.SetAttr("visibility", []string{"//visibility:public"})
+
+	imports := &importsParsedFromRuleSourcesImpl{}
+	for _, tsSrc := range tsSrcs {
+		imports.tsImports = append(imports.tsImports, extractImportsFromTypeScriptFile(filepath.Join(dir, tsSrc))...)
+	}
+	if srcs.scss != "" {
+		imports.sassImports = extractImportsFromSassFile(filepath.Join(dir, srcs.scss))
+	}
+
+	return rule, imports
+}
+
 // generateSassLibraryRule generates a sass_library rule for the given Sass file.
 func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
 	rule := rule.NewRule("sass_library", makeRuleNameFromFileName(file, "_sass_lib"))
@@ -462,7 +496,7 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 		case "sk_demo_page_server":
 			// TODO(lovisolo): Implement.
 		case "sk_element":
-			// TODO(lovisolo): Implement.
+			empty = !someFilesFound(curRule.AttrStrings("ts_srcs")...)
 		case "sk_element_puppeteer_test":
 			// TODO(lovisolo): Implement.
 		case "sk_page":
