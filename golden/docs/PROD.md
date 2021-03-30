@@ -290,6 +290,29 @@ and <https://skbug.com/10768> for more context on these.
 This is potentially problematic in that the excess load could be causing Gold to act slowly
 or even affect other tenants of the k8s pod. The cause of this load should be identified.
 
+GoldDiffCalcFailures
+--------------------
+Gold is failing to compute diffs for a high percentage the work it was sent.
+
+It is best to look at the logs for the app (e.g. gold-skia-diffcalculator) to see the
+error messages.
+
+The alert is set up to look at the percentage of failures over the last 10 minutes.
+
+Key metrics: diffcalculator_nack, diffcalculator_ack
+
+GoldIngestionFailures
+---------------------
+Gold is failing to process a high percentage of files. This could be the clients fault (e.g.
+sending us bad data via goldctl), something could be misconfigured in Gold, or there could be
+an outage on a third party service (e.g. BuildBucket).
+
+It is best to look at the logs for the app (e.g. gold-skia-ingestion) to see the error messages.
+
+The alert is set up to look at the percentage of failures over the last 10 minutes.
+
+Key metrics: gold_ingestion_nack, gold_ingestion_ack
+
 Backups
 =======
 We use CockroachDB's [automated backup system](https://www.cockroachlabs.com/docs/stable/create-schedule-for-backup.html)
