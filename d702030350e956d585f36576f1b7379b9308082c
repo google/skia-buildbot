@@ -22,6 +22,30 @@
       },
       "revId": "d702030350e956d585f36576f1b7379b9308082c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "533859bf_08a7db01",
+        "filename": "bazel/gazelle/frontend/extension_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-30T18:40:36Z",
+      "side": 1,
+      "message": "Good catch. CSS and Sass imports from .ts files will be ignored under the new rules, in favor of other mechanisms like automatic Sass imports via \"ghost\" stylesheets, and the sass_deps and sk_element_deps arguments of various macros.\n\nI just sent out https://skia-review.googlesource.com/c/buildbot/+/390616, which ensures that this Gazelle extension actually ignores such imports.",
+      "parentUuid": "e0fa0a7a_911689c1",
+      "range": {
+        "startLine": 85,
+        "startChar": 23,
+        "endLine": 85,
+        "endChar": 30
+      },
+      "revId": "d702030350e956d585f36576f1b7379b9308082c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
