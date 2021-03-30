@@ -62,6 +62,11 @@ func (l *Language) Kinds() map[string]rule.KindInfo {
 			MergeableAttrs: map[string]bool{"src": true},
 			ResolveAttrs:   map[string]bool{"deps": true},
 		},
+		"nodejs_test": {
+			NonEmptyAttrs:  map[string]bool{"src": true},
+			MergeableAttrs: map[string]bool{"src": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
 		"sass_library": {
 			NonEmptyAttrs:  map[string]bool{"srcs": true},
 			MergeableAttrs: map[string]bool{"srcs": true},
@@ -330,7 +335,9 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			rules = append(rules, r)
 			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_nodejs_test.ts") {
-			// TODO(lovisolo): Generate a nodejs_test rule.
+			r, i := generateNodeJSTestRule(f, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_puppeteer_test.ts") {
 			if skDemoPageServerLabel != label.NoLabel {
 				r, i := generateSkElementPuppeteerTestRule(f, args.Dir, skDemoPageServerLabel)
@@ -534,6 +541,13 @@ func generateKarmaTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFr
 	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
 }
 
+// generateNodeJSTestRule generates a nodejs_test rule for the given TypeScript file.
+func generateNodeJSTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("nodejs_test", makeRuleNameFromFileName(file, ""))
+	rule.SetAttr("src", file)
+	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+}
+
 // generateSkElementPuppeteerTestRule generates a sk_element_puppeteer_test rule for the given
 // TypeScript file and sk_demo_page_server.
 func generateSkElementPuppeteerTestRule(file, dir string, skDemoPageServer label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
@@ -701,7 +715,7 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 		case "karma_test":
 			empty = !someFilesFound(curRule.AttrString("src"))
 		case "nodejs_test":
-			// TODO(lovisolo): Implement.
+			empty = !someFilesFound(curRule.AttrString("src"))
 		case "sass_library":
 			empty = !someFilesFound(curRule.AttrStrings("srcs")...)
 		case "sk_demo_page_server":
