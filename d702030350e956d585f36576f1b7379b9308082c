@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "e0fa0a7a_911689c1",
+        "filename": "bazel/gazelle/frontend/extension_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T17:27:58Z",
+      "side": 1,
+      "message": "Don\u0027t the index.ts files typically include the .scss file also? Will that not be the case in the bazel setup?",
+      "range": {
+        "startLine": 85,
+        "startChar": 23,
+        "endLine": 85,
+        "endChar": 30
+      },
+      "revId": "d702030350e956d585f36576f1b7379b9308082c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
