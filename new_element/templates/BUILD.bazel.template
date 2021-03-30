@@ -30,6 +30,7 @@ karma_test(
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//chai",
     ],
+    visibility = ["//visibility:public"],
 )
 
 sk_page(
@@ -42,7 +43,7 @@ sk_page(
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = "demo_page",
+    sk_page = ":{{.ElementName}}-demo",
 )
 
 sk_element_puppeteer_test(
@@ -52,8 +53,6 @@ sk_element_puppeteer_test(
     deps = [
         "//puppeteer-tests:util_lib",
         "@infra-sk_npm//@types/chai",
-        "@infra-sk_npm//@types/puppeteer",
         "@infra-sk_npm//chai",
-        "@infra-sk_npm//puppeteer",
     ],
 )

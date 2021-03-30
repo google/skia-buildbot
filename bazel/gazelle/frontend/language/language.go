@@ -28,7 +28,21 @@ import (
 //
 // TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
 var targetDirectories = map[string]bool{
-	// TODO(lovisolo): Populate.
+	"infra-sk/modules":                       false,
+	"infra-sk/modules/ElementSk":             false,
+	"infra-sk/modules/login-sk":              false,
+	"infra-sk/modules/page_object":           false,
+	"infra-sk/modules/paramset-sk":           false,
+	"infra-sk/modules/query-values-sk":       false,
+	"infra-sk/modules/query-sk":              false,
+	"infra-sk/modules/sort-sk":               false,
+	"infra-sk/modules/theme-chooser-sk":      false,
+	"machine/modules/json":                   false,
+	"machine/modules/machine-server-sk":      false,
+	"new_element/modules/example-control-sk": false,
+	"perf/modules":                           true,
+	"perf/pages":                             false,
+	"puppeteer-tests":                        false,
 }
 
 // isTargetDirectory returns true if this Gazelle extension should generate or update the BUILD file
@@ -57,6 +71,16 @@ type Language struct {
 // kinds of rules generated for this language may be found here.
 func (l *Language) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
+		"karma_test": {
+			NonEmptyAttrs:  map[string]bool{"src": true},
+			MergeableAttrs: map[string]bool{"src": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
+		"nodejs_test": {
+			NonEmptyAttrs:  map[string]bool{"src": true},
+			MergeableAttrs: map[string]bool{"src": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
 		"sass_library": {
 			NonEmptyAttrs:  map[string]bool{"srcs": true},
 			MergeableAttrs: map[string]bool{"srcs": true},
@@ -325,13 +349,17 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			rules = append(rules, r)
 			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_nodejs_test.ts") {
-			// TODO(lovisolo): Generate a nodejs_test rule.
+			r, i := generateNodeJSTestRule(f, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_puppeteer_test.ts") && skDemoPageServerLabel != label.NoLabel {
 			r, i := generateSkElementPuppeteerTestRule(f, args.Dir, skDemoPageServerLabel)
 			rules = append(rules, r)
 			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_test.ts") {
-			// TODO(lovisolo): Generate a karma_test rule.
+			r, i := generateKarmaTestRule(f, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		} else if strings.HasSuffix(f, ".ts") {
 			r, i := generateTSLibraryRule(f, args.Dir)
 			rules = append(rules, r)
@@ -514,6 +542,20 @@ func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsed
 	return rule, &importsParsedFromRuleSourcesImpl{sassImports: extractImportsFromSassFile(filepath.Join(dir, file))}
 }
 
+// generateKarmaTestRule generates a karma_test rule for the given TypeScript file.
+func generateKarmaTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("karma_test", makeRuleNameFromFileName(file, ""))
+	rule.SetAttr("src", file)
+	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+}
+
+// generateNodeJSTestRule generates a nodejs_test rule for the given TypeScript file.
+func generateNodeJSTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("nodejs_test", makeRuleNameFromFileName(file, ""))
+	rule.SetAttr("src", file)
+	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+}
+
 // generateSkElementPuppeteerTestRule generates a sk_element_puppeteer_test rule for the given
 // TypeScript file and sk_demo_page_server.
 func generateSkElementPuppeteerTestRule(file, dir string, skDemoPageServer label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
@@ -676,9 +718,9 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 
 		switch curRule.Kind() {
 		case "karma_test":
-			// TODO(lovisolo): Implement.
+			empty = !someFilesFound(curRule.AttrString("src"))
 		case "nodejs_test":
-			// TODO(lovisolo): Implement.
+			empty = !someFilesFound(curRule.AttrString("src"))
 		case "sass_library":
 			empty = !someFilesFound(curRule.AttrStrings("srcs")...)
 		case "sk_demo_page_server":
