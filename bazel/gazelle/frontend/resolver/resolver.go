@@ -297,8 +297,7 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 		setDeps(r, from, "sass_deps", sassDeps)
 
 	case "sk_element_puppeteer_test":
-		// TODO(lovisolo): Implement.
-
+		fallthrough
 	case "ts_library":
 		var deps []label.Label
 		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
