@@ -64,6 +64,22 @@ import 'net'             // Built-in Node.js module.
 `,
 		},
 		{Path: "a/alfa.html"}, // Ignored because this is neither an app page nor a demo page.
+		{
+			Path: "a/alfa_test.ts",
+			Content: `
+import './alfa';
+
+// The below imports are copied from alfa.ts.
+import './bravo';        // Resolves to a/bravo.ts.
+import './b/charlie';    // Resolves to a/b/charlie.ts.
+import '../c';           // Resolves to c/index.ts.
+import '../c/delta';     // Resolves to c/delta.ts.
+import '../d_ts_lib/d';  // Resolves to d_ts_lib/d.ts.
+import 'lit-html';       // NPM import with built-in TypeScript annotations.
+import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
+import 'net'             // Built-in Node.js module.
+`,
+		},
 		{Path: "a/bravo.scss"},
 		{Path: "a/bravo.ts"},
 		{Path: "a/b/charlie.scss"},
@@ -157,6 +173,22 @@ import 'puppeteer';             // NPM import with a separate @types/puppeteer p
 import 'net'                    // Built-in Node.js module.
 `,
 		},
+		{
+			Path: "myapp/modules/foxtrot-sk/foxtrot-sk_test.ts",
+			Content: `
+import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts.
+
+// The below imports are copied from foxtrot-sk.ts.
+import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';            // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
+import 'lit-html';              // NPM import with built-in TypeScript annotations.
+import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
+import 'net'                    // Built-in Node.js module.
+`,
+		},
 		{Path: "myapp/modules/foxtrot-sk/wibble.scss"},
 		{Path: "myapp/modules/foxtrot-sk/wibble.ts"},
 		{Path: "myapp/modules/foxtrot-sk/wobble/wubble.scss"},
@@ -207,7 +239,7 @@ import 'net'                    // Built-in Node.js module.
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
 
 sass_library(
     name = "alfa_sass_lib",
@@ -219,6 +251,22 @@ sass_library(
         "//c:delta_sass_lib",
         "//d_sass_lib",
         "//infra-sk:elements-sk_scss",
+    ],
+)
+
+karma_test(
+    name = "alfa_test",
+    src = "alfa_test.ts",
+    deps = [
+        ":alfa_ts_lib",
+        ":bravo_ts_lib",
+        "//a/b:charlie_ts_lib",
+        "//c:delta_ts_lib",
+        "//c:index_ts_lib",
+        "//d_ts_lib",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
     ],
 )
 
@@ -344,7 +392,7 @@ ts_library(
 		{
 			Path: "myapp/modules/foxtrot-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -411,6 +459,22 @@ sk_element_puppeteer_test(
     name = "foxtrot-sk_puppeteer_test",
     src = "foxtrot-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":foxtrot-sk",
+        ":wibble_ts_lib",
+        "//c:index_ts_lib",
+        "//d_ts_lib",
+        "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
+        "//myapp/modules/hotel-sk",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
+    ],
+)
+
+karma_test(
+    name = "foxtrot-sk_test",
+    src = "foxtrot-sk_test.ts",
     deps = [
         ":foxtrot-sk",
         ":wibble_ts_lib",
@@ -583,7 +647,7 @@ func TestGazelle_ImportsInSourceFilesChanged_UpdatesBuildRules(t *testing.T) {
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
 
 sass_library(
     name = "alfa_sass_lib",
@@ -592,6 +656,16 @@ sass_library(
     deps = [
         ":bravo_sass_lib",  # Not imported from alfa.scss. Gazelle should remove this dep.
         ":charlie_sass_lib",
+    ],
+)
+
+karma_test(
+    name = "alfa_test",
+    src = "alfa_test.ts",
+    deps = [
+        ":alfa_ts_lib",
+        "@infra-sk_npm//common-sk",  # Not imported from alfa.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//elements-sk",
     ],
 )
 
@@ -639,6 +713,14 @@ import 'elements-sk';  // Existing import.
 import 'lit-html';     // New import. Gazelle should add this dep.
 `,
 		},
+		{
+			Path: "a/alfa_test.ts",
+			Content: `
+import './alfa';       // Existing import.
+import 'elements-sk';  // Existing import.
+import 'lit-html';     // New import. Gazelle should add this dep.
+`,
+		},
 		{Path: "a/bravo.scss"},
 		{Path: "a/charlie.scss"},
 		{Path: "a/delta.scss"},
@@ -647,7 +729,7 @@ import 'lit-html';     // New import. Gazelle should add this dep.
 		{
 			Path: "myapp/modules/echo-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "echo-sk",
@@ -707,6 +789,20 @@ sk_element_puppeteer_test(
     ],
 )
 
+karma_test(
+    name = "echo-sk_test",
+    src = "echo-sk_test.ts",
+    deps = [
+        ":echo-sk",
+        # Not imported from echo-sk_test.ts. Gazelle should remove this dep.
+        "//myapp/modules/foxtrot-sk",
+        "//myapp/modules/golf-sk",
+        # Not imported from echo-sk_test.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+    ],
+)
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":echo-sk-demo",
@@ -751,6 +847,16 @@ import 'lit-html';              // New import. Gazelle should add this dep.
 		},
 		{
 			Path: "myapp/modules/echo-sk/echo-sk_puppeteer_test.ts",
+			Content: `
+import './echo-sk';             // Existing import.
+import '../golf-sk/golf-sk';    // Existing import.
+import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
+import 'elements-sk';           // Existing import.
+import 'lit-html';              // New import. Gazelle should add this dep.
+`,
+		},
+		{
+			Path: "myapp/modules/echo-sk/echo-sk_test.ts",
 			Content: `
 import './echo-sk';             // Existing import.
 import '../golf-sk/golf-sk';    // Existing import.
@@ -816,7 +922,7 @@ sk_element(
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
 
 sass_library(
     name = "alfa_sass_lib",
@@ -826,6 +932,16 @@ sass_library(
         ":charlie_sass_lib",
         ":delta_sass_lib",
         "//infra-sk:elements-sk_scss",
+    ],
+)
+
+karma_test(
+    name = "alfa_test",
+    src = "alfa_test.ts",
+    deps = [
+        ":alfa_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
     ],
 )
 
@@ -861,7 +977,7 @@ sass_library(
 		{
 			Path: "myapp/modules/echo-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "echo-sk",
@@ -918,6 +1034,18 @@ sk_element_puppeteer_test(
     ],
 )
 
+karma_test(
+    name = "echo-sk_test",
+    src = "echo-sk_test.ts",
+    deps = [
+        ":echo-sk",
+        "//myapp/modules/golf-sk",
+        "//myapp/modules/hotel-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":echo-sk-demo",
@@ -936,7 +1064,7 @@ func TestGazelle_SomeSourceFilesRemoved_UpdatesOrDeletesBuildRules(t *testing.T)
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
 
 sass_library(
     name = "alfa_sass_lib",
@@ -945,6 +1073,12 @@ sass_library(
         "bravo.scss",  # This file was deleted. Gazelle should remove this dep.
     ],
     visibility = ["//visibility:public"],
+)
+
+# This target will be deleted because file alfa_test.ts no longer exists.
+karma_test(
+    name = "alfa_test",
+    src = "alfa_test.ts",
 )
 
 ts_library(
@@ -976,7 +1110,7 @@ ts_library(
 		{
 			Path: "myapp/modules/charlie-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "charlie-sk",
@@ -1003,6 +1137,12 @@ sk_element_puppeteer_test(
     name = "charlie-sk_puppeteer_test",
     src = "charlie-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
+)
+
+# This target will be deleted because file charlie-sk_test.ts no longer exists.
+karma_test(
+    name = "charlie-sk_test",
+    src = "charlie-sk_test.ts",
 )
 
 sk_demo_page_server(
