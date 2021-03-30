@@ -6,6 +6,6 @@ sk_page(
     html_file = "index.html",
     nonce = "{% .Nonce %}",
     scss_entry_point = "index.scss",
-    sk_element_deps = ["//machine/modules/machine-server-sk:machine-server-sk"],
+    sk_element_deps = ["//machine/modules/machine-server-sk"],
     ts_entry_point = "index.ts",
 )

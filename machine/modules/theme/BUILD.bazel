@@ -1,7 +1,13 @@
-load("//infra-sk:index.bzl", "sass_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+ts_library(
+    name = "index_ts_lib",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+)
 
 sass_library(
-    name = "theme",
+    name = "theme_sass_lib",
     srcs = ["theme.scss"],
     visibility = ["//visibility:public"],
 )
