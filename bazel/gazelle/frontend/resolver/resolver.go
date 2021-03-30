@@ -244,6 +244,8 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 	switch r.Kind() {
 	case "karma_test":
 		fallthrough
+	case "nodejs_test":
+		fallthrough
 	case "sk_element_puppeteer_test":
 		fallthrough
 	case "ts_library":
@@ -254,9 +256,6 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 			}
 		}
 		setDeps(r, from, "deps", deps)
-
-	case "nodejs_test":
-		// TODO(lovisolo): Implement.
 
 	case "sass_library":
 		var deps []label.Label
