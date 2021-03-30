@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/bazelbuild/bazel-gazelle/config"
+	"github.com/bazelbuild/bazel-gazelle/label"
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/rule"
 	"go.skia.org/infra/bazel/gazelle/frontend/common"
@@ -61,10 +62,19 @@ func (l *Language) Kinds() map[string]rule.KindInfo {
 			MergeableAttrs: map[string]bool{"srcs": true},
 			ResolveAttrs:   map[string]bool{"deps": true},
 		},
+		"sk_demo_page_server": {
+			NonEmptyAttrs:  map[string]bool{"sk_page": true},
+			MergeableAttrs: map[string]bool{"sk_page": true},
+		},
 		"sk_element": {
 			MatchAny:       true,
 			NonEmptyAttrs:  map[string]bool{"ts_srcs": true, "sass_srcs": true},
 			MergeableAttrs: map[string]bool{"ts_srcs": true, "sass_srcs": true},
+			ResolveAttrs:   map[string]bool{"sass_deps": true, "sk_element_deps": true, "ts_deps": true},
+		},
+		"sk_page": {
+			NonEmptyAttrs:  map[string]bool{"html_file": true, "ts_entry_point": true, "scss_entry_point": true},
+			MergeableAttrs: map[string]bool{"html_file": true, "ts_entry_point": true, "scss_entry_point": true},
 			ResolveAttrs:   map[string]bool{"sass_deps": true, "sk_element_deps": true, "ts_deps": true},
 		},
 		"ts_library": {
@@ -189,7 +199,56 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 
 	// Application page directories follow the "<app name>/pages" pattern.
 	if isAppPageDir(args.Dir) {
-		// TODO(lovisolo): Populate the rules and imports slices.
+		// This map will store the source files of any application pages found in the current directory.
+		pages := map[string]*skPageSrcs{}
+		getPage := func(name string) *skPageSrcs {
+			if pages[name] == nil {
+				pages[name] = &skPageSrcs{}
+			}
+			return pages[name]
+		}
+
+		// Populate the pages map with all HTML, TypeScript and Sass files found in the directory.
+		for _, f := range allFiles {
+			if strings.HasSuffix(f, "_test.ts") {
+				log.Printf("Ignoring TypeScript test file found in directory with application pages: %s", filepath.Join(args.Dir, f))
+				continue
+			}
+
+			name := strings.TrimSuffix(f, filepath.Ext(f)) // e.g. my-page.html -> my-page
+			switch filepath.Ext(f) {
+			case ".html":
+				getPage(name).html = f
+			case ".ts":
+				getPage(name).ts = f
+			case ".scss":
+				getPage(name).scss = f
+			}
+		}
+
+		// Generate sk_page targets for all pages for which we have all the necessary files (i.e.
+		// my-page.html and my-page.ts), or stand-alone ts_library and sass_library targets for any
+		// TypeScript and Sass files that do not belong to a page.
+		for _, page := range pages {
+			// A page is valid if it has an HTML file and a TypeScript file.
+			if page.isValid() {
+				r, i := generateSkPageRule(page, args.Dir)
+				rules = append(rules, r)
+				imports = append(imports, i)
+			} else {
+				if page.ts != "" {
+					r, i := generateTSLibraryRule(page.ts, args.Dir)
+					rules = append(rules, r)
+					imports = append(imports, i)
+				}
+				if page.scss != "" {
+					r, i := generateSassLibraryRule(page.scss, args.Dir)
+					rules = append(rules, r)
+					imports = append(imports, i)
+				}
+			}
+		}
+
 		return makeGenerateResult(args, rules, imports)
 	}
 
@@ -235,7 +294,13 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			imports = append(imports, i)
 		}
 		if demoPageSrcs.isValid() {
-			// TODO(lovisolo): Generate the sk_page and sk_demo_page_server rules.
+			skPage, i := generateSkPageRule(demoPageSrcs, args.Dir)
+			rules = append(rules, skPage)
+			imports = append(imports, i)
+
+			skDemoPageServerRule, i := generateSkDemoPageServerRule(label.Label{Repo: "", Pkg: "", Name: skPage.Name(), Relative: true})
+			rules = append(rules, skDemoPageServerRule)
+			imports = append(imports, i)
 		}
 	}
 
@@ -406,6 +471,32 @@ func generateSkElementRule(name string, srcs *skElementSrcs, dir string) (*rule.
 	return rule, imports
 }
 
+// generateSkPageRule generates a sk_page rule for the given sources.
+func generateSkPageRule(srcs *skPageSrcs, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("sk_page", makeRuleNameFromFileName(srcs.html, ""))
+	rule.SetAttr("html_file", srcs.html)
+	rule.SetAttr("ts_entry_point", srcs.ts)
+	if srcs.scss != "" {
+		rule.SetAttr("scss_entry_point", srcs.scss)
+	}
+
+	imports := &importsParsedFromRuleSourcesImpl{
+		tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, srcs.ts)),
+	}
+	if srcs.scss != "" {
+		imports.sassImports = extractImportsFromSassFile(filepath.Join(dir, srcs.scss))
+	}
+
+	return rule, imports
+}
+
+// generateSkDemoPageServerRule generates a sk_demo_page_server rule for the given sk_page.
+func generateSkDemoPageServerRule(skPage label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("sk_demo_page_server", "demo_page_server")
+	rule.SetAttr("sk_page", skPage.String())
+	return rule, &importsParsedFromRuleSourcesImpl{}
+}
+
 // generateSassLibraryRule generates a sass_library rule for the given Sass file.
 func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
 	rule := rule.NewRule("sass_library", makeRuleNameFromFileName(file, "_sass_lib"))
@@ -483,7 +574,89 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 		return false
 	}
 
-	for _, curRule := range args.File.Rules {
+	allFilesFound := func(files ...string) bool {
+		for _, f := range files {
+			if !allFilesInDir[f] {
+				return false
+			}
+		}
+		return true
+	}
+
+	allRulesByNameInDir := map[string]*rule.Rule{}
+	for _, r := range args.File.Rules {
+		allRulesByNameInDir[r.Name()] = r
+	}
+
+	parseRelLabelFromAttribute := func(r *rule.Rule, attr string) string {
+		if r.AttrString(attr) == "" {
+			return ""
+		}
+		l, err := label.Parse(r.AttrString(attr))
+		if err != nil {
+			log.Panicf(`Unable to parse attribute %q of rule %q: %v`, attr, r.Name(), err)
+		}
+		// We assume the label is always relative, e.g. ":foo", not "//path/to:foo".
+		if !l.Relative {
+			log.Panicf(`Label in attribute %q of rule %q should be relative, but was %q`, attr, r.Name(), l.String())
+		}
+		return l.Name
+	}
+
+	ruleFound := func(kind, name string) bool {
+		r := allRulesByNameInDir[name]
+		return r != nil && r.Kind() == kind
+	}
+
+	isEmptyRule := func(kind, name string) bool {
+		for _, r := range emptyRules {
+			if r.Kind() == kind && r.Name() == name {
+				return true
+			}
+		}
+		return false
+	}
+
+	// An existing sk_demo_page_server rule is empty (i.e. should be deleted) if:
+	//
+	//   1) its associated sk_page rule no longer exists,
+	//   or
+	//   2) if its associated sk_page exists, but is empty (i.e. should be deleted), e.g. because its
+	//      source files no longer exist.
+	//
+	// Similarly, an existing sk_element_puppeteer_test rule is empty (i.e. should be deleted) if:
+	//
+	//   1) its associated sk_demo_page_server rule no longer exists,
+	//   or
+	//   2) if its associated sk_demo_page_server rule exists, but is empty (i.e. should be deleted),
+	//      e.g. because its associated sk_page rule no longer exists, or is empty.
+	//
+	// To address condition 2) of both of the above rules, we populate the emptyRules slice in the
+	// following order:
+	//
+	//   - All rules except for sk_demo_page_server and sk_element_puppeteer_test rules.
+	//   - All sk_demo_page_server rules.
+	//   - All sk_element_puppeteer_test rules.
+	//
+	// This will allow us to query the emptyRules slice in the loop below for any empty sk_page or
+	// sk_demo_page_server rules when processing sk_demo_page_server or sk_element_puppeteer_test
+	// rules, respectively.
+
+	var allRules, skDemoPageServerRules, skElementPuppeteerTestRules []*rule.Rule
+	for _, r := range args.File.Rules {
+		switch r.Kind() {
+		case "sk_demo_page_server":
+			skDemoPageServerRules = append(skDemoPageServerRules, r)
+		case "sk_element_puppeteer_test":
+			skElementPuppeteerTestRules = append(skElementPuppeteerTestRules, r)
+		default:
+			allRules = append(allRules, r)
+		}
+	}
+	allRules = append(allRules, skDemoPageServerRules...)
+	allRules = append(allRules, skElementPuppeteerTestRules...)
+
+	for _, curRule := range allRules {
 		var empty bool
 
 		switch curRule.Kind() {
@@ -494,13 +667,14 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 		case "sass_library":
 			empty = !someFilesFound(curRule.AttrStrings("srcs")...)
 		case "sk_demo_page_server":
-			// TODO(lovisolo): Implement.
+			skPage := parseRelLabelFromAttribute(curRule, "sk_page")
+			empty = !ruleFound("sk_page", skPage) || isEmptyRule("sk_page", skPage)
 		case "sk_element":
 			empty = !someFilesFound(curRule.AttrStrings("ts_srcs")...)
 		case "sk_element_puppeteer_test":
 			// TODO(lovisolo): Implement.
 		case "sk_page":
-			// TODO(lovisolo): Implement.
+			empty = !allFilesFound(curRule.AttrString("html_file"), curRule.AttrString("ts_entry_point"))
 		case "ts_library":
 			empty = !someFilesFound(curRule.AttrStrings("srcs")...)
 		}

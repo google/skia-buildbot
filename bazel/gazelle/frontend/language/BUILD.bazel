@@ -13,6 +13,7 @@ go_library(
         "//bazel/gazelle/frontend/resolver",
         "//go/util",
         "@bazel_gazelle//config:go_default_library",
+        "@bazel_gazelle//label:go_default_library",
         "@bazel_gazelle//language:go_default_library",
         "@bazel_gazelle//rule:go_default_library",
     ],
