@@ -1,12 +1,34 @@
 load("//infra-sk:index.bzl", "karma_test", "ts_library")
 
-package(default_visibility = ["//visibility:public"])
+ts_library(
+    name = "login_ts_lib",
+    srcs = ["login.ts"],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
-    name = "test_util",
+    name = "string_ts_lib",
+    srcs = ["string.ts"],
+    visibility = ["//visibility:public"],
+)
+
+karma_test(
+    name = "string_test",
+    src = "string_test.ts",
+    deps = [
+        ":string_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
+
+ts_library(
+    name = "test_util_ts_lib",
     srcs = ["test_util.ts"],
+    visibility = ["//visibility:public"],
     deps = [
         "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
         "@infra-sk_npm//common-sk",
     ],
 )
@@ -15,7 +37,7 @@ karma_test(
     name = "test_util_test",
     src = "test_util_test.ts",
     deps = [
-        ":test_util",
+        ":test_util_ts_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//@types/sinon",
         "@infra-sk_npm//chai",
