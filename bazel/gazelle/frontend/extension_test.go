@@ -63,6 +63,7 @@ import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
 import 'net'             // Built-in Node.js module.
 `,
 		},
+		{Path: "a/alfa.html"}, // Ignored because this is neither an app page nor a demo page.
 		{Path: "a/bravo.scss"},
 		{Path: "a/bravo.ts"},
 		{Path: "a/b/charlie.scss"},
@@ -82,7 +83,7 @@ import 'net'             // Built-in Node.js module.
 		{Path: "echo-sk/echo-sk.ts"},
 		{Path: "echo-sk/index.ts"},
 
-		// An sk_element.
+		// An sk_element with a demo page.
 		{
 			Path:    "myapp/modules/foxtrot-sk/index.ts",
 			Content: `import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts`,
@@ -110,6 +111,36 @@ import 'puppeteer';             // NPM import with a separate @types/puppeteer p
 import 'net'                    // Built-in Node.js module.
 `,
 		},
+		{Path: "myapp/modules/foxtrot-sk/foxtrot-sk-demo.html"},
+		{
+			Path: "myapp/modules/foxtrot-sk/foxtrot-sk-demo.scss",
+			Content: `
+@import 'foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.scss.
+
+// The below imports are copied from foxtrot-sk.scss.
+@import 'wibble';                 // Resolves to myapp/modules/foxtrot-sk/wibble.scss.
+@import 'wobble/wubble';          // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
+@import '../golf-sk/golf-sk';     // Resolves to myapp/modules/golf-sk/golf-sk.scss.
+@import '../../../d_sass_lib/d';  // Resolves to d_sass_lib/d.scss.
+@import '~elements-sk/colors';    // Resolves to //infra-sk:elements-sk_scss.
+`,
+		},
+		{
+			Path: "myapp/modules/foxtrot-sk/foxtrot-sk-demo.ts",
+			Content: `
+import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts.
+
+// The below imports are copied from foxtrot-sk.ts.
+import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';            // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
+import 'lit-html';              // NPM import with built-in TypeScript annotations.
+import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
+import 'net'                    // Built-in Node.js module.
+`,
+		},
 		{Path: "myapp/modules/foxtrot-sk/wibble.scss"},
 		{Path: "myapp/modules/foxtrot-sk/wibble.ts"},
 		{Path: "myapp/modules/foxtrot-sk/wobble/wubble.scss"},
@@ -121,13 +152,39 @@ import 'net'                    // Built-in Node.js module.
 			Path:    "myapp/modules/golf-sk/golf-sk.ts",
 			Content: `import '../hotel-sk'; // Resolves to myapp/modules/hotel-sk/index.ts.`,
 		},
+		{Path: "myapp/modules/golf-sk/golf-sk-demo.html"},
+		{Path: "myapp/modules/golf-sk/golf-sk-demo.scss"},
+		{Path: "myapp/modules/golf-sk/golf-sk-demo.ts"},
 
 		// This sk_element does not have a Sass stylesheet.
 		{Path: "myapp/modules/hotel-sk/hotel-sk.ts"},
 		{Path: "myapp/modules/hotel-sk/index.ts"},
 
+		// These files look like they comprise a demo page for hotel-sk, but do not, because they do not
+		// follow the "hotel-sk-demo.{html,scss,ts}" pattern.
+		{Path: "myapp/modules/hotel-sk/hello-world-demo.html"},
+		{Path: "myapp/modules/hotel-sk/hello-world-demo.scss"},
+		{Path: "myapp/modules/hotel-sk/hello-world-demo.ts"},
+
 		// This sk_element has neither an index.ts file nor a Sass stylesheet.
 		{Path: "myapp/modules/india-sk/india-sk.ts"},
+
+		// An app page.
+		{Path: "myapp/pages/juliett.html"},
+		{Path: "myapp/pages/juliett.scss"},
+		{Path: "myapp/pages/juliett.ts"},
+
+		// An app page.
+		{Path: "myapp/pages/kilo.html"},
+		{Path: "myapp/pages/kilo.scss"},
+		{Path: "myapp/pages/kilo.ts"},
+
+		// Extra files in the app page directory.
+		{Path: "myapp/pages/wibble.scss"},
+		{Path: "myapp/pages/wibble.ts"},
+		{Path: "myapp/pages/wobble/wubble.html"}, // Ignored because this is not an app or demo page.
+		{Path: "myapp/pages/wobble/wubble.ts"},
+		{Path: "myapp/pages/wobble/wubble.scss"},
 	}, makeBasicWorkspace()...)
 
 	expectedOutputFiles := []testtools.FileSpec{
@@ -271,7 +328,12 @@ ts_library(
 		{
 			Path: "myapp/modules/foxtrot-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "sk_element", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":foxtrot-sk-demo",
+)
 
 sk_element(
     name = "foxtrot-sk",
@@ -300,6 +362,33 @@ sk_element(
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "foxtrot-sk-demo",
+    html_file = "foxtrot-sk-demo.html",
+    sass_deps = [
+        "//d_sass_lib",
+        "//infra-sk:elements-sk_scss",
+        "//myapp/modules/foxtrot-sk/wobble:wubble_sass_lib",
+        ":wibble_sass_lib",
+    ],
+    scss_entry_point = "foxtrot-sk-demo.scss",
+    sk_element_deps = [
+        "//myapp/modules/golf-sk",
+        "//myapp/modules/hotel-sk",
+        ":foxtrot-sk",
+    ],
+    ts_deps = [
+        "//c:index_ts_lib",
+        "//d_ts_lib",
+        "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
+        ":wibble_ts_lib",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
+    ],
+    ts_entry_point = "foxtrot-sk-demo.ts",
 )
 
 sass_library(
@@ -336,7 +425,12 @@ ts_library(
 		{
 			Path: "myapp/modules/golf-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":golf-sk-demo",
+)
 
 sk_element(
     name = "golf-sk",
@@ -345,12 +439,31 @@ sk_element(
     ts_srcs = ["golf-sk.ts"],
     visibility = ["//visibility:public"],
 )
+
+sk_page(
+    name = "golf-sk-demo",
+    html_file = "golf-sk-demo.html",
+    scss_entry_point = "golf-sk-demo.scss",
+    ts_entry_point = "golf-sk-demo.ts",
+)
 `,
 		},
 		{
 			Path: "myapp/modules/hotel-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sass_library", "sk_element", "ts_library")
+
+sass_library(
+    name = "hello-world-demo_sass_lib",
+    srcs = ["hello-world-demo.scss"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "hello-world-demo_ts_lib",
+    srcs = ["hello-world-demo.ts"],
+    visibility = ["//visibility:public"],
+)
 
 sk_element(
     name = "hotel-sk",
@@ -370,6 +483,56 @@ load("//infra-sk:index.bzl", "sk_element")
 sk_element(
     name = "india-sk",
     ts_srcs = ["india-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/pages/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library", "sk_page", "ts_library")
+
+sk_page(
+    name = "juliett",
+    html_file = "juliett.html",
+    scss_entry_point = "juliett.scss",
+    ts_entry_point = "juliett.ts",
+)
+
+sk_page(
+    name = "kilo",
+    html_file = "kilo.html",
+    scss_entry_point = "kilo.scss",
+    ts_entry_point = "kilo.ts",
+)
+
+sass_library(
+    name = "wibble_sass_lib",
+    srcs = ["wibble.scss"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "wibble_ts_lib",
+    srcs = ["wibble.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/pages/wobble/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "wubble_sass_lib",
+    srcs = ["wubble.scss"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "wubble_ts_lib",
+    srcs = ["wubble.ts"],
     visibility = ["//visibility:public"],
 )
 `,
@@ -451,7 +614,7 @@ import 'lit-html';     // New import. Gazelle should add this dep.
 		{
 			Path: "myapp/modules/echo-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "echo-sk",
@@ -473,6 +636,33 @@ sk_element(
     ts_srcs = ["echo-sk.ts"],
     visibility = ["//visibility:public"],
 )
+
+sk_page(
+    name = "echo-sk-demo",
+    html_file = "echo-sk-demo.html",
+    sass_deps = [
+        "//a:alfa_sass_lib",  # Not imported from echo-sk-demo.scss. Gazelle should remove this dep.
+        "//a:bravo_sass_lib",
+    ],
+    scss_entry_point = "echo-sk-demo.scss",
+    sk_element_deps = [
+        ":echo-sk",
+        # Not imported from echo-sk-demo.{scss,ts}. Gazelle should remove this dep.
+        "//myapp/modules/foxtrot-sk",
+        "//myapp/modules/golf-sk",
+    ],
+    ts_deps = [
+        # Not imported from echo-sk-demo.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+    ],
+    ts_entry_point = "echo-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":echo-sk-demo",
+)
 `,
 		},
 		{
@@ -492,6 +682,25 @@ import 'lit-html';              // New import. Gazelle should add this dep.
 `,
 		},
 		{Path: "myapp/modules/echo-sk/index.ts"}, // This new file should be added to ts_srcs.
+		{Path: "myapp/modules/echo-sk/echo-sk-demo.html"},
+		{
+			Path: "myapp/modules/echo-sk/echo-sk-demo.scss",
+			Content: `
+@import 'echo-sk.scss';             // Existing import.
+@import '../../../a/bravo.scss';    // Existing import.
+@import '../../../a/charlie.scss';  // New import. Gazelle should add this dep.
+`,
+		},
+		{
+			Path: "myapp/modules/echo-sk/echo-sk-demo.ts",
+			Content: `
+import './echo-sk';             // Existing import.
+import '../golf-sk/golf-sk';    // Existing import.
+import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
+import 'elements-sk';           // Existing import.
+import 'lit-html';              // New import. Gazelle should add this dep.
+`,
+		},
 
 		// An sk_element.
 		{
@@ -594,7 +803,7 @@ sass_library(
 		{
 			Path: "myapp/modules/echo-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "echo-sk",
@@ -616,6 +825,31 @@ sk_element(
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "echo-sk-demo",
+    html_file = "echo-sk-demo.html",
+    sass_deps = [
+        "//a:bravo_sass_lib",
+        "//a:charlie_sass_lib",
+    ],
+    scss_entry_point = "echo-sk-demo.scss",
+    sk_element_deps = [
+        ":echo-sk",
+        "//myapp/modules/golf-sk",
+        "//myapp/modules/hotel-sk",
+    ],
+    ts_deps = [
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_entry_point = "echo-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":echo-sk-demo",
 )
 `,
 		},
@@ -671,7 +905,7 @@ ts_library(
 		{
 			Path: "myapp/modules/charlie-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "charlie-sk",
@@ -684,13 +918,28 @@ sk_element(
     ],
     visibility = ["//visibility:public"],
 )
+
+sk_page(
+    name = "charlie-sk-demo",
+    html_file = "charlie-sk-demo.html",
+    # This file does not exist anymore. Gazelle should remove the scss_entry_point argument.
+    scss_entry_point = "charlie-sk-demo.scss",
+    ts_entry_point = "charlie-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":charlie-sk-demo",
+)
 `,
 		},
 		{Path: "myapp/modules/charlie-sk/charlie-sk.ts"},
+		{Path: "myapp/modules/charlie-sk/charlie-sk-demo.html"},
+		{Path: "myapp/modules/charlie-sk/charlie-sk-demo.ts"},
 		{
 			Path: "myapp/modules/delta-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 # This target will be deleted because its source files no longer exist.
 sk_element(
@@ -698,6 +947,20 @@ sk_element(
     sass_srcs = ["delta-sk.scss"],
     ts_srcs = ["delta-sk.ts"],
     visibility = ["//visibility:public"],
+)
+
+# This target will be deleted because its source files no longer exist.
+sk_page(
+    name = "delta-sk-demo",
+    html_file = "delta-sk-demo.html",
+    scss_entry_point = "delta-sk-demo.scss",
+    ts_entry_point = "delta-sk-demo.ts",
+)
+
+# This target will be deleted because its sk_page will be deleted as well.
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":delta-sk-demo",
 )
 `,
 		},
@@ -725,12 +988,23 @@ ts_library(
 		{
 			Path: "myapp/modules/charlie-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "charlie-sk",
     ts_srcs = ["charlie-sk.ts"],
     visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "charlie-sk-demo",
+    html_file = "charlie-sk-demo.html",
+    ts_entry_point = "charlie-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":charlie-sk-demo",
 )
 `,
 		},
