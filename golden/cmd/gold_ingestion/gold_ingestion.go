@@ -218,6 +218,8 @@ func main() {
 			"source": "primary_branch",
 		}),
 		SecondaryBranchStreamingLiveness: secondaryBranchLiveness,
+		AckCounter:                       metrics2.GetCounter("gold_ingestion_ack"),
+		NackCounter:                      metrics2.GetCounter("gold_ingestion_nack"),
 	}
 
 	go func() {
@@ -345,6 +347,9 @@ type pubSubSource struct {
 	// the secondary branch.
 	SecondaryBranchStreamingLiveness metrics2.Liveness
 
+	AckCounter  metrics2.Counter
+	NackCounter metrics2.Counter
+
 	// busy is either 0 or non-zero depending on if this ingestion is working or not. This
 	// allows us to gather data on wall-clock utilization.
 	busy int64
@@ -361,8 +366,10 @@ func (p *pubSubSource) ingestFromPubSubMessage(ctx context.Context, msg *pubsub.
 	fileName := msg.Attributes["objectId"]
 	if shouldAck := p.ingestFile(ctx, fileName); shouldAck {
 		msg.Ack()
+		p.AckCounter.Inc(1)
 	} else {
 		msg.Nack()
+		p.NackCounter.Inc(1)
 	}
 	atomic.AddInt64(&p.busy, -1)
 }
