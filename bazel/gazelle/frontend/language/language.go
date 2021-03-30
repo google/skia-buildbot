@@ -57,6 +57,11 @@ type Language struct {
 // kinds of rules generated for this language may be found here.
 func (l *Language) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
+		"karma_test": {
+			NonEmptyAttrs:  map[string]bool{"src": true},
+			MergeableAttrs: map[string]bool{"src": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
 		"sass_library": {
 			NonEmptyAttrs:  map[string]bool{"srcs": true},
 			MergeableAttrs: map[string]bool{"srcs": true},
@@ -337,7 +342,9 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 				log.Printf("Not generating an sk_element_puppeteer_test rule for %s because %s does not follow the custom element directory naming convention (<app>/modules/<element name>-sk).", filepath.Join(args.Rel, f), args.Rel)
 			}
 		} else if strings.HasSuffix(f, "_test.ts") {
-			// TODO(lovisolo): Generate a karma_test rule.
+			r, i := generateKarmaTestRule(f, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		} else if strings.HasSuffix(f, ".ts") {
 			r, i := generateTSLibraryRule(f, args.Dir)
 			rules = append(rules, r)
@@ -520,6 +527,13 @@ func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsed
 	return rule, &importsParsedFromRuleSourcesImpl{sassImports: extractImportsFromSassFile(filepath.Join(dir, file))}
 }
 
+// generateKarmaTestRule generates a karma_test rule for the given TypeScript file.
+func generateKarmaTestRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("karma_test", makeRuleNameFromFileName(file, ""))
+	rule.SetAttr("src", file)
+	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+}
+
 // generateSkElementPuppeteerTestRule generates a sk_element_puppeteer_test rule for the given
 // TypeScript file and sk_demo_page_server.
 func generateSkElementPuppeteerTestRule(file, dir string, skDemoPageServer label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
@@ -685,7 +699,7 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 
 		switch curRule.Kind() {
 		case "karma_test":
-			// TODO(lovisolo): Implement.
+			empty = !someFilesFound(curRule.AttrString("src"))
 		case "nodejs_test":
 			// TODO(lovisolo): Implement.
 		case "sass_library":
