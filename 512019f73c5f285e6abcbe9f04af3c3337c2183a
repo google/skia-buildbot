@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "99a8c685_6b955f0a",
+        "filename": "bazel/gazelle/frontend/resolver/resolver.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2021-03-30T18:09:19Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem like idiomatic go. Probably better to use the fallthrough keyword.",
+      "range": {
+        "startLine": 271,
+        "startChar": 8,
+        "endLine": 271,
+        "endChar": 12
+      },
+      "revId": "512019f73c5f285e6abcbe9f04af3c3337c2183a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
