@@ -80,6 +80,22 @@ import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
 import 'net'             // Built-in Node.js module.
 `,
 		},
+		{
+			Path: "a/alfa_nodejs_test.ts",
+			Content: `
+import './alfa';
+
+// The below imports are copied from alfa.ts.
+import './bravo';        // Resolves to a/bravo.ts.
+import './b/charlie';    // Resolves to a/b/charlie.ts.
+import '../c';           // Resolves to c/index.ts.
+import '../c/delta';     // Resolves to c/delta.ts.
+import '../d_ts_lib/d';  // Resolves to d_ts_lib/d.ts.
+import 'lit-html';       // NPM import with built-in TypeScript annotations.
+import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
+import 'net'             // Built-in Node.js module.
+`,
+		},
 		{Path: "a/bravo.scss"},
 		{Path: "a/bravo.ts"},
 		{Path: "a/b/charlie.scss"},
@@ -239,7 +255,23 @@ import 'net'                    // Built-in Node.js module.
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "nodejs_test", "sass_library", "ts_library")
+
+nodejs_test(
+    name = "alfa_nodejs_test",
+    src = "alfa_nodejs_test.ts",
+    deps = [
+        ":alfa_ts_lib",
+        ":bravo_ts_lib",
+        "//a/b:charlie_ts_lib",
+        "//c:delta_ts_lib",
+        "//c:index_ts_lib",
+        "//d_ts_lib",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
+    ],
+)
 
 sass_library(
     name = "alfa_sass_lib",
@@ -647,7 +679,18 @@ func TestGazelle_ImportsInSourceFilesChanged_UpdatesBuildRules(t *testing.T) {
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "nodejs_test", "sass_library", "ts_library")
+
+nodejs_test(
+    name = "alfa_nodejs_test",
+    src = "alfa_nodejs_test.ts",
+    deps = [
+        ":alfa_ts_lib",
+        # Not imported from alfa_nodejs_test.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+    ],
+)
 
 sass_library(
     name = "alfa_sass_lib",
@@ -709,6 +752,14 @@ sass_library(
 		{
 			Path: "a/alfa.ts",
 			Content: `
+import 'elements-sk';  // Existing import.
+import 'lit-html';     // New import. Gazelle should add this dep.
+`,
+		},
+		{
+			Path: "a/alfa_nodejs_test.ts",
+			Content: `
+import './alfa';       // Existing import.
 import 'elements-sk';  // Existing import.
 import 'lit-html';     // New import. Gazelle should add this dep.
 `,
@@ -922,7 +973,17 @@ sk_element(
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "nodejs_test", "sass_library", "ts_library")
+
+nodejs_test(
+    name = "alfa_nodejs_test",
+    src = "alfa_nodejs_test.ts",
+    deps = [
+        ":alfa_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
 
 sass_library(
     name = "alfa_sass_lib",
@@ -1064,7 +1125,13 @@ func TestGazelle_SomeSourceFilesRemoved_UpdatesOrDeletesBuildRules(t *testing.T)
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "karma_test", "sass_library", "ts_library")
+load("//infra-sk:index.bzl", "karma_test", "nodejs_test", "sass_library", "ts_library")
+
+# This target will be deleted because file alfa_nodejs_test.ts no longer exists.
+nodejs_test(
+    name = "alfa_nodejs_test",
+    src = "alfa_nodejs_test.ts",
+)
 
 sass_library(
     name = "alfa_sass_lib",
