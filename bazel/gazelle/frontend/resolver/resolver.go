@@ -244,8 +244,10 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 	switch r.Kind() {
 	case "karma_test":
 		// TODO(lovisolo): Implement.
+
 	case "nodejs_test":
 		// TODO(lovisolo): Implement.
+
 	case "sass_library":
 		var deps []label.Label
 		for _, importPath := range importsFromRuleSources.GetSassImports() {
@@ -265,7 +267,10 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 			deps = append(deps, dep)
 		}
 		setDeps(r, from, "deps", deps)
+
 	case "sk_element":
+		fallthrough
+	case "sk_page":
 		var skElementDeps, tsDeps, sassDeps []label.Label
 		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
 			for _, ruleKindAndLabel := range rslv.resolveDepsForTypeScriptImport(r.Kind(), from, importPath, c.RepoRoot) {
@@ -290,10 +295,10 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 		setDeps(r, from, "sk_element_deps", skElementDeps)
 		setDeps(r, from, "ts_deps", tsDeps)
 		setDeps(r, from, "sass_deps", sassDeps)
+
 	case "sk_element_puppeteer_test":
 		// TODO(lovisolo): Implement.
-	case "sk_page":
-		// TODO(lovisolo): Implement.
+
 	case "ts_library":
 		var deps []label.Label
 		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
