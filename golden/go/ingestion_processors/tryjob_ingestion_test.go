@@ -586,6 +586,105 @@ func TestTryjobSQL_Process_SomeDataExists_Success(t *testing.T) {
 	assert.Empty(t, sqltest.GetAllRows(ctx, t, db, "TiledTraceDigests", &schema.TiledTraceDigestRow{}))
 }
 
+func TestTryjobSQL_Process_PatchsetExistsAndSuppliedByOrder_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx := context.Background()
+	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
+	const qualifiedCL = "gerrit_CL_fix_ios"
+	const qualifiedPS = "gerrit_PS_fixes_ipad_but_not_iphone"
+	const qualifiedTJ = "buildbucket_tryjob_01_iphonergb"
+
+	// Load all the tables we write to with one existing row.
+	existingData := schema.Tables{
+		Changelists: []schema.ChangelistRow{{
+			ChangelistID:     qualifiedCL,
+			System:           dks.GerritCRS,
+			Status:           schema.StatusOpen,
+			OwnerEmail:       dks.UserOne,
+			Subject:          "Fix iOS [sentinel]",
+			LastIngestedData: time.Time{}, // should be updated.
+		}},
+		Patchsets: []schema.PatchsetRow{{
+			PatchsetID:                    qualifiedPS,
+			System:                        dks.GerritCRS,
+			ChangelistID:                  qualifiedCL,
+			Order:                         3,
+			GitHash:                       "ffff111111111111111111111111111111111111",
+			CommentedOnCL:                 true, // sentinel values
+			LastCheckedIfCommentNecessary: time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
+		}},
+	}
+	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
+
+	mcrs := &mock_crs.Client{}
+	mcis := &mock_cis.Client{}
+
+	mcis.On("GetTryJob", testutils.AnyContext, dks.Tryjob01IPhoneRGB).Return(ci.TryJob{
+		SystemID:    dks.Tryjob01IPhoneRGB,
+		System:      dks.BuildBucketCIS,
+		DisplayName: "Test-iPhone-RGB",
+	}, nil)
+
+	// This file has data from 3 traces across 2 corpora. The data is for the patchset with order 3.
+	src := fakeGCSSourceFromFile(t, "from_goldctl_patchset_order_provided.json")
+	gtp := initCaches(goldTryjobProcessor{
+		cisClients: map[string]ci.Client{
+			buildbucketCIS: mcis,
+		},
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: mcrs,
+			},
+		},
+		db:     db,
+		source: src,
+	})
+
+	ctx = overwriteNow(ctx, fakeIngestionTime)
+	err := gtp.Process(ctx, dks.Tryjob01FileIPhoneRGB)
+	require.NoError(t, err)
+
+	actualSourceFiles := sqltest.GetAllRows(ctx, t, db, "SourceFiles", &schema.SourceFileRow{}).([]schema.SourceFileRow)
+	assert.Equal(t, []schema.SourceFileRow{{
+		SourceFileID: h(dks.Tryjob01FileIPhoneRGB),
+		SourceFile:   dks.Tryjob01FileIPhoneRGB,
+		LastIngested: fakeIngestionTime,
+	}}, actualSourceFiles)
+
+	actualChangelists := sqltest.GetAllRows(ctx, t, db, "Changelists", &schema.ChangelistRow{}).([]schema.ChangelistRow)
+	assert.Equal(t, []schema.ChangelistRow{{
+		ChangelistID:     qualifiedCL,
+		System:           dks.GerritCRS,
+		Status:           schema.StatusOpen,
+		OwnerEmail:       dks.UserOne,
+		Subject:          "Fix iOS [sentinel]",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualChangelists)
+
+	actualPatchsets := sqltest.GetAllRows(ctx, t, db, "Patchsets", &schema.PatchsetRow{}).([]schema.PatchsetRow)
+	assert.Equal(t, []schema.PatchsetRow{{
+		PatchsetID:                    qualifiedPS,
+		System:                        dks.GerritCRS,
+		ChangelistID:                  qualifiedCL,
+		Order:                         3,
+		GitHash:                       "ffff111111111111111111111111111111111111",
+		CommentedOnCL:                 true,
+		LastCheckedIfCommentNecessary: time.Date(2021, time.March, 26, 13, 6, 3, 0, time.UTC),
+	}}, actualPatchsets)
+
+	actualTryjobs := sqltest.GetAllRows(ctx, t, db, "Tryjobs", &schema.TryjobRow{}).([]schema.TryjobRow)
+	assert.Equal(t, []schema.TryjobRow{{
+		TryjobID:         qualifiedTJ,
+		System:           dks.BuildBucketCIS,
+		ChangelistID:     qualifiedCL,
+		PatchsetID:       qualifiedPS,
+		DisplayName:      "Test-iPhone-RGB",
+		LastIngestedData: fakeIngestionTime,
+	}}, actualTryjobs)
+}
+
 func TestTryjobSQL_Process_UnknownCL_ReturnsNonretriableError(t *testing.T) {
 	unittest.LargeTest(t)
 
