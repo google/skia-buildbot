@@ -20,32 +20,35 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// targetDirectories is a set of known good directories for which we can currently generate valid
-// build targets. This Gazelle extension will not generate build targets for any other directories
-// in the repository.
-//
-// The value of this map indicates whether to recurse into the directory.
-//
-// TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
-var targetDirectories = map[string]bool{
-	// TODO(lovisolo): Populate.
+// Language implements the language.Language interface.
+type Language struct {
+	configurer.Configurer
+	resolver.Resolver
+
+	// TargetDirectories is a set of known good directories for which we can currently generate valid
+	// build targets. This Gazelle extension will not generate build targets for any other directories
+	// in the repository.
+	//
+	// The value of this map indicates whether to recurse into the directory.
+	//
+	// If nil, no directories will be ignored.
+	//
+	// TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
+	TargetDirectories map[string]bool
 }
 
 // isTargetDirectory returns true if this Gazelle extension should generate or update the BUILD file
 // in the given directory.
-func isTargetDirectory(dir string) bool {
-	for targetDir, recursive := range targetDirectories {
+func (l *Language) isTargetDirectory(dir string) bool {
+	if l.TargetDirectories == nil {
+		return true
+	}
+	for targetDir, recursive := range l.TargetDirectories {
 		if dir == targetDir || (recursive && strings.HasPrefix(dir, targetDir+"/")) {
 			return true
 		}
 	}
 	return false
-}
-
-// Language implements the language.Language interface.
-type Language struct {
-	configurer.Configurer
-	resolver.Resolver
 }
 
 // Kinds implements the language.Language interface.
@@ -163,7 +166,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 
 		// Limit generation of build targets to a hard-coded list of known good directories.
 		// TODO(lovisolo): Delete after this Gazelle extension is fully fleshed out.
-		if !isTargetDirectory(args.Rel) {
+		if !l.isTargetDirectory(args.Rel) {
 			return language.GenerateResult{}
 		}
 	}
