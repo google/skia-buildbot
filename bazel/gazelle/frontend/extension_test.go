@@ -39,6 +39,7 @@ func TestGazelle_NewSourceFilesAdded_GeneratesBuildRules(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
 	inputFiles := append([]testtools.FileSpec{
+		// Various files which are not part of an sk_element or an sk_page.
 		{
 			Path: "a/alfa.scss",
 			Content: `
@@ -74,6 +75,59 @@ import 'net'             // Built-in Node.js module.
 		{Path: "d_sass_lib/d.scss"},
 		// Will produce a ts_library with the same name as its parent folder ("d_ts_lib").
 		{Path: "d_ts_lib/d.ts"},
+
+		// These files look like they might belong to an sk_element, but do not, because their parent
+		// directory does not follow the "<app>/modules/<element-name-sk>" pattern.
+		{Path: "echo-sk/echo-sk.scss"},
+		{Path: "echo-sk/echo-sk.ts"},
+		{Path: "echo-sk/index.ts"},
+
+		// An sk_element.
+		{
+			Path:    "myapp/modules/foxtrot-sk/index.ts",
+			Content: `import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts`,
+		},
+		{
+			Path: "myapp/modules/foxtrot-sk/foxtrot-sk.scss",
+			Content: `
+@import 'wibble';                 // Resolves to myapp/modules/foxtrot-sk/wibble.scss.
+@import 'wobble/wubble';          // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
+@import '../golf-sk/golf-sk';     // Resolves to myapp/modules/golf-sk/golf-sk.scss.
+@import '../../../d_sass_lib/d';  // Resolves to d_sass_lib/d.scss.
+@import '~elements-sk/colors';    // Resolves to //infra-sk:elements-sk_scss.
+`,
+		},
+		{
+			Path: "myapp/modules/foxtrot-sk/foxtrot-sk.ts",
+			Content: `
+import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';            // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
+import 'lit-html';              // NPM import with built-in TypeScript annotations.
+import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
+import 'net'                    // Built-in Node.js module.
+`,
+		},
+		{Path: "myapp/modules/foxtrot-sk/wibble.scss"},
+		{Path: "myapp/modules/foxtrot-sk/wibble.ts"},
+		{Path: "myapp/modules/foxtrot-sk/wobble/wubble.scss"},
+		{Path: "myapp/modules/foxtrot-sk/wobble/wubble.ts"},
+
+		// This sk_element does not have an index.ts file.
+		{Path: "myapp/modules/golf-sk/golf-sk.scss"},
+		{
+			Path:    "myapp/modules/golf-sk/golf-sk.ts",
+			Content: `import '../hotel-sk'; // Resolves to myapp/modules/hotel-sk/index.ts.`,
+		},
+
+		// This sk_element does not have a Sass stylesheet.
+		{Path: "myapp/modules/hotel-sk/hotel-sk.ts"},
+		{Path: "myapp/modules/hotel-sk/index.ts"},
+
+		// This sk_element has neither an index.ts file nor a Sass stylesheet.
+		{Path: "myapp/modules/india-sk/india-sk.ts"},
 	}, makeBasicWorkspace()...)
 
 	expectedOutputFiles := []testtools.FileSpec{
@@ -190,6 +244,136 @@ ts_library(
 )
 `,
 		},
+		{
+			Path: "echo-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "echo-sk_sass_lib",
+    srcs = ["echo-sk.scss"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "echo-sk_ts_lib",
+    srcs = ["echo-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "index_ts_lib",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/foxtrot-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library", "sk_element", "ts_library")
+
+sk_element(
+    name = "foxtrot-sk",
+    sass_deps = [
+        "//d_sass_lib",
+        "//infra-sk:elements-sk_scss",
+        "//myapp/modules/foxtrot-sk/wobble:wubble_sass_lib",
+        ":wibble_sass_lib",
+    ],
+    sass_srcs = ["foxtrot-sk.scss"],
+    sk_element_deps = [
+        "//myapp/modules/golf-sk",
+        "//myapp/modules/hotel-sk",
+    ],
+    ts_deps = [
+        "//c:index_ts_lib",
+        "//d_ts_lib",
+        "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
+        ":wibble_ts_lib",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
+    ],
+    ts_srcs = [
+        "foxtrot-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "wibble_sass_lib",
+    srcs = ["wibble.scss"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "wibble_ts_lib",
+    srcs = ["wibble.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/foxtrot-sk/wobble/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "wubble_sass_lib",
+    srcs = ["wubble.scss"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "wubble_ts_lib",
+    srcs = ["wubble.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/golf-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "golf-sk",
+    sass_srcs = ["golf-sk.scss"],
+    sk_element_deps = ["//myapp/modules/hotel-sk"],
+    ts_srcs = ["golf-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/hotel-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "hotel-sk",
+    ts_srcs = [
+        "hotel-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/india-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "india-sk",
+    ts_srcs = ["india-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
 	}
 
 	test(t, inputFiles, expectedOutputFiles)
@@ -199,6 +383,7 @@ func TestGazelle_ImportsInSourceFilesChanged_UpdatesBuildRules(t *testing.T) {
 	unittest.BazelOnlyTest(t)
 
 	inputFiles := append([]testtools.FileSpec{
+		// Various files which are not part of an sk_element or an sk_page.
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
@@ -261,6 +446,103 @@ import 'lit-html';     // New import. Gazelle should add this dep.
 		{Path: "a/bravo.scss"},
 		{Path: "a/charlie.scss"},
 		{Path: "a/delta.scss"},
+
+		// An sk_element.
+		{
+			Path: "myapp/modules/echo-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "echo-sk",
+    sass_deps = [
+        "//a:alfa_sass_lib",  # Not imported from echo-sk.scss. Gazelle should remove this dep.
+        "//a:bravo_sass_lib",
+    ],
+    sass_srcs = ["echo-sk.scss"],
+    sk_element_deps = [
+        # Not imported from echo-sk.{scss,ts}. Gazelle should remove this dep.
+        "//myapp/modules/foxtrot-sk",
+        "//myapp/modules/golf-sk",
+    ],
+    ts_deps = [
+        # Not imported from echo-sk.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+    ],
+    ts_srcs = ["echo-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/echo-sk/echo-sk.scss",
+			Content: `
+@import '../../../a/bravo.scss';    // Existing import.
+@import '../../../a/charlie.scss';  // New import. Gazelle should add this dep.
+`,
+		},
+		{
+			Path: "myapp/modules/echo-sk/echo-sk.ts",
+			Content: `
+import '../golf-sk/golf-sk';    // Existing import.
+import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
+import 'elements-sk';           // Existing import.
+import 'lit-html';              // New import. Gazelle should add this dep.
+`,
+		},
+		{Path: "myapp/modules/echo-sk/index.ts"}, // This new file should be added to ts_srcs.
+
+		// An sk_element.
+		{
+			Path: "myapp/modules/foxtrot-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "foxtrot-sk",
+    sass_srcs = ["foxtrot-sk.scss"],
+    ts_srcs = ["foxtrot-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "myapp/modules/foxtrot-sk/foxtrot-sk.scss"},
+		{Path: "myapp/modules/foxtrot-sk/foxtrot-sk.ts"},
+
+		// An sk_element.
+		{
+			Path: "myapp/modules/golf-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "golf-sk",
+    sass_srcs = ["golf-sk.scss"],
+    ts_srcs = ["golf-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "myapp/modules/golf-sk/golf-sk.scss"},
+		{Path: "myapp/modules/golf-sk/golf-sk.ts"},
+
+		// An sk_element.
+		{
+			Path: "myapp/modules/hotel-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "hotel-sk",
+    sass_srcs = ["hotel-sk.scss"],
+    ts_srcs = ["hotel-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "myapp/modules/hotel-sk/hotel-sk.scss"},
+		{Path: "myapp/modules/hotel-sk/hotel-sk.ts"},
 	}, makeBasicWorkspace()...)
 
 	expectedOutputFiles := []testtools.FileSpec{
@@ -305,6 +587,34 @@ sass_library(
 sass_library(
     name = "delta_sass_lib",
     srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "myapp/modules/echo-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "echo-sk",
+    sass_deps = [
+        "//a:bravo_sass_lib",
+        "//a:charlie_sass_lib",
+    ],
+    sass_srcs = ["echo-sk.scss"],
+    sk_element_deps = [
+        "//myapp/modules/golf-sk",
+        "//myapp/modules/hotel-sk",
+    ],
+    ts_deps = [
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "echo-sk.ts",
+        "index.ts",
+    ],
     visibility = ["//visibility:public"],
 )
 `,
@@ -358,6 +668,39 @@ ts_library(
 		},
 		{Path: "a/alfa.scss"},
 		{Path: "a/alfa.ts"},
+		{
+			Path: "myapp/modules/charlie-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "charlie-sk",
+    sass_srcs = [
+        "charlie-sk.scss", # This file does not exist anymore. Gazelle should remove this entry.
+    ],
+    ts_srcs = [
+        "charlie-sk.ts",
+        "index.ts",  # This file does not exist anymore. Gazelle should remove this entry.
+    ],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "myapp/modules/charlie-sk/charlie-sk.ts"},
+		{
+			Path: "myapp/modules/delta-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+# This target will be deleted because its source files no longer exist.
+sk_element(
+    name = "delta-sk",
+    sass_srcs = ["delta-sk.scss"],
+    ts_srcs = ["delta-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
 	}, makeBasicWorkspace()...)
 
 	expectedOutputFiles := []testtools.FileSpec{
@@ -379,6 +722,19 @@ ts_library(
 )
 `,
 		},
+		{
+			Path: "myapp/modules/charlie-sk/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "charlie-sk",
+    ts_srcs = ["charlie-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{Path: "myapp/modules/delta-sk/BUILD.bazel"}, // Empty because its only rule was removed.
 	}
 
 	test(t, inputFiles, expectedOutputFiles)
