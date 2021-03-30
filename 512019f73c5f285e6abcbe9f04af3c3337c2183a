@@ -22,6 +22,30 @@
       },
       "revId": "512019f73c5f285e6abcbe9f04af3c3337c2183a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "bd331e9b_51996ef4",
+        "filename": "bazel/gazelle/frontend/resolver/resolver.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-30T18:49:53Z",
+      "side": 1,
+      "message": "Much better, thank you!",
+      "parentUuid": "99a8c685_6b955f0a",
+      "range": {
+        "startLine": 271,
+        "startChar": 8,
+        "endLine": 271,
+        "endChar": 12
+      },
+      "revId": "512019f73c5f285e6abcbe9f04af3c3337c2183a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
