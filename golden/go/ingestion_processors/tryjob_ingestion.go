@@ -287,13 +287,12 @@ func (g *goldTryjobProcessor) lookupCLAndPS(ctx context.Context, gr *jsonio.Gold
 	}
 
 	qualifiedCLID := sql.Qualify(system.ID, clID)
-	qualifiedPSID := sql.Qualify(system.ID, psID)
 
 	row := g.db.QueryRow(ctx, `SELECT count(*) FROM Changelists
 WHERE changelist_id = $1 AND system = $2`, qualifiedCLID, system.ID)
 	count := -1
 	if err := row.Scan(&count); err != nil {
-		sklog.Errorf("Error fetching CL %s", qualifiedCLID)
+		sklog.Errorf("Error fetching CL %s: %s", qualifiedCLID, err)
 		return "", "", ingestion.ErrRetryable
 	}
 	if count == 0 {
@@ -302,22 +301,21 @@ WHERE changelist_id = $1 AND system = $2`, qualifiedCLID, system.ID)
 			return "", "", skerr.Wrapf(err, "problem initializing CL %s", clID)
 		}
 	}
-
-	row = g.db.QueryRow(ctx, `SELECT count(*) FROM Patchsets
+	// We need to look up the PS ID to make sure it exists. Also, if the client gave us
+	row = g.db.QueryRow(ctx, `SELECT patchset_id FROM Patchsets
 WHERE changelist_id = $1 AND system = $2 AND (patchset_id = $3 OR ps_order = $4)`,
-		qualifiedCLID, system.ID, qualifiedPSID, psOrder)
-	count = -1
-	if err := row.Scan(&count); err != nil {
-		sklog.Errorf("Error fetching PS %s, %d for CL", qualifiedPSID, psOrder, qualifiedCLID)
+		qualifiedCLID, system.ID, sql.Qualify(system.ID, psID), psOrder)
+	qualifiedPSID := ""
+	if err := row.Scan(&qualifiedPSID); err != nil && err != pgx.ErrNoRows {
+		sklog.Errorf("Error fetching PS %s, %d for CL: %s and CRS", psID, psOrder, clID, system.ID, err)
 		return "", "", ingestion.ErrRetryable
 	}
-	if count == 0 {
+	if qualifiedPSID == "" {
 		// Look it up and store it if it exists.
-		psID, err := g.lookupAndCreatePS(ctx, system.Client, clID, psID, system.ID, psOrder)
+		qualifiedPSID, err = g.lookupAndCreatePS(ctx, system.Client, clID, psID, system.ID, psOrder)
 		if err != nil {
 			return "", "", skerr.Wrapf(err, "problem initializing PS %s-%s", clID, psID)
 		}
-		qualifiedPSID = psID
 	}
 	return qualifiedCLID, qualifiedPSID, nil
 }
@@ -469,13 +467,13 @@ func (g *goldTryjobProcessor) lookupTryjob(ctx context.Context, gr *jsonio.GoldR
 WHERE tryjob_id = $1 AND system = $2`, qualifiedTJID, cisName)
 	count := -1
 	if err := row.Scan(&count); err != nil {
-		sklog.Errorf("Error fetching TJ %s", qualifiedTJID)
+		sklog.Errorf("Error fetching TJ %s: %s", qualifiedTJID, err)
 		return "", ingestion.ErrRetryable
 	}
 	if count == 0 {
 		// Look it up and store it if it exists.
 		if err := g.lookupAndCreateTryjob(ctx, system, clID, psID, tjID); err != nil {
-			return "", skerr.Wrapf(err, "problem initializing Tryjob %s", tjID)
+			return "", skerr.Wrapf(err, "problem initializing Tryjob %s for CL %s-%s", tjID, clID, psID)
 		}
 	}
 	return qualifiedTJID, nil
