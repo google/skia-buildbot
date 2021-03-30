@@ -72,6 +72,11 @@ func (l *Language) Kinds() map[string]rule.KindInfo {
 			MergeableAttrs: map[string]bool{"ts_srcs": true, "sass_srcs": true},
 			ResolveAttrs:   map[string]bool{"sass_deps": true, "sk_element_deps": true, "ts_deps": true},
 		},
+		"sk_element_puppeteer_test": {
+			NonEmptyAttrs:  map[string]bool{"src": true, "sk_demo_page_server": true},
+			MergeableAttrs: map[string]bool{"src": true, "sk_demo_page_server": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
 		"sk_page": {
 			NonEmptyAttrs:  map[string]bool{"html_file": true, "ts_entry_point": true, "scss_entry_point": true},
 			MergeableAttrs: map[string]bool{"html_file": true, "ts_entry_point": true, "scss_entry_point": true},
@@ -260,7 +265,7 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 	// sk_page and sk_demo_page_server rules.
 	customElementSrcs := &skElementSrcs{}
 	demoPageSrcs := &skPageSrcs{}
-	var skDemoPageServerRule *rule.Rule // We'll need it later for the Puppeteer test, if there's one.
+	skDemoPageServerLabel := label.NoLabel // We'll need this later for the Puppeteer test.
 	if isCustomElementDir {
 		// Iterate over all files and add them to the appropriate structs.
 		indexTsFound := false
@@ -301,6 +306,8 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			skDemoPageServerRule, i := generateSkDemoPageServerRule(label.Label{Repo: "", Pkg: "", Name: skPage.Name(), Relative: true})
 			rules = append(rules, skDemoPageServerRule)
 			imports = append(imports, i)
+
+			skDemoPageServerLabel = label.Label{Repo: "", Pkg: "", Name: skDemoPageServerRule.Name(), Relative: true}
 		}
 	}
 
@@ -319,8 +326,16 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_nodejs_test.ts") {
 			// TODO(lovisolo): Generate a nodejs_test rule.
-		} else if strings.HasSuffix(f, "_puppeteer_test.ts") && skDemoPageServerRule != nil {
-			// TODO(lovisolo): Generate an sk_element_puppeteer_test rule.
+		} else if strings.HasSuffix(f, "_puppeteer_test.ts") {
+			if skDemoPageServerLabel != label.NoLabel {
+				r, i := generateSkElementPuppeteerTestRule(f, args.Dir, skDemoPageServerLabel)
+				rules = append(rules, r)
+				imports = append(imports, i)
+			} else if isCustomElementDir {
+				log.Printf("Not generating an sk_element_puppeteer_test rule for %s because %s has no demo page.", filepath.Join(args.Rel, f), customElementName)
+			} else {
+				log.Printf("Not generating an sk_element_puppeteer_test rule for %s because %s does not follow the custom element directory naming convention (<app>/modules/<element name>-sk).", filepath.Join(args.Rel, f), args.Rel)
+			}
 		} else if strings.HasSuffix(f, "_test.ts") {
 			// TODO(lovisolo): Generate a karma_test rule.
 		} else if strings.HasSuffix(f, ".ts") {
@@ -505,6 +520,15 @@ func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsed
 	return rule, &importsParsedFromRuleSourcesImpl{sassImports: extractImportsFromSassFile(filepath.Join(dir, file))}
 }
 
+// generateSkElementPuppeteerTestRule generates a sk_element_puppeteer_test rule for the given
+// TypeScript file and sk_demo_page_server.
+func generateSkElementPuppeteerTestRule(file, dir string, skDemoPageServer label.Label) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("sk_element_puppeteer_test", makeRuleNameFromFileName(file, ""))
+	rule.SetAttr("src", file)
+	rule.SetAttr("sk_demo_page_server", skDemoPageServer.String())
+	return rule, &importsParsedFromRuleSourcesImpl{tsImports: extractImportsFromTypeScriptFile(filepath.Join(dir, file))}
+}
+
 // generateTSLibraryRule generates a ts_library rule for the given TypeScript file.
 func generateTSLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
 	rule := rule.NewRule("ts_library", makeRuleNameFromFileName(file, "_ts_lib"))
@@ -672,7 +696,8 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 		case "sk_element":
 			empty = !someFilesFound(curRule.AttrStrings("ts_srcs")...)
 		case "sk_element_puppeteer_test":
-			// TODO(lovisolo): Implement.
+			skDemoPageServer := parseRelLabelFromAttribute(curRule, "sk_demo_page_server")
+			empty = !allFilesFound(curRule.AttrString("src")) || !ruleFound("sk_demo_page_server", skDemoPageServer) || isEmptyRule("sk_demo_page_server", skDemoPageServer)
 		case "sk_page":
 			empty = !allFilesFound(curRule.AttrString("html_file"), curRule.AttrString("ts_entry_point"))
 		case "ts_library":
