@@ -171,7 +171,8 @@ func (rslv *Resolver) Imports(c *config.Config, r *rule.Rule, f *rule.File) []re
 		importPaths := extractTypeScriptImportsProvidedByRule(f.Pkg, r, "srcs")
 		rslv.indexImportsProvidedByRule("ts", importPaths, r.Kind(), ruleLabel)
 	case "sass_library":
-		// TODO(lovisolo): Implement.
+		importPaths := extractSassImportsProvidedByRule(f.Pkg, r, "srcs")
+		rslv.indexImportsProvidedByRule("sass", importPaths, r.Kind(), ruleLabel)
 	case "sk_element":
 		// TODO(lovisolo): Implement.
 	}
@@ -206,6 +207,20 @@ func extractTypeScriptImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr s
 	return importPaths
 }
 
+// extractTypeScriptImportsProvidedByRule takes a rule with Sass sources (e.g. "sass_library",
+// "sk_element", etc.) and returns the paths of the imports that the source files may satisfy.
+func extractSassImportsProvidedByRule(pkg string, r *rule.Rule, srcsAttr string) []string {
+	var importPaths []string
+	for _, src := range r.AttrStrings(srcsAttr) {
+		if !strings.HasSuffix(src, ".scss") {
+			log.Printf("Rule %s of kind %s contains a non-Sass file in its %s attribute: %s", label.New("", pkg, r.Name()).String(), r.Kind(), srcsAttr, src)
+			continue
+		}
+		importPaths = append(importPaths, path.Join(pkg, strings.TrimSuffix(src, path.Ext(src))))
+	}
+	return importPaths
+}
+
 // Embeds implements the resolve.Resolver interface.
 func (rslv *Resolver) Embeds(r *rule.Rule, from label.Label) []label.Label { return nil }
 
@@ -229,7 +244,15 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 	case "nodejs_test":
 		// TODO(lovisolo): Implement.
 	case "sass_library":
-		// TODO(lovisolo): Implement.
+		var deps []label.Label
+		for _, importPath := range importsFromRuleSources.GetSassImports() {
+			ruleKindAndLabel := rslv.resolveDepForSassImport(r.Kind(), from, importPath)
+			if ruleKindAndLabel == noRuleKindAndLabel {
+				continue // No rule satisfies the current Sass import. A warning has already been logged.
+			}
+			deps = append(deps, ruleKindAndLabel.label)
+		}
+		setDeps(r, from, "deps", deps)
 	case "sk_element":
 		// TODO(lovisolo): Implement.
 	case "sk_element_puppeteer_test":
@@ -267,6 +290,30 @@ func setDeps(r *rule.Rule, l label.Label, depsAttr string, deps []label.Label) {
 		sort.Strings(depsAsStrings)
 		r.SetAttr(depsAttr, depsAsStrings)
 	}
+}
+
+// resolveDepForSassImport returns the label of the rule that resolves the given Sass import.
+func (rslv *Resolver) resolveDepForSassImport(ruleKind string, ruleLabel label.Label, importPath string) ruleKindAndLabel {
+	// The elements-sk styles are a special case because they come from a genrule that copies them
+	// from //infra-sk/node_modules/elements-sk into //bazel-bin/~elements-sk. These styles can be
+	// accessed via the //infra-sk:elements-sk_scss sass_library.
+	if strings.HasPrefix(importPath, "~elements-sk") {
+		return ruleKindAndLabel{
+			kind:  "sass_library",
+			label: label.New("", "infra-sk", "elements-sk_scss"),
+		}
+	}
+
+	// Sass always resolves imports relative to the current file first, so we normalize the import
+	// path relative to the current directory, e.g. "../bar" imported from "myapp/foo" becomes
+	// "myapp/bar".
+	//
+	// Reference:
+	// https://sass-lang.com/documentation/at-rules/use#load-paths
+	// https://sass-lang.com/documentation/at-rules/import#load-paths
+	normalizedImportPath := path.Join(ruleLabel.Pkg, strings.TrimSuffix(importPath, path.Ext(importPath)))
+
+	return rslv.findRuleThatProvidesImport("sass", normalizedImportPath, ruleKind, ruleLabel)
 }
 
 // resolveDepsForTypeScriptImport returns the labels of the rules that resolve the given TypeScript

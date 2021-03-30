@@ -40,6 +40,16 @@ func TestGazelle_NewSourceFilesAdded_GeneratesBuildRules(t *testing.T) {
 
 	inputFiles := append([]testtools.FileSpec{
 		{
+			Path: "a/alfa.scss",
+			Content: `
+@import 'bravo';                // Resolves to a/bravo.scss.
+@import 'b/charlie';            // Resolves to a/b/charlie.scss.
+@import '../c/delta';           // Resolves to c/delta.scss.
+@import '../d_sass_lib/d';      // Resolves to d_sass_lib/d.scss.
+@import '~elements-sk/colors';  // Resolves to //infra-sk:elements-sk_scss.
+`,
+		},
+		{
 			Path: "a/alfa.ts",
 			Content: `
 import './bravo';        // Resolves to a/bravo.ts.
@@ -52,11 +62,16 @@ import 'puppeteer';      // NPM import with a separate @types/puppeteer package.
 import 'net'             // Built-in Node.js module.
 `,
 		},
+		{Path: "a/bravo.scss"},
 		{Path: "a/bravo.ts"},
+		{Path: "a/b/charlie.scss"},
 		{Path: "a/b/charlie.ts"},
+		{Path: "c/delta.scss"},
 		{Path: "c/delta.ts"},
 		// Empty file which may be imported as its parent folder's "main" module.
 		{Path: "c/index.ts"},
+		// Will produce a sass_library with the same as its parent folder ("d_sass_lib").
+		{Path: "d_sass_lib/d.scss"},
 		// Will produce a ts_library with the same name as its parent folder ("d_ts_lib").
 		{Path: "d_ts_lib/d.ts"},
 	}, makeBasicWorkspace()...)
@@ -65,7 +80,20 @@ import 'net'             // Built-in Node.js module.
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "alfa_sass_lib",
+    srcs = ["alfa.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":bravo_sass_lib",
+        "//a/b:charlie_sass_lib",
+        "//c:delta_sass_lib",
+        "//d_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
+)
 
 ts_library(
     name = "alfa_ts_lib",
@@ -83,6 +111,12 @@ ts_library(
     ],
 )
 
+sass_library(
+    name = "bravo_sass_lib",
+    srcs = ["bravo.scss"],
+    visibility = ["//visibility:public"],
+)
+
 ts_library(
     name = "bravo_ts_lib",
     srcs = ["bravo.ts"],
@@ -93,7 +127,13 @@ ts_library(
 		{
 			Path: "a/b/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "charlie_sass_lib",
+    srcs = ["charlie.scss"],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
     name = "charlie_ts_lib",
@@ -105,7 +145,13 @@ ts_library(
 		{
 			Path: "c/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "delta_sass_lib",
+    srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
     name = "delta_ts_lib",
@@ -116,6 +162,18 @@ ts_library(
 ts_library(
     name = "index_ts_lib",
     srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "d_sass_lib/BUILD.bazel",
+			Content: `
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "d_sass_lib",
+    srcs = ["d.scss"],
     visibility = ["//visibility:public"],
 )
 `,
@@ -144,17 +202,53 @@ func TestGazelle_ImportsInSourceFilesChanged_UpdatesBuildRules(t *testing.T) {
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "alfa_sass_lib",
+    srcs = ["alfa.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":bravo_sass_lib",  # Not imported from alfa.scss. Gazelle should remove this dep.
+        ":charlie_sass_lib",
+    ],
+)
 
 ts_library(
     name = "alfa_ts_lib",
     srcs = ["alfa.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "@infra-sk_npm//common-sk",    # Not imported from alfa.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//common-sk",  # Not imported from alfa.ts. Gazelle should remove this dep.
         "@infra-sk_npm//elements-sk",
     ],
 )
+
+sass_library(
+    name = "bravo_sass_lib",
+    srcs = ["bravo.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "charlie_sass_lib",
+    srcs = ["charlie.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "delta_sass_lib",
+    srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+		{
+			Path: "a/alfa.scss",
+			Content: `
+@import 'charlie';              // Existing import.
+@import 'delta';                // New import. Gazelle should add this dep.
+@import '~elements-sk/colors';  // New import. Gazelle should add this dep.
 `,
 		},
 		{
@@ -164,13 +258,27 @@ import 'elements-sk';  // Existing import.
 import 'lit-html';     // New import. Gazelle should add this dep.
 `,
 		},
+		{Path: "a/bravo.scss"},
+		{Path: "a/charlie.scss"},
+		{Path: "a/delta.scss"},
 	}, makeBasicWorkspace()...)
 
 	expectedOutputFiles := []testtools.FileSpec{
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "alfa_sass_lib",
+    srcs = ["alfa.scss"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":charlie_sass_lib",
+        ":delta_sass_lib",
+        "//infra-sk:elements-sk_scss",
+    ],
+)
 
 ts_library(
     name = "alfa_ts_lib",
@@ -180,6 +288,24 @@ ts_library(
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
+)
+
+sass_library(
+    name = "bravo_sass_lib",
+    srcs = ["bravo.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "charlie_sass_lib",
+    srcs = ["charlie.scss"],
+    visibility = ["//visibility:public"],
+)
+
+sass_library(
+    name = "delta_sass_lib",
+    srcs = ["delta.scss"],
+    visibility = ["//visibility:public"],
 )
 `,
 		},
@@ -195,7 +321,16 @@ func TestGazelle_SomeSourceFilesRemoved_UpdatesOrDeletesBuildRules(t *testing.T)
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "alfa_sass_lib",
+    srcs = [
+        "alfa.scss",
+        "bravo.scss",  # This file was deleted. Gazelle should remove this dep.
+    ],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
     name = "alfa_ts_lib",
@@ -207,6 +342,13 @@ ts_library(
 )
 
 # This target will be deleted because its source files no longer exist.
+sass_library(
+    name = "bravo_sass_lib",
+    srcs = ["bravo.scss"],
+    visibility = ["//visibility:public"],
+)
+
+# This target will be deleted because its source files no longer exist.
 ts_library(
     name = "bravo_ts_lib",
     srcs = ["bravo.ts"],
@@ -214,6 +356,7 @@ ts_library(
 )
 `,
 		},
+		{Path: "a/alfa.scss"},
 		{Path: "a/alfa.ts"},
 	}, makeBasicWorkspace()...)
 
@@ -221,7 +364,13 @@ ts_library(
 		{
 			Path: "a/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "ts_library")
+
+sass_library(
+    name = "alfa_sass_lib",
+    srcs = ["alfa.scss"],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
     name = "alfa_ts_lib",
