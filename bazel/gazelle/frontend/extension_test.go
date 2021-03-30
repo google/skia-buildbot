@@ -141,6 +141,22 @@ import 'puppeteer';             // NPM import with a separate @types/puppeteer p
 import 'net'                    // Built-in Node.js module.
 `,
 		},
+		{
+			Path: "myapp/modules/foxtrot-sk/foxtrot-sk_puppeteer_test.ts",
+			Content: `
+import './foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.ts.
+
+// The below imports are copied from foxtrot-sk.ts.
+import './wibble';              // Resolves to myapp/modules/foxtrot-sk/wibble.ts.
+import './wobble/wubble';       // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.ts.
+import '../hotel-sk/hotel-sk';  // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
+import '../../../c';            // Resolves to c/index.ts.
+import '../../../d_ts_lib/d';   // Resolves to d_ts_lib/d.ts.
+import 'lit-html';              // NPM import with built-in TypeScript annotations.
+import 'puppeteer';             // NPM import with a separate @types/puppeteer package.
+import 'net'                    // Built-in Node.js module.
+`,
+		},
 		{Path: "myapp/modules/foxtrot-sk/wibble.scss"},
 		{Path: "myapp/modules/foxtrot-sk/wibble.ts"},
 		{Path: "myapp/modules/foxtrot-sk/wobble/wubble.scss"},
@@ -328,7 +344,7 @@ ts_library(
 		{
 			Path: "myapp/modules/foxtrot-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element", "sk_page", "ts_library")
+load("//infra-sk:index.bzl", "sass_library", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -389,6 +405,23 @@ sk_page(
         "@infra-sk_npm//puppeteer",
     ],
     ts_entry_point = "foxtrot-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "foxtrot-sk_puppeteer_test",
+    src = "foxtrot-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":foxtrot-sk",
+        ":wibble_ts_lib",
+        "//c:index_ts_lib",
+        "//d_ts_lib",
+        "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
+        "//myapp/modules/hotel-sk",
+        "@infra-sk_npm//@types/puppeteer",
+        "@infra-sk_npm//lit-html",
+        "@infra-sk_npm//puppeteer",
+    ],
 )
 
 sass_library(
@@ -614,7 +647,7 @@ import 'lit-html';     // New import. Gazelle should add this dep.
 		{
 			Path: "myapp/modules/echo-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "echo-sk",
@@ -659,6 +692,21 @@ sk_page(
     ts_entry_point = "echo-sk-demo.ts",
 )
 
+sk_element_puppeteer_test(
+    name = "echo-sk_puppeteer_test",
+    src = "echo-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":echo-sk",
+        # Not imported from echo-sk_puppeteer_test.ts. Gazelle should remove this dep.
+        "//myapp/modules/foxtrot-sk",
+        "//myapp/modules/golf-sk",
+        # Not imported from echo-sk_puppeteer_test.ts. Gazelle should remove this dep.
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+    ],
+)
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":echo-sk-demo",
@@ -693,6 +741,16 @@ import 'lit-html';              // New import. Gazelle should add this dep.
 		},
 		{
 			Path: "myapp/modules/echo-sk/echo-sk-demo.ts",
+			Content: `
+import './echo-sk';             // Existing import.
+import '../golf-sk/golf-sk';    // Existing import.
+import '../hotel-sk/hotel-sk';  // New import. Gazelle should add this dep.
+import 'elements-sk';           // Existing import.
+import 'lit-html';              // New import. Gazelle should add this dep.
+`,
+		},
+		{
+			Path: "myapp/modules/echo-sk/echo-sk_puppeteer_test.ts",
 			Content: `
 import './echo-sk';             // Existing import.
 import '../golf-sk/golf-sk';    // Existing import.
@@ -803,7 +861,7 @@ sass_library(
 		{
 			Path: "myapp/modules/echo-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "echo-sk",
@@ -845,6 +903,19 @@ sk_page(
         "@infra-sk_npm//lit-html",
     ],
     ts_entry_point = "echo-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "echo-sk_puppeteer_test",
+    src = "echo-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        ":echo-sk",
+        "//myapp/modules/golf-sk",
+        "//myapp/modules/hotel-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
 )
 
 sk_demo_page_server(
@@ -905,7 +976,7 @@ ts_library(
 		{
 			Path: "myapp/modules/charlie-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 sk_element(
     name = "charlie-sk",
@@ -927,6 +998,13 @@ sk_page(
     ts_entry_point = "charlie-sk-demo.ts",
 )
 
+# This target will be deleted because file charlie-sk_puppeteer_test.ts no longer exists.
+sk_element_puppeteer_test(
+    name = "charlie-sk_puppeteer_test",
+    src = "charlie-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+)
+
 sk_demo_page_server(
     name = "demo_page_server",
     sk_page = ":charlie-sk-demo",
@@ -939,7 +1017,7 @@ sk_demo_page_server(
 		{
 			Path: "myapp/modules/delta-sk/BUILD.bazel",
 			Content: `
-load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
 
 # This target will be deleted because its source files no longer exist.
 sk_element(
@@ -957,6 +1035,13 @@ sk_page(
     ts_entry_point = "delta-sk-demo.ts",
 )
 
+# This target will be deleted because its sk_demo_page_server will be deleted as well.
+sk_element_puppeteer_test(
+    name = "delta-sk_puppeteer_test",
+    src = "delta-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+)
+
 # This target will be deleted because its sk_page will be deleted as well.
 sk_demo_page_server(
     name = "demo_page_server",
@@ -964,6 +1049,7 @@ sk_demo_page_server(
 )
 `,
 		},
+		{Path: "myapp/modules/delta-sk/delta-sk_puppeteer_test.ts"},
 	}, makeBasicWorkspace()...)
 
 	expectedOutputFiles := []testtools.FileSpec{
