@@ -56,6 +56,11 @@ type Language struct {
 // kinds of rules generated for this language may be found here.
 func (l *Language) Kinds() map[string]rule.KindInfo {
 	return map[string]rule.KindInfo{
+		"sass_library": {
+			NonEmptyAttrs:  map[string]bool{"srcs": true},
+			MergeableAttrs: map[string]bool{"srcs": true},
+			ResolveAttrs:   map[string]bool{"deps": true},
+		},
 		"ts_library": {
 			NonEmptyAttrs:  map[string]bool{"srcs": true},
 			MergeableAttrs: map[string]bool{"srcs": true},
@@ -236,7 +241,9 @@ func (l *Language) GenerateRules(args language.GenerateArgs) language.GenerateRe
 		}
 
 		if strings.HasSuffix(f, ".scss") {
-			// TODO(lovisolo): Generate a sass_library rule.
+			r, i := generateSassLibraryRule(f, args.Dir)
+			rules = append(rules, r)
+			imports = append(imports, i)
 		} else if strings.HasSuffix(f, "_nodejs_test.ts") {
 			// TODO(lovisolo): Generate a nodejs_test rule.
 		} else if strings.HasSuffix(f, "_puppeteer_test.ts") && skDemoPageServerRule != nil {
@@ -365,6 +372,14 @@ func (p *skPageSrcs) has(src string) bool {
 	return src == p.html || src == p.ts || src == p.scss
 }
 
+// generateSassLibraryRule generates a sass_library rule for the given Sass file.
+func generateSassLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
+	rule := rule.NewRule("sass_library", makeRuleNameFromFileName(file, "_sass_lib"))
+	rule.SetAttr("srcs", []string{file})
+	rule.SetAttr("visibility", []string{"//visibility:public"})
+	return rule, &importsParsedFromRuleSourcesImpl{sassImports: extractImportsFromSassFile(filepath.Join(dir, file))}
+}
+
 // generateTSLibraryRule generates a ts_library rule for the given TypeScript file.
 func generateTSLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFromRuleSources) {
 	rule := rule.NewRule("ts_library", makeRuleNameFromFileName(file, "_ts_lib"))
@@ -377,6 +392,16 @@ func generateTSLibraryRule(file, dir string) (*rule.Rule, common.ImportsParsedFr
 func makeRuleNameFromFileName(file, suffix string) string {
 	file = strings.ToLower(path.Base(file))
 	return strings.TrimSuffix(file, filepath.Ext(file)) + suffix
+}
+
+// extractImportsFromSassFile returns the verbatim paths of the import statements found in the given
+// Sass file.
+func extractImportsFromSassFile(path string) []string {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Panicf("Error reading file %q: %v", path, err)
+	}
+	return parsers.ParseSassImports(string(b[:]))
 }
 
 // extractImportsFromTypeScriptFile returns the verbatim paths of the import statements found in the
@@ -433,7 +458,7 @@ func generateEmptyRules(args language.GenerateArgs) []*rule.Rule {
 		case "nodejs_test":
 			// TODO(lovisolo): Implement.
 		case "sass_library":
-			// TODO(lovisolo): Implement.
+			empty = !someFilesFound(curRule.AttrStrings("srcs")...)
 		case "sk_demo_page_server":
 			// TODO(lovisolo): Implement.
 		case "sk_element":
