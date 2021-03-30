@@ -241,12 +241,14 @@ func (rslv *Resolver) Embeds(r *rule.Rule, from label.Label) []label.Label { ret
 func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.RemoteCache, r *rule.Rule, imports interface{}, from label.Label) {
 	importsFromRuleSources := imports.(common.ImportsParsedFromRuleSources)
 
-	switch r.Kind() {
-	case "karma_test":
+	switch {
+	case r.Kind() == "karma_test":
 		// TODO(lovisolo): Implement.
-	case "nodejs_test":
+
+	case r.Kind() == "nodejs_test":
 		// TODO(lovisolo): Implement.
-	case "sass_library":
+
+	case r.Kind() == "sass_library":
 		var deps []label.Label
 		for _, importPath := range importsFromRuleSources.GetSassImports() {
 			ruleKindAndLabel := rslv.resolveDepForSassImport(r.Kind(), from, importPath)
@@ -265,7 +267,8 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 			deps = append(deps, dep)
 		}
 		setDeps(r, from, "deps", deps)
-	case "sk_element":
+
+	case r.Kind() == "sk_element" || r.Kind() == "sk_page":
 		var skElementDeps, tsDeps, sassDeps []label.Label
 		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
 			for _, ruleKindAndLabel := range rslv.resolveDepsForTypeScriptImport(r.Kind(), from, importPath, c.RepoRoot) {
@@ -290,11 +293,11 @@ func (rslv *Resolver) Resolve(c *config.Config, _ *resolve.RuleIndex, _ *repo.Re
 		setDeps(r, from, "sk_element_deps", skElementDeps)
 		setDeps(r, from, "ts_deps", tsDeps)
 		setDeps(r, from, "sass_deps", sassDeps)
-	case "sk_element_puppeteer_test":
+
+	case r.Kind() == "sk_element_puppeteer_test":
 		// TODO(lovisolo): Implement.
-	case "sk_page":
-		// TODO(lovisolo): Implement.
-	case "ts_library":
+
+	case r.Kind() == "ts_library":
 		var deps []label.Label
 		for _, importPath := range importsFromRuleSources.GetTypeScriptImports() {
 			for _, ruleKindAndLabel := range rslv.resolveDepsForTypeScriptImport(r.Kind(), from, importPath, c.RepoRoot) {
