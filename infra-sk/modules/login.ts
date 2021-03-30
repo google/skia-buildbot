@@ -36,7 +36,7 @@ export const Login = fetch('https://skia.org/loginstatus/', {
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export const LoginTo = function(loginStatusURL) {
+export const LoginTo = function(loginStatusURL: string) {
   return fetch(loginStatusURL, {
     credentials: 'include',
   }).then((res) => {
@@ -48,6 +48,6 @@ export const LoginTo = function(loginStatusURL) {
 };
 
 // Add to the global sk namespace while we migrate away from Polymer.
-if (window.sk !== undefined) {
-  window.sk.Login = Login;
+if ((window as any).sk !== undefined) {
+  (window as any).sk.Login = Login;
 }

@@ -29,7 +29,7 @@ Add flags to your main package like:
 
 Call `common.InitWithMust([opt], [opt])` in your main function.
 
-Use `go.skia.org/infra/go/login` paired with `../../../infra-sk/modules/login.js`
+Use `go.skia.org/infra/go/login` paired with `../../../infra-sk/modules/login.ts`
 (Legacy Polymer apps use `res/imp/login.html`) and/or
 `go.skia.org/infra/go/webhook` for authentication.
 When using OAuth, see the secrets section below for including client secrets.
