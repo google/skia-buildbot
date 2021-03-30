@@ -12,7 +12,7 @@
  *
  *   html`user input: ${escapeAndLinkify(untrustedUserInput)}`;
  */
-export function escapeAndLinkify(s) {
+export function escapeAndLinkify(s: string): HTMLDivElement | string {
   if (!s) {
     return '';
   }

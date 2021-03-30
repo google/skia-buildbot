@@ -1,4 +1,5 @@
 import { escapeAndLinkify } from './linkify';
+import { expect } from 'chai';
 
 describe('formatAndLinkify', function() {
   it('wraps links in anchor tags', function() {
@@ -52,6 +53,6 @@ describe('formatAndLinkify', function() {
   });
 });
 
-const test = (input, output) => {
-  expect(escapeAndLinkify(input).innerHTML).to.equal(output);
+const test = (input: string, output: string) => {
+  expect((escapeAndLinkify(input) as HTMLDivElement).innerHTML).to.equal(output);
 };
