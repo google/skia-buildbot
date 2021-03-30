@@ -34,6 +34,10 @@ import {                                           // This comment should be ign
   bar,                                             // This comment should be ignored.
 } from "path/to/p";                                // This comment should be ignored.
 
+// CSS and Sass imports should be ignored.
+import 'styles/a.css';
+import 'styles/b.scss';
+
 // Duplicate imports should be ignored.
 import 'path/to/a';
 

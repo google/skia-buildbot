@@ -52,6 +52,14 @@ var tsImportRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^\s*import\s*"(?P<path>.*)"`), // Double quotes.
 }
 
+// ignoredTsImportsRegexp matches import paths that should be ignored, namely CSS and Sass imports.
+// Importing CSS and Sass files from TypeScript files is a Webpack idiom that both the TypeScript
+// compiler and our front-end BUILD rules ignore, in favor of other mechanisms such as the
+// sass_deps and sk_element_deps in various rules, and "ghost" Sass imports.
+//
+// See the sk_element macro definition for more, or go/skia-infra-bazel-frontend for the design.
+var ignoredTsImportsRegexp = regexp.MustCompile(`\.s?css$`)
+
 // ParseTSImports takes the contents of a TypeScript source file and extracts the verbatim paths of
 // any imported modules.
 func ParseTSImports(source string) []string {
@@ -70,10 +78,12 @@ func ParseTSImports(source string) []string {
 		}
 	}
 
-	// Sort imports lexicographically.
+	// Filter out ignored imports, and sort imports lexicographically.
 	var imports []string
 	for path := range importsSet {
-		imports = append(imports, path)
+		if !ignoredTsImportsRegexp.MatchString(path) {
+			imports = append(imports, path)
+		}
 	}
 	sort.Strings(imports)
 
