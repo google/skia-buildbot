@@ -272,6 +272,20 @@ func (d *docSet) copyAndPatch(ctx context.Context, issue codereview.Issue, patch
 	return nil
 }
 
+// fileExists returns true if a file exists and is not a directory.
+//
+// Note that fileutil.FileExists doesn't do the directory test.
+func fileExists(filename string) bool {
+	fi, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	if fi.IsDir() {
+		return false
+	}
+	return true
+}
+
 // copyFilesAsLinks creates a copy of the directory 'src' in 'dst' using
 // symlinks.
 func copyFilesAsLinks(src, dst string) error {
@@ -294,8 +308,10 @@ func copyFilesAsLinks(src, dst string) error {
 		}
 		srcFile := filepath.Join(src, relativePath)
 		dstFile := filepath.Join(dst, relativePath)
-		if err := os.Remove(dstFile); err != nil {
-			sklog.Warningf("Failed to remove %q: %s", dstFile, err)
+		if fileExists(dstFile) {
+			if err := os.Remove(dstFile); err != nil {
+				sklog.Warningf("Failed to remove %q: %s", dstFile, err)
+			}
 		}
 		if err := os.Symlink(srcFile, dstFile); err != nil {
 			return skerr.Wrapf(err, "Failed to create symlink for %q", relativePath)
