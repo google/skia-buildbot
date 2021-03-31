@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a6fa5d00_e384f627",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2021-03-31T19:11:44Z",
+      "side": 1,
+      "message": "This is the final switch that makes skia.org serve the new site.",
+      "revId": "579f0b43c9b96ed04d44a50bbc60716e165eaddc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    }
+  ]
+}
