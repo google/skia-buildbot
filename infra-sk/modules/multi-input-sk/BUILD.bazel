@@ -2,37 +2,36 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":theme-chooser-sk-demo",
+    sk_page = ":multi-input-sk-demo",
 )
 
 sk_element(
-    name = "theme-chooser-sk",
+    name = "multi-input-sk",
     sass_deps = ["//infra-sk:elements-sk_scss"],
-    sass_srcs = ["theme-chooser-sk.scss"],
+    sass_srcs = ["multi-input-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
         "index.ts",
-        "theme-chooser-sk.ts",
+        "multi-input-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "theme-chooser-sk-demo",
-    html_file = "theme-chooser-sk-demo.html",
-    sass_deps = ["//infra-sk:elements-sk_scss"],
-    scss_entry_point = "theme-chooser-sk-demo.scss",
-    sk_element_deps = [":theme-chooser-sk"],
-    ts_entry_point = "theme-chooser-sk-demo.ts",
+    name = "multi-input-sk-demo",
+    html_file = "multi-input-sk-demo.html",
+    sk_element_deps = [":multi-input-sk"],
+    ts_entry_point = "multi-input-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "theme-chooser-sk_puppeteer_test",
-    src = "theme-chooser-sk_puppeteer_test.ts",
+    name = "multi-input-sk_puppeteer_test",
+    src = "multi-input-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
@@ -42,12 +41,13 @@ sk_element_puppeteer_test(
 )
 
 karma_test(
-    name = "theme-chooser-sk_test",
-    src = "theme-chooser-sk_test.ts",
+    name = "multi-input-sk_test",
+    src = "multi-input-sk_test.ts",
     deps = [
-        ":theme-chooser-sk",
+        ":multi-input-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//chai",
+        "@infra-sk_npm//common-sk",
     ],
 )
