@@ -29,13 +29,15 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
 		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
-			PatchsetNewImages: 2, // DigestC07Unt_CL and DigestC06Pos_CL
-			// Despite the fact the CL also produced DigestC05Unt, C05 is already on the primary branch
-			// and should thus be excluded from the TotalNewUntriagedImages. Only 1 of the two
-			// CLs "new images" is untriaged, so that's what we report.
-			PatchsetNewUntriagedImages: 1,
-			PatchsetID:                 dks.PatchSetIDFixesIPadButNotIPhone,
-			PatchsetOrder:              3,
+			NewImages: 2, // DigestC07Unt_CL and DigestC06Pos_CL
+			// Only 1 of the two CLs "new images" is untriaged, so that's what we report.
+			NewUntriagedImages: 1,
+			// In addition to DigestC07Unt_CL, this PS produces DigestC05Unt and DigestB01Pos
+			// (the latter is incorrectly triaged as untriaged on this CL). C05 was produced
+			// by a ignored trace, so it shouldn't be counted.
+			TotalUntriagedImages: 2,
+			PatchsetID:           dks.PatchSetIDFixesIPadButNotIPhone,
+			PatchsetOrder:        3,
 		}},
 	}, rv)
 }
@@ -58,17 +60,21 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 			// One grouping (Text-Seven) produced one image that had not been seen on that grouping
 			// before (DigestBlank). This digest *had* been seen on the primary branch in a
 			// different grouping, but that should not prevent us from letting a developer know.
-			PatchsetNewImages:          1,
-			PatchsetNewUntriagedImages: 1,
-			PatchsetID:                 dks.PatchsetIDAddsNewCorpus,
-			PatchsetOrder:              1,
+			NewImages:          1,
+			NewUntriagedImages: 1,
+			// Two circle tests are producing DigestC03Unt and DigestC04Unt
+			TotalUntriagedImages: 3,
+			PatchsetID:           dks.PatchsetIDAddsNewCorpus,
+			PatchsetOrder:        1,
 		}, {
 			// Two groupings (Text-Seven and Round-RoundRect) produced 1 and 3 new digests
 			// respectively. DigestE03Unt_CL remains untriaged.
-			PatchsetNewImages:          4,
-			PatchsetNewUntriagedImages: 1,
-			PatchsetID:                 dks.PatchsetIDAddsNewCorpusAndTest,
-			PatchsetOrder:              4,
+			NewImages:          4,
+			NewUntriagedImages: 1,
+			// Two circle tests are producing DigestC03Unt and DigestC04Unt
+			TotalUntriagedImages: 3,
+			PatchsetID:           dks.PatchsetIDAddsNewCorpusAndTest,
+			PatchsetOrder:        4,
 		}},
 	}, rv)
 }
@@ -118,15 +124,17 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
 		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
-			PatchsetNewImages:          0,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps1ID,
-			PatchsetOrder:              2,
+			NewImages:            0,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps1ID,
+			PatchsetOrder:        2,
 		}, {
-			PatchsetNewImages:          0,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps2ID,
-			PatchsetOrder:              12,
+			NewImages:            0,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps2ID,
+			PatchsetOrder:        12,
 		}},
 	}, rv)
 }
@@ -214,20 +222,23 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
 		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
-			PatchsetNewImages:          1,
-			PatchsetNewUntriagedImages: 1,
-			PatchsetID:                 ps1ID,
-			PatchsetOrder:              2,
+			NewImages:            1,
+			NewUntriagedImages:   1,
+			TotalUntriagedImages: 1,
+			PatchsetID:           ps1ID,
+			PatchsetOrder:        2,
 		}, {
-			PatchsetNewImages:          1,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps2ID,
-			PatchsetOrder:              4,
+			NewImages:            1,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps2ID,
+			PatchsetOrder:        4,
 		}, {
-			PatchsetNewImages:          0,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps3ID,
-			PatchsetOrder:              7,
+			NewImages:            0,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps3ID,
+			PatchsetOrder:        7,
 		}},
 	}, rv)
 }
@@ -245,12 +256,19 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 	ps1 := cl.AddPatchset(ps1ID, "5555555555555555555555555555555555555555", 1)
 	ps2 := cl.AddPatchset(ps2ID, "5555555555555555555555555555555555555555", 2)
 
+	// Force BlankDigest to be untriaged on the primary branch.
+	b.AddTriageEvent(dks.UserFour, "2021-03-30T00:00:00Z").
+		ExpectationsForGrouping(paramtools.Params{
+			types.CorpusField: dks.RoundCorpus, types.PrimaryKeyField: dks.CircleTest,
+		}).Triage(dks.DigestBlank, schema.LabelNegative, schema.LabelUntriaged)
+
 	ps1.DataWithCommonKeys(paramtools.Params{
 		dks.OSKey:        dks.AndroidOS,
 		dks.ColorModeKey: dks.RGBColorMode,
 	}).Digests(dks.DigestBlank, dks.DigestBlank, dks.DigestBlank, dks.DigestBlank, dks.DigestBlank, dks.DigestBlank).
 		Keys([]paramtools.Params{
 			// Blank has been seen on the triangle test before, so this shouldn't be counted
+			// except in the TotalUntriaged count.
 			{dks.DeviceKey: dks.WalleyeDevice, types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.TriangleTest},
 			// Blank has not been seen on the square or circle test before, so this should count
 			// as 2 new images (one per grouping).
@@ -270,7 +288,8 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 		dks.ColorModeKey: dks.RGBColorMode,
 	}).Digests(dks.DigestBlank, dks.DigestBlank, dks.DigestBlank).
 		Keys([]paramtools.Params{
-			// Again, not counted because blank has been seen on triangle.
+			// Again, not counted (except in TotalUntriaged) because blank has been seen for
+			// the triangle test on primary branch.
 			{dks.DeviceKey: dks.TaimenDevice, types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.TriangleTest},
 			// Should be ignored, so they shouldn't be added to the new image count.
 			{dks.DeviceKey: dks.TaimenDevice, types.CorpusField: dks.CornersCorpus, types.PrimaryKeyField: dks.SquareTest},
@@ -288,15 +307,17 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
 		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
-			PatchsetNewImages:          2,
-			PatchsetNewUntriagedImages: 2,
-			PatchsetID:                 ps1ID,
-			PatchsetOrder:              1,
+			NewImages:            2,
+			NewUntriagedImages:   2,
+			TotalUntriagedImages: 3,
+			PatchsetID:           ps1ID,
+			PatchsetOrder:        1,
 		}, {
-			PatchsetNewImages:          0,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps2ID,
-			PatchsetOrder:              2,
+			NewImages:            0,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 1,
+			PatchsetID:           ps2ID,
+			PatchsetOrder:        2,
 		}},
 	}, rv)
 }
@@ -366,20 +387,23 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
 		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
-			PatchsetNewImages:          1,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps1ID,
-			PatchsetOrder:              2,
+			NewImages:            1,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps1ID,
+			PatchsetOrder:        2,
 		}, {
-			PatchsetNewImages:          1,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps2ID,
-			PatchsetOrder:              4,
+			NewImages:            1,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps2ID,
+			PatchsetOrder:        4,
 		}, {
-			PatchsetNewImages:          1,
-			PatchsetNewUntriagedImages: 0,
-			PatchsetID:                 ps3ID,
-			PatchsetOrder:              7,
+			NewImages:            1,
+			NewUntriagedImages:   0,
+			TotalUntriagedImages: 0,
+			PatchsetID:           ps3ID,
+			PatchsetOrder:        7,
 		}},
 	}, rv)
 }
