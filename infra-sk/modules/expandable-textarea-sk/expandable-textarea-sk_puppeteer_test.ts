@@ -8,11 +8,13 @@ import {
 
 describe('expandable-textarea-sk', () => {
   let testBed: TestBed;
+
   before(async () => {
     testBed = await loadCachedTestBed(
         path.join(__dirname, '..', '..', 'webpack.config.ts')
     );
   });
+
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/expandable-textarea-sk.html`);
     await testBed.page.setViewport({ width: 400, height: 500 });
