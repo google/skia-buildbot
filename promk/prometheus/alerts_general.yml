@@ -794,7 +794,7 @@ groups:
       description: '{{ $labels.app }} is experiencing high traffic on {{ $labels.route }} https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldheavytraffic'
 
   - alert: GoldDiffCalcFailures
-    expr: delta(diffcalculator_nack{}[10m])/(delta(diffcalculator_ack{}[10m])+delta(diffcalculator_nack{}[10m])) > .01
+    expr: delta(diffcalculator_nack{}[30m])/(delta(diffcalculator_ack{}[30m])+delta(diffcalculator_nack{}[30m])) > .01
     labels:
       category: infra
       severity: critical
@@ -804,14 +804,14 @@ groups:
       description: '{{ $labels.app }} is failing to calculate diffs for more than 1 percent of requests https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#golddiffcalcfailures'
 
   - alert: GoldIngestionFailures
-    expr: delta(gold_ingestion_nack{}[10m])/(delta(gold_ingestion_ack{}[10m])+delta(gold_ingestion_nack{}[10m])) > .01
+    expr: delta(gold_ingestion_failure{}[10m])/(delta(gold_ingestion_success{}[10m])+delta(gold_ingestion_failure{}[10m])) > .1
     labels:
       category: infra
       severity: critical
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} is failing to ingest more than 1 percent of files https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldingestionfailures'
+      description: '{{ $labels.app }} is failing to ingest more than 10 percent of files https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldingestionfailures'
 
 
 # Velero Backup
