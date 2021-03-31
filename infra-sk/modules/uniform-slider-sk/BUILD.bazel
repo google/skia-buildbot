@@ -2,35 +2,38 @@ load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", 
 
 sk_demo_page_server(
     name = "demo_page_server",
-    sk_page = ":{{.ElementName}}-demo",
+    sk_page = ":uniform-slider-sk-demo",
 )
 
 sk_element(
-    name = "{{.ElementName}}",
-    sass_srcs = ["{{.ElementName}}.scss"],
+    name = "uniform-slider-sk",
+    sass_deps = ["//infra-sk:elements-sk_scss"],
+    sass_srcs = ["uniform-slider-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "@infra-sk_npm//common-sk",
         "@infra-sk_npm//elements-sk",
         "@infra-sk_npm//lit-html",
     ],
     ts_srcs = [
-        "{{.ElementName}}.ts",
         "index.ts",
+        "uniform-slider-sk.ts",
     ],
     visibility = ["//visibility:public"],
 )
 
 sk_page(
-    name = "{{.ElementName}}-demo",
-    html_file = "{{.ElementName}}-demo.html",
-    scss_entry_point = "{{.ElementName}}-demo.scss",
-    sk_element_deps = [":{{.ElementName}}"],
-    ts_entry_point = "{{.ElementName}}-demo.ts",
+    name = "uniform-slider-sk-demo",
+    html_file = "uniform-slider-sk-demo.html",
+    sk_element_deps = [":uniform-slider-sk"],
+    ts_deps = ["@infra-sk_npm//common-sk"],
+    ts_entry_point = "uniform-slider-sk-demo.ts",
 )
 
 sk_element_puppeteer_test(
-    name = "{{.ElementName}}_puppeteer_test",
-    src = "{{.ElementName}}_puppeteer_test.ts",
+    name = "uniform-slider-sk_puppeteer_test",
+    src = "uniform-slider-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//puppeteer-tests:util_ts_lib",
@@ -40,10 +43,10 @@ sk_element_puppeteer_test(
 )
 
 karma_test(
-    name = "{{.ElementName}}_test",
-    src = "{{.ElementName}}_test.ts",
+    name = "uniform-slider-sk_test",
+    src = "uniform-slider-sk_test.ts",
     deps = [
-        ":{{.ElementName}}",
+        ":uniform-slider-sk",
         "//infra-sk/modules:test_util_ts_lib",
         "@infra-sk_npm//@types/chai",
         "@infra-sk_npm//chai",
