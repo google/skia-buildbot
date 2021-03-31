@@ -9,9 +9,9 @@ go_library(
     deps = [
         "//go/skerr",
         "//golden/go/sql",
-        "//golden/go/sql/schema",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@io_opencensus_go//trace",
+        "@org_golang_x_sync//errgroup",
     ],
 )
 
@@ -20,9 +20,12 @@ go_test(
     srcs = ["search2_test.go"],
     embed = [":search2"],
     deps = [
+        "//go/paramtools",
         "//go/testutils/unittest",
         "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",
+        "//golden/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

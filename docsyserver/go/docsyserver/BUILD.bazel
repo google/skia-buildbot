@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "docsyserver_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/docsyserver/go/docsyserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//docsyserver/go/codereview",
+        "//docsyserver/go/codereview/gerrit",
+        "//docsyserver/go/docset",
+        "//docsyserver/go/docsy",
+        "//go/common",
+        "//go/httputils",
+        "//go/login",
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_fiorix_go_web//autogzip",
+        "@com_github_gorilla_mux//:mux",
+    ],
+)
+
+go_binary(
+    name = "docsyserver",
+    embed = [":docsyserver_lib"],
+    visibility = ["//visibility:public"],
+)

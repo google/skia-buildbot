@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "gerrit",
+    srcs = ["gerrit.go"],
+    importpath = "go.skia.org/infra/docsyserver/go/codereview/gerrit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//docsyserver/go/codereview",
+        "//go/auth",
+        "//go/gerrit",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+    ],
+)
+
+go_test(
+    name = "gerrit_test",
+    srcs = ["gerrit_test.go"],
+    embed = [":gerrit"],
+    deps = [
+        "//docsyserver/go/codereview",
+        "//go/gerrit",
+        "//go/gerrit/mocks",
+        "//go/testutils",
+        "//go/testutils/unittest",
+        "@com_github_stretchr_testify//require",
+    ],
+)
