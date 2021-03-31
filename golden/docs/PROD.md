@@ -311,7 +311,7 @@ It is best to look at the logs for the app (e.g. gold-skia-ingestion) to see the
 
 The alert is set up to look at the percentage of failures over the last 10 minutes.
 
-Key metrics: gold_ingestion_nack, gold_ingestion_ack
+Key metrics: gold_ingestion_failure, gold_ingestion_success
 
 Backups
 =======
