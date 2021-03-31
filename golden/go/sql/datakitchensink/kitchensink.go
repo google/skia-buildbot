@@ -13,6 +13,14 @@ import (
 
 // Build creates a set of data that covers many common testing scenarios.
 func Build() schema.Tables {
+	base := RawBuilder()
+	return base.Build()
+}
+
+// RawBuilder returns the builder underlying Build(). It can be useful for tests to add a small
+// tweak to this existing data and then rebuild (For example, in tests where there doesn't need to
+// be any new digests).
+func RawBuilder() databuilder.TablesBuilder {
 	b := databuilder.TablesBuilder{TileWidth: 5}
 	// This data set has data on 10 commits and no data on 3 commits in the middle.
 	// Intentionally put these commits such that they straddle a tile.
@@ -428,8 +436,7 @@ func Build() schema.Tables {
 		}).Triage(DigestE03Unt_CL, schema.LabelNegative, schema.LabelUntriaged)
 
 	b.ComputeDiffMetricsFromImages(getImgDirectory(), "2020-12-12T12:12:12Z")
-
-	return b.Build()
+	return b
 }
 
 // getImgDirectory returns the path to the img directory in this folder that is friendly to both

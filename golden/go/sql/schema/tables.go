@@ -621,19 +621,25 @@ type TiledTraceDigestRow struct {
 	// Digest is the MD5 hash of the pixel data; this is "what was drawn" at least once in the tile
 	// specified by StartCommitID and by the machine (specified by TraceID).
 	Digest DigestBytes `sql:"digest BYTES NOT NULL"`
+	// GroupingID is the grouping of the trace.
+	GroupingID GroupingID `sql:"grouping_id BYTES NOT NULL"`
 	// We generally want locality by TraceID, so that goes first in the primary key.
 	primaryKey struct{} `sql:"PRIMARY KEY (trace_id, tile_id, digest)"`
+
+	// This index makes it easier to answer the question "What digests are being produced by
+	// a given grouping on the primary branch).
+	ignoredGroupingIndex struct{} `sql:"INDEX grouping_digest_idx (grouping_id, digest)"`
 }
 
 // ToSQLRow implements the sqltest.SQLExporter interface.
 func (r TiledTraceDigestRow) ToSQLRow() (colNames []string, colData []interface{}) {
-	return []string{"trace_id", "tile_id", "digest"},
-		[]interface{}{r.TraceID, r.TileID, r.Digest}
+	return []string{"trace_id", "tile_id", "digest", "grouping_id"},
+		[]interface{}{r.TraceID, r.TileID, r.Digest, r.GroupingID}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TiledTraceDigestRow) ScanFrom(scan func(...interface{}) error) error {
-	return scan(&r.TraceID, &r.TileID, &r.Digest)
+	return scan(&r.TraceID, &r.TileID, &r.Digest, &r.GroupingID)
 }
 
 // RowsOrderBy implements the sqltest.RowsOrder interface.
