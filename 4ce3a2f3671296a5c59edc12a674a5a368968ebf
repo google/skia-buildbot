@@ -22,6 +22,30 @@
       },
       "revId": "4ce3a2f3671296a5c59edc12a674a5a368968ebf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "68093d33_a8e0b618",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2021-03-31T16:48:32Z",
+      "side": 1,
+      "message": "Probably. I also added a call to this.computeResize() from the minRows setter.",
+      "parentUuid": "5efc0f22_6876f215",
+      "range": {
+        "startLine": 70,
+        "startChar": 2,
+        "endLine": 70,
+        "endChar": 3
+      },
+      "revId": "4ce3a2f3671296a5c59edc12a674a5a368968ebf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02"
     }
   ]
 }
