@@ -1,0 +1,41 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":uniform-fps-sk-demo",
+)
+
+sk_element(
+    name = "uniform-fps-sk",
+    sass_srcs = ["uniform-fps-sk.scss"],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/fps:fps_ts_lib",
+        "//infra-sk/modules/uniform:uniform_ts_lib",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "uniform-fps-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "uniform-fps-sk-demo",
+    html_file = "uniform-fps-sk-demo.html",
+    sk_element_deps = [":uniform-fps-sk"],
+    ts_entry_point = "uniform-fps-sk-demo.ts",
+)
+
+karma_test(
+    name = "uniform-fps-sk_test",
+    src = "uniform-fps-sk_test.ts",
+    deps = [
+        ":uniform-fps-sk",
+        "//infra-sk/modules:test_util_ts_lib",
+        "@infra-sk_npm//@types/chai",
+        "@infra-sk_npm//chai",
+    ],
+)
